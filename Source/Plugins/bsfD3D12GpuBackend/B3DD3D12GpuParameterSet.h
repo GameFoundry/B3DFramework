@@ -4,7 +4,6 @@
 
 #include "B3DD3D12Prerequisites.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
-#include "GpuBackend/B3DGpuShaderBindings.h"
 
 namespace b3d
 {
@@ -44,13 +43,15 @@ namespace b3d
 				const D3D12DescriptorSetLayout& descriptorSetLayout, const UnorderedMap<u32, u32>* dynamicOffsets = nullptr);
 
 			/**
-			 * Outputs all image and shader resources referenced by this set, along with their access/stage flags.
+			 * Tracks the resources consumed by the active pipeline. Execute queued barriers before their use.
 			 *
 			 * @param	pipelineSetLayout	Active pipeline's layout for this set. Resources are matched against this
 			 *								layout by slot and tracked only in the shader stages that consume each binding.
-			 * @param	outBindings			List to which to append all bindings from this set.
+			 * @param	resourceTracker		Tracker retaining resources and recording their accesses.
+			 * @param	barrierHelper		Receives synchronization required before use.
+			 * @return						False if shader accesses overlap a writable attachment.
 			 */
-			void CollectBindings(const GpuPipelineParameterSetLayout& pipelineSetLayout, GpuShaderBindings& outBindings);
+			bool TrackResources(const GpuPipelineParameterSetLayout& pipelineSetLayout, D3D12ResourceTracker& resourceTracker, D3D12BarrierHelper& barrierHelper);
 
 			/**
 			 * @name GpuParameterSet Interface

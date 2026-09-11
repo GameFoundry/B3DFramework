@@ -232,11 +232,13 @@ namespace b3d
 			void BindVertexInputs();
 
 			/**
-			 * Binds the currently stored GPU parameter sets, if dirty. @p isGraphics selects whether the sets are bound
-			 * to the graphics or the compute root signature; both pipeline types can be bound on the command buffer
-			 * simultaneously, so the bind point cannot be inferred from the command buffer's state alone.
+			 * Binds the currently stored GPU parameter sets, if dirty, and tracks compute accesses on every call.
+			 * @p isGraphics selects whether the sets are bound to the graphics or the compute root signature;
+			 * both pipeline types can be bound on the command buffer simultaneously, so the bind point cannot
+			 * be inferred from the command buffer's state alone.
+			 * Returns false if the pipeline layout is unavailable or resource usage is invalid.
 			 */
-			void BindGpuParameterSets(bool isGraphics);
+			bool BindGpuParameterSets(bool isGraphics);
 
 			/** Uploads the cached push-constant block for the selected pipeline bind point. */
 			void BindPushConstants(bool isGraphics);
@@ -305,7 +307,6 @@ namespace b3d
 			GpuPushConstantPayload mPushConstants;
 
 			Vector<TShared<D3D12GpuParameters>> mBoundParameterSets; /**< Bound parameter sets, indexed by set. */
-			GpuShaderBindings mShaderBindings; /**< Cached resource accesses from the bound parameter sets. */
 			TShared<RenderTarget> mRenderTarget;
 
 			/**

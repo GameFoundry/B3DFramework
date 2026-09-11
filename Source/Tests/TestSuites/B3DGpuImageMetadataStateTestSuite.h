@@ -30,6 +30,8 @@ namespace b3d
 
 		/** Verifies shader-binding validation is distinct from sequential operations and repeated writes remain ordered. */
 		void TestShaderBindingAccess();
-		void TestShaderBindingReuse();
+
+		/** Verifies repeated compute reads avoid barriers and accesses after intervening operations are synchronized. */
+		void TestComputeAccessTracking();
 	};
 }

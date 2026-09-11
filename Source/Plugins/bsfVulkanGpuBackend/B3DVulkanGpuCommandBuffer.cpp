@@ -339,12 +339,13 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 	const u32 colorAttachmentCount = renderPass->GetColorAttachmentCount();
 	const GpuRenderPassAttachmentUsageArray renderPassAttachmentUsages = mFramebuffer->BuildRenderPassAttachmentUsages(readOnlyMask, loadMask, VulkanFramebuffer::GetLayoutPolicy());
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	mDrawAccessValidator.BeginRenderPass();
+#endif
 	mResourceTracker.PrepareRenderPass(renderPassAttachmentUsages);
 
 	if(swapChain)
 		mResourceTracker.TrackSwapChainUsage(swapChain);
-
-	mShaderBindings.Clear();
 
 	// Pre-register all GPU parameters before the render pass, so we can automatically issue barriers
 	for(const TShared<GpuParameterSet>& parameters : createInformation.Parameters)
@@ -357,11 +358,9 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 		cacheData.DynamicOffsets.clear();
 
 		VulkanGpuParameterSet* vkParams = static_cast<VulkanGpuParameterSet*>(parameters.get());
-		vkParams->PrepareForBind(mResourceTracker, mShaderBindings, cacheData.DynamicOffsets, cacheData.DescriptorSet);
+		if(!vkParams->PrepareForBind(mResourceTracker, mBarrierHelper, cacheData.DynamicOffsets, cacheData.DescriptorSet))
+			return;
 	}
-
-	if(!mResourceTracker.TrackShaderAndAttachmentAccesses(mShaderBindings, mBarrierHelper))
-		return;
 
 	const TArrayView<const GpuResolvedRenderPassAttachmentUsage> resolvedAttachments = mResourceTracker.BeginRenderPass(mBarrierHelper);
 	B3D_ASSERT(resolvedAttachments.size() == renderPassAttachmentUsages.size());
@@ -774,6 +773,9 @@ void VulkanGpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanc
 {
 	EnsureValidThread();
 
+	if(vertexCount == 0)
+		return;
+
 	B3D_ENSURE(IsInRenderPass());
 
 	if(!IsReadyForRender())
@@ -816,6 +818,11 @@ void VulkanGpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanc
 
 	if(instanceCount <= 0)
 		instanceCount = 1;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	if(!ValidateDrawAccesses())
+		return;
+#endif
 
 	vkCmdDraw(mCommandBufferHandle, vertexCount, instanceCount, vertexOffset, firstInstance);
 	NotifyRenderTargetModified();
@@ -874,6 +881,11 @@ void VulkanGpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 ver
 
 	if(instanceCount <= 0)
 		instanceCount = 1;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	if(!ValidateDrawAccesses())
+		return;
+#endif
 
 	vkCmdDrawIndexed(mCommandBufferHandle, indexCount, instanceCount, startIndex, vertexOffset, firstInstance);
 	NotifyRenderTargetModified();
@@ -1854,11 +1866,13 @@ bool VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParamete
 {
 	B3D_ASSERT(pipelineParameterLayout != nullptr);
 
-	if(!mBoundParamsDirty)
-		return IsInRenderPass() || mResourceTracker.TrackShaderAndAttachmentAccesses(mShaderBindings, barrierHelper);
+	if(!mBoundParamsDirty && IsInRenderPass())
+		return true;
 
-	if(!IsInRenderPass())
-		mShaderBindings.Clear();
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	if(IsInRenderPass())
+		mDrawAccessValidator.ClearBindings();
+#endif
 
 	mBoundDescriptorSetCount = 0;
 
@@ -1878,6 +1892,11 @@ bool VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParamete
 		const TShared<VulkanGpuParameterSet>& boundGpuParameterSet = mBoundGpuParameterSets[set];
 		if(boundGpuParameterSet != nullptr)
 		{
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			if(IsInRenderPass())
+				mDrawAccessValidator.AddParameterSet(*boundGpuParameterSet, *pipelineParameterLayout->GetSet(set));
+#endif
+
 			TInlineArray<u32, 4> setDynamicOffsets;
 
 			auto it = mRenderPassGpuParameterSetCache.find(boundGpuParameterSet.get());
@@ -1899,8 +1918,9 @@ bool VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParamete
 					return false;
 				}
 
-				// Outside of a render pass sets are prepared on bind, and their accesses are tracked once all sets are prepared
-				boundGpuParameterSet->PrepareForBind(mResourceTracker, mShaderBindings, setDynamicOffsets, mDescriptorSetsTemp[set]);
+				// Compute accesses are tracked on every dispatch, even if descriptor contents are unchanged.
+				if(!boundGpuParameterSet->PrepareForBind(mResourceTracker, barrierHelper, setDynamicOffsets, mDescriptorSetsTemp[set]))
+					return false;
 			}
 
 			// Apply per-set dynamic offset overrides
@@ -1914,9 +1934,6 @@ bool VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParamete
 			mBoundDescriptorSetCount++;
 		}
 	}
-
-	if(!IsInRenderPass() && !mResourceTracker.TrackShaderAndAttachmentAccesses(mShaderBindings, barrierHelper))
-		return false;
 
 	RebuildFlatDynamicOffsets();
 	mBoundParamsDirty = false;

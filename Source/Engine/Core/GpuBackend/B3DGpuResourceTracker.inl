@@ -146,7 +146,6 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackBufferAccess(IGpuBuffer
 	if(access.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
 	{
 		PendingHazardRegistration registration;
-		registration.Resource = buffer;
 		registration.State = hazardState;
 		registration.AccessStageFlags = stages;
 		registration.Access = access;
@@ -279,6 +278,7 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::EndRenderPass()
 	}
 
 	mActiveRenderPassAttachments.Clear();
+	mAttachmentsNeedingAccess = 0;
 	mRenderPassTrackingPhase = RenderPassTrackingPhase::Inactive;
 }
 
@@ -311,93 +311,49 @@ GpuImageLayout TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveShaderImage
 }
 
 template<class TDerived, class TBarrierHelper>
-bool TGpuResourceTracker<TDerived, TBarrierHelper>::TrackShaderAndAttachmentAccesses(GpuShaderBindings& bindings, TBarrierHelper& barrierHelper)
+void TGpuResourceTracker<TDerived, TBarrierHelper>::InvalidateRenderPassAttachmentAccess(IGpuImageResource* image)
 {
-	const bool changed = bindings.Changed;
-	if(changed)
-	{
-		bindings.Finalize();
-
-		for(const GpuShaderBindings::ImageBinding& binding : bindings.Images)
-			if(!TrackImageUsage(binding.Image, binding.Range, binding.Layout, binding.Usage, binding.Access, barrierHelper, true))
-				return false;
-
-		for(const GpuShaderBindings::BufferBinding& binding : bindings.Buffers)
-			TrackBufferAccess(binding.Buffer, GpuBackendUtility::GetStageFlags(binding.Usage), binding.Access, barrierHelper, binding.Offset);
-	}
-	else
-	{
-		const TArrayView<const u32> imageIndicesWithWriteAccess = bindings.GetImageIndicesWithWriteAccess();
-		const TArrayView<const u32> bufferIndicesWithWriteAccess = bindings.GetBufferIndicesWithWriteAccess();
-
-		// Any images or buffer write write access set for shader bindings needs to be re-applied, each draw/dispatch is assumed to perform the write
-		for(u32 bindingIndex : imageIndicesWithWriteAccess)
-		{
-			const GpuShaderBindings::ImageBinding& binding = bindings.Images[bindingIndex];
-			if(!TrackImageUsage(binding.Image, binding.Range, binding.Layout, binding.Usage, binding.Access, barrierHelper, false))
-				return false;
-		}
-
-		for(u32 bindingIndex : bufferIndicesWithWriteAccess)
-		{
-			const GpuShaderBindings::BufferBinding& binding = bindings.Buffers[bindingIndex];
-			TrackBufferAccess(binding.Buffer, GpuBackendUtility::GetStageFlags(binding.Usage), binding.Access, barrierHelper, binding.Offset);
-		}
-
-		// Certain images/buffer can be written due without having declared write access directly. This can be caused by meta-data transitions or an internal operations such as executing a clear operating using a compute shader
-		if(mShaderBindingsNeedRefresh && mInvalidatedShaderBindingResources.size() != 0)
-		{
-			// TODO: This needs a more optimized approach, so we don't iterate every single binding
-			for(u32 bindingIndex = 0; bindingIndex < (u32)bindings.Images.size(); bindingIndex++)
-			{
-				const GpuShaderBindings::ImageBinding& binding = bindings.Images[bindingIndex];
-				if(std::find(mInvalidatedShaderBindingResources.begin(), mInvalidatedShaderBindingResources.end(), binding.Image) != mInvalidatedShaderBindingResources.end() && std::find(imageIndicesWithWriteAccess.begin(), imageIndicesWithWriteAccess.end(), bindingIndex) == imageIndicesWithWriteAccess.end())
-					if(!TrackImageUsage(binding.Image, binding.Range, binding.Layout, binding.Usage, binding.Access, barrierHelper, false))
-						return false;
-			}
-
-			for(u32 bindingIndex = 0; bindingIndex < (u32)bindings.Buffers.size(); bindingIndex++)
-			{
-				const GpuShaderBindings::BufferBinding& binding = bindings.Buffers[bindingIndex];
-				if(std::find(mInvalidatedShaderBindingResources.begin(), mInvalidatedShaderBindingResources.end(), binding.Buffer) != mInvalidatedShaderBindingResources.end() && std::find(bufferIndicesWithWriteAccess.begin(), bufferIndicesWithWriteAccess.end(), bindingIndex) == bufferIndicesWithWriteAccess.end())
-					TrackBufferAccess(binding.Buffer, GpuBackendUtility::GetStageFlags(binding.Usage), binding.Access, barrierHelper, binding.Offset);
-			}
-		}
-	}
-
-	// Restore attachment access after intervening operations.
-	if(changed || mShaderBindingsNeedRefresh)
-	{
-		for(const GpuResolvedRenderPassAttachmentUsage& attachment : mActiveRenderPassAttachments)
-		{
-			const GpuStageFlags stages = GpuBackendUtility::GetStageFlags(attachment.UseFlags);
-			const GpuImageTrackingState& imageTrackingState = GetImageTrackingState(attachment.Image);
-			for(u32 rangeIndex = 0; rangeIndex < imageTrackingState.SubresourceInfoCount; rangeIndex++)
-			{
-				const u32 subresourceIndex = imageTrackingState.FirstSubresourceInfoIndex + rangeIndex;
-				const GpuImageSubresourceTrackingState& trackingState = mSubresourceTrackingState[subresourceIndex];
-				if(!GpuBackendUtility::RangeOverlaps(trackingState.Range, attachment.Range))
-					continue;
-
-				const GpuResourceWriteEpochHazardState& hazards = trackingState.HazardState->LastWriteEpochHazardState;
-
-				// Consecutive attachment writes are ordered by the render pass. An intervening reader or other writer ends that run and we must explicitly track usage.
-				if(attachment.Access.IsSet(GpuAccessFlag::Write) && hazards.WriteStages == stages && hazards.ReaderStages == GpuStageFlag::None && hazards.VisibleStages == GpuStageFlag::None && trackingState.CurrentLayout == attachment.Layout)
-					continue;
-
-				TrackSubresourceUsage(attachment.Image, subresourceIndex, attachment.Layout, stages, attachment.Access, barrierHelper, GpuImageBarrierFlag::None);
-			}
-		}
-	}
-
-	mIsShaderBindingEpoch = true; // True until we execute the barrier
-	bindings.Changed = false;
-
-	return true;
+	for(u32 attachmentIndex = 0; attachmentIndex < mActiveRenderPassAttachments.Size(); attachmentIndex++)
+		if(mActiveRenderPassAttachments[attachmentIndex].Image == image)
+			mAttachmentsNeedingAccess |= 1u << attachmentIndex;
 }
 
 template<class TDerived, class TBarrierHelper>
-bool TGpuResourceTracker<TDerived, TBarrierHelper>::TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, bool addUsedImage)
+void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackRenderPassAttachmentAccesses(TBarrierHelper& barrierHelper)
+{
+	if(mAttachmentsNeedingAccess == 0)
+		return;
+
+	const u32 pendingAttachments = mAttachmentsNeedingAccess;
+	mAttachmentsNeedingAccess = 0;
+	for(u32 attachmentIndex = 0; attachmentIndex < mActiveRenderPassAttachments.Size(); attachmentIndex++)
+	{
+		if((pendingAttachments & (1u << attachmentIndex)) == 0)
+			continue;
+
+		const GpuResolvedRenderPassAttachmentUsage& attachment = mActiveRenderPassAttachments[attachmentIndex];
+		const GpuStageFlags stages = GpuBackendUtility::GetStageFlags(attachment.UseFlags);
+		const GpuImageTrackingState& imageTrackingState = GetImageTrackingState(attachment.Image);
+		for(u32 rangeIndex = 0; rangeIndex < imageTrackingState.SubresourceInfoCount; rangeIndex++)
+		{
+			const u32 subresourceIndex = imageTrackingState.FirstSubresourceInfoIndex + rangeIndex;
+			const GpuImageSubresourceTrackingState& trackingState = mSubresourceTrackingState[subresourceIndex];
+			if(!GpuBackendUtility::RangeOverlaps(trackingState.Range, attachment.Range))
+				continue;
+
+			const GpuResourceWriteEpochHazardState& hazards = trackingState.HazardState->LastWriteEpochHazardState;
+
+			// Consecutive attachment writes are ordered by the render pass. An intervening reader or other writer ends that run and we must explicitly track usage.
+			if(attachment.Access.IsSet(GpuAccessFlag::Write) && hazards.WriteStages == stages && hazards.ReaderStages == GpuStageFlag::None && hazards.VisibleStages == GpuStageFlag::None && trackingState.CurrentLayout == attachment.Layout)
+				continue;
+
+			TrackSubresourceUsage(attachment.Image, subresourceIndex, attachment.Layout, stages, attachment.Access, barrierHelper, GpuImageBarrierFlag::None);
+		}
+	}
+}
+
+template<class TDerived, class TBarrierHelper>
+bool TGpuResourceTracker<TDerived, TBarrierHelper>::TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper)
 {
 	if(image == nullptr)
 		return true;
@@ -486,7 +442,7 @@ bool TGpuResourceTracker<TDerived, TBarrierHelper>::TrackImageUsage(IGpuImageRes
 
 	}, &callbackParameters);
 
-	if(callbackParameters.Valid && addUsedImage)
+	if(callbackParameters.Valid)
 		RegisterImageSubresources(image, subresourceRange, accessFlags);
 
 	return callbackParameters.Valid;
@@ -572,11 +528,6 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitImageBarrier(IG
 	if(image == nullptr)
 		return;
 
-	// TODO - This unconditional invalidation can probably be removed: layout changes and native meta-data writes already invalidate their resources. Revisit after the current review and retest explicit barriers before removing it.
-	// A layout-only barrier can invalidate a cached descriptor access without registering a write.
-	if(std::find(mInvalidatedShaderBindingResources.begin(), mInvalidatedShaderBindingResources.end(), image) == mInvalidatedShaderBindingResources.end())
-		mInvalidatedShaderBindingResources.Add(image);
-
 	struct CallbackParameters
 	{
 		TGpuResourceTracker* Tracker;
@@ -631,9 +582,9 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::QueueRequiredImageBarrier(IG
 		return;
 	}
 
-	// A copy source can change layout without a write registration. Its cached shader access must be restored too.
-	if(needsLayoutTransition && std::find(mInvalidatedShaderBindingResources.begin(), mInvalidatedShaderBindingResources.end(), image) == mInvalidatedShaderBindingResources.end())
-		mInvalidatedShaderBindingResources.Add(image);
+	// If something other than attachment stages are using an attachment, we need to invalidate it so access is re-issued before next draw, so any barriers are correctly issued. This is a special case done only by some backends (e.g. a compute shader clear in the middle of a render pass)
+	if(destinationStages != GpuBackendUtility::GetStageFlags(GpuResourceUseFlag::ColorAttachment) && destinationStages != GpuBackendUtility::GetStageFlags(GpuResourceUseFlag::DepthStencilAttachment))
+		InvalidateRenderPassAttachmentAccess(image);
 
 	// A layout transition is potentially a write operation, so it must be ordered after both earlier reads and writes,
 	// even when the upcoming resource access itself is read-only.
@@ -684,7 +635,6 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackSubresourceUsage(IGpuIm
 	{
 		PendingHazardRegistration registration;
 		registration.State = hazardState;
-		registration.Resource = image;
 		registration.MetadataState = subresourceTrackingState.MetadataState.get();
 		registration.AccessStageFlags = stages;
 		registration.Access = accessFlags;
@@ -1113,19 +1063,10 @@ template<class TDerived, class TBarrierHelper>
 void TGpuResourceTracker<TDerived, TBarrierHelper>::CommitPendingAccesses()
 {
 	for(const PendingHazardRegistration& registration : mPendingHazardRegistrations)
-	{
 		registration.State->RecordAccess(registration.AccessStageFlags, registration.Access);
-		if(!mIsShaderBindingEpoch && registration.Access.IsSet(GpuAccessFlag::Write) && std::find(mInvalidatedShaderBindingResources.begin(), mInvalidatedShaderBindingResources.end(), registration.Resource) == mInvalidatedShaderBindingResources.end())
-			mInvalidatedShaderBindingResources.Add(registration.Resource);
-	}
 
 	mPendingHazardRegistrations.clear();
 	mEpoch++;
-	mShaderBindingsNeedRefresh = !mIsShaderBindingEpoch;
-	if(mIsShaderBindingEpoch)
-		mInvalidatedShaderBindingResources.clear();
-
-	mIsShaderBindingEpoch = false;
 }
 
 template<class TDerived, class TBarrierHelper>
@@ -1354,11 +1295,9 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::Clear()
 	mSubresourceTrackingState.clear();
 	mPendingRenderPassAttachments.Clear();
 	mActiveRenderPassAttachments.Clear();
+	mAttachmentsNeedingAccess = 0;
 	mRenderPassTrackingPhase = RenderPassTrackingPhase::Inactive;
 	mEpoch = 1;
-	mShaderBindingsNeedRefresh = true;
-	mIsShaderBindingEpoch = false;
-	mInvalidatedShaderBindingResources.clear();
 }
 
 	} // namespace render

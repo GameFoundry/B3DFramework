@@ -2,6 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuParameterSet.h"
+#include "GpuBackend/B3DGpuPipelineParameterLayout.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 
 #include "Image/B3DTexture.h"
@@ -12,6 +14,91 @@ using namespace b3d;
 
 namespace b3d { namespace render
 {
+#if B3D_BUILD_TYPE_DEVELOPMENT
+void GpuDrawAccessValidator::BeginRenderPass()
+{
+	mPreviousDrawAccesses.clear();
+	mBindingsUsed = false;
+}
+
+void GpuDrawAccessValidator::ClearBindings()
+{
+	mBindings.clear();
+	mBindingsUsed = false;
+	mBindingsHaveWrites = false;
+}
+
+void GpuDrawAccessValidator::AddResource(const void* resource, GpuAccessFlags access)
+{
+	if(resource == nullptr)
+		return;
+
+	mBindings[resource] |= access;
+	mBindingsHaveWrites |= access.IsSet(GpuAccessFlag::Write);
+	mBindingsUsed = false;
+}
+
+void GpuDrawAccessValidator::AddParameterSet(const GpuParameterSet& parameters, const GpuPipelineParameterSetLayout& layout)
+{
+	const TShared<GpuPipelineParameterSetLayout> parameterLayout = parameters.GetLayout();
+	for(u32 typeIndex = 0; typeIndex < (u32)GpuParameterType::Count; typeIndex++)
+	{
+		const GpuParameterType type = (GpuParameterType)typeIndex;
+		if(type == GpuParameterType::Sampler)
+			continue;
+
+		for(u32 bindingIndex = 0; bindingIndex < layout.GetBindingCount(type); bindingIndex++)
+		{
+			const UniformInformation& uniform = *layout.TryGetUniformInformation(type, bindingIndex);
+			const UniformInformation* parameter = parameterLayout->TryGetUniformInformation(uniform.Slot);
+			if(parameter == nullptr || parameter->Type != type)
+				continue;
+
+			for(u32 arrayIndex = 0; arrayIndex < std::min(uniform.ArraySize, parameter->ArraySize); arrayIndex++)
+			{
+				switch(type)
+				{
+				case GpuParameterType::UniformBuffer:
+					AddResource(parameters.GetUniformBuffer(uniform.Slot, arrayIndex).get(), GpuAccessFlag::Read);
+					break;
+				case GpuParameterType::StorageBuffer:
+					AddResource(parameters.GetStorageBuffer(uniform.Slot, arrayIndex).get(), GpuObjectParameterTypeInformation::IsReadWriteBuffer(uniform.ObjectType) ? GpuAccessFlag::Read | GpuAccessFlag::Write : GpuAccessFlags(GpuAccessFlag::Read));
+					break;
+				case GpuParameterType::SampledTexture:
+					AddResource(parameters.GetSampledTexture(uniform.Slot, arrayIndex).get(), GpuAccessFlag::Read);
+					break;
+				case GpuParameterType::StorageTexture:
+					AddResource(parameters.GetStorageTexture(uniform.Slot, arrayIndex).get(), GpuAccessFlag::Read | GpuAccessFlag::Write);
+					break;
+				default:
+					break;
+				}
+			}
+		}
+	}
+}
+
+bool GpuDrawAccessValidator::ValidateDraw()
+{
+	if(mBindingsUsed)
+		return !mBindingsHaveWrites;
+
+	for(const auto& [resource, access] : mBindings)
+	{
+		const auto previousAccess = mPreviousDrawAccesses.find(resource);
+		if(previousAccess != mPreviousDrawAccesses.end() && (previousAccess->second | access).IsSet(GpuAccessFlag::Write))
+			return false;
+	}
+
+	for(const auto& [resource, access] : mBindings)
+		mPreviousDrawAccesses[resource] |= access;
+
+	mBindingsUsed = true;
+	return true;
+}
+
+#endif
+
 GpuCommandBufferPool::GpuCommandBufferPool(GpuDevice& gpuDevice, const GpuCommandBufferPoolCreateInformation& createInformation)
 	:mGpuDevice(gpuDevice), mInformation(createInformation)
 {
@@ -40,6 +127,18 @@ GpuCommandBuffer::~GpuCommandBuffer()
 {
 	OnDestroyed(mState == GpuCommandBufferState::Executing);
 }
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+bool GpuCommandBuffer::ValidateDrawAccesses()
+{
+	if(mDrawAccessValidator.ValidateDraw())
+		return true;
+
+	B3D_LOG(Error, LogRenderBackend, "Draw rejected: shader resources written by a draw cannot be accessed by another draw in the same render pass.");
+	return false;
+}
+
+#endif
 
 void GpuCommandBuffer::SetPushConstants(u32 /*offsetInBytes*/, u32 sizeInBytes, const void* /*data*/)
 {

@@ -471,7 +471,6 @@ namespace b3d
 			bool mBoundParamsDirty : 1;
 			bool mVertexInputsDirty : 1;
 			bool mIsDebugLabelOpen = false;
-			GpuShaderBindings mShaderBindings; /**< Cached resource accesses from the bound parameter sets. */
 			DescriptorSetBindFlags mDescriptorSetsBindState;
 			TInlineArray<TShared<VulkanGpuParameterSet>, 4> mBoundGpuParameterSets;
 

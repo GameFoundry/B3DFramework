@@ -347,11 +347,11 @@ namespace b3d
 				return range;
 			}
 
-			void CollectParameterBindings(MetalGpuParameters& parameters, bool compute, GpuShaderBindings& outBindings)
+			bool TrackParameterResources(MetalGpuParameters& parameters, bool compute, MetalResourceTracker& resourceTracker, MetalBarrierHelper& barrierHelper)
 			{
 				const MetalGpuPipelineParameterSetLayout* layout = parameters.GetMetalLayout();
 				if (layout == nullptr)
-					return;
+					return true;
 
 				for (const MetalGpuParameters::UniformBufferBinding& binding : parameters.GetUniformBuffers())
 				{
@@ -359,7 +359,7 @@ namespace b3d
 					MetalBuffer* resource = buffer ? buffer->GetMetalResource() : nullptr;
 					const GpuResourceUseFlags useFlags = GetBindingUseFlags(*layout, GpuParameterType::UniformBuffer, binding.Slot, compute);
 					if (resource != nullptr && useFlags != GpuResourceUseFlag::Undefined)
-						outBindings.AddBuffer(resource, useFlags, GpuAccessFlag::Read, binding.Offset);
+						resourceTracker.TrackBufferAccess(resource, GpuBackendUtility::GetStageFlags(useFlags), GpuAccessFlag::Read, barrierHelper, binding.Offset);
 				}
 
 				for (const MetalGpuParameters::StorageBufferBinding& binding : parameters.GetStorageBuffers())
@@ -368,10 +368,10 @@ namespace b3d
 					MetalBuffer* resource = buffer ? buffer->GetMetalResource() : nullptr;
 					const GpuResourceUseFlags useFlags = GetBindingUseFlags(*layout, GpuParameterType::StorageBuffer, binding.Slot, compute);
 					if (resource != nullptr && useFlags != GpuResourceUseFlag::Undefined)
-						outBindings.AddBuffer(resource, useFlags, GetStorageBufferAccessFlags(*layout, binding.Slot), binding.View.Offset);
+						resourceTracker.TrackBufferAccess(resource, GpuBackendUtility::GetStageFlags(useFlags), GetStorageBufferAccessFlags(*layout, binding.Slot), barrierHelper, binding.View.Offset);
 				}
 
-				auto fnCollectTextures = [layout, compute, &outBindings](const Vector<MetalGpuParameters::TextureBinding>& bindings, GpuParameterType type, GpuAccessFlags access)
+				auto fnTrackTextures = [layout, compute, &resourceTracker, &barrierHelper](const Vector<MetalGpuParameters::TextureBinding>& bindings, GpuParameterType type, GpuAccessFlags access)
 				{
 					for (const MetalGpuParameters::TextureBinding& binding : bindings)
 					{
@@ -383,13 +383,15 @@ namespace b3d
 
 						const GpuTextureSubresourceRange range = GetTextureRange(*resource, binding.Surface);
 						const GpuImageLayout imageLayout = type == GpuParameterType::StorageTexture ? GpuImageLayout::General : GpuImageLayout::ShaderReadOnly;
-						outBindings.AddImage(resource, range, imageLayout, useFlags, access);
+						if(!resourceTracker.TrackImageUsage(resource, range, imageLayout, useFlags, access, barrierHelper))
+							return false;
 					}
+					return true;
 				};
 
-				fnCollectTextures(parameters.GetSampledTextures(), GpuParameterType::SampledTexture, GpuAccessFlag::Read);
-				fnCollectTextures(parameters.GetStorageTextures(), GpuParameterType::StorageTexture, GpuAccessFlag::Read | GpuAccessFlag::Write);
+				return fnTrackTextures(parameters.GetSampledTextures(), GpuParameterType::SampledTexture, GpuAccessFlag::Read) && fnTrackTextures(parameters.GetStorageTextures(), GpuParameterType::StorageTexture, GpuAccessFlag::Read | GpuAccessFlag::Write);
 			}
+
 		} // namespace
 
 		MetalGpuCommandBuffer::MetalGpuCommandBuffer(MetalGpuDevice& device, MetalGpuCommandBufferPool& pool, u32 id, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation)
@@ -803,7 +805,7 @@ namespace b3d
 				mComputeResidencyCaches.Resize(setIndex + 1);
 			}
 			mBoundParameterSets[setIndex] = parameters;
-			mShaderBindings.Changed = true;
+			mGraphicsResourcesRequireTracking = true;
 
 			// B5: only attach the argument buffer to the encoder here. Do NOT commit pending SetX
 			// writes and do NOT emit useResource: — those now live on the draw / dispatch path so a
@@ -831,7 +833,7 @@ namespace b3d
 			// encoder-level offset update is needed.
 			auto metalParams = std::static_pointer_cast<MetalGpuParameters>(mBoundParameterSets[set]);
 			metalParams->SetDynamicOffset(bufferIndex, offset);
-			mShaderBindings.Changed = true;
+			mGraphicsResourcesRequireTracking = true;
 			} // @autoreleasepool
 		}
 
@@ -860,7 +862,7 @@ namespace b3d
 		{
 			EnsureValidThread();
 			mBoundGraphicsPipeline = std::static_pointer_cast<MetalGpuGraphicsPipelineState>(pipelineState);
-			mShaderBindings.Changed = true;
+			mGraphicsResourcesRequireTracking = true;
 			mGraphicsPushConstantsRequireBind = true;
 		}
 
@@ -868,7 +870,7 @@ namespace b3d
 		{
 			EnsureValidThread();
 			mBoundComputePipeline = pipelineState;
-			mShaderBindings.Changed = true;
+			mGraphicsResourcesRequireTracking = true;
 			mComputePushConstantsRequireBind = true;
 
 			if (!pipelineState || !mImpl->ComputeEncoder)
@@ -1082,21 +1084,32 @@ namespace b3d
 			return true;
 		}
 
-		bool MetalGpuCommandBuffer::PrepareShaderBindings(bool compute)
+		bool MetalGpuCommandBuffer::TrackShaderResources(bool compute)
 		{
-			if(mShaderBindings.Changed || mShaderBindingsCompute != compute)
-			{
-				mShaderBindings.Clear();
-				for(const TShared<GpuParameterSet>& parameters : mBoundParameterSets)
-				{
-					if(parameters != nullptr)
-						CollectParameterBindings(static_cast<MetalGpuParameters&>(*parameters), compute, mShaderBindings);
-                }
+			if(!compute && !mGraphicsResourcesRequireTracking)
+				return true;
 
-				mShaderBindingsCompute = compute;
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			if(!compute)
+				mDrawAccessValidator.ClearBindings();
+#endif
+
+			for(const TShared<GpuParameterSet>& parameters : mBoundParameterSets)
+			{
+				if(parameters == nullptr)
+					continue;
+
+				if(!TrackParameterResources(static_cast<MetalGpuParameters&>(*parameters), compute, mResourceTracker, mBarrierHelper))
+					return false;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+				if(!compute && mBoundGraphicsPipeline != nullptr && parameters->GetSet() < mBoundGraphicsPipeline->GetParameterLayout()->GetSetCount())
+					mDrawAccessValidator.AddParameterSet(*parameters, *mBoundGraphicsPipeline->GetParameterLayout()->GetSet(parameters->GetSet()));
+#endif
 			}
 
-			return mResourceTracker.TrackShaderAndAttachmentAccesses(mShaderBindings, mBarrierHelper);
+			mGraphicsResourcesRequireTracking = compute;
+			return true;
 		}
 
 		void MetalGpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance)
@@ -1116,7 +1129,7 @@ namespace b3d
 			// tracks is included, and so a pass restart replays the refreshed binding list.
 			ApplyVertexBuffersToRenderEncoder();
 
-			if(!PrepareShaderBindings(false))
+			if(!TrackShaderResources(false))
 				return;
 
 			if (!ExecutePendingBarriers())
@@ -1171,6 +1184,11 @@ namespace b3d
 			[mImpl->RenderEncoder setStencilReferenceValue:mStencilReference];
 
 			MTLPrimitiveType primitive = MetalUtility::GetPrimitiveType(mDrawOperation);
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			if(!ValidateDrawAccesses())
+				return;
+#endif
+
 			[mImpl->RenderEncoder drawPrimitives:primitive
 				vertexStart:vertexOffset
 				vertexCount:vertexCount
@@ -1207,7 +1225,7 @@ namespace b3d
 			if (indexResource != nullptr)
 				mResourceTracker.TrackBufferAccess(indexResource, GpuStageFlag::VertexInputIndices, GpuAccessFlag::Read, mBarrierHelper);
 
-			if(!PrepareShaderBindings(false))
+			if(!TrackShaderResources(false))
 				return;
 
 			if (!ExecutePendingBarriers())
@@ -1260,6 +1278,11 @@ namespace b3d
 			const u32 indexSize = (engineIndexType == IT_32BIT) ? 4u : 2u;
 
 			MTLPrimitiveType primitive = MetalUtility::GetPrimitiveType(mDrawOperation);
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			if(!ValidateDrawAccesses())
+				return;
+#endif
 
 			[mImpl->RenderEncoder drawIndexedPrimitives:primitive
 				indexCount:indexCount
@@ -1335,7 +1358,7 @@ namespace b3d
 
 			[mImpl->ComputeEncoder setComputePipelineState:pso];
 
-			if(!PrepareShaderBindings(true))
+			if(!TrackShaderResources(true))
 				return;
 
 			if (!ExecutePendingBarriers())
@@ -1734,6 +1757,10 @@ namespace b3d
 				}
 			}
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			mDrawAccessValidator.BeginRenderPass();
+#endif
+			mGraphicsResourcesRequireTracking = true;
 			mResourceTracker.PrepareRenderPass(renderPassAttachmentUsages);
 			mResourceTracker.BeginRenderPass(mBarrierHelper);
 			mRenderPassTrackingActive = true;
@@ -3290,7 +3317,7 @@ namespace b3d
 			mBoundGraphicsPipeline = nullptr;
 			mBoundComputePipeline = nullptr;
 			mBoundParameterSets.Clear();
-			mShaderBindings.Clear();
+			mGraphicsResourcesRequireTracking = true;
 			mBoundIndexBuffer = nullptr;
 			mBoundVertexDescription = nullptr;
 			mActiveOcclusionQueryPool.reset();
@@ -3332,7 +3359,7 @@ namespace b3d
 			mBoundGraphicsPipeline = nullptr;
 			mBoundComputePipeline = nullptr;
 			mBoundParameterSets.Clear();
-			mShaderBindings.Clear();
+			mGraphicsResourcesRequireTracking = true;
 			mBoundIndexBuffer = nullptr;
 			mBoundVertexDescription = nullptr;
 			mDrawOperation = DOT_TRIANGLE_LIST;

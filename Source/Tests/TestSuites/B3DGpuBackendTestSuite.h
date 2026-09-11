@@ -13,6 +13,12 @@ namespace b3d
 		GpuBackendTestSuite();
 
 	private:
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		/** Verifies per-draw UAV conflicts, aliasing, rejected-draw rollback and render-pass reset. */
+		void TestDrawAccessValidation();
+
+#endif
+
 		/** Verifies the flat write-generation hazard state and command-buffer summary. */
 		void TestResourceHazardState();
 

@@ -4,7 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "GpuBackend/B3DGpuHazards.h"
-#include "GpuBackend/B3DGpuShaderBindings.h"
+#include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuImageMetadataState.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuFramebuffer.h"
@@ -176,12 +176,17 @@ namespace b3d
 			 */
 			void TrackImageAccess(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags = GpuImageBarrierFlag::None, GpuImageTrackingFlags trackingFlags = GpuImageTrackingFlag::None);
 
-			/** 
-			 * Iterates over all images and buffers registered in @p bindings, calling their appropriate Track*Access() methods. If bindings are not marked as changed, only
-			 * iterates entries that may have been written since the last call. Intended to be called before draw/dispatch calls. Returns false if supported access was
-			 * attempted (e.g. shader UAV write into an image also bound as writeable color attachment).
+			/** Tracks image usage, validating shader/attachment overlap and combining layouts within the pending access batch. Returns false for unsupported overlap. */
+			bool TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper);
+
+			/** Re-tracks render pass attachment accesses that were invalidated via InvalidateRenderPassAttachmentAccess. */
+			void TrackRenderPassAttachmentAccesses(TBarrierHelper& barrierHelper);
+
+			/**
+			 * Normally render targets are only tracked at the beginning of a render pass, but some backends require that we re-track them after certain operations (e.g., a clear operation implemented as a compute shader). 
+			 * This ensures that correct barrier is issued between that operation stages and the raster stages when TrackRenderPassAttachmentAccesses is called.
 			 */
-			bool TrackShaderAndAttachmentAccesses(GpuShaderBindings& bindings, TBarrierHelper& barrierHelper);
+			void InvalidateRenderPassAttachmentAccess(IGpuImageResource* image);
 
 			/**
 			 * Tracks an explicit buffer barrier. Its source scope is derived from previous command-buffer accesses. A barrier
@@ -298,9 +303,6 @@ namespace b3d
 			const TDenseMap<IGpuImageResource*, u32>& GetImages() const { return mImages; }
 
 		private:
-			/** Converts usage to stages and tracks image access. Shader usage also resolves attachment compatibility and shared layouts; returns false for unsupported attachment/shader combinations. */
-			bool TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, bool addUsedImage);
-
 			/** Returns the instance of the resource tracker cast as the actual derived type. Useful to allow derived type to shadow (override) method implementations. */
 			TDerived& GetDerived();
 
@@ -414,7 +416,6 @@ namespace b3d
 			{
 				PendingHazardRegistration() = default;
 
-				IGpuResource* Resource = nullptr;
 				GpuResourceHazardState* State;
 				GpuImageMetadataState* MetadataState = nullptr;
 				GpuStageFlags AccessStageFlags;
@@ -434,16 +435,7 @@ namespace b3d
 			RenderPassTrackingPhase mRenderPassTrackingPhase = RenderPassTrackingPhase::Inactive;
 
 			u64 mEpoch = 1; /**< Incremented every time accesses are commited (usually after the barrier helper executes). */
-			bool mIsShaderBindingEpoch = false; /**< True if TrackShaderAndAttachmentAccesses was called, and accesses were not comited yet. */
-
-			/** True if some operation wrote to a bound resource, which requires tracking the access again to potentially issue a new barrier. */
-			bool mShaderBindingsNeedRefresh = true;
-
-			/** 
-			 * Contains resource that had some kind of a write access that would not be tracked by regular shader binding access 
-			 * flags. e.g. an explicit barrier, an internal UAV write operation (used for clears on some backend). 
-			 */
-			TInlineArray<IGpuResource*, 8> mInvalidatedShaderBindingResources;
+			u32 mAttachmentsNeedingAccess = 0; /**< Indices of active attachments interrupted by internal operations. */
 		};
 
 		/** @} */

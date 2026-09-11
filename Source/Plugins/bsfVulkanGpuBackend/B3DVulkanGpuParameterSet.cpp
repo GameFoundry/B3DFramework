@@ -1,5 +1,7 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
+#include "GpuBackend/B3DGpuBackendUtility.h"
+#include "Utility/B3DVulkanBarrierHelper.h"
 #include "B3DVulkanGpuParameterSet.h"
 #include "B3DVulkanGpuParameterSetPool.h"
 #include "B3DVulkanUtility.h"
@@ -614,7 +616,7 @@ bool VulkanGpuParameterSet::SetSamplerState(u32 slot, const TShared<SamplerState
 	return true;
 }
 
-void VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracker, GpuShaderBindings& outBindings, TInlineArray<u32, 4>& outDynamicOffsets, VkDescriptorSet& outSet)
+bool VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracker, VulkanBarrierHelper& barrierHelper, TInlineArray<u32, 4>& outDynamicOffsets, VkDescriptorSet& outSet)
 {
 	VulkanGpuPipelineParameterSetLayout& pipelineParameterInformationSet = static_cast<VulkanGpuPipelineParameterSetLayout&>(*mParameterSetLayout);
 
@@ -670,7 +672,7 @@ void VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracke
 			GpuResourceUseFlags useFlags = VulkanUtility::ShaderToResourceUseFlags(perSetBindings[usedBindingSequentialIndex].stageFlags) | GpuResourceUseFlag::UniformBuffer;
 
 			// Register with command buffer
-			outBindings.AddBuffer(resource, useFlags, GpuAccessFlag::Read, dynamicOffset);
+			resourceTracker.TrackBufferAccess(resource, GpuBackendUtility::GetStageFlags(useFlags), GpuAccessFlag::Read, barrierHelper, dynamicOffset);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(mUniformBuffers[sequentialResourceIndex] != VK_NULL_HANDLE);
@@ -752,7 +754,7 @@ void VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracke
 			TArrayView<const VkDescriptorSetLayoutBinding> perSetBindings = pipelineParameterInformationSet.GetBindings();
 			GpuResourceUseFlags useFlags = VulkanUtility::ShaderToResourceUseFlags(perSetBindings[usedBindingSequentialIndex].stageFlags) | GpuResourceUseFlag::ShaderAccess;
 
-			outBindings.AddBuffer(resource, useFlags, accessFlags, dynamicOffset);
+			resourceTracker.TrackBufferAccess(resource, GpuBackendUtility::GetStageFlags(useFlags), accessFlags, barrierHelper, dynamicOffset);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(mBuffers[sequentialResourceIndex] != VK_NULL_HANDLE);
@@ -885,7 +887,8 @@ void VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracke
 			const GpuResourceUseFlags useFlags = VulkanUtility::ShaderToResourceUseFlags(perSetBindings[usedBindingSequentialIndex].stageFlags) | GpuResourceUseFlag::ShaderAccess;
 			const GpuTextureSubresourceRange range = vulkanImage->GetRange(surface);
 
-			outBindings.AddImage(vulkanImage, range, GpuImageLayout::General, useFlags, GpuAccessFlag::Read | GpuAccessFlag::Write);
+			if(!resourceTracker.TrackImageUsage(vulkanImage, range, GpuImageLayout::General, useFlags, GpuAccessFlag::Read | GpuAccessFlag::Write, barrierHelper))
+				return false;
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(mStorageImages[sequentialResourceIndex] != VK_NULL_HANDLE);
@@ -963,7 +966,8 @@ void VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracke
 
 			const GpuResourceUseFlags useFlags = VulkanUtility::ShaderToResourceUseFlags(perSetBindings[usedBindingSequentialIndex].stageFlags) | GpuResourceUseFlag::ShaderAccess;
 			const GpuImageLayout resolvedLayout = resourceTracker.ResolveShaderImageLayout(vulkanImage, range, gpuLayout);
-			outBindings.AddImage(vulkanImage, range, resolvedLayout, useFlags, GpuAccessFlag::Read);
+			if(!resourceTracker.TrackImageUsage(vulkanImage, range, resolvedLayout, useFlags, GpuAccessFlag::Read, barrierHelper))
+				return false;
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(mSampledImages[sequentialResourceIndex] != VK_NULL_HANDLE);
@@ -1032,4 +1036,6 @@ void VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracke
 
 	resourceTracker.TrackResourceUsage(set, GpuAccessFlag::Read);
 	outSet = set->GetVulkanHandle();
+
+	return true;
 }

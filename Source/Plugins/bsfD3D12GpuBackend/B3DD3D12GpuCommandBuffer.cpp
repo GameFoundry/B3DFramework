@@ -455,6 +455,9 @@ void D3D12GpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instance
 {
 	EnsureValidThread();
 
+	if(vertexCount == 0)
+		return;
+
 	if(!B3D_ENSURE(IsInRenderPass()))
 		return;
 
@@ -466,9 +469,14 @@ void D3D12GpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instance
 
 	BindDynamicStates(false);
 	BindVertexInputs();
-	BindGpuParameterSets(true);
-	if(!mResourceTracker.TrackShaderAndAttachmentAccesses(mShaderBindings, mBarrierHelper))
+
+	if(!BindGpuParameterSets(true))
 		return;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	if(!ValidateDrawAccesses())
+		return;
+#endif
 
 	// Barriers accumulated by the bind-time tracking above. Parameter sets are normally pre-registered at BeginRenderPass so this is usually empty.
 	mBarrierHelper.Execute(*this);
@@ -484,6 +492,9 @@ void D3D12GpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 vert
 {
 	EnsureValidThread();
 
+	if(indexCount == 0)
+		return;
+
 	if(!B3D_ENSURE(IsInRenderPass()))
 		return;
 
@@ -495,9 +506,14 @@ void D3D12GpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 vert
 
 	BindDynamicStates(false);
 	BindVertexInputs();
-	BindGpuParameterSets(true);
-	if(!mResourceTracker.TrackShaderAndAttachmentAccesses(mShaderBindings, mBarrierHelper))
+
+	if(!BindGpuParameterSets(true))
 		return;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	if(!ValidateDrawAccesses())
+		return;
+#endif
 
 	// See Draw()
 	mBarrierHelper.Execute(*this);
@@ -537,9 +553,7 @@ void D3D12GpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u3
 		mComputePushConstantsRequireBind = true;
 	}
 
-	BindGpuParameterSets(false);
-
-	if(!mResourceTracker.TrackShaderAndAttachmentAccesses(mShaderBindings, mBarrierHelper))
+	if(!BindGpuParameterSets(false))
 		return;
 
 	mBarrierHelper.Execute(*this);
@@ -604,8 +618,10 @@ void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& c
 			attachmentUsage.FinalLayout.reset();
 	}
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	mDrawAccessValidator.BeginRenderPass();
+#endif
 	mResourceTracker.PrepareRenderPass(renderPassAttachmentUsages);
-	mShaderBindings.Clear();
 
 	// Register parameter resources once, collecting shader reads that overlap attachments before their transitions are resolved.
 	for (const TShared<GpuParameterSet>& parameterSet : createInformation.Parameters)
@@ -615,11 +631,9 @@ void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& c
 
 		const TShared<GpuPipelineParameterSetLayout>& setLayout = parameterSet->GetLayout();
 		if (setLayout != nullptr)
-			static_cast<D3D12GpuParameters*>(parameterSet.get())->CollectBindings(*setLayout, mShaderBindings);
+			if(!static_cast<D3D12GpuParameters*>(parameterSet.get())->TrackResources(*setLayout, mResourceTracker, mBarrierHelper))
+				return;
 	}
-
-	if(!mResourceTracker.TrackShaderAndAttachmentAccesses(mShaderBindings, mBarrierHelper))
-		return;
 
 	mResourceTracker.BeginRenderPass(mBarrierHelper);
 
@@ -1073,11 +1087,11 @@ void D3D12GpuCommandBuffer::BindVertexInputs()
 	mVertexInputsDirty = false;
 }
 
-void D3D12GpuCommandBuffer::BindGpuParameterSets(bool isGraphics)
+bool D3D12GpuCommandBuffer::BindGpuParameterSets(bool isGraphics)
 {
 	const bool requiresBind = isGraphics ? mGraphicsParametersRequireBind : mComputeParametersRequireBind;
-	if (!requiresBind)
-		return;
+	if (!requiresBind && isGraphics)
+		return true;
 
 	const D3D12GpuPipelineParameterLayout* parameterLayout = nullptr;
 	if (isGraphics)
@@ -1086,9 +1100,12 @@ void D3D12GpuCommandBuffer::BindGpuParameterSets(bool isGraphics)
 		parameterLayout = mComputePipeline != nullptr ? mComputePipeline->GetD3D12ParameterLayout() : nullptr;
 
 	if (parameterLayout == nullptr)
-		return;
+		return false;
 
-	mShaderBindings.Clear();
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	if(isGraphics)
+		mDrawAccessValidator.ClearBindings();
+#endif
 
 	D3D12GpuDevice& device = GetD3D12GpuDevice();
 
@@ -1110,14 +1127,24 @@ void D3D12GpuCommandBuffer::BindGpuParameterSets(bool isGraphics)
 		if (pipelineSetLayout == nullptr)
 			continue;
 
-		parameters->CollectBindings(*pipelineSetLayout, mShaderBindings);
-		parameters->BindDescriptors(device, mResourceTracker, mCommandList.Get(), isGraphics, parameterLayout->GetDescriptorSetLayout(setIndex), dynamicOffsets);
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		if(isGraphics)
+			mDrawAccessValidator.AddParameterSet(*parameters, *pipelineSetLayout);
+#endif
+
+		if(!isGraphics && !parameters->TrackResources(*pipelineSetLayout, mResourceTracker, mBarrierHelper))
+			return false;
+
+		if(requiresBind)
+			parameters->BindDescriptors(device, mResourceTracker, mCommandList.Get(), isGraphics, parameterLayout->GetDescriptorSetLayout(setIndex), dynamicOffsets);
 	}
 
 	if (isGraphics)
 		mGraphicsParametersRequireBind = false;
 	else
 		mComputeParametersRequireBind = false;
+
+	return true;
 }
 
 void D3D12GpuCommandBuffer::BindPushConstants(bool isGraphics)
@@ -1152,7 +1179,6 @@ void D3D12GpuCommandBuffer::BindPushConstants(bool isGraphics)
 	else
 		mComputePushConstantsRequireBind = false;
 }
-
 
 namespace
 {

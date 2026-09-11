@@ -4,7 +4,6 @@
 
 #include "B3DVulkanPrerequisites.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
-#include "GpuBackend/B3DGpuShaderBindings.h"
 #include "Allocators/B3DGroupAlloc.h"
 
 namespace b3d::render
@@ -38,18 +37,19 @@ namespace b3d
 			bool SetSamplerState(u32 slot, const TShared<SamplerState>& sampler, u32 arrayIndex = 0) override;
 
 			/**
-			 * Prepares the descriptor set for a bind operation on a command buffer. Refreshes descriptor contents for resources whose internal handles changed,
-			 * allocates or updates the descriptor set as needed, and retains it and its samplers through @p resourceTracker. Shader accesses are appended to
-			 * @p outBindings and must be tracked once every set participating in the bind has been prepared.
+			 * Prepares the internal descriptor sets for a bind operation on the provided command buffer. It generates and/or
+			 * updates and descriptor sets, and registers the relevant resources with the command buffer.
 			 *
-			 * Caller must prevent concurrent changes to this set and its resources until the bindings have been tracked.
+			 * Caller must perform external locking if some other thread could write to this object while it is being bound.
+			 * The same applies to any resources held by this object.
 			 *
 			 * @param		resourceTracker		Tracker of the command buffer the set is bound on, used to resolve image layouts and retain resources.
-			 * @param		outBindings			Receives this set's image and buffer accesses, appended to any existing bindings.
+			 * @param		barrierHelper		Receives synchronization required before accessing the resources.
 			 * @param		outDynamicOffsets	Receives this set's dynamic buffer offsets in descriptor binding order, appended to any existing offsets.
 			 * @param		outSet				Receives the descriptor set handle to bind.
+			 * @return							False if shader accesses overlap a writable attachment.
 			 */
-			void PrepareForBind(VulkanResourceTracker& resourceTracker, GpuShaderBindings& outBindings, TInlineArray<u32, 4>& outDynamicOffsets, VkDescriptorSet& outSet);
+			bool PrepareForBind(VulkanResourceTracker& resourceTracker, VulkanBarrierHelper& barrierHelper, TInlineArray<u32, 4>& outDynamicOffsets, VkDescriptorSet& outSet);
 
 		protected:
 			/** All GPU param data related to a single descriptor set. */

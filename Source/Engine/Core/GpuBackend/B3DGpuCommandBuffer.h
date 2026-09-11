@@ -394,6 +394,7 @@ namespace b3d
 			/**
 			 * Set of all GPU parameters that will be bound during this render pass. The command buffer will pre-register all resources
 			 * from these parameters, allowing barriers and layout transitions to be issued before the render pass begins.
+			 * Parameter resources must remain unchanged until the pass ends; bind another declared set to change resources.
 			 */
 			TInlineArray<TShared<GpuParameterSet>, 4> Parameters;
 
@@ -410,6 +411,37 @@ namespace b3d
 					Parameters.Add(parameters);
 			}
 		};
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		/** Rejects shader-resource dependencies between draws in one render pass. Resource ranges are treated as whole resources. */
+		class B3D_EXPORT GpuDrawAccessValidator
+		{
+		public:
+			GpuDrawAccessValidator() = default;
+
+			/** Starts a new render pass, retaining the currently bound resource descriptions. */
+			void BeginRenderPass();
+
+			/** Starts replacing the active draw bindings. Does not erase accesses from earlier draws. */
+			void ClearBindings();
+
+			/** Adds the resources used by the active pipeline's parameter set. Parameters must remain unchanged during the pass. */
+			void AddParameterSet(const GpuParameterSet& parameters, const GpuPipelineParameterSetLayout& layout);
+
+			/** Adds one binding; aliases within the same draw are combined. Null resources are ignored. */
+			void AddResource(const void* resource, GpuAccessFlags access);
+
+			/** Records an actual draw's accesses. Returns false without changing history if it conflicts with an earlier draw. */
+			bool ValidateDraw();
+
+		private:
+			UnorderedMap<const void*, GpuAccessFlags> mBindings;
+			UnorderedMap<const void*, GpuAccessFlags> mPreviousDrawAccesses;
+			bool mBindingsUsed = false;
+			bool mBindingsHaveWrites = false;
+		};
+
+#endif
 
 		/**
 		 * Contains a list of render API commands that can be queued for execution on the GPU. User is allowed to populate the
@@ -787,9 +819,17 @@ namespace b3d
 			/** Returns true if the command buffer has been destroyed. */
 			bool IsDestroyed() const { return mIsDestroyed; }
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			/** Rejects a draw if its shader accesses conflict with an earlier draw in this render pass. */
+			bool ValidateDrawAccesses();
+#endif
+
 			/** Reports an error if the current thread is not the thread associated with the object. */
 			void EnsureValidThread() const { B3D_DEBUG_ONLY(B3D_ENSURE(B3D_CURRENT_THREAD_ID == mOwnerThread)); }
 	
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			GpuDrawAccessValidator mDrawAccessValidator;
+#endif
 			GpuDevice& mGpuDevice;
 			const GpuCommandBufferCreateInformation mInformation;
 			const GpuQueueType mQueueType;

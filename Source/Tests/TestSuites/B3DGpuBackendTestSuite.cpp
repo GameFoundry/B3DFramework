@@ -26,9 +26,7 @@ namespace
 	template<class TTracker, class TBarrierHelper>
 	bool TrackImageBinding(TTracker& tracker, IGpuImageResource* image, const GpuTextureSubresourceRange& range, GpuImageLayout layout, GpuResourceUseFlags usage, GpuAccessFlags access, TBarrierHelper& helper)
 	{
-		GpuShaderBindings bindings;
-		bindings.AddImage(image, range, layout, usage, access);
-		return tracker.TrackShaderAndAttachmentAccesses(bindings, helper);
+		return tracker.TrackImageUsage(image, range, layout, usage, access, helper);
 	}
 
 	Result ValidatePushConstantWrite(u32 maximumPushConstantSize, u32 offsetInBytes, u32 sizeInBytes, const void* data)
@@ -220,6 +218,9 @@ namespace
 GpuBackendTestSuite::GpuBackendTestSuite()
 	: TestSuite("GpuBackendTestSuite")
 {
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	B3D_ADD_TEST(GpuBackendTestSuite::TestDrawAccessValidation)
+#endif
 	B3D_ADD_TEST(GpuBackendTestSuite::TestResourceHazardState)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestResourceTransition)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestSubmissionTransitionPlanning)
@@ -230,7 +231,10 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantMetadata)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantWrites)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantSerialization)
+	// Shader compilation is performed on the host; console applications load cooked shaders.
+#if !B3D_PLATFORM_PS5
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantShaderCompilation)
+#endif
 	B3D_ADD_TEST(GpuBackendTestSuite::TestHlslShaderModel66Compilation)
 }
 
@@ -932,6 +936,61 @@ void GpuBackendTestSuite::TestRenderPassResourceTracking()
 	discardTracker.NotifyUnbound();
 	discardTracker.Clear();
 }
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+void GpuBackendTestSuite::TestDrawAccessValidation()
+{
+	GpuDrawAccessValidator validator;
+	int firstResource = 0;
+	int secondResource = 0;
+	const GpuAccessFlags accesses[] = { GpuAccessFlag::Read, GpuAccessFlag::Write, GpuAccessFlag::Read | GpuAccessFlag::Write };
+	for(GpuAccessFlags firstAccess : accesses)
+	{
+		for(GpuAccessFlags secondAccess : accesses)
+		{
+			validator.BeginRenderPass();
+			validator.ClearBindings();
+			validator.AddResource(&firstResource, firstAccess);
+			B3D_TEST_ASSERT(validator.ValidateDraw());
+			validator.ClearBindings();
+			validator.AddResource(&firstResource, secondAccess);
+			B3D_TEST_ASSERT(validator.ValidateDraw() == !(firstAccess | secondAccess).IsSet(GpuAccessFlag::Write));
+		}
+	}
+
+	validator.BeginRenderPass();
+	validator.ClearBindings();
+	validator.AddResource(&firstResource, GpuAccessFlag::Read);
+	for(u32 drawIndex = 0; drawIndex < 100; drawIndex++)
+		B3D_TEST_ASSERT(validator.ValidateDraw());
+
+	// Binding without a draw does not contribute an access.
+	validator.ClearBindings();
+	validator.AddResource(&secondResource, GpuAccessFlag::Write);
+	validator.ClearBindings();
+	validator.AddResource(&secondResource, GpuAccessFlag::Read);
+	B3D_TEST_ASSERT(validator.ValidateDraw());
+
+	validator.BeginRenderPass();
+	validator.ClearBindings();
+	validator.AddResource(&firstResource, GpuAccessFlag::Read);
+	validator.AddResource(&firstResource, GpuAccessFlag::Write);
+	B3D_TEST_ASSERT(validator.ValidateDraw());
+	B3D_TEST_ASSERT(!validator.ValidateDraw());
+
+	// Rejected draws must not publish accesses to otherwise independent resources.
+	validator.ClearBindings();
+	validator.AddResource(&firstResource, GpuAccessFlag::Read);
+	validator.AddResource(&secondResource, GpuAccessFlag::Write);
+	B3D_TEST_ASSERT(!validator.ValidateDraw());
+	validator.ClearBindings();
+	validator.AddResource(&secondResource, GpuAccessFlag::Write);
+	B3D_TEST_ASSERT(validator.ValidateDraw());
+	validator.BeginRenderPass();
+	B3D_TEST_ASSERT(validator.ValidateDraw());
+}
+
+#endif
 
 void GpuBackendTestSuite::TestResourceHazardState()
 {
