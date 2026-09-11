@@ -568,11 +568,9 @@ namespace
 		if (!objectInformation)
 			return {};
 
-#if 0 // SPIRV-Cross reports read-only qualifier even when its not there
-		objectInformation->Type = type.image.access == spv::AccessQualifierReadOnly ? GPOT_STRUCTURED_BUFFER : GPOT_RWSTRUCTURED_BUFFER;
-#else
-		objectInformation->Type = GPOT_RWSTRUCTURED_BUFFER;
-#endif
+		// Read-only buffer qualifiers can decorate the block variable or its members.
+		const bool isReadOnly = compiler.get_buffer_block_flags(resource.id).get(spv::DecorationNonWritable);
+		objectInformation->Type = isReadOnly ? GPOT_STRUCTURED_BUFFER : GPOT_RWSTRUCTURED_BUFFER;
 
 		if (type.image.type != 0)
 		{

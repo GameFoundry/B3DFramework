@@ -52,6 +52,9 @@ namespace b3d
 		/** Verifies bytecode reflection reports the declared push-constant size without exposing its native carrier. */
 		void TestPushConstantShaderCompilation();
 
+		/** Verifies Vulkan storage-buffer reflection distinguishes read-only blocks and members from writable buffers. */
+		void TestVulkanStorageBufferAccessReflection();
+
 		/** Verifies DXC compiles every supported HLSL stage and preserves the engine's reflection contract. */
 		void TestHlslShaderModel66Compilation();
 	};

@@ -234,6 +234,7 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	// Shader compilation is performed on the host; console applications load cooked shaders.
 #if !B3D_PLATFORM_PS5
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantShaderCompilation)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestVulkanStorageBufferAccessReflection)
 #endif
 	B3D_ADD_TEST(GpuBackendTestSuite::TestHlslShaderModel66Compilation)
 }
@@ -418,6 +419,51 @@ void GpuBackendTestSuite::TestPushConstantShaderCompilation()
 		compilePssl(2, true);
 	}
 #endif
+}
+
+void GpuBackendTestSuite::TestVulkanStorageBufferAccessReflection()
+{
+	const TShared<IGpuBytecodeCompiler> compiler = ShaderCompilers::Instance().GetBytecodeCompiler("vksl");
+	B3D_TEST_ASSERT(compiler != nullptr)
+	if(compiler == nullptr)
+		return;
+
+	GpuProgramCreateInformation createInformation;
+	createInformation.Name = "StorageBufferAccessReflection";
+	createInformation.Language = "vksl";
+	createInformation.Type = GPT_COMPUTE_PROGRAM;
+	createInformation.EntryPoint = "main";
+	createInformation.Source = R"(
+#version 450
+layout(local_size_x = 1) in;
+layout(set = 0, binding = 0, std430) readonly buffer ReadOnlyBlock { vec4 Values[]; } readOnlyData;
+layout(set = 0, binding = 1, std430) buffer WritableBlock { vec4 Values[]; } writableData;
+layout(set = 0, binding = 2, std430) writeonly buffer WriteOnlyBlock { vec4 Values[]; } writeOnlyData;
+layout(set = 0, binding = 3, std430) buffer ReadOnlyMemberBlock { readonly vec4 Values[]; } readOnlyMemberData;
+layout(set = 0, binding = 4, std430) buffer MixedMemberBlock { readonly vec4 Input; vec4 Output; } mixedMemberData;
+void main()
+{
+	writeOnlyData.Values[0] = readOnlyData.Values[0] + writableData.Values[0] + readOnlyMemberData.Values[0];
+	mixedMemberData.Output = mixedMemberData.Input;
+}
+)";
+
+	const TShared<GpuProgramBytecode> bytecode = compiler->CompileBytecode(createInformation);
+	B3D_TEST_ASSERT(bytecode != nullptr)
+	if(bytecode == nullptr)
+		return;
+
+	B3D_TEST_ASSERT_MSG(bytecode->Instructions.Data != nullptr, bytecode->Messages)
+	B3D_TEST_ASSERT(bytecode->ParameterDescription != nullptr)
+	if(bytecode->ParameterDescription == nullptr)
+		return;
+
+	B3D_TEST_ASSERT(bytecode->ParameterDescription->Buffers.size() == 5)
+	for(const auto& [name, buffer] : bytecode->ParameterDescription->Buffers)
+	{
+		const bool isReadOnly = buffer.Slot == 0 || buffer.Slot == 3;
+		B3D_TEST_ASSERT_MSG(buffer.Type == (isReadOnly ? GPOT_STRUCTURED_BUFFER : GPOT_RWSTRUCTURED_BUFFER), name)
+	}
 }
 
 void GpuBackendTestSuite::TestHlslShaderModel66Compilation()
