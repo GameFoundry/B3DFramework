@@ -40,7 +40,7 @@ namespace
 }
 
 GpuWorkContext::GpuWorkContext(PrivatelyConstruct, GpuDevice& device)
-	: mDevice(device), mTracker(nullptr), mOwnedTracker(B3DMakeUnique<GpuFenceCompletionTracker>(device.CreateTimelineFence()))
+	: mDevice(device), mTracker(nullptr), mOwnedTracker(B3DMakeUnique<GpuFenceCompletionTracker>(device))
 	, mParameterSetPool(CreateParameterSetPool(device, true))
 {
 	mTracker = mOwnedTracker.get();
@@ -192,10 +192,11 @@ void GpuWorkContext::SubmitCommandBuffer(const GpuSubmissionInformation& informa
 		return;
 	}
 
-	// Contexts owning a fence tracker tag every submission with their fence, so the tracker observes GPU
-	// progress: transient pages retire against these markers and WaitAndReclaim() blocks on the last one.
+	// Contexts owning a fence tracker tag every submission with the tracker's fence for the target queue, so
+	// the tracker observes GPU progress: transient pages retire against these markers and WaitAndReclaim()
+	// blocks on the outstanding ones.
 	GpuSubmissionInformation taggedInformation = information;
-	taggedInformation.SignalFences.Add(mOwnedTracker->NotifyWillSubmit());
+	taggedInformation.SignalFences.Add(mOwnedTracker->NotifyWillSubmit(queue->GetId()));
 
 	queue->SubmitCommandBuffer(taggedInformation);
 }
@@ -231,7 +232,7 @@ void GpuWorkContext::SubmitTransferCommandBuffers(bool wait)
 
 		// See SubmitCommandBuffer() - fence-tracked contexts tag every submission with their fence.
 		if (mOwnedTracker != nullptr)
-			submissionInfo.SignalFences.Add(mOwnedTracker->NotifyWillSubmit());
+			submissionInfo.SignalFences.Add(mOwnedTracker->NotifyWillSubmit(queue->GetId()));
 
 		queue->SubmitCommandBuffer(submissionInfo);
 	}
@@ -273,7 +274,7 @@ void GpuWorkContext::WaitAndReclaim()
 	// has nothing to drain.
 	if (hasSubmittedWork || !mTransientAllocators.empty())
 	{
-		// Block (yieldably) until the GPU drains this context's last submission.
+		// Block (yieldably) until the GPU drains this context's outstanding submissions on every queue.
 		if (mOwnedTracker != nullptr)
 			mOwnedTracker->WaitUntilComplete();
 

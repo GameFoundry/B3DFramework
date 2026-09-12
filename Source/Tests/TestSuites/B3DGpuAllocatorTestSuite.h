@@ -55,6 +55,13 @@ namespace b3d
 		 */
 		void TestUserCreatedFence_ExplicitSignal();
 
+		/**
+		 * GpuFenceCompletionTracker signals a separate fence per queue with a shared monotonic marker:
+		 * submissions on different queues receive distinct fences, resubmitting on a queue reuses its fence,
+		 * and once every tagged submission drains the last marker is reported complete.
+		 */
+		void TestFenceTracker_PerQueueFences();
+
 		/** Compiles the TLSF allocator against the mock backend, asserts trait validation, instantiates with a fresh heap. */
 		void TestTlsf_ContractAndInitialState();
 

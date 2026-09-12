@@ -4,9 +4,12 @@
 
 #include "B3DPrerequisites.h"
 #include "B3DGpuTimelineFence.h"
+#include "B3DGpuQueue.h"
 
 namespace b3d
 {
+	class GpuDevice;
+
 	/** @addtogroup GpuBackend
 	 *  @{
 	 */
@@ -56,8 +59,11 @@ namespace b3d
 	};
 
 	/**
-	 * Timeline-fence based completion tracker. Composes a single GpuTimelineFence; the marker is the
-	 * exact fence value the GPU signals (no conservative lag like GpuFrameCompletionTracker).
+	 * Timeline-fence based completion tracker for work spanning multiple queues. Composes one GpuTimelineFence
+	 * per queue, created on first submission to that queue; the marker is the exact value the GPU signals on
+	 * the submitting queue's fence (no conservative lag like GpuFrameCompletionTracker). Queues may complete
+	 * out of order relative to each other - a marker is complete only once every submission tagged at or
+	 * below it has drained, on every queue.
 	 *
 	 * Marker contract: GetCurrentMarker() returns the value the NEXT submit will signal. Submission
 	 * records NotifyWillSubmit() (which yields that value and advances the marker), so a page retired
@@ -66,40 +72,50 @@ namespace b3d
 	class B3D_EXPORT GpuFenceCompletionTracker : public IGpuCompletionTracker
 	{
 	public:
-		explicit GpuFenceCompletionTracker(TShared<GpuTimelineFence> fence)
-			: mFence(std::move(fence))
-		{ }
+		/**
+		 * @param	device	Device whose queues the tracked work runs on, and which creates the per-queue fences.
+		 *					Must outlive the tracker.
+		 */
+		explicit GpuFenceCompletionTracker(GpuDevice& device);
 
 		/** Value the next submit will signal. Monotonic; starts at 1 (0 is the timeline's unsignaled state). */
 		u64 GetCurrentMarker() const override { return mNextValue; }
 
-		/** Exact: true once the GPU has signaled @p marker on the fence. */
-		bool IsMarkerComplete(u64 marker) const override { return mFence->IsSignaled(marker); }
+		/** Exact: true once every submission tagged with a value <= @p marker has signaled, on every queue. */
+		bool IsMarkerComplete(u64 marker) const override;
 
-		/** Records an impending submission: returns the fence + value to signal, and advances the marker. */
-		GpuTimelineFenceAndValue NotifyWillSubmit()
-		{
-			const u64 value = mNextValue++;
-			mLastSignaled = value;
-			return { mFence, value };
-		}
+		/**
+		 * Records an impending submission on @p queue: returns the queue's fence + value to signal, and advances
+		 * the marker. Must be added to the submission's signal fences.
+		 */
+		GpuTimelineFenceAndValue NotifyWillSubmit(GpuQueueId queue);
 
-		/** Blocks until the last submitted marker completes. No-op if nothing was submitted. */
-		void WaitUntilComplete()
-		{
-			if (mLastSignaled > 0)
-				mFence->Wait(mLastSignaled);
-		}
+		/** Blocks until every submission recorded so far completes. No-op if nothing was submitted. */
+		void WaitUntilComplete();
 
 		/** Marker value of the most recent submission, or 0 if nothing has been submitted yet. */
-		u64 GetLastSubmittedMarker() const { return mLastSignaled; }
-
-		const TShared<GpuTimelineFence>& GetFence() const { return mFence; }
+		u64 GetLastSubmittedMarker() const { return mLastSubmitted; }
 
 	private:
-		TShared<GpuTimelineFence> mFence;
+		/** Submission whose signal has not yet been observed. */
+		struct PendingSubmission
+		{
+			PendingSubmission(GpuQueueId queue, u64 value)
+				: Queue(queue), Value(value)
+			{ }
+
+			GpuQueueId Queue;
+			u64 Value;
+		};
+
+		/** Returns the fence for @p queue, creating it on first use. */
+		const TShared<GpuTimelineFence>& GetOrCreateFence(GpuQueueId queue);
+
+		GpuDevice& mDevice;
+		TShared<GpuTimelineFence> mQueueFences[B3D_MAX_UNIQUE_QUEUES]; /**< Indexed by GpuQueueId::Id; null until first use. */
+		TInlineArray<PendingSubmission, 16> mPending; /**< Ascending by Value; pruned of signaled entries on submit and wait. */
 		u64 mNextValue = 1;
-		u64 mLastSignaled = 0;
+		u64 mLastSubmitted = 0;
 	};
 
 	/** @} */

@@ -6,6 +6,7 @@
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DGpuTimelineFence.h"
+#include "GpuBackend/B3DGpuCompletionTracker.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuCommandBufferPoolRing.h"
 #include "GpuBackend/Allocators/B3DGpuAllocator.h"
@@ -30,6 +31,7 @@ GpuAllocatorTestSuite::GpuAllocatorTestSuite()
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestFrameTracker_InitialState)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestFrameTracker_AdvancesOnEndFrame)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestUserCreatedFence_ExplicitSignal)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestFenceTracker_PerQueueFences)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_ContractAndInitialState)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_SingleAllocateFree)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTlsf_FailsSoftOnHeapCreationFailure)
@@ -664,6 +666,77 @@ void GpuAllocatorTestSuite::TestUserCreatedFence_ExplicitSignal()
 	// submit, so the explicit value-7 signal must be observable via IsSignaled.
 	device->WaitUntilIdle();
 	B3D_TEST_ASSERT(fence->IsSignaled(7))
+}
+
+void GpuAllocatorTestSuite::TestFenceTracker_PerQueueFences()
+{
+	TShared<GpuDevice> device = GetActiveDevice();
+	if (device == nullptr || !IsRealBackend(*device) || device->GetQueueCount(GQT_GRAPHICS) == 0)
+		return;
+
+	// Same backend-support and degraded-mode skips as TestUserCreatedFence_ExplicitSignal
+	const TShared<GpuTimelineFence> probeFence = device->CreateTimelineFence();
+	if (probeFence == nullptr || probeFence->IsSignaled(7))
+		return;
+
+	GpuFenceCompletionTracker tracker(*device);
+	B3D_TEST_ASSERT(tracker.GetCurrentMarker() == 1)
+	B3D_TEST_ASSERT(tracker.GetLastSubmittedMarker() == 0)
+	B3D_TEST_ASSERT(tracker.IsMarkerComplete(1)) // nothing pending
+
+	// Submit through a context that borrows the tracker, so the submissions are tagged only by this test.
+	const TShared<GpuWorkContext> gpuContext = GpuWorkContext::Create(*device, tracker);
+
+	TInlineArray<TShared<GpuCommandBufferPool>, GQT_COUNT + 1> pools;
+	TInlineArray<GpuTimelineFenceAndValue, GQT_COUNT + 1> submits;
+	const auto fnSubmitEmpty = [&device, &tracker, &gpuContext, &pools, &submits](GpuQueueType queueType)
+	{
+		const TShared<GpuCommandBufferPool> pool = device->CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread(queueType));
+		pools.Add(pool);
+
+		GpuSubmissionInformation information;
+		information.CommandBuffer = pool->Create(GpuCommandBufferCreateInformation::Create("FenceTrackerTestCB"));
+		information.SyncMask = GpuQueueMask::kNone;
+		information.SignalFences.Add(tracker.NotifyWillSubmit(GpuQueueId(queueType, 0)));
+		submits.Add(information.SignalFences.Back());
+
+		gpuContext->SubmitCommandBuffer(information);
+	};
+
+	// One submission per queue type the device exposes, then a second one on graphics
+	for (u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
+	{
+		if (device->GetQueueCount((GpuQueueType)queueTypeIndex) > 0)
+			fnSubmitEmpty((GpuQueueType)queueTypeIndex);
+	}
+
+	const u64 queueSubmitCount = submits.Size();
+	fnSubmitEmpty(GQT_GRAPHICS);
+
+	// Markers are shared and strictly increasing; fences are distinct per queue and reused on resubmit
+	for (u64 submitIndex = 0; submitIndex < submits.Size(); submitIndex++)
+	{
+		B3D_TEST_ASSERT(submits[submitIndex].Value == submitIndex + 1)
+		B3D_TEST_ASSERT(submits[submitIndex].Fence != nullptr)
+	}
+
+	for (u64 submitIndex = 1; submitIndex < queueSubmitCount; submitIndex++)
+	{
+		for (u64 otherIndex = 0; otherIndex < submitIndex; otherIndex++)
+			B3D_TEST_ASSERT(submits[submitIndex].Fence != submits[otherIndex].Fence)
+	}
+
+	B3D_TEST_ASSERT(submits.Back().Fence == submits[0].Fence)
+	B3D_TEST_ASSERT(tracker.GetLastSubmittedMarker() == submits.Size())
+	B3D_TEST_ASSERT(tracker.GetCurrentMarker() == submits.Size() + 1)
+
+	tracker.WaitUntilComplete();
+	B3D_TEST_ASSERT(tracker.IsMarkerComplete(tracker.GetLastSubmittedMarker()))
+	for (const GpuTimelineFenceAndValue& submit : submits)
+		B3D_TEST_ASSERT(submit.Fence->IsSignaled(submit.Value))
+
+	// A borrowed-tracker context must only be destroyed once its GPU work is known complete
+	device->WaitUntilIdle();
 }
 
 void GpuAllocatorTestSuite::TestTlsf_ContractAndInitialState()

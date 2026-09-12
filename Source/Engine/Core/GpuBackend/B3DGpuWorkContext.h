@@ -209,8 +209,8 @@ namespace b3d
 
 		/**
 		 * Blocking teardown of all outstanding GPU work owned by this context: flushes any pending
-		 * transfer command buffer, blocks (yieldably) until the GPU drains this context's last
-		 * submission, ensures the completion callbacks of the finished work have run (releasing any
+		 * transfer command buffer, blocks (yieldably) until the GPU drains this context's outstanding
+		 * submissions on every queue, ensures the completion callbacks of the finished work have run (releasing any
 		 * transient buffers they hold), then retires and force-drains all transient memory back to the
 		 * device's shared page pool. Called automatically by the destructor for contexts that own their
 		 * fence tracker. Must run on the owning thread.
