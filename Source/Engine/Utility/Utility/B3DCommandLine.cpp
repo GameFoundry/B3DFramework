@@ -191,6 +191,33 @@ namespace b3d
 		return defaultValue;
 	}
 
+	/**
+	 * Checks if the token starts with a parameter prefix. Windows additionally accepts the '/' prefix, which can't be
+	 * supported on other platforms since it is indistinguishable from an absolute path.
+	 */
+	static bool IsParameterToken(const String& token, u32& outPrefixLength)
+	{
+		if (token.size() >= 2 && token[0] == '-' && token[1] == '-')
+		{
+			outPrefixLength = 2;
+			return true;
+		}
+
+#if B3D_PLATFORM_WIN32
+		const bool hasSingleCharacterPrefix = token.size() >= 1 && (token[0] == '-' || token[0] == '/');
+#else
+		const bool hasSingleCharacterPrefix = token.size() >= 1 && token[0] == '-';
+#endif
+		if (hasSingleCharacterPrefix)
+		{
+			outPrefixLength = 1;
+			return true;
+		}
+
+		outPrefixLength = 0;
+		return false;
+	}
+
 	void CommandLine::Parse(const TArray<String>& tokens)
 	{
 		sArguments.clear();
@@ -210,24 +237,11 @@ namespace b3d
 			if (token.empty())
 				continue;
 
-			// Check if this is a parameter (starts with -, --, or /)
-			bool isParameter = false;
 			String parameterName;
 			String parameterValue;
 			u32 prefixLength = 0;
 
-			if (token.size() >= 2 && token[0] == '-' && token[1] == '-')
-			{
-				isParameter = true;
-				prefixLength = 2;
-			}
-			else if (token.size() >= 1 && (token[0] == '-' || token[0] == '/'))
-			{
-				isParameter = true;
-				prefixLength = 1;
-			}
-
-			if (isParameter)
+			if (IsParameterToken(token, prefixLength))
 			{
 				// Extract parameter name and value
 				String parameterPart = token.substr(prefixLength);
@@ -248,11 +262,12 @@ namespace b3d
 					// Format: -param (flag) or -param value (check next token)
 					parameterName = parameterPart;
 
-					// Check if next token is a value (doesn't start with -, --, /)
+					// Check if next token is a value (i.e. not another parameter)
 					if (tokenIndex + 1 < tokens.size())
 					{
-						String nextToken = tokens[tokenIndex + 1];
-						if (!nextToken.empty() && nextToken[0] != '-' && nextToken[0] != '/')
+						const String& nextToken = tokens[tokenIndex + 1];
+						u32 nextTokenPrefixLength = 0;
+						if (!nextToken.empty() && !IsParameterToken(nextToken, nextTokenPrefixLength))
 						{
 							parameterValue = nextToken;
 							tokenIndex++; // Skip next token as it's been consumed as value
