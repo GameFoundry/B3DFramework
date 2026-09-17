@@ -75,6 +75,8 @@ cmake -S . -B build -G "$CMakeGenerator" \
 # flat bin/ + lib/ layout.
 cmake --build build --config Release --target install || exit 1
 
+B3DStampDependencyBuild "$OutputFolder"
+
 echo ""
 echo "======================================================================"
 echo "Build complete!"

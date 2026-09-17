@@ -10,7 +10,8 @@ mark_as_advanced(B3D_PREBUILT_DEPENDENCIES_URL)
 set(B3D_BUILT_FROM_SOURCE_STAMP ".builtfromsource")
 
 # Reads the version stamps of a package folder and reports whether the package needs updating.
-# Compares .reqversion (the version the source tree requires) and .version (the version present on disk).
+# Compares .reqversion (the version the source tree requires) and .version (the version present on disk). A folder
+# carrying a .builtfromsource stamp of at least the required version is reported as up to date regardless of .version.
 #
 # @param	targetFolder		Folder holding the package (e.g. Dependencies/XShaderCompiler)
 # @param	packageName			Name used in status messages
@@ -30,6 +31,15 @@ function(B3DCheckPackageVersion targetFolder packageName outRequiredVersion outN
 
 	file(STRINGS ${reqVersionFile} requiredVersion)
 	set(${outRequiredVersion} ${requiredVersion} PARENT_SCOPE)
+
+	set(builtFromSourceFile ${targetFolder}/${B3D_BUILT_FROM_SOURCE_STAMP})
+	if(EXISTS ${builtFromSourceFile})
+		file(STRINGS ${builtFromSourceFile} builtVersion)
+		if(NOT ${requiredVersion} GREATER ${builtVersion})
+			message(STATUS "Package '${packageName}' v${builtVersion} was built from source; keeping it.")
+			return()
+		endif()
+	endif()
 
 	if(NOT EXISTS ${versionFile})
 		message(STATUS "Package '${packageName}' is missing (need v${requiredVersion}).")

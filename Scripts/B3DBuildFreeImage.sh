@@ -86,6 +86,8 @@ fi
 # Copy headers
 cp -p Source/FreeImage.h "$OutputFolder/include/"
 
+B3DStampDependencyBuild "$OutputFolder"
+
 echo ""
 echo "======================================================================"
 echo "Build complete!"

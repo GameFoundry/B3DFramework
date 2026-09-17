@@ -215,6 +215,9 @@ fi
 echo "Copying METIS headers..."
 cp -a ../include/metis.h "$MetisOutputFolder/include/" 2>/dev/null || true
 
+B3DStampDependencyBuild "$GKlibOutputFolder"
+B3DStampDependencyBuild "$MetisOutputFolder"
+
 echo ""
 echo "======================================================================"
 echo "Build complete!"

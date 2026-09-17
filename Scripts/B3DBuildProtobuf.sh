@@ -120,6 +120,8 @@ else
     cp -a install/include/google "$ProtobufOutputFolder/include/" 2>/dev/null || true
 fi
 
+B3DStampDependencyBuild "$ProtobufOutputFolder"
+
 echo ""
 echo "======================================================================"
 echo "Build complete!"

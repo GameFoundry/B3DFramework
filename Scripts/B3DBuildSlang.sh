@@ -60,7 +60,7 @@ SlangOutputFolder="$PlatformDependencyFolder/Slang"
 
 echo "Output folder: $SlangOutputFolder"
 
-rm -rf "$SlangOutputFolder"
+B3DCleanDependencyFolder "$SlangOutputFolder"
 mkdir -p "$SlangOutputFolder/include/"
 mkdir -p "$SlangOutputFolder/lib/"
 mkdir -p "$SlangOutputFolder/bin/"
@@ -141,6 +141,8 @@ else
     cp -a include/*.h "$SlangOutputFolder/include/" 2>/dev/null || true
     cp -a build/Release/include/slang-tag-version.h "$SlangOutputFolder/include/" 2>/dev/null || true
 fi
+
+B3DStampDependencyBuild "$SlangOutputFolder"
 
 echo ""
 echo "======================================================================"

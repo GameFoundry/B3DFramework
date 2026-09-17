@@ -222,6 +222,8 @@ else
     cp -a ../include/steam "$GNSOutputFolder/include/" 2>/dev/null || true
 fi
 
+B3DStampDependencyBuild "$GNSOutputFolder"
+
 echo ""
 echo "======================================================================"
 echo "Build complete!"

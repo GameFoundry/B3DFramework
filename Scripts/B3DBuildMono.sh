@@ -226,6 +226,8 @@ cp -p "$sdkRoot/LICENSE.txt" "$sdkRoot/ThirdPartyNotices.txt" "$compilerFolder/"
 
 echo "Packaged Roslyn from SDK $sdkVersion and its .NET host in $compilerFolder"
 
+B3DStampDependencyBuild "$MonoOutputFolder"
+
 echo ""
 echo "======================================================================"
 echo "Build complete!"

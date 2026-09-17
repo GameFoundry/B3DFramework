@@ -977,6 +977,11 @@ if [ "$DryRun" = false ] && [ "$NoBump" = false ]; then
 	echo "$NewVersion" > "$ReqVersionFile"
 fi
 
+# The server now holds these contents, so the folder no longer counts as an unpublished source build.
+if [ "$DryRun" = false ]; then
+	rm -f "$PackageFolder/.builtfromsource"
+fi
+
 # Cleanup
 rm -rf "$TempDir"
 

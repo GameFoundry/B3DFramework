@@ -53,6 +53,8 @@ cmake --build "$BuildFolder" --config Debug --target install || exit 1
 mkdir -p "$OutputFolder/lib/Debug"
 mv "$OutputFolder/lib/${StaticLibraryPrefix}snappy${StaticLibraryExtension}" "$OutputFolder/lib/Debug/"
 
+B3DStampDependencyBuild "$OutputFolder"
+
 echo ""
 echo "======================================================================"
 echo "Build complete!"

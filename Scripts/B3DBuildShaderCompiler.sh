@@ -134,15 +134,6 @@ ShaderCompilerOutputFolder="$PlatformDependencyFolder/XShaderCompiler"
 
 echo "Output folder: $ShaderCompilerOutputFolder"
 
-# Read existing version before cleaning the folder
-VersionFile="$ShaderCompilerOutputFolder/.version"
-if [ -f "$VersionFile" ]; then
-	CurrentVersion=$(cat "$VersionFile")
-	NewVersion=$((CurrentVersion + 1))
-else
-	NewVersion=0
-fi
-
 B3DCleanDependencyFolder "$ShaderCompilerOutputFolder"
 mkdir -p "$ShaderCompilerOutputFolder/include/"
 mkdir -p "$ShaderCompilerOutputFolder/bin/"
@@ -221,8 +212,7 @@ else
 	B3DBuildAndInstallConfiguration "Release" "Release"
 fi
 
-# Write version file to prevent the build system from thinking the dependency is out of date
-echo "$NewVersion" > "$ShaderCompilerOutputFolder/.version"
+B3DStampDependencyBuild "$ShaderCompilerOutputFolder"
 
 echo ""
 echo "======================================================================"

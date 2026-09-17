@@ -36,6 +36,8 @@ mkdir -p build
 cmake -S llvm -B build -G "$CMakeGenerator" -DLLVM_ENABLE_PROJECTS="clang" -DCMAKE_INSTALL_PREFIX="$LLVMOutputFolder" -DCMAKE_BUILD_TYPE=Release || exit 1
 cmake --build build --target install --config Release || exit 1
 
+B3DStampDependencyBuild "$LLVMOutputFolder"
+
 echo -e "\nBuild complete. Set clang_INSTALL_DIR in B3D CMake to '$LLVMOutputFolder' to link against the built libraries.\n\n"
 echo "IMPORTANT:"
 echo " - Use '$LLVMOutputFolder/bin/llvm-config --libs' to determine which LLVM libraries your project needs to link against."

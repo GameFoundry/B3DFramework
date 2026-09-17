@@ -49,6 +49,8 @@ cmake -S . -B build -G "$CMakeGenerator" \
 cmake --build build --config Release --target install || exit 1
 cmake --build build --config Debug --target install || exit 1
 
+B3DStampDependencyBuild "$OutputFolder"
+
 echo ""
 echo "======================================================================"
 echo "Build complete!"

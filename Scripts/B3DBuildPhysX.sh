@@ -206,6 +206,8 @@ cp -rp "$PhysXRoot/PxShared/include/." "$OutputFolder/include/" || exit 1
 # License file for redistribution
 cp -p "$PhysXRoot/README.md" "$OutputFolder/License.txt" 2>/dev/null || true
 
+B3DStampDependencyBuild "$OutputFolder"
+
 echo ""
 echo "======================================================================"
 echo "Build complete!"

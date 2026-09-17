@@ -71,6 +71,8 @@ if [ -d "$OutputFolder/include/freetype2" ]; then
 	rmdir "$OutputFolder/include/freetype2"
 fi
 
+B3DStampDependencyBuild "$OutputFolder"
+
 echo ""
 echo "======================================================================"
 echo "Build complete!"

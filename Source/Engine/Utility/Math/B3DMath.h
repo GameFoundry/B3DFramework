@@ -168,7 +168,7 @@ namespace b3d
 
 		/** Returns base 2 logarithm of the provided value. */
 		template<class T>
-		static T Log2(T val) { return (T)(std::log(val) / (T)kLoG2); }
+		static T Log2(T val) { return (T)(std::log(val) / kLoG2); } // Casting kLoG2 to an integral T would divide by zero
 
 		/** Returns base N logarithm of the provided value. */
 		template<class T>
