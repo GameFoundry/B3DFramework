@@ -99,6 +99,6 @@ set(B3D_MY_FEATURE OFF CACHE BOOL "If <true|enabled>, <what it does>. <Caveats /
 
 ## Out of bounds
 
-- Do **not** edit `.version` / `.reqversion` files under `Framework/Dependencies/…`. They are the
-  internal binary-dependency tracking mechanism, ticked automatically by the dependency upload
-  script — never by hand or by build logic.
+- Do **not** edit `.version` / `.reqversion` / `.builtfromsource` files under `Framework/Dependencies/…`.
+  They are the internal binary-dependency tracking mechanism, ticked automatically by the dependency
+  upload script and the dependency build scripts (`B3DStampDependencyBuild`) — never by hand.
