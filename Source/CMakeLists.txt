@@ -315,6 +315,9 @@ else()
 	set(B3D_ASSETS_INSTALL_FOLDER .)
 endif()
 
+# Also needed by the parent project (e.g. the editor) for its own asset install rules
+set(B3D_ASSETS_INSTALL_FOLDER ${B3D_ASSETS_INSTALL_FOLDER} PARENT_SCOPE)
+
 ## Install assets
 install(
 	DIRECTORY ../Data
