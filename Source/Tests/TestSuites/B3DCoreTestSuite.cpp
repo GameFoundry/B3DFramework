@@ -56,6 +56,11 @@ void CoreTestSuite::TestMacOSDesktopInput()
 {
 	Input& input = Input::Instance();
 	RenderWindow& window = *GetApplication().GetPrimaryWindow();
+
+	// Desktop input is intentionally disabled without a native window (headless runs), so there's nothing to test.
+	if(window.GetPlatformWindowHandle() == 0)
+		return;
+
 	RenderWindowManager& windows = RenderWindowManager::Instance();
 	windows.OnFocusGained(window);
 	input.TriggerCallbacks();
