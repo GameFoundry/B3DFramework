@@ -104,5 +104,6 @@ namespace b3d
 		}
 	}
 
+	template void UnitTestPrefabUpdateHelper::TestAssertPrefabLinkValid(TestSuite& testSuite, UnitTestSceneB& instanceWrapper, UnitTestSceneB& prefabWrapper, const UUID& prefabResourceId);
 	template void UnitTestPrefabUpdateHelper::TestAssetRootPrefabLinkValid(TestSuite& testSuite, UnitTestSceneB& prefabWrapper, const UUID& prefabId);
 } // namespace b3d
