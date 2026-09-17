@@ -102,6 +102,29 @@ You can access information about GPU program parameters by calling @b3d::GpuProg
 
 You generally don't need to use this information directly. It is instead automatically parsed when you create a GPU pipeline. Once you have a pipeline you can use it to create @b3d::render::GpuParameterSet objects that allow you to assign values to parameters within a specific descriptor set of the pipeline.
 
+## Push constants
+
+Push constants pass a few frequently changed values to a draw or dispatch without allocating a uniform buffer or parameter-set binding. Declare them with [BSL's pushConstant attribute](../../User_Manuals/Custom_Materials/bsl#pushconstant) and update them with @b3d::render::GpuCommandBuffer::SetPushConstants, passing the byte offset, byte count, and source data. Both offset and count must be multiples of four, and the update must fit within the engine's 16-byte block.
+
+For the declaration in the BSL example, pack `gExposure` at byte 0 and `gOffset` at byte 8:
+
+~~~~~~~~~~~~~{.cpp}
+float values[4];
+values[0] = 0.75f;
+values[1] = 0.0f; // Padding between gExposure and gOffset
+values[2] = 0.25f;
+values[3] = 0.5f;
+commandBuffer->SetPushConstants(0, sizeof(values), values);
+
+// Change only gExposure for subsequent draws or dispatches
+float exposure = 0.5f;
+commandBuffer->SetPushConstants(0, sizeof(exposure), &exposure);
+~~~~~~~~~~~~~
+
+Data is copied immediately, and partial updates preserve the other bytes. One block is shared by all graphics and compute stages; there are no separate per-stage values. Values may be set before selecting a pipeline, survive pipeline changes, and are cleared when the command buffer is reset. Each draw or dispatch uses the portion required by its pipeline.
+
+@b3d::GpuProgramParameterDescription::PushConstantBufferSize reports the program's required size; @b3d::GpuPipelineParameterLayout::GetPushConstantBufferSize returns the largest size required by any program in the pipeline, or zero if unused. Push constants are not exposed through **GpuParameterSet** or the material API. Member offsets and types are not validated, so pack data to match the shader declaration and ensure stages agree on the meaning of shared bytes.
+
 ## GpuPipelineParameterLayout and GpuPipelineParameterSetLayout
 When a GPU pipeline is created, it generates a @b3d::GpuPipelineParameterLayout that describes all parameters used by the pipeline's GPU programs. This layout is organized into one or more **descriptor sets**, each represented by a @b3d::GpuPipelineParameterSetLayout.
 

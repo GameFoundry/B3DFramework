@@ -423,7 +423,7 @@ shader MyShader
 ~~~~~~~~~~~~~~
 
 # Default values
-All constants (uniforms) of primitive types can be assigned default values. These values will be used if the user doesn't assign the values explicitly. The relevant syntax is:
+Ordinary constants (uniforms) of primitive types can be assigned default values. Push-constant members cannot have initializers; their values are set through the command buffer. For ordinary uniforms, default values will be used if the user doesn't assign the values explicitly. The relevant syntax is:
  - For scalars: "type name = value;"
  - For vectors/matrices: "type name = { v0, v1, ... };", where the number of values is the total number of elements in a vector/matrix
  
@@ -554,6 +554,38 @@ shader MyShader
 ~~~~~~~~~~~~~~
 
 Following is a complete list of supported attributes with their use cases.
+
+## pushConstant
+
+Marks a `cbuffer` as a small block of data set directly through the low-level command buffer. Unlike ordinary constant buffers, it does not create material parameters or a parameter-set binding. Use it for frequently changed values such as draw indices, flags, or a few scalar parameters.
+
+~~~~~~~~~~~~~~
+shader PushConstantColor
+{
+	code
+	{
+		[pushConstant]
+		cbuffer DrawConstants
+		{
+			float gExposure;
+			float2 gOffset;
+		};
+
+		float4 fsmain() : SV_Target0
+		{
+			return float4(gOffset, gExposure, 1.0f);
+		}
+	};
+};
+~~~~~~~~~~~~~~
+
+The attribute takes no arguments, applies only to a `cbuffer`, and allows at most one push-constant block per GPU program. Do not specify a `register` binding. Members must not have initializers, semantics, or `packoffset` annotations.
+
+The engine supports up to 16 bytes per block. Use 32-bit `float`, `int`, or `uint` types; vectors, matrices, and structures composed of these types are supported if they fit. Arrays, `bool`, `half`, and `double` are not supported.
+
+Layout follows std140-compatible alignment: scalars align to 4 bytes, two-component vectors to 8, and three- or four-component vectors to 16. The block size is rounded to four bytes. In this example `gExposure` starts at byte 0, `gOffset` at byte 8, and the block is 16 bytes, including four bytes of padding between the members. Do not assume a C++ structure has matching padding.
+
+See [Setting push constants](../../Developer_Manuals/Low_Level_rendering/gpuPrograms#push-constants) for the matching command-buffer example.
 
 ## internal
 Marks a constant or a constant buffer (cbuffer) so it is hidden from the material's public interface (editor UI or **Material** API). This is useful for constants that are set by the engine itself and shouldn't be touched by normal users. Additionaly internal cbuffers must be explicitly created and assigned by the low level rendering API, as they will not be created automatically.
