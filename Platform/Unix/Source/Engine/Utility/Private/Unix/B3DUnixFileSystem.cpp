@@ -266,7 +266,7 @@ bool FileSystem::Iterate(const Path& dirPath, std::function<bool(const Path&)> f
 {
 	String pathStr = dirPath.ToString();
 
-	if(UnixIsFile(pathStr))
+	if(!UnixPathExists(pathStr) || UnixIsFile(pathStr))
 		return false;
 
 	DIR* dirHandle = opendir(pathStr.c_str());
