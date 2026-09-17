@@ -38,7 +38,8 @@ namespace b3d
 		 * @param	target						Description of the language to cross-compile to.
 		 * @param	inOutStartBindingSlot		Slot at which to start assigning resource bindings. This is important if your shader has multiple GPU program types, in which case you wish to set
 		 *										this to 0 for the first program type, and keep passing the value to any next program, which ensures that each program of the shader gets a unique set of bindings.
-		 * @param	outSource					Cross compiled shader source, if successful.
+		 * @param	outSource					Cross compiled shader source, if successful. Empty (with no error reported) if the source declares no entry
+		 *										point for @p type, which happens when the stage is excluded through the target's preprocessor define.
 		 * @param	outThreadGroupSize			Compute threads per threadgroup declared by the source program.
 		 * @param	outPushConstantBufferSize	Declared push-constant buffer size in bytes, or zero when unused.
 		 * @return								A result object containing an error message if not successful.

@@ -849,10 +849,13 @@ ShaderCompilerResult HLSLCrossCompiler::CrossCompile(const String& hlsl, GpuProg
 		xscTarget.TargetLanguage = Xsc::TargetLanguage::VKSL450;
 #endif
 
-	outSource = ::CrossCompile<false>(hlsl, type, xscTarget, false, startBindingSlot, compileResult, nullptr, nullptr, &outThreadGroupSize, &outPushConstantBufferSize);
+	// Entry points are detected by a target-agnostic reflection pass (see TReflect()), so a stage can be present there but
+	// excluded for this target through its preprocessor define (e.g. a geometry shader under #if !defined(METAL)). Tolerate
+	// the missing entry point and report the stage as absent by returning empty source.
+	outSource = ::CrossCompile<false>(hlsl, type, xscTarget, true, startBindingSlot, compileResult, nullptr, nullptr, &outThreadGroupSize, &outPushConstantBufferSize);
 
 #if B3D_PLATFORM_MACOS
-	if(compileResult.ErrorMessage.empty() && compileMetalSource)
+	if(compileResult.ErrorMessage.empty() && compileMetalSource && !outSource.empty())
 	{
 		String metalSource;
 		compileResult = MetalSourceCompiler::Compile(outSource, type, outPushConstantBufferSize, metalSource);
