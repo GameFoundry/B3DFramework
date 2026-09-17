@@ -240,7 +240,7 @@ void CoreTestSuite::TestAnimCurveIntegration()
 		float times[] = { 0.0f, 0.5f, 1.0f, 2.0f, 3.0f, 5.0f, 10.0f };
 		for(auto time : times)
 		{
-			B3D_TEST_ASSERT(Math::ApproxEquals(curveAcceleration.EvaluateIntegratedDouble(time, cache), EvaluatePosition(-9.81f, 0.0f, time)));
+			B3D_TEST_ASSERT(Math::ApproxEquals(curveAcceleration.EvaluateIntegratedDouble(time, cache), EvaluatePosition(-9.81f, 0.0f, time), EPSILON));
 		}
 
 		std::pair<float, float> range = curveAcceleration.CalculateRangeIntegratedDouble(cache);
