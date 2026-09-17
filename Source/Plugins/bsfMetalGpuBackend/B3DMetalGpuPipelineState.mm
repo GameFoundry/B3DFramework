@@ -16,7 +16,8 @@ namespace b3d
 	{
 		struct MetalGpuGraphicsPipelineState::Impl
 		{
-			id<MTLDepthStencilState> DepthStencilState = nil;
+			/** Depth-stencil state variants indexed by (depthReadOnly | stencilReadOnly << 1), created on demand. */
+			id<MTLDepthStencilState> DepthStencilStates[4] = { nil, nil, nil, nil };
 
 			// Per-variant cache entry. Compilation is driven by the async @c completionHandler variant
 			// of @c newRenderPipelineStateWithDescriptor:, so an entry goes through a pending state
@@ -66,17 +67,28 @@ namespace b3d
 					}
 					mImpl->Pipelines.clear();
 				}
+				for (u32 variantIndex = 0; variantIndex < 4; variantIndex++)
+				{
 #if !__has_feature(objc_arc)
-				[mImpl->DepthStencilState release];
+					[mImpl->DepthStencilStates[variantIndex] release];
 #endif
-				mImpl->DepthStencilState = nil;
+					mImpl->DepthStencilStates[variantIndex] = nil;
+				}
 			}
 
 		}
 
-		id<MTLDepthStencilState> MetalGpuGraphicsPipelineState::GetMetalDepthStencilState() const
+		static id<MTLDepthStencilState> CreateDepthStencilState(id<MTLDevice> device, const DepthStencilStateInformation& depthStencil, bool depthReadOnly, bool stencilReadOnly);
+
+		id<MTLDepthStencilState> MetalGpuGraphicsPipelineState::GetMetalDepthStencilState(bool depthReadOnly, bool stencilReadOnly)
 		{
-			return mImpl->DepthStencilState;
+			const u32 variantIndex = (depthReadOnly ? 1u : 0u) | (stencilReadOnly ? 2u : 0u);
+
+			Lock lock(mImpl->PipelineCacheMutex);
+			if (mImpl->DepthStencilStates[variantIndex] == nil)
+				mImpl->DepthStencilStates[variantIndex] = CreateDepthStencilState(mGpuDevice.GetMetalDevice(), mData.DepthStencilState, depthReadOnly, stencilReadOnly);
+
+			return mImpl->DepthStencilStates[variantIndex];
 		}
 
 		static void FillStencilDescriptor(MTLStencilDescriptor* desc, const DepthStencilStateInformation& state, bool front, u8 readMask, u8 writeMask)
@@ -98,6 +110,43 @@ namespace b3d
 				desc.depthFailureOperation = MetalUtility::GetStencilOperation(state.BackStencilZFailOp);
 				desc.depthStencilPassOperation = MetalUtility::GetStencilOperation(state.BackStencilPassOp);
 			}
+		}
+
+		/** Builds a depth-stencil state, with writes to read-only attachments masked off. Returns nil without a device. */
+		static id<MTLDepthStencilState> CreateDepthStencilState(id<MTLDevice> device, const DepthStencilStateInformation& depthStencil, bool depthReadOnly, bool stencilReadOnly)
+		{
+			if (device == nil)
+				return nil;
+
+			@autoreleasepool
+			{
+			MTLDepthStencilDescriptor* dsDesc = [[MTLDepthStencilDescriptor alloc] init];
+			dsDesc.depthCompareFunction = depthStencil.DepthReadEnable
+				? MetalUtility::GetCompareFunction(depthStencil.DepthComparisonFunc)
+				: MTLCompareFunctionAlways;
+			dsDesc.depthWriteEnabled = (depthStencil.DepthWriteEnable && !depthReadOnly) ? YES : NO;
+
+			if (depthStencil.StencilEnable)
+			{
+				const u8 writeMask = stencilReadOnly ? 0 : depthStencil.StencilWriteMask;
+				MTLStencilDescriptor* front = [[MTLStencilDescriptor alloc] init];
+				MTLStencilDescriptor* back = [[MTLStencilDescriptor alloc] init];
+				FillStencilDescriptor(front, depthStencil, true, depthStencil.StencilReadMask, writeMask);
+				FillStencilDescriptor(back, depthStencil, false, depthStencil.StencilReadMask, writeMask);
+				dsDesc.frontFaceStencil = front;
+				dsDesc.backFaceStencil = back;
+#if !__has_feature(objc_arc)
+				[front release];
+				[back release];
+#endif
+			}
+
+			id<MTLDepthStencilState> state = [device newDepthStencilStateWithDescriptor:dsDesc];
+#if !__has_feature(objc_arc)
+			[dsDesc release];
+#endif
+			return state;
+			} // @autoreleasepool
 		}
 
 		void MetalGpuGraphicsPipelineState::Initialize()
@@ -143,32 +192,8 @@ namespace b3d
 			mDepthBiasClamp = raster.DepthBiasClamp;
 			mScissorEnabled = raster.ScissorEnable;
 
-			// Build depth-stencil state.
-			const DepthStencilStateInformation& depthStencil = mData.DepthStencilState;
-			MTLDepthStencilDescriptor* dsDesc = [[MTLDepthStencilDescriptor alloc] init];
-			dsDesc.depthCompareFunction = depthStencil.DepthReadEnable
-				? MetalUtility::GetCompareFunction(depthStencil.DepthComparisonFunc)
-				: MTLCompareFunctionAlways;
-			dsDesc.depthWriteEnabled = depthStencil.DepthWriteEnable ? YES : NO;
-
-			if (depthStencil.StencilEnable)
-			{
-				MTLStencilDescriptor* front = [[MTLStencilDescriptor alloc] init];
-				MTLStencilDescriptor* back = [[MTLStencilDescriptor alloc] init];
-				FillStencilDescriptor(front, depthStencil, true, depthStencil.StencilReadMask, depthStencil.StencilWriteMask);
-				FillStencilDescriptor(back, depthStencil, false, depthStencil.StencilReadMask, depthStencil.StencilWriteMask);
-				dsDesc.frontFaceStencil = front;
-				dsDesc.backFaceStencil = back;
-#if !__has_feature(objc_arc)
-				[front release];
-				[back release];
-#endif
-			}
-
-			mImpl->DepthStencilState = [device newDepthStencilStateWithDescriptor:dsDesc];
-#if !__has_feature(objc_arc)
-			[dsDesc release];
-#endif
+			// Build the fully writable depth-stencil state up front; read-only variants are created on demand.
+			mImpl->DepthStencilStates[0] = CreateDepthStencilState(device, mData.DepthStencilState, false, false);
 
 			GpuGraphicsPipelineState::Initialize();
 			} // @autoreleasepool
@@ -265,11 +290,15 @@ namespace b3d
 				color.destinationAlphaBlendFactor = MetalUtility::GetBlendFactor(blend.AlphaDestinationFactor);
 				color.alphaBlendOperation = MetalUtility::GetBlendOperation(blend.AlphaBlendOperation);
 
+				// Read-only attachments get no writes at all, regardless of the blend state's mask.
 				MTLColorWriteMask writeMask = MTLColorWriteMaskNone;
-				if (blend.RenderTargetWriteMask & 0x1) writeMask |= MTLColorWriteMaskRed;
-				if (blend.RenderTargetWriteMask & 0x2) writeMask |= MTLColorWriteMaskGreen;
-				if (blend.RenderTargetWriteMask & 0x4) writeMask |= MTLColorWriteMaskBlue;
-				if (blend.RenderTargetWriteMask & 0x8) writeMask |= MTLColorWriteMaskAlpha;
+				if ((key.ReadOnlyMask & (RT_COLOR0 << attachmentIndex)) == 0)
+				{
+					if (blend.RenderTargetWriteMask & 0x1) writeMask |= MTLColorWriteMaskRed;
+					if (blend.RenderTargetWriteMask & 0x2) writeMask |= MTLColorWriteMaskGreen;
+					if (blend.RenderTargetWriteMask & 0x4) writeMask |= MTLColorWriteMaskBlue;
+					if (blend.RenderTargetWriteMask & 0x8) writeMask |= MTLColorWriteMaskAlpha;
+				}
 				color.writeMask = writeMask;
 			}
 

@@ -381,7 +381,13 @@ namespace b3d
 						if (resource == nullptr || useFlags == GpuResourceUseFlag::Undefined)
 							continue;
 
-						const GpuTextureSubresourceRange range = GetTextureRange(*resource, binding.Surface);
+						GpuTextureSubresourceRange range = GetTextureRange(*resource, binding.Surface);
+						// GetTextureRange() reports resource aspects, while sampling a depth-stencil texture only reads the
+						// depth plane. Keep the tracked range to that plane so a read-only depth attachment can be sampled
+						// while its stencil aspect is still being written.
+						if (type == GpuParameterType::SampledTexture && range.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
+							range.AspectMask = GpuTextureAspectFlag::Depth;
+
 						const GpuImageLayout imageLayout = type == GpuParameterType::StorageTexture ? GpuImageLayout::General : GpuImageLayout::ShaderReadOnly;
 						if(!resourceTracker.TrackImageUsage(resource, range, imageLayout, useFlags, access, barrierHelper))
 							return false;
@@ -1070,7 +1076,7 @@ namespace b3d
 				return false;
 			[impl.RenderEncoder setRenderPipelineState:pso];
 
-			id<MTLDepthStencilState> depthStencil = pipeline->GetMetalDepthStencilState();
+			id<MTLDepthStencilState> depthStencil = pipeline->GetMetalDepthStencilState((key.ReadOnlyMask & RT_DEPTH) != 0, (key.ReadOnlyMask & RT_STENCIL) != 0);
 			if (depthStencil)
 				[impl.RenderEncoder setDepthStencilState:depthStencil];
 
@@ -1490,6 +1496,55 @@ namespace b3d
 			}
 		} // namespace
 
+		/**
+		 * Mirrors GpuFramebuffer::BuildRenderPassAttachmentUsages for the manually assembled Metal attachment list.
+		 * Metal has no image layouts, so the layout values are bookkeeping for the resource tracker only; what
+		 * matters is that read-only attachments advertise read access and a shader-readable layout so the tracker
+		 * folds in-pass shader reads of the same image into the attachment instead of flagging a hazard.
+		 */
+		static GpuRenderPassAttachmentUsage BuildAttachmentUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& range, RenderSurfaceMaskBits surface, GpuResourceUseFlags useFlags, GpuImageLayout attachmentLayout, GpuImageLayout readOnlyLayout, RenderSurfaceMask readOnlyMask, RenderSurfaceMask loadMask)
+		{
+			const bool readOnly = readOnlyMask.IsSet(surface);
+
+			GpuRenderPassAttachmentUsage usage;
+			usage.Image = image;
+			usage.Range = range;
+			usage.Surface = surface;
+			usage.UseFlags = useFlags;
+
+			if (readOnly)
+			{
+				usage.Access = GpuAccessFlags(GpuAccessFlag::Read);
+				usage.Layout = readOnlyLayout;
+				usage.ShaderReadLayout = readOnlyLayout;
+			}
+			else
+			{
+				usage.Access = loadMask.IsSet(surface) ? (GpuAccessFlag::Read | GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::Write);
+				usage.Layout = attachmentLayout;
+			}
+
+			return usage;
+		}
+
+		/** Picks the depth-stencil layout matching which of the two aspects are read-only. */
+		static GpuImageLayout GetDepthStencilLayout(RenderSurfaceMask readOnlyMask)
+		{
+			const bool depthReadOnly = readOnlyMask.IsSet(RT_DEPTH);
+			const bool stencilReadOnly = readOnlyMask.IsSet(RT_STENCIL);
+
+			if (depthReadOnly && stencilReadOnly)
+				return GpuImageLayout::DepthStencilReadOnly;
+
+			if (depthReadOnly)
+				return GpuImageLayout::DepthReadOnlyStencilAttachment;
+
+			if (stencilReadOnly)
+				return GpuImageLayout::DepthAttachmentStencilReadOnly;
+
+			return GpuImageLayout::DepthStencilAttachment;
+		}
+
 		void MetalGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& createInformation)
 		{
 			// Render-pass descriptor and encoder creation produce several autoreleased Obj-C objects
@@ -1543,6 +1598,8 @@ namespace b3d
 
 			const RenderSurfaceMask clearMask = createInformation.ClearMask;
 			const RenderSurfaceMask loadMask = createInformation.LoadMask;
+			const RenderSurfaceMask readOnlyMask = createInformation.ReadOnlyMask;
+			const GpuImageLayout depthStencilLayout = GetDepthStencilLayout(readOnlyMask);
 			GpuRenderPassAttachmentUsageArray renderPassAttachmentUsages;
 
 			if (targetProps.IsWindow)
@@ -1658,15 +1715,7 @@ namespace b3d
 						range.BaseMipLevel = surface.MipLevel;
 						range.MipLevelCount = 1;
 
-						GpuRenderPassAttachmentUsage attachmentUsage;
-						attachmentUsage.Image = image;
-						attachmentUsage.Range = range;
-						attachmentUsage.Surface = bit;
-						attachmentUsage.UseFlags = GpuResourceUseFlag::ColorAttachment;
-						attachmentUsage.Access = loadMask.IsSet(bit) ? (GpuAccessFlag::Read | GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::Write);
-						attachmentUsage.Layout = GpuImageLayout::ColorAttachment;
-
-					renderPassAttachmentUsages.Add(std::move(attachmentUsage));
+						renderPassAttachmentUsages.Add(BuildAttachmentUsage(image, range, bit, GpuResourceUseFlag::ColorAttachment, GpuImageLayout::ColorAttachment, GpuImageLayout::General, readOnlyMask, loadMask));
 					}
 				}
 
@@ -1728,29 +1777,13 @@ namespace b3d
 							if(range.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
 							{
 								range.AspectMask = GpuTextureAspectFlag::Depth;
-								GpuRenderPassAttachmentUsage attachmentUsage;
-								attachmentUsage.Image = image;
-								attachmentUsage.Range = range;
-								attachmentUsage.Surface = RT_DEPTH;
-								attachmentUsage.UseFlags = GpuResourceUseFlag::DepthStencilAttachment;
-								attachmentUsage.Access = loadMask.IsSet(RT_DEPTH) ? (GpuAccessFlag::Read | GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::Write);
-								attachmentUsage.Layout = GpuImageLayout::DepthStencilAttachment;
-
-								renderPassAttachmentUsages.Add(std::move(attachmentUsage));
+								renderPassAttachmentUsages.Add(BuildAttachmentUsage(image, range, RT_DEPTH, GpuResourceUseFlag::DepthStencilAttachment, depthStencilLayout, depthStencilLayout, readOnlyMask, loadMask));
 							}
 
 							if(image->GetRange().AspectMask.IsSet(GpuTextureAspectFlag::Stencil))
 							{
 								range.AspectMask = GpuTextureAspectFlag::Stencil;
-								GpuRenderPassAttachmentUsage attachmentUsage;
-								attachmentUsage.Image = image;
-								attachmentUsage.Range = range;
-								attachmentUsage.Surface = RT_STENCIL;
-								attachmentUsage.UseFlags = GpuResourceUseFlag::DepthStencilAttachment;
-								attachmentUsage.Access = loadMask.IsSet(RT_STENCIL) ? (GpuAccessFlag::Read | GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::Write);
-								attachmentUsage.Layout = GpuImageLayout::DepthStencilAttachment;
-
-								renderPassAttachmentUsages.Add(std::move(attachmentUsage));
+								renderPassAttachmentUsages.Add(BuildAttachmentUsage(image, range, RT_STENCIL, GpuResourceUseFlag::DepthStencilAttachment, depthStencilLayout, depthStencilLayout, readOnlyMask, loadMask));
 							}
 						}
 					}
@@ -1762,8 +1795,18 @@ namespace b3d
 #endif
 			mGraphicsResourcesRequireTracking = true;
 			mResourceTracker.PrepareRenderPass(renderPassAttachmentUsages);
-			mResourceTracker.BeginRenderPass(mBarrierHelper);
+			const TArrayView<const GpuResolvedRenderPassAttachmentUsage> resolvedAttachments = mResourceTracker.BeginRenderPass(mBarrierHelper);
 			mRenderPassTrackingActive = true;
+
+			// Pipelines bound in this pass mask off writes to whatever resolved as read-only.
+			RenderSurfaceMask resolvedReadOnlyMask = RT_NONE;
+			for (const GpuResolvedRenderPassAttachmentUsage& attachment : resolvedAttachments)
+			{
+				if (attachment.Access == GpuAccessFlag::Read)
+					resolvedReadOnlyMask.Set(attachment.Surface);
+			}
+
+			mRenderPassPipelineKey.ReadOnlyMask = (u32)resolvedReadOnlyMask;
 
 			if (!ExecutePendingBarriers())
 				return;

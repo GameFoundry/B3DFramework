@@ -49,6 +49,13 @@ namespace b3d
 			 */
 			u32 VertexInputId = 0;
 
+			/**
+			 * RenderSurfaceMask bits of the attachments bound read-only by the current render pass. Metal has no
+			 * read-only attachment views, so their writes are masked off in the pipeline (color write mask) and
+			 * depth-stencil state instead.
+			 */
+			u32 ReadOnlyMask = 0;
+
 			bool operator==(const MetalPipelineVariantKey& rhs) const
 			{
 				for (u32 attachmentIndex = 0; attachmentIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; attachmentIndex++)
@@ -60,7 +67,8 @@ namespace b3d
 					&& StencilFormat == rhs.StencilFormat
 					&& SampleCount == rhs.SampleCount
 					&& TopologyClass == rhs.TopologyClass
-					&& VertexInputId == rhs.VertexInputId;
+					&& VertexInputId == rhs.VertexInputId
+					&& ReadOnlyMask == rhs.ReadOnlyMask;
 			}
 		};
 
@@ -76,6 +84,7 @@ namespace b3d
 				B3DCombineHash(h, key.SampleCount);
 				B3DCombineHash(h, key.TopologyClass);
 				B3DCombineHash(h, key.VertexInputId);
+				B3DCombineHash(h, key.ReadOnlyMask);
 				return h;
 			}
 		};
@@ -105,8 +114,12 @@ namespace b3d
 			const TShared<VertexDescription>& GetInputDeclaration() const { return mVertexDescription; }
 
 #ifdef __OBJC__
-			/** Returns the depth-stencil state object; remains valid for the pipeline's lifetime. */
-			id<MTLDepthStencilState> GetMetalDepthStencilState() const;
+			/**
+			 * Returns the depth-stencil state object for the given read-only attachment combination; remains valid
+			 * for the pipeline's lifetime. Read-only depth disables depth writes and read-only stencil masks off
+			 * stencil writes, mirroring VulkanGpuGraphicsPipelineState::CreatePipeline. Safe to call from any thread.
+			 */
+			id<MTLDepthStencilState> GetMetalDepthStencilState(bool depthReadOnly, bool stencilReadOnly);
 
 			/**
 			 * Returns a cached (or freshly created) render pipeline state for the given attachment
