@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 5784d351c..2b8c84bf8 100644
+index 5784d35..2b8c84b 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -885,7 +885,11 @@ OPTION(ALSOFT_REQUIRE_DSOUND "Require DirectSound backend" OFF)
@@ -15,3 +15,18 @@ index 5784d351c..2b8c84bf8 100644
      IF(HAVE_MMSYSTEM_H)
          CHECK_SHARED_FUNCTION_EXISTS(waveOutOpen "windows.h;mmsystem.h" winmm "" HAVE_LIBWINMM)
          IF(HAVE_LIBWINMM)
+diff --git a/OpenAL32/alBuffer.c b/OpenAL32/alBuffer.c
+index 904fd61..99f8dda 100644
+--- a/OpenAL32/alBuffer.c
++++ b/OpenAL32/alBuffer.c
+@@ -43,8 +43,8 @@ extern inline ALuint FrameSizeFromFmt(enum FmtChannels chans, enum FmtType type)
+ 
+ static ALboolean IsValidType(ALenum type) DECL_CONST;
+ static ALboolean IsValidChannels(ALenum channels) DECL_CONST;
+-static ALboolean DecomposeUserFormat(ALenum format, enum UserFmtChannels *chans, enum UserFmtType *type) DECL_CONST;
+-static ALboolean DecomposeFormat(ALenum format, enum FmtChannels *chans, enum FmtType *type) DECL_CONST;
++static ALboolean DecomposeUserFormat(ALenum format, enum UserFmtChannels *chans, enum UserFmtType *type);
++static ALboolean DecomposeFormat(ALenum format, enum FmtChannels *chans, enum FmtType *type);
+ static ALboolean SanitizeAlignment(enum UserFmtType type, ALsizei *align);
+ 
+ 

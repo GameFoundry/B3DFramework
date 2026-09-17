@@ -38,7 +38,10 @@ else
 fi
 
 # Apply patch. OpenAL Soft 1.17.2's CMakeLists.txt passes an inline -D flag as a
-# positional argument to CHECK_INCLUDE_FILES, which CMake 3.12+ rejects.
+# positional argument to CHECK_INCLUDE_FILES, which CMake 3.12+ rejects. It also marks
+# DecomposeUserFormat/DecomposeFormat as __attribute__((const)) even though they write
+# through their output pointers; modern clang trusts the attribute and drops those writes,
+# making every alBufferData call fail with AL_INVALID_ENUM.
 echo "Applying OpenAL patch..."
 git apply "$CurrentDirectory/Patches/OpenAL.patch" || exit 1
 
