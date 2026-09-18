@@ -241,7 +241,21 @@ namespace b3d
 
 			/** Uploads the cached push-constant block to the active render or compute encoder. */
 			void BindPushConstants(bool isGraphics);
+
+			/**
+			 * Binds the dynamic-offset uniform buffers of every bound parameter set in the active encoder's argument
+			 * tables, at the indices reflected by the bound graphics or compute pipeline's layout, applying any
+			 * @c SetDynamicBufferOffset overrides. Only bindings whose buffer or offset differs from what the encoder
+			 * already holds are re-encoded.
+			 */
+			void BindDynamicUniformBuffers(bool isGraphics);
+
+			/** Forgets the argument-table contents the encoders were last handed, forcing a full re-bind on the next draw or dispatch. */
+			void ResetArgumentTableBindings();
 #endif
+
+			/** Resets the dynamic-offset overrides of the parameter set bound at @p setIndex, so every buffer uses the offset it was bound with. */
+			void ResetDynamicOffsetOverrides(u32 setIndex);
 
 			MetalGpuDevice& mGpuDevice;
 			MetalGpuCommandBufferPool& mPool;
@@ -282,6 +296,13 @@ namespace b3d
 			 * loops skip them.
 			 */
 			TInlineArray<TShared<GpuParameterSet>, 4> mBoundParameterSets;
+
+			/**
+			 * Dynamic-offset overrides applied through @c SetDynamicBufferOffset, per bound parameter-set slot and
+			 * indexed by that set layout's dynamic-offset index. @c ~0u means the offset the buffer was bound with
+			 * applies. Grown in lockstep with @c mBoundParameterSets and reset whenever a set is bound at the slot.
+			 */
+			TInlineArray<TInlineArray<u32, 4>, 4> mDynamicOffsetOverridesPerSet;
 			bool mGraphicsResourcesRequireTracking = true; /**< Set when graphics parameter resources must be registered again. */
 			DrawOperationType mDrawOperation = DOT_TRIANGLE_LIST;
 			u32 mStencilReference = 0;

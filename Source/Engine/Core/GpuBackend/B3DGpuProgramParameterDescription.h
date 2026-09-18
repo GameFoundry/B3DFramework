@@ -64,6 +64,13 @@ namespace b3d
 		u32 Size; /**< In multiples of 4 bytes. */
 		GpuProgramStageBits Stages = GpuProgramStageBit::None; /**< Stages in which the parameter is used in. */
 		bool IsShareable = false; /** True for blocks that can be shared between different GPU pipeline stages. */
+
+		/**
+		 * True if the buffer is bound with a per-draw dynamic offset (see GpuCommandBuffer::SetDynamicBufferOffset). Only
+		 * such buffers receive a dynamic-offset index in the pipeline parameter layout, and backends bind them through
+		 * their fast per-draw binding paths (root descriptors, argument tables). Not supported on array bindings.
+		 */
+		bool UsesDynamicOffset = false;
 	};
 
 	/** Contains information about all parameters (i.e. uniforms) for a single GPU program, including data/object parameters and uniform buffers. */

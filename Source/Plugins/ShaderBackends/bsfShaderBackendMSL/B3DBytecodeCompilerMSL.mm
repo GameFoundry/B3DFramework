@@ -470,6 +470,7 @@ namespace
 		outBytecode.ResourceTableLayout = B3DMakeShared<GpuResourceTableLayout>();
 
 		Vector<ReflectedTable> reflectedTables;
+		Vector<GpuDescriptorTableEntry> rootResourceEntries;
 		UnorderedSet<u32> reflectedSets;
 		bool reflectedPushConstantBuffer = false;
 		bool reflectionValid = true;
@@ -503,6 +504,56 @@ namespace
 				}
 				else
 					reflectedPushConstantBuffer = true;
+
+				continue;
+			}
+
+			// Dynamic-offset uniform buffers bind directly in the argument table; their argument name encodes the engine binding
+			if((u32)binding.index >= kMetalDynamicUniformBufferIndexBase && (u32)binding.index < kMetalDynamicUniformBufferIndexBase + kMetalDynamicUniformBufferCount)
+			{
+				GpuParameterType parameterType = GpuParameterType::Unknown;
+				u32 set = 0;
+				u32 slot = 0;
+				String name;
+				if(!DecodeMetalResourceName(binding.name.UTF8String, parameterType, set, slot, name) || parameterType != GpuParameterType::UniformBuffer)
+				{
+					outBytecode.Messages += StringUtility::Format("Metal reflection found a buffer at dynamic uniform-buffer index {0} that is not an engine uniform buffer: '{1}'.\n", (u32)binding.index, binding.name != nil ? binding.name.UTF8String : "<unnamed>");
+					reflectionValid = false;
+					continue;
+				}
+
+				if(tableStruct == nil || bufferBinding.bufferDataSize == 0 || bufferBinding.bufferDataSize % 4 != 0)
+				{
+					outBytecode.Messages += StringUtility::Format("Metal reflection reported an invalid uniform-buffer size for '{0}'.\n", name);
+					reflectionValid = false;
+					continue;
+				}
+
+				GpuUniformBufferInformation information;
+				information.Name = name;
+				information.Set = set;
+				information.Slot = slot;
+				information.Size = Math::CeilToMultiple((u32)bufferBinding.bufferDataSize / 4, 4u);
+				information.IsShareable = true;
+				information.UsesDynamicOffset = true;
+				outBytecode.ParameterDescription->UniformBuffers[name] = information;
+
+				if(!ReflectUniformMembers(tableStruct, (u32)bufferBinding.bufferDataSize, set, slot, *outBytecode.ParameterDescription, outBytecode.Messages))
+				{
+					reflectionValid = false;
+					continue;
+				}
+
+				// Listed directly in the root table: bound outside of any argument buffer, at its argument-table index
+				GpuDescriptorTableEntry entry;
+				entry.Kind = GpuDescriptorEntryKind::Resource;
+				entry.BindingIndex = (u32)binding.index;
+				entry.Type = GpuParameterType::UniformBuffer;
+				entry.Set = set;
+				entry.Slot = slot;
+				entry.DescriptorCount = 1;
+				entry.DescriptorSizeInBytes = 0;
+				rootResourceEntries.push_back(entry);
 
 				continue;
 			}
@@ -557,21 +608,39 @@ namespace
 
 		outBytecode.ParameterDescription->PushConstantBufferSize = pushConstantBufferSize;
 
+		// Indices are assigned in (set, slot) order over the declared dynamic-offset uniform buffers; the compiled
+		// function only keeps the ones it reads, so the reflected indices must still ascend in that order
+		// (concrete parameter types: in a dependent context `.Set <` would parse as the b3d::Set template)
+		std::sort(rootResourceEntries.begin(), rootResourceEntries.end(), [](const GpuDescriptorTableEntry& lhs, const GpuDescriptorTableEntry& rhs)
+		{
+			return lhs.Set != rhs.Set ? lhs.Set < rhs.Set : lhs.Slot < rhs.Slot;
+		});
+
+		for(u32 ordinal = 1; ordinal < (u32)rootResourceEntries.size(); ordinal++)
+		{
+			if(rootResourceEntries[ordinal].BindingIndex > rootResourceEntries[ordinal - 1].BindingIndex)
+				continue;
+
+			outBytecode.Messages += StringUtility::Format("Metal reflection found the dynamic-offset uniform buffer at set {0}, slot {1} at buffer index {2}, out of (set, slot) order.\n",
+				rootResourceEntries[ordinal].Set, rootResourceEntries[ordinal].Slot, rootResourceEntries[ordinal].BindingIndex);
+			reflectionValid = false;
+		}
+
 		if(!reflectionValid)
 			return false;
 
-		if(!reflectedTables.empty())
+		if(!reflectedTables.empty() || !rootResourceEntries.empty())
 		{
-			// Concrete parameter types: in a dependent context `.Set <` would parse as the b3d::Set template
 			std::sort(reflectedTables.begin(), reflectedTables.end(), [](const ReflectedTable& lhs, const ReflectedTable& rhs)
 			{
 				return lhs.Set < rhs.Set;
 			});
 
+			// The root table lists one sub-table per parameter-set argument buffer followed by the argument-table uniform buffers
 			GpuResourceTableLayout& layout = *outBytecode.ResourceTableLayout;
 			GpuDescriptorTable root;
 			root.FirstEntry = 0;
-			root.EntryCount = (u32)reflectedTables.size();
+			root.EntryCount = (u32)(reflectedTables.size() + rootResourceEntries.size());
 			layout.Tables.push_back(root);
 
 			for(u32 tableIndex = 0; tableIndex < (u32)reflectedTables.size(); tableIndex++)
@@ -581,6 +650,8 @@ namespace
 				entry.TableIndex = tableIndex + 1;
 				layout.Entries.push_back(entry);
 			}
+
+			layout.Entries.insert(layout.Entries.end(), rootResourceEntries.begin(), rootResourceEntries.end());
 
 			for(const ReflectedTable& reflectedTable : reflectedTables)
 			{

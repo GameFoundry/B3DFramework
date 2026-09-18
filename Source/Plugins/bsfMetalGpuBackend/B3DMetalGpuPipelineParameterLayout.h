@@ -16,25 +16,6 @@ namespace b3d
 		 */
 
 		/**
-		 * Number of distinct argument-buffer stage sections a Metal parameter set can carry. Each stage
-		 * compiles its own MSL argument-buffer struct, and per-stage dead-resource stripping means the
-		 * structs can pack differently — so every stage gets its own section within the set's slice.
-		 */
-		constexpr u32 kMetalStageSectionCount = 3;
-
-		/** Maps a program stage bit to its argument-buffer section index, or @c ~0u for unsupported stages. */
-		inline u32 GetMetalStageSectionIndex(GpuProgramStageBit stage)
-		{
-			switch (stage)
-			{
-			case GpuProgramStageBit::Vertex:	return 0;
-			case GpuProgramStageBit::Fragment:	return 1;
-			case GpuProgramStageBit::Compute:	return 2;
-			default:							return ~0u;
-			}
-		}
-
-		/**
 		 * Describes a single binding within a Metal argument buffer in C++-visible form. Used by
 		 * @c MetalGpuParameters to look up which argument-buffer slot, resource usage, and stage-mask
 		 * should be applied when making resources resident on a command encoder.
@@ -45,14 +26,10 @@ namespace b3d
 			u32 Slot = 0;
 			/** Dense logical index used for CPU-side dirty tracking. */
 			u32 ArgIndex = 0;
-			/**
-			 * Byte offset of the first resource handle within each stage's argument-buffer section, or
-			 * @c ~0u when the stage does not declare the binding. Indexed by @c GetMetalStageSectionIndex.
-			 * Offsets are relative to the stage's section base, not the slice start.
-			 */
-			u32 StageByteOffsets[kMetalStageSectionCount] = { ~0u, ~0u, ~0u };
-			/** Byte distance between array elements, per stage section. */
-			u32 StageByteStrides[kMetalStageSectionCount] = { 0, 0, 0 };
+			/** Byte offset of the first resource handle within the set's argument buffer. Every stage reads the same struct. */
+			u32 ByteOffset = 0;
+			/** Byte distance between array elements. */
+			u32 ByteStride = 0;
 			/** Engine parameter type: distinguishes uniform/storage buffer vs texture vs sampler. */
 			GpuParameterType Type = GpuParameterType::Unknown;
 			/** Metal object type (GPOT_*) for the binding; drives read/write usage flags. */
@@ -61,41 +38,64 @@ namespace b3d
 			u32 ArraySize = 1;
 			/** First element in the parameter set's dense resolved-resource cache. */
 			u32 FirstResourceIndex = 0;
-			/** First dense dynamic-offset index, or @c ~0u for non-dynamic bindings. */
-			u32 DynamicOffsetIndex = ~0u;
 			/** Mask of @c GpuProgramStageBit values indicating which shader stages reference this binding. */
 			u32 StageMask = 0;
 		};
 
-		/** Holds the common, function-independent Tier-2 argument-buffer layout for one parameter set. */
+		/**
+		 * Describes a uniform buffer that binds directly in the per-stage argument table with a dynamic offset, bypassing
+		 * the parameter set's argument buffer. Changing its offset is a single encoder call per stage.
+		 */
+		struct MetalDynamicUniformBufferBinding
+		{
+			/** Engine set the binding belongs to. */
+			u32 Set = 0;
+			/** Engine slot index within the set. */
+			u32 Slot = 0;
+			/** Dynamic-offset index within the set's layout (see @c GpuPipelineParameterSetLayout::GetDynamicOffsetIndex). */
+			u32 DynamicOffsetIndex = ~0u;
+			/**
+			 * Argument-table buffer index, shared by every stage that reads the buffer. @c ~0u for a layout created
+			 * without shader reflection, which describes parameter-set storage only and never drives a bind.
+			 */
+			u32 BufferIndex = ~0u;
+			/** Mask of @c GpuProgramStageBit values indicating which shader stages reference this binding. */
+			u32 StageMask = 0;
+		};
+
+		/**
+		 * Holds the Tier-2 argument-buffer layout for one parameter set, plus the argument-table indices of the set's
+		 * dynamic-offset uniform buffers. Every stage of a pipeline is generated from the same declared resources, so
+		 * one argument-buffer struct serves all of them: a stage's reflected table merely omits the members that stage
+		 * never reads.
+		 */
 		class MetalGpuPipelineParameterSetLayout : public GpuPipelineParameterSetLayout
 		{
 		public:
-			/** Reflected descriptor table backing this set for one shader stage. */
+			/**
+			 * Reflected resource-table layout of one shader stage and the index of the descriptor table backing this set's
+			 * argument buffer within it, @c ~0u when the stage reads the set only through argument-table uniform buffers.
+			 */
 			struct StageReflectedTable
 			{
 				TShared<GpuResourceTableLayout> Layout;
 				u32 TableIndex = ~0u;
 			};
 
-			MetalGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription,
-				const TShared<GpuResourceTableLayout>& resourceTableLayout, u32 tableIndex);
-
 			/**
-			 * Builds the layout from per-stage reflected tables so each stage's argument-buffer struct
-			 * packing is honored independently — per-stage dead-resource stripping means the structs can
-			 * genuinely differ. Indexed by @c GetMetalStageSectionIndex.
+			 * Creates the layout without shader reflection: bindings pack densely in registration order and dynamic-offset
+			 * uniform buffers receive no argument-table index. @c MetalGpuPipelineParameterLayout applies reflection
+			 * afterwards through RebuildWithStageTables; the reflected arguments only satisfy the device factory interface.
 			 */
 			MetalGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription,
-				const Array<StageReflectedTable, kMetalStageSectionCount>& stageTables);
+				const TShared<GpuResourceTableLayout>& resourceTableLayout, u32 tableIndex);
 			~MetalGpuPipelineParameterSetLayout() override = default;
 
 			/**
-			 * Re-derives the stage sections from genuine per-stage reflected tables. Called by
-			 * @c MetalGpuPipelineParameterLayout right after the generic constructor built the set from a
-			 * single stage's table. Must run before the layout is published to any parameter set.
+			 * Re-derives the argument-buffer offsets and argument-table indices from the reflected tables of every stage
+			 * that references the set. Must run before the layout is published to any parameter set.
 			 */
-			void RebuildWithStageTables(const Array<StageReflectedTable, kMetalStageSectionCount>& stageTables) { Build(stageTables); }
+			void RebuildWithStageTables(TArrayView<const StageReflectedTable> stageTables) { Build(stageTables); }
 
 			/** Total size (in bytes) of the common argument buffer for this set. */
 			u64 GetArgumentBufferSize() const { return mArgumentBufferSize; }
@@ -103,8 +103,14 @@ namespace b3d
 			/** Required alignment (in bytes) for the argument buffer's base offset. */
 			u32 GetArgumentBufferAlignment() const { return mArgumentBufferAlignment; }
 
-			/** Returns the full list of bindings this set exposes, in the order they were registered. */
+			/** Returns the argument-buffer bindings this set exposes, in the order they were registered. Dynamic-offset uniform buffers are not included. */
 			const TArray<MetalArgumentBufferBinding>& GetBindings() const { return mBindings; }
+
+			/** Returns the uniform buffers that bind in the argument table with a dynamic offset, sorted by slot. */
+			const TArray<MetalDynamicUniformBufferBinding>& GetDynamicUniformBufferBindings() const { return mDynamicUniformBufferBindings; }
+
+			/** Finds the argument-table binding of the uniform buffer at @p slot, or null when the slot is not a dynamic-offset uniform buffer. */
+			const MetalDynamicUniformBufferBinding* FindDynamicUniformBufferBinding(u32 slot) const;
 
 			/**
 			 * B2: bindings pre-grouped by @c (MTLResourceUsage, MTLRenderStages) for the render path
@@ -162,30 +168,17 @@ namespace b3d
 			/** Finds the binding record for an engine @c (type, slot) pair, or null when absent. */
 			const MetalArgumentBufferBinding* FindBinding(GpuParameterType type, u32 slot) const;
 
-			/** Byte offset of a stage's argument-buffer section within the set's slice. */
-			u64 GetStageSectionBase(u32 stageSectionIndex) const { return mStageSectionBases[stageSectionIndex]; }
-
-			/** Size in bytes of a stage's argument-buffer section; zero when the stage has no section. */
-			u64 GetStageSectionSize(u32 stageSectionIndex) const { return mStageSectionSizes[stageSectionIndex]; }
-
 			/** Resolves a binding element to its dense resource-cache index, or @c ~0u if invalid. */
 			u32 GetResourceIndex(GpuParameterType type, u32 slot, u32 arrayIndex = 0) const;
 
-			/** Resolves a dense dynamic-offset index to its buffer binding. */
-			bool GetDynamicOffsetBinding(u32 dynamicOffsetIndex, GpuParameterType& type, u32& slot, u32& arrayIndex) const;
-
 		private:
-			/** Shared build path for both constructors. */
-			void Build(const Array<StageReflectedTable, kMetalStageSectionCount>& stageTables);
+			/** Shared build path of the constructor and RebuildWithStageTables. An empty @p stageTables selects the dense packing. */
+			void Build(TArrayView<const StageReflectedTable> stageTables);
 
 			TArray<MetalArgumentBufferBinding> mBindings;
+			TArray<MetalDynamicUniformBufferBinding> mDynamicUniformBufferBindings;
 			u64 mArgumentBufferSize = 0;
 			u32 mArgumentBufferAlignment = 16;
-
-			// Per-stage section placement within the set's argument-buffer slice. Stages without a
-			// section have size zero and share base zero (the canonical fallback packing).
-			u64 mStageSectionBases[kMetalStageSectionCount] = { 0, 0, 0 };
-			u64 mStageSectionSizes[kMetalStageSectionCount] = { 0, 0, 0 };
 
 			// Union of stage masks across every binding in mBindings. Computed once after mBindings is
 			// finalized so command-buffer bind paths can read the stage subset the set touches without

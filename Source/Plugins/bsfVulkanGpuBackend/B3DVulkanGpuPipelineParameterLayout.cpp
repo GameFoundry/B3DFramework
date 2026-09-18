@@ -56,7 +56,7 @@ VulkanGpuPipelineParameterSetLayout::VulkanGpuPipelineParameterSetLayout(VulkanG
 	}
 
 	using PerTypeUniformArray = std::decay_t<decltype(mUniformsPerType[0])>;
-	auto fnSetUniformBindings = [this](const PerTypeUniformArray& uniforms, VkDescriptorType descriptorType)
+	auto fnSetUniformBindings = [this](const PerTypeUniformArray& uniforms)
 	{
 		for(const auto& entry : uniforms)
 		{
@@ -66,7 +66,7 @@ VulkanGpuPipelineParameterSetLayout::VulkanGpuPipelineParameterSetLayout(VulkanG
 			VkDescriptorSetLayoutBinding& binding = mBindings[usedBindingSequentialIndex];
 			binding.descriptorCount = 1;
 			binding.stageFlags |= VulkanUtility::GetShaderStages(entry->Usage);
-			binding.descriptorType = descriptorType;
+			binding.descriptorType = entry->DynamicOffsetIndex != ~0u ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		}
 	};
 
@@ -88,7 +88,7 @@ VulkanGpuPipelineParameterSetLayout::VulkanGpuPipelineParameterSetLayout(VulkanG
 		}
 	};
 
-	fnSetUniformBindings(mUniformsPerType[(u32)GpuParameterType::UniformBuffer], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC);
+	fnSetUniformBindings(mUniformsPerType[(u32)GpuParameterType::UniformBuffer]);
 	fnSetBindings(mUniformsPerType[(u32)GpuParameterType::SampledTexture], VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
 	fnSetBindings(mUniformsPerType[(u32)GpuParameterType::StorageTexture], VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
 
@@ -136,7 +136,7 @@ VulkanGpuPipelineParameterSetLayout::VulkanGpuPipelineParameterSetLayout(VulkanG
 			break;
 		case GPOT_STRUCTURED_BUFFER:
 		case GPOT_RWSTRUCTURED_BUFFER:
-			binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+			binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 			break;
 		}
 

@@ -405,6 +405,8 @@ namespace
 		uniformBufferInformation.IsShareable = true;
 		uniformBufferInformation.Slot = compiler.get_decoration(resource.id, spv::DecorationBinding);
 		uniformBufferInformation.Set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+		// TODO: Take this from the [dynamicOffset] attribute once the shader compiler reflects it; until then every uniform buffer is bound with a dynamic offset.
+		uniformBufferInformation.UsesDynamicOffset = true;
 
 		return uniformBufferInformation;
 	}
@@ -822,8 +824,8 @@ namespace
 	}
 } // namespace
 
-GLSLToSPIRV::GLSLToSPIRV(const char* compilerId, u32 compilerVersion)
-	: mCompilerId(compilerId), mCompilerVersion(compilerVersion)
+GLSLToSPIRV::GLSLToSPIRV(const char* compilerId, u32 compilerVersion, bool optimizeSpirv)
+	: mCompilerId(compilerId), mCompilerVersion(compilerVersion), mOptimizeSpirv(optimizeSpirv)
 {
 	glslang::InitializeProcess();
 }
@@ -890,7 +892,7 @@ TShared<GpuProgramBytecode> GLSLToSPIRV::CompileBytecode(const GpuProgramCreateI
 	program.mapIO();
 
 	glslang::SpvOptions spvOptions;
-	spvOptions.disableOptimizer = false;
+	spvOptions.disableOptimizer = !mOptimizeSpirv;
 	spvOptions.optimizeSize = false;
 
 	GlslangToSpv(*program.getIntermediate(glslType), spirv, &logger, &spvOptions);

@@ -29,8 +29,18 @@ namespace b3d
 		/** Highest engine resource slot supported within a Metal parameter set. */
 		inline constexpr u32 kMetalMaximumArgumentBufferSlot = 63;
 
-		/** Highest parameter-set index; Metal buffer slots 16 and above are reserved for vertex streams. */
-		inline constexpr u32 kMetalMaximumParameterSetIndex = 15;
+		/** Highest parameter-set index. A parameter set's argument buffer binds at the buffer index equal to its set index. */
+		inline constexpr u32 kMetalMaximumParameterSetIndex = 7;
+
+		/**
+		 * First buffer index of the range reserved for uniform buffers bound with a dynamic offset. Such buffers bypass
+		 * the parameter set's argument buffer and bind directly in the argument table, so a per-draw offset change is a
+		 * single encoder call.
+		 */
+		inline constexpr u32 kMetalDynamicUniformBufferIndexBase = kMetalMaximumParameterSetIndex + 1;
+
+		/** Number of buffer indices reserved for dynamic-offset uniform buffers; Metal buffer slots 16 and above are reserved for vertex streams. */
+		inline constexpr u32 kMetalDynamicUniformBufferCount = 8;
 
 		/** Standalone buffer index used by SPIRV-Cross's push-constant emulation. */
 		inline constexpr u32 kMetalPushConstantBufferIndex = 30;

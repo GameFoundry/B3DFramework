@@ -4,7 +4,10 @@
 #include "Utility/B3DPushConstantShaderCompilationTest.h"
 #include "GpuBackend/B3DGpuHazards.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
+#include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
+#include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuPipelineParameterLayout.h"
 #include "GpuBackend/B3DGpuResourceTracker.h"
 #include "GpuBackend/B3DGpuResourceTracker.inl"
 #include "GpuBackend/B3DGpuProgram.h"
@@ -232,13 +235,195 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantMetadata)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantWrites)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantSerialization)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestDynamicOffsetUniformBufferLayout)
 	// Shader compilation is performed on the host; console applications load cooked shaders.
 #if !B3D_PLATFORM_PS5
 	B3D_ADD_TEST(GpuBackendTestSuite::TestHostPushConstantShaderCompilation)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestVulkanStorageBufferAccessReflection)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestHlslShaderModel66Compilation)
 #endif
+#if B3D_PLATFORM_MACOS
+	B3D_ADD_TEST(GpuBackendTestSuite::TestMetalDynamicUniformBufferReflection)
+#endif
 }
+
+void GpuBackendTestSuite::TestDynamicOffsetUniformBufferLayout()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+
+	GpuUniformBufferInformation staticBuffer;
+	staticBuffer.Name = "StaticData";
+	staticBuffer.Set = 0;
+	staticBuffer.Slot = device->GetUniformBufferParameterSlot(0);
+	staticBuffer.Size = 4;
+	staticBuffer.Stages = GpuProgramStageBit::Vertex;
+	staticBuffer.IsShareable = true;
+
+	GpuUniformBufferInformation dynamicBuffer = staticBuffer;
+	dynamicBuffer.Name = "PerObject";
+	dynamicBuffer.Slot = device->GetUniformBufferParameterSlot(1);
+	dynamicBuffer.UsesDynamicOffset = true;
+
+	GpuProgramParameterDescription description;
+	description.UniformBuffers[staticBuffer.Name] = staticBuffer;
+	description.UniformBuffers[dynamicBuffer.Name] = dynamicBuffer;
+
+	const TShared<GpuPipelineParameterSetLayout> layout = device->CreateGpuPipelineParameterSetLayout(description);
+	B3D_TEST_ASSERT(layout != nullptr)
+	if(layout == nullptr)
+		return;
+
+	B3D_TEST_ASSERT(layout->GetDynamicOffsetCount() == 1)
+	B3D_TEST_ASSERT(layout->GetDynamicOffsetIndex("PerObject") == 0)
+	B3D_TEST_ASSERT(layout->GetDynamicOffsetIndex("StaticData") == ~0u)
+
+	const UniformInformation* dynamicInformation = layout->TryGetUniformInformation("PerObject");
+	B3D_TEST_ASSERT(dynamicInformation != nullptr && dynamicInformation->DynamicOffsetIndex == 0)
+
+	const UniformInformation* staticInformation = layout->TryGetUniformInformation("StaticData");
+	B3D_TEST_ASSERT(staticInformation != nullptr && staticInformation->DynamicOffsetIndex == ~0u)
+
+	// Stages sharing a buffer must agree on its dynamic-offset declaration
+	GpuProgramParameterDescription vertex;
+	vertex.UniformBuffers[dynamicBuffer.Name] = dynamicBuffer;
+
+	GpuProgramParameterDescription fragment;
+	fragment.UniformBuffers[dynamicBuffer.Name] = dynamicBuffer;
+	fragment.UniformBuffers[dynamicBuffer.Name].UsesDynamicOffset = false;
+
+	GpuProgramParameterDescription combined;
+	B3D_TEST_ASSERT(combined.TryCombine(vertex, GpuProgramStageBit::Vertex).IsSuccessful())
+	B3D_TEST_ASSERT(!combined.TryCombine(fragment, GpuProgramStageBit::Fragment).IsSuccessful())
+}
+
+#if B3D_PLATFORM_MACOS
+void GpuBackendTestSuite::TestMetalDynamicUniformBufferReflection()
+{
+	const TShared<IShaderCompiler> compiler = ShaderCompilers::Instance().GetCompiler("bsl");
+	B3D_TEST_ASSERT_MSG(compiler != nullptr, "Metal reflection tests require the BSL compiler.")
+	if(compiler == nullptr)
+		return;
+
+	const String shaderName = "MetalDynamicUniformBufferReflection";
+	const String source = R"(
+shader MetalDynamicUniformBufferReflection
+{
+	code
+	{
+		cbuffer PerObject
+		{
+			float4x4 gTransform;
+		};
+
+		cbuffer Tint
+		{
+			float4 gColor;
+		};
+
+		SamplerState gSampler;
+		Texture2D gTexture;
+
+		struct VStoFS
+		{
+			float4 position : SV_Position;
+			float2 uv : TEXCOORD0;
+		};
+
+		VStoFS vsmain(float3 position : POSITION, float2 uv : TEXCOORD0)
+		{
+			VStoFS output;
+			output.position = mul(gTransform, float4(position, 1.0f));
+			output.uv = uv;
+			return output;
+		}
+
+		float4 fsmain(VStoFS input) : SV_Target0
+		{
+			return gTexture.Sample(gSampler, input.uv) * gColor;
+		}
+	};
+};
+)";
+
+	TShared<Shader> shader;
+	const ShaderCompilerResult compileResult = compiler->Compile(shaderName, source, {}, { "msl" }, true, shader);
+	B3D_TEST_ASSERT_MSG(compileResult.ErrorMessage.empty(), compileResult.ErrorMessage)
+	B3D_TEST_ASSERT(shader != nullptr && shader->GetVariations().size() == 1)
+	if(!compileResult.ErrorMessage.empty() || shader == nullptr || shader->GetVariations().size() != 1)
+		return;
+
+	const TShared<Variation>& variation = shader->GetVariations().front();
+	B3D_TEST_ASSERT(variation != nullptr && variation->GetPassCount() == 1 && variation->GetPass(0) != nullptr)
+	if(variation == nullptr || variation->GetPassCount() != 1 || variation->GetPass(0) == nullptr)
+		return;
+
+	const GpuProgramType stages[] = { GPT_VERTEX_PROGRAM, GPT_FRAGMENT_PROGRAM };
+	for(GpuProgramType stage : stages)
+	{
+		const GpuProgramCreateInformation& program = variation->GetPass(0)->GetGpuProgramCreateInformation(stage);
+		B3D_TEST_ASSERT(program.Bytecode != nullptr)
+		if(program.Bytecode == nullptr)
+			continue;
+
+		B3D_TEST_ASSERT_MSG(program.Bytecode->Instructions.Data != nullptr, program.Bytecode->Messages)
+		B3D_TEST_ASSERT(program.Bytecode->ParameterDescription != nullptr && program.Bytecode->ResourceTableLayout != nullptr)
+		if(program.Bytecode->Instructions.Data == nullptr || program.Bytecode->ParameterDescription == nullptr || program.Bytecode->ResourceTableLayout == nullptr)
+			continue;
+
+		// Each stage reflects only the resources it reads, but argument-table indices follow the declared (set, slot)
+		// order shared by every stage: PerObject is declared first and takes index 8 in the vertex stage, so Tint keeps
+		// index 9 in the fragment stage even though PerObject is absent there
+		const GpuProgramParameterDescription& parameterDescription = *program.Bytecode->ParameterDescription;
+		const GpuResourceTableLayout& tableLayout = *program.Bytecode->ResourceTableLayout;
+		const char* expectedBuffer = stage == GPT_VERTEX_PROGRAM ? "PerObject" : "Tint";
+		const char* expectedMember = stage == GPT_VERTEX_PROGRAM ? "gTransform" : "gColor";
+		const u32 expectedIndex = stage == GPT_VERTEX_PROGRAM ? 8 : 9;
+		B3D_TEST_ASSERT(parameterDescription.UniformBuffers.size() == 1)
+		B3D_TEST_ASSERT_MSG(parameterDescription.UniformBuffers.find(expectedBuffer) != parameterDescription.UniformBuffers.end(), expectedBuffer)
+		B3D_TEST_ASSERT_MSG(parameterDescription.UniformBufferMembers.find(expectedMember) != parameterDescription.UniformBufferMembers.end(), expectedMember)
+		B3D_TEST_ASSERT(!tableLayout.IsEmpty())
+		if(tableLayout.IsEmpty())
+			continue;
+
+		// The uniform buffer is flagged and listed directly in the root table at its argument-table index rather than
+		// as an argument-buffer member of the set's table
+		for(const auto& [name, uniformBuffer] : parameterDescription.UniformBuffers)
+		{
+			B3D_TEST_ASSERT_MSG(uniformBuffer.UsesDynamicOffset, name)
+
+			const GpuDescriptorTableEntry* rootEntry = nullptr;
+			for(const GpuDescriptorTableEntry& entry : tableLayout.GetEntries(tableLayout.GetRootTable()))
+			{
+				if(entry.Kind == GpuDescriptorEntryKind::Resource && entry.Type == GpuParameterType::UniformBuffer && entry.Set == uniformBuffer.Set && entry.Slot == uniformBuffer.Slot)
+					rootEntry = &entry;
+			}
+
+			B3D_TEST_ASSERT_MSG(rootEntry != nullptr && rootEntry->BindingIndex == expectedIndex, name)
+		}
+
+		for(u32 tableIndex = 1; tableIndex < (u32)tableLayout.Tables.size(); tableIndex++)
+		{
+			for(const GpuDescriptorTableEntry& entry : tableLayout.GetEntries(tableLayout.Tables[tableIndex]))
+				B3D_TEST_ASSERT(entry.Kind != GpuDescriptorEntryKind::Resource || entry.Type != GpuParameterType::UniformBuffer)
+		}
+
+		// The texture still lives in the fragment stage's argument buffer
+		bool foundTexture = false;
+		for(u32 tableIndex = 1; tableIndex < (u32)tableLayout.Tables.size(); tableIndex++)
+		{
+			for(const GpuDescriptorTableEntry& entry : tableLayout.GetEntries(tableLayout.Tables[tableIndex]))
+				foundTexture |= entry.Kind == GpuDescriptorEntryKind::Resource && entry.Type == GpuParameterType::SampledTexture;
+		}
+
+		if(stage == GPT_FRAGMENT_PROGRAM)
+			B3D_TEST_ASSERT(foundTexture)
+	}
+}
+#endif
 
 void GpuBackendTestSuite::TestPushConstantMetadata()
 {

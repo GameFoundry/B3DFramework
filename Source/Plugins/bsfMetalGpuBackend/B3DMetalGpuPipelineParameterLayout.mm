@@ -115,42 +115,20 @@ namespace b3d
 
 		MetalGpuPipelineParameterSetLayout::MetalGpuPipelineParameterSetLayout(
 			const GpuProgramParameterDescription& parameterDescription,
-			const TShared<GpuResourceTableLayout>& resourceTableLayout, u32 tableIndex)
+			const TShared<GpuResourceTableLayout>& /*resourceTableLayout*/, u32 /*tableIndex*/)
 			: GpuPipelineParameterSetLayout(parameterDescription)
 		{
-			// Single-table path: apply the same reflected table to every stage that references the set.
-			// Correct only when the stages agree on packing; MetalGpuPipelineParameterLayout rebuilds
-			// with genuine per-stage tables right after construction.
-			Array<StageReflectedTable, kMetalStageSectionCount> stageTables;
-			for (u32 sectionIndex = 0; sectionIndex < kMetalStageSectionCount; sectionIndex++)
-			{
-				stageTables[sectionIndex].Layout = resourceTableLayout;
-				stageTables[sectionIndex].TableIndex = tableIndex;
-			}
-
-			Build(stageTables);
+			Build({});
 		}
 
-		MetalGpuPipelineParameterSetLayout::MetalGpuPipelineParameterSetLayout(
-			const GpuProgramParameterDescription& parameterDescription,
-			const Array<StageReflectedTable, kMetalStageSectionCount>& stageTables)
-			: GpuPipelineParameterSetLayout(parameterDescription)
-		{
-			Build(stageTables);
-		}
-
-		void MetalGpuPipelineParameterSetLayout::Build(const Array<StageReflectedTable, kMetalStageSectionCount>& stageTables)
+		void MetalGpuPipelineParameterSetLayout::Build(TArrayView<const StageReflectedTable> stageTables)
 		{
 			mBindings.Clear();
+			mDynamicUniformBufferBindings.Clear();
 			mRenderBuckets.Clear();
 			mComputeBuckets.Clear();
 			mArgumentBufferSize = 0;
 			mCombinedStageMask = 0;
-			for (u32 sectionIndex = 0; sectionIndex < kMetalStageSectionCount; sectionIndex++)
-			{
-				mStageSectionBases[sectionIndex] = 0;
-				mStageSectionSizes[sectionIndex] = 0;
-			}
 
 			@autoreleasepool
 			{
@@ -170,12 +148,24 @@ namespace b3d
 							continue;
 						}
 
+						// Dynamic-offset uniform buffers bind in the argument table rather than the argument buffer
+						if (entry->Type == GpuParameterType::UniformBuffer && entry->DynamicOffsetIndex != ~0u)
+						{
+							MetalDynamicUniformBufferBinding dynamicRecord;
+							dynamicRecord.Set = entry->Set;
+							dynamicRecord.Slot = entry->Slot;
+							dynamicRecord.DynamicOffsetIndex = entry->DynamicOffsetIndex;
+							dynamicRecord.StageMask = BuildStageMask(entry->Usage);
+
+							mDynamicUniformBufferBindings.Add(dynamicRecord);
+							continue;
+						}
+
 						MetalArgumentBufferBinding record;
 						record.Slot = entry->Slot;
 						record.Type = entry->Type;
 						record.ObjectType = entry->ObjectType;
 						record.ArraySize = entry->ArraySize;
-						record.DynamicOffsetIndex = entry->DynamicOffsetIndex;
 						record.StageMask = BuildStageMask(entry->Usage);
 						mBindings.Add(record);
 					}
@@ -207,126 +197,158 @@ namespace b3d
 				for (GpuParameterType orderedType : kOrderedTypes)
 					fnCollectBindings(orderedType);
 
-				// Assign dense CPU-side indices plus the canonical fallback packing (used by stages that
-				// reference the set without a reflected table — explicitly created layouts and tests).
+				std::sort(mDynamicUniformBufferBindings.Data(), mDynamicUniformBufferBindings.Data() + mDynamicUniformBufferBindings.Size(),
+					[](const MetalDynamicUniformBufferBinding& a, const MetalDynamicUniformBufferBinding& b)
+					{
+						return a.Slot < b.Slot;
+					});
+
 				u32 resourceIndex = 0;
-				u32 fallbackByteOffset = 0;
-				TInlineArray<u32, 16> fallbackOffsets;
 				for (MetalArgumentBufferBinding& binding : mBindings)
 				{
 					binding.ArgIndex = resourceIndex;
 					binding.FirstResourceIndex = resourceIndex;
 					resourceIndex += binding.ArraySize;
-					fallbackOffsets.Add(fallbackByteOffset);
-					fallbackByteOffset += binding.ArraySize * (u32)sizeof(u64);
 				}
 
-				// Maps GetMetalStageSectionIndex slots back to their stage bits.
-				constexpr GpuProgramStageBit kSectionStageBits[kMetalStageSectionCount] =
+				// Resolve byte offsets by merging the stages' reflected tables. Every stage is generated from the same
+				// declared resources, so a member keeps its offset in every stage that reads it and a stage's struct
+				// merely omits the members it never reads. Without reflection (explicitly created layouts and tests)
+				// the bindings pack densely in registration order.
+				u64 argumentBufferSize = 0;
+				bool anyReflected = false;
+				for (const StageReflectedTable& stageTable : stageTables)
 				{
-					GpuProgramStageBit::Vertex,
-					GpuProgramStageBit::Fragment,
-					GpuProgramStageBit::Compute,
-				};
-
-				// Lay out one argument-buffer section per referencing stage. Every stage compiles its own
-				// MSL struct and per-stage dead-resource stripping means the structs can pack differently,
-				// so each stage reads its own section; CommitPendingBindings writes each binding into every
-				// section that declares it. Stages without a reflected table share one canonical section.
-				bool reflectedLayoutValid = true;
-				u64 nextSectionBase = 0;
-				bool fallbackSectionAssigned = false;
-				u64 fallbackSectionBase = 0;
-				for (u32 sectionIndex = 0; sectionIndex < kMetalStageSectionCount; sectionIndex++)
-				{
-					const u32 stageBit = (u32)kSectionStageBits[sectionIndex];
-
-					bool stageReferenced = false;
-					for (const MetalArgumentBufferBinding& binding : mBindings)
-						stageReferenced |= (binding.StageMask & stageBit) != 0;
-					if (!stageReferenced)
+					if (stageTable.Layout == nullptr)
 						continue;
 
-					const TShared<GpuResourceTableLayout>& stageLayout = stageTables[sectionIndex].Layout;
-					const u32 stageTableIndex = stageTables[sectionIndex].TableIndex;
-					const GpuDescriptorTable* reflectedTable = nullptr;
-					if (stageLayout != nullptr && stageTableIndex < (u32)stageLayout->Tables.size())
-						reflectedTable = &stageLayout->Tables[stageTableIndex];
+					anyReflected = true;
+					if (stageTable.TableIndex < (u32)stageTable.Layout->Tables.size())
+						argumentBufferSize = std::max<u64>(argumentBufferSize, stageTable.Layout->Tables[stageTable.TableIndex].SizeInBytes);
+				}
 
-					if (reflectedTable == nullptr)
+				if (!anyReflected)
+				{
+					for (MetalArgumentBufferBinding& binding : mBindings)
 					{
-						// Canonical fallback packing, shared by every unreflected stage.
-						if (!fallbackSectionAssigned)
-						{
-							fallbackSectionBase = AlignUp(nextSectionBase, mArgumentBufferAlignment);
-							nextSectionBase = fallbackSectionBase + fallbackByteOffset;
-							fallbackSectionAssigned = true;
-						}
-
-						mStageSectionBases[sectionIndex] = fallbackSectionBase;
-						mStageSectionSizes[sectionIndex] = fallbackByteOffset;
-
-						u32 bindingIndex = 0;
-						for (MetalArgumentBufferBinding& binding : mBindings)
-						{
-							if ((binding.StageMask & stageBit) != 0)
-							{
-								binding.StageByteOffsets[sectionIndex] = fallbackOffsets[bindingIndex];
-								binding.StageByteStrides[sectionIndex] = sizeof(u64);
-							}
-							bindingIndex++;
-						}
-						continue;
+						binding.ByteOffset = (u32)argumentBufferSize;
+						binding.ByteStride = sizeof(u64);
+						argumentBufferSize += binding.ArraySize * sizeof(u64);
 					}
+				}
+				else
+				{
+					// Finds the resource of the given type and slot within one table of a stage's layout
+					auto fnFindEntry = [](const StageReflectedTable& stageTable, u32 tableIndex, GpuParameterType type, u32 slot) -> const GpuDescriptorTableEntry*
+					{
+						if (stageTable.Layout == nullptr || tableIndex >= (u32)stageTable.Layout->Tables.size())
+							return nullptr;
 
-					mStageSectionBases[sectionIndex] = AlignUp(nextSectionBase, mArgumentBufferAlignment);
-					mStageSectionSizes[sectionIndex] = reflectedTable->SizeInBytes;
-					nextSectionBase = mStageSectionBases[sectionIndex] + reflectedTable->SizeInBytes;
+						for (const GpuDescriptorTableEntry& candidate : stageTable.Layout->GetEntries(stageTable.Layout->Tables[tableIndex]))
+						{
+							if (candidate.Kind == GpuDescriptorEntryKind::Resource && candidate.Type == type && candidate.Slot == slot)
+								return &candidate;
+						}
+
+						return nullptr;
+					};
+
+					u32 reflectedSet = 0;
+					for (const UniformInformation* uniform : mUniforms)
+					{
+						if (uniform != nullptr)
+						{
+							reflectedSet = uniform->Set;
+							break;
+						}
+					}
 
 					for (MetalArgumentBufferBinding& binding : mBindings)
 					{
-						if ((binding.StageMask & stageBit) == 0)
-							continue;
-
 						const GpuDescriptorTableEntry* reflectedEntry = nullptr;
-						for(const GpuDescriptorTableEntry& candidate : stageLayout->GetEntries(*reflectedTable))
+						for (const StageReflectedTable& stageTable : stageTables)
 						{
-							if(candidate.Kind == GpuDescriptorEntryKind::Resource && candidate.Type == binding.Type
-								&& candidate.Slot == binding.Slot)
+							const GpuDescriptorTableEntry* stageEntry = fnFindEntry(stageTable, stageTable.TableIndex, binding.Type, binding.Slot);
+							if (stageEntry == nullptr)
+								continue;
+
+							if (reflectedEntry != nullptr && (stageEntry->OffsetInBytes != reflectedEntry->OffsetInBytes
+								|| stageEntry->DescriptorSizeInBytes != reflectedEntry->DescriptorSizeInBytes))
 							{
-								reflectedEntry = &candidate;
-								break;
+								B3D_LOG(Error, LogRenderBackend, "Shader stages disagree on the argument-buffer offset of set {0}, slot {1}, type {2}.",
+									reflectedSet, binding.Slot, (u32)binding.Type);
+								return;
 							}
+
+							reflectedEntry = stageEntry;
 						}
 
-						if(reflectedEntry == nullptr || reflectedEntry->DescriptorCount != binding.ArraySize
+						if (reflectedEntry == nullptr || reflectedEntry->DescriptorCount != binding.ArraySize
 							|| reflectedEntry->DescriptorSizeInBytes < sizeof(u64))
 						{
 							B3D_LOG(Error, LogRenderBackend, "Metal reflection is missing a valid Tier-2 argument-buffer entry "
-								"for set {0}, slot {1}, type {2}.", reflectedTable->Set, binding.Slot, (u32)binding.Type);
-							reflectedLayoutValid = false;
-							continue;
+								"for set {0}, slot {1}, type {2}.", reflectedSet, binding.Slot, (u32)binding.Type);
+							return;
 						}
 
 						const u64 bindingEnd = (u64)reflectedEntry->OffsetInBytes
 							+ (u64)(binding.ArraySize - 1) * reflectedEntry->DescriptorSizeInBytes + sizeof(u64);
-						if(bindingEnd > reflectedTable->SizeInBytes)
+						if (bindingEnd > argumentBufferSize)
 						{
 							B3D_LOG(Error, LogRenderBackend, "Metal reflection reported an out-of-bounds argument-buffer entry "
-								"for set {0}, slot {1}.", reflectedTable->Set, binding.Slot);
-							reflectedLayoutValid = false;
-							continue;
+								"for set {0}, slot {1}.", reflectedSet, binding.Slot);
+							return;
 						}
 
-						binding.StageByteOffsets[sectionIndex] = reflectedEntry->OffsetInBytes;
-						binding.StageByteStrides[sectionIndex] = reflectedEntry->DescriptorSizeInBytes;
+						binding.ByteOffset = reflectedEntry->OffsetInBytes;
+						binding.ByteStride = reflectedEntry->DescriptorSizeInBytes;
+					}
+
+					// Dynamic-offset uniform buffers publish their argument-table index as resources listed directly in the
+					// root table of each stage that reads them. Root-table resources span every set, so the set must match too.
+					for (MetalDynamicUniformBufferBinding& binding : mDynamicUniformBufferBindings)
+					{
+						for (const StageReflectedTable& stageTable : stageTables)
+						{
+							const GpuDescriptorTableEntry* stageEntry = nullptr;
+							if (stageTable.Layout != nullptr && !stageTable.Layout->IsEmpty())
+							{
+								for (const GpuDescriptorTableEntry& candidate : stageTable.Layout->GetEntries(stageTable.Layout->GetRootTable()))
+								{
+									if (candidate.Kind == GpuDescriptorEntryKind::Resource && candidate.Type == GpuParameterType::UniformBuffer
+										&& candidate.Set == binding.Set && candidate.Slot == binding.Slot)
+									{
+										stageEntry = &candidate;
+										break;
+									}
+								}
+							}
+
+							if (stageEntry == nullptr)
+								continue;
+
+							const bool indexValid = stageEntry->BindingIndex >= kMetalDynamicUniformBufferIndexBase
+								&& stageEntry->BindingIndex < kMetalDynamicUniformBufferIndexBase + kMetalDynamicUniformBufferCount;
+							if (!indexValid || (binding.BufferIndex != ~0u && binding.BufferIndex != stageEntry->BindingIndex))
+							{
+								B3D_LOG(Error, LogRenderBackend, "Metal reflection reported an invalid or inconsistent argument-table index for the "
+									"dynamic-offset uniform buffer at set {0}, slot {1}.", binding.Set, binding.Slot);
+								return;
+							}
+
+							binding.BufferIndex = stageEntry->BindingIndex;
+						}
+
+						if (binding.BufferIndex == ~0u)
+						{
+							B3D_LOG(Error, LogRenderBackend, "Metal reflection is missing the argument-table index of the dynamic-offset "
+								"uniform buffer at set {0}, slot {1}.", binding.Set, binding.Slot);
+							return;
+						}
 					}
 				}
 
-				if(!reflectedLayoutValid)
-					return;
-
-				mArgumentBufferSize = AlignUp(nextSectionBase, mArgumentBufferAlignment);
+				mArgumentBufferSize = AlignUp(argumentBufferSize, mArgumentBufferAlignment);
 
 				// Fold every binding's stage mask into one value. Command-buffer bind paths read this to
 				// decide which stages receive the argument buffer (B7). Computed after ArgIndex assignment
@@ -432,30 +454,23 @@ namespace b3d
 			return (u32)~0u;
 		}
 
-		bool MetalGpuPipelineParameterSetLayout::GetDynamicOffsetBinding(u32 dynamicOffsetIndex,
-			GpuParameterType& type, u32& slot, u32& arrayIndex) const
+		const MetalDynamicUniformBufferBinding* MetalGpuPipelineParameterSetLayout::FindDynamicUniformBufferBinding(u32 slot) const
 		{
-			for (const MetalArgumentBufferBinding& binding : mBindings)
+			for (const MetalDynamicUniformBufferBinding& binding : mDynamicUniformBufferBindings)
 			{
-				if (binding.DynamicOffsetIndex == (u32)~0u || dynamicOffsetIndex < binding.DynamicOffsetIndex
-					|| dynamicOffsetIndex >= binding.DynamicOffsetIndex + binding.ArraySize)
-					continue;
-
-				type = binding.Type;
-				slot = binding.Slot;
-				arrayIndex = dynamicOffsetIndex - binding.DynamicOffsetIndex;
-				return true;
+				if (binding.Slot == slot)
+					return &binding;
 			}
 
-			return false;
+			return nullptr;
 		}
 
 		namespace
 		{
 			/**
-			 * Locates the reflected descriptor table backing @p set within a program's resource-table
-			 * layout — the child table referenced by a root-table SubTable entry whose set matches.
-			 * Mirrors the equivalent walk in the generic GpuPipelineParameterLayout constructor.
+			 * Locates the reflected descriptor table backing @p set within a program's resource-table layout: the child
+			 * table referenced by a root-table SubTable entry whose set matches, or @c ~0u when the stage has no argument
+			 * buffer for the set. Mirrors the equivalent walk in the generic GpuPipelineParameterLayout constructor.
 			 */
 			u32 FindSetTable(const GpuResourceTableLayout& layout, u32 set)
 			{
@@ -486,38 +501,30 @@ namespace b3d
 			if(createInformation.Compute != nullptr && createInformation.Compute->PushConstantBufferSize != 0)
 				mPushConstantStageMask |= (u32)GpuProgramStageBit::Compute;
 
-			// The generic constructor hands each set a single stage's reflected table, which silently
-			// assumes every stage packs the set identically. Per-stage dead-resource stripping breaks that
-			// assumption (a vertex program that never samples a texture packs a smaller struct than its
-			// fragment program), so rebuild each set's stage sections from the genuine per-stage tables.
+			// The generic constructor built each set without reflection; apply the genuine per-stage tables, merged
+			// into the one argument-buffer struct every stage shares
 			for (u32 set = 0; set < GetSetCount(); set++)
 			{
 				auto metalSet = std::static_pointer_cast<MetalGpuPipelineParameterSetLayout>(mSets[set]);
 				if (metalSet == nullptr)
 					continue;
 
-				Array<MetalGpuPipelineParameterSetLayout::StageReflectedTable, kMetalStageSectionCount> stageTables;
-				bool anyStageTable = false;
+				TInlineArray<MetalGpuPipelineParameterSetLayout::StageReflectedTable, GPT_COUNT> stageTables;
 				for (u32 programIndex = 0; programIndex < GPT_COUNT; programIndex++)
 				{
 					const TShared<GpuResourceTableLayout>& stageLayout = createInformation.ResourceTableLayouts[programIndex];
 					if (stageLayout == nullptr)
 						continue;
 
-					const u32 sectionIndex = GetMetalStageSectionIndex((GpuProgramStageBit)(1u << programIndex));
-					if (sectionIndex == ~0u)
-						continue;
-
-					const u32 tableIndex = FindSetTable(*stageLayout, set);
-					if (tableIndex == ~0u)
-						continue;
-
-					stageTables[sectionIndex].Layout = stageLayout;
-					stageTables[sectionIndex].TableIndex = tableIndex;
-					anyStageTable = true;
+					// A stage reading the set only through argument-table uniform buffers has no argument buffer for
+					// it; its layout still carries their root-table entries
+					MetalGpuPipelineParameterSetLayout::StageReflectedTable stageTable;
+					stageTable.Layout = stageLayout;
+					stageTable.TableIndex = FindSetTable(*stageLayout, set);
+					stageTables.Add(stageTable);
 				}
 
-				if (anyStageTable)
+				if (stageTables.Size() != 0)
 					metalSet->RebuildWithStageTables(stageTables);
 			}
 		}

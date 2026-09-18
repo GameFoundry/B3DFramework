@@ -20,7 +20,14 @@ namespace b3d
 		class GLSLToSPIRV final : public IGpuBytecodeCompiler
 		{
 		public:
-			GLSLToSPIRV(const char* compilerId, u32 compilerVersion);
+			/**
+			 * @param	compilerId		Identifier stored in produced bytecode, used to detect stale cached output.
+			 * @param	compilerVersion	Version stored in produced bytecode, used to detect stale cached output.
+			 * @param	optimizeSpirv	Runs the SPIR-V optimizer on the module. The optimizer removes resources the
+			 *							stage never reads, so front-ends that need every declared resource to survive
+			 *							can disable it.
+			 */
+			GLSLToSPIRV(const char* compilerId, u32 compilerVersion, bool optimizeSpirv = true);
 			~GLSLToSPIRV();
 
 			TShared<GpuProgramBytecode> CompileBytecode(const GpuProgramCreateInformation& createInformation) override;
@@ -29,6 +36,7 @@ namespace b3d
 		private:
 			const char* mCompilerId;
 			u32 mCompilerVersion;
+			bool mOptimizeSpirv;
 		};
 
 		/** @} */

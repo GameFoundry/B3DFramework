@@ -96,6 +96,7 @@ void RenderBeast::ActivateOnRenderThread(const LoadedRendererTextures& rendererT
 		perObjectInfo.Size = Math::CeilToMultiple(gPerObjectUniformDefinition.GetSize() / 4u, 4u);
 		perObjectInfo.Stages = GpuProgramStageBit::Vertex | GpuProgramStageBit::Fragment;
 		perObjectInfo.IsShareable = true;
+		perObjectInfo.UsesDynamicOffset = true;
 
 		// Create renderable layout (PerObject only)
 		{
@@ -120,6 +121,7 @@ void RenderBeast::ActivateOnRenderThread(const LoadedRendererTextures& rendererT
 			decalInfo.Size = Math::CeilToMultiple(gDecalUniformDefinition.GetSize() / 4u, 4u);
 			decalInfo.Stages = GpuProgramStageBit::Vertex | GpuProgramStageBit::Fragment;
 			decalInfo.IsShareable = true;
+			decalInfo.UsesDynamicOffset = true;
 			decalDescription.UniformBuffers["DecalParams"] = decalInfo;
 
 			mDecalParameterSetInfo.Layout = mDevice->CreateGpuPipelineParameterSetLayout(decalDescription);
@@ -145,6 +147,7 @@ void RenderBeast::ActivateOnRenderThread(const LoadedRendererTextures& rendererT
 			gpuParticlesInfo.Size = Math::CeilToMultiple(gGpuParticlesUniformDefinition.GetSize() / 4u, 4u);
 			gpuParticlesInfo.Stages = GpuProgramStageBit::Vertex | GpuProgramStageBit::Fragment;
 			gpuParticlesInfo.IsShareable = true;
+			gpuParticlesInfo.UsesDynamicOffset = true;
 			gpuParticlesDescription.UniformBuffers["GpuParticleParams"] = gpuParticlesInfo;
 
 			mGpuParticlesParameterSetInfo.Layout = mDevice->CreateGpuPipelineParameterSetLayout(gpuParticlesDescription);

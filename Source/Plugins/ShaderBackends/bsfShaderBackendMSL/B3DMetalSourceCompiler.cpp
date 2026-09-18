@@ -18,10 +18,15 @@ using namespace b3d::render;
 
 namespace
 {
-	/** Converts VKSL to SPIR-V and retains the reflection required to configure SPIRV-Cross's MSL ABI. */
+	/**
+	 * Converts VKSL to SPIR-V and retains the reflection required to configure SPIRV-Cross's MSL ABI. The SPIR-V is
+	 * left unoptimized so every resource the source declares survives into the module: Metal binding indices are
+	 * assigned from the declared resource list, which keeps them identical across the stages of a shader even though
+	 * SPIRV-Cross only emits the resources each stage reads.
+	 */
 	TShared<GpuProgramBytecode> CompileSpirvBytecode(const String& vkslSource, GpuProgramType programType, u32 pushConstantBufferSize)
 	{
-		static GLSLToSPIRV converter("MetalSource", 1);
+		static GLSLToSPIRV converter("MetalSource", 1, false);
 
 		GpuProgramCreateInformation createInformation;
 		createInformation.Source = vkslSource;
@@ -58,6 +63,13 @@ namespace
 		return entryPointName;
 	}
 
+	/**
+	 * SPIR-V descriptor set that dynamic-offset uniform buffers are moved to before MSL generation. SPIRV-Cross emits
+	 * the set's resources as standalone entry-point arguments instead of argument-buffer members. Must stay below 32
+	 * (SPIRV-Cross tracks discrete sets in a 32-bit mask) and above every engine parameter set.
+	 */
+	constexpr u32 kDynamicUniformBufferDescriptorSet = 31;
+
 	/** Appends one newline-terminated message to a compiler result. */
 	void AppendError(ShaderCompilerResult& outResult, const String& message)
 	{
@@ -85,6 +97,9 @@ namespace
 	 *
 	 * Binding indices are shared between resource classes within each parameter set. Texture and sampler counts are
 	 * also tracked independently because Metal applies separate per-stage limits to those argument types.
+	 *
+	 * Uniform buffers bound with a dynamic offset are kept out of the argument buffers: they receive consecutive
+	 * argument-table indices starting at kMetalDynamicUniformBufferIndexBase, in (set, slot) order.
 	 */
 	class MetalResourceBindingBuilder final
 	{
@@ -92,6 +107,9 @@ namespace
 		MetalResourceBindingBuilder(spirv_cross::CompilerMSL& outCompiler, spv::ExecutionModel executionModel, ShaderCompilerResult& outResult)
 			: mCompiler(outCompiler), mExecutionModel(executionModel), mResult(outResult)
 		{ }
+
+		/** Returns the dynamic-offset uniform buffers, keyed by (set << 32 | slot), mapped to their ordinal within the reserved argument-table range. */
+		const UnorderedMap<u64, u32>& GetDynamicUniformBufferOrdinals() const { return mDynamicUniformBufferOrdinals; }
 
 		/** Adds all reflected engine resources and validates the resulting Metal argument-buffer layout. */
 		void Build(const GpuProgramParameterDescription& parameterDescription)
@@ -138,6 +156,18 @@ namespace
 			return false;
 		}
 
+		/** Returns whether a uniform buffer binds in the argument table with a dynamic offset instead of inside an argument buffer. */
+		static bool UsesDynamicOffset(const GpuUniformBufferInformation& information)
+		{
+			return information.UsesDynamicOffset;
+		}
+
+		/** Object resources never bind with a dynamic offset. */
+		static bool UsesDynamicOffset(const GpuObjectParameterInformation&)
+		{
+			return false;
+		}
+
 		/** Returns whether an object resource occupies a Metal texture argument. */
 		static bool UsesTextureArgument(GpuParameterType parameterType, const GpuObjectParameterInformation& information)
 		{
@@ -172,6 +202,30 @@ namespace
 				if(!mOccupiedBindings.insert(bindingKey).second)
 				{
 					AppendError(mResult, StringUtility::Format("Metal shader declares multiple resources at set {0}, slot {1}. SPIR-V descriptor coordinates must be unique.", information->Set, information->Slot));
+					continue;
+				}
+
+				// Dynamic-offset uniform buffers are visited in (set, slot) order thanks to the sort above, which is the
+				// order the runtime assigns their argument-table indices in
+				if(UsesDynamicOffset(*information))
+				{
+					const u32 ordinal = (u32)mDynamicUniformBufferOrdinals.size();
+					if(ordinal >= kMetalDynamicUniformBufferCount)
+					{
+						AppendError(mResult, StringUtility::Format("Metal shader declares more than the supported {0} dynamic-offset uniform buffers.", kMetalDynamicUniformBufferCount));
+						continue;
+					}
+
+					mDynamicUniformBufferOrdinals[bindingKey] = ordinal;
+
+					spirv_cross::MSLResourceBinding binding;
+					binding.stage = mExecutionModel;
+					binding.desc_set = kDynamicUniformBufferDescriptorSet;
+					binding.binding = ordinal;
+					binding.count = 1;
+					binding.msl_buffer = kMetalDynamicUniformBufferIndexBase + ordinal;
+					mCompiler.add_msl_resource_binding(binding);
+
 					continue;
 				}
 
@@ -212,12 +266,14 @@ namespace
 		ShaderCompilerResult& mResult;
 		u64 mNextArgumentIndices[kMetalMaximumParameterSetIndex + 1] = {};
 		UnorderedSet<u64> mOccupiedBindings;
+		UnorderedMap<u64, u32> mDynamicUniformBufferOrdinals;
 		u64 mTextureArgumentCount = 0;
 		u64 mSamplerArgumentCount = 0;
 	};
 
 	/**
-	 * Encodes engine binding coordinates into reflected SPIR-V resource names before MSL generation.
+	 * Encodes engine binding coordinates into reflected SPIR-V resource names before MSL generation, and moves
+	 * dynamic-offset uniform buffers into the discrete descriptor set so they emit as standalone entry-point arguments.
 	 *
 	 * Typed buffers require special handling because SPIR-V reflects them as images while the engine parameter
 	 * description stores them in the buffer collection.
@@ -225,8 +281,8 @@ namespace
 	class MetalResourceRenamer final
 	{
 	public:
-		MetalResourceRenamer(spirv_cross::CompilerMSL& outCompiler, const GpuProgramParameterDescription& parameterDescription, ShaderCompilerResult& outResult)
-			: mCompiler(outCompiler), mParameterDescription(parameterDescription), mResult(outResult)
+		MetalResourceRenamer(spirv_cross::CompilerMSL& outCompiler, const GpuProgramParameterDescription& parameterDescription, const UnorderedMap<u64, u32>& dynamicUniformBufferOrdinals, ShaderCompilerResult& outResult)
+			: mCompiler(outCompiler), mParameterDescription(parameterDescription), mDynamicUniformBufferOrdinals(dynamicUniformBufferOrdinals), mResult(outResult)
 		{ }
 
 		/** Renames every reflected resource and verifies that every declared engine resource was found. */
@@ -291,6 +347,17 @@ namespace
 
 				RenameResource(resource, parameterType, found->second);
 				mappedNames.insert(found->first);
+
+				// Move dynamic-offset uniform buffers into the discrete set; the encoded name above keeps the engine coordinates recoverable from the generated argument's name
+				if(parameterType == GpuParameterType::UniformBuffer)
+				{
+					const u64 bindingKey = ((u64)found->second.Set << 32) | found->second.Slot;
+					if(const auto ordinal = mDynamicUniformBufferOrdinals.find(bindingKey); ordinal != mDynamicUniformBufferOrdinals.end())
+					{
+						mCompiler.set_decoration(resource.id, spv::DecorationDescriptorSet, kDynamicUniformBufferDescriptorSet);
+						mCompiler.set_decoration(resource.id, spv::DecorationBinding, ordinal->second);
+					}
+				}
 			}
 
 			return mappedNames;
@@ -343,6 +410,7 @@ namespace
 
 		spirv_cross::CompilerMSL& mCompiler;
 		const GpuProgramParameterDescription& mParameterDescription;
+		const UnorderedMap<u64, u32>& mDynamicUniformBufferOrdinals;
 		ShaderCompilerResult& mResult;
 		UnorderedSet<String> mMappedBufferNames;
 		bool mValid = true;
@@ -443,9 +511,12 @@ namespace
 			if(!compilation.Result.ErrorMessage.empty())
 				return compilation;
 
-			MetalResourceRenamer resourceRenamer(compiler, parameterDescription, compilation.Result);
+			MetalResourceRenamer resourceRenamer(compiler, parameterDescription, bindingBuilder.GetDynamicUniformBufferOrdinals(), compilation.Result);
 			if(!resourceRenamer.Rename())
 				return compilation;
+
+			if(!bindingBuilder.GetDynamicUniformBufferOrdinals().empty())
+				compiler.add_discrete_descriptor_set(kDynamicUniformBufferDescriptorSet);
 		}
 
 		compilation.MslSource = compiler.compile();

@@ -66,7 +66,7 @@ namespace b3d
 		u32 Set = 0;
 		u32 Slot = 0;
 		u32 ArraySize = 1;
-		u32 DynamicOffsetIndex = ~0u;
+		u32 DynamicOffsetIndex = ~0u; /**< Index passed to GpuCommandBuffer::SetDynamicBufferOffset. Only valid for uniform buffers declared with GpuUniformBufferInformation::UsesDynamicOffset. */
 		GpuProgramStageBits Usage = GpuProgramStageBit::None;
 
 		u32 SequentialBindingIndex = ~0u; /**< Mapping into the UniformsPerType array, for the current type. */
@@ -129,8 +129,8 @@ namespace b3d
 		 * Returns an index that can be used for applying a dynamic offset for buffer lookup. The index can be provided
 		 * to the command buffer after GpuParameterSet using this layout have been bound on the command buffer.
 		 *
-		 * Returns ~0u if parameter at the specific slot doesn't support dynamic offsets (supported on uniform and storage buffers),
-		 * or if the parameter is not found.
+		 * Returns ~0u if parameter at the specific slot doesn't support dynamic offsets (supported on uniform buffers declared
+		 * with GpuUniformBufferInformation::UsesDynamicOffset), or if the parameter is not found.
 		 */
 		u32 GetDynamicOffsetIndex(u32 slot, u32 arrayIndex = 0) const;
 
@@ -138,8 +138,8 @@ namespace b3d
 		 * Returns an index that can be used for applying a dynamic offset for buffer lookup. The index can be provided
 		 * to the command buffer after GpuParameterSet using this layout have been bound on the command buffer.
 		 *
-		 * Returns ~0u if parameter at the specific set/slot combination doesn't support dynamic offsets (supported on uniform and storage buffers),
-		 * or if the parameter is not found.
+		 * Returns ~0u if parameter at the specific set/slot combination doesn't support dynamic offsets (supported on uniform buffers declared
+		 * with GpuUniformBufferInformation::UsesDynamicOffset), or if the parameter is not found.
 		 */
 		u32 GetDynamicOffsetIndex(const StringView& name, u32 arrayIndex = 0) const;
 

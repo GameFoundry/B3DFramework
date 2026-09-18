@@ -49,9 +49,17 @@ namespace b3d
 		/** Verifies push-constant buffer metadata survives bytecode serialization. */
 		void TestPushConstantSerialization();
 
+		/** Verifies only uniform buffers declared with a dynamic offset receive dynamic-offset indices, and that stages must agree on the declaration. */
+		void TestDynamicOffsetUniformBufferLayout();
+
 #if !B3D_PLATFORM_PS5
 		/** Compiles host shader fixtures and verifies push-constant size and separation from ordinary resources. */
 		void TestHostPushConstantShaderCompilation();
+#endif
+
+#if B3D_PLATFORM_MACOS
+		/** Verifies Metal reflects dynamic-offset uniform buffers as argument-table bindings rather than argument-buffer members. */
+		void TestMetalDynamicUniformBufferReflection();
 #endif
 
 		/** Verifies Vulkan storage-buffer reflection distinguishes read-only blocks and members from writable buffers. */

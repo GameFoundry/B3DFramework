@@ -220,8 +220,7 @@ void VulkanGpuParameterSet::Initialize()
 			{
 				const bool useView = writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER &&
 					writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC &&
-					writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER &&
-					writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+					writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
 				if(!useView)
 				{
@@ -514,7 +513,7 @@ bool VulkanGpuParameterSet::SetStorageBuffer(u32 slot, const TShared<GpuBuffer>&
 
 	VkWriteDescriptorSet& writeSetInfo = mSetInformation.WriteSetInfos[usedBindingSequentialIndex];
 
-	const bool useView = writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER && writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+	const bool useView = writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 	VkBufferView vkBufferView = VK_NULL_HANDLE;
 	if(bufferResource == nullptr)
 	{
@@ -648,14 +647,14 @@ bool VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracke
 
 			VulkanBuffer* resource = nullptr;
 			VkDeviceSize bufferSize = VK_WHOLE_SIZE;
-			u32 dynamicOffset = 0;
+			u32 bufferOffset = 0;
 
 			if(mUniformBufferData[sequentialResourceIndex].Buffer != nullptr)
 			{
 				VulkanGpuBuffer *const element = static_cast<VulkanGpuBuffer*>(mUniformBufferData[sequentialResourceIndex].Buffer.get());
 				resource = element->GetVulkanResource();
 				bufferSize = element->GetSuballocationSize();
-				dynamicOffset = mUniformBufferData[sequentialResourceIndex].Offset;
+				bufferOffset = mUniformBufferData[sequentialResourceIndex].Offset;
 			}
 
 			if(resource == nullptr)
@@ -671,22 +670,31 @@ bool VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracke
 			GpuResourceUseFlags useFlags = VulkanUtility::ShaderToResourceUseFlags(perSetBindings[usedBindingSequentialIndex].stageFlags) | GpuResourceUseFlag::UniformBuffer;
 
 			// Register with command buffer
-			resourceTracker.TrackBufferAccess(resource, GpuBackendUtility::GetStageFlags(useFlags), GpuAccessFlag::Read, barrierHelper, dynamicOffset);
+			resourceTracker.TrackBufferAccess(resource, GpuBackendUtility::GetStageFlags(useFlags), GpuAccessFlag::Read, barrierHelper, bufferOffset);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(mUniformBuffers[sequentialResourceIndex] != VK_NULL_HANDLE);
+
+			VkDescriptorBufferInfo& bufferInfo = mSetInformation.BufferWriteInfos[usedResourceSequentialIndex];
 
 			VkBuffer vkBuffer = resource->GetVulkanHandle();
 			if(mUniformBuffers[sequentialResourceIndex] != vkBuffer)
 			{
 				mUniformBuffers[sequentialResourceIndex] = vkBuffer;
-				mSetInformation.BufferWriteInfos[usedResourceSequentialIndex].buffer = vkBuffer;
-				mSetInformation.BufferWriteInfos[usedResourceSequentialIndex].range = bufferSize;
+				bufferInfo.buffer = vkBuffer;
+				bufferInfo.range = bufferSize;
 
 				mSetDirty = true;
 			}
 
-			dynamicOffsetMapping[usedBindingSequentialIndex] = dynamicOffset;
+			// Dynamic-offset buffers keep the offset out of the descriptor so it can change without a set rewrite
+			if(perSetBindings[usedBindingSequentialIndex].descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC)
+				dynamicOffsetMapping[usedBindingSequentialIndex] = bufferOffset;
+			else if(bufferInfo.offset != bufferOffset)
+			{
+				bufferInfo.offset = bufferOffset;
+				mSetDirty = true;
+			}
 		}
 	}
 
@@ -707,19 +715,15 @@ bool VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracke
 			GpuAccessFlags accessFlags = GpuAccessFlag::Read;
 			VulkanBuffer* resource = nullptr;
 			VkDeviceSize bufferSize = VK_WHOLE_SIZE;
-
-			const bool supportsDynamicOffset = type == GPOT_STRUCTURED_BUFFER || type == GPOT_RWSTRUCTURED_BUFFER;
-			u32 dynamicOffset = supportsDynamicOffset ? 0 : ~0u;
+			u32 bufferOffset = 0;
 
 			if(mStorageBufferData[sequentialResourceIndex].Buffer != nullptr)
 			{
-				if(supportsDynamicOffset)
-					dynamicOffset = mStorageBufferData[sequentialResourceIndex].View.Offset;
-
 				auto* element = static_cast<VulkanGpuBuffer*>(mStorageBufferData[sequentialResourceIndex].Buffer.get());
 				resource = element->GetVulkanResource();
 
 				bufferSize = element->GetSuballocationSize();
+				bufferOffset = mStorageBufferData[sequentialResourceIndex].View.Offset;
 			}
 
 			if(resource == nullptr)
@@ -753,7 +757,7 @@ bool VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracke
 			TArrayView<const VkDescriptorSetLayoutBinding> perSetBindings = pipelineParameterInformationSet.GetBindings();
 			GpuResourceUseFlags useFlags = VulkanUtility::ShaderToResourceUseFlags(perSetBindings[usedBindingSequentialIndex].stageFlags) | GpuResourceUseFlag::ShaderAccess;
 
-			resourceTracker.TrackBufferAccess(resource, GpuBackendUtility::GetStageFlags(useFlags), accessFlags, barrierHelper, dynamicOffset);
+			resourceTracker.TrackBufferAccess(resource, GpuBackendUtility::GetStageFlags(useFlags), accessFlags, barrierHelper, bufferOffset);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(mBuffers[sequentialResourceIndex] != VK_NULL_HANDLE);
@@ -788,14 +792,13 @@ bool VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracke
 				else // Structured storage buffer
 				{
 					mSetInformation.BufferWriteInfos[usedResourceSequentialIndex].buffer = vkBuffer;
+					mSetInformation.BufferWriteInfos[usedResourceSequentialIndex].offset = bufferOffset;
 					mSetInformation.BufferWriteInfos[usedResourceSequentialIndex].range = bufferSize;
 					mSetInformation.WriteSetInfos[usedBindingSequentialIndex].pTexelBufferView = nullptr;
 				}
 
 				mSetDirty = true;
 			}
-
-			dynamicOffsetMapping[usedBindingSequentialIndex] = dynamicOffset;
 		}
 	}
 

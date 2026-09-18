@@ -54,8 +54,19 @@ namespace b3d
 				NSUInteger Index = 0;
 			};
 
+			/** Buffer and offset last handed to an encoder's argument table at one dynamic uniform-buffer index. Buffer is compared by address only, never dereferenced. */
+			struct ArgumentTableBinding
+			{
+				void* Buffer = nullptr;
+				NSUInteger Offset = 0;
+			};
+
 			MTLRenderPassDescriptor* RestartRenderPassDescriptor = nil;
 			Vector<VertexBufferBinding> VertexBufferBindings;
+			/** Argument-table contents of the vertex, fragment and compute stages, relative to kMetalDynamicUniformBufferIndexBase. */
+			Array<ArgumentTableBinding, kMetalDynamicUniformBufferCount> VertexArgumentTable;
+			Array<ArgumentTableBinding, kMetalDynamicUniformBufferCount> FragmentArgumentTable;
+			Array<ArgumentTableBinding, kMetalDynamicUniformBufferCount> ComputeArgumentTable;
 			MTLViewport Viewport = {};
 			Area2 NormalizedViewport = Area2(0.0f, 0.0f, 1.0f, 1.0f); /**< Engine-side viewport in normalized [0,1] units; converted to pixels per render pass. */
 			MTLScissorRect Scissor = {};
@@ -169,18 +180,12 @@ namespace b3d
 					if (!layout || argumentBuffer == nil || params.GetSet() >= kMetalVertexBufferSlotBase)
 						return;
 
-					// Each stage reads its own argument-buffer section — per-stage MSL structs pack
-					// independently, so the attach offset selects the stage's section within the slice.
 					const u32 stageMask = layout->GetCombinedStageMask();
 					if (stageMask & ((u32)GpuProgramStageBit::Vertex | (u32)GpuProgramStageBit::Hull
 						| (u32)GpuProgramStageBit::Domain))
-						[encoder setVertexBuffer:argumentBuffer
-							offset:(NSUInteger)(params.GetArgumentBufferOffset() + layout->GetStageSectionBase(GetMetalStageSectionIndex(GpuProgramStageBit::Vertex)))
-							atIndex:params.GetSet()];
+						[encoder setVertexBuffer:argumentBuffer offset:(NSUInteger)params.GetArgumentBufferOffset() atIndex:params.GetSet()];
 					if (stageMask & (u32)GpuProgramStageBit::Fragment)
-						[encoder setFragmentBuffer:argumentBuffer
-							offset:(NSUInteger)(params.GetArgumentBufferOffset() + layout->GetStageSectionBase(GetMetalStageSectionIndex(GpuProgramStageBit::Fragment)))
-							atIndex:params.GetSet()];
+						[encoder setFragmentBuffer:argumentBuffer offset:(NSUInteger)params.GetArgumentBufferOffset() atIndex:params.GetSet()];
 				}
 
 			/** Compute-encoder counterpart of @c AttachArgumentBufferToRenderEncoder. No stage axis. */
@@ -192,9 +197,7 @@ namespace b3d
 						|| (layout->GetCombinedStageMask() & (u32)GpuProgramStageBit::Compute) == 0)
 						return;
 
-					[encoder setBuffer:argumentBuffer
-						offset:(NSUInteger)(params.GetArgumentBufferOffset() + layout->GetStageSectionBase(GetMetalStageSectionIndex(GpuProgramStageBit::Compute)))
-						atIndex:params.GetSet()];
+					[encoder setBuffer:argumentBuffer offset:(NSUInteger)params.GetArgumentBufferOffset() atIndex:params.GetSet()];
 				}
 
 			/**
@@ -284,38 +287,49 @@ namespace b3d
 					});
 			}
 
+			/** Returns the stages that reference the binding of @p type at @p slot, as a mask of GpuProgramStageBit values; zero when the layout has no such binding. */
+			u32 GetBindingStageMask(const MetalGpuPipelineParameterSetLayout& layout, GpuParameterType type, u32 slot)
+			{
+				if (const MetalArgumentBufferBinding* binding = layout.FindBinding(type, slot))
+					return binding->StageMask;
+
+				if (type == GpuParameterType::UniformBuffer)
+				{
+					if (const MetalDynamicUniformBufferBinding* binding = layout.FindDynamicUniformBufferBinding(slot))
+						return binding->StageMask;
+				}
+
+				return 0;
+			}
+
 			GpuResourceUseFlags GetBindingUseFlags(const MetalGpuPipelineParameterSetLayout& layout, GpuParameterType type, u32 slot, bool compute)
 			{
+				const u32 stageMask = GetBindingStageMask(layout, type, slot);
+				if (stageMask == 0)
+					return GpuResourceUseFlag::Undefined;
+
 				GpuResourceUseFlags useFlags = type == GpuParameterType::UniformBuffer
 					? GpuResourceUseFlag::UniformBuffer
 					: GpuResourceUseFlag::ShaderAccess;
 
-				for (const MetalArgumentBufferBinding& binding : layout.GetBindings())
+				if (compute)
 				{
-					if (binding.Type != type || binding.Slot != slot)
-						continue;
+					if ((stageMask & (u32)GpuProgramStageBit::Compute) == 0)
+						return GpuResourceUseFlag::Undefined;
 
-					if (compute)
-					{
-						if ((binding.StageMask & (u32)GpuProgramStageBit::Compute) == 0)
-							return GpuResourceUseFlag::Undefined;
-
-						useFlags |= GpuResourceUseFlag::StageComputeShader;
-					}
-					else
-					{
-						if (binding.StageMask & ((u32)GpuProgramStageBit::Vertex | (u32)GpuProgramStageBit::Hull | (u32)GpuProgramStageBit::Domain))
-							useFlags |= GpuResourceUseFlag::StageVertexShader;
-						if (binding.StageMask & (u32)GpuProgramStageBit::Fragment)
-							useFlags |= GpuResourceUseFlag::StageFragmentShader;
-						if (!useFlags.IsSetAny(GpuResourceUseFlag::StageVertexShader | GpuResourceUseFlag::StageFragmentShader))
-							return GpuResourceUseFlag::Undefined;
-					}
-
-					return useFlags;
+					useFlags |= GpuResourceUseFlag::StageComputeShader;
+				}
+				else
+				{
+					if (stageMask & ((u32)GpuProgramStageBit::Vertex | (u32)GpuProgramStageBit::Hull | (u32)GpuProgramStageBit::Domain))
+						useFlags |= GpuResourceUseFlag::StageVertexShader;
+					if (stageMask & (u32)GpuProgramStageBit::Fragment)
+						useFlags |= GpuResourceUseFlag::StageFragmentShader;
+					if (!useFlags.IsSetAny(GpuResourceUseFlag::StageVertexShader | GpuResourceUseFlag::StageFragmentShader))
+						return GpuResourceUseFlag::Undefined;
 				}
 
-				return GpuResourceUseFlag::Undefined;
+				return useFlags;
 			}
 
 			GpuAccessFlags GetStorageBufferAccessFlags(const MetalGpuPipelineParameterSetLayout& layout, u32 slot)
@@ -347,7 +361,12 @@ namespace b3d
 				return range;
 			}
 
-			bool TrackParameterResources(MetalGpuParameters& parameters, bool compute, MetalResourceTracker& resourceTracker, MetalBarrierHelper& barrierHelper)
+			/**
+			 * Registers every resource bound in @p parameters with the tracker. @p dynamicOffsetOverrides holds the
+			 * command buffer's per-draw offset overrides for the set (indexed by dynamic-offset index, @c ~0u for none),
+			 * so uniform-buffer suballocations are tracked at the offset the draw actually reads.
+			 */
+			bool TrackParameterResources(MetalGpuParameters& parameters, const TInlineArray<u32, 4>& dynamicOffsetOverrides, bool compute, MetalResourceTracker& resourceTracker, MetalBarrierHelper& barrierHelper)
 			{
 				const MetalGpuPipelineParameterSetLayout* layout = parameters.GetMetalLayout();
 				if (layout == nullptr)
@@ -358,8 +377,15 @@ namespace b3d
 					auto buffer = std::static_pointer_cast<MetalGpuBuffer>(binding.Buffer);
 					MetalBuffer* resource = buffer ? buffer->GetMetalResource() : nullptr;
 					const GpuResourceUseFlags useFlags = GetBindingUseFlags(*layout, GpuParameterType::UniformBuffer, binding.Slot, compute);
-					if (resource != nullptr && useFlags != GpuResourceUseFlag::Undefined)
-						resourceTracker.TrackBufferAccess(resource, GpuBackendUtility::GetStageFlags(useFlags), GpuAccessFlag::Read, barrierHelper, binding.Offset);
+					if (resource == nullptr || useFlags == GpuResourceUseFlag::Undefined)
+						continue;
+
+					u32 offset = binding.Offset;
+					const u32 dynamicOffsetIndex = layout->GetDynamicOffsetIndex(binding.Slot, binding.ArrayIndex);
+					if (dynamicOffsetIndex < (u32)dynamicOffsetOverrides.Size() && dynamicOffsetOverrides[dynamicOffsetIndex] != ~0u)
+						offset = dynamicOffsetOverrides[dynamicOffsetIndex];
+
+					resourceTracker.TrackBufferAccess(resource, GpuBackendUtility::GetStageFlags(useFlags), GpuAccessFlag::Read, barrierHelper, offset);
 				}
 
 				for (const MetalGpuParameters::StorageBufferBinding& binding : parameters.GetStorageBuffers())
@@ -529,6 +555,7 @@ namespace b3d
 				[mImpl->RenderEncoder endEncoding];
 				mImpl->RenderEncoder = nil;
 				ResetRenderResidencyCaches();
+				ResetArgumentTableBindings();
 				EncodePendingEventSignals();
 			}
 			if (targetKind != EncoderKind::Compute && mImpl->ComputeEncoder != nil)
@@ -539,6 +566,7 @@ namespace b3d
 				[mImpl->ComputeEncoder endEncoding];
 				mImpl->ComputeEncoder = nil;
 				ResetComputeResidencyCaches();
+				ResetArgumentTableBindings();
 			}
 			if (targetKind != EncoderKind::Blit && mImpl->BlitEncoder != nil)
 			{
@@ -805,12 +833,14 @@ namespace b3d
 			if (setIndex >= (u32)mBoundParameterSets.Size())
 			{
 				mBoundParameterSets.Resize(setIndex + 1);
-				// Keep the per-slot residency caches grown in lockstep so @c Draw / @c DispatchCompute
-				// can index them symmetrically with @c mBoundParameterSets.
+				// Keep the per-slot residency caches and offset overrides grown in lockstep so @c Draw /
+				// @c DispatchCompute can index them symmetrically with @c mBoundParameterSets.
 				mRenderResidencyCaches.Resize(setIndex + 1);
 				mComputeResidencyCaches.Resize(setIndex + 1);
+				mDynamicOffsetOverridesPerSet.Resize(setIndex + 1);
 			}
 			mBoundParameterSets[setIndex] = parameters;
+			ResetDynamicOffsetOverrides(setIndex);
 			mGraphicsResourcesRequireTracking = true;
 
 			// B5: only attach the argument buffer to the encoder here. Do NOT commit pending SetX
@@ -820,27 +850,56 @@ namespace b3d
 			} // @autoreleasepool
 		}
 
+		void MetalGpuCommandBuffer::ResetDynamicOffsetOverrides(u32 setIndex)
+		{
+			const TShared<GpuParameterSet>& parameters = mBoundParameterSets[setIndex];
+			const u32 dynamicOffsetCount = parameters != nullptr && parameters->GetLayout() != nullptr ? parameters->GetLayout()->GetDynamicOffsetCount() : 0;
+
+			TInlineArray<u32, 4>& overrides = mDynamicOffsetOverridesPerSet[setIndex];
+			overrides.Clear();
+			overrides.Resize(dynamicOffsetCount, ~0u);
+		}
+
 		void MetalGpuCommandBuffer::SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset)
 		{
-			// B1: SetDynamicOffset resolves handles for a direct argument-buffer write and can retain transient
-			// Obj-C labels on the backing buffers. Scope the pool here so they drain within the call.
-			@autoreleasepool
-			{
 			EnsureValidThread();
 
-			// A'3: look up the set by its slot index — the old code ignored @p set and always hit the
-			// single cached slot, which silently sent dynamic-offset updates to the wrong set when
-			// the pipeline bound more than one.
 			if (set >= (u32)mBoundParameterSets.Size() || !mBoundParameterSets[set])
 				return;
 
-			// SetDynamicOffset re-encodes the buffer at the new offset inside the argument buffer; the
-			// encoder itself sees the argument buffer (not the individual uniform buffer), so no
-			// encoder-level offset update is needed.
-			auto metalParams = std::static_pointer_cast<MetalGpuParameters>(mBoundParameterSets[set]);
-			metalParams->SetDynamicOffset(bufferIndex, offset);
+			TInlineArray<u32, 4>& overrides = mDynamicOffsetOverridesPerSet[set];
+			if (bufferIndex >= (u32)overrides.Size())
+			{
+				B3D_LOG(Error, LogRenderBackend, "Dynamic offset index {0} is out of range for parameter set {1}.", bufferIndex, set);
+				return;
+			}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			// Only uniform buffers declared with a dynamic offset bind through the argument table
+			const auto& parameters = static_cast<const MetalGpuParameters&>(*mBoundParameterSets[set]);
+			const MetalDynamicUniformBufferBinding* dynamicBinding = nullptr;
+			for (const MetalDynamicUniformBufferBinding& binding : parameters.GetMetalLayout()->GetDynamicUniformBufferBindings())
+			{
+				if (binding.DynamicOffsetIndex == bufferIndex)
+					dynamicBinding = &binding;
+			}
+
+			if (!B3D_ENSURE_LOG(dynamicBinding != nullptr, "Metal supports dynamic offsets only on uniform buffers declared with a dynamic offset. Set: {0}, index: {1}.", set, bufferIndex))
+				return;
+
+			u32 boundOffset = 0;
+			if (const GpuBuffer* buffer = parameters.GetBoundUniformBuffer(dynamicBinding->Slot, boundOffset))
+			{
+				if (!B3D_ENSURE_LOG((offset & 15u) == 0 && offset < buffer->GetTotalSize(), "Dynamic offset {0} is misaligned or outside the bound uniform buffer ({1} bytes). Offsets must be 16-byte aligned.", offset, buffer->GetTotalSize()))
+					return;
+			}
+#endif
+
+			if (overrides[bufferIndex] == offset)
+				return;
+
+			overrides[bufferIndex] = offset;
 			mGraphicsResourcesRequireTracking = true;
-			} // @autoreleasepool
 		}
 
 		void MetalGpuCommandBuffer::SetPushConstants(u32 offsetInBytes, u32 sizeInBytes, const void* data)
@@ -929,6 +988,112 @@ namespace b3d
 				mGraphicsPushConstantsRequireBind = false;
 			else
 				mComputePushConstantsRequireBind = false;
+		}
+
+		void MetalGpuCommandBuffer::BindDynamicUniformBuffers(bool isGraphics)
+		{
+			const GpuPipelineParameterLayout* pipelineLayout = nullptr;
+			if (isGraphics && mBoundGraphicsPipeline != nullptr)
+				pipelineLayout = mBoundGraphicsPipeline->GetParameterLayout().get();
+			else if (!isGraphics && mBoundComputePipeline != nullptr)
+				pipelineLayout = mBoundComputePipeline->GetParameterLayout().get();
+
+			if (pipelineLayout == nullptr)
+				return;
+
+			id<MTLBuffer> dummyBuffer = mGpuDevice.GetDummyArgumentBuffer();
+			const u32 setCount = std::min((u32)mBoundParameterSets.Size(), pipelineLayout->GetSetCount());
+			for (u32 setIndex = 0; setIndex < setCount; setIndex++)
+			{
+				const TShared<GpuParameterSet>& boundSet = mBoundParameterSets[setIndex];
+				if (!boundSet)
+					continue;
+
+				// The pipeline's reflected layout supplies the argument-table indices; the parameter set, whose own
+				// layout may be an explicitly created compatible one, supplies the buffers matched by slot
+				const auto* pipelineSetLayout = static_cast<const MetalGpuPipelineParameterSetLayout*>(pipelineLayout->GetSet(setIndex).get());
+				const auto& parameters = static_cast<const MetalGpuParameters&>(*boundSet);
+				const TInlineArray<u32, 4>& dynamicOffsetOverrides = mDynamicOffsetOverridesPerSet[setIndex];
+				for (const MetalDynamicUniformBufferBinding& binding : pipelineSetLayout->GetDynamicUniformBufferBindings())
+				{
+					u32 offset = 0;
+					auto* buffer = static_cast<MetalGpuBuffer*>(parameters.GetBoundUniformBuffer(binding.Slot, offset));
+					id<MTLBuffer> metalBuffer = buffer != nullptr ? buffer->GetMetalBuffer() : nil;
+					if (metalBuffer == nil)
+					{
+						// An unbound slot reads zeroes from the dummy buffer instead of faulting on a missing binding
+						metalBuffer = dummyBuffer;
+						offset = 0;
+					}
+					else
+					{
+						const u32 dynamicOffsetIndex = parameters.GetLayout()->GetDynamicOffsetIndex(binding.Slot);
+						if (dynamicOffsetIndex < (u32)dynamicOffsetOverrides.Size() && dynamicOffsetOverrides[dynamicOffsetIndex] != ~0u)
+							offset = dynamicOffsetOverrides[dynamicOffsetIndex];
+					}
+
+					const u32 bufferIndex = binding.BufferIndex;
+					if (bufferIndex == ~0u)
+						continue;
+
+					B3D_ASSERT(bufferIndex >= kMetalDynamicUniformBufferIndexBase && bufferIndex < kMetalDynamicUniformBufferIndexBase + kMetalDynamicUniformBufferCount);
+					const u32 tableIndex = bufferIndex - kMetalDynamicUniformBufferIndexBase;
+
+					// An encoder retains every buffer handed to it, so a cached address cannot be recycled by another buffer
+					// while the encoder is open; a matching address means the same buffer and only the offset moves
+					auto fnNeedsBind = [&](Impl::ArgumentTableBinding& cached, bool& outBufferChanged)
+					{
+						outBufferChanged = cached.Buffer != (__bridge void*)metalBuffer;
+						if (!outBufferChanged && cached.Offset == offset)
+							return false;
+
+						cached.Buffer = (__bridge void*)metalBuffer;
+						cached.Offset = offset;
+						return true;
+					};
+
+					bool bufferChanged = false;
+					if (!isGraphics)
+					{
+						if ((binding.StageMask & (u32)GpuProgramStageBit::Compute) && fnNeedsBind(mImpl->ComputeArgumentTable[tableIndex], bufferChanged))
+						{
+							if (bufferChanged)
+								[mImpl->ComputeEncoder setBuffer:metalBuffer offset:offset atIndex:bufferIndex];
+							else
+								[mImpl->ComputeEncoder setBufferOffset:offset atIndex:bufferIndex];
+						}
+
+						continue;
+					}
+
+					const u32 vertexStages = (u32)GpuProgramStageBit::Vertex | (u32)GpuProgramStageBit::Hull | (u32)GpuProgramStageBit::Domain;
+					if ((binding.StageMask & vertexStages) && fnNeedsBind(mImpl->VertexArgumentTable[tableIndex], bufferChanged))
+					{
+						if (bufferChanged)
+							[mImpl->RenderEncoder setVertexBuffer:metalBuffer offset:offset atIndex:bufferIndex];
+						else
+							[mImpl->RenderEncoder setVertexBufferOffset:offset atIndex:bufferIndex];
+					}
+
+					if ((binding.StageMask & (u32)GpuProgramStageBit::Fragment) && fnNeedsBind(mImpl->FragmentArgumentTable[tableIndex], bufferChanged))
+					{
+						if (bufferChanged)
+							[mImpl->RenderEncoder setFragmentBuffer:metalBuffer offset:offset atIndex:bufferIndex];
+						else
+							[mImpl->RenderEncoder setFragmentBufferOffset:offset atIndex:bufferIndex];
+					}
+				}
+			}
+		}
+
+		void MetalGpuCommandBuffer::ResetArgumentTableBindings()
+		{
+			for (u32 tableIndex = 0; tableIndex < kMetalDynamicUniformBufferCount; tableIndex++)
+			{
+				mImpl->VertexArgumentTable[tableIndex] = Impl::ArgumentTableBinding();
+				mImpl->FragmentArgumentTable[tableIndex] = Impl::ArgumentTableBinding();
+				mImpl->ComputeArgumentTable[tableIndex] = Impl::ArgumentTableBinding();
+			}
 		}
 
 		void MetalGpuCommandBuffer::SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount)
@@ -1100,12 +1265,13 @@ namespace b3d
 				mDrawAccessValidator.ClearBindings();
 #endif
 
-			for(const TShared<GpuParameterSet>& parameters : mBoundParameterSets)
+			for(u32 setIndex = 0; setIndex < (u32)mBoundParameterSets.Size(); setIndex++)
 			{
+				const TShared<GpuParameterSet>& parameters = mBoundParameterSets[setIndex];
 				if(parameters == nullptr)
 					continue;
 
-				if(!TrackParameterResources(static_cast<MetalGpuParameters&>(*parameters), compute, mResourceTracker, mBarrierHelper))
+				if(!TrackParameterResources(static_cast<MetalGpuParameters&>(*parameters), mDynamicOffsetOverridesPerSet[setIndex], compute, mResourceTracker, mBarrierHelper))
 					return false;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
@@ -1176,6 +1342,8 @@ namespace b3d
 					cacheEntry.LastBoundGeneration = generation;
 				}
 			}
+
+			BindDynamicUniformBuffers(true);
 
 			// Resolve the vertex input (and bind the null stream) against the bound vertex description
 			// before selecting the pipeline variant — its id participates in the PSO variant key.
@@ -1262,6 +1430,8 @@ namespace b3d
 					cacheEntry.LastBoundGeneration = generation;
 				}
 			}
+
+			BindDynamicUniformBuffers(true);
 
 			// Resolve the vertex input (and bind the null stream) before selecting the pipeline variant
 			// — see Draw() for the full rationale.
@@ -1399,6 +1569,7 @@ namespace b3d
 				}
 			}
 
+			BindDynamicUniformBuffers(false);
 			BindPushConstants(false);
 			MTLSize threadsPerGroup = MTLSizeMake(workgroup[0], workgroup[1], workgroup[2]);
 			MTLSize groups = MTLSizeMake(groupCountX, groupCountY, groupCountZ);
@@ -1881,9 +2052,10 @@ namespace b3d
 					mBoundParameterSets.Resize(setIndex + 1);
 					mRenderResidencyCaches.Resize(setIndex + 1);
 					mComputeResidencyCaches.Resize(setIndex + 1);
+					mDynamicOffsetOverridesPerSet.Resize(setIndex + 1);
 				}
 				mBoundParameterSets[setIndex] = paramSet;
-
+				ResetDynamicOffsetOverrides(setIndex);
 			}
 			} // @autoreleasepool
 		}
@@ -1904,6 +2076,7 @@ namespace b3d
 				[mImpl->RenderEncoder endEncoding];
 				mImpl->RenderEncoder = nil;
 				ResetRenderResidencyCaches();
+				ResetArgumentTableBindings();
 				EncodePendingEventSignals();
 			}
 			mAcquiredWindowSurface = nullptr;
@@ -3360,12 +3533,14 @@ namespace b3d
 			mBoundGraphicsPipeline = nullptr;
 			mBoundComputePipeline = nullptr;
 			mBoundParameterSets.Clear();
+			mDynamicOffsetOverridesPerSet.Clear();
 			mGraphicsResourcesRequireTracking = true;
 			mBoundIndexBuffer = nullptr;
 			mBoundVertexDescription = nullptr;
 			mActiveOcclusionQueryPool.reset();
 			ResetRenderResidencyCaches();
 			ResetComputeResidencyCaches();
+			ResetArgumentTableBindings();
 		}
 
 		void MetalGpuCommandBuffer::ClearRecordingState()
@@ -3402,6 +3577,7 @@ namespace b3d
 			mBoundGraphicsPipeline = nullptr;
 			mBoundComputePipeline = nullptr;
 			mBoundParameterSets.Clear();
+			mDynamicOffsetOverridesPerSet.Clear();
 			mGraphicsResourcesRequireTracking = true;
 			mBoundIndexBuffer = nullptr;
 			mBoundVertexDescription = nullptr;
@@ -3446,6 +3622,7 @@ namespace b3d
 	#endif
 			ResetRenderResidencyCaches();
 			ResetComputeResidencyCaches();
+			ResetArgumentTableBindings();
 		}
 
 		void MetalGpuCommandBuffer::NotifyParentPoolReset()

@@ -32,7 +32,6 @@ namespace
 			createInformation.MaxSamplers = 256;
 			createInformation.MaxCombinedImageSamplers = 256;
 			createInformation.MaxUniformBuffersDynamic = 128;
-			createInformation.MaxStorageBuffersDynamic = 128;
 		}
 
 		return device.CreateParameterSetPool(createInformation);

@@ -26,6 +26,9 @@ Result GpuProgramParameterDescription::TryCombine(const GpuProgramParameterDescr
 			if(found->second.Size != uniformBuffer.Size)
 				return Result::Fail("Uniform buffer size mismatch.", ResultStatus::Failed, StringUtility::Format("Uniform buffer '{0}' has size {1}, but expected {2}.", uniformBuffer.Name, uniformBuffer.Size, found->second.Size));
 
+			if(found->second.UsesDynamicOffset != uniformBuffer.UsesDynamicOffset)
+				return Result::Fail("Uniform buffer dynamic offset mismatch.", ResultStatus::Failed, StringUtility::Format("Uniform buffer '{0}' uses a dynamic offset in some stages but not in others.", uniformBuffer.Name));
+
 			found->second.Stages |= stage;
 		}
 		else

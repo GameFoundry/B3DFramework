@@ -320,6 +320,8 @@ namespace
 			bufferInformation.Set = bindDesc.Space; // Register space maps to descriptor set
 			bufferInformation.Size = cbDesc.Size / 4; // Core API expects size in multiples of 4 bytes
 			bufferInformation.IsShareable = true;
+			// TODO: Take this from the [dynamicOffset] attribute once the shader compiler reflects it; until then every uniform buffer is bound with a dynamic offset.
+			bufferInformation.UsesDynamicOffset = true;
 			// TODO(d3d12-port): Stage flags are not derivable from HLSL reflection alone; left at the default.
 
 			for (u32 variableIndex = 0; variableIndex < cbDesc.Variables; variableIndex++)

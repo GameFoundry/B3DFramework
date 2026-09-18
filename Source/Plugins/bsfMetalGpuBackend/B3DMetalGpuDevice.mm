@@ -700,8 +700,11 @@ namespace b3d
 			mCapabilities.Conventions.NdcYAxis = GpuBackendConventions::Axis::Up;
 			mCapabilities.Conventions.MatrixOrder = GpuBackendConventions::MatrixOrder::ColumnMajor;
 
-			// Metal exposes 31 vertex-stage buffer slots. Parameter sets use 0..15, vertex streams use
-			// 16..29, and slot 30 carries SPIRV-Cross's standalone push-constant block.
+			// Metal exposes 31 vertex-stage buffer slots. Parameter-set argument buffers use 0..7,
+			// dynamic-offset uniform buffers use 8..15, vertex streams use 16..29, and slot 30 carries
+			// SPIRV-Cross's standalone push-constant block.
+			static_assert(kMetalDynamicUniformBufferIndexBase + kMetalDynamicUniformBufferCount == kMetalVertexBufferSlotBase,
+				"The Metal vertex-stream range must immediately follow the dynamic uniform-buffer range.");
 			static_assert(kMetalVertexBufferSlotEnd == kMetalPushConstantBufferIndex,
 				"The Metal push-constant buffer must immediately follow the vertex-stream range.");
 			mCapabilities.VertexBufferCount = kMetalVertexBufferSlotEnd - kMetalVertexBufferSlotBase;

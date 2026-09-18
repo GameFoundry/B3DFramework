@@ -41,17 +41,26 @@ namespace b3d
 	 * A single member of a GpuDescriptorTable: either a pointer to a nested table (Kind == SubTable) or a leaf resource
 	 * binding (Kind == Resource). References to other tables are by array index into GpuResourceTableLayout::Tables,
 	 * never by pointer, so the whole layout is trivially serializable and relocatable.
+	 *
+	 * A resource listed directly in the root table is not stored in any table's memory: the backend binds it
+	 * individually, so the entry carries a binding index rather than a byte offset, and names its set 
+	 * explicitly since there is no parent set table to inherit it from.
 	 */
 	struct GpuDescriptorTableEntry
 	{
 		GpuDescriptorEntryKind Kind = GpuDescriptorEntryKind::Resource; /**< Selects which of the fields below apply. */
-		u32 OffsetInBytes = 0; /**< Byte offset of this entry within its parent table. */
+		union
+		{
+			u32 OffsetInBytes = 0; /**< Byte offset of this entry within its parent table. Not used by root-table resources. */
+			u32 BindingIndex;      /**< Backend binding index of a resource listed directly in the root table. */
+		};
 
 		// Kind == SubTable:
 		u32 TableIndex = 0; /**< Index into GpuResourceTableLayout::Tables of the nested table this entry points at. */
 
 		// Kind == Resource:
 		GpuParameterType Type = GpuParameterType::Unknown; /**< Resource class of the leaf binding. */
+		u32 Set = 0;                   /**< Engine set the resource was declared in. Only meaningful for root-table resources; entries in a per-set table inherit the table's set. */
 		u32 Slot = 0;                  /**< Engine slot the resource was declared at. */
 		u32 DescriptorCount = 1;       /**< Number of descriptors (array size); 1 for a non-array binding. */
 		u32 DescriptorSizeInBytes = 0; /**< Size of a single descriptor; 0 when driver-managed. */
@@ -59,7 +68,7 @@ namespace b3d
 		bool operator==(const GpuDescriptorTableEntry& other) const
 		{
 			return Kind == other.Kind && OffsetInBytes == other.OffsetInBytes && TableIndex == other.TableIndex &&
-				Type == other.Type && Slot == other.Slot && DescriptorCount == other.DescriptorCount &&
+				Type == other.Type && Set == other.Set && Slot == other.Slot && DescriptorCount == other.DescriptorCount &&
 				DescriptorSizeInBytes == other.DescriptorSizeInBytes;
 		}
 

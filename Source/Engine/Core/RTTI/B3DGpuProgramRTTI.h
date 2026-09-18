@@ -270,10 +270,10 @@ namespace b3d
 	};
 
 	template <>
-	struct RTTIPlainType<GpuDescriptorTableEntry> : RTTIPlainTypeHelper<GpuDescriptorTableEntry, TID_GpuDescriptorTableEntry, 1>
+	struct RTTIPlainType<GpuDescriptorTableEntry> : RTTIPlainTypeHelper<GpuDescriptorTableEntry, TID_GpuDescriptorTableEntry, 2>
 	{
 		template <class Processor>
-		static void RTTIEnumerateFields(GpuDescriptorTableEntry& object, Processor& processor, u8 /*version*/)
+		static void RTTIEnumerateFields(GpuDescriptorTableEntry& object, Processor& processor, u8 version)
 		{
 			processor(object.Kind);
 			processor(object.OffsetInBytes);
@@ -282,6 +282,9 @@ namespace b3d
 			processor(object.Slot);
 			processor(object.DescriptorCount);
 			processor(object.DescriptorSizeInBytes);
+
+			if(version > 1)
+				processor(object.Set);
 		}
 	};
 
@@ -308,7 +311,7 @@ namespace b3d
 	};
 
 	template <>
-	struct RTTIPlainType<GpuUniformBufferInformation> : RTTIPlainTypeHelper<GpuUniformBufferInformation, TID_GpuUniformBufferInformation, 2>
+	struct RTTIPlainType<GpuUniformBufferInformation> : RTTIPlainTypeHelper<GpuUniformBufferInformation, TID_GpuUniformBufferInformation, 3>
 	{
 		template <class Processor>
 		static void RTTIEnumerateFields(GpuUniformBufferInformation& object, Processor& processor, u8 version)
@@ -322,6 +325,9 @@ namespace b3d
 				processor(object.Stages);
 
 			processor(object.IsShareable);
+
+			if(version > 2)
+				processor(object.UsesDynamicOffset);
 		}
 	};
 

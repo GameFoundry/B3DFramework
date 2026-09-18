@@ -26,6 +26,10 @@ namespace b3d
 		 * @c SetX call records a pending direct resource-handle write. The set also
 		 * retains strong references to the currently-bound resources so the command buffer can mark them
 		 * resident (via @c useResource:usage:stages:) each time the set is bound.
+		 *
+		 * Uniform buffers declared with a dynamic offset are not written into the argument buffer; the command buffer
+		 * binds them directly in the encoder's argument table (see @c GetBoundUniformBuffer) so per-draw offset changes
+		 * never touch the argument buffer.
 		 */
 		class MetalGpuParameters : public GpuParameterSet
 		{
@@ -102,11 +106,14 @@ namespace b3d
 			/** Returns the list of currently bound sampler states, in insertion order. */
 			const Vector<SamplerBinding>& GetSamplers() const { return mSamplers; }
 
-			/** Sets the dynamic offset for the uniform buffer bound at the given slot. */
-			bool SetDynamicOffset(u32 slot, u32 offset);
+			/**
+			 * Returns the uniform buffer bound at @p slot together with the offset it was bound with, or null when the
+			 * slot has no buffer.
+			 */
+			GpuBuffer* GetBoundUniformBuffer(u32 slot, u32& outOffset) const;
 
 			/**
-			 * Flushes any pending @c SetX / @c SetDynamicOffset resource IDs directly into the argument buffer.
+			 * Flushes any pending @c SetX resource IDs directly into the argument buffer.
 			 * Called by @c MetalGpuCommandBuffer once per draw /
 			 * dispatch so successive @c Set* calls for the same slot collapse to a single 64-bit handle write
 			 * and identical re-binds across frames become no-ops. Short-circuits when no slot is dirty.
@@ -169,7 +176,7 @@ namespace b3d
 			Vector<SamplerBinding> mSamplers;
 
 			// Argument-buffer indices whose backing resource changed since the last CommitPendingBindings.
-			// Set* / SetDynamicOffset only mutate the CPU-side Vector<>s and insert the resolved argIndex
+			// Set* only mutate the CPU-side Vector<>s and insert the resolved argIndex
 			// here; the actual handle writes happen once per commit, at which point the set is drained.
 			// This makes a Set*-on-the-same-slot-twice pattern (common across frames) collapse to one
 			// write, and makes a bind with identical bindings a no-op.
@@ -204,7 +211,7 @@ namespace b3d
 				// address; never dereferenced here.
 				void* MetalHandle = nullptr;
 				u32 ArrayIndex = 0;
-				// UniformBuffer: dynamic offset. StorageBuffer: view.FirstElement. Other: unused.
+				// UniformBuffer: bound offset. StorageBuffer: view.FirstElement. Other: unused.
 				u32 Offset = 0;
 				// StorageBuffer: view.ElementCount. SampledTexture / StorageTexture: surface mip+face
 				// packed. UniformBuffer / Sampler: unused. Granularity is ok to be coarse — goal is to
@@ -222,14 +229,13 @@ namespace b3d
 			// include it; concrete casts live in the .mm translation unit.
 			Vector<void*> mResolvedResources;
 
-			// Guards the Set* / SetDynamicOffset / CommitPendingBindings critical section so concurrent
+			// Guards the Set* / CommitPendingBindings critical section so concurrent
 			// callers cannot tear the Metal-side Vector<>, dirty state, or direct argument-buffer writes.
 			mutable Mutex mSetMutex;
 
 			// B3: generation counter. Bumped inside @c mSetMutex from every @c Set* path that genuinely
-			// dirtied a slot (the B4 value-compare above is the gate). Not bumped on
-			// @c SetDynamicOffset — dynamic offsets change the encoded pointer but not the resident
-			// resource set. Starts at 1 so a freshly-default-constructed cache slot (value 0) never
+			// dirtied a slot (the B4 value-compare above is the gate).
+			// Starts at 1 so a freshly-default-constructed cache slot (value 0) never
 			// matches. CommitPendingBindings returns the value while holding mSetMutex, allowing the
 			// command-buffer residency cache to update without another lock acquisition. Also bumped when
 			// CommitPendingBindings moves to a fresh slice (copy-on-write) so the command buffer

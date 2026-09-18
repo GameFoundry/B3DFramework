@@ -39,7 +39,6 @@ namespace b3d
 		u32 MaxSamplers = 2048;
 		u32 MaxCombinedImageSamplers = 2048;
 		u32 MaxUniformBuffersDynamic = 1024;
-		u32 MaxStorageBuffersDynamic = 1024;
 	};
 
 	/** Creation information for GpuParameterSetPool. */

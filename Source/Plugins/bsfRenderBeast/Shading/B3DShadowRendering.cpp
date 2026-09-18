@@ -841,6 +841,7 @@ namespace b3d
 				perObjectInfo.Size = Math::CeilToMultiple(gPerObjectUniformDefinition.GetSize() / 4u, 4u);
 				perObjectInfo.Stages = GpuProgramStageBit::Vertex | GpuProgramStageBit::Geometry;
 				perObjectInfo.IsShareable = true;
+				perObjectInfo.UsesDynamicOffset = true;
 
 				GpuProgramParameterDescription description;
 				description.UniformBuffers["PerObject"] = perObjectInfo;

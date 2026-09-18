@@ -16,7 +16,7 @@ namespace b3d::render
 
 	VkDescriptorPool VulkanGpuParameterSetPool::CreateVkDescriptorPool() const
 	{
-		VkDescriptorPoolSize poolSizes[10];
+		VkDescriptorPoolSize poolSizes[9];
 		poolSizes[0].type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 		poolSizes[0].descriptorCount = mInformation.MaxSampledImages;
 
@@ -43,9 +43,6 @@ namespace b3d::render
 
 		poolSizes[8].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 		poolSizes[8].descriptorCount = mInformation.MaxStorageBuffers;
-
-		poolSizes[9].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
-		poolSizes[9].descriptorCount = mInformation.MaxStorageBuffersDynamic;
 
 		VkDescriptorPoolCreateInfo poolCreateInformation;
 		poolCreateInformation.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;

@@ -17,8 +17,8 @@ namespace b3d
 		/**
 		 * Base Metal buffer-table slot at which vertex-stream buffers are bound on the vertex stage.
 		 *
-		 * Parameter-set argument buffers occupy the low slots [0, setCount) of the vertex-stage buffer
-		 * table, so vertex streams must live above them. The base is a fixed constant (rather than the
+		 * Parameter-set argument buffers and dynamic-offset uniform buffers occupy the low slots of the
+		 * vertex-stage buffer table, so vertex streams must live above them. The base is a fixed constant (rather than the
 		 * per-pipeline parameter-set count) so a cached MTLVertexDescriptor remains valid across
 		 * pipelines with differing set counts, and so the command buffer can compute a stream's slot
 		 * without consulting the bound pipeline's layout. Both the vertex descriptor built by
