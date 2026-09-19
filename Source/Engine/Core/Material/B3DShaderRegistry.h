@@ -4,6 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "Reflection/B3DIReflectable.h"
+#include "Resources/B3DPackage.h"
 #include "Utility/B3DModule.h"
 #include "Material/B3DShader.h"
 #include "GpuBackend/B3DGpuProgram.h"
@@ -11,8 +12,6 @@
 
 namespace b3d
 {
-	class Package;
-
 	/** @addtogroup Material-Internal
 	 *  @{
 	 */
@@ -43,19 +42,37 @@ namespace b3d
 		RTTIType* GetRtti() const override;
 	};
 
+	/** Identifies the serialized shader format of a cooked store without loading its shader resources. */
+	class B3D_EXPORT ShaderRegistryMetaData final : public PackageMetaData
+	{
+	public:
+		ShaderRegistryMetaData() = default;
+
+		u32 Version = 0; /**< ShaderRegistry::kCacheVersion used when cooking the store. Zero denotes an unversioned store. */
+
+		static RTTIType* GetRttiStatic();
+		RTTIType* GetRtti() const override;
+	};
+
 	/**
 	 * Resolves Shader objects and owns the read-only store of prebuilt (cooked) shaders. A shader is resolved in the
 	 * following order: the prebuilt store, then the application cache, then on-demand compilation via ShaderCompilers. 
 	 * The prebuilt store is produced ahead of time by the offline shader cook tool, the system falls back on other
 	 * methods if the shader is not available in the prebuilt store or prebuilt store is out of date.
 	 *
-	 * @note	Non-development builds will return prebuilt shaders as-is, without checking if they are out of date. 
+	 * @note	Non-development builds check store format compatibility but do not check shader sources for changes.
 	 */
 	class B3D_EXPORT ShaderRegistry : public Module<ShaderRegistry>
 	{
 	public:
+		/** Increment to invalidate cooked shader stores. Also increment PersistentCache::kVersion when changing serialized shader data incompatibly. */
+		static constexpr u32 kCacheVersion = 1;
+
 		ShaderRegistry();
 		~ShaderRegistry() override;
+
+		/** Returns false if the store package has missing or incompatible version metadata. */
+		static bool DoesPrebuiltStoreVersionMatch(const Package& package);
 
 		/** Registers a path that will be used for looking for shader source files. Thread safe. */
 		void RegisterSearchPath(const Path& folder);

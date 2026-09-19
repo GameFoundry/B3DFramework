@@ -31,7 +31,7 @@ function(B3DAddShaderCookTarget)
 			return()
 		endif()
 
-		set(cookToolDependency "")
+		set(cookToolDependency "${cookTool}")
 	endif()
 
 	# Store location: the tree's runtime output folder for the built configuration.

@@ -12,6 +12,7 @@
 #include "Reflection/B3DRTTIType.h"
 #include "Reflection/B3DRTTIPlain.h"
 #include "RTTI/B3DResourceRTTI.h"
+#include "RTTI/B3DPackageRTTI.h"
 #include "FileSystem/B3DDataStream.h"
 #include "FileSystem/B3DFileSystem.h"
 #include "Utility/B3DPaths.h"
@@ -23,6 +24,23 @@ using namespace b3d;
 namespace b3d
 {
 	/** @cond RTTI */
+	class ShaderRegistryMetaDataRTTI final : public TRTTIType<ShaderRegistryMetaData, PackageMetaData, ShaderRegistryMetaDataRTTI>
+	{
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(Version, 0)
+		B3D_RTTI_END_MEMBERS
+
+	public:
+		const String& GetRttiName() override
+		{
+			static String name = "ShaderRegistryMetaData";
+			return name;
+		}
+
+		u32 GetRttiId() const override { return TID_ShaderRegistryMetaData; }
+		TShared<IReflectable> NewRttiObject() override { return B3DMakeShared<ShaderRegistryMetaData>(); }
+	};
+
 	class PrebuiltShaderRTTI final : public TRTTIType<PrebuiltShader, Resource, PrebuiltShaderRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
@@ -47,6 +65,16 @@ namespace b3d
 		}
 	};
 	/** @endcond */
+
+	RTTIType* ShaderRegistryMetaData::GetRttiStatic()
+	{
+		return ShaderRegistryMetaDataRTTI::Instance();
+	}
+
+	RTTIType* ShaderRegistryMetaData::GetRtti() const
+	{
+		return GetRttiStatic();
+	}
 
 	TShared<PrebuiltShader> PrebuiltShader::Create(const TShared<IReflectable>& object)
 	{
@@ -142,6 +170,11 @@ void ShaderRegistry::OnStartUp()
 		mPrebuiltStore = Package::Load(prebuiltStorePath);
 		if(mPrebuiltStore == nullptr)
 			B3D_LOG(Warning, LogResources, "Found a prebuilt shader store at \"{0}\" but failed to load it. Shaders will be compiled on demand instead.", prebuiltStorePath);
+		else if(!DoesPrebuiltStoreVersionMatch(*mPrebuiltStore))
+		{
+			B3D_LOG(Info, LogResources, "Ignoring incompatible prebuilt shader store at \"{0}\". Rebuild it with BansheeCookTool for shader registry version {1}.", prebuiltStorePath, kCacheVersion);
+			mPrebuiltStore = nullptr;
+		}
 	}
 }
 
@@ -154,6 +187,12 @@ void ShaderRegistry::RegisterSearchPath(const Path& folder)
 {
 	Lock lock(mSearchPathMutex);
 	mSearchPaths.push_back(folder);
+}
+
+bool ShaderRegistry::DoesPrebuiltStoreVersionMatch(const Package& package)
+{
+	const TShared<ShaderRegistryMetaData> metaData = B3DRTTICast<ShaderRegistryMetaData>(package.GetPackageMetaData());
+	return metaData != nullptr && metaData->Version == kCacheVersion;
 }
 
 String ShaderRegistry::GetShaderCacheName(const String& cachePrefix, const String& shaderName)

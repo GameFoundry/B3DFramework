@@ -86,6 +86,7 @@ mixin ParticleVertex
 		[internal]
 		Texture2D gCurvesTex;
 		
+		[internal]
 		[alias(gCurvesTex)]
 		SamplerState gCurvesSampler;
 		

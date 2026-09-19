@@ -405,17 +405,32 @@ static SamplerStateCreateInformation ParseSamplerState(const Xsc::Reflection::Sa
 	return samplerCreateInformation;
 }
 
-template<bool IsRenderProxy>
-static bool ParseParameters(const Xsc::Reflection::ReflectionData& reflectionData, ShaderCompilerResult& outCompileResult, CoreVariantType<ShaderCreateInformation, IsRenderProxy>& outShaderCreateInformation)
+static bool ParseParameters(const Xsc::Reflection::ReflectionData& reflectionData, ShaderCompilerResult& outCompileResult, ShaderParameterDescription& outParameters, bool includeInternal)
 {
 	for(auto& entry : reflectionData.uniforms)
 	{
-		if((entry.flags & Xsc::Reflection::Uniform::Flags::Internal) != 0)
+		String ident = entry.ident.c_str();
+		bool isInternal = (entry.flags & Xsc::Reflection::Uniform::Flags::Internal) != 0;
+		bool isBlockHiddenInInspector = false;
+		if(entry.uniformBlock >= 0)
+		{
+			const std::string& blockName = reflectionData.constantBuffers[entry.uniformBlock].ident;
+			for(const auto& uniform : reflectionData.uniforms)
+			{
+				if(uniform.type == Xsc::Reflection::VariableType::UniformBuffer && uniform.ident == blockName)
+				{
+					isInternal |= (uniform.flags & Xsc::Reflection::Uniform::Flags::Internal) != 0;
+					isBlockHiddenInInspector = (uniform.flags & Xsc::Reflection::Uniform::Flags::HideInInspector) != 0;
+
+					break;
+				}
+			}
+		}
+
+		if(!includeInternal && isInternal)
 			continue;
 
-		String ident = entry.ident.c_str();
-		bool isBlockHiddenInInspector = false;
-		auto parseCommonAttributes = [&entry, &ident, &outShaderCreateInformation, &isBlockHiddenInInspector]()
+		auto fnParseCommonAttributes = [&entry, &ident, &outParameters, &isBlockHiddenInInspector]()
 		{
 			if(!entry.readableName.empty())
 			{
@@ -424,7 +439,7 @@ static bool ParseParameters(const Xsc::Reflection::ReflectionData& reflectionDat
 				attribute.NextParameterIndex = (u32)-1;
 				attribute.Type = ShaderParamAttributeType::Name;
 
-				outShaderCreateInformation.SetParameterAttribute(ident, attribute);
+				outParameters.SetParameterAttribute(ident, attribute);
 			}
 
 			if((entry.flags & Xsc::Reflection::Uniform::Flags::HideInInspector) != 0 || isBlockHiddenInInspector)
@@ -433,7 +448,7 @@ static bool ParseParameters(const Xsc::Reflection::ReflectionData& reflectionDat
 				attribute.NextParameterIndex = (u32)-1;
 				attribute.Type = ShaderParamAttributeType::HideInInspector;
 
-				outShaderCreateInformation.SetParameterAttribute(ident, attribute);
+				outParameters.SetParameterAttribute(ident, attribute);
 			}
 
 			if((entry.flags & Xsc::Reflection::Uniform::Flags::HDR) != 0)
@@ -442,70 +457,33 @@ static bool ParseParameters(const Xsc::Reflection::ReflectionData& reflectionDat
 				attribute.NextParameterIndex = (u32)-1;
 				attribute.Type = ShaderParamAttributeType::HDR;
 
-				outShaderCreateInformation.SetParameterAttribute(ident, attribute);
+				outParameters.SetParameterAttribute(ident, attribute);
 			}
 		};
 
 		switch(entry.type)
 		{
 		case Xsc::Reflection::VariableType::UniformBuffer:
-			outShaderCreateInformation.SetUniformBufferAttributes(entry.ident.c_str(), false, GpuBufferFlag::StoreOnGPU);
+			outParameters.SetUniformBufferAttributes(entry.ident.c_str(), false, GpuBufferFlag::StoreOnGPU);
 			break;
 		case Xsc::Reflection::VariableType::Buffer:
 			{
 				GpuParameterObjectType objType = XSCConvertTextureType((Xsc::Reflection::BufferType)entry.baseType);
 				if(objType != GPOT_UNKNOWN)
 				{
-					const bool hasDefaultValue = entry.defaultValue == -1;
-					ShaderDefaultTextureType defaultValue = ShaderDefaultTextureType::None;
-
-					if (!hasDefaultValue)
-					{
-						const Xsc::Reflection::DefaultValue& reflectedDefaultValue = reflectionData.defaultValues[entry.defaultValue];
-						defaultValue = GetBuiltinTexture(reflectedDefaultValue.integer);
-					}
-
-					// Warn if parameter was already registered in some previous variation with a different value
-					if(auto foundTextureParameter = outShaderCreateInformation.TextureParameters.find(ident); foundTextureParameter != outShaderCreateInformation.TextureParameters.end())
-					{
-						const bool isExistingValueDefault = foundTextureParameter->second.DefaultValueIndex == ~0u;
-						if (hasDefaultValue != isExistingValueDefault)
-						{
-							outCompileResult.ErrorMessage = StringUtility::Format("Shader cross compilation failed. Texture parameter '{0}' has a different default value across variations.", entry.ident.c_str());
-							return false;
-						}
-
-						if (!hasDefaultValue)
-						{
-							const ShaderDefaultTextureType existingTexture = outShaderCreateInformation.TextureDefaultValues[foundTextureParameter->second.DefaultValueIndex];
-							if (existingTexture != defaultValue)
-							{
-								outCompileResult.ErrorMessage = StringUtility::Format("Shader cross compilation failed. Texture parameter '{0}' has a different default value across variations.", entry.ident.c_str());
-								return false;
-							}
-						}
-
-						continue;
-					}
-
 					if(entry.defaultValue == -1)
-						outShaderCreateInformation.AddParameter(ShaderObjectParameterInformation(ident, ident, objType, StringID::kNone, entry.arraySize));
+						outParameters.AddParameter(ShaderObjectParameterInformation(ident, ident, objType, StringID::kNone, entry.arraySize));
 					else
-						outShaderCreateInformation.AddParameter(ShaderObjectParameterInformation(ident, ident, objType, StringID::kNone, entry.arraySize), defaultValue);
+						outParameters.AddParameter(ShaderObjectParameterInformation(ident, ident, objType, StringID::kNone, entry.arraySize), GetBuiltinTexture(reflectionData.defaultValues[entry.defaultValue].integer));
 
-					parseCommonAttributes();
+					fnParseCommonAttributes();
 				}
 				else
 				{
-					// Ignore parameters that were already registered in some previous variation. Note that this implies
-					// you cannot have same names for different parameters in different variations.
-					if(outShaderCreateInformation.BufferParameters.find(ident) != outShaderCreateInformation.BufferParameters.end())
-						continue;
-
 					objType = XSCConvertBufferType((Xsc::Reflection::BufferType)entry.baseType);
-					outShaderCreateInformation.AddParameter(ShaderObjectParameterInformation(ident, ident, objType, StringID::kNone, entry.arraySize));
+					outParameters.AddParameter(ShaderObjectParameterInformation(ident, ident, objType, StringID::kNone, entry.arraySize));
 
-					parseCommonAttributes();
+					fnParseCommonAttributes();
 				}
 			}
 			break;
@@ -517,104 +495,66 @@ static bool ParseParameters(const Xsc::Reflection::ReflectionData& reflectionDat
 					if (foundSamplerReflectionData->second.isNonDefault)
 						defaultSamplerStateCreateInformation = ParseSamplerState(foundSamplerReflectionData->second);
 
-					if (auto foundSamplerParameter = outShaderCreateInformation.SamplerParameters.find(ident); foundSamplerParameter != outShaderCreateInformation.SamplerParameters.end())
-					{
-						const bool isExistingValueNonDefault = foundSamplerParameter->second.DefaultValueIndex != ~0u;
-						if (foundSamplerReflectionData->second.isNonDefault != isExistingValueNonDefault)
-						{
-							outCompileResult.ErrorMessage = StringUtility::Format("Shader cross compilation failed. Sampler parameter '{0}' has a different default value across variations.", entry.ident.c_str());
-							return false;
-						}
-
-						if (foundSamplerReflectionData->second.isNonDefault)
-						{
-							const SamplerStateInformation& existingSamplerState = outShaderCreateInformation.SamplerDefaultValues[foundSamplerParameter->second.DefaultValueIndex];
-							if (existingSamplerState != defaultSamplerStateCreateInformation)
-							{
-								outCompileResult.ErrorMessage = StringUtility::Format("Shader cross compilation failed. Sampler parameter '{0}' has a different default value across variations.", entry.ident.c_str());
-								return false;
-							}
-						}
-
-						continue;
-					}
-
 					const String alias = foundSamplerReflectionData->second.alias.c_str();
 					if(foundSamplerReflectionData->second.isNonDefault)
 					{
-						outShaderCreateInformation.AddParameter(ShaderObjectParameterInformation(ident, ident, GPOT_SAMPLER2D), defaultSamplerStateCreateInformation);
+						outParameters.AddParameter(ShaderObjectParameterInformation(ident, ident, GPOT_SAMPLER2D), defaultSamplerStateCreateInformation);
 
 						if(!alias.empty())
-							outShaderCreateInformation.AddParameter(ShaderObjectParameterInformation(ident, alias, GPOT_SAMPLER2D), defaultSamplerStateCreateInformation);
+							outParameters.AddParameter(ShaderObjectParameterInformation(ident, alias, GPOT_SAMPLER2D), defaultSamplerStateCreateInformation);
 					}
 					else
 					{
-						// Ignore parameters that were already registered in some previous variation. Note that this implies
-						// you cannot have same names for different parameters in different variations.
-						if (outShaderCreateInformation.SamplerParameters.find(ident) != outShaderCreateInformation.SamplerParameters.end())
-							continue;
-
-						outShaderCreateInformation.AddParameter(ShaderObjectParameterInformation(ident, ident, GPOT_SAMPLER2D));
+						outParameters.AddParameter(ShaderObjectParameterInformation(ident, ident, GPOT_SAMPLER2D));
 
 						if(!alias.empty())
-							outShaderCreateInformation.AddParameter(ShaderObjectParameterInformation(ident, alias, GPOT_SAMPLER2D));
+							outParameters.AddParameter(ShaderObjectParameterInformation(ident, alias, GPOT_SAMPLER2D));
 					}
 				}
 				else
 				{
-					outShaderCreateInformation.AddParameter(ShaderObjectParameterInformation(ident, ident, GPOT_SAMPLER2D));
+					outParameters.AddParameter(ShaderObjectParameterInformation(ident, ident, GPOT_SAMPLER2D));
 				}
 				break;
 			}
 		case Xsc::Reflection::VariableType::Variable:
 			{
-				bool isBlockInternal = false;
-				if(entry.uniformBlock != -1)
+				GpuDataParameterType type = XSCConvertDataType((Xsc::Reflection::DataType)entry.baseType);
+				if((entry.flags & Xsc::Reflection::Uniform::Flags::Color) != 0 &&
+				   (type == GPDT_FLOAT3 || type == GPDT_FLOAT4))
 				{
-					std::string blockName = reflectionData.constantBuffers[entry.uniformBlock].ident;
-					for(auto& uniform : reflectionData.uniforms)
-					{
-						if(uniform.type == Xsc::Reflection::VariableType::UniformBuffer && uniform.ident == blockName)
-						{
-							isBlockInternal = (uniform.flags & Xsc::Reflection::Uniform::Flags::Internal) != 0;
-							isBlockHiddenInInspector = (uniform.flags & Xsc::Reflection::Uniform::Flags::HideInInspector) != 0;
-							break;
-						}
-					}
+					type = GPDT_COLOR;
 				}
 
-				if(!isBlockInternal)
+				u32 arraySize = entry.arraySize;
+
+				if(entry.defaultValue == -1)
+					outParameters.AddParameter(ShaderDataParameterInformation(ident, ident, type, StringID::kNone, arraySize));
+				else
 				{
-					GpuDataParameterType type = XSCConvertDataType((Xsc::Reflection::DataType)entry.baseType);
-					if((entry.flags & Xsc::Reflection::Uniform::Flags::Color) != 0 &&
-					   (type == GPDT_FLOAT3 || type == GPDT_FLOAT4))
+					const Xsc::Reflection::DefaultValue& defaultValue = reflectionData.defaultValues[entry.defaultValue];
+
+					const u32 defaultValueSize = Shader::GetDataParameterSize(type);
+					if(arraySize != 1 || defaultValueSize > sizeof(defaultValue))
 					{
-						type = GPDT_COLOR;
+						outCompileResult.ErrorMessage = StringUtility::Format("Unsupported reflected default value for parameter '{0}'.", ident);
+						return false;
 					}
 
-					u32 arraySize = entry.arraySize;
-
-					if(entry.defaultValue == -1)
-						outShaderCreateInformation.AddParameter(ShaderDataParameterInformation(ident, ident, type, StringID::kNone, arraySize));
-					else
-					{
-						const Xsc::Reflection::DefaultValue& defVal = reflectionData.defaultValues[entry.defaultValue];
-
-						outShaderCreateInformation.AddParameter(ShaderDataParameterInformation(ident, ident, type, StringID::kNone, arraySize, 0), (u8*)defVal.matrix);
-					}
-
-					if(!entry.spriteUVRef.empty() && (type == GPDT_FLOAT4))
-					{
-						ShaderParameterAttribute attribute;
-						attribute.Value.assign(entry.spriteUVRef.data(), entry.spriteUVRef.size());
-						attribute.NextParameterIndex = (u32)-1;
-						attribute.Type = ShaderParamAttributeType::SpriteUV;
-
-						outShaderCreateInformation.SetParameterAttribute(ident, attribute);
-					}
-
-					parseCommonAttributes();
+					outParameters.AddParameter(ShaderDataParameterInformation(ident, ident, type), TArrayView<const u8>((const u8*)&defaultValue, defaultValueSize));
 				}
+
+				if(!entry.spriteUVRef.empty() && (type == GPDT_FLOAT4))
+				{
+					ShaderParameterAttribute attribute;
+					attribute.Value.assign(entry.spriteUVRef.data(), entry.spriteUVRef.size());
+					attribute.NextParameterIndex = (u32)-1;
+					attribute.Type = ShaderParamAttributeType::SpriteUV;
+
+					outParameters.SetParameterAttribute(ident, attribute);
+				}
+
+				fnParseCommonAttributes();
 			}
 			break;
 		case Xsc::Reflection::VariableType::Struct:
@@ -622,10 +562,30 @@ static bool ParseParameters(const Xsc::Reflection::ReflectionData& reflectionDat
 				i32 structIdx = entry.baseType;
 				u32 structSize = CalculateStructSize(structIdx, reflectionData.structs);
 
-				outShaderCreateInformation.AddParameter(ShaderDataParameterInformation(ident, ident, GPDT_STRUCT, StringID::kNone, entry.arraySize, structSize));
+				outParameters.AddParameter(ShaderDataParameterInformation(ident, ident, GPDT_STRUCT, StringID::kNone, entry.arraySize, structSize));
 			}
 			break;
 		default:;
+		}
+
+		outParameters.SetParameterInternal(ident, isInternal);
+	}
+
+	for(const auto& binding : reflectionData.constantBuffers)
+		outParameters.SetParameterBinding(binding.ident.c_str(), (u32)binding.set, (u32)binding.location);
+
+	for(const auto& binding : reflectionData.textures)
+		outParameters.SetParameterBinding(binding.ident.c_str(), (u32)binding.set, (u32)binding.location);
+
+	for(const auto& binding : reflectionData.storageBuffers)
+		outParameters.SetParameterBinding(binding.ident.c_str(), (u32)binding.set, (u32)binding.location);
+
+	for(const auto& uniform : reflectionData.uniforms)
+	{
+		if(uniform.uniformBlock >= 0)
+		{
+			const auto& binding = reflectionData.constantBuffers[uniform.uniformBlock];
+			outParameters.SetParameterBinding(uniform.ident.c_str(), (u32)binding.set, (u32)binding.location);
 		}
 	}
 
@@ -639,9 +599,8 @@ static Mutex& GetXscCompileMutex()
 	return mutex;
 }
 
-template<bool IsRenderProxy>
 static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target, bool optionalEntry, u32& startBindingSlot, ShaderCompilerResult& outCompileResult,
-	CoreVariantType<ShaderCreateInformation, IsRenderProxy>* outShaderCreateInformation = nullptr, TInlineArray<GpuProgramType, 2>* detectedTypes = nullptr, Array<u32, 3>* outThreadGroupSize = nullptr, u32* outPushConstantBufferSize = nullptr)
+	ShaderReflection& outReflection, bool reflectParameters = false)
 {
 	TShared<StringStream> input = B3DMakeShared<StringStream>();
 
@@ -766,26 +725,104 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 	for(auto& entry : reflectionData.storageBuffers)
 		startBindingSlot = std::max(startBindingSlot, entry.location + 1u);
 
-	if(detectedTypes != nullptr)
+	if(reflectParameters || compileSuccess)
 	{
-		for(auto& entry : reflectionData.functions)
+		// Build parameter layout to calculate hash from
+		StringStream layout;
+
+		std::function<void(const Xsc::Reflection::Variable&)> fnWriteVariable;
+		fnWriteVariable = [&layout, &reflectionData, &fnWriteVariable](const Xsc::Reflection::Variable& variable)
 		{
-			if(entry.ident == "vsmain")
-				detectedTypes->Add(GPT_VERTEX_PROGRAM);
-			else if(entry.ident == "fsmain")
-				detectedTypes->Add(GPT_FRAGMENT_PROGRAM);
-			else if(entry.ident == "gsmain")
-				detectedTypes->Add(GPT_GEOMETRY_PROGRAM);
-			else if(entry.ident == "dsmain")
-				detectedTypes->Add(GPT_DOMAIN_PROGRAM);
-			else if(entry.ident == "hsmain")
-				detectedTypes->Add(GPT_HULL_PROGRAM);
-			else if(entry.ident == "csmain")
-				detectedTypes->Add(GPT_COMPUTE_PROGRAM);
+			layout << variable.ident << ':' << (u32)variable.type << ':' << variable.arraySize << ':';
+
+			if(variable.type == Xsc::Reflection::VariableType::Struct)
+			{
+				layout << '{';
+
+				for(const auto& member : reflectionData.structs[variable.baseType].members)
+					fnWriteVariable(member);
+
+				layout << '}';
+			}
+			else
+				layout << variable.baseType;
+
+			layout << ';';
+		};
+
+		for(const auto& uniform : reflectionData.uniforms)
+		{
+			fnWriteVariable(uniform);
+			layout << uniform.flags << ':' << uniform.uniformBlock << ';';
 		}
 
-		// If no entry points found, and error occurred, report error
-		if(!compileSuccess && detectedTypes->Empty())
+		const auto fnWriteBindings = [&layout](const auto& bindings)
+		{
+			layout << '[';
+
+			for(const auto& binding : bindings)
+				layout << binding.ident << ':' << binding.set << ':' << binding.location << ';';
+
+			layout << ']';
+		};
+
+		fnWriteBindings(reflectionData.constantBuffers);
+		fnWriteBindings(reflectionData.textures);
+		fnWriteBindings(reflectionData.storageBuffers);
+
+		for(const auto& buffer : reflectionData.pushConstantBuffers)
+		{
+			layout << buffer.ident << ':' << buffer.size << '{';
+
+			for(const auto& member : buffer.members)
+				layout << member.ident << ':' << member.offset << ':' << member.size << ';';
+
+			layout << '}';
+		}
+
+		// Ensure that all stages in a shader have the same parameters
+		const Array<u64, 2> layoutHash = Shader::ComputeHash(layout.str());
+		if(outReflection.Parameters != nullptr && outReflection.ParameterLayoutHash != layoutHash)
+		{
+			outCompileResult.ErrorMessage = "Shader parameter declarations or bindings differ between stages of the same pass.";
+			return "";
+		}
+
+		outReflection.ParameterLayoutHash = layoutHash;
+		if(outReflection.Parameters == nullptr)
+		{
+			// Parse parameters for the first stage that gets processed
+			outReflection.Parameters = B3DMakeShared<ShaderParameterDescription>();
+			if(!ParseParameters(reflectionData, outCompileResult, *outReflection.Parameters, !reflectParameters))
+				return "";
+		}
+	}
+
+	if(reflectParameters)
+	{
+		for(const auto& entry : reflectionData.functions)
+		{
+			ShaderEntryPointReflection entryPoint;
+			if(entry.ident == "vsmain")
+				entryPoint.Type = GPT_VERTEX_PROGRAM;
+			else if(entry.ident == "fsmain")
+				entryPoint.Type = GPT_FRAGMENT_PROGRAM;
+			else if(entry.ident == "gsmain")
+				entryPoint.Type = GPT_GEOMETRY_PROGRAM;
+			else if(entry.ident == "hsmain")
+				entryPoint.Type = GPT_HULL_PROGRAM;
+			else if(entry.ident == "dsmain")
+				entryPoint.Type = GPT_DOMAIN_PROGRAM;
+			else if(entry.ident == "csmain")
+				entryPoint.Type = GPT_COMPUTE_PROGRAM;
+			else
+				continue;
+
+			outReflection.EntryPoints.emplace(entry.ident.c_str(), std::move(entryPoint));
+		}
+
+		// A missing vertex entry is allowed during discovery, but a shader must declare some entry point.
+		if(!compileSuccess && outReflection.EntryPoints.empty())
 		{
 			StringStream logOutput;
 			log.GetMessages(logOutput);
@@ -794,24 +831,19 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 			return "";
 		}
 	}
-
-	if (outShaderCreateInformation != nullptr)
+	else if(compileSuccess)
 	{
-		if (!ParseParameters<IsRenderProxy>(reflectionData, outCompileResult, *outShaderCreateInformation))
-			return "";
-	}
+		ShaderEntryPointReflection entryPoint;
+		entryPoint.Type = type;
+		entryPoint.ThreadGroupSize[0] = reflectionData.numThreads.x > 0 ? (u32)reflectionData.numThreads.x : 1;
+		entryPoint.ThreadGroupSize[1] = reflectionData.numThreads.y > 0 ? (u32)reflectionData.numThreads.y : 1;
+		entryPoint.ThreadGroupSize[2] = reflectionData.numThreads.z > 0 ? (u32)reflectionData.numThreads.z : 1;
 
-	if(outThreadGroupSize != nullptr)
-	{
-		(*outThreadGroupSize)[0] = reflectionData.numThreads.x > 0 ? (u32)reflectionData.numThreads.x : 1;
-		(*outThreadGroupSize)[1] = reflectionData.numThreads.y > 0 ? (u32)reflectionData.numThreads.y : 1;
-		(*outThreadGroupSize)[2] = reflectionData.numThreads.z > 0 ? (u32)reflectionData.numThreads.z : 1;
-	}
-
-	if(outPushConstantBufferSize != nullptr)
-	{
 		B3D_ASSERT(reflectionData.pushConstantBuffers.size() <= 1);
-		*outPushConstantBufferSize = reflectionData.pushConstantBuffers.empty() ? 0u : (u32)reflectionData.pushConstantBuffers.front().size;
+		entryPoint.PushConstantBufferSize = reflectionData.pushConstantBuffers.empty() ? 0u : (u32)reflectionData.pushConstantBuffers.front().size;
+
+		const String entryPointName = target.KeepsEntryPointNames ? inputDesc.entryPoint.c_str() : "main";
+		outReflection.EntryPoints.emplace(entryPointName, std::move(entryPoint));
 	}
 
 	return output.str();
@@ -836,49 +868,74 @@ const HLSLCrossCompileTarget* HLSLCrossCompiler::GetTarget(const String& languag
 	return found != registry.end() ? &found->second : nullptr;
 }
 
-ShaderCompilerResult HLSLCrossCompiler::CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target, u32& startBindingSlot, String& outSource, Array<u32, 3>& outThreadGroupSize, u32& outPushConstantBufferSize)
+ShaderCompilerResult HLSLCrossCompiler::CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target, u32& startBindingSlot, ShaderCrossCompileOutput& output, const ShaderReflection* sharedReflection)
 {
 	ShaderCompilerResult compileResult;
-	outThreadGroupSize = { 1, 1, 1 };
-	outPushConstantBufferSize = 0;
+	output.Source.clear();
+	output.Reflection = B3DMakeShared<ShaderReflection>();
+	if(sharedReflection != nullptr)
+	{
+		output.Reflection->Parameters = sharedReflection->Parameters;
+		output.Reflection->ParameterLayoutHash = sharedReflection->ParameterLayoutHash;
+	}
 
 	HLSLCrossCompileTarget xscTarget = target;
 #if B3D_PLATFORM_MACOS
 	const bool compileMetalSource = target.TargetLanguage != nullptr && StringView(target.TargetLanguage) == "MSL";
 	if(compileMetalSource)
+	{
 		xscTarget.TargetLanguage = Xsc::TargetLanguage::VKSL450;
+		xscTarget.KeepsEntryPointNames = false;
+	}
 #endif
 
-	// Entry points are detected by a target-agnostic reflection pass (see TReflect()), so a stage can be present there but
-	// excluded for this target through its preprocessor define (e.g. a geometry shader under #if !defined(METAL)). Tolerate
-	// the missing entry point and report the stage as absent by returning empty source.
-	outSource = ::CrossCompile<false>(hlsl, type, xscTarget, true, startBindingSlot, compileResult, nullptr, nullptr, &outThreadGroupSize, &outPushConstantBufferSize);
+	// Entry points discovered without a target may be excluded by the target's preprocessor define.
+	output.Source = ::CrossCompile(hlsl, type, xscTarget, true, startBindingSlot, compileResult, *output.Reflection);
 
 #if B3D_PLATFORM_MACOS
-	if(compileResult.ErrorMessage.empty() && compileMetalSource && !outSource.empty())
+	if(compileResult.ErrorMessage.empty() && compileMetalSource && !output.Source.empty())
 	{
 		String metalSource;
-		compileResult = MetalSourceCompiler::Compile(outSource, type, outPushConstantBufferSize, metalSource);
+		compileResult = MetalSourceCompiler::Compile(output.Source, type, output.Reflection, metalSource);
 		if(compileResult.ErrorMessage.empty())
-			outSource = std::move(metalSource);
+			output.Source = std::move(metalSource);
 	}
 #endif
 
 	return compileResult;
 }
 
-template<bool IsRenderProxy>
-ShaderCompilerResult HLSLCrossCompiler::TReflect(const String& hlsl, CoreVariantType<ShaderCreateInformation, IsRenderProxy>& outShaderCreateInformation, TInlineArray<GpuProgramType, 2>& outEntryPoints)
+ShaderCompilerResult HLSLCrossCompiler::Reflect(const String& hlsl, ShaderReflection& outReflection, const HLSLCrossCompileTarget* target)
 {
 	ShaderCompilerResult compileResult;
-	u32 dummy = 0;
+	u32 startBindingSlot = 0;
+	outReflection.Parameters = nullptr;
+	outReflection.EntryPoints.clear();
 
-	// Reflection only needs valid HLSL parsing; the concrete output target is irrelevant, so any built-in target works. 
-	const HLSLCrossCompileTarget reflectionTarget{ Xsc::TargetLanguage::GLSL450, "OPENGL" };
-	::CrossCompile<IsRenderProxy>(hlsl, GPT_VERTEX_PROGRAM, reflectionTarget, true, dummy, compileResult, &outShaderCreateInformation, &outEntryPoints);
+	HLSLCrossCompileTarget reflectionTarget;
+	reflectionTarget.TargetLanguage = Xsc::TargetLanguage::GLSL450;
+	reflectionTarget.PreprocessorDefine = "OPENGL";
+
+	if(target != nullptr)
+		reflectionTarget = *target;
+
+#if B3D_PLATFORM_MACOS
+	if(reflectionTarget.TargetLanguage != nullptr && StringView(reflectionTarget.TargetLanguage) == "MSL")
+		reflectionTarget.TargetLanguage = Xsc::TargetLanguage::VKSL450;
+#endif
+
+	::CrossCompile(hlsl, GPT_VERTEX_PROGRAM, reflectionTarget, true, startBindingSlot, compileResult, outReflection, true);
+
+	// If no vsmain found, try with an entry point that was actually detected
+	if(compileResult.ErrorMessage.empty() && outReflection.EntryPoints.count("vsmain") == 0 && !outReflection.EntryPoints.empty())
+	{
+		const GpuProgramType type = outReflection.EntryPoints.begin()->second.Type;
+
+		startBindingSlot = 0;
+		outReflection.Parameters = nullptr;
+		outReflection.EntryPoints.clear();
+		::CrossCompile(hlsl, type, reflectionTarget, false, startBindingSlot, compileResult, outReflection, true);
+	}
 
 	return compileResult;
 }
-
-template ShaderCompilerResult HLSLCrossCompiler::TReflect<false>(const String& hlsl, CoreVariantType<ShaderCreateInformation, false>& outShaderCreateInformation, TInlineArray<GpuProgramType, 2>& outEntryPoints);
-template ShaderCompilerResult HLSLCrossCompiler::TReflect<true>(const String& hlsl, CoreVariantType<ShaderCreateInformation, true>& outShaderCreateInformation, TInlineArray<GpuProgramType, 2>& outEntryPoints);

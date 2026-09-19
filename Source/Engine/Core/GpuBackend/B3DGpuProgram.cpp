@@ -51,7 +51,7 @@ RTTIType* GpuResourceTableLayout::GetRtti() const
 }
 
 GpuProgram::GpuProgram(const GpuProgramCreateInformation& createInformation)
-	: mNeedsAdjacencyInfo(createInformation.RequiresAdjacency), mLanguage(createInformation.Language), mName(createInformation.Name), mType(createInformation.Type), mEntryPoint(createInformation.EntryPoint), mSource(createInformation.Source), mBytecode(createInformation.Bytecode)
+	: mNeedsAdjacencyInfo(createInformation.RequiresAdjacency), mLanguage(createInformation.Language), mName(createInformation.Name), mType(createInformation.Type), mEntryPoint(createInformation.EntryPoint), mSource(createInformation.Source), mShaderReflection(createInformation.ShaderReflection), mBytecode(createInformation.Bytecode)
 {
 	mParametersDescription = B3DMakeShared<GpuProgramParameterDescription>();
 }
@@ -74,4 +74,17 @@ RTTIType* GpuProgram::GetRttiStatic()
 RTTIType* GpuProgram::GetRtti() const
 {
 	return GpuProgram::GetRttiStatic();
+}
+
+const ShaderEntryPointReflection& GpuProgramCreateInformation::GetEntryPointReflection() const
+{
+	if(ShaderReflection != nullptr)
+	{
+		const auto found = ShaderReflection->EntryPoints.find(EntryPoint);
+		if(found != ShaderReflection->EntryPoints.end())
+			return found->second;
+	}
+
+	static const ShaderEntryPointReflection empty;
+	return empty;
 }

@@ -84,21 +84,12 @@ namespace b3d
 		 *
 		 * @param	source					BSL source to parse.
 		 * @param	defines					An optional set of defines to set before parsing the source.
-		 * @param	inOutShaderInformation	Object to append shader reflection data to.
+		 * @param	outShaderDescription	Object to append shader reflection data to.
 		 * @param	outShaderMetaData		Parsed shader meta-data if parse was successful.
 		 * @param	outIncludes				A list of all includes files included by the BSL source.
 		 * @return							A result object containing an error message if not successful.
 		 */
-		static ShaderCompilerResult ParseMetaData(const String& source, const UnorderedMap<String, String>& defines, ShaderCreateInformation& inOutShaderInformation, BSLParsedShaderMetaData& outShaderMetaData, Vector<String>& outIncludes)
-		{
-			return TParseMetaData<false>(source, defines, inOutShaderInformation, outShaderMetaData, outIncludes);
-		}
-
-		/** @copydoc ParseMetaData(const String&, const UnorderedMap<String, String>&, ShaderCreateInformation&, BSLParsedShaderMetaData&, Vector<String>&). */
-		static ShaderCompilerResult ParseMetaData(const String& source, const UnorderedMap<String, String>& defines, render::ShaderCreateInformation& inOutShaderInformation, BSLParsedShaderMetaData& outShaderMetaData, Vector<String>& outIncludes)
-		{
-			return TParseMetaData<true>(source, defines, inOutShaderInformation, outShaderMetaData, outIncludes);
-		}
+		static ShaderCompilerResult ParseMetaData(const String& source, const UnorderedMap<String, String>& defines, ShaderDescription& outShaderDescription, BSLParsedShaderMetaData& outShaderMetaData, Vector<String>& outIncludes);
 
 		/**
 		 * Parses the BSL shader source for a specific variation.
@@ -134,10 +125,6 @@ namespace b3d
 		/** Converts the provided source into an abstract syntax tree using the lexer & parser for BSL FX syntax. */
 		static ShaderCompilerResult RunParser(ParseState* parseState, const char* source, const UnorderedMap<String, String>& defines);
 
-		/** Templated version of ParseMetaData for both main and render thread. */
-		template<bool IsRenderProxy>
-		static ShaderCompilerResult TParseMetaData(const String& source, const UnorderedMap<String, String>& defines, CoreVariantType<ShaderCreateInformation, IsRenderProxy>& inOutShaderInformation, BSLParsedShaderMetaData& outShaderMetaData, Vector<String>& outIncludes);
-
 		/** Parses the shader/mixin node and outputs the relevant meta-data. */
 		static BSLParsedShaderMetaData ParseShaderMetaData(ASTFXNode* shader);
 
@@ -145,8 +132,7 @@ namespace b3d
 		 * Parses the root AST node and outputs a list of all mixins/shaders and their meta-data, sub-shader meta-data,
 		 * as well as any global shader options.
 		 */
-		template<bool IsRenderProxy>
-		static ShaderCompilerResult TParseMetaDataAndOptions(ASTFXNode* rootNode, Vector<std::pair<ASTFXNode*, BSLParsedShaderMetaData>>& metaData, CoreVariantType<ShaderCreateInformation, IsRenderProxy>& shaderCreateInformation);
+		static ShaderCompilerResult ParseMetaDataAndOptions(ASTFXNode* rootNode, Vector<std::pair<ASTFXNode*, BSLParsedShaderMetaData>>& metaData, ShaderDescription& outShaderDescription);
 
 		/** Parses shader variations and writes them to the provided meta-data object. */
 		static void ParseVariations(BSLParsedShaderMetaData& metaData, ASTFXNode* variations);
@@ -267,10 +253,9 @@ namespace b3d
 		 * Parser the options AST node that contains global shader options.
 		 *
 		 * @param	optionsNode						Node to parse.
-		 * @param	outShaderCreateInformation		Descriptor to apply the found options to.
+		 * @param	outShaderDescription			Descriptor to apply the found options to.
 		 */
-		template<bool IsRenderProxy>
-		static void TParseOptions(ASTFXNode* optionsNode, CoreVariantType<ShaderCreateInformation, IsRenderProxy>& outShaderCreateInformation);
+		static void ParseOptions(ASTFXNode* optionsNode, ShaderDescription& outShaderDescription);
 
 		/**
 		 * Iterates over all provided mixins/shaders and inherits any variations. The variations are written in-place, to
@@ -279,8 +264,7 @@ namespace b3d
 		static ShaderCompilerResult PopulateVariations(Vector<std::pair<ASTFXNode*, BSLParsedShaderMetaData>>& shaderMetaData);
 
 		/** Populates the information about variation parameters and their values. */
-		template<bool IsRenderProxy>
-		static void TPopulateVariationParameters(const BSLParsedShaderMetaData& shaderMetaData, CoreVariantType<ShaderCreateInformation, IsRenderProxy>& shaderCreateInformation);
+		static void PopulateVariationParameters(const BSLParsedShaderMetaData& shaderMetaData, ShaderDescription& outShaderDescription);
 
 		/**
 		 * Converts a null-terminated string into a standard string, and eliminates quotes that are assumed to be at the

@@ -243,6 +243,14 @@ bool ShaderCooker::Cook(const Vector<ShaderCookItem>& items, const CookOptions& 
 		}
 	}
 
+	// Only successful cooks carry compatible version metadata; failed cooks must be retried.
+	if(failedShaderCount == 0)
+	{
+		const TShared<ShaderRegistryMetaData> metaData = B3DMakeShared<ShaderRegistryMetaData>();
+		metaData->Version = ShaderRegistry::kCacheVersion;
+		package->SetPackageMetaData(metaData);
+	}
+
 	// Ensure the destination folder exists, then write the package. A brand-new package not registered with the
 	// package manager can be saved as-is (see PackageManager::SavePackage).
 	FileSystem::CreateFolder(options.OutputPath.GetParent());

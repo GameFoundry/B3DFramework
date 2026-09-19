@@ -475,7 +475,9 @@ void GpuBackendTestSuite::TestPushConstantSerialization()
 	GpuProgramCreateInformation createInformation;
 	createInformation.Name = "PushConstantSerialization";
 	createInformation.Type = GPT_COMPUTE_PROGRAM;
-	createInformation.PushConstantBufferSize = 12;
+	createInformation.ShaderReflection = B3DMakeShared<ShaderReflection>();
+	createInformation.ShaderReflection->EntryPoints[createInformation.EntryPoint].Type = createInformation.Type;
+	createInformation.ShaderReflection->EntryPoints[createInformation.EntryPoint].PushConstantBufferSize = 12;
 	createInformation.Bytecode = B3DMakeShared<GpuProgramBytecode>();
 	createInformation.Bytecode->ParameterDescription = B3DMakeShared<GpuProgramParameterDescription>();
 	createInformation.Bytecode->ParameterDescription->PushConstantBufferSize = 12;
@@ -491,7 +493,7 @@ void GpuBackendTestSuite::TestPushConstantSerialization()
 	if(decoded == nullptr)
 		return;
 
-	B3D_TEST_ASSERT(decoded->PushConstantBufferSize == 12)
+	B3D_TEST_ASSERT(decoded->GetEntryPointReflection().PushConstantBufferSize == 12)
 	B3D_TEST_ASSERT(decoded->Bytecode != nullptr)
 	if(decoded->Bytecode == nullptr)
 		return;

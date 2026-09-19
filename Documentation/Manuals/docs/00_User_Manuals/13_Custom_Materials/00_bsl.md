@@ -819,7 +819,7 @@ priority			 | integer					   | 0						| Allows you to force objects with this sh
 # Variations
 Sometimes you need a few versions of the same shader, that are mostly similar but have some minor differences between them. For example, when rendering objects you might need to support a vertex shader for static meshes, as well as those using skinned and/or morph animation. 
 
-This is where the **variation** block comes into play. It allows you to specify a set of permutations for which the shader will be compiled. During shader import every permutation of that shader will be parsed, enabling pre-processor \#define blocks depending on the current permutation. The \#defines take on the name of their variation, and one of the user provided values.
+This is where the **variations** block comes into play. It allows you to specify a set of permutations for which the shader will be compiled. During shader import every permutation of that shader will be parsed, enabling pre-processor \#define blocks depending on the current permutation. The \#defines take on the name of their variation, and one of the user provided values.
 
 ~~~~~~~~~~~~~~
 // An example shader supporting different mesh animation modes
@@ -861,13 +861,15 @@ shader VertexInput
 };
 ~~~~~~~~~~~~~~
 
-The syntax within the **variation** block is as follows:
+The syntax within the **variations** block is as follows:
+
  - `IDENTIFIER = { bool/int, bool/int, ... }`
  
 Each variation block can have one or multiple entries. Each must have a unique identifier. Each entry can take on two or more values, each representing a single variation. The values must be boolean (true/false), or integers. If there are multiple variation entries, a variation for each possible combination of their values will be created.
 
-Once a shader with variations is imported, those variations will be available on the shader in the form of **Technique** objects. In general variations are only required when working with the low level rendering API, therefore we discuss techniques in more details in the developer manuals.
+Once a shader with variations is imported, those variations are available as @b3d::Variation objects. See the [Advanced materials manual](../../01_Developer_Manuals/03_advMaterials.md) for selecting and using variations with the low-level rendering API.
 
+Variations used with **Material** must preserve the material-visible parameter names, types and array sizes. Internal parameters may vary. **RendererMaterial** and direct low-level rendering can use different parameter interfaces in different variations. Within one variation and pass, stages share the same source declarations and bindings.
 # Sub-shaders
 Each BSL file can contain an optional set of sub-shaders, alongside the main shader. Sub-shaders are recognized by the renderer and are meant to allow the user to override functionality of default shaders used by the renderer. They are specified using the **subshader** keyword, followed by an unique identifier. Sub-shaders are only allowed to contain **mixin** blocks, within which the same rules as for normal mixins apply.
 

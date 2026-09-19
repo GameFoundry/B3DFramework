@@ -138,7 +138,7 @@ namespace b3d
 
 	public:
 		/** Version of the cache. Ticking this value will cause any cached data using the old version to be invalidated. */
-		static constexpr u32 kVersion = 1;
+		static constexpr u32 kVersion = 2;
 
 		PersistentCache(PrivatelyConstruct);
 		~PersistentCache() = default;

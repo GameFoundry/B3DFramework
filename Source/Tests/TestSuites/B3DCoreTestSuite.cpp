@@ -44,6 +44,14 @@ CoreTestSuite::CoreTestSuite()
 	B3D_ADD_TEST(CoreTestSuite::TestRTTIObjectWrapperFieldFilter)
 	B3D_ADD_TEST(CoreTestSuite::TestBinaryDelta)
 	B3D_ADD_TEST(CoreTestSuite::TestPersistentCacheLockedEntry)
+	B3D_ADD_TEST(CoreTestSuite::TestPersistentCacheVersion)
+	B3D_ADD_TEST(CoreTestSuite::TestShaderParameterDescription)
+	B3D_ADD_TEST(CoreTestSuite::TestShaderReflection)
+	B3D_ADD_TEST(CoreTestSuite::TestShaderRegistryCacheVersion)
+#if !B3D_PLATFORM_PS5
+	B3D_ADD_TEST(CoreTestSuite::TestMaterialParameterAdapterCompilation)
+	B3D_ADD_TEST(CoreTestSuite::TestShaderReflectionCompilation)
+#endif
 #if B3D_PLATFORM_MACOS
 	B3D_ADD_TEST(CoreTestSuite::TestMacOSDesktopInput)
 #endif
@@ -176,6 +184,41 @@ void CoreTestSuite::TestPersistentCacheLockedEntry()
 	const TShared<PersistentCacheMetaData> restoredValue = reopenedCache->TryGetEntry<PersistentCacheMetaData>(entryPath);
 	B3D_TEST_ASSERT(restoredValue != nullptr);
 	B3D_TEST_ASSERT(restoredValue->Priority == PersistentCachePriority::Critical);
+}
+
+void CoreTestSuite::TestPersistentCacheVersion()
+{
+	const Path cacheFolder = FileSystem::GetTemporaryFolderPath() + (UUIDGenerator::GenerateRandom().ToString() + "/");
+	ScopeGuard removeCache([&cacheFolder]() { FileSystem::Remove(cacheFolder, true); });
+	const Path entryPath("entry");
+	const Path packagePath = cacheFolder + "PersistentCache/entry";
+	const TShared<PersistentCache> cache = PersistentCache::Create();
+	cache->Initialize(cacheFolder);
+	B3D_TEST_ASSERT(cache->SetEntry(entryPath, B3DMakeShared<PersistentCacheMetaData>()));
+
+	const TShared<Package> package = Package::Load(packagePath);
+	B3D_TEST_ASSERT(package != nullptr);
+	if(package == nullptr)
+		return;
+
+	const TShared<PersistentCacheMetaData> metaData = B3DRTTICast<PersistentCacheMetaData>(package->GetResourceMetaData(entryPath)->AdditionalMetaData);
+	B3D_TEST_ASSERT(metaData != nullptr);
+	if(metaData == nullptr)
+		return;
+
+	B3D_TEST_ASSERT(metaData->CacheVersion == PersistentCache::kVersion);
+	metaData->CacheVersion = PersistentCache::kVersion - 1;
+	const TShared<DataStream> stream = FileSystem::OpenFile(packagePath, FileAccessFlag::Read | FileAccessFlag::Write);
+	SavePackageOptions saveOptions;
+	saveOptions.SaveMetaDataOnly = true;
+	B3D_TEST_ASSERT(package->Save(stream, saveOptions));
+	B3D_TEST_ASSERT(stream->Close());
+
+	cache->Initialize(cacheFolder);
+	B3D_TEST_ASSERT(!FileSystem::Exists(packagePath));
+	B3D_TEST_ASSERT(cache->TryGetEntry(entryPath) == nullptr);
+	B3D_TEST_ASSERT(cache->SetEntry(entryPath, B3DMakeShared<PersistentCacheMetaData>()));
+	B3D_TEST_ASSERT(cache->TryGetEntry(entryPath) != nullptr);
 }
 
 void CoreTestSuite::TestAnimCurveIntegration()

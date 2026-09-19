@@ -22,6 +22,20 @@ namespace b3d
 		void TestRTTIObjectWrapperFieldFilter();
 		void TestBinaryDelta();
 		void TestPersistentCacheLockedEntry();
+		/** Verifies outdated cache packages are discarded and replaced at the same path. */
+		void TestPersistentCacheVersion();
+		/** Verifies merging defaults, aliases and attributes without mutating conflicting descriptions. */
+		void TestShaderParameterDescription();
+		/** Verifies shared shader descriptions and serialization of shader reflection. */
+		void TestShaderReflection();
+		/** Verifies stable shader cache paths and cooked-store version metadata. */
+		void TestShaderRegistryCacheVersion();
+#if !B3D_PLATFORM_PS5
+		/** Verifies adapter creation requires explicit variation compilation. */
+		void TestMaterialParameterAdapterCompilation();
+		/** Verifies BSL parameter merging and source metadata against compiled GPU programs. */
+		void TestShaderReflectionCompilation();
+#endif
 #if B3D_PLATFORM_MACOS
 		void TestMacOSDesktopInput();
 #endif

@@ -42,6 +42,7 @@ void D3D12GpuProgram::Initialize()
 		createInformation.EntryPoint = mEntryPoint;
 		createInformation.Language = language;
 		createInformation.Source = mSource;
+		createInformation.ShaderReflection = mShaderReflection;
 
 		mBytecode = mGpuDevice.CompileGpuProgramBytecode(createInformation);
 	}

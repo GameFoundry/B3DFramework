@@ -183,6 +183,8 @@ namespace b3d
 		 * The adapter will take care of tracking when material parameters change and can be used to update the underlying
 		 * GpuParameterSet objects. Adapter is only valid for a particular material variation, you will need to create a
 		 * different adapter for each variation.
+		 * Requires an already compiled variation. Returns null if the variation index is invalid, the variation is not
+		 * compiled, or its source-declared material interface differs from the shader's shared interface.
 		 */
 		TShared<MaterialParameterAdapterType> CreateParameterAdapter(u32 variationIndex = 0);
 
@@ -691,7 +693,7 @@ namespace b3d
 		 * @note	Provided parameter must exist, no checking is done.
 		 */
 		template <typename T>
-		void SetParamValue(const String& name, u8* buffer, u32 numElements);
+		void SetParamValue(const String& name, const u8* buffer, u32 numElements);
 
 		/**
 		 * Initializes the material by using the compatible variations from the currently set shader. Shader must contain

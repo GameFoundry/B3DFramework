@@ -18,230 +18,10 @@
 
 using namespace b3d;
 
-ShaderInformationBase::ShaderInformationBase()
-	: QueueSortType(QueueSortType::None), QueuePriority(0), SeparablePasses(false), Flags(0)
+render::ShaderCreateInformation ShaderCreateInformation::ConvertToRenderProxy(const ShaderCreateInformation& value)
 {
-}
-
-void ShaderInformationBase::AddParameter(ShaderDataParameterInformation parameterInformation, u8* defaultValue)
-{
-	if(parameterInformation.Type == GPDT_STRUCT && parameterInformation.ElementSize <= 0)
-	{
-		B3D_LOG(Error, LogMaterial, "You need to provide a non-zero element size for a struct parameter.");
-		return;
-	}
-
-	const auto found = DataParameters.find(parameterInformation.Name);
-	if(found != DataParameters.end())
-		return;
-
-	if(defaultValue != nullptr)
-	{
-		parameterInformation.DefaultValueIndex = (u32)DataDefaultValues.size();
-		u32 defaultValueSize = Shader::GetDataParameterSize(parameterInformation.Type);
-
-		DataDefaultValues.resize(parameterInformation.DefaultValueIndex + defaultValueSize);
-		memcpy(&DataDefaultValues[parameterInformation.DefaultValueIndex], defaultValue, defaultValueSize);
-	}
-	else
-		parameterInformation.DefaultValueIndex = (u32)-1;
-
-	DataParameters[parameterInformation.Name] = parameterInformation;
-}
-
-void ShaderInformationBase::AddParameter(ShaderObjectParameterInformation parameterInformation)
-{
-	AddParameterInternal(std::move(parameterInformation), ~0u);
-}
-
-void ShaderInformationBase::AddParameter(ShaderObjectParameterInformation parameterInformation, const SamplerStateCreateInformation& defaultValue)
-{
-	u32 defaultValueIndex = ~0u;
-	if(Shader::IsSampler(parameterInformation.Type))
-	{
-		defaultValueIndex = (u32)SamplerDefaultValues.size();
-		SamplerDefaultValues.push_back(defaultValue);
-	}
-
-	AddParameterInternal(std::move(parameterInformation), defaultValueIndex);
-}
-
-void ShaderInformationBase::AddParameter(ShaderObjectParameterInformation parameterInformation, ShaderDefaultTextureType defaultValue)
-{
-	u32 defaultValueIndex = ~0u;
-	if(Shader::IsTexture(parameterInformation.Type))
-	{
-		defaultValueIndex = (u32)TextureDefaultValues.size();
-		TextureDefaultValues.push_back(defaultValue);
-	}
-
-	AddParameterInternal(std::move(parameterInformation), defaultValueIndex);
-}
-
-void ShaderInformationBase::AddParameterInternal(ShaderObjectParameterInformation parameterInformation, u32 defaultValueIndex)
-{
-	Map<String, ShaderObjectParameterInformation>* destinationLookup[] = { &TextureParameters, &BufferParameters, &SamplerParameters };
-	u32 destinationIndex = 0;
-	if(Shader::IsBuffer(parameterInformation.Type))
-		destinationIndex = 1;
-	else if(Shader::IsSampler(parameterInformation.Type))
-		destinationIndex = 2;
-
-	Map<String, ShaderObjectParameterInformation>& parameterMap = *destinationLookup[destinationIndex];
-
-	auto found = parameterMap.find(parameterInformation.Name);
-	if(found == parameterMap.end())
-	{
-		parameterInformation.DefaultValueIndex = defaultValueIndex;
-		parameterMap[parameterInformation.Name] = parameterInformation;
-	}
-	else
-	{
-		ShaderObjectParameterInformation& existingParameterInformation = found->second;
-
-		// If same name but different properties, we ignore this param
-		if(existingParameterInformation.Type != parameterInformation.Type || existingParameterInformation.RendererSemantic != parameterInformation.RendererSemantic)
-			return;
-
-		Vector<String>& gpuVariableNames = existingParameterInformation.GpuVariableNames;
-		bool found = false;
-		for(u32 i = 0; i < (u32)gpuVariableNames.size(); i++)
-		{
-			if(gpuVariableNames[i] == parameterInformation.GpuVariableName)
-			{
-				found = true;
-				break;
-			}
-		}
-
-		if(!found)
-			gpuVariableNames.push_back(parameterInformation.GpuVariableName);
-	}
-}
-
-void ShaderInformationBase::SetParameterAttribute(const String& name, const ShaderParameterAttribute& attribute)
-{
-	ShaderDataParameterInformation* dataParameterInformation = nullptr;
-
-	const auto foundDataParameter = DataParameters.find(name);
-	if(foundDataParameter != DataParameters.end())
-		dataParameterInformation = &foundDataParameter->second;
-
-	ShaderObjectParameterInformation* objectParameterInformation = nullptr;
-	if(!dataParameterInformation)
-	{
-		const auto foundTextureParameter = TextureParameters.find(name);
-		if(foundTextureParameter != TextureParameters.end())
-			objectParameterInformation = &foundTextureParameter->second;
-
-		if(!objectParameterInformation)
-		{
-			const auto foundSamplerParameter = SamplerParameters.find(name);
-			if(foundSamplerParameter != SamplerParameters.end())
-				objectParameterInformation = &foundSamplerParameter->second;
-		}
-
-		if(!objectParameterInformation)
-		{
-			const auto foundBufferParameter = BufferParameters.find(name);
-			if(foundBufferParameter != BufferParameters.end())
-				objectParameterInformation = &foundBufferParameter->second;
-		}
-	}
-
-	ShaderParameterInformation* parameterInformation = dataParameterInformation;
-	if(!parameterInformation)
-		parameterInformation = objectParameterInformation;
-
-	if(!parameterInformation)
-	{
-		B3D_LOG(Warning, LogMaterial, "Attempting to apply a shader parameter attribute to a non-existing parameter.");
-		return;
-	}
-
-	if(attribute.Type == ShaderParamAttributeType::SpriteUV)
-	{
-		if(objectParameterInformation)
-		{
-			B3D_LOG(Warning, LogMaterial, "Attempting to apply SpriteUV attribute to an object parameter is not supported.");
-			return;
-		}
-
-		if(dataParameterInformation->Type != GPDT_FLOAT4)
-		{
-			B3D_LOG(Warning, LogMaterial, "SpriteUV attribute can only be applied to 4D vectors.");
-			return;
-		}
-	}
-
-	// Look for duplicate attributes
-	u32 currentAttributeIndex = parameterInformation->AttributeIndex;
-	bool found = false;
-	while(currentAttributeIndex != ~0u)
-	{
-		ShaderParameterAttribute& currentAttribute = ParameterAttributes[currentAttributeIndex];
-		if(currentAttribute.Type == attribute.Type)
-		{
-			currentAttribute = attribute;
-
-			found = true;
-			break;
-		}
-
-		currentAttributeIndex = currentAttribute.NextParameterIndex;
-	}
-
-	if(!found)
-	{
-		const auto attributeIndex = (u32)ParameterAttributes.size();
-		ParameterAttributes.emplace_back(attribute);
-
-		if(parameterInformation->AttributeIndex != ~0u)
-			ParameterAttributes.back().NextParameterIndex = parameterInformation->AttributeIndex;
-
-		parameterInformation->AttributeIndex = attributeIndex;
-	}
-}
-
-void ShaderInformationBase::SetUniformBufferAttributes(const String& name, bool shared, GpuBufferFlags flags, StringID rendererSemantic)
-{
-	ShaderUniformBufferInformation information;
-	information.Name = name;
-	information.Shared = shared;
-	information.Flags = flags;
-	information.RendererSemantic = rendererSemantic;
-
-	UniformBuffers[name] = information;
-}
-
-RTTIType* ShaderInformationBase::GetRttiStatic()
-{
-	return ShaderInformationBaseRTTI::Instance();
-}
-
-RTTIType* ShaderInformationBase::GetRtti() const
-{
-	return GetRttiStatic();
-}
-
-render::ShaderInformation ShaderInformation::ConvertToRenderProxy(const ShaderInformation& value)
-{
-	render::ShaderInformation output;
-	output.DataParameters = value.DataParameters;
-	output.TextureParameters = value.TextureParameters;
-	output.SamplerParameters = value.SamplerParameters;
-	output.BufferParameters = value.BufferParameters;
-	output.UniformBuffers = value.UniformBuffers;
-	output.ParameterAttributes = value.ParameterAttributes;
-
-	output.DataDefaultValues = value.DataDefaultValues;
-	output.SamplerDefaultValues = value.SamplerDefaultValues;
-	output.TextureDefaultValues = value.TextureDefaultValues;
-
-	output.QueuePriority = value.QueuePriority;
-	output.QueueSortType = value.QueueSortType;
-	output.SeparablePasses = value.SeparablePasses;
-	output.Flags = value.Flags;
+	render::ShaderCreateInformation output(value.Description);
+	output.CompilerMetaData = value.CompilerMetaData;
 
 	for(auto& entry : value.Variations)
 	{
@@ -249,20 +29,25 @@ render::ShaderInformation ShaderInformation::ConvertToRenderProxy(const ShaderIn
 			output.Variations.push_back(B3DGetRenderProxy(entry));
 	}
 
-	output.VariationParameters = value.VariationParameters;
-	output.CompilerMetaData = value.CompilerMetaData;
-
-	// Ignoring default values as they are not needed for syncing since
-	// they're initialized through the material.
 	return output;
 }
 
-RTTIType* ShaderInformation::GetRttiStatic()
+RTTIType* ShaderDescription::GetRttiStatic()
 {
-	return ShaderInformationRTTI::Instance();
+	return ShaderDescriptionRTTI::Instance();
 }
 
-RTTIType* ShaderInformation::GetRtti() const
+RTTIType* ShaderDescription::GetRtti() const
+{
+	return GetRttiStatic();
+}
+
+RTTIType* ShaderCreateInformation::GetRttiStatic()
+{
+	return ShaderCreateInformationRTTI::Instance();
+}
+
+RTTIType* ShaderCreateInformation::GetRtti() const
 {
 	return GetRttiStatic();
 }
@@ -278,12 +63,12 @@ RTTIType* PrecompiledShaderData::GetRtti() const
 }
 
 namespace b3d::render {
-RTTIType* ShaderInformation::GetRttiStatic()
+RTTIType* ShaderCreateInformation::GetRttiStatic()
 {
-	return ShaderInformationRenderProxyRTTI::Instance();
+	return ShaderCreateInformationRenderProxyRTTI::Instance();
 }
 
-RTTIType* ShaderInformation::GetRtti() const
+RTTIType* ShaderCreateInformation::GetRtti() const
 {
 	return GetRttiStatic();
 }
@@ -361,8 +146,8 @@ TShader<IsRenderProxy>::~TShader()
 template <bool IsRenderProxy>
 const ShaderDataParameterInformation* TShader<IsRenderProxy>::GetDataParameterDescription(const String& name) const
 {
-	auto findIterData = mInformation.DataParameters.find(name);
-	if(findIterData != mInformation.DataParameters.end())
+	auto findIterData = mInformation.Description->Parameters->GetDataParameters().find(name);
+	if(findIterData != mInformation.Description->Parameters->GetDataParameters().end())
 		return &findIterData->second;
 
 	return nullptr;
@@ -371,8 +156,8 @@ const ShaderDataParameterInformation* TShader<IsRenderProxy>::GetDataParameterDe
 template <bool IsRenderProxy>
 const ShaderObjectParameterInformation* TShader<IsRenderProxy>::GetTextureParameterDescription(const String& name) const
 {
-	auto findIterObject = mInformation.TextureParameters.find(name);
-	if(findIterObject != mInformation.TextureParameters.end())
+	auto findIterObject = mInformation.Description->Parameters->GetTextureParameters().find(name);
+	if(findIterObject != mInformation.Description->Parameters->GetTextureParameters().end())
 		return &findIterObject->second;
 
 	return nullptr;
@@ -381,8 +166,8 @@ const ShaderObjectParameterInformation* TShader<IsRenderProxy>::GetTextureParame
 template <bool IsRenderProxy>
 const ShaderObjectParameterInformation* TShader<IsRenderProxy>::GetSamplerParameterDescription(const String& name) const
 {
-	auto findIterObject = mInformation.SamplerParameters.find(name);
-	if(findIterObject != mInformation.SamplerParameters.end())
+	auto findIterObject = mInformation.Description->Parameters->GetSamplerParameters().find(name);
+	if(findIterObject != mInformation.Description->Parameters->GetSamplerParameters().end())
 		return &findIterObject->second;
 
 	return nullptr;
@@ -391,8 +176,8 @@ const ShaderObjectParameterInformation* TShader<IsRenderProxy>::GetSamplerParame
 template <bool IsRenderProxy>
 const ShaderObjectParameterInformation* TShader<IsRenderProxy>::GetBufferParameterInformation(const String& name) const
 {
-	auto findIterObject = mInformation.BufferParameters.find(name);
-	if(findIterObject != mInformation.BufferParameters.end())
+	auto findIterObject = mInformation.Description->Parameters->GetBufferParameters().find(name);
+	if(findIterObject != mInformation.Description->Parameters->GetBufferParameters().end())
 		return &findIterObject->second;
 
 	return nullptr;
@@ -401,8 +186,8 @@ const ShaderObjectParameterInformation* TShader<IsRenderProxy>::GetBufferParamet
 template <bool IsRenderProxy>
 bool TShader<IsRenderProxy>::HasDataParameter(const String& name) const
 {
-	auto findIterData = mInformation.DataParameters.find(name);
-	if(findIterData != mInformation.DataParameters.end())
+	auto findIterData = mInformation.Description->Parameters->GetDataParameters().find(name);
+	if(findIterData != mInformation.Description->Parameters->GetDataParameters().end())
 		return true;
 
 	return false;
@@ -411,8 +196,8 @@ bool TShader<IsRenderProxy>::HasDataParameter(const String& name) const
 template <bool IsRenderProxy>
 bool TShader<IsRenderProxy>::HasTextureParameter(const String& name) const
 {
-	auto findIterObject = mInformation.TextureParameters.find(name);
-	if(findIterObject != mInformation.TextureParameters.end())
+	auto findIterObject = mInformation.Description->Parameters->GetTextureParameters().find(name);
+	if(findIterObject != mInformation.Description->Parameters->GetTextureParameters().end())
 		return true;
 
 	return false;
@@ -421,8 +206,8 @@ bool TShader<IsRenderProxy>::HasTextureParameter(const String& name) const
 template <bool IsRenderProxy>
 bool TShader<IsRenderProxy>::HasSamplerParameter(const String& name) const
 {
-	auto findIterObject = mInformation.SamplerParameters.find(name);
-	if(findIterObject != mInformation.SamplerParameters.end())
+	auto findIterObject = mInformation.Description->Parameters->GetSamplerParameters().find(name);
+	if(findIterObject != mInformation.Description->Parameters->GetSamplerParameters().end())
 		return true;
 
 	return false;
@@ -431,8 +216,8 @@ bool TShader<IsRenderProxy>::HasSamplerParameter(const String& name) const
 template <bool IsRenderProxy>
 bool TShader<IsRenderProxy>::HasBufferParameter(const String& name) const
 {
-	auto findIterObject = mInformation.BufferParameters.find(name);
-	if(findIterObject != mInformation.BufferParameters.end())
+	auto findIterObject = mInformation.Description->Parameters->GetBufferParameters().find(name);
+	if(findIterObject != mInformation.Description->Parameters->GetBufferParameters().end())
 		return true;
 
 	return false;
@@ -441,8 +226,8 @@ bool TShader<IsRenderProxy>::HasBufferParameter(const String& name) const
 template <bool IsRenderProxy>
 bool TShader<IsRenderProxy>::HasUniformBuffer(const String& name) const
 {
-	auto findIterObject = mInformation.UniformBuffers.find(name);
-	if(findIterObject != mInformation.UniformBuffers.end())
+	auto findIterObject = mInformation.Description->Parameters->GetUniformBuffers().find(name);
+	if(findIterObject != mInformation.Description->Parameters->GetUniformBuffers().end())
 		return true;
 
 	return false;
@@ -451,8 +236,8 @@ bool TShader<IsRenderProxy>::HasUniformBuffer(const String& name) const
 template <bool IsRenderProxy>
 typename TShader<IsRenderProxy>::TextureType TShader<IsRenderProxy>::GetDefault2DTexture(u32 index) const
 {
-	if(index < (u32)mInformation.TextureDefaultValues.size())
-		return GetBuiltin2DTexture<IsRenderProxy>(mInformation.TextureDefaultValues[index]);
+	if(index < (u32)mInformation.Description->Parameters->GetTextureDefaultValues().size())
+		return GetBuiltin2DTexture<IsRenderProxy>(mInformation.Description->Parameters->GetTextureDefaultValues()[index]);
 
 	return TextureType();
 }
@@ -460,8 +245,8 @@ typename TShader<IsRenderProxy>::TextureType TShader<IsRenderProxy>::GetDefault2
 template <bool IsRenderProxy>
 typename TShader<IsRenderProxy>::TextureType TShader<IsRenderProxy>::GetDefault3DTexture(u32 index) const
 {
-	if(index < (u32)mInformation.TextureDefaultValues.size())
-		return GetBuiltin3DTexture<IsRenderProxy>(mInformation.TextureDefaultValues[index]);
+	if(index < (u32)mInformation.Description->Parameters->GetTextureDefaultValues().size())
+		return GetBuiltin3DTexture<IsRenderProxy>(mInformation.Description->Parameters->GetTextureDefaultValues()[index]);
 
 	return TextureType();
 }
@@ -469,23 +254,23 @@ typename TShader<IsRenderProxy>::TextureType TShader<IsRenderProxy>::GetDefault3
 template <bool IsRenderProxy>
 TShared<SamplerState> TShader<IsRenderProxy>::GetDefaultSampler(u32 index) const
 {
-	if (index < (u32)mInformation.SamplerDefaultValues.size())
+	if (index < (u32)mInformation.Description->Parameters->GetSamplerDefaultValues().size())
 	{
 		const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		if (!B3D_ENSURE(gpuDevice))
 			return nullptr;
 
-		return gpuDevice->CreateSamplerState(mInformation.SamplerDefaultValues[index]);
+		return gpuDevice->CreateSamplerState(mInformation.Description->Parameters->GetSamplerDefaultValues()[index]);
 	}
 
 	return TShared<SamplerState>();
 }
 
 template <bool IsRenderProxy>
-u8* TShader<IsRenderProxy>::GetDefaultValue(u32 index) const
+const u8* TShader<IsRenderProxy>::GetDefaultValue(u32 index) const
 {
-	if(index < (u32)mInformation.DataDefaultValues.size())
-		return (u8*)&mInformation.DataDefaultValues[index];
+	if(index < (u32)mInformation.Description->Parameters->GetDataDefaultValues().size())
+		return &mInformation.Description->Parameters->GetDataDefaultValues()[index];
 
 	return nullptr;
 }
@@ -545,7 +330,7 @@ TShared<render::RenderProxy> Shader::CreateRenderProxy() const
 	for(auto& variation : mInformation.Variations)
 		variations.push_back(B3DGetRenderProxy(variation));
 
-	render::Shader* renderProxy = new(B3DAllocate<render::Shader>()) render::Shader(mName, ShaderInformation::ConvertToRenderProxy(mInformation), mShaderId);
+	render::Shader* renderProxy = new(B3DAllocate<render::Shader>()) render::Shader(mName, ShaderCreateInformation::ConvertToRenderProxy(mInformation), mShaderId);
 	TShared<render::Shader> renderProxyShared = B3DMakeSharedFromExisting<render::Shader>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
@@ -650,8 +435,8 @@ namespace
 	{
 		using VariationType = CoreVariantType<Variation, IsRenderProxy>;
 
-		CoreVariantType<ShaderCreateInformation, IsRenderProxy> createInformation;
-		static_cast<ShaderInformationBase&>(createInformation) = data; // Copy shared data; variation objects stay empty (recreated below).
+		CoreVariantType<ShaderCreateInformation, IsRenderProxy> createInformation(data.Description);
+		createInformation.CompilerMetaData = data.CompilerMetaData;
 
 		if(data.CompilerMetaData != nullptr)
 		{

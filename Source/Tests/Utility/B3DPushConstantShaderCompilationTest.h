@@ -73,7 +73,7 @@ namespace b3d
 			}
 
 			const GpuProgramCreateInformation& program = variation->GetPass(0)->GetGpuProgramCreateInformation(GPT_VERTEX_PROGRAM);
-			B3D_TEST_ASSERT_EXTERNAL(suite, program.PushConstantBufferSize == valueCount * sizeof(u32))
+			B3D_TEST_ASSERT_EXTERNAL(suite, program.GetEntryPointReflection().PushConstantBufferSize == valueCount * sizeof(u32))
 			B3D_TEST_ASSERT_EXTERNAL(suite, program.Bytecode != nullptr)
 			if(program.Bytecode == nullptr)
 				return;

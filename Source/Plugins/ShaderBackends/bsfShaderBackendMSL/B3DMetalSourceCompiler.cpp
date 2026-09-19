@@ -24,7 +24,7 @@ namespace
 	 * assigned from the declared resource list, which keeps them identical across the stages of a shader even though
 	 * SPIRV-Cross only emits the resources each stage reads.
 	 */
-	TShared<GpuProgramBytecode> CompileSpirvBytecode(const String& vkslSource, GpuProgramType programType, u32 pushConstantBufferSize)
+	TShared<GpuProgramBytecode> CompileSpirvBytecode(const String& vkslSource, GpuProgramType programType, const TShared<ShaderReflection>& shaderReflection)
 	{
 		static GLSLToSPIRV converter("MetalSource", 1, false);
 
@@ -33,7 +33,7 @@ namespace
 		createInformation.EntryPoint = "main";
 		createInformation.Language = "vksl";
 		createInformation.Type = programType;
-		createInformation.PushConstantBufferSize = pushConstantBufferSize;
+		createInformation.ShaderReflection = shaderReflection;
 
 		return converter.CompileBytecode(createInformation);
 	}
@@ -424,7 +424,7 @@ namespace
 	};
 
 	/** Compiles VKSL to MSL and returns the generated source together with any diagnostics. */
-	MetalSourceCompilation CompileMetalSource(const String& vkslSource, GpuProgramType programType, u32 pushConstantBufferSize)
+	MetalSourceCompilation CompileMetalSource(const String& vkslSource, GpuProgramType programType, const TShared<ShaderReflection>& shaderReflection)
 	{
 		MetalSourceCompilation compilation;
 		if(programType != GPT_VERTEX_PROGRAM && programType != GPT_FRAGMENT_PROGRAM && programType != GPT_COMPUTE_PROGRAM)
@@ -433,7 +433,7 @@ namespace
 			return compilation;
 		}
 
-		TShared<GpuProgramBytecode> spirvBytecode = CompileSpirvBytecode(vkslSource, programType, pushConstantBufferSize);
+		TShared<GpuProgramBytecode> spirvBytecode = CompileSpirvBytecode(vkslSource, programType, shaderReflection);
 		if(spirvBytecode == nullptr || spirvBytecode->Instructions.Data == nullptr || spirvBytecode->Instructions.Size == 0)
 		{
 			compilation.Result.ErrorMessage = spirvBytecode != nullptr && !spirvBytecode->Messages.empty()
@@ -456,16 +456,17 @@ namespace
 			return compilation;
 		}
 
+		const u32 pushConstantBufferSize = shaderReflection != nullptr && shaderReflection->EntryPoints.count("main") != 0 ? shaderReflection->EntryPoints.at("main").PushConstantBufferSize : 0;
 		const u32 reflectedPushConstantBufferSize = spirvBytecode->ParameterDescription != nullptr ? spirvBytecode->ParameterDescription->PushConstantBufferSize : 0;
 		if(reflectedPushConstantBufferSize != pushConstantBufferSize)
 		{
-			compilation.Result.ErrorMessage = StringUtility::Format("Metal SPIR-V push-constant size mismatch: source reflection reports {0} bytes but SPIR-V reports {1} bytes.", pushConstantBufferSize, reflectedPushConstantBufferSize);
+			compilation.Result.ErrorMessage = StringUtility::Format("Metal SPIR-V push-constant size mismatch: shader reflection reports {0} bytes but SPIR-V reports {1} bytes.", pushConstantBufferSize, reflectedPushConstantBufferSize);
 			return compilation;
 		}
 
 		if((pushConstantBufferSize != 0) != !resources.push_constant_buffers.empty())
 		{
-			compilation.Result.ErrorMessage = "Metal SPIR-V push-constant presence does not match source reflection.";
+			compilation.Result.ErrorMessage = "Metal SPIR-V push-constant presence does not match shader reflection.";
 			return compilation;
 		}
 
@@ -547,12 +548,23 @@ namespace
 	}
 }
 
-ShaderCompilerResult MetalSourceCompiler::Compile(const String& vkslSource, GpuProgramType programType, u32 pushConstantBufferSize, String& outMslSource)
+ShaderCompilerResult MetalSourceCompiler::Compile(const String& vkslSource, GpuProgramType programType, const TShared<ShaderReflection>& outReflection, String& outMslSource)
 {
 	outMslSource.clear();
 
-	MetalSourceCompilation compilation = CompileMetalSource(vkslSource, programType, pushConstantBufferSize);
+	MetalSourceCompilation compilation = CompileMetalSource(vkslSource, programType, outReflection);
 	outMslSource = std::move(compilation.MslSource);
+
+	if(compilation.Result.ErrorMessage.empty() && outReflection != nullptr)
+	{
+		auto entryPoint = outReflection->EntryPoints.extract("main");
+		if(!entryPoint.empty())
+		{
+			entryPoint.key() = GetEntryPointName(programType);
+			outReflection->EntryPoints.insert(std::move(entryPoint));
+		}
+	}
+
 	return std::move(compilation.Result);
 }
 

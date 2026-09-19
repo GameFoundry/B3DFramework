@@ -8,6 +8,7 @@
 #include "Renderer/B3DRendererMaterialManager.h"
 #include "Renderer/B3DRendererMaterial.h"
 #include "Resources/B3DBuiltinResources.h"
+#include "Resources/B3DPackage.h"
 #include "GpuBackend/B3DGpuProgram.h"
 #include "GpuBackend/B3DGpuBackend.h"
 #include "FileSystem/B3DFileSystem.h"
@@ -115,7 +116,7 @@ namespace
 
 		B3D_LOG(Info, LogGeneric, "{0} renderer-material shader registration(s) found.", (u32)rendererMaterialShaders.size());
 
-		// Skip-up-to-date: if the output package is newer than every input file, there is nothing to do (unless forced).
+		// Skip only when the store uses the current cache format and is newer than every input file (unless forced).
 		if(!force && FileSystem::Exists(outputPath))
 		{
 			const std::time_t outputTime = FileSystem::GetLastModifiedTime(outputPath);
@@ -126,8 +127,15 @@ namespace
 
 			if(outputTime >= newestInputTime)
 			{
-				B3D_LOG(Info, LogGeneric, "Prebuilt shader store \"{0}\" is up to date. Skipping (use -force to re-cook).", outputPath.ToString());
-				return 0;
+				// Inspect the package index without deserializing potentially incompatible shader data.
+				const TShared<Package> package = Package::Load(outputPath);
+				if(package != nullptr && ShaderRegistry::DoesPrebuiltStoreVersionMatch(*package))
+				{
+					B3D_LOG(Info, LogGeneric, "Prebuilt shader store \"{0}\" is up to date. Skipping (use -force to re-cook).", outputPath.ToString());
+					return 0;
+				}
+
+				B3D_LOG(Info, LogGeneric, "Prebuilt shader store \"{0}\" has missing or incompatible version metadata. Rebuilding for version {1}.", outputPath.ToString(), ShaderRegistry::kCacheVersion);
 			}
 		}
 

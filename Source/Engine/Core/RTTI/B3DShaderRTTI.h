@@ -22,200 +22,59 @@ namespace b3d
 	 */
 
 	template <>
-	struct RTTIPlainType<ShaderDataParameterInformation>
+	struct RTTIPlainType<ShaderDataParameterInformation> : RTTIPlainTypeHelper<ShaderDataParameterInformation, TID_ShaderDataParameterInformation, 0>
 	{
-		enum
+		template<class Processor>
+		static void RTTIEnumerateFields(ShaderDataParameterInformation& object, Processor& processor, u8 version)
 		{
-			id = TID_ShaderDataParameterInformation
-		};
-
-		enum
-		{
-			hasDynamicSize = 1
-		};
-
-		static BitLength ToMemory(const ShaderDataParameterInformation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
-		{
-			static constexpr u32 kVersion = 1;
-
-			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
-											   {
-				BitLength size = 0;
-
-				size += B3DRTTIWrite(data.ArraySize, stream);
-				size += B3DRTTIWrite(data.RendererSemantic, stream);
-				size += B3DRTTIWrite(data.Type, stream);
-				size += B3DRTTIWrite(data.Name, stream);
-				size += B3DRTTIWrite(data.GpuVariableName, stream);
-				size += B3DRTTIWrite(data.ElementSize, stream);
-				size += B3DRTTIWrite(data.DefaultValueIndex, stream);
-				size += B3DRTTIWrite(kVersion, stream);
-				size += B3DRTTIWrite(data.AttributeIndex, stream);
-
-				return size; });
-		}
-
-		static BitLength FromMemory(ShaderDataParameterInformation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
-		{
-			BitLength size;
-			BitLength sizeRead = B3DRTTIReadSizeHeader(stream, compress, size);
-
-			sizeRead += B3DRTTIRead(data.ArraySize, stream);
-			sizeRead += B3DRTTIRead(data.RendererSemantic, stream);
-			sizeRead += B3DRTTIRead(data.Type, stream);
-			sizeRead += B3DRTTIRead(data.Name, stream);
-			sizeRead += B3DRTTIRead(data.GpuVariableName, stream);
-			sizeRead += B3DRTTIRead(data.ElementSize, stream);
-			sizeRead += B3DRTTIRead(data.DefaultValueIndex, stream);
-
-			// There's more to read, meaning we're reading a newer version of the format
-			// (In the first version, version field is missing, so we check this way).
-			if(sizeRead < size)
-			{
-				uint32_t version = 0;
-				B3DRTTIRead(version, stream);
-				switch(version)
-				{
-				case 1:
-					B3DRTTIRead(data.AttributeIndex, stream);
-					break;
-				default:
-					B3D_LOG(Error, LogRTTI, "Unknown version. Unable to deserialize.");
-					break;
-				}
-			}
-
-			return size;
-		}
-
-		static BitLength GetSize(const ShaderDataParameterInformation& data, const RTTIFieldInfo& fieldInfo, bool compress)
-		{
-			BitLength dataSize = B3DRTTISize(data.ArraySize) + B3DRTTISize(data.RendererSemantic) + B3DRTTISize(data.Type) +
-				B3DRTTISize(data.Name) + B3DRTTISize(data.GpuVariableName) + B3DRTTISize(data.ElementSize) +
-				B3DRTTISize(data.DefaultValueIndex) + B3DRTTISize(data.AttributeIndex) + sizeof(uint32_t);
-
-			B3DRTTIAddHeaderSize(dataSize, compress);
-			return dataSize;
+			processor(object.IsInternal);
+			processor(object.Name);
+			processor(object.GpuVariableName);
+			processor(object.RendererSemantic);
+			processor(object.DefaultValueIndex);
+			processor(object.AttributeIndex);
+			processor(object.Set);
+			processor(object.Slot);
+			processor(object.Type);
+			processor(object.ArraySize);
+			processor(object.ElementSize);
 		}
 	};
 
 	template <>
-	struct RTTIPlainType<ShaderObjectParameterInformation>
+	struct RTTIPlainType<ShaderObjectParameterInformation> : RTTIPlainTypeHelper<ShaderObjectParameterInformation, TID_ShaderObjectParameterInformation, 0>
 	{
-		enum
+		template<class Processor>
+		static void RTTIEnumerateFields(ShaderObjectParameterInformation& object, Processor& processor, u8 version)
 		{
-			id = TID_ShaderObjectParameterInformation
-		};
-
-		enum
-		{
-			hasDynamicSize = 1
-		};
-
-		static BitLength ToMemory(const ShaderObjectParameterInformation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
-		{
-			static constexpr uint32_t kVersion = 2;
-
-			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
-											   {
-				BitLength size = 0;
-				size += B3DRTTIWrite(data.RendererSemantic, stream);
-				size += B3DRTTIWrite(data.Type, stream);
-				size += B3DRTTIWrite(data.Name, stream);
-				size += B3DRTTIWrite(data.GpuVariableNames, stream);
-				size += B3DRTTIWrite(data.DefaultValueIndex, stream);
-				size += B3DRTTIWrite(kVersion, stream);
-				size += B3DRTTIWrite(data.AttributeIndex, stream);
-				size += B3DRTTIWrite(data.ArraySize, stream);
-
-				return size; });
-		}
-
-		static BitLength FromMemory(ShaderObjectParameterInformation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
-		{
-			BitLength size;
-			BitLength sizeRead = B3DRTTIReadSizeHeader(stream, compress, size);
-
-			sizeRead += B3DRTTIRead(data.RendererSemantic, stream);
-			sizeRead += B3DRTTIRead(data.Type, stream);
-			sizeRead += B3DRTTIRead(data.Name, stream);
-			sizeRead += B3DRTTIRead(data.GpuVariableNames, stream);
-			sizeRead += B3DRTTIRead(data.DefaultValueIndex, stream);
-
-			// There's more to read, meaning we're reading a newer version of the format
-			// (In the first version, version field is missing, so we check this way).
-			if(sizeRead < size)
-			{
-				uint32_t version = 0;
-				B3DRTTIRead(version, stream);
-
-				if(version >= 1)
-					B3DRTTIRead(data.AttributeIndex, stream);
-
-				if(version >= 2)
-					B3DRTTIRead(data.ArraySize, stream);
-			}
-
-			return size;
-		}
-
-		static BitLength GetSize(const ShaderObjectParameterInformation& data, const RTTIFieldInfo& fieldInfo, bool compress)
-		{
-			BitLength dataSize = B3DRTTISize(data.RendererSemantic) + B3DRTTISize(data.Type) +
-				B3DRTTISize(data.Name) + B3DRTTISize(data.GpuVariableNames) +
-				B3DRTTISize(data.DefaultValueIndex) + B3DRTTISize(data.AttributeIndex) + B3DRTTISize(data.ArraySize) + sizeof(uint32_t);
-
-			B3DRTTIAddHeaderSize(dataSize, compress);
-			return dataSize;
+			processor(object.IsInternal);
+			processor(object.Name);
+			processor(object.GpuVariableName);
+			processor(object.RendererSemantic);
+			processor(object.DefaultValueIndex);
+			processor(object.AttributeIndex);
+			processor(object.Set);
+			processor(object.Slot);
+			processor(object.Type);
+			processor(object.ArraySize);
+			processor(object.GpuVariableNames);
 		}
 	};
 
 	template <>
-	struct RTTIPlainType<ShaderUniformBufferInformation>
+	struct RTTIPlainType<ShaderUniformBufferInformation> : RTTIPlainTypeHelper<ShaderUniformBufferInformation, TID_ShaderUniformBufferInformation, 0>
 	{
-		enum
+		template<class Processor>
+		static void RTTIEnumerateFields(ShaderUniformBufferInformation& object, Processor& processor, u8 version)
 		{
-			id = TID_ShaderUniformBufferInformation
-		};
-
-		enum
-		{
-			hasDynamicSize = 1
-		};
-
-		static BitLength ToMemory(const ShaderUniformBufferInformation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
-		{
-			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
-											   {
-				BitLength size = 0;
-				size += B3DRTTIWrite(data.Shared, stream);
-				size += B3DRTTIWrite(data.Flags, stream);
-				size += B3DRTTIWrite(data.Name, stream);
-				size += B3DRTTIWrite(data.RendererSemantic, stream);
-
-				return size; });
-		}
-
-		static BitLength FromMemory(ShaderUniformBufferInformation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
-		{
-			BitLength size;
-			B3DRTTIReadSizeHeader(stream, compress, size);
-
-			B3DRTTIRead(data.Shared, stream);
-			B3DRTTIRead(data.Flags, stream);
-			B3DRTTIRead(data.Name, stream);
-			B3DRTTIRead(data.RendererSemantic, stream);
-
-			return size;
-		}
-
-		static BitLength GetSize(const ShaderUniformBufferInformation& data, const RTTIFieldInfo& fieldInfo, bool compress)
-		{
-			BitLength dataSize = B3DRTTISize(data.Shared) + B3DRTTISize(data.Flags) +
-				B3DRTTISize(data.Name) + B3DRTTISize(data.RendererSemantic);
-
-			B3DRTTIAddHeaderSize(dataSize, compress);
-			return dataSize;
+			processor(object.IsInternal);
+			processor(object.Name);
+			processor(object.Set);
+			processor(object.Slot);
+			processor(object.UsesDynamicOffset);
+			processor(object.Shared);
+			processor(object.RendererSemantic);
+			processor(object.Flags);
 		}
 	};
 
@@ -392,104 +251,102 @@ namespace b3d
 		}
 	};
 
-	class B3D_EXPORT ShaderInformationBaseRTTI : public TRTTIType<ShaderInformationBase, IReflectable, ShaderInformationBaseRTTI>
+	class B3D_EXPORT ShaderParameterDescriptionRTTI : public TRTTIType<ShaderParameterDescription, IReflectable, ShaderParameterDescriptionRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER(QueueSortType, 0)
-			B3D_RTTI_MEMBER(QueuePriority, 1)
-			B3D_RTTI_MEMBER(SeparablePasses, 2)
-			B3D_RTTI_MEMBER(Flags, 3)
-
-			B3D_RTTI_MEMBER_CONTAINER(DataParameters, 4)
-			B3D_RTTI_MEMBER_CONTAINER(TextureParameters, 5)
-			B3D_RTTI_MEMBER_CONTAINER(SamplerParameters, 6)
-			B3D_RTTI_MEMBER_CONTAINER(BufferParameters, 7)
-			B3D_RTTI_MEMBER_CONTAINER(UniformBuffers, 8)
-
-			B3D_RTTI_MEMBER_CONTAINER(DataDefaultValues, 9)
-			B3D_RTTI_MEMBER_CONTAINER(TextureDefaultValues, 10)
-			B3D_RTTI_MEMBER_CONTAINER(SamplerDefaultValues, 11)
-
-			B3D_RTTI_MEMBER_CONTAINER(ParameterAttributes, 12)
-			B3D_RTTI_MEMBER_CONTAINER(VariationParameters, 13)
-
-			B3D_RTTI_MEMBER(CompilerMetaData, 14)
+			B3D_RTTI_MEMBER(mDataParameters, 0)
+			B3D_RTTI_MEMBER(mTextureParameters, 1)
+			B3D_RTTI_MEMBER(mBufferParameters, 2)
+			B3D_RTTI_MEMBER(mSamplerParameters, 3)
+			B3D_RTTI_MEMBER(mUniformBuffers, 4)
+			B3D_RTTI_MEMBER(mDataDefaultValues, 5)
+			B3D_RTTI_MEMBER(mSamplerDefaultValues, 6)
+			B3D_RTTI_MEMBER(mTextureDefaultValues, 7)
+			B3D_RTTI_MEMBER(mParameterAttributes, 8)
 		B3D_RTTI_END_MEMBERS
 
 	public:
 		const String& GetRttiName() override
 		{
-			static String name = "ShaderInformationBase";
+			static String name = "ShaderParameterDescription";
 			return name;
 		}
 
-		u32 GetRttiId() const override
-		{
-			return TID_ShaderInformationBase;
-		}
-
-		TShared<IReflectable> NewRttiObject() override
-		{
-			return B3DMakeShared<ShaderInformationBase>();
-		}
+		u32 GetRttiId() const override { return TID_ShaderParameterDescription; }
+		TShared<IReflectable> NewRttiObject() override { return B3DMakeShared<ShaderParameterDescription>(); }
 	};
 
-	class B3D_EXPORT ShaderInformationRTTI : public TRTTIType<ShaderInformation, ShaderInformationBase, ShaderInformationRTTI>
+	class B3D_EXPORT ShaderDescriptionRTTI : public TRTTIType<ShaderDescription, IReflectable, ShaderDescriptionRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_CONTAINER(Variations, 0)
+			B3D_RTTI_MEMBER(Parameters, 0)
+			B3D_RTTI_MEMBER(QueueSortType, 1)
+			B3D_RTTI_MEMBER(QueuePriority, 2)
+			B3D_RTTI_MEMBER(SeparablePasses, 3)
+			B3D_RTTI_MEMBER(Flags, 4)
+			B3D_RTTI_MEMBER(VariationParameters, 5)
 		B3D_RTTI_END_MEMBERS
 
 	public:
 		const String& GetRttiName() override
 		{
-			static String name = "ShaderInformation";
+			static String name = "ShaderDescription";
 			return name;
 		}
 
-		u32 GetRttiId() const override
-		{
-			return TID_ShaderInformation;
-		}
-
-		TShared<IReflectable> NewRttiObject() override
-		{
-			return B3DMakeShared<ShaderInformation>();
-		}
+		u32 GetRttiId() const override { return TID_ShaderDescription; }
+		TShared<IReflectable> NewRttiObject() override { return B3DMakeShared<ShaderDescription>(); }
 	};
 
-	class B3D_EXPORT ShaderInformationRenderProxyRTTI : public TRTTIType<render::ShaderInformation, ShaderInformationBase, ShaderInformationRenderProxyRTTI>
+	class B3D_EXPORT ShaderCreateInformationRTTI : public TRTTIType<ShaderCreateInformation, IReflectable, ShaderCreateInformationRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_CONTAINER(Variations, 0)
+			B3D_RTTI_MEMBER(Description, 0)
+			B3D_RTTI_MEMBER(CompilerMetaData, 1)
+			B3D_RTTI_MEMBER_CONTAINER(Variations, 2)
 		B3D_RTTI_END_MEMBERS
 
 	public:
 		const String& GetRttiName() override
 		{
-			static String name = "ShaderInformationRenderProxy";
+			static String name = "ShaderCreateInformation";
 			return name;
 		}
 
-		u32 GetRttiId() const override
-		{
-			return TID_ShaderInformationRenderProxy;
-		}
-
-		TShared<IReflectable> NewRttiObject() override
-		{
-			return B3DMakeShared<render::ShaderInformation>();
-		}
+		u32 GetRttiId() const override { return TID_ShaderCreateInformation; }
+		TShared<IReflectable> NewRttiObject() override { return B3DMakeShared<ShaderCreateInformation>(); }
 	};
 
-	class B3D_EXPORT PrecompiledShaderDataRTTI : public TRTTIType<PrecompiledShaderData, ShaderInformationBase, PrecompiledShaderDataRTTI>
+	class B3D_EXPORT ShaderCreateInformationRenderProxyRTTI : public TRTTIType<render::ShaderCreateInformation, IReflectable, ShaderCreateInformationRenderProxyRTTI>
+	{
+	private:
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(Description, 0)
+			B3D_RTTI_MEMBER(CompilerMetaData, 1)
+			B3D_RTTI_MEMBER_CONTAINER(Variations, 2)
+		B3D_RTTI_END_MEMBERS
+
+	public:
+		const String& GetRttiName() override
+		{
+			static String name = "ShaderCreateInformationRenderProxy";
+			return name;
+		}
+
+		u32 GetRttiId() const override { return TID_ShaderCreateInformationRenderProxy; }
+		TShared<IReflectable> NewRttiObject() override { return B3DMakeShared<render::ShaderCreateInformation>(); }
+	};
+
+	class B3D_EXPORT PrecompiledShaderDataRTTI : public TRTTIType<PrecompiledShaderData, IReflectable, PrecompiledShaderDataRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(Name, 0)
+			B3D_RTTI_MEMBER(Description, 1)
+			B3D_RTTI_MEMBER(CompilerMetaData, 2)
 		B3D_RTTI_END_MEMBERS
 
 	public:

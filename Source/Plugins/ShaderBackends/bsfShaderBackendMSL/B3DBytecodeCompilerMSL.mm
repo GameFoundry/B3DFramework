@@ -740,10 +740,14 @@ bool BytecodeCompilerMSL::IsUpToDate(const GpuProgramBytecode& bytecode) const
 
 TShared<GpuProgramBytecode> BytecodeCompilerMSL::CompileBytecode(const GpuProgramCreateInformation& createInformation)
 {
+	const ShaderEntryPointReflection& entryPointReflection = createInformation.GetEntryPointReflection();
+	const Array<u32, 3>& threadGroupSize = entryPointReflection.ThreadGroupSize;
+	const u32 pushConstantBufferSize = entryPointReflection.PushConstantBufferSize;
+
 	TShared<GpuProgramBytecode> bytecode = B3DMakeShared<GpuProgramBytecode>();
 	bytecode->CompilerId = kMetalCompilerId;
 	bytecode->CompilerVersion = kMetalCompilerVersion;
-	bytecode->ThreadGroupSize = createInformation.ThreadGroupSize;
+	bytecode->ThreadGroupSize = threadGroupSize;
 
 	if(!IsProgramTypeSupported(createInformation.Type))
 	{
@@ -751,18 +755,16 @@ TShared<GpuProgramBytecode> BytecodeCompilerMSL::CompileBytecode(const GpuProgra
 		return bytecode;
 	}
 
-	if(createInformation.PushConstantBufferSize != 0 && ((createInformation.PushConstantBufferSize & 3u) != 0 || createInformation.PushConstantBufferSize > kMaxPushConstantSizeInBytes))
+	if(pushConstantBufferSize != 0 && ((pushConstantBufferSize & 3u) != 0 || pushConstantBufferSize > kMaxPushConstantSizeInBytes))
 	{
 		bytecode->Messages = StringUtility::Format("Metal push-constant size must be four-byte aligned and no greater than {0} bytes.", kMaxPushConstantSizeInBytes);
 		return bytecode;
 	}
 
-	if(createInformation.Bytecode != nullptr && createInformation.Bytecode->ParameterDescription != nullptr
-		&& IsUpToDate(*createInformation.Bytecode)
-		&& createInformation.Bytecode->ParameterDescription->PushConstantBufferSize == createInformation.PushConstantBufferSize)
+	if(createInformation.Bytecode != nullptr && createInformation.Bytecode->ParameterDescription != nullptr && IsUpToDate(*createInformation.Bytecode) && createInformation.Bytecode->ParameterDescription->PushConstantBufferSize == pushConstantBufferSize)
 		return createInformation.Bytecode;
 
-	if(createInformation.Type == GPT_COMPUTE_PROGRAM && (createInformation.ThreadGroupSize[0] == 0 || createInformation.ThreadGroupSize[1] == 0 || createInformation.ThreadGroupSize[2] == 0))
+	if(createInformation.Type == GPT_COMPUTE_PROGRAM && (threadGroupSize[0] == 0 || threadGroupSize[1] == 0 || threadGroupSize[2] == 0))
 	{
 		bytecode->Messages = "Metal compute threadgroup dimensions must all be greater than zero.";
 		return bytecode;
@@ -882,7 +884,7 @@ TShared<GpuProgramBytecode> BytecodeCompilerMSL::CompileBytecode(const GpuProgra
 
 		NSString* entryPointName = [NSString stringWithUTF8String:entryPoint.c_str()];
 		id<MTLFunction> function = nil;
-		const bool reflectionSucceeded = ReflectLibrary(library, entryPointName, createInformation.Type, createInformation.PushConstantBufferSize, *bytecode, function);
+		const bool reflectionSucceeded = ReflectLibrary(library, entryPointName, createInformation.Type, pushConstantBufferSize, *bytecode, function);
 #if !__has_feature(objc_arc)
 		[function release];
 		[library release];

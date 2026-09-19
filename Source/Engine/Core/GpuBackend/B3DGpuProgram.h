@@ -8,6 +8,7 @@
 #include "Utility/B3DTArrayView.h"
 #include "GpuBackend/B3DVertexDescription.h"
 #include "Image/B3DPixelData.h"
+#include "Material/B3DShaderReflection.h"
 
 namespace b3d
 {
@@ -116,9 +117,14 @@ namespace b3d
 		GpuProgramType Type = GPT_VERTEX_PROGRAM; /**< Type of the program, for example vertex or fragment. */
 		bool RequiresAdjacency = false; /**< If true then adjacency information will be provided when rendering. */
 
-		// Reflection data (usually things that cannot be reflected by the bytecode compiler on all or some backends)
-		Array<u32, 3> ThreadGroupSize = { 1, 1, 1 }; /**< Compute threads per threadgroup declared by the source program. */
-		u32 PushConstantBufferSize = 0; /**< Declared push-constant buffer size in bytes, or zero when unused. */
+		/**
+		 * Optional reflection data generated when @p source was cross-compiled from a higher level language,
+		 * providing additional information that may not be accessible from native reflection.
+		 */
+		TShared<b3d::ShaderReflection> ShaderReflection;
+
+		/** Returns source metadata for EntryPoint, or defaults when no shader reflection is attached. */
+		const ShaderEntryPointReflection& GetEntryPointReflection() const;
 
 		/**
 		 * Pixel formats of the render targets a fragment program writes to, indexed by target. PF_UNKNOWN (the default)
@@ -248,6 +254,7 @@ namespace b3d
 		String mName;
 		String mEntryPoint;
 		String mSource;
+		TShared<ShaderReflection> mShaderReflection;
 
 		TShared<GpuProgramBytecode> mBytecode;
 

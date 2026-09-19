@@ -7,6 +7,7 @@
 #if B3D_PLATFORM_MACOS
 
 #include "Material/B3DShaderCompiler.h"
+#include "Material/B3DShaderReflection.h"
 
 namespace b3d
 {
@@ -23,11 +24,11 @@ namespace b3d
 		 *
 		 * @param	vkslSource				VKSL source containing a single GPU program with a "main" entry point.
 		 * @param	programType				Stage represented by @p vkslSource. Vertex, fragment, and compute stages are supported.
-		 * @param	pushConstantBufferSize	Push-constant block size in bytes, or zero when unused.
+		 * @param	outReflection			Source metadata for VKSL; its entry-point name is updated to match the generated MSL.
 		 * @param	outMslSource			Receives the generated MSL source on success; cleared on failure.
 		 * @return							Compilation result. A non-empty error message indicates failure.
 		 */
-		static ShaderCompilerResult Compile(const String& vkslSource, GpuProgramType programType, u32 pushConstantBufferSize, String& outMslSource);
+		static ShaderCompilerResult Compile(const String& vkslSource, GpuProgramType programType, const TShared<ShaderReflection>& outReflection, String& outMslSource);
 	};
 } // namespace b3d
 
