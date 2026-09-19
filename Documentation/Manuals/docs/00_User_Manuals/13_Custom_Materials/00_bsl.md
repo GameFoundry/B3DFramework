@@ -587,6 +587,22 @@ Layout follows std140-compatible alignment: scalars align to 4 bytes, two-compon
 
 See [Setting push constants](../../Developer_Manuals/Low_Level_rendering/gpuPrograms#push-constants) for the matching command-buffer example.
 
+## dynamicOffset
+
+Marks a uniform-buffer binding whose byte offset can be changed through @b3d::render::GpuCommandBuffer::SetDynamicBufferOffset without rebinding its parameter set:
+
+~~~~~~~~~~~~~~
+[dynamicOffset]
+cbuffer PerDraw
+{
+	float4 gColor;
+};
+~~~~~~~~~~~~~~
+
+The main goal it accomplishes is performance, as it's a very cheap thing to change between draw calls.
+
+The attribute takes no arguments. Unmarked buffers use ordinary bindings. It cannot be combined with `[pushConstant]` or applied to storage buffers or arrays of buffer resources; arrays of values inside the buffer are supported. See [GPU buffers](../../Developer_Manuals/Low_Level_rendering/gpuBuffers) for selecting buffer suballocations.
+
 ## internal
 Marks a constant or a constant buffer (cbuffer) so it is hidden from the material's public interface (editor UI or **Material** API). This is useful for constants that are set by the engine itself and shouldn't be touched by normal users. Additionaly internal cbuffers must be explicitly created and assigned by the low level rendering API, as they will not be created automatically.
 

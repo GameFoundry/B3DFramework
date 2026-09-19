@@ -19,6 +19,7 @@ mixin ShadowProjectionCommon
 		
 		#if NEEDS_TRANSFORM
 		[internal]
+		[dynamicOffset]
 		cbuffer VertParams
 		{
 			float4 gPositionAndScale;

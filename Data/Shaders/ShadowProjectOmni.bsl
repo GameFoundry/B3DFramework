@@ -114,6 +114,7 @@ shader ShadowProjectOmni
 		TextureCube gShadowCubeTex;
 		SamplerComparisonState gShadowCubeSampler;
 		
+		[dynamicOffset]
 		cbuffer Params
 		{
 			float4x4 gFaceVPMatrices[6];

@@ -464,7 +464,12 @@ static bool ParseParameters(const Xsc::Reflection::ReflectionData& reflectionDat
 		switch(entry.type)
 		{
 		case Xsc::Reflection::VariableType::UniformBuffer:
-			outParameters.SetUniformBufferAttributes(entry.ident.c_str(), false, GpuBufferFlag::StoreOnGPU);
+			{
+				ShaderUniformBufferInformation information;
+				information.Name = ident;
+				information.UsesDynamicOffset = (entry.flags & Xsc::Reflection::Uniform::Flags::DynamicOffset) != 0;
+				outParameters.AddUniformBuffer(std::move(information));
+			}
 			break;
 		case Xsc::Reflection::VariableType::Buffer:
 			{
@@ -623,7 +628,8 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 		Xsc::Extensions::LayoutAttribute |
 		Xsc::Extensions::SrtSignature |
 		Xsc::Extensions::HLSLTemplates |
-		Xsc::Extensions::PushConstants;
+		Xsc::Extensions::PushConstants |
+		Xsc::Extensions::DynamicOffsets;
 
 	switch(type)
 	{
@@ -761,7 +767,7 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 			layout << '[';
 
 			for(const auto& binding : bindings)
-				layout << binding.ident << ':' << binding.set << ':' << binding.location << ';';
+				layout << binding.ident << ':' << binding.set << ':' << binding.location << ':' << binding.usesDynamicOffset << ';';
 
 			layout << ']';
 		};

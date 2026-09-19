@@ -314,11 +314,13 @@ shader MetalDynamicUniformBufferReflection
 {
 	code
 	{
+		[dynamicOffset]
 		cbuffer PerObject
 		{
 			float4x4 gTransform;
 		};
 
+		[dynamicOffset]
 		cbuffer Tint
 		{
 			float4 gColor;

@@ -289,6 +289,26 @@ namespace b3d
 		 */
 		Result ValidateMaterialInterface(TArrayView<const ShaderParameterDescription*> passParameters) const;
 
+		/**
+		 * Calls @p fnCallback for every pair of map values with matching Set and Slot members, regardless of their keys.
+		 * Values are passed by reference: source is read-only, target retains the mutability of @p outTarget.
+		 * Unmatched values are left unchanged. @p fnMapSlot optionally converts source slots before matching.
+		 */
+		template<class SourceMap, class TargetMap, class Callback>
+		static void IterateMatching(const SourceMap& source, TargetMap& outTarget, Callback&& fnCallback, u32 (*fnMapSlot)(u32) = nullptr)
+		{
+			for(const auto& sourceEntry : source)
+			{
+				const auto& sourceValue = sourceEntry.second;
+				const u32 slot = fnMapSlot != nullptr ? fnMapSlot(sourceValue.Slot) : sourceValue.Slot;
+				for(auto& targetEntry : outTarget)
+				{
+					if(sourceValue.Set == targetEntry.second.Set && slot == targetEntry.second.Slot)
+						fnCallback(sourceValue, targetEntry.second);
+				}
+			}
+		}
+
 		/** Returns the data parameters owned by this description. */
 		const Map<String, ShaderDataParameterInformation>& GetDataParameters() const { return mDataParameters; }
 

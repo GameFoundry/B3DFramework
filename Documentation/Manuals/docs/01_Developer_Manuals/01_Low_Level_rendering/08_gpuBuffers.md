@@ -72,7 +72,7 @@ Each suballocation may be larger than the requested size due to GPU alignment re
 
 A @b3d::render::GpuBufferSuballocation is a lightweight handle referencing a specific suballocation within a buffer. It provides the buffer pointer, the byte offset, and the suballocation size.
 
-To select a suballocation per draw, the uniform buffer must be declared with a dynamic offset. Uniform buffers reflected from shaders are flagged automatically, while hand-built @b3d::GpuUniformBufferInformation entries must set `UsesDynamicOffset`. Only such buffers receive an index from @b3d::GpuPipelineParameterSetLayout::GetDynamicOffsetIndex, which is then passed to @b3d::render::GpuCommandBuffer::SetDynamicBufferOffset. Backends bind these buffers through their cheapest per-draw path. Dynamic offsets are not supported on arrays of uniform buffers.
+To select a suballocation per draw, mark the BSL uniform-buffer declaration with `[dynamicOffset]`, or set `UsesDynamicOffset` on hand-built @b3d::GpuUniformBufferInformation entries. Unmarked shader buffers do not support dynamic offsets. Only marked buffers receive an index from @b3d::GpuPipelineParameterSetLayout::GetDynamicOffsetIndex, which is then passed to @b3d::render::GpuCommandBuffer::SetDynamicBufferOffset. Dynamic offsets are not supported on storage buffers or arrays of buffer resources; arrays of values inside a uniform buffer are allowed.
 
 # Reading and writing
 

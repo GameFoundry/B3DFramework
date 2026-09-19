@@ -116,10 +116,12 @@ shader ShaderReflectionTest
 	pass { };
 	code
 	{
-		cbuffer Parameters { float Value = 0.25; };
+		[dynamicOffset] cbuffer Parameters : register(c3, space2) { float Value = 0.25; };
+		cbuffer StaticParameters : register(c1, space2) { float Scale; };
+		[internal] [dynamicOffset] cbuffer InternalParameters : register(c0, space1) { float Bias; };
 		RWStructuredBuffer<float> Output;
 		[numthreads(8, 4, 2)]
-		void csmain(uint3 id : SV_DispatchThreadID) { Output[id.x] = Value; }
+		void csmain(uint3 id : SV_DispatchThreadID) { Output[id.x] = Value * Scale + Bias; }
 	};
 };
 )";
@@ -166,14 +168,34 @@ shader ShaderReflectionTest
 			if(program.Language != "vksl")
 				B3D_TEST_ASSERT(program.Bytecode->ThreadGroupSize == expectedThreadGroupSize)
 			const auto& parameters = *program.ShaderReflection->Parameters;
-			B3D_TEST_ASSERT(parameters.GetUniformBuffers().size() == 1)
+			B3D_TEST_ASSERT(parameters.GetUniformBuffers().size() == 3)
 			for(const auto& uniformBuffer : parameters.GetUniformBuffers())
 			{
 				const ShaderUniformBufferInformation& binding = uniformBuffer.second;
 				const auto found = program.Bytecode->ParameterDescription->UniformBuffers.find(binding.Name);
 				B3D_TEST_ASSERT(found != program.Bytecode->ParameterDescription->UniformBuffers.end())
 				if(found != program.Bytecode->ParameterDescription->UniformBuffers.end())
-					B3D_TEST_ASSERT(found->second.Set == binding.Set && found->second.Slot == binding.Slot)
+				{
+					B3D_TEST_ASSERT(found->second.Set == binding.Set)
+					// HLSL source bindings are register numbers; native reflection additionally encodes the register class.
+					if(program.Language != "hlsl")
+						B3D_TEST_ASSERT(found->second.Slot == binding.Slot)
+					B3D_TEST_ASSERT(binding.UsesDynamicOffset == (binding.Name != "StaticParameters"))
+					B3D_TEST_ASSERT(found->second.UsesDynamicOffset == binding.UsesDynamicOffset)
+				}
+			}
+
+			BinarySerializer serializer;
+			const TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+			serializer.Encode(program.Bytecode.get(), stream);
+			stream->Seek(0);
+			const auto decoded = B3DRTTICast<GpuProgramBytecode>(serializer.Decode(stream, (u32)stream->Size()));
+			B3D_TEST_ASSERT(decoded != nullptr && decoded->ParameterDescription != nullptr)
+			if(decoded != nullptr && decoded->ParameterDescription != nullptr)
+			{
+				B3D_TEST_ASSERT(decoded->ParameterDescription->UniformBuffers.at("Parameters").UsesDynamicOffset)
+				B3D_TEST_ASSERT(decoded->ParameterDescription->UniformBuffers.at("InternalParameters").UsesDynamicOffset)
+				B3D_TEST_ASSERT(!decoded->ParameterDescription->UniformBuffers.at("StaticParameters").UsesDynamicOffset)
 			}
 		}
 	}
@@ -410,6 +432,49 @@ void CoreTestSuite::TestShaderReflection()
 	program.ShaderReflection->Parameters->AddUniformBuffer(binding);
 	program.ShaderReflection->Parameters->SetParameterBinding("Value", 2, 3);
 	program.ShaderReflection->ParameterLayoutHash = { 123, 456 };
+
+	// Native resource names may differ; source attributes are matched by binding coordinates only.
+	GpuProgramParameterDescription nativeParameters;
+	GpuUniformBufferInformation nativeBuffer;
+	nativeBuffer.Name = "RenamedPerDraw";
+	nativeBuffer.Set = 2;
+	nativeBuffer.Slot = 3;
+	nativeBuffer.Size = 16;
+	nativeParameters.UniformBuffers[nativeBuffer.Name] = nativeBuffer;
+	nativeParameters.UniformBuffers["Alias"] = nativeBuffer;
+	nativeBuffer.Name = "PerDraw";
+	nativeBuffer.Set = 1;
+	nativeParameters.UniformBuffers[nativeBuffer.Name] = nativeBuffer;
+	nativeBuffer.Set = 2;
+	nativeBuffer.Slot = 4;
+	nativeBuffer.UsesDynamicOffset = true;
+	nativeParameters.UniformBuffers["Unmatched"] = nativeBuffer;
+
+	u32 matchCount = 0;
+	auto fnCopyDynamicOffset = [&matchCount](const auto& source, auto& outTarget)
+	{
+		outTarget.UsesDynamicOffset = source.UsesDynamicOffset;
+		matchCount++;
+	};
+	ShaderParameterDescription::IterateMatching(program.ShaderReflection->Parameters->GetUniformBuffers(), nativeParameters.UniformBuffers, fnCopyDynamicOffset);
+	B3D_TEST_ASSERT(matchCount == 2)
+	B3D_TEST_ASSERT(nativeParameters.UniformBuffers.at("RenamedPerDraw").UsesDynamicOffset)
+	B3D_TEST_ASSERT(nativeParameters.UniformBuffers.at("RenamedPerDraw").Size == 16)
+	B3D_TEST_ASSERT(nativeParameters.UniformBuffers.at("Alias").UsesDynamicOffset)
+	B3D_TEST_ASSERT(!nativeParameters.UniformBuffers.at("PerDraw").UsesDynamicOffset)
+	B3D_TEST_ASSERT(nativeParameters.UniformBuffers.at("Unmatched").UsesDynamicOffset)
+
+	// Slot conversion only affects matching, not the source bindings or unmatched target values.
+	nativeParameters.UniformBuffers.at("RenamedPerDraw").Slot = 12;
+	nativeParameters.UniformBuffers.at("RenamedPerDraw").UsesDynamicOffset = false;
+	nativeParameters.UniformBuffers.at("Alias").UsesDynamicOffset = false;
+	matchCount = 0;
+	ShaderParameterDescription::IterateMatching(program.ShaderReflection->Parameters->GetUniformBuffers(), nativeParameters.UniformBuffers, fnCopyDynamicOffset, [](u32 slot) { return slot * 4; });
+	B3D_TEST_ASSERT(matchCount == 1)
+	B3D_TEST_ASSERT(nativeParameters.UniformBuffers.at("RenamedPerDraw").UsesDynamicOffset)
+	B3D_TEST_ASSERT(!nativeParameters.UniformBuffers.at("Alias").UsesDynamicOffset)
+	B3D_TEST_ASSERT(nativeParameters.UniformBuffers.at("Unmatched").UsesDynamicOffset)
+	B3D_TEST_ASSERT(program.ShaderReflection->Parameters->GetUniformBuffers().at("PerDraw").Slot == 3)
 
 	BinarySerializer serializer;
 	const TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
