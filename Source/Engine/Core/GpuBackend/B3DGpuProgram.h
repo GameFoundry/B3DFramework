@@ -43,16 +43,15 @@ namespace b3d
 	 * binding (Kind == Resource). References to other tables are by array index into GpuResourceTableLayout::Tables,
 	 * never by pointer, so the whole layout is trivially serializable and relocatable.
 	 *
-	 * A resource listed directly in the root table is not stored in any table's memory: the backend binds it
-	 * individually, so the entry carries a binding index rather than a byte offset, and names its set 
-	 * explicitly since there is no parent set table to inherit it from.
+	 * A resource listed directly in the root table names its set explicitly. Its placement is either a byte offset
+	 * within the root data or an individual binding index, depending on the backend.
 	 */
 	struct GpuDescriptorTableEntry
 	{
 		GpuDescriptorEntryKind Kind = GpuDescriptorEntryKind::Resource; /**< Selects which of the fields below apply. */
 		union
 		{
-			u32 OffsetInBytes = 0; /**< Byte offset of this entry within its parent table. Not used by root-table resources. */
+			u32 OffsetInBytes = 0; /**< Byte offset of this entry within its parent table, including inline root resources. */
 			u32 BindingIndex;      /**< Backend binding index of a resource listed directly in the root table. */
 		};
 
