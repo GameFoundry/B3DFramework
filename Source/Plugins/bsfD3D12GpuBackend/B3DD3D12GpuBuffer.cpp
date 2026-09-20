@@ -232,12 +232,9 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 		mIndexBufferView.Format = information.Index.Type == IT_32BIT ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_R16_UINT;
 	}
 
-	// Create the default shader-binding descriptors. Typed format overrides remain lazy.
+	// Create the default shader-binding descriptors. Format and offset overrides remain lazy.
 	if(information.Type == GpuBufferType::Uniform)
-	{
-		// TODO(d3d12-port): Per-suballocation CBVs for SuballocationCount > 1 (binding currently supports only index 0).
 		GetOrCreateView(BF_UNKNOWN, ViewType::CBV);
-	}
 
 	if(information.Type == GpuBufferType::SimpleStorage || information.Type == GpuBufferType::StructuredStorage || information.Type == GpuBufferType::Vertex)
 	{
@@ -250,11 +247,9 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_VertexBuffer);
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetCBVHandle(u32 suballocationIndex) const
+D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetCBVHandle(u32 offset) const
 {
-	// TODO(d3d12-port): Create a dedicated CBV for each suballocation instead of returning the default view.
-	(void)suballocationIndex;
-	return GetOrCreateView(BF_UNKNOWN, ViewType::CBV);
+	return GetOrCreateView(BF_UNKNOWN, ViewType::CBV, offset);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetSRVHandle(GpuBufferFormat format) const
@@ -279,13 +274,16 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetUAVHandle(GpuBufferFormat format)
 	return GetOrCreateView(format, ViewType::UAV);
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferFormat format, ViewType type) const
+D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferFormat format, ViewType type, u32 offset) const
 {
 	const GpuBufferInformation& information = GetInformation();
 	if(mBuffer == nullptr)
 		return {};
 
 	if(type == ViewType::CBV && information.Type != GpuBufferType::Uniform)
+		return {};
+
+	if(type == ViewType::CBV && (offset % kConstantBufferViewSizeAlignment != 0 || offset > mTotalSize || mSuballocationSize > mTotalSize - offset))
 		return {};
 
 	const bool supportsShaderViews = information.Type == GpuBufferType::SimpleStorage || information.Type == GpuBufferType::StructuredStorage || information.Type == GpuBufferType::Vertex;
@@ -305,7 +303,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferFormat form
 	BufferViews* matchingViews = nullptr;
 	for(BufferViews& cachedViews : mViews)
 	{
-		if(cachedViews.Format == format)
+		if(cachedViews.Format == format && cachedViews.Offset == offset)
 		{
 			matchingViews = &cachedViews;
 			break;
@@ -314,7 +312,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferFormat form
 
 	if(matchingViews == nullptr)
 	{
-		mViews.Add(BufferViews(format));
+		mViews.Add(BufferViews(format, offset));
 		matchingViews = &mViews.back();
 	}
 
@@ -339,7 +337,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferFormat form
 	if(type == ViewType::CBV)
 	{
 		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-		cbvDesc.BufferLocation = mBuffer->GetGPUVirtualAddress();
+		cbvDesc.BufferLocation = mBuffer->GetGPUVirtualAddress() + offset;
 		cbvDesc.SizeInBytes = Math::CeilToMultiple(mSuballocationSize, kConstantBufferViewSizeAlignment);
 
 		device.GetD3D12Device()->CreateConstantBufferView(&cbvDesc, *viewHandle);

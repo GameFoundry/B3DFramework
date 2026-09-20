@@ -53,6 +53,9 @@ namespace b3d
 		void TestDynamicOffsetUniformBufferLayout();
 
 #if !B3D_PLATFORM_PS5
+		/** Reads back static and dynamic uniform buffers across offset, pipeline and command-buffer changes on Vulkan and D3D12. */
+		void TestDynamicUniformBufferOffsets();
+
 		/** Compiles host shader fixtures and verifies push-constant size and separation from ordinary resources. */
 		void TestHostPushConstantShaderCompilation();
 #endif

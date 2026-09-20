@@ -614,6 +614,23 @@ bool VulkanGpuParameterSet::SetSamplerState(u32 slot, const TShared<SamplerState
 	return true;
 }
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+void VulkanGpuParameterSet::TrackDynamicUniformBufferOffsets(VulkanResourceTracker& resourceTracker, TArrayView<const u32> offsets) const
+{
+	const GpuPipelineParameterSetLayout& layout = *mParameterSetLayout;
+	for(u32 bindingIndex = 0; bindingIndex < layout.GetBindingCount(GpuParameterType::UniformBuffer); bindingIndex++)
+	{
+		const UniformInformation& binding = *layout.TryGetUniformInformation(GpuParameterType::UniformBuffer, bindingIndex);
+		if(binding.DynamicOffsetIndex == ~0u)
+			continue;
+
+		const auto& buffer = mUniformBufferData[binding.SequentialResourceIndex].Buffer;
+		if(buffer != nullptr)
+			resourceTracker.TrackBufferSuballocation(static_cast<VulkanGpuBuffer*>(buffer.get())->GetVulkanResource(), offsets[binding.DynamicOffsetIndex]);
+	}
+}
+#endif
+
 bool VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracker, VulkanBarrierHelper& barrierHelper, TInlineArray<u32, 4>& outDynamicOffsets, VkDescriptorSet& outSet)
 {
 	VulkanGpuPipelineParameterSetLayout& pipelineParameterInformationSet = static_cast<VulkanGpuPipelineParameterSetLayout&>(*mParameterSetLayout);
@@ -625,7 +642,8 @@ bool VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracke
 	const u32 samplerBindingCount = pipelineParameterInformationSet.GetBindingCount(GpuParameterType::Sampler);
 
 	FrameAllocatorScope frameScope;
-	FrameVector<u32> dynamicOffsetMapping(mSetInformation.ElementCount, ~0u);
+	const u32 firstDynamicOffset = (u32)outDynamicOffsets.Size();
+	outDynamicOffsets.Resize(firstDynamicOffset + pipelineParameterInformationSet.GetDynamicOffsetCount(), 0);
 
 	Lock lock(mMutex);
 
@@ -688,8 +706,9 @@ bool VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracke
 			}
 
 			// Dynamic-offset buffers keep the offset out of the descriptor so it can change without a set rewrite
-			if(perSetBindings[usedBindingSequentialIndex].descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC)
-				dynamicOffsetMapping[usedBindingSequentialIndex] = bufferOffset;
+			const u32 dynamicOffsetIndex = pipelineParameterInformationSet.GetDynamicOffsetIndex(slot);
+			if(dynamicOffsetIndex != ~0u)
+				outDynamicOffsets[firstDynamicOffset + dynamicOffsetIndex] = bufferOffset;
 			else if(bufferInfo.offset != bufferOffset)
 			{
 				bufferInfo.offset = bufferOffset;
@@ -992,13 +1011,6 @@ bool VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracke
 				mSetDirty = true;
 			}
 		}
-	}
-
-	// Output dynamic offsets
-	for(u32 dynamicOffset : dynamicOffsetMapping)
-	{
-		if(dynamicOffset != ~0u)
-			outDynamicOffsets.Add(dynamicOffset);
 	}
 
 	// Acquire sets as needed, and update their contents if dirty

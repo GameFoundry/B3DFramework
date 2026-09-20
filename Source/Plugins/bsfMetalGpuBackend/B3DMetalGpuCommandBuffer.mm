@@ -890,7 +890,7 @@ namespace b3d
 			u32 boundOffset = 0;
 			if (const GpuBuffer* buffer = parameters.GetBoundUniformBuffer(dynamicBinding->Slot, boundOffset))
 			{
-				if (!B3D_ENSURE_LOG((offset & 15u) == 0 && offset < buffer->GetTotalSize(), "Dynamic offset {0} is misaligned or outside the bound uniform buffer ({1} bytes). Offsets must be 16-byte aligned.", offset, buffer->GetTotalSize()))
+				if (!B3D_ENSURE_LOG((offset & 15u) == 0 && offset <= buffer->GetTotalSize() && buffer->GetSuballocationSize() <= buffer->GetTotalSize() - offset, "Dynamic offset {0} is misaligned or leaves insufficient space in the bound uniform buffer ({1} bytes). Offsets must be 16-byte aligned.", offset, buffer->GetTotalSize()))
 					return;
 			}
 #endif
@@ -1002,22 +1002,18 @@ namespace b3d
 				return;
 
 			id<MTLBuffer> dummyBuffer = mGpuDevice.GetDummyArgumentBuffer();
-			const u32 setCount = std::min((u32)mBoundParameterSets.Size(), pipelineLayout->GetSetCount());
+			const u32 setCount = pipelineLayout->GetSetCount();
 			for (u32 setIndex = 0; setIndex < setCount; setIndex++)
 			{
-				const TShared<GpuParameterSet>& boundSet = mBoundParameterSets[setIndex];
-				if (!boundSet)
-					continue;
+				const auto* parameters = setIndex < (u32)mBoundParameterSets.Size() ? static_cast<const MetalGpuParameters*>(mBoundParameterSets[setIndex].get()) : nullptr;
 
 				// The pipeline's reflected layout supplies the argument-table indices; the parameter set, whose own
 				// layout may be an explicitly created compatible one, supplies the buffers matched by slot
 				const auto* pipelineSetLayout = static_cast<const MetalGpuPipelineParameterSetLayout*>(pipelineLayout->GetSet(setIndex).get());
-				const auto& parameters = static_cast<const MetalGpuParameters&>(*boundSet);
-				const TInlineArray<u32, 4>& dynamicOffsetOverrides = mDynamicOffsetOverridesPerSet[setIndex];
 				for (const MetalDynamicUniformBufferBinding& binding : pipelineSetLayout->GetDynamicUniformBufferBindings())
 				{
 					u32 offset = 0;
-					auto* buffer = static_cast<MetalGpuBuffer*>(parameters.GetBoundUniformBuffer(binding.Slot, offset));
+					auto* buffer = parameters != nullptr ? static_cast<MetalGpuBuffer*>(parameters->GetBoundUniformBuffer(binding.Slot, offset)) : nullptr;
 					id<MTLBuffer> metalBuffer = buffer != nullptr ? buffer->GetMetalBuffer() : nil;
 					if (metalBuffer == nil)
 					{
@@ -1027,7 +1023,8 @@ namespace b3d
 					}
 					else
 					{
-						const u32 dynamicOffsetIndex = parameters.GetLayout()->GetDynamicOffsetIndex(binding.Slot);
+						const TInlineArray<u32, 4>& dynamicOffsetOverrides = mDynamicOffsetOverridesPerSet[setIndex];
+						const u32 dynamicOffsetIndex = parameters->GetLayout()->GetDynamicOffsetIndex(binding.Slot);
 						if (dynamicOffsetIndex < (u32)dynamicOffsetOverrides.Size() && dynamicOffsetOverrides[dynamicOffsetIndex] != ~0u)
 							offset = dynamicOffsetOverrides[dynamicOffsetIndex];
 					}
@@ -1041,14 +1038,14 @@ namespace b3d
 
 					// An encoder retains every buffer handed to it, so a cached address cannot be recycled by another buffer
 					// while the encoder is open; a matching address means the same buffer and only the offset moves
-					auto fnNeedsBind = [&](Impl::ArgumentTableBinding& cached, bool& outBufferChanged)
+					auto fnNeedsBind = [metalBuffer, offset](Impl::ArgumentTableBinding& outCached, bool& outBufferChanged)
 					{
-						outBufferChanged = cached.Buffer != (__bridge void*)metalBuffer;
-						if (!outBufferChanged && cached.Offset == offset)
+						outBufferChanged = outCached.Buffer != (__bridge void*)metalBuffer;
+						if (!outBufferChanged && outCached.Offset == offset)
 							return false;
 
-						cached.Buffer = (__bridge void*)metalBuffer;
-						cached.Offset = offset;
+						outCached.Buffer = (__bridge void*)metalBuffer;
+						outCached.Offset = offset;
 						return true;
 					};
 

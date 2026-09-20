@@ -295,25 +295,10 @@ u32 GpuPipelineParameterSetLayout::GetArraySize(GpuParameterType type, u32 seque
 
 u32 GpuPipelineParameterSetLayout::GetDynamicOffsetIndex(u32 slot, u32 arrayIndex) const
 {
-#if B3D_BUILD_TYPE_DEVELOPMENT
-	if(slot >= mUniforms.size() || mUniforms[slot] == nullptr)
-	{
-		B3D_LOG(Error, LogRenderBackend, "Cannot retrieve dynamic offset index. Slot index doesn't exist in the set. Requested: {0}.", slot);
+	if(arrayIndex != 0 || slot >= mUniforms.size() || mUniforms[slot] == nullptr)
 		return ~0u;
-	}
-#endif
 
-	const UniformInformation& uniformInformation = *mUniforms[slot];
-
-#if B3D_DEBUG
-	if(arrayIndex >= uniformInformation.ArraySize)
-	{
-		B3D_LOG(Error, LogRenderBackend, "Cannot retrieve dynamic offset index. Array index out of range: Valid range: [0, {0}). Requested: {1}.", uniformInformation.ArraySize, arrayIndex);
-		return -1;
-	}
-#endif
-
-	return uniformInformation.DynamicOffsetIndex + arrayIndex;
+	return mUniforms[slot]->DynamicOffsetIndex;
 }
 
 u32 GpuPipelineParameterSetLayout::GetDynamicOffsetIndex(const StringView& name, u32 arrayIndex) const

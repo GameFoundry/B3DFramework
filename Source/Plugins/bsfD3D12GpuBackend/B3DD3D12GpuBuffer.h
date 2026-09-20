@@ -56,13 +56,14 @@ namespace b3d
 				UAV  /**< Unordered access view. */
 			};
 
-			/** Shader-binding descriptors viewing the buffer through a particular element format. */
+			/** Shader-binding descriptors viewing the buffer through a particular element format and byte offset. */
 			struct BufferViews
 			{
 				BufferViews() = default;
-				explicit BufferViews(GpuBufferFormat format) : Format(format) { }
+				BufferViews(GpuBufferFormat format, u32 offset) : Format(format), Offset(offset) { }
 
 				GpuBufferFormat Format = BF_UNKNOWN; /**< Element format shared by these descriptors. */
+				u32 Offset = 0; /**< Byte offset for constant buffer views; zero for storage buffer views. */
 				D3D12_CPU_DESCRIPTOR_HANDLE Cbv{};   /**< Constant buffer view, when applicable. */
 				D3D12_CPU_DESCRIPTOR_HANDLE Srv{};   /**< Shader resource view, when applicable. */
 				D3D12_CPU_DESCRIPTOR_HANDLE Uav{};   /**< Unordered access view, when applicable. */
@@ -100,13 +101,13 @@ namespace b3d
 			const D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView() const { return mIndexBufferView; }
 
 			/**
-			 * Returns a CPU descriptor handle for a constant buffer view (CBV) of the specified suballocation. Only valid
-			 * for uniform buffers. Returns a zeroed handle if the buffer is not a uniform buffer, or if descriptor
-			 * allocation failed.
+			 * Returns a CPU descriptor handle for a constant buffer view (CBV) covering one suballocation's size at
+			 * @p offset bytes. Only valid for uniform buffers. Returns a zeroed handle if the view is invalid or
+			 * descriptor allocation failed. Descriptors are cached by offset.
 			 *
-			 * @param	suballocationIndex	Zero-based suballocation to view. Values other than 0 are not yet supported.
+			 * @param	offset	Byte offset from the start of the buffer, aligned to 256 bytes.
 			 */
-			D3D12_CPU_DESCRIPTOR_HANDLE GetCBVHandle(u32 suballocationIndex = 0) const;
+			D3D12_CPU_DESCRIPTOR_HANDLE GetCBVHandle(u32 offset = 0) const;
 
 			/**
 			 * Returns a CPU descriptor handle for a shader resource view (SRV) of the buffer, viewing it as a read-only
@@ -133,9 +134,10 @@ namespace b3d
 
 			/**
 			 * Returns a cached descriptor of @p type, creating it if needed. Typed simple-storage views are keyed by
-			 * @p format; other buffer types use BF_UNKNOWN. Returns a zeroed handle when the requested view isn't valid.
+			 * @p format; other buffer types use BF_UNKNOWN. Constant buffer views also use @p offset in bytes; other views
+			 * use zero. Returns a zeroed handle when the requested view isn't valid.
 			 */
-			D3D12_CPU_DESCRIPTOR_HANDLE GetOrCreateView(GpuBufferFormat format, ViewType type) const;
+			D3D12_CPU_DESCRIPTOR_HANDLE GetOrCreateView(GpuBufferFormat format, ViewType type, u32 offset = 0) const;
 
 			D3D12Buffer* mBuffer = nullptr;
 			IGpuAllocator& mAllocator; /**< Allocator that owns the buffer's native slice. */
@@ -143,7 +145,7 @@ namespace b3d
 			D3D12_VERTEX_BUFFER_VIEW mVertexBufferView{};
 			D3D12_INDEX_BUFFER_VIEW mIndexBufferView{};
 
-			mutable TInlineArray<BufferViews, 2> mViews; /**< Default descriptors plus typed overrides created on demand. Most buffers need at most one override. */
+			mutable TInlineArray<BufferViews, 2> mViews; /**< Default descriptors plus format and constant-buffer offset views created on demand. */
 			mutable Mutex mViewMutex; /**< Guards descriptor lookup, creation, and release. */
 		};
 

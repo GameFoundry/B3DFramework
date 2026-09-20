@@ -215,7 +215,7 @@ namespace b3d
 			@autoreleasepool
 			{
 			Lock lock(mSetMutex);
-			if (!ValidateBufferRange(uniformBuffer, offset, 0, "uniform-buffer"))
+			if (!ValidateBufferRange(uniformBuffer, offset, uniformBuffer != nullptr ? uniformBuffer->GetSuballocationSize() : 0, "uniform-buffer"))
 				return false;
 
 			// Delegate to the base first so mUniformBufferData[slot] is populated — without this,

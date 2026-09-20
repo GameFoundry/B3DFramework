@@ -7,6 +7,11 @@
 #include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
 #include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuCommandBuffer.h"
+#include "GpuBackend/B3DGpuParameterSet.h"
+#include "GpuBackend/B3DGpuParameterSetPool.h"
+#include "GpuBackend/B3DGpuPipelineState.h"
+#include "GpuBackend/B3DGpuWorkContext.h"
 #include "GpuBackend/B3DGpuPipelineParameterLayout.h"
 #include "GpuBackend/B3DGpuResourceTracker.h"
 #include "GpuBackend/B3DGpuResourceTracker.inl"
@@ -238,6 +243,7 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestDynamicOffsetUniformBufferLayout)
 	// Shader compilation is performed on the host; console applications load cooked shaders.
 #if !B3D_PLATFORM_PS5
+	B3D_ADD_TEST(GpuBackendTestSuite::TestDynamicUniformBufferOffsets)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestHostPushConstantShaderCompilation)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestVulkanStorageBufferAccessReflection)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestHlslShaderModel66Compilation)
@@ -299,6 +305,127 @@ void GpuBackendTestSuite::TestDynamicOffsetUniformBufferLayout()
 	B3D_TEST_ASSERT(combined.TryCombine(vertex, GpuProgramStageBit::Vertex).IsSuccessful())
 	B3D_TEST_ASSERT(!combined.TryCombine(fragment, GpuProgramStageBit::Fragment).IsSuccessful())
 }
+
+#if !B3D_PLATFORM_PS5
+void GpuBackendTestSuite::TestDynamicUniformBufferOffsets()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	const String backendName = backend.GetBackendName();
+	if(backend.GetDeviceCount() == 0 || (backendName != "bsfD3D12GpuBackend" && backendName != "bsfVulkanGpuBackend"))
+		return;
+
+	GpuDevice* const device = backend.GetDevice(0).get();
+	const String language = backendName == "bsfD3D12GpuBackend" ? "hlsl" : "vksl";
+
+	const TShared<IShaderCompiler> compiler = ShaderCompilers::Instance().GetCompiler("bsl");
+	B3D_TEST_ASSERT(compiler != nullptr)
+	if(compiler == nullptr)
+		return;
+
+	const String source = R"(
+shader DynamicUniformBufferOffsets
+{
+	code
+	{
+		cbuffer StaticParameters : register(c0, space0) { uint StaticValue; };
+		[dynamicOffset] cbuffer DynamicParameters : register(c3, space0) { uint DynamicValue; };
+		[dynamicOffset] cbuffer OtherParameters : register(c1, space1) { uint OtherValue; };
+		[pushConstant] cbuffer Constants { uint OutputIndex; };
+		RWStructuredBuffer<uint> Output;
+		[numthreads(1, 1, 1)]
+		void csmain() { Output[OutputIndex] = StaticValue + 100 * DynamicValue + 10000 * OtherValue; }
+	};
+};
+)";
+	TShared<b3d::Shader> shader;
+	const ShaderCompilerResult result = compiler->Compile("DynamicUniformBufferOffsets", source, {}, { language }, true, shader);
+	B3D_TEST_ASSERT_MSG(result.ErrorMessage.empty(), result.ErrorMessage)
+	B3D_TEST_ASSERT(shader != nullptr && shader->GetVariations().size() == 1)
+	if(!result.ErrorMessage.empty() || shader == nullptr || shader->GetVariations().size() != 1)
+		return;
+
+	const TShared<b3d::Variation>& variation = shader->GetVariations().front();
+	B3D_TEST_ASSERT(variation->GetPassCount() == 1)
+	if(variation->GetPassCount() != 1)
+		return;
+
+	GpuComputePipelineStateCreateInformation pipelineInformation;
+	pipelineInformation.Program = device->CreateGpuProgram(variation->GetPass(0)->GetGpuProgramCreateInformation(GPT_COMPUTE_PROGRAM));
+	const TShared<GpuComputePipelineState> pipeline = device->CreateGpuComputePipelineState(pipelineInformation);
+	const TShared<GpuComputePipelineState> alternatePipeline = device->CreateGpuComputePipelineState(pipelineInformation);
+	B3D_TEST_ASSERT(pipeline != nullptr && alternatePipeline != nullptr)
+	if(pipeline == nullptr || alternatePipeline == nullptr)
+		return;
+
+	const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+	const TShared<render::GpuBuffer> values = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(16, GpuBufferFlag::StoreOnCPUWithGPUAccess, 4));
+	const u32 stride = values->GetSuballocationSize();
+	{
+		const render::GpuBufferMappedScope mapping = values->Map(GpuMapOption::Write);
+		B3D_TEST_ASSERT(mapping.IsValid())
+		if(!mapping.IsValid())
+			return;
+
+		for(u32 valueIndex = 0; valueIndex < 4; valueIndex++)
+			*reinterpret_cast<u32*>(static_cast<u8*>(mapping.GetMappedMemory()) + valueIndex * stride) = 1 + 10 * valueIndex;
+	}
+
+	const u32 expected[] = { 12111, 13111, 213111, 210111, 212131, 212111 };
+	const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 6, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+	const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(sizeof(expected)));
+	const TShared<GpuPipelineParameterSetLayout> firstLayout = pipeline->GetParameterLayout()->GetSet(0);
+	const TShared<GpuPipelineParameterSetLayout> secondLayout = pipeline->GetParameterLayout()->GetSet(1);
+	const TShared<render::GpuParameterSet> firstSet = context->GetParameterSetPool().Create(firstLayout, 0);
+	const TShared<render::GpuParameterSet> secondSet = context->GetParameterSetPool().Create(secondLayout, 1);
+	firstSet->SetUniformBuffer("DynamicParameters", values, 0, 2 * stride);
+	firstSet->SetStorageBuffer("Output", output);
+	secondSet->SetUniformBuffer("OtherParameters", values);
+	const TShared<render::GpuCommandBufferPool> pool = device->CreateGpuCommandBufferPool(render::GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_GRAPHICS));
+
+	// Reusing parameter sets with a fresh command buffer restores their initial offsets.
+	for(u32 iteration = 0; iteration < 2; iteration++)
+	{
+		firstSet->SetUniformBuffer("StaticParameters", values, 0, stride);
+		const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Dynamic uniform offsets"));
+		commands->SetGpuComputePipelineState(pipeline);
+		commands->SetGpuParameterSet(firstSet);
+		commands->SetGpuParameterSet(secondSet);
+		for(u32 outputIndex = 0; outputIndex < 6; outputIndex++)
+		{
+			if(outputIndex == 1)
+				commands->SetDynamicBufferOffset(0, firstLayout->GetDynamicOffsetIndex("DynamicParameters"), 3 * stride);
+			else if(outputIndex == 2)
+				commands->SetDynamicBufferOffset(1, secondLayout->GetDynamicOffsetIndex("OtherParameters"), 2 * stride);
+			else if(outputIndex == 3)
+			{
+				commands->SetGpuComputePipelineState(alternatePipeline);
+				commands->SetDynamicBufferOffset(0, firstLayout->GetDynamicOffsetIndex("DynamicParameters"), 0);
+			}
+			else if(outputIndex >= 4)
+			{
+				firstSet->SetUniformBuffer("StaticParameters", values, 0, outputIndex == 4 ? 3 * stride : stride);
+				commands->SetGpuParameterSet(firstSet);
+			}
+
+			commands->SetPushConstants(0, sizeof(outputIndex), &outputIndex);
+			commands->DispatchCompute(1);
+		}
+
+		commands->CopyBufferToBuffer(output, readback, 0, 0, sizeof(expected));
+		context->SubmitCommandBuffer(commands);
+		device->WaitUntilIdle();
+
+		const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
+		B3D_TEST_ASSERT(mapping.IsValid())
+		if(!mapping.IsValid())
+			return;
+
+		const u32* actual = static_cast<const u32*>(mapping.GetMappedMemory());
+		for(u32 outputIndex = 0; outputIndex < 6; outputIndex++)
+			B3D_TEST_ASSERT(actual[outputIndex] == expected[outputIndex])
+	}
+}
+#endif
 
 #if B3D_PLATFORM_MACOS
 void GpuBackendTestSuite::TestMetalDynamicUniformBufferReflection()

@@ -156,8 +156,16 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackBufferAccess(IGpuBuffer
 	bufferTrackingState.UseHandle.Flags |= access;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-	// Calculate suballocation index from dynamic offset and track it
-	const u32 suballocationIndex = buffer->GetSuballocationIndexForOffset(dynamicOffset);
+	TrackBufferSuballocation(buffer, dynamicOffset);
+#endif
+}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackBufferSuballocation(IGpuBufferResource* buffer, u32 offset)
+{
+	GpuBufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
+	const u32 suballocationIndex = buffer->GetSuballocationIndexForOffset(offset);
 
 	// Track this suballocation (avoid duplicates if same suballocation bound multiple times)
 	bool alreadyTracked = false;
@@ -175,8 +183,8 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackBufferAccess(IGpuBuffer
 		bufferTrackingState.BoundSuballocationIndices.Add(suballocationIndex);
 		buffer->NotifySuballocationBound(suballocationIndex);
 	}
-#endif
 }
+#endif
 
 template<class TDerived, class TBarrierHelper>
 void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackBufferAccess(IGpuBufferResource* buffer, GpuStageFlags stages, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, u32 dynamicOffset)
