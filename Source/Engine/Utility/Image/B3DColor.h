@@ -3,6 +3,7 @@
 #pragma once
 
 #include "B3DUtilityPrerequisites.h"
+#include <limits>
 
 namespace b3d
 {
@@ -38,6 +39,9 @@ namespace b3d
 
 		bool operator==(const Color& rhs) const;
 		bool operator!=(const Color& rhs) const;
+
+		/** Compares two colors channel by channel, using tolerance for inaccuracies. */
+		bool ApproxEquals(const Color& other, float tolerance = std::numeric_limits<float>::epsilon()) const;
 
 		/** Returns the color as a 32-bit value in RGBA order. */
 		RGBA GetAsRgba() const;

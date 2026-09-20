@@ -350,6 +350,12 @@ bool Color::operator!=(const Color& rhs) const
 	return !(*this == rhs);
 }
 
+bool Color::ApproxEquals(const Color& other, float tolerance) const
+{
+	return Math::ApproxEquals(R, other.R, tolerance) && Math::ApproxEquals(G, other.G, tolerance)
+		&& Math::ApproxEquals(B, other.B, tolerance) && Math::ApproxEquals(A, other.A, tolerance);
+}
+
 void Color::GetHsb(float* outHue, float* outSaturation, float* outBrightness) const
 {
 	float vMin = std::min(R, std::min(G, B));
