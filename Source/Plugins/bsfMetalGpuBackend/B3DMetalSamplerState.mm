@@ -24,22 +24,16 @@ namespace b3d
 			 */
 			MTLSamplerBorderColor PickBorderColor(const Color& requested, bool usesBorderAddressing)
 			{
+				// Within one 8-bit step of the predefined color on every channel
 				constexpr float kTolerance = 1.0f / 255.0f;
-				const auto fnCloseTo = [&](float value, float target) { return std::fabs(value - target) <= kTolerance; };
 
-				const bool isTransparent = fnCloseTo(requested.R, 0.0f) && fnCloseTo(requested.G, 0.0f)
-					&& fnCloseTo(requested.B, 0.0f) && fnCloseTo(requested.A, 0.0f);
-				if (isTransparent)
+				if (requested.ApproxEquals(Color::kZero, kTolerance))
 					return MTLSamplerBorderColorTransparentBlack;
 
-				const bool isOpaqueBlack = fnCloseTo(requested.R, 0.0f) && fnCloseTo(requested.G, 0.0f)
-					&& fnCloseTo(requested.B, 0.0f) && fnCloseTo(requested.A, 1.0f);
-				if (isOpaqueBlack)
+				if (requested.ApproxEquals(Color::kBlack, kTolerance))
 					return MTLSamplerBorderColorOpaqueBlack;
 
-				const bool isOpaqueWhite = fnCloseTo(requested.R, 1.0f) && fnCloseTo(requested.G, 1.0f)
-					&& fnCloseTo(requested.B, 1.0f) && fnCloseTo(requested.A, 1.0f);
-				if (isOpaqueWhite)
+				if (requested.ApproxEquals(Color::kWhite, kTolerance))
 					return MTLSamplerBorderColorOpaqueWhite;
 
 				if (usesBorderAddressing)
@@ -76,8 +70,6 @@ namespace b3d
 
 		void MetalSamplerState::Initialize()
 		{
-			// The descriptor and sampler allocations below include autoreleased temporaries; drain them
-			// locally rather than leaking them to the (possibly non-existent under fibers) outer runloop.
 			@autoreleasepool
 			{
 			id<MTLDevice> device = mGpuDevice.GetMetalDevice();
@@ -85,43 +77,44 @@ namespace b3d
 			{
 				B3D_LOG(Error, LogRenderBackend, "Cannot create Metal sampler state: device is null.");
 				SamplerState::Initialize();
+
 				return;
 			}
 
-			MTLSamplerDescriptor* desc = [[MTLSamplerDescriptor alloc] init];
-			desc.minFilter = MetalUtility::GetMinMagFilter(mInformation.MinFilter);
-			desc.magFilter = MetalUtility::GetMinMagFilter(mInformation.MagFilter);
-			desc.mipFilter = MetalUtility::GetMipFilter(mInformation.MipFilter);
-			desc.sAddressMode = MetalUtility::GetAddressMode(mInformation.AddressMode.U);
-			desc.tAddressMode = MetalUtility::GetAddressMode(mInformation.AddressMode.V);
-			desc.rAddressMode = MetalUtility::GetAddressMode(mInformation.AddressMode.W);
 			const float minimumLod = std::max(0.0f, mInformation.MipMin);
-			desc.lodMinClamp = minimumLod;
-			desc.lodMaxClamp = std::max(minimumLod, mInformation.MipMax);
+
+			MTLSamplerDescriptor* descriptor = [[MTLSamplerDescriptor alloc] init];
+			descriptor.minFilter = MetalUtility::GetMinMagFilter(mInformation.MinFilter);
+			descriptor.magFilter = MetalUtility::GetMinMagFilter(mInformation.MagFilter);
+			descriptor.mipFilter = MetalUtility::GetMipFilter(mInformation.MipFilter);
+			descriptor.sAddressMode = MetalUtility::GetAddressMode(mInformation.AddressMode.U);
+			descriptor.tAddressMode = MetalUtility::GetAddressMode(mInformation.AddressMode.V);
+			descriptor.rAddressMode = MetalUtility::GetAddressMode(mInformation.AddressMode.W);
+			descriptor.lodMinClamp = minimumLod;
+			descriptor.lodMaxClamp = std::max(minimumLod, mInformation.MipMax);
+
 			if (mInformation.MipmapBias != 0.0f)
 				B3D_LOG(Warning, LogRenderBackend, "Metal sampler objects do not expose a mip LOD bias; requested bias {0} is ignored.", mInformation.MipmapBias);
 
 			const u32 hardwareMaxAniso = std::max(1u, mGpuDevice.GetMaxSamplerAnisotropy());
-			const bool anisotropic = mInformation.MinFilter == FO_ANISOTROPIC
-				|| mInformation.MagFilter == FO_ANISOTROPIC || mInformation.MipFilter == FO_ANISOTROPIC;
-			desc.maxAnisotropy = anisotropic
-				? std::max(1u, std::min(hardwareMaxAniso, mInformation.MaxAniso))
-				: 1;
-			desc.compareFunction = MetalUtility::GetCompareFunction(mInformation.ComparisonFunc);
+			const bool anisotropic = mInformation.MinFilter == FO_ANISOTROPIC || mInformation.MagFilter == FO_ANISOTROPIC || mInformation.MipFilter == FO_ANISOTROPIC;
+			descriptor.maxAnisotropy = anisotropic ? std::max(1u, std::min(hardwareMaxAniso, mInformation.MaxAniso)) : 1;
+			descriptor.compareFunction = MetalUtility::GetCompareFunction(mInformation.ComparisonFunc);
 
 			const bool usesBorderAddressing = mInformation.AddressMode.U == TAM_BORDER
 				|| mInformation.AddressMode.V == TAM_BORDER
 				|| mInformation.AddressMode.W == TAM_BORDER;
 
-			desc.borderColor = PickBorderColor(mInformation.BorderColor, usesBorderAddressing);
-			desc.supportArgumentBuffers = YES;
+			descriptor.borderColor = PickBorderColor(mInformation.BorderColor, usesBorderAddressing);
+			descriptor.supportArgumentBuffers = YES;
 
-			mImpl->Sampler = [device newSamplerStateWithDescriptor:desc];
+			mImpl->Sampler = [device newSamplerStateWithDescriptor:descriptor];
 #if !__has_feature(objc_arc)
-			[desc release];
+			[descriptor release];
 #endif
 			if (mImpl->Sampler == nil)
 				B3D_LOG(Error, LogRenderBackend, "Failed to create Metal sampler state.");
+
 			SamplerState::Initialize();
 			} // @autoreleasepool
 		}
