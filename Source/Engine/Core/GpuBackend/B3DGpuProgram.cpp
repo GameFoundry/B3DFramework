@@ -40,6 +40,48 @@ TArrayView<const GpuDescriptorTableEntry> GpuResourceTableLayout::GetEntries(con
 	return TArrayView<const GpuDescriptorTableEntry>(Entries.data() + table.FirstEntry, table.EntryCount);
 }
 
+u32 GpuResourceTableLayout::FindSetTableIndex(u32 set) const
+{
+	if(IsEmpty())
+		return ~0u;
+
+	for(const GpuDescriptorTableEntry& entry : GetEntries(GetRootTable()))
+	{
+		if(entry.Kind != GpuDescriptorEntryKind::SubTable)
+			continue;
+
+		if(Tables[entry.TableIndex].Set == set)
+			return entry.TableIndex;
+	}
+
+	return ~0u;
+}
+
+const GpuDescriptorTableEntry* GpuResourceTableLayout::FindResourceEntry(const GpuDescriptorTable& table, GpuParameterType type, u32 slot) const
+{
+	for(const GpuDescriptorTableEntry& entry : GetEntries(table))
+	{
+		if(entry.Kind == GpuDescriptorEntryKind::Resource && entry.Type == type && entry.Slot == slot)
+			return &entry;
+	}
+
+	return nullptr;
+}
+
+const GpuDescriptorTableEntry* GpuResourceTableLayout::FindRootResourceEntry(GpuParameterType type, u32 set, u32 slot) const
+{
+	if(IsEmpty())
+		return nullptr;
+
+	for(const GpuDescriptorTableEntry& entry : GetEntries(GetRootTable()))
+	{
+		if(entry.Kind == GpuDescriptorEntryKind::Resource && entry.Type == type && entry.Set == set && entry.Slot == slot)
+			return &entry;
+	}
+
+	return nullptr;
+}
+
 RTTIType* GpuResourceTableLayout::GetRttiStatic()
 {
 	return GpuResourceTableLayoutRTTI::Instance();

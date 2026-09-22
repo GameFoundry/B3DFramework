@@ -98,6 +98,45 @@ namespace b3d
 		/** Returns the entries owned by @p table as a contiguous read-only view into Entries. */
 		TArrayView<const GpuDescriptorTableEntry> GetEntries(const GpuDescriptorTable& table) const;
 
+		/**
+		 * Finds the per-set descriptor table backing @p set: the child table referenced by a root-table SubTable
+		 * entry whose set matches.
+		 *
+		 * Leaf resources sitting directly in the root table (outside any per-set sub-table) are not per-set data
+		 * and are deliberately not considered - use FindRootResourceEntry() for those.
+		 *
+		 * @param	set		Engine set (== register space) to look up.
+		 *
+		 * @return	Index into Tables of the matching child table, or @c ~0u when the program does not reference the set.
+		 */
+		u32 FindSetTableIndex(u32 set) const;
+
+		/**
+		 * Finds the resource binding of @p type at @p slot within @p table.
+		 *
+		 * Intended for per-set tables, whose entries inherit the table's set. Root-table resources span every set
+		 * and must be matched on their set as well - use FindRootResourceEntry() for those.
+		 *
+		 * @param	table	Table whose entries to search.
+		 * @param	type	Resource class of the binding.
+		 * @param	slot	Engine slot the resource was declared at.
+		 *
+		 * @return	Matching entry, or null when the table has no such binding.
+		 */
+		const GpuDescriptorTableEntry* FindResourceEntry(const GpuDescriptorTable& table, GpuParameterType type, u32 slot) const;
+
+		/**
+		 * Finds the resource binding of @p type declared at @p set and @p slot directly in the root table, i.e. one
+		 * bound outside any per-set table (a dynamic-offset uniform buffer, say).
+		 *
+		 * @param	type	Resource class of the binding.
+		 * @param	set		Engine set the resource was declared in.
+		 * @param	slot	Engine slot the resource was declared at.
+		 *
+		 * @return	Matching entry, or null when the root table has no such binding.
+		 */
+		const GpuDescriptorTableEntry* FindRootResourceEntry(GpuParameterType type, u32 set, u32 slot) const;
+
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
 		/************************************************************************/

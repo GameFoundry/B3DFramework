@@ -436,28 +436,6 @@ GpuPipelineParameterLayout::GpuPipelineParameterLayout(GpuDevice& device, const 
 		}
 	}
 
-	// Locates the reflected descriptor table backing @p set within a program's resource-table layout: the child
-	// table referenced by a root-table SubTable entry whose set matches. Returns the child table's index into
-	// layout.Tables, or ~0u when the program does not reference the set. Leaf resources directly in the root table
-	// (outside any per-set sub-table) are not per-set data and are intentionally not considered - this mirrors the
-	// bind-time walk in the backends' command buffers.
-	auto fnFindSetTable = [](const GpuResourceTableLayout& layout, u32 set) -> u32
-	{
-		if(layout.IsEmpty())
-			return ~0u;
-
-		for(const GpuDescriptorTableEntry& entry : layout.GetEntries(layout.GetRootTable()))
-		{
-			if(entry.Kind != GpuDescriptorEntryKind::SubTable)
-				continue;
-
-			if(layout.Tables[entry.TableIndex].Set == set)
-				return entry.TableIndex;
-		}
-
-		return ~0u;
-	};
-
 	// Create sets
 	for(u32 set = 0; set < (u32)perSetParameterDescriptions.Size(); ++set)
 	{
@@ -473,7 +451,7 @@ GpuPipelineParameterLayout::GpuPipelineParameterLayout(GpuDevice& device, const 
 			if(stageLayout == nullptr)
 				continue;
 
-			const u32 tableIndex = fnFindSetTable(*stageLayout, set);
+			const u32 tableIndex = stageLayout->FindSetTableIndex(set);
 			if(tableIndex == ~0u)
 				continue;
 

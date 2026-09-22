@@ -628,18 +628,6 @@ namespace b3d
 		 */
 		void SetIncludeFiles(const Vector<String>& includes);
 
-		/**	Checks is the provided object type a sampler. */
-		static bool IsSampler(GpuParameterObjectType type);
-
-		/**	Checks is the provided object type a texture. */
-		static bool IsTexture(GpuParameterObjectType type);
-
-		/**	Checks is the provided object type a load/store (unordered read/write) texture. */
-		static bool IsLoadStoreTexture(GpuParameterObjectType type);
-
-		/** Checks is the provided object type a buffer. */
-		static bool IsBuffer(GpuParameterObjectType type);
-
 		/**
 		 * Returns the size in bytes for a specific data type.
 		 *

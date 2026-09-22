@@ -57,7 +57,7 @@ void ShaderInformationBase::AddParameter(ShaderObjectParameterInformation parame
 void ShaderInformationBase::AddParameter(ShaderObjectParameterInformation parameterInformation, const SamplerStateCreateInformation& defaultValue)
 {
 	u32 defaultValueIndex = ~0u;
-	if(Shader::IsSampler(parameterInformation.Type))
+	if(GpuObjectParameterTypeInformation::IsSampler(parameterInformation.Type))
 	{
 		defaultValueIndex = (u32)SamplerDefaultValues.size();
 		SamplerDefaultValues.push_back(defaultValue);
@@ -69,7 +69,8 @@ void ShaderInformationBase::AddParameter(ShaderObjectParameterInformation parame
 void ShaderInformationBase::AddParameter(ShaderObjectParameterInformation parameterInformation, ShaderDefaultTextureType defaultValue)
 {
 	u32 defaultValueIndex = ~0u;
-	if(Shader::IsTexture(parameterInformation.Type))
+	// Read-write textures are excluded: a load/store texture parameter carries no default value.
+	if(GpuObjectParameterTypeInformation::IsTexture(parameterInformation.Type) && !GpuObjectParameterTypeInformation::IsReadWriteTexture(parameterInformation.Type))
 	{
 		defaultValueIndex = (u32)TextureDefaultValues.size();
 		TextureDefaultValues.push_back(defaultValue);
@@ -82,9 +83,9 @@ void ShaderInformationBase::AddParameterInternal(ShaderObjectParameterInformatio
 {
 	Map<String, ShaderObjectParameterInformation>* destinationLookup[] = { &TextureParameters, &BufferParameters, &SamplerParameters };
 	u32 destinationIndex = 0;
-	if(Shader::IsBuffer(parameterInformation.Type))
+	if(GpuObjectParameterTypeInformation::IsBuffer(parameterInformation.Type))
 		destinationIndex = 1;
-	else if(Shader::IsSampler(parameterInformation.Type))
+	else if(GpuObjectParameterTypeInformation::IsSampler(parameterInformation.Type))
 		destinationIndex = 2;
 
 	Map<String, ShaderObjectParameterInformation>& parameterMap = *destinationLookup[destinationIndex];
@@ -556,75 +557,6 @@ void Shader::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 {
 	for(auto& variation : mInformation.Variations)
 		dependencies.push_back(variation.get());
-}
-
-bool Shader::IsSampler(GpuParameterObjectType type)
-{
-	switch(type)
-	{
-	case GPOT_SAMPLER1D:
-	case GPOT_SAMPLER2D:
-	case GPOT_SAMPLER3D:
-	case GPOT_SAMPLERCUBE:
-	case GPOT_SAMPLER2DMS:
-		return true;
-	default:
-		return false;
-	}
-}
-
-bool Shader::IsTexture(GpuParameterObjectType type)
-{
-	switch(type)
-	{
-	case GPOT_TEXTURE1D:
-	case GPOT_TEXTURE2D:
-	case GPOT_TEXTURE3D:
-	case GPOT_TEXTURECUBE:
-	case GPOT_TEXTURE2DMS:
-	case GPOT_TEXTURE1DARRAY:
-	case GPOT_TEXTURE2DARRAY:
-	case GPOT_TEXTURE2DMSARRAY:
-	case GPOT_TEXTURECUBEARRAY:
-		return true;
-	default:
-		return false;
-	}
-}
-
-bool Shader::IsLoadStoreTexture(GpuParameterObjectType type)
-{
-	switch(type)
-	{
-	case GPOT_RWTEXTURE1D:
-	case GPOT_RWTEXTURE2D:
-	case GPOT_RWTEXTURE3D:
-	case GPOT_RWTEXTURE2DMS:
-	case GPOT_RWTEXTURE1DARRAY:
-	case GPOT_RWTEXTURE2DARRAY:
-	case GPOT_RWTEXTURE2DMSARRAY:
-		return true;
-	default:
-		return false;
-	}
-}
-
-bool Shader::IsBuffer(GpuParameterObjectType type)
-{
-	switch(type)
-	{
-	case GPOT_BYTE_BUFFER:
-	case GPOT_STRUCTURED_BUFFER:
-	case GPOT_RWBYTE_BUFFER:
-	case GPOT_RWAPPEND_BUFFER:
-	case GPOT_RWCONSUME_BUFFER:
-	case GPOT_RWSTRUCTURED_BUFFER:
-	case GPOT_RWSTRUCTURED_BUFFER_WITH_COUNTER:
-	case GPOT_RWTYPED_BUFFER:
-		return true;
-	default:
-		return false;
-	}
 }
 
 u32 Shader::GetDataParameterSize(GpuDataParameterType type)
