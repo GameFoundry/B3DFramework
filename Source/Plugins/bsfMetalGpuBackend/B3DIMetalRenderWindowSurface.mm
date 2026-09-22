@@ -24,11 +24,10 @@ namespace b3d::render
 
 			if (colorTexture.framebufferOnly == YES)
 			{
-				// Defense in depth: the windowed surface configures its CAMetalLayer with framebufferOnly=NO so
-				// the drawable texture can be used as a blit source. If a future change ever flips this to YES
-				// the blit below silently produces undefined bytes on Apple Silicon and fails Metal API
-				// validation. Surface the error unambiguously instead.
-				B3D_LOG(Error, LogRenderBackend, "ReadAsync requires a blit-sampleable color texture (framebufferOnly must be NO).");
+				// Only development builds configure the CAMetalLayer with framebufferOnly=NO so the drawable
+				// texture can be used as a blit source. Blitting from a framebuffer-only texture silently produces
+				// undefined bytes on Apple Silicon and fails Metal API validation, so surface the error instead.
+				B3D_LOG(Error, LogRenderBackend, "ReadAsync requires a blit-sampleable color texture (framebufferOnly must be NO). Window capture is only available in development builds on Metal.");
 				op.CompleteOperation(nullptr);
 				return op;
 			}
