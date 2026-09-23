@@ -12,6 +12,8 @@
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DGpuPushConstants.h"
 #include "GpuBackend/B3DVertexDescription.h"
+#include "Material/B3DShaderParameterDescription.h"
+#include "Material/B3DShaderReflection.h"
 #include "Math/B3DMath.h"
 #include "Utility/B3DScopeGuard.h"
 
@@ -316,6 +318,46 @@ namespace
 		}
 
 		return reflectionValid;
+	}
+
+	/**
+	 * Restores the declared type of uniform-buffer members that SPIRV-Cross widened to satisfy MSL packing rules.
+	 * A std140 array of scalars or small vectors, or a matrix whose column stride exceeds its native MSL size, is
+	 * emitted as a wider physical type (e.g. float[N] becomes float4[N]), which is what Metal reflection reports.
+	 * The member keeps the reflected offsets and strides, since those describe the actual buffer layout.
+	 */
+	void RestoreDeclaredMemberTypes(const ShaderReflection* shaderReflection, GpuProgramParameterDescription& outDescription)
+	{
+		if(shaderReflection == nullptr || shaderReflection->Parameters == nullptr)
+			return;
+
+		for(const auto& entry : shaderReflection->Parameters->GetDataParameters())
+		{
+			const ShaderDataParameterInformation& declared = entry.second;
+			// Color is a source-level alias of float4/float3, and structs are reflected with their own layout.
+			if(declared.Type == GPDT_UNKNOWN || declared.Type == GPDT_STRUCT || declared.Type == GPDT_COLOR)
+				continue;
+
+			const auto found = outDescription.UniformBufferMembers.find(declared.GpuVariableName);
+			if(found == outDescription.UniformBufferMembers.end())
+				continue;
+
+			GpuUniformBufferMemberInformation& member = found->second;
+			if(member.Type == declared.Type || member.Type == GPDT_STRUCT || member.Type == GPDT_UNKNOWN)
+				continue;
+
+			// Only narrow a type that is a widened version of the declared one, so genuine mismatches still surface.
+			const GpuDataParameterTypeInformation& declaredType = b3d::GpuParameterSet::kParamSizes.Lookup[(u32)declared.Type];
+			const GpuDataParameterTypeInformation& reflectedType = b3d::GpuParameterSet::kParamSizes.Lookup[(u32)member.Type];
+			const bool isWidened = declaredType.BaseTypeSize == reflectedType.BaseTypeSize
+				&& declaredType.NumRows <= reflectedType.NumRows && declaredType.NumColumns <= reflectedType.NumColumns
+				&& declaredType.Size <= reflectedType.Size && declaredType.Size <= member.ArrayElementStride * 4;
+			if(!isWidened)
+				continue;
+
+			member.Type = declared.Type;
+			member.ElementSize = Math::DivideAndRoundUp(declaredType.Size, 4u);
+		}
 	}
 
 	bool ReflectArgumentMember(MTLStructMember* member, id<MTLBufferBinding> tableBinding, GpuProgramParameterDescription& outDescription, GpuDescriptorTableEntry& outEntry, String& outMessages)
@@ -893,6 +935,8 @@ TShared<GpuProgramBytecode> BytecodeCompilerMSL::CompileBytecode(const GpuProgra
 
 		if(!reflectionSucceeded)
 			return bytecode;
+
+		RestoreDeclaredMemberTypes(createInformation.ShaderReflection.get(), *bytecode->ParameterDescription);
 	}
 
 	bytecode->Instructions.Size = (u32)libraryData.size();
