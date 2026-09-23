@@ -87,20 +87,6 @@ namespace b3d
 			return D3D12BarrierUtility::TranslateTextureLayout(layout, queueType, options);
 		}
 
-		GpuTextureSubresourceRange D3D12Image::GetRange(const TextureSurface& surface) const
-		{
-			const u32 remainingFaceCount = surface.Face < mFaceCount ? mFaceCount - surface.Face : 0;
-			const u32 remainingMipLevelCount = surface.MipLevel < mMipLevelCount ? mMipLevelCount - surface.MipLevel : 0;
-
-			GpuTextureSubresourceRange range;
-			range.BaseArrayLayer = surface.Face;
-			range.ArrayLayerCount = surface.FaceCount == 0 ? remainingFaceCount : std::min(surface.FaceCount, remainingFaceCount);
-			range.BaseMipLevel = surface.MipLevel;
-			range.MipLevelCount = surface.MipLevelCount == 0 ? remainingMipLevelCount : std::min(surface.MipLevelCount, remainingMipLevelCount);
-			range.AspectMask = GetRange().AspectMask;
-			return range;
-		}
-
 		D3D12Texture::D3D12Texture(const TextureCreateInformation& createInformation, GpuDevice& device) : Texture(createInformation), mGpuDevice(device)
 		{
 		}

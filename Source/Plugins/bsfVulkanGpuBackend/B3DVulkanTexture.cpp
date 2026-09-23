@@ -343,18 +343,6 @@ VkImageAspectFlags VulkanImage::GetAspectFlags() const
 	return VulkanUtility::GetAspectMask(GetFullAspectFlags(mUsage, mImageViewCI.format));
 }
 
-GpuTextureSubresourceRange VulkanImage::GetRange(const TextureSurface& surface) const
-{
-	GpuTextureSubresourceRange range;
-	range.BaseArrayLayer = surface.Face;
-	range.ArrayLayerCount = Math::Min(surface.FaceCount == 0 ? mFaceCount : surface.FaceCount, mFaceCount);
-	range.BaseMipLevel = surface.MipLevel;
-	range.MipLevelCount = Math::Min(surface.MipLevelCount == 0 ? mMipLevelCount : surface.MipLevelCount, mMipLevelCount);
-	range.AspectMask = GetRange().AspectMask;
-
-	return range;
-}
-
 VulkanImageSubresource* VulkanImage::GetSubresource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const
 {
 	return static_cast<VulkanImageSubresource*>(IGpuImageResource::GetSubresource(face, mipLevel, aspect));

@@ -395,12 +395,7 @@ shader MetalDynamicUniformBufferReflection
 		{
 			B3D_TEST_ASSERT_MSG(uniformBuffer.UsesDynamicOffset, name)
 
-			const GpuDescriptorTableEntry* rootEntry = nullptr;
-			for(const GpuDescriptorTableEntry& entry : tableLayout.GetEntries(tableLayout.GetRootTable()))
-			{
-				if(entry.Kind == GpuDescriptorEntryKind::Resource && entry.Type == GpuParameterType::UniformBuffer && entry.Set == uniformBuffer.Set && entry.Slot == uniformBuffer.Slot)
-					rootEntry = &entry;
-			}
+			const GpuDescriptorTableEntry* rootEntry = tableLayout.FindRootResourceEntry(GpuParameterType::UniformBuffer, uniformBuffer.Set, uniformBuffer.Slot);
 
 			B3D_TEST_ASSERT_MSG(rootEntry != nullptr && rootEntry->BindingIndex == expectedIndex, name)
 		}

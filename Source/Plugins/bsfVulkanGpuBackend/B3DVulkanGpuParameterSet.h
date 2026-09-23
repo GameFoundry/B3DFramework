@@ -79,6 +79,9 @@ namespace b3d
 			TArrayView<VkSampler> mSamplers;
 
 			GroupAllocator mAllocator;
+
+			// TODO - Remove. Parameter sets are only used on the thread that owns their pool (see GpuParameterSetPool), so
+			// nothing accesses a set concurrently. The Metal and D3D12 parameter sets don't lock.
 			Mutex mMutex;
 		};
 

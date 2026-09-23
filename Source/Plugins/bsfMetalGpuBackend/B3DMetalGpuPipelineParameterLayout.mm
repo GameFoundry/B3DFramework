@@ -130,7 +130,6 @@ namespace b3d
 				u32 resourceIndex = 0;
 				for (MetalArgumentBufferBinding& binding : mBindings)
 				{
-					binding.ArgIndex = resourceIndex;
 					binding.FirstResourceIndex = resourceIndex;
 					resourceIndex += binding.ArraySize;
 				}
@@ -169,13 +168,7 @@ namespace b3d
 						if (stageTable.Layout == nullptr || tableIndex >= (u32)stageTable.Layout->Tables.size())
 							return nullptr;
 
-						for (const GpuDescriptorTableEntry& candidate : stageTable.Layout->GetEntries(stageTable.Layout->Tables[tableIndex]))
-						{
-							if (candidate.Kind == GpuDescriptorEntryKind::Resource && candidate.Type == type && candidate.Slot == slot)
-								return &candidate;
-						}
-
-						return nullptr;
+						return stageTable.Layout->FindResourceEntry(stageTable.Layout->Tables[tableIndex], type, slot);
 					};
 
 					u32 reflectedSet = 0;
@@ -230,18 +223,9 @@ namespace b3d
 					{
 						for (const StageReflectedTable& stageTable : stageTables)
 						{
-							const GpuDescriptorTableEntry* stageEntry = nullptr;
-							if (stageTable.Layout != nullptr && !stageTable.Layout->IsEmpty())
-							{
-								for (const GpuDescriptorTableEntry& candidate : stageTable.Layout->GetEntries(stageTable.Layout->GetRootTable()))
-								{
-									if (candidate.Kind == GpuDescriptorEntryKind::Resource && candidate.Type == GpuParameterType::UniformBuffer && candidate.Set == binding.Set && candidate.Slot == binding.Slot)
-									{
-										stageEntry = &candidate;
-										break;
-									}
-								}
-							}
+							const GpuDescriptorTableEntry* stageEntry = stageTable.Layout != nullptr
+								? stageTable.Layout->FindRootResourceEntry(GpuParameterType::UniformBuffer, binding.Set, binding.Slot)
+								: nullptr;
 
 							if (stageEntry == nullptr)
 								continue;
@@ -329,7 +313,7 @@ namespace b3d
 			}
 		}
 
-		u32 MetalGpuPipelineParameterSetLayout::GetArgumentBufferIndex(GpuParameterType type, u32 slot, u32 arrayIndex) const
+		const MetalArgumentBufferBinding* MetalGpuPipelineParameterSetLayout::FindBinding(GpuParameterType type, u32 slot) const
 		{
 			// Linear scan — a parameter set typically has on the order of ten bindings, so this is cheaper
 			// than maintaining a map. Note that combined-texture-sampler edge cases are the only way a
@@ -338,32 +322,10 @@ namespace b3d
 			for (const MetalArgumentBufferBinding& binding : mBindings)
 			{
 				if (binding.Type == type && binding.Slot == slot)
-					return arrayIndex < binding.ArraySize ? binding.ArgIndex + arrayIndex : (u32)~0u;
-			}
-
-			return (u32)~0u;
-		}
-
-		const MetalArgumentBufferBinding* MetalGpuPipelineParameterSetLayout::FindBinding(GpuParameterType type, u32 slot) const
-		{
-			for (const MetalArgumentBufferBinding& binding : mBindings)
-			{
-				if (binding.Type == type && binding.Slot == slot)
 					return &binding;
 			}
 
 			return nullptr;
-		}
-
-		u32 MetalGpuPipelineParameterSetLayout::GetResourceIndex(GpuParameterType type, u32 slot, u32 arrayIndex) const
-		{
-			for (const MetalArgumentBufferBinding& binding : mBindings)
-			{
-				if (binding.Type == type && binding.Slot == slot)
-					return arrayIndex < binding.ArraySize ? binding.FirstResourceIndex + arrayIndex : (u32)~0u;
-			}
-
-			return (u32)~0u;
 		}
 
 		const MetalDynamicUniformBufferBinding* MetalGpuPipelineParameterSetLayout::FindDynamicUniformBufferBinding(u32 slot) const
@@ -376,31 +338,6 @@ namespace b3d
 
 			return nullptr;
 		}
-
-		namespace
-		{
-			/**
-			 * Locates the reflected descriptor table backing @p set within a program's resource-table layout: the child
-			 * table referenced by a root-table SubTable entry whose set matches, or @c ~0u when the stage has no argument
-			 * buffer for the set. Mirrors the equivalent walk in the generic GpuPipelineParameterLayout constructor.
-			 */
-			u32 FindSetTable(const GpuResourceTableLayout& layout, u32 set)
-			{
-				if(layout.IsEmpty())
-					return ~0u;
-
-				for(const GpuDescriptorTableEntry& entry : layout.GetEntries(layout.GetRootTable()))
-				{
-					if(entry.Kind != GpuDescriptorEntryKind::SubTable)
-						continue;
-
-					if(layout.Tables[entry.TableIndex].Set == set)
-						return entry.TableIndex;
-				}
-
-				return ~0u;
-			}
-		} // namespace
 
 		MetalGpuPipelineParameterLayout::MetalGpuPipelineParameterLayout(
 			MetalGpuDevice& gpuDevice, const GpuPipelineParameterLayoutCreateInformation& createInformation)
@@ -433,7 +370,7 @@ namespace b3d
 					// A stage reading the set only through argument-table uniform buffers has no argument buffer for it; its layout still carries their root-table entries
 					MetalGpuPipelineParameterSetLayout::StageReflectedTable stageTable;
 					stageTable.Layout = stageLayout;
-					stageTable.TableIndex = FindSetTable(*stageLayout, set);
+					stageTable.TableIndex = stageLayout->FindSetTableIndex(set);
 
 					stageTables.Add(stageTable);
 				}

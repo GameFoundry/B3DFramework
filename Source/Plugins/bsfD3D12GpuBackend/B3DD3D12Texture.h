@@ -101,11 +101,6 @@ namespace b3d
 			/** Returns the native layout for @p layout, including resource-specific presentation constraints. */
 			D3D12TextureLayout GetTextureLayout(GpuImageLayout layout, GpuQueueType queueType) const;
 
-			using IGpuImageResource::GetRange;
-
-			/** Builds the subresource range selected by @p surface (its face/mip window), clamped to the image. */
-			GpuTextureSubresourceRange GetRange(const TextureSurface& surface) const;
-
 			/** Returns the typed state object for one image subresource. */
 			D3D12ImageSubresource* GetD3D12Subresource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const
 			{

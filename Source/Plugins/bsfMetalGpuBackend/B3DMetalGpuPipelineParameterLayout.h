@@ -23,13 +23,12 @@ namespace b3d
 		struct MetalArgumentBufferBinding
 		{
 			u32 Slot = 0; /**< Engine slot index; what BSL/B3D callers pass to @c SetUniformBuffer / @c SetSampledTexture etc. */
-			u32 ArgIndex = 0; /**< Dense logical index used for CPU-side dirty tracking. */
 			u32 ByteOffset = 0; /**< Byte offset of the first resource handle within the set's argument buffer. */
 			u32 ByteStride = 0; /**< Byte distance between array elements. */
 			GpuParameterType Type = GpuParameterType::Unknown; /**< Engine parameter type. */
 			GpuParameterObjectType ObjectType = GPOT_UNKNOWN; /**< Metal object type (GPOT_*) for the binding; drives read/write usage flags. */
 			u32 ArraySize = 1; /**< Array length of this slot; 1 for scalar bindings. */
-			u32 FirstResourceIndex = 0; /**< First element in the parameter set's dense resolved-resource cache. */
+			u32 FirstResourceIndex = 0; /**< First element of this binding in the parameter set's dense per-element state (written values and resolved resources). */
 			GpuProgramStageBits Stages = GpuProgramStageBit::None; /**< Shader stages that reference this binding. */
 		};
 
@@ -119,19 +118,8 @@ namespace b3d
 			/** Returns the union of the shader stages referencing any binding in this set. */
 			GpuProgramStageBits GetCombinedStages() const { return mCombinedStages; }
 
-			/**
-			 * Resolves an engine @c (type, slot) pair to its argument-buffer index within this set. Returns
-			 * @c ~0u if no binding of that type exists at @p slot. Metal argument buffers use a single flat
-			 * index space per set — this function is the authoritative mapping that both @c SetX calls and
-			 * the SPIRV-Cross-emitted MSL agree on.
-			 */
-			u32 GetArgumentBufferIndex(GpuParameterType type, u32 slot, u32 arrayIndex = 0) const;
-
 			/** Finds the binding record for an engine @c (type, slot) pair, or null when absent. */
 			const MetalArgumentBufferBinding* FindBinding(GpuParameterType type, u32 slot) const;
-
-			/** Resolves a binding element to its dense resource-cache index, or @c ~0u if invalid. */
-			u32 GetResourceIndex(GpuParameterType type, u32 slot, u32 arrayIndex = 0) const;
 
 		private:
 			/** Shared build path of the constructor and RebuildWithStageTables. An empty @p stageTables selects the dense packing. */
