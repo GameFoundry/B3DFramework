@@ -39,10 +39,16 @@ platform whose folder is absent is a hard error pointing at the submodule init c
   platform is the build target it declares its GPU backends via `B3D_GPU_BACKEND_CHOICES` and
   `B3D_GPU_BACKEND_DEFAULT`; each backend's own `CMakeLists.txt` registers its plugin target
   and shading language through `B3DRegisterGpuBackend()`.
+
+  A custom platform's `Platform.cmake` is also read when it is **not** the build target, so host
+  trees see what they need from the overlay. It sets those settings first and returns early
+  unless `B3D_PLATFORM` names it. 
 - **`Source/CMakeLists.txt`** — build entry, added after `bsf` exists. Links the platform's
   OS libraries and registers overlay plugins. Must self-guard (e.g. `if(NOT WIN32) return()`).
 
-`Unix` needs neither (sources picked up by the glob). Engine sources under
+`Unix` needs none of these (sources picked up by the glob). Engine sources under
 `Source/Engine/{Core,Utility}` merge into `bsf`; `Source/Plugins/<name>` are platform-only
-plugins. Optional `Dependencies/<Package>/` mirrors `Framework/Dependencies/<Package>/` and
-is fetched with `B3DCheckAndUpdatePrebuiltDependency(<Package> USE_PLATFORM_FOLDER)`.
+plugins. Optional `Dependencies/<Package>/` mirrors `Framework/Dependencies/<Package>/`; its
+Find module fetches it through `B3DEnsureBundledDependency` like any other, and a package without
+a Find module (or one host trees need from the overlay, such as a shader backend) is fetched with
+`B3DCheckAndUpdatePrebuiltDependency(<Package> PLATFORM <Name>)`.

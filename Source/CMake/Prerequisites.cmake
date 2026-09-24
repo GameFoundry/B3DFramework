@@ -150,13 +150,9 @@ if(EXISTS ${B3D_PLATFORM_ROOT})
 			continue()
 		endif()
 
-		# Per-platform convention paths (always set for present platforms)
+		# Per-platform convention paths (always set for present platforms, whether or not the folders exist)
 		set(B3D_PLATFORM_${platformName}_SOURCE_FOLDER ${B3D_PLATFORM_ROOT}/${platformName}/Source)
-		if(EXISTS ${B3D_PLATFORM_ROOT}/${platformName}/Dependencies)
-			set(B3D_PLATFORM_${platformName}_DEPENDENCIES_FOLDER ${B3D_PLATFORM_ROOT}/${platformName}/Dependencies)
-		else()
-			set(B3D_PLATFORM_${platformName}_DEPENDENCIES_FOLDER "")
-		endif()
+		set(B3D_PLATFORM_${platformName}_DEPENDENCIES_FOLDER ${B3D_PLATFORM_ROOT}/${platformName}/Dependencies)
 
 		if(NOT ${platformName} IN_LIST B3D_BUILTIN_PLATFORMS)
 			list(APPEND B3D_PLATFORM_CHOICES ${platformName})
@@ -173,5 +169,12 @@ set(B3D_PLATFORM_METADATA ${B3D_PLATFORM_ROOT}/${B3D_PLATFORM}/Platform.cmake)
 if(NOT EXISTS ${B3D_PLATFORM_METADATA})
 	message(FATAL_ERROR "Selected platform '${B3D_PLATFORM}' is not available. ")
 endif()
+
+# Read custom platform meta-data
+foreach(platformName ${B3D_PLATFORM_CHOICES})
+	if(NOT platformName STREQUAL B3D_PLATFORM AND NOT platformName IN_LIST B3D_BUILTIN_PLATFORMS)
+		include(${B3D_PLATFORM_ROOT}/${platformName}/Platform.cmake OPTIONAL)
+	endif()
+endforeach()
 
 include(${B3D_PLATFORM_METADATA})
