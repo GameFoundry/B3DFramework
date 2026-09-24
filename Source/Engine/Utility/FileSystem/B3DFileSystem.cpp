@@ -106,7 +106,7 @@ bool FileSystem::Remove(const Path& path, bool recursively)
 		return true;
 
 	bool anyFailed = false;
-	if(recursively)
+	if(recursively && IsFolder(path))
 	{
 		Vector<Path> files;
 		Vector<Path> directories;
