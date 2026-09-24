@@ -99,6 +99,28 @@ namespace b3d
 			}
 		}
 
+		MTLRenderStages MetalUtility::GetRenderStages(GpuProgramStageBits stages)
+		{
+			// Guards the fold below against a stage bit added to the engine after this mapping was written:
+			// silently dropping one would under-declare resource usage and fault the GPU rather than fail loudly.
+			constexpr u32 kKnownStages = (u32)GpuProgramStageBit::Vertex | (u32)GpuProgramStageBit::Fragment
+				| (u32)GpuProgramStageBit::Hull | (u32)GpuProgramStageBit::Domain | (u32)GpuProgramStageBit::Geometry | (u32)GpuProgramStageBit::Compute;
+			B3D_ASSERT(((u32)stages & ~kKnownStages) == 0 && "Unhandled GpuProgramStageBit in GetRenderStages.");
+
+			MTLRenderStages renderStages = (MTLRenderStages)0;
+
+			// Hull, domain and geometry have no native Metal render stage; each is emulated by a compute
+			// pre-pass whose output is consumed by the vertex function, so the vertex stage stands in for them.
+			if (stages.IsSetAny(GpuProgramStageBit::Vertex | GpuProgramStageBit::Hull | GpuProgramStageBit::Domain | GpuProgramStageBit::Geometry))
+				renderStages |= MTLRenderStageVertex;
+
+			if (stages.IsSet(GpuProgramStageBit::Fragment))
+				renderStages |= MTLRenderStageFragment;
+
+			// GpuProgramStageBit::Compute is intentionally unmapped - compute work is encoded on a compute encoder, which takes no MTLRenderStages.
+			return renderStages;
+		}
+
 		MTLTextureType MetalUtility::GetTextureType(TextureType type, u32 sampleCount, u32 arraySliceCount)
 		{
 			const bool msaa = sampleCount > 1;

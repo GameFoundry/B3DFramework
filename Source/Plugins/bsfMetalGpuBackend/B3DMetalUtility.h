@@ -53,6 +53,14 @@ namespace b3d
 			/** Converts an engine texture type to the Metal texture-target enum. */
 			static MTLTextureType GetTextureType(TextureType type, u32 sampleCount, u32 arraySliceCount);
 
+			/**
+			 * Converts engine shader stages to the Metal render-encoder stages that consume them.
+			 *
+			 * @param	stages	Engine shader stages referencing the resource.
+			 * @return	Matching MTLRenderStages mask, or zero when no raster stage consumes the resource.
+			 */
+			static MTLRenderStages GetRenderStages(GpuProgramStageBits stages);
+
 			/** Converts an engine filter + address mode bundle to a freshly configured MTLSamplerDescriptor. */
 			static MTLSamplerMinMagFilter GetMinMagFilter(FilterOptions filter);
 
