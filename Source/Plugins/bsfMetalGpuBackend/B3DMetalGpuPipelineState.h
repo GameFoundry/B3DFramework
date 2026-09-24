@@ -1,35 +1,214 @@
+//************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
+//*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
+#pragma once
 
+#include "B3DMetalPrerequisites.h"
+#include "GpuBackend/B3DGpuPipelineState.h"
+#include "Utility/B3DUtil.h"
 
+namespace b3d
+{
+	namespace render
+	{
+		class MetalGpuDevice;
+		class MetalVertexInput;
 
+		/** @addtogroup MetalGpuBackend
+		 *  @{
+		 */
 
+		/**
+		 * Key used to cache per-format variants of a Metal graphics pipeline state.
+		 *
+		 * Metal fuses attachment pixel formats and the vertex descriptor into the pipeline object, so a
+		 * single engine-level pipeline state may expand into several @c MTLRenderPipelineState objects
+		 * depending on the render target, draw topology and vertex-buffer layout it is bound against.
+		 */
+		struct MetalPipelineVariantKey
+		{
+			u16 ColorFormats[B3D_MAXIMUM_RENDER_TARGET_COUNT] = {};
+			u32 DepthFormat = 0; /**< MTLPixelFormat of the depth attachment, or 0 if none. */
+			u32 StencilFormat = 0; /**< MTLPixelFormat of the stencil attachment, or 0 if none. */
+			u16 SampleCount = 1;
+			u16 TopologyClass = 0; /**< MTLPrimitiveTopologyClass value. */
 
+			/**
+			 * Identifier of the MetalVertexInput (vertex-buffer layout resolved against the vertex
+			 * shader inputs, see MetalVertexInputManager) this variant is compiled with.
+			 * Zero when the pipeline consumes no vertex input.
+			 */
+			u32 VertexInputId = 0;
 
+			/**
+			 * RenderSurfaceMask bits of the attachments bound read-only by the current render pass. Metal has no
+			 * read-only attachment views, so their writes are masked off in the pipeline (color write mask) and
+			 * depth-stencil state instead.
+			 */
+			u32 ReadOnlyMask = 0;
 
+			bool operator==(const MetalPipelineVariantKey& rhs) const
+			{
+				for (u32 attachmentIndex = 0; attachmentIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; attachmentIndex++)
+				{
+					if (ColorFormats[attachmentIndex] != rhs.ColorFormats[attachmentIndex])
+						return false;
+				}
 
+				return DepthFormat == rhs.DepthFormat && StencilFormat == rhs.StencilFormat && SampleCount == rhs.SampleCount
+					&& TopologyClass == rhs.TopologyClass && VertexInputId == rhs.VertexInputId && ReadOnlyMask == rhs.ReadOnlyMask;
+			}
+		};
 
+		struct MetalPipelineVariantKeyHash
+		{
+			size_t operator()(const MetalPipelineVariantKey& key) const
+			{
+				size_t h = 0;
+				for (u32 attachmentIndex = 0; attachmentIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; attachmentIndex++)
+					B3DCombineHash(h, key.ColorFormats[attachmentIndex]);
 
+				B3DCombineHash(h, key.DepthFormat);
+				B3DCombineHash(h, key.StencilFormat);
+				B3DCombineHash(h, key.SampleCount);
+				B3DCombineHash(h, key.TopologyClass);
+				B3DCombineHash(h, key.VertexInputId);
+				B3DCombineHash(h, key.ReadOnlyMask);
 
+				return h;
+			}
+		};
 
+		/**
+		 * Metal implementation of a graphics pipeline state.
+		 *
+		 * Initialize() builds the render-pass-independent state (depth-stencil state, cached blend and
+		 * rasterizer state) and publishes the vertex program's input declaration. The actual
+		 * @c MTLRenderPipelineState is created lazily at bind time via GetOrCreateMetalPipeline().
+		 */
+		class MetalGpuGraphicsPipelineState : public GpuGraphicsPipelineState
+		{
+		public:
+			MetalGpuGraphicsPipelineState(MetalGpuDevice& gpuDevice, const GpuGraphicsPipelineStateCreateInformation& createInformation);
+			~MetalGpuGraphicsPipelineState() override;
 
+			void Initialize() override;
 
+			/** Returns the vertex input declaration from the vertex GPU program bound on the pipeline. */
+			const TShared<VertexDescription>& GetInputDeclaration() const { return mVertexDescription; }
 
+#ifdef __OBJC__
+			/**
+			 * Returns the depth-stencil state object for the given read-only attachment combination; remains valid
+			 * for the pipeline's lifetime. Read-only depth disables depth writes and read-only stencil masks off
+			 * stencil writes. Safe to call from any thread.
+			 */
+			id<MTLDepthStencilState> GetMetalDepthStencilState(bool depthReadOnly, bool stencilReadOnly);
 
+			/**
+			 * Returns a cached (or freshly created) render pipeline state for the given attachment
+			 * format / topology / vertex-input combination. May return nil if the pipeline compile
+			 * failed, or if the Metal device is unavailable.
+			 *
+			 * @p vertexInput must be the MetalVertexInput whose GetId() was written into
+			 * @p key.VertexInputId (null when the pipeline consumes no vertex input, with
+			 * @p key.VertexInputId == 0). Its vertex descriptor is copied into the pipeline
+			 * descriptor, so the object only needs to stay alive for the duration of this call.
+			 *
+			 * Blocks until the compile completes. If the variant is already compiling (e.g. requested
+			 * concurrently from another thread), waits on that compile instead of starting a new one.
+			 */
+			id<MTLRenderPipelineState> GetOrCreateMetalPipeline(const MetalPipelineVariantKey& key, const TShared<MetalVertexInput>& vertexInput);
+#endif
 
+			/** Returns the Metal cull mode computed from the engine rasterizer state. */
+			u32 GetCullMode() const { return mCullMode; }
 
+			/** Returns the Metal front-face winding order. */
+			u32 GetWinding() const { return mWinding; }
 
+			/** Returns the Metal triangle fill mode. */
+			u32 GetFillMode() const { return mFillMode; }
 
+			/** Returns constant depth bias applied on the encoder. */
+			float GetDepthBias() const { return mDepthBias; }
 
+			/** Returns slope-scaled depth bias applied on the encoder. */
+			float GetSlopeScaledDepthBias() const { return mSlopeScaledDepthBias; }
 
+			/** Returns depth bias clamp applied on the encoder. */
+			float GetDepthBiasClamp() const { return mDepthBiasClamp; }
 
+			/** Returns whether scissor testing is enabled in the pipeline. */
+			bool IsScissorEnabled() const { return mScissorEnabled; }
 
+			/** Returns the base Metal buffer-slot index at which vertex-stream buffers are expected. */
+			u32 GetVertexBufferBaseIndex() const { return mVertexBufferBaseIndex; }
 
+		private:
+			struct Impl;
 
+#ifdef __OBJC__
+			/**
+			 * Inserts a pending cache entry for @p key (if one doesn't already exist) and fires the async
+			 * @c newRenderPipelineStateWithDescriptor:completionHandler: call, using @p vertexInput's
+			 * descriptor as the variant's vertex input. Returns true if a new compile was actually
+			 * dispatched; false if the key was already in the cache (ready or pending). Called by
+			 * @c GetOrCreateMetalPipeline, which then waits for the result.
+			 */
+			bool StartCompile(const MetalPipelineVariantKey& key, const TShared<MetalVertexInput>& vertexInput);
+#endif
 
+			MetalGpuDevice& mGpuDevice;
+			TUnique<Impl> mImpl;
 
+			// Shader-side vertex input declaration, published in Initialize(). Resolved against the
+			// bound vertex-buffer VertexDescription by the command buffer at bind time via MetalVertexInputManager
+			TShared<VertexDescription> mVertexDescription;
 
+			// Cached rasterizer state applied on the render encoder at bind time.
+			u32 mCullMode = 0;
+			u32 mWinding = 0;
+			u32 mFillMode = 0;
+			float mDepthBias = 0.0f;
+			float mSlopeScaledDepthBias = 0.0f;
+			float mDepthBiasClamp = 0.0f;
+			bool mScissorEnabled = false;
+			u32 mVertexBufferBaseIndex = 0;
+		};
 
+		/**
+		 * Metal implementation of a compute pipeline state.
+		 *
+		 * Compute pipelines are not render-pass-dependent, so the @c MTLComputePipelineState is built
+		 * eagerly in Initialize().
+		 */
+		class MetalGpuComputePipelineState : public GpuComputePipelineState
+		{
+		public:
+			MetalGpuComputePipelineState(MetalGpuDevice& gpuDevice, const GpuComputePipelineStateCreateInformation& createInformation);
+			~MetalGpuComputePipelineState() override;
 
+			void Initialize() override;
 
+			/** Returns the compute workgroup size as reported by the bound GPU program. */
+			const u32* GetWorkgroupSize() const { return mWorkgroupSize; }
 
+#ifdef __OBJC__
+			/**
+			 * Returns the underlying compute pipeline state; may be nil if compilation failed.
+			 * Blocks on the async compile if it has not landed yet.
+			 */
+			id<MTLComputePipelineState> GetMetalPipeline() const;
+#endif
 
+		private:
+			struct Impl;
 
+			MetalGpuDevice& mGpuDevice;
+			TUnique<Impl> mImpl;
+			u32 mWorkgroupSize[3] = { 1, 1, 1 };
+		};
+
+		/** @} */
+	} // namespace render
+} // namespace b3d

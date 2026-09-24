@@ -39,6 +39,7 @@ namespace b3d::render
 			colorDescriptor.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
 			colorDescriptor.storageMode = MTLStorageModePrivate;
 
+			// TODO - Allocate the color and depth images through MetalHeapAllocator::AllocateTexture, as the Vulkan headless surface does through its allocator. Needs tracked MetalImages so their release is deferred until in-flight command buffers retire.
 			for (u32 imageIndex = 0; imageIndex < kImageCount; imageIndex++)
 			{
 				// Store a strong texture reference until DestroySwapChainImages().
