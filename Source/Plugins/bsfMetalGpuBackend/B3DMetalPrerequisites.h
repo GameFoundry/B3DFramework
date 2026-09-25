@@ -37,8 +37,9 @@ namespace b3d::render
 	class MetalGpuQueue;
 	class MetalGpuCommandBuffer;
 
-	// TODO - The backend always builds with ARC: remove the dead `#if !__has_feature(objc_arc)` blocks and MRC comments,
-	// and document that types holding these handles may only be created, copied or destroyed in .mm files
+	// TODO - The backend always builds with ARC: remove the dead `#if !__has_feature(objc_arc)` blocks and MRC comments.
+	// Also convert the remaining .cpp files to .mm so the whole plugin is Objective-C++, then remove the `__OBJC__` guards
+	// and the void* handle aliases below, and fold Pimpls that only exist to hide Objective-C handles back into their classes
 
 	// Objective-C handle aliases usable from both Objective-C++ (.mm) and plain C++ (.cpp) translation units
 #ifdef __OBJC__

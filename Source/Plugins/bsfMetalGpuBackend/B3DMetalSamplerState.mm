@@ -96,9 +96,10 @@ namespace b3d
 			if (mInformation.MipmapBias != 0.0f)
 				B3D_LOG(Warning, LogRenderBackend, "Metal sampler objects do not expose a mip LOD bias; requested bias {0} is ignored.", mInformation.MipmapBias);
 
-			const u32 hardwareMaxAniso = std::max(1u, mGpuDevice.GetMaxSamplerAnisotropy());
+			// 16 is the maximum on every Metal GPU family
+			constexpr u32 kMaximumAnisotropy = 16;
 			const bool anisotropic = mInformation.MinFilter == FO_ANISOTROPIC || mInformation.MagFilter == FO_ANISOTROPIC || mInformation.MipFilter == FO_ANISOTROPIC;
-			descriptor.maxAnisotropy = anisotropic ? std::max(1u, std::min(hardwareMaxAniso, mInformation.MaxAniso)) : 1;
+			descriptor.maxAnisotropy = anisotropic ? Math::Clamp(mInformation.MaxAniso, 1u, kMaximumAnisotropy) : 1;
 			descriptor.compareFunction = MetalUtility::GetCompareFunction(mInformation.ComparisonFunc);
 
 			const bool usesBorderAddressing = mInformation.AddressMode.U == TAM_BORDER

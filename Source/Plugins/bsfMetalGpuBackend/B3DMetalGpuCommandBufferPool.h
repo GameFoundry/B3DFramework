@@ -34,14 +34,13 @@ namespace b3d
 			 *
 			 * Must be called on the pool's owner thread.
 			 */
-			void NotifyCommandBufferReady(u32 id);
+			void NotifyCommandBufferReady(u32 commandBufferId);
 
 		private:
 			u32 mNextCommandBufferId = 1;
 			UnorderedMap<u32, TShared<GpuCommandBuffer>> mCommandBuffers;
 
-			// Recycle free-list. Populated by NotifyCommandBufferReady from the completion handler
-			// (and rebuilt by Reset), drained by FindOrCreate.
+			/** Ids of command buffers that finished executing and can be reused. */
 			Vector<u32> mReadyIds;
 		};
 
