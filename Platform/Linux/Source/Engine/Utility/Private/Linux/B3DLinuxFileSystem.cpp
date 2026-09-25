@@ -19,13 +19,13 @@ TShared<DataStream> FileSystem::CreateFileStream(const Path& path, FileAccessFla
 	return stream;
 }
 
-void FileSystem::StartUp()
+void FileSystem::PlatformStartUp()
 {
 	// Bring up the shared io_uring instance
 	LinuxFileIOManager::StartUp();
 }
 
-void FileSystem::ShutDown()
+void FileSystem::PlatformShutDown()
 {
 	LinuxFileIOManager::ShutDown();
 }

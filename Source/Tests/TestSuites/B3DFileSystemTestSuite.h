@@ -10,10 +10,13 @@ namespace b3d
 	{
 	public:
 		FileSystemTestSuite();
-		void StartUp() ;
-		void ShutDown() ;
+		void StartUp() override;
+		void ShutDown() override;
 
 	private:
+		/** Verifies nested filesystem ownership leaves storage and asynchronous reads available. */
+		void TestSharedLifetime();
+
 		void TestExistsYesFile();
 		void TestExistsYesDir();
 		void TestExistsNo();

@@ -14,6 +14,9 @@ endforeach()
 # FrameworkTests target (DLL)
 add_library(FrameworkTests SHARED ${FRAMEWORK_TESTS_SOURCE_FILES})
 
+# Test suites declare renderer materials, whose shaders must be in the prebuilt shader store
+B3DRegisterShaderCookModule(FrameworkTests)
+
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(FrameworkTests)
 

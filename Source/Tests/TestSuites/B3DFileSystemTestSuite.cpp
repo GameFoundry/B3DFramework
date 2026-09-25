@@ -5,13 +5,12 @@
 #include "Debug/B3DDebug.h"
 #include "FileSystem/B3DFileSystem.h"
 #include "FileSystem/B3DDataStream.h"
+#include "Utility/B3DUUID.h"
 
 #include <algorithm>
 #include <fstream>
 
 using namespace b3d;
-
-const String kTestDirectoryName = "FileSystemTestDirectory/";
 
 void CreateFile(Path path, String content)
 {
@@ -49,17 +48,9 @@ String ReadFile(Path path)
 
 void FileSystemTestSuite::StartUp()
 {
-	mTestDirectory = FileSystem::GetExecutableFolderPath() + kTestDirectoryName;
-	if(FileSystem::Exists(mTestDirectory))
-	{
-		if(!B3D_ENSURE_LOG(false, "Directory '{0}' should not already exist; you should remove it manually.", kTestDirectoryName))
-			return;
-	}
-	else
-	{
-		FileSystem::CreateFolder(mTestDirectory);
-		B3D_TEST_ASSERT_MSG(FileSystem::Exists(mTestDirectory), "FileSystemTestSuite::StartUp(): test directory creation failed");
-	}
+	mTestDirectory = FileSystem::GetTemporaryFolderPath() + ("FileSystemTestDirectory-" + UUIDGenerator::GenerateRandom().ToString() + "/");
+	FileSystem::CreateFolder(mTestDirectory);
+	B3D_TEST_ASSERT_MSG(FileSystem::Exists(mTestDirectory), "FileSystemTestSuite::StartUp(): test directory creation failed");
 }
 
 void FileSystemTestSuite::ShutDown()
@@ -74,6 +65,7 @@ void FileSystemTestSuite::ShutDown()
 FileSystemTestSuite::FileSystemTestSuite()
 	: TestSuite("FileSystemTestSuite")
 {
+	B3D_ADD_TEST(FileSystemTestSuite::TestSharedLifetime);
 	B3D_ADD_TEST(FileSystemTestSuite::TestExistsYesFile);
 	B3D_ADD_TEST(FileSystemTestSuite::TestExistsYesDir);
 	B3D_ADD_TEST(FileSystemTestSuite::TestExistsNo);
@@ -107,6 +99,32 @@ FileSystemTestSuite::FileSystemTestSuite()
 	B3D_ADD_TEST(FileSystemTestSuite::TestAsyncLargeFileChunkChaining);
 	B3D_ADD_TEST(FileSystemTestSuite::TestAsyncFallbackWhenNotAsyncOpened);
 	B3D_ADD_TEST(FileSystemTestSuite::TestAsyncEmptyFile);
+}
+
+void FileSystemTestSuite::TestSharedLifetime()
+{
+	const Path temporaryFolder = FileSystem::GetTemporaryFolderPath();
+	FileSystem::StartUp();
+	FileSystem::StartUp();
+	FileSystem::ShutDown();
+	FileSystem::ShutDown();
+	B3D_TEST_ASSERT(FileSystem::GetTemporaryFolderPath() == temporaryFolder);
+
+	const Path path = mTestDirectory + "shared-lifetime";
+	const String content = "Filesystem services survive nested ownership.";
+	CreateFile(path, content);
+
+	const TShared<DataStream> stream = FileSystem::OpenFile(path, FileAccessFlag::Read | FileAccessFlag::Async);
+	B3D_TEST_ASSERT(stream != nullptr);
+	if(stream == nullptr)
+		return;
+
+	TAsyncOp<TShared<MemoryDataStream>> read = stream->ReadAsync(0, content.size());
+	read.BlockUntilComplete();
+	const TShared<MemoryDataStream> data = read.GetReturnValue();
+	B3D_TEST_ASSERT(data != nullptr);
+	if(data != nullptr)
+		B3D_TEST_ASSERT(String((const char*)data->Data(), data->Size()) == content);
 }
 
 void FileSystemTestSuite::TestExistsYesFile()
@@ -179,7 +197,7 @@ void FileSystemTestSuite::TestRemoveFile()
 	Path path = mTestDirectory + "file-to-remove";
 	CreateEmptyFile(path);
 	B3D_TEST_ASSERT(FileSystem::Exists(path));
-	FileSystem::Remove(path);
+	B3D_TEST_ASSERT(FileSystem::Remove(path));
 	B3D_TEST_ASSERT(!FileSystem::Exists(path));
 }
 

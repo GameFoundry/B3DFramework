@@ -8,6 +8,7 @@
 #include "FileSystem/B3DPath.h"
 #include "B3DApplication.h"
 #include "GpuBackend/B3DGpuBackend.h"
+#include "Utility/B3DScopeGuard.h"
 
 #include "TestSuites/B3DUtilityTestSuite.h"
 #include "TestSuites/B3DFileSystemTestSuite.h"
@@ -72,14 +73,13 @@ namespace b3d
 
 	void FrameworkTestSuiteFactory::DiscoverPluginModules()
 	{
-		// Resolved through the file system rather than the command line, as argv[0] may be a bare relative name
-		const Path executableDir = FileSystem::GetExecutableFolderPath();
-
 		Vector<Path> files;
 		Vector<Path> directories;
-		FileSystem::GetChildren(executableDir, files, directories);
+		FileSystem::GetChildren(FileSystem::GetExecutableFolderPath(), files, directories);
 
 		const String expectedExtension = String(".") + DynamicLibrary::kExtension;
+		const String libraryPrefix = DynamicLibrary::kPrefix ? DynamicLibrary::kPrefix : "";
+		const String expectedPrefix = libraryPrefix + "bsf";
 
 		// Every GPU backend plugin built for this platform drops its test DLL next to the runner, but only one
 		// backend is ever started up per run. A foreign backend's suites would exercise a backend that was never
@@ -90,22 +90,18 @@ namespace b3d
 		for (const Path& candidate : files)
 		{
 			const String filename = candidate.GetFilename(false);
-			const String extension = candidate.GetExtension();
 
-			// Glob equivalent: bsf*Tests.<dll/so/dylib>. Auto-skips FrameworkTests/EditorTests, the
-			// runner exe itself, and anything else that doesn't match the plugin-test naming pattern.
-			if (extension != expectedExtension)
+			// Only plugin test libraries; FrameworkTests and EditorTests are loaded by the runner.
+			if(candidate.GetExtension() != expectedExtension || filename.size() <= expectedPrefix.size() + 5)
 				continue;
-			if (filename.size() < 8 /* "bsf" + at least one char + "Tests" */)
-				continue;
-			if (filename.compare(0, 3, "bsf") != 0)
-				continue;
-			if (filename.compare(filename.size() - 5, 5, "Tests") != 0)
+
+			if(filename.compare(0, expectedPrefix.size(), expectedPrefix) != 0 || filename.compare(filename.size() - 5, 5, "Tests") != 0)
 				continue;
 
 			// A plugin test DLL is named <pluginTarget>Tests, so stripping the suffix yields the plugin it
 			// belongs to, which for GPU backends is the same name the backend is selected by.
-			const String pluginName = filename.substr(0, filename.size() - 5);
+			const size_t prefixLength = libraryPrefix.size();
+			const String pluginName = filename.substr(prefixLength, filename.size() - prefixLength - 5);
 			if (StringUtility::EndsWith(pluginName, "GpuBackend", false) && pluginName != activeGpuBackend)
 			{
 				B3D_LOG(Log, LogGeneric, "Skipping test library '{0}': its GPU backend is not the active one ('{1}').", filename, activeGpuBackend);
@@ -163,6 +159,9 @@ namespace b3d
 
 	i32 FrameworkTestSuiteFactory::Run(TestLayers layers, TestOutputFormat outputFormat, const Path& outputPath)
 	{
+		FileSystem::StartUp();
+		ScopeGuard releaseFileSystem([]() { FileSystem::ShutDown(); });
+
 		TestResultCollector collector;
 
 		// Phase 1: Utility tests (no Application needed)

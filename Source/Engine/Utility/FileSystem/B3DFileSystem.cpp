@@ -6,6 +6,30 @@
 
 using namespace b3d;
 
+u32 FileSystem::mReferenceCount = 0;
+bool FileSystem::mIsShutDown = false;
+
+void FileSystem::StartUp()
+{
+	if(mIsShutDown)
+		B3D_LOG(Fatal, LogFileSystem, "Cannot restart filesystem services after final shutdown.");
+
+	if(mReferenceCount++ == 0)
+		PlatformStartUp();
+}
+
+void FileSystem::ShutDown()
+{
+	if(mReferenceCount == 0)
+		B3D_LOG(Fatal, LogFileSystem, "Filesystem shutdown requires a matching startup.");
+
+	if(--mReferenceCount == 0)
+	{
+		PlatformShutDown();
+		mIsShutDown = true;
+	}
+}
+
 TShared<DataStream> FileSystem::OpenFile(const Path& fullPath, FileAccessFlags access)
 {
 	if(!Exists(fullPath) || !IsFile(fullPath))

@@ -16,15 +16,14 @@ namespace b3d
 	{
 	public:
 		/**
-		 * One-time process-level initialization for the file system. Brings up any platform-specific async I/O machinery
-		 * (e.g. the shared io_uring instance on Linux). Must be called once from Application startup before any thread
-		 * issues an asynchronous file read. No-op on platforms that need no per-process setup.
+		 * Acquires filesystem services, initializing them on the first call. Each call must be paired with ShutDown().
+		 * Calls must be serialized, and services cannot be acquired again after the final ShutDown().
 		 */
 		static void StartUp();
 
 		/**
-		 * Tears down any platform-specific async I/O machinery brought up by StartUp(). Must be called once from
-		 * Application shutdown, paired with StartUp().
+		 * Releases one acquisition of filesystem services. The final release tears them down; all streams and pending
+		 * I/O must be released beforehand. Calls must be serialized with StartUp() and other ShutDown() calls.
 		 */
 		static void ShutDown();
 
@@ -164,6 +163,12 @@ namespace b3d
 		static Path GetHostFileSystemRoot();
 
 	private:
+		/** Initializes the platform's storage and I/O services. */
+		static void PlatformStartUp();
+
+		/** Releases the platform's storage and I/O services. */
+		static void PlatformShutDown();
+
 		/**
 		 * Platform hook that constructs and opens the concrete synchronous file stream backing OpenFile() and
 		 * CreateAndOpenFile(). The default implementation returns a FileDataStream (backed by std::fstream), but a
@@ -182,6 +187,9 @@ namespace b3d
 
 		/** Move a single file. Internal function used by move(). */
 		static bool MoveFile(const Path& oldPath, const Path& newPath);
+
+		static u32 mReferenceCount;
+		static bool mIsShutDown;
 	};
 
 	/**

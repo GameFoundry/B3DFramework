@@ -309,12 +309,12 @@ TShared<DataStream> FileSystem::CreateFileStream(const Path& fullPath, FileAcces
 	return fileDataStream;
 }
 
-void FileSystem::StartUp()
+void FileSystem::PlatformStartUp()
 {
 	// Do nothing
 }
 
-void FileSystem::ShutDown()
+void FileSystem::PlatformShutDown()
 {
 	// Do nothing
 }
@@ -560,4 +560,3 @@ Path FileSystem::GetHostFileSystemRoot()
 	// The application already runs on the host machine; there is no separate host mount.
 	return Path();
 }
-

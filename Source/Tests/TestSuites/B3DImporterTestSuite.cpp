@@ -1262,16 +1262,18 @@ namespace
 ImporterTestSuite::ImporterTestSuite()
 	: TestSuite("ImporterTestSuite")
 {
+#if B3D_BUILD_IMPORTERS
 	B3D_ADD_TEST(ImporterTestSuite::TestPngImport_Default)
 	B3D_ADD_TEST(ImporterTestSuite::TestPngImport_WithMips)
 	B3D_ADD_TEST(ImporterTestSuite::TestPngImport_BC3)
 	B3D_ADD_TEST(ImporterTestSuite::TestGpuCompress_Psnr)
-	B3D_ADD_TEST(ImporterTestSuite::TestGpuCompress_BC6H_Psnr)
 	B3D_ADD_TEST(ImporterTestSuite::TestGpuCompress_Perf)
-	B3D_ADD_TEST(ImporterTestSuite::TestGpuMipmaps_BoxFilter)
 	B3D_ADD_TEST(ImporterTestSuite::TestOggImport_Default)
 	B3D_ADD_TEST(ImporterTestSuite::TestOggImport_KeepCompressed)
 	B3D_ADD_TEST(ImporterTestSuite::TestFlacImport_Default)
+#endif
+	B3D_ADD_TEST(ImporterTestSuite::TestGpuCompress_BC6H_Psnr)
+	B3D_ADD_TEST(ImporterTestSuite::TestGpuMipmaps_BoxFilter)
 }
 
 void ImporterTestSuite::StartUp()
