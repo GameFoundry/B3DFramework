@@ -37,6 +37,9 @@ namespace b3d::render
 	class MetalGpuQueue;
 	class MetalGpuCommandBuffer;
 
+	// TODO - The backend always builds with ARC: remove the dead `#if !__has_feature(objc_arc)` blocks and MRC comments,
+	// and document that types holding these handles may only be created, copied or destroyed in .mm files
+
 	// Objective-C handle aliases usable from both Objective-C++ (.mm) and plain C++ (.cpp) translation units
 #ifdef __OBJC__
 	using CAMetalLayerRef = CAMetalLayer*;

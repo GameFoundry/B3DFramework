@@ -50,6 +50,7 @@ namespace b3d::render
 			const NSUInteger bufferSize = (NSUInteger)bytesPerRow * height;
 
 			auto& metalDevice = static_cast<MetalGpuDevice&>(commandBuffer.GetGpuDevice());
+			// TODO - Create a GpuBufferType::StagingRead GpuBuffer instead, so the staging memory comes from the heap allocator (mirrors IVulkanRenderWindowSurface::ReadAsync).
 			id<MTLBuffer> stagingBuffer = [metalDevice.GetMetalDevice() newBufferWithLength:bufferSize options:MTLResourceStorageModeShared];
 			if (stagingBuffer == nil)
 			{
