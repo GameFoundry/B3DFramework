@@ -338,6 +338,7 @@ namespace b3d::render
 		descriptor.usage = MTLTextureUsageRenderTarget;
 		descriptor.storageMode = MTLStorageModePrivate;
 
+		// TODO - Allocate through MetalHeapAllocator::AllocateTexture. Needs a tracked MetalImage so the resize path defers the old texture's release until in-flight command buffers retire.
 		id<MTLTexture> newDepthStencil = [mGpuDevice.GetMetalDevice() newTextureWithDescriptor:descriptor];
 		if (newDepthStencil == nil)
 		{
