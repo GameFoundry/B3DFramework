@@ -16,6 +16,7 @@
 #include <ft2build.h>
 #include <freetype/freetype.h>
 #include <freetype/tttables.h>
+#include <freetype/ftoutln.h>
 
 #include FT_FREETYPE_H
 
@@ -38,6 +39,12 @@ static FT_Pos ConvertFloatToFixed26Dot6(float value)
 	return FT_Pos(value * 64.0f);
 }
 
+/** Converts a 16.16 fixed point format to float. */
+static float ConvertFixed16Dot16ToFloat(FT_Fixed value)
+{
+	return (float)value / 65536.0f;
+}
+
 /** Converts font render mode into FreeType load flags. */
 static FT_Int32 ConvertFontRenderModeToLoadFlags(FontRenderMode renderMode)
 {
@@ -49,6 +56,83 @@ static FT_Int32 ConvertFontRenderModeToLoadFlags(FontRenderMode renderMode)
 	case FontRenderMode::HintedRaster: return FT_LOAD_TARGET_MONO | FT_LOAD_NO_AUTOHINT;
 	default: return FT_LOAD_TARGET_NORMAL;
 	}
+}
+
+/**
+ * Checks if glyphs rendered in the provided mode are positioned using fractional (unhinted) advances and kerning. Only
+ * hinted monochrome glyphs are fitted to the pixel grid horizontally, and their whole-pixel advances keep them evenly
+ * spaced.
+ */
+static bool UsesFractionalMetrics(FontRenderMode renderMode)
+{
+	return renderMode != FontRenderMode::HintedRaster;
+}
+
+/** Coverage of a glyph rendered at a single horizontal subpixel position. */
+struct GlyphPositionBitmap
+{
+	Vector<u8> Pixels;
+	i32 Left = 0; /**< Offset from the pen position to the left edge of the bitmap, in pixels. */
+	i32 Top = 0; /**< Offset from the baseline to the top edge of the bitmap, in pixels (up is positive). */
+	u32 Width = 0;
+	u32 Height = 0;
+};
+
+/** Copies the bitmap of the rendered glyph in @p glyph into @p output, expanding it to one byte per pixel. */
+static bool ReadGlyphBitmap(const FT_GlyphSlot& glyph, u32 characterId, GlyphPositionBitmap& output)
+{
+	const FT_Bitmap& bitmap = glyph->bitmap;
+
+	output.Left = glyph->bitmap_left;
+	output.Top = glyph->bitmap_top;
+	output.Width = (u32)bitmap.width;
+	output.Height = (u32)bitmap.rows;
+	output.Pixels.resize((size_t)output.Width * output.Height);
+
+	if(output.Pixels.empty())
+		return true;
+
+	if(bitmap.buffer == nullptr)
+	{
+		B3D_LOG(Error, LogFont, "Failed to render glyph '{0}. Bitmap is empty.", characterId);
+		return false;
+	}
+
+	const u8* sourceBuffer = bitmap.buffer;
+	u8* destinationBuffer = output.Pixels.data();
+
+	if(bitmap.pixel_mode == FT_PIXEL_MODE_GRAY)
+	{
+		for(u32 bitmapY = 0; bitmapY < output.Height; bitmapY++)
+		{
+			memcpy(destinationBuffer, sourceBuffer, output.Width);
+
+			destinationBuffer += output.Width;
+			sourceBuffer += bitmap.pitch;
+		}
+	}
+	else if(bitmap.pixel_mode == FT_PIXEL_MODE_MONO)
+	{
+		// 8 pixels are packed into a byte, so do some unpacking
+		for(u32 bitmapY = 0; bitmapY < output.Height; bitmapY++)
+		{
+			for(u32 bitmapX = 0; bitmapX < output.Width; bitmapX++)
+			{
+				const u8 sourceValue = sourceBuffer[bitmapX >> 3];
+				destinationBuffer[bitmapX] = (sourceValue & (128 >> (bitmapX & 7))) != 0 ? 255 : 0;
+			}
+
+			destinationBuffer += output.Width;
+			sourceBuffer += bitmap.pitch;
+		}
+	}
+	else
+	{
+		B3D_LOG(Error, LogFont, "Failed to render glyph '{0}'. Unsupported pixel mode.", characterId);
+		return false;
+	}
+
+	return true;
 }
 
 const CharacterInformation& FontBitmapInformation::GetCharacterInformation(u32 characterId) const
@@ -211,6 +295,7 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 	Vector<GlyphBitmap> glyphBitmaps;
 
 	const FT_Int32 loadFlags = ConvertFontRenderModeToLoadFlags(mInformation.RenderMode);
+	const bool usesFractionalMetrics = UsesFractionalMetrics(mInformation.RenderMode);
 	const FT_Face& face = mImplementation->Face;
 
 	if(!B3D_ENSURE(FT_Set_Char_Size(mImplementation->Face, ConvertFloatToFixed26Dot6(quantizedFontSizeInPoints), 0, mInformation.DPI, mInformation.DPI) == 0))
@@ -237,7 +322,12 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 		FT_Load_Char(mImplementation->Face, kSpaceCharacterId, loadFlags);
 
 		const FT_GlyphSlot& glyph = mImplementation->Face->glyph;
-		bitmapInformation->SpaceWidth = ConvertFixed26Dot6ToFloat(glyph->advance.x);
+		bitmapInformation->SpaceWidth = usesFractionalMetrics ? ConvertFixed16Dot16ToFloat(glyph->linearHoriAdvance) : ConvertFixed26Dot6ToFloat(glyph->advance.x);
+
+		// Monochrome glyphs have no partial coverage to express a fractional position with. Large glyphs gain little from it.
+		const bool isAntialiased = mInformation.RenderMode == FontRenderMode::Smooth || mInformation.RenderMode == FontRenderMode::HintedSmooth;
+		const float sizeInPixels = quantizedFontSizeInPoints * (float)mInformation.DPI / 72.0f;
+		bitmapInformation->SubpixelPositionCount = isAntialiased && sizeInPixels <= kMaximumSubpixelPositionedSize ? kSubpixelPositionCount : 1;
 
 		mCharactersByPointSize[quantizedFontSizeInPoints] = bitmapInformation;
 
@@ -249,12 +339,16 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 			bitmapInformation->MissingGlyph = foundCharacter->second;
 	}
 
+	const u32 subpixelPositionCount = bitmapInformation->SubpixelPositionCount;
+	Vector<GlyphPositionBitmap> positionBitmaps(subpixelPositionCount);
+
 	for(const auto& characterId : characterIds)
 	{
 		if(auto found = bitmapInformation->Characters.find(characterId); found != bitmapInformation->Characters.end())
 			continue;
 
-		FT_Error error = FT_Load_Char(face, (FT_ULong)characterId, loadFlags);
+		const FT_UInt glyphIndex = FT_Get_Char_Index(face, (FT_ULong)characterId);
+		FT_Error error = FT_Load_Glyph(face, glyphIndex, loadFlags);
 
 		if(error)
 		{
@@ -262,32 +356,53 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 			continue;
 		}
 
-		FT_Render_Glyph(face->glyph, FT_LOAD_TARGET_MODE(loadFlags));
-
-		if(error)
-		{
-			B3D_LOG(Error, LogFont, "Failed to render font glyph '{0}'. Failed to render character.", characterId);
-			continue;
-		}
-
 		const FT_GlyphSlot& glyph = face->glyph;
 
 		CharacterInformation characterInformation;
 		characterInformation.CharId = characterId;
-		characterInformation.Width = ConvertFixed26Dot6ToFloat(glyph->metrics.width);
-		characterInformation.Height = ConvertFixed26Dot6ToFloat(glyph->metrics.height);
-		characterInformation.XOffset = ConvertFixed26Dot6ToFloat(glyph->metrics.horiBearingX);
-		characterInformation.YOffset = ConvertFixed26Dot6ToFloat(glyph->metrics.horiBearingY);
-		characterInformation.XAdvance = ConvertFixed26Dot6ToFloat(glyph->metrics.horiAdvance);
+		characterInformation.XAdvance = usesFractionalMetrics ? ConvertFixed16Dot16ToFloat(glyph->linearHoriAdvance) : ConvertFixed26Dot6ToFloat(glyph->metrics.horiAdvance);
 		characterInformation.YAdvance = ConvertFixed26Dot6ToFloat(glyph->advance.y);
 		characterInformation.PointSize = 0.0f;
+
+		// Render the glyph at every subpixel position, shifting the outline right by a fraction of a pixel for each. TrueType
+		// hinting of anti-aliased glyphs only snaps them vertically, so shifting the hinted outline is equivalent to hinting
+		// it at the shifted position.
+		bool isRendered = true;
+		for(u32 positionIndex = 0; positionIndex < subpixelPositionCount; positionIndex++)
+		{
+			// Rendering replaces the outline with the bitmap, so every position after the first loads the glyph again
+			if(positionIndex > 0)
+			{
+				error = FT_Load_Glyph(face, glyphIndex, loadFlags);
+				if(!error && glyph->format == FT_GLYPH_FORMAT_OUTLINE)
+					FT_Outline_Translate(&glyph->outline, (FT_Pos)(positionIndex * 64 / subpixelPositionCount), 0);
+			}
+
+			if(!error)
+				error = FT_Render_Glyph(glyph, FT_LOAD_TARGET_MODE(loadFlags));
+
+			if(error)
+			{
+				B3D_LOG(Error, LogFont, "Failed to render font glyph '{0}'. Failed to render character.", characterId);
+				isRendered = false;
+				break;
+			}
+
+			if(!ReadGlyphBitmap(glyph, characterId, positionBitmaps[positionIndex]))
+			{
+				isRendered = false;
+				break;
+			}
+		}
+
+		if(!isRendered)
+			continue;
 
 		// Parse kerning, pairing the new character with itself and with every character already rendered at this size
 		if(FT_HAS_KERNING(face))
 		{
-			// Hinted glyphs have whole-pixel advances, so keep kerning on the pixel grid as well
-			const bool isHinted = mInformation.RenderMode == FontRenderMode::HintedSmooth || mInformation.RenderMode == FontRenderMode::HintedRaster;
-			const FT_UInt kerningMode = isHinted ? FT_KERNING_DEFAULT : FT_KERNING_UNFITTED;
+			// Whole-pixel advances need whole-pixel kerning to stay on the pixel grid
+			const FT_UInt kerningMode = usesFractionalMetrics ? FT_KERNING_UNFITTED : FT_KERNING_DEFAULT;
 
 			auto fnAddKerning = [&face, kerningMode](CharacterInformation& leftCharacterInformation, FT_UInt leftGlyphIndex, u32 rightCharacterId, FT_UInt rightGlyphIndex) {
 				// Pairs survive when runtime glyphs are cleared, so a re-rendered character may already be paired
@@ -317,7 +432,6 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 				}
 			};
 
-			const FT_UInt glyphIndex = FT_Get_Char_Index(face, (FT_ULong)characterId);
 			fnAddKerning(characterInformation, glyphIndex, characterId, glyphIndex);
 
 			for(auto& keyValuePair : bitmapInformation->Characters)
@@ -331,18 +445,35 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 			}
 		}
 
-		// Read pixels
-		if(glyph->bitmap.buffer == nullptr && glyph->bitmap.rows > 0 && glyph->bitmap.width > 0)
+		// Find the area covered by the glyph at any subpixel position. Bitmaps for all positions are stored in cells of that
+		// size, so a position is selected by offsetting the UV alone.
+		i32 cellLeft = std::numeric_limits<i32>::max();
+		i32 cellRight = std::numeric_limits<i32>::min();
+		i32 cellTop = std::numeric_limits<i32>::min();
+		i32 cellBottom = std::numeric_limits<i32>::max();
+		for(const GlyphPositionBitmap& positionBitmap : positionBitmaps)
 		{
-			B3D_LOG(Error, LogFont, "Failed to render glyph '{0}. Bitmap is empty.", characterId);
-			continue;
+			if(positionBitmap.Pixels.empty())
+				continue;
+
+			cellLeft = std::min(cellLeft, positionBitmap.Left);
+			cellRight = std::max(cellRight, positionBitmap.Left + (i32)positionBitmap.Width);
+			cellTop = std::max(cellTop, positionBitmap.Top);
+			cellBottom = std::min(cellBottom, positionBitmap.Top - (i32)positionBitmap.Height);
 		}
 
-		u8* sourceBuffer = glyph->bitmap.buffer;
-
-		const Size2UI bitmapSize((u32)glyph->bitmap.width, (u32)glyph->bitmap.rows);
-		if(bitmapSize.Width == 0 || bitmapSize.Height == 0)
+		if(cellLeft >= cellRight)
 			continue;
+
+		const u32 cellWidth = (u32)(cellRight - cellLeft);
+		const u32 cellHeight = (u32)(cellTop - cellBottom);
+		const Size2UI bitmapSize(cellWidth * subpixelPositionCount, cellHeight);
+
+		// Quads cover the bitmap exactly, so a texel maps to a single pixel
+		characterInformation.Width = (float)cellWidth;
+		characterInformation.Height = (float)cellHeight;
+		characterInformation.XOffset = (float)cellLeft;
+		characterInformation.YOffset = (float)cellTop;
 
 		TextureCreateInformation textureCreateInformation;
 		textureCreateInformation.Name = "FontGlyph";
@@ -355,36 +486,19 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 
 		const TShared<PixelData> destinationPixelData = texture->GetProperties().AllocBuffer(0, 0);
 		u8* destinationBuffer = destinationPixelData->GetData();
+		memset(destinationBuffer, 0, (size_t)bitmapSize.Width * bitmapSize.Height);
 
-		if(glyph->bitmap.pixel_mode == ft_pixel_mode_grays)
+		for(u32 positionIndex = 0; positionIndex < subpixelPositionCount; positionIndex++)
 		{
-			for(u32 bitmapY = 0; bitmapY < bitmapSize.Height; bitmapY++)
+			const GlyphPositionBitmap& positionBitmap = positionBitmaps[positionIndex];
+			const u32 cellX = positionIndex * cellWidth + (u32)(positionBitmap.Left - cellLeft);
+			const u32 cellY = (u32)(cellTop - positionBitmap.Top);
+
+			for(u32 bitmapY = 0; bitmapY < positionBitmap.Height; bitmapY++)
 			{
-				memcpy(destinationBuffer, sourceBuffer, bitmapSize.Width);
-
-				destinationBuffer += glyph->bitmap.width;
-				sourceBuffer += glyph->bitmap.pitch;
+				u8* destinationRow = destinationBuffer + (size_t)(cellY + bitmapY) * bitmapSize.Width + cellX;
+				memcpy(destinationRow, &positionBitmap.Pixels[(size_t)bitmapY * positionBitmap.Width], positionBitmap.Width);
 			}
-		}
-		else if(glyph->bitmap.pixel_mode == ft_pixel_mode_mono)
-		{
-			// 8 pixels are packed into a byte, so do some unpacking
-			for(u32 bitmapY = 0; bitmapY < bitmapSize.Height; bitmapY++)
-			{
-				for(u32 bitmapX = 0; bitmapX < bitmapSize.Width; bitmapX++)
-				{
-					const u8 sourceValue = sourceBuffer[bitmapX >> 3];
-					destinationBuffer[bitmapX] = (sourceValue & (128 >> (bitmapX & 7))) != 0 ? 255 : 0;
-				}
-
-				destinationBuffer += glyph->bitmap.width;
-				sourceBuffer += glyph->bitmap.pitch;
-			}
-		}
-		else
-		{
-			B3D_LOG(Error, LogFont, "Failed to render glyph '{0}'. Unsupported pixel mode.", characterId);
-			continue;
 		}
 
 		texture->WriteData(destinationPixelData);
@@ -456,8 +570,8 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 		characterInformation.Page = targetPageIndex;
 		characterInformation.UvX = inversePageWidth * (float)glyphBitmap.PositionInAtlas.X;
 		characterInformation.UvY = inversePageHeight * (float)glyphBitmap.PositionInAtlas.Y;
-		characterInformation.UvWidth = inversePageWidth * (float)glyphBitmap.Size.Width;
-		characterInformation.UvHeight = inversePageHeight * (float)glyphBitmap.Size.Height;
+		characterInformation.UvWidth = inversePageWidth * (float)cellWidth;
+		characterInformation.UvHeight = inversePageHeight * (float)cellHeight;
 		characterInformation.DynamicLayoutAllocation = layoutAllocation;
 
 		bitmapInformation->Characters[characterId] = std::move(characterInformation);

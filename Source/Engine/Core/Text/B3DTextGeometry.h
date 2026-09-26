@@ -155,9 +155,12 @@ namespace b3d
 			 * @param	offset		Offsets the location at which the method writes to the buffers. Counted as number
 			 *						of quads.
 			 * @param	size		Total number of quads that can fit into the specified buffers.
+			 * @param	startX		Horizontal position the line starts at, in pixels. May be fractional. Characters snap to the
+			 *						subpixel positions of the output coordinates, so offsets that aren't whole pixels must be
+			 *						provided here rather than added to the output vertices.
 			 * @return				Number of quads that were written.
 			 */
-			u32 FillBuffer(u32 page, Vector2* outVertices, Vector2* outUVs, u32* outIndices, u32 offset, u32 size) const;
+			u32 FillBuffer(u32 page, Vector2* outVertices, Vector2* outUVs, u32* outIndices, u32 offset, u32 size, float startX = 0.0f) const;
 
 			/**	Checks are we at a word boundary (meaning the next added character will start a new word). */
 			bool IsAtWordBoundary() const;

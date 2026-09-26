@@ -34,7 +34,12 @@ namespace b3d
 		u32 CharId; /**< Character ID, corresponding to a Unicode key. */
 		u32 Page; /**< Index of the texture the character is located on. */
 		float UvX, UvY; /**< Texture coordinates of the character in the page texture. */
-		float UvWidth, UvHeight; /**< Width/height of the character in texture coordinates. */
+
+		/**
+		 * Width/height of the character in texture coordinates. When the character is rendered at multiple subpixel positions
+		 * (see FontBitmapInformation::SubpixelPositionCount), the bitmap for each position follows the previous one to the right, @p UvWidth apart.
+		 */
+		float UvWidth, UvHeight;
 		float Width, Height; /**< Width/height of the character in pixels. */
 		float XOffset, YOffset; /**< Offset for the visible portion of the character in pixels. */
 		float XAdvance, YAdvance; /**< Determines how much to advance the pen after writing this character, in pixels. */
@@ -102,6 +107,13 @@ namespace b3d
 		/** Width of a space in pixels. */
 		B3D_SCRIPT_EXPORT()
 		float SpaceWidth;
+
+		/**
+		 * If >1 each character gets rendered more than once, each time with a sub-pixel offset. e.g. with 4: at 0/4, 1/4, 2/4, 3/4 of a pixel.
+		 * At runtime the nearest offset is selected depending on actual X position of the character, which results in better character quality
+		 * than snapping to whole pixel positions.
+		 */
+		u32 SubpixelPositionCount = 1;
 
 		/** All characters in the font referenced by character ID. */
 		UnorderedMap<u32, CharacterInformation> Characters;
@@ -293,6 +305,8 @@ namespace b3d
 
 		static constexpr u32 kFontPageSize = 1024;
 		static constexpr u32 kFontQuantizeAmount = 100; // Font sizes with 2 decimal places or lower are treated as unique size bitmaps
+		static constexpr u32 kSubpixelPositionCount = 4; // Horizontal positions per pixel that anti-aliased glyphs are rendered at
+		static constexpr float kMaximumSubpixelPositionedSize = 48.0f; // Pixel size above which glyphs are only rendered at whole pixel positions
 	private:
 		FontInformation mInformation;
 
