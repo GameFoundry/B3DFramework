@@ -84,7 +84,8 @@ namespace b3d
 			 *								@p blend in enabled.
 			 * @param	srgbEncode			If true, the sampled color is encoded from linear into sRGB (gamma) space before being
 			 *								written. Used when compositing a hardware-sRGB source (which decodes to linear on sample)
-			 *								onto a non-sRGB target that expects sRGB-encoded values. Only relevant for color blits.
+			 *								onto a non-sRGB target that expects sRGB-encoded values. Only relevant for color blits,
+			 *								and not supported for multisampled sources.
 			 * @param	output32Bit			True if the destination color surface uses a 32-bit float format. Backends that bake
 			 *								the render target format into the fragment program would otherwise truncate the
 			 *								output to 16 bits. Only relevant for color blits.
@@ -329,7 +330,8 @@ namespace b3d
 			/**
 			 * If true, the sampled color is encoded from linear into sRGB (gamma) space before being written.
 			 * Use when the source is a hardware-sRGB texture (which the GPU decodes to linear on sample) but the
-			 * destination is a non-sRGB target that expects sRGB-encoded values. Only relevant for color blits (@p IsDepth false).
+			 * destination is a non-sRGB target that expects sRGB-encoded values. Only relevant for color blits (@p IsDepth false),
+			 * and not supported for multisampled sources.
 			 */
 			bool SrgbEncode = false;
 

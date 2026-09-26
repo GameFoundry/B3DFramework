@@ -502,9 +502,9 @@ BlitMat* BlitMat::GetVariation(u32 msaaCount, bool isColor, bool isFiltered, boo
 	else
 	{
 		if(isFiltered)
-			return Get(GetVariation<1, 1, false, false, false>(output32Bit));
+			return srgbEncode ? Get(GetVariation<1, 1, false, false, true>(output32Bit)) : Get(GetVariation<1, 1, false, false, false>(output32Bit));
 		else
-			return Get(GetVariation<1, 0, false, false, false>(output32Bit));
+			return srgbEncode ? Get(GetVariation<1, 0, false, false, true>(output32Bit)) : Get(GetVariation<1, 0, false, false, false>(output32Bit));
 	}
 }
 
