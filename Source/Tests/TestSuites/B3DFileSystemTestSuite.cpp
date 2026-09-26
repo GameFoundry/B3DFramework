@@ -8,7 +8,9 @@
 #include "Utility/B3DUUID.h"
 
 #include <algorithm>
+#include <atomic>
 #include <fstream>
+#include <thread>
 
 using namespace b3d;
 
@@ -66,6 +68,9 @@ FileSystemTestSuite::FileSystemTestSuite()
 	: TestSuite("FileSystemTestSuite")
 {
 	B3D_ADD_TEST(FileSystemTestSuite::TestSharedLifetime);
+	B3D_ADD_TEST(FileSystemTestSuite::TestFileSharing);
+	B3D_ADD_TEST(FileSystemTestSuite::TestFileSharingUnderHandlePressure);
+	B3D_ADD_TEST(FileSystemTestSuite::TestConcurrentFileSharing);
 	B3D_ADD_TEST(FileSystemTestSuite::TestExistsYesFile);
 	B3D_ADD_TEST(FileSystemTestSuite::TestExistsYesDir);
 	B3D_ADD_TEST(FileSystemTestSuite::TestExistsNo);
@@ -125,6 +130,118 @@ void FileSystemTestSuite::TestSharedLifetime()
 	B3D_TEST_ASSERT(data != nullptr);
 	if(data != nullptr)
 		B3D_TEST_ASSERT(String((const char*)data->Data(), data->Size()) == content);
+}
+
+void FileSystemTestSuite::TestFileSharing()
+{
+	const Path path = mTestDirectory + "file-sharing";
+	CreateFile(path, "unchanged");
+	const FileAccessFlags readWrite = FileAccessFlag::Read | FileAccessFlag::Write;
+	LoggingScope logScope(*this);
+	logScope.IgnoreWarning("Failed to open file");
+	logScope.IgnoreError("Failed to open file");
+	logScope.IgnoreError("Failed to acquire");
+
+	TShared<DataStream> firstReader = FileSystem::OpenFile(path);
+	TShared<DataStream> secondReader = FileSystem::OpenFile(path);
+	B3D_TEST_ASSERT(firstReader != nullptr && secondReader != nullptr);
+	B3D_TEST_ASSERT(FileSystem::OpenFile(path, readWrite) == nullptr);
+	firstReader = nullptr;
+	B3D_TEST_ASSERT(FileSystem::OpenFile(path, readWrite) == nullptr);
+	secondReader = nullptr;
+
+	TShared<DataStream> writer = FileSystem::OpenFile(path, readWrite);
+	B3D_TEST_ASSERT(writer != nullptr);
+	if(writer == nullptr)
+		return;
+	B3D_TEST_ASSERT(FileSystem::OpenFile(path) == nullptr);
+	B3D_TEST_ASSERT(FileSystem::OpenFile(path, readWrite) == nullptr);
+	B3D_TEST_ASSERT(writer->Close());
+	B3D_TEST_ASSERT(writer->Close());
+	B3D_TEST_ASSERT(FileSystem::OpenFile(path) != nullptr);
+
+	// Deliberately shared writers and readers must all opt into sharing.
+	writer = FileSystem::OpenFile(path, readWrite | FileAccessFlag::Shared);
+	TShared<DataStream> sharedReader = FileSystem::OpenFile(path, FileAccessFlag::Read | FileAccessFlag::Shared);
+	TShared<DataStream> sharedWriter = FileSystem::OpenFile(path, readWrite | FileAccessFlag::Shared);
+	B3D_TEST_ASSERT(writer != nullptr && sharedReader != nullptr && sharedWriter != nullptr);
+	writer = nullptr;
+	sharedReader = nullptr;
+	sharedWriter = nullptr;
+	B3D_TEST_ASSERT(FileSystem::OpenFile(path, readWrite) != nullptr);
+
+	const Path missingPath = mTestDirectory + "sharing-failed-open";
+	B3D_TEST_ASSERT(FileSystem::OpenFile(missingPath) == nullptr);
+	B3D_TEST_ASSERT(FileSystem::CreateAndOpenFile(missingPath) != nullptr);
+}
+
+void FileSystemTestSuite::TestFileSharingUnderHandlePressure()
+{
+	const Path path = mTestDirectory + "sharing-protected";
+	const Path otherPath = mTestDirectory + "sharing-other";
+	const String content = "A live reader remains protected.";
+	CreateFile(path, content);
+	CreateFile(otherPath, "other");
+	TShared<DataStream> reader = FileSystem::OpenFile(path, FileAccessFlag::Read | FileAccessFlag::Async);
+	B3D_TEST_ASSERT(reader != nullptr);
+	if(reader == nullptr)
+		return;
+
+	Vector<TShared<DataStream>> otherReaders;
+	otherReaders.reserve(300);
+	for(u32 readerIndex = 0; readerIndex < 300; ++readerIndex)
+	{
+		TShared<DataStream> otherReader = FileSystem::OpenFile(otherPath);
+		B3D_TEST_ASSERT(otherReader != nullptr);
+		if(otherReader == nullptr)
+			return;
+		otherReaders.push_back(std::move(otherReader));
+	}
+
+	{
+		LoggingScope logScope(*this);
+		logScope.ExpectWarning("Failed to open file");
+		logScope.IgnoreError("Failed to open file");
+		logScope.IgnoreError("Failed to acquire");
+		B3D_TEST_ASSERT(FileSystem::OpenFile(path, FileAccessFlag::Read | FileAccessFlag::Write) == nullptr);
+	}
+
+	TAsyncOp<TShared<MemoryDataStream>> read = reader->ReadAsync(0, content.size());
+	read.BlockUntilComplete();
+	const TShared<MemoryDataStream> data = read.GetReturnValue();
+	B3D_TEST_ASSERT(data != nullptr);
+	if(data != nullptr)
+		B3D_TEST_ASSERT(String((const char*)data->Data(), data->Size()) == content);
+	reader = nullptr;
+	B3D_TEST_ASSERT(FileSystem::OpenFile(path, FileAccessFlag::Read | FileAccessFlag::Write) != nullptr);
+}
+
+void FileSystemTestSuite::TestConcurrentFileSharing()
+{
+	const Path path = mTestDirectory + "sharing-concurrent";
+	CreateFile(path, "unchanged");
+	LoggingScope logScope(*this);
+	logScope.IgnoreWarning("Failed to open file");
+	logScope.IgnoreError("Failed to open file");
+	logScope.IgnoreError("Failed to acquire");
+
+	for(u32 iteration = 0; iteration < 16; ++iteration)
+	{
+		std::atomic<bool> start(false);
+		TShared<DataStream> writers[2];
+		auto fnOpen = [&path, &start, &writers](u32 index)
+		{
+			while(!start.load())
+				std::this_thread::yield();
+			writers[index] = FileSystem::OpenFile(path, FileAccessFlag::Read | FileAccessFlag::Write);
+		};
+		std::thread first(fnOpen, 0);
+		std::thread second(fnOpen, 1);
+		start.store(true);
+		first.join();
+		second.join();
+		B3D_TEST_ASSERT((writers[0] != nullptr) != (writers[1] != nullptr));
+	}
 }
 
 void FileSystemTestSuite::TestExistsYesFile()

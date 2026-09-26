@@ -16,6 +16,12 @@ namespace b3d
 	private:
 		/** Verifies nested filesystem ownership leaves storage and asynchronous reads available. */
 		void TestSharedLifetime();
+		/** Verifies reader/writer sharing, release on close, and rollback after a failed open. */
+		void TestFileSharing();
+		/** Verifies a live stream remains protected and readable after many other files have been opened. */
+		void TestFileSharingUnderHandlePressure();
+		/** Verifies simultaneous exclusive opens cannot both succeed. */
+		void TestConcurrentFileSharing();
 
 		void TestExistsYesFile();
 		void TestExistsYesDir();

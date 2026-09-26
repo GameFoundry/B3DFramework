@@ -349,7 +349,7 @@ namespace b3d
 		Async = 1 << 2,
 
 		/**
-		 * Relaxes the kernel-enforced exclusive sharing that a write-capable open normally takes. By default a write
+		 * Relaxes the exclusive sharing that a write-capable open normally takes. By default a write
 		 * open is exclusive (no other handle to the same path is permitted) and a read-only open admits only other
 		 * readers; this is what makes accidental concurrent access to the same file surface as a hard open error
 		 * instead of silent corruption. Set this flag only for files that are *deliberately* shared with cooperating
