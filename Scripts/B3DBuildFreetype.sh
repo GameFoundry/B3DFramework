@@ -30,12 +30,14 @@ else
 fi
 
 # Apply the shared source patch (disables FreeType's env-driven property lookup, which depends on
-# getenv() and is unused by Banshee). Applied on every platform. The --check guard keeps re-runs
-# idempotent.
+# getenv() and is unused by Banshee, and enables pair kerning from the GPOS table). Applied on every
+# platform. Tracked files are reset first so re-runs apply the current patch rather than skipping it
+# when an older version is already applied.
 RootPatch="$CurrentDirectory/Patches/Freetype.patch"
 if [ -f "$RootPatch" ]; then
 	echo "Applying patch: $RootPatch"
-	git apply --check "$RootPatch" 2>/dev/null && git apply "$RootPatch"
+	git checkout -- .
+	git apply "$RootPatch" || exit 1
 fi
 
 # Setup output folders
