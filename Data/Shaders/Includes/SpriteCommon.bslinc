@@ -52,6 +52,8 @@ mixin SpriteCommon
 			float4 gUVSizeOffset;
 			float gViewportYFlip;
 			int gClipRegionCount;
+			float4 gTextCoverageParams; // x - contrast boost, y - 1/gamma, z - linear text luminance, w - linear assumed background luminance
+			float2 gTextCoverageBlend; // x - assumed background luminance, y - 1/(text - background luminance), or 0 to skip the blend inversion
 		}
 
         struct Area2DInt

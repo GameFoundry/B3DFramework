@@ -17,12 +17,59 @@ using namespace b3d;
 namespace b3d
 {
 	TConfigVariable<bool> gGuiUseLinearColorSpace("gui.UseLinearColorSpace",
-		"If true (default), GUI/sprite/vector content is composited in linear color space: input colors and "
-		"sRGB-imported textures are decoded to linear, blending happens in linear, and the result is re-encoded to "
-		"sRGB on output. If false, compositing happens in gamma (sRGB-encoded) space (matching web browsers). "
-		"UI source textures should be imported as sRGB when true and as linear when false.",
-		true,
+		"If false (default), GUI/sprite/vector content is composited in gamma (sRGB-encoded) space, matching web "
+		"browsers. If true, input colors and sRGB-imported textures are decoded to linear, blending happens in linear, "
+		"and the result is re-encoded to sRGB on output. UI source textures should be imported as linear when false and "
+		"as sRGB when true.",
+		false,
 		ConfigVariableFlag::ReadOnly);
+
+	TConfigVariable<float> gGuiTextGamma("gui.TextGamma",
+		"Gamma used by the text coverage correction when compositing in gamma space. Higher values make light text on "
+		"dark backgrounds heavier. 1 together with a zero gui.TextContrast disables the correction.",
+		3.0f,
+		ConfigVariableFlag::RenderThreadSafe);
+
+	TConfigVariable<float> gGuiTextContrast("gui.TextContrast",
+		"Contrast boost applied to text coverage when compositing in gamma space, scaled by the luminance of the "
+		"assumed background. Mainly makes dark text on light backgrounds heavier.",
+		1.75f,
+		ConfigVariableFlag::RenderThreadSafe);
+}
+
+/**
+ * Calculates parameters for the text coverage correction (CorrectTextCoverage in SpriteText.bsl) for text of the
+ * provided color. Assumes the background is the luminance inverse of the text.
+ */
+static void CalculateTextCoverageParameters(const Color& textColor, Vector4& outParameters, Vector2& outBlend)
+{
+	// The correction models blending in gamma space, so it isn't applied in linear space. Text blended in linear space
+	// comes out lighter than in browsers, most of all dark text on light backgrounds.
+	if(gGuiUseLinearColorSpace)
+	{
+		outParameters = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+		outBlend = Vector2(0.0f, 0.0f);
+		return;
+	}
+
+	const float gamma = std::max((float)gGuiTextGamma, 0.01f);
+	const float contrast = std::max((float)gGuiTextContrast, 0.0f);
+
+	const float linearTextLuminance =
+		0.2126f * Math::RaiseToPower(Math::Clamp01(textColor.R), gamma) +
+		0.7152f * Math::RaiseToPower(Math::Clamp01(textColor.G), gamma) +
+		0.0722f * Math::RaiseToPower(Math::Clamp01(textColor.B), gamma);
+
+	const float textLuminance = Math::RaiseToPower(linearTextLuminance, 1.0f / gamma);
+	const float backgroundLuminance = 1.0f - textLuminance;
+	const float linearBackgroundLuminance = Math::RaiseToPower(backgroundLuminance, gamma);
+
+	outParameters = Vector4(contrast * linearBackgroundLuminance, 1.0f / gamma, linearTextLuminance, linearBackgroundLuminance);
+
+	// With the text and the background this close the blend can't be inverted, so only the contrast boost applies
+	const float luminanceDifference = textLuminance - backgroundLuminance;
+	const float inverseLuminanceDifference = Math::Abs(luminanceDifference) < 1.0f / 256.0f ? 0.0f : 1.0f / luminanceDifference;
+	outBlend = Vector2(backgroundLuminance, inverseLuminanceDifference);
 }
 
 SpriteMaterial::SpriteMaterial(u32 id, const HMaterial& material, ShaderVariationParameters variation, bool allowBatching)
@@ -162,6 +209,12 @@ void SpriteMaterial::PopulateUniformBuffer(const render::GpuBufferMappedScope& u
 	render::gGUISpriteUniformBufferDefinition.gViewportOffset.Set(uniforms, viewportOffset);
 	render::gGUISpriteUniformBufferDefinition.gViewportYFlip.Set(uniforms, flipY ? -1.0f : 1.0f);
 	render::gGUISpriteUniformBufferDefinition.gClipRegionCount.Set(uniforms, clipRegionCount);
+
+	Vector4 textCoverageParameters;
+	Vector2 textCoverageBlend;
+	CalculateTextCoverageParameters(materialInformation.Tint, textCoverageParameters, textCoverageBlend);
+	render::gGUISpriteUniformBufferDefinition.gTextCoverageParams.Set(uniforms, textCoverageParameters);
+	render::gGUISpriteUniformBufferDefinition.gTextCoverageBlend.Set(uniforms, textCoverageBlend);
 
 	const float t = std::max(0.0f, animationTime - materialInformation.AnimationStartTime);
 	if(materialInformation.SpriteImage)

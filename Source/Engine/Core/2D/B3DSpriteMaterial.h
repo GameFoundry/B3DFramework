@@ -22,12 +22,23 @@ namespace b3d
 	 */
 
 	/**
-	 * If true (default), GUI/sprite/vector content is composited in linear color space: input colors and
-	 * sRGB-imported textures are decoded to linear, blending happens in linear, and the result is re-encoded to
-	 * sRGB on output. If false, compositing happens in gamma (sRGB-encoded) space (matching web browsers). UI source
-	 * textures should be imported as sRGB when true and as linear when false.
+	 * If false (default), GUI/sprite/vector content is composited in gamma (sRGB-encoded) space, matching web browsers.
+	 * If true, input colors and sRGB-imported textures are decoded to linear, blending happens in linear, and the result
+	 * is re-encoded to sRGB on output. UI source textures should be imported as linear when false and as sRGB when true.
 	 */
-	extern TConfigVariable<bool> gGuiUseLinearColorSpace;
+	extern B3D_EXPORT TConfigVariable<bool> gGuiUseLinearColorSpace;
+
+	/**
+	 * Gamma used by the text coverage correction when compositing in gamma space. Higher values make light text on dark
+	 * backgrounds heavier. 1 together with a zero contrast disables the correction.
+	 */
+	extern B3D_EXPORT TConfigVariable<float> gGuiTextGamma;
+
+	/**
+	 * Contrast boost applied to text coverage when compositing in gamma space, scaled by the luminance of the assumed
+	 * background. Mainly makes dark text on light backgrounds heavier.
+	 */
+	extern B3D_EXPORT TConfigVariable<float> gGuiTextContrast;
 
 	/** Type of transparency supported by a sprite material. */
 	enum class SpriteMaterialTransparency
@@ -194,6 +205,8 @@ namespace b3d
 			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gUVSizeOffset)
 			B3D_UNIFORM_BUFFER_MEMBER(float, gViewportYFlip)
 			B3D_UNIFORM_BUFFER_MEMBER(u32, gClipRegionCount)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector4, gTextCoverageParams)
+			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gTextCoverageBlend)
 		B3D_UNIFORM_BUFFER_END
 
 		extern GUISpriteUniformBufferDefinition gGUISpriteUniformBufferDefinition;
