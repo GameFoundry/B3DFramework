@@ -44,23 +44,23 @@ float TextGeometry::Word::CalculateWidthWithCharacter(const CharacterInformation
 	return mWidth + CalculateCharacterWidth(mLastCharacter, characterInformation, letterSpacing);
 }
 
+/** Returns the kerning offset to apply between @p leftCharacter and the character immediately following it. */
+static float GetKerning(const CharacterInformation& leftCharacter, u32 rightCharacterId)
+{
+	for(const KerningPair& kerningPair : leftCharacter.KerningPairs)
+	{
+		if(kerningPair.OtherCharId == rightCharacterId)
+			return kerningPair.Amount;
+	}
+
+	return 0.0f;
+}
+
 float TextGeometry::Word::CalculateCharacterWidth(const CharacterInformation* previousCharacter, const CharacterInformation& currentCharacter, float letterSpacing)
 {
 	float characterWidth = currentCharacter.XAdvance + letterSpacing;
 	if(previousCharacter != nullptr)
-	{
-		float kerning = 0.0f;
-		for(size_t j = 0; j < previousCharacter->KerningPairs.size(); j++)
-		{
-			if(previousCharacter->KerningPairs[j].OtherCharId == currentCharacter.CharId)
-			{
-				kerning = previousCharacter->KerningPairs[j].Amount;
-				break;
-			}
-		}
-
-		characterWidth += kerning;
-	}
+		characterWidth += GetKerning(*previousCharacter, currentCharacter.CharId);
 
 	return characterWidth;
 }
@@ -247,7 +247,6 @@ u32 TextGeometry::Line::FillBuffer(u32 page, Vector2* outVertices, Vector2* outU
 		{
 			const float letterSpacing = mTextData->GetMetrics().LetterSpacing;
 
-			float kerning = 0.0f;
 			for(u32 characterIndex = word.GetStartCharacterIndex(); characterIndex <= word.GetEndCharacterIndex(); characterIndex++)
 			{
 				const CharacterInformation& currentCharacterInformation = mTextData->GetCharacter(characterIndex);
@@ -255,21 +254,12 @@ u32 TextGeometry::Line::FillBuffer(u32 page, Vector2* outVertices, Vector2* outU
 				float curX = penX + currentCharacterInformation.XOffset;
 				float curY = mTextData->GetBaselineOffset() - currentCharacterInformation.YOffset;
 
-				penX += currentCharacterInformation.XAdvance + kerning + letterSpacing;
-
-				kerning = 0.0f;
+				// Kerning of the pair (current, next) moves the next character, so it is part of the current advance
+				float kerning = 0.0f;
 				if((characterIndex + 1) <= word.GetEndCharacterIndex())
-				{
-					const CharacterInformation& nextChar = mTextData->GetCharacter(characterIndex + 1);
-					for(size_t j = 0; j < currentCharacterInformation.KerningPairs.size(); j++)
-					{
-						if(currentCharacterInformation.KerningPairs[j].OtherCharId == nextChar.CharId)
-						{
-							kerning = currentCharacterInformation.KerningPairs[j].Amount;
-							break;
-						}
-					}
-				}
+					kerning = GetKerning(currentCharacterInformation, mTextData->GetCharacter(characterIndex + 1).CharId);
+
+				penX += currentCharacterInformation.XAdvance + kerning + letterSpacing;
 
 				if(currentCharacterInformation.Page != page)
 					continue;

@@ -282,16 +282,24 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 		characterInformation.YAdvance = ConvertFixed26Dot6ToFloat(glyph->advance.y);
 		characterInformation.PointSize = 0.0f;
 
-		// Parse kerning
-		for(auto& keyValuePair : bitmapInformation->Characters)
+		// Parse kerning, pairing the new character with itself and with every character already rendered at this size
+		if(FT_HAS_KERNING(face))
 		{
-			const u32 otherCharacterId = keyValuePair.first;
-			CharacterInformation& otherCharacterInformation = keyValuePair.second;
+			// Hinted glyphs have whole-pixel advances, so keep kerning on the pixel grid as well
+			const bool isHinted = mInformation.RenderMode == FontRenderMode::HintedSmooth || mInformation.RenderMode == FontRenderMode::HintedRaster;
+			const FT_UInt kerningMode = isHinted ? FT_KERNING_DEFAULT : FT_KERNING_UNFITTED;
 
-			auto fnAddKerning = [&face](CharacterInformation& leftCharacterInformation, u32 rightCharacterId) {
+			auto fnAddKerning = [&face, kerningMode](CharacterInformation& leftCharacterInformation, FT_UInt leftGlyphIndex, u32 rightCharacterId, FT_UInt rightGlyphIndex) {
+				// Pairs survive when runtime glyphs are cleared, so a re-rendered character may already be paired
+				for(const KerningPair& existingPair : leftCharacterInformation.KerningPairs)
+				{
+					if(existingPair.OtherCharId == rightCharacterId)
+						return;
+				}
+
 				FT_Vector kerning;
 
-				const FT_Error error = FT_Get_Kerning(face, leftCharacterInformation.CharId, rightCharacterId, FT_KERNING_UNFITTED, &kerning);
+				const FT_Error error = FT_Get_Kerning(face, leftGlyphIndex, rightGlyphIndex, kerningMode, &kerning);
 				if(error)
 				{
 					B3D_LOG(Error, LogFont, "Failed to get kerning information for glyphs '{0}', '{1}'.",  leftCharacterInformation.CharId, rightCharacterId);
@@ -309,8 +317,18 @@ bool Font::RenderGlyphs(float sizeInPoints, const TArrayView<u32>& characterIds,
 				}
 			};
 
-			fnAddKerning(characterInformation, otherCharacterId);
-			fnAddKerning(otherCharacterInformation, characterId);
+			const FT_UInt glyphIndex = FT_Get_Char_Index(face, (FT_ULong)characterId);
+			fnAddKerning(characterInformation, glyphIndex, characterId, glyphIndex);
+
+			for(auto& keyValuePair : bitmapInformation->Characters)
+			{
+				const u32 otherCharacterId = keyValuePair.first;
+				CharacterInformation& otherCharacterInformation = keyValuePair.second;
+				const FT_UInt otherGlyphIndex = FT_Get_Char_Index(face, (FT_ULong)otherCharacterId);
+
+				fnAddKerning(characterInformation, glyphIndex, otherCharacterId, otherGlyphIndex);
+				fnAddKerning(otherCharacterInformation, otherGlyphIndex, characterId, glyphIndex);
+			}
 		}
 
 		// Read pixels
