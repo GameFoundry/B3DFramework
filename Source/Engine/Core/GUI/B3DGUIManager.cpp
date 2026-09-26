@@ -1937,6 +1937,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 
 	BlitInformation blitInformation = BlitInformation::Blend(cameraRenderData.CachedRenderTexture->GetColorSurfaceInformation(0).Texture, renderTarget, Area2I::kEmpty, RT_NONE, RT_ALL);
 	blitInformation.OutputArea = Area2(0.0f, 0.0f, 1.0f, 1.0f);
+	blitInformation.PremultipliedAlpha = true; // Sprite blend states accumulate premultiplied color in the cached texture
 	blitInformation.WriteAlpha = true;
 	blitInformation.SrgbEncode = gGuiUseLinearColorSpace;
 

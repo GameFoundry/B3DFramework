@@ -24,11 +24,10 @@ mixin SpriteCommon
 			enabled = true;
 			#if TRANSPARENCY == 1
 			color = { srcA, srcIA, add };
-			alpha = { srcA, dstA, max };
 			#else
 			color = { one, srcIA, add };
-			alpha = { one, dstA, max };
 			#endif
+			alpha = { one, srcIA, add };
 			
 			writemask = RGBA;
 		};

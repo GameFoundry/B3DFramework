@@ -86,6 +86,9 @@ namespace b3d
 		TShared<SpriteImageAllocation> FindOrAllocateImageToFitArea(const Size2I& size) override;
 		TShared<SpriteImageAllocation> FindOrAllocateScaledImage(float scale) override;
 
+		/** Vector paths are rasterized into their atlas with premultiplied alpha. */
+		bool HasPremultipliedAlpha() const override { return true; }
+
 		/**	Creates a new sprite vector path. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(SpriteVectorPath))
 		static HSpriteVectorPath Create(const HVectorPath& vectorPath, const Size2I& defaultSize);

@@ -84,8 +84,11 @@ void ImageSprite::Update(const ImageSpriteInformation& information, u64 groupId)
 		}
 		else
 		{
-			renderElement.Material = SpriteManager::Instance().GetImageMaterial(
-				information.Transparent ? SpriteMaterialTransparency::Alpha : SpriteMaterialTransparency::Opaque, animated);
+			SpriteMaterialTransparency transparency = SpriteMaterialTransparency::Opaque;
+			if(information.Transparent)
+				transparency = information.Image->HasPremultipliedAlpha() ? SpriteMaterialTransparency::Premultiplied : SpriteMaterialTransparency::Alpha;
+
+			renderElement.Material = SpriteManager::Instance().GetImageMaterial(transparency, animated);
 		}
 
 		renderElement.MaterialInformation = &renderElementData.MaterialInformation;

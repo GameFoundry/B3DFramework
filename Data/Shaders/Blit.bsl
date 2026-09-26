@@ -13,7 +13,12 @@ shader Blit
 				2, // Depth
 			};
 		MSAA_COUNT = { 1, 2, 4, 8 };
-        BLEND = { true, false };
+        BLEND =
+			{
+				0, // Overwrite
+				1, // Blend, straight alpha source
+				2, // Blend, premultiplied alpha source
+			};
         WRITE_ALPHA = { false, true };
         SRGB_ENCODE = { false, true };
         OUTPUT_32BIT = { false, true };
@@ -47,7 +52,13 @@ shader Blit
 		target
         {
 			enabled = true;
-			color = { srcA, srcIA, add };
+
+			#if BLEND == 1
+				color = { srcA, srcIA, add };
+			#else
+				color = { one, srcIA, add };
+				alpha = { one, srcIA, add };
+			#endif
 
 			#if WRITE_ALPHA
 				writemask = RGBA;
@@ -137,7 +148,13 @@ shader Blit
 
 			#if SRGB_ENCODE
 				// Source is hardware-sRGB (decoded to linear on sample); re-encode to sRGB so it can be written to a non-sRGB target.
-				color.rgb = LinearToGammasRGB(color.rgb);
+				#if BLEND == 2
+					// Encoding applies to the straight color, so undo the premultiplication around it
+					if(color.a > 0.0f)
+						color.rgb = LinearToGammasRGB(color.rgb / color.a) * color.a;
+				#else
+					color.rgb = LinearToGammasRGB(color.rgb);
+				#endif
 			#endif
 
 			return color;

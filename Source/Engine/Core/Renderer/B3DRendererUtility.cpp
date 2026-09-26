@@ -318,7 +318,7 @@ void RendererUtility::Blit(GpuCommandBuffer& commandBuffer, const BlitInformatio
 	}
 
 	// Get appropriate material variation
-	BlitMat* const blitMaterial = BlitMat::GetVariation(textureProperties.SampleCount, !blitInformation.IsDepth, blitInformation.UseFiltering, blitInformation.UseBlend, blitInformation.WriteAlpha, blitInformation.SrgbEncode, output32Bit);
+	BlitMat* const blitMaterial = BlitMat::GetVariation(textureProperties.SampleCount, !blitInformation.IsDepth, blitInformation.UseFiltering, blitInformation.UseBlend, blitInformation.PremultipliedAlpha, blitInformation.WriteAlpha, blitInformation.SrgbEncode, output32Bit);
 
 	// Get GPU parameters and configure source texture
 	const TShared<GpuParameterSet> gpuParameters = blitMaterial->Prepare(blitInformation.InputTexture);
@@ -444,24 +444,30 @@ void BlitMat::Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuParamete
 		GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0, 0, 1, 1), Vector2I(1, 1), 1, flipUV);
 }
 
-BlitMat* BlitMat::GetVariation(u32 msaaCount, bool isColor, bool isFiltered, bool blend, bool writeAlpha, bool srgbEncode, bool output32Bit)
+template <u32 BLEND>
+BlitMat* BlitMat::GetBlendVariation(bool isFiltered, bool writeAlpha, bool srgbEncode, bool output32Bit)
+{
+	if(writeAlpha)
+	{
+		if(isFiltered)
+			return srgbEncode ? Get(GetVariation<1, 1, BLEND, true, true>(output32Bit)) : Get(GetVariation<1, 1, BLEND, true, false>(output32Bit));
+		else
+			return srgbEncode ? Get(GetVariation<1, 0, BLEND, true, true>(output32Bit)) : Get(GetVariation<1, 0, BLEND, true, false>(output32Bit));
+	}
+	else
+	{
+		if(isFiltered)
+			return srgbEncode ? Get(GetVariation<1, 1, BLEND, false, true>(output32Bit)) : Get(GetVariation<1, 1, BLEND, false, false>(output32Bit));
+		else
+			return srgbEncode ? Get(GetVariation<1, 0, BLEND, false, true>(output32Bit)) : Get(GetVariation<1, 0, BLEND, false, false>(output32Bit));
+	}
+}
+
+BlitMat* BlitMat::GetVariation(u32 msaaCount, bool isColor, bool isFiltered, bool blend, bool premultipliedAlpha, bool writeAlpha, bool srgbEncode, bool output32Bit)
 {
 	if(blend)
 	{
-		if(writeAlpha)
-		{
-			if(isFiltered)
-				return srgbEncode ? Get(GetVariation<1, 1, true, true, true>(output32Bit)) : Get(GetVariation<1, 1, true, true, false>(output32Bit));
-			else
-				return srgbEncode ? Get(GetVariation<1, 0, true, true, true>(output32Bit)) : Get(GetVariation<1, 0, true, true, false>(output32Bit));
-		}
-		else
-		{
-			if(isFiltered)
-				return srgbEncode ? Get(GetVariation<1, 1, true, false, true>(output32Bit)) : Get(GetVariation<1, 1, true, false, false>(output32Bit));
-			else
-				return srgbEncode ? Get(GetVariation<1, 0, true, false, true>(output32Bit)) : Get(GetVariation<1, 0, true, false, false>(output32Bit));
-		}
+		return premultipliedAlpha ? GetBlendVariation<2>(isFiltered, writeAlpha, srgbEncode, output32Bit) : GetBlendVariation<1>(isFiltered, writeAlpha, srgbEncode, output32Bit);
 	}
 
 	if(msaaCount > 1)

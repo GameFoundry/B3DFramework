@@ -40,8 +40,11 @@ shader SpriteImage
 
 			#if TRANSPARENCY == 0
 				return float4((color * gTint).rgb, 1.0f);
-			#else
+			#elif TRANSPARENCY == 1
 				return color * gTint;
+			#else
+				// Texture is premultiplied, so the tint must be premultiplied too
+				return color * float4(gTint.rgb * gTint.a, gTint.a);
 			#endif
 		}
 	};

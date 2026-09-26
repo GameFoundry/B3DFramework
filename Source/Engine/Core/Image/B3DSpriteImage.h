@@ -284,6 +284,9 @@ namespace b3d
 		/** Frees any data associated with the provided allocation. */
 		virtual void DeallocateImage(SpriteImageAllocation* allocation);
 
+		/** Returns true if the color stored in the image's allocations is premultiplied by alpha. */
+		virtual bool HasPremultipliedAlpha() const { return false; }
+
 		/** @name Internal
 		 *  @{
 		 */
