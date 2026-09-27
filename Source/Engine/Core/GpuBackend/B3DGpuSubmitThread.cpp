@@ -94,6 +94,17 @@ void GpuSubmitThread::QueueSubmit(const TShared<GpuCommandBuffer>& commandBuffer
 		WaitUntilIdle();
 }
 
+TArrayView<const u64> GpuSubmitThread::ConsumeFrameFence(const GpuQueue& queue)
+{
+	AssertIfNotSubmitThread();
+
+	if(!mFrameFencePendingQueues.IsSet(queue.GetId()))
+		return {};
+
+	mFrameFencePendingQueues &= ~GpuQueueMask(queue.GetId());
+	return mFrameMarkers[mFrameFenceMarkerIndex].LastFenceValues;
+}
+
 void GpuSubmitThread::QueuePresent(GpuQueue& queue, GpuSwapChain& swapChain, GpuQueueMask syncMask)
 {
 	u32 acquiredImageIndex;
@@ -150,7 +161,12 @@ void GpuSubmitThread::QueueEndFrameAndWaitForPreviousFrame()
 		mGpuDevice.DoForEachQueue([this, &currentMarker](GpuQueue& queue)
 		{
 			currentMarker.LastSubmitIndices[queue.GetId().Id] = mBackend.GetLastSubmitIndex(queue);
+			currentMarker.LastFenceValues[queue.GetId().Id] = mBackend.GetLastSubmittedFenceValue(queue);
 		});
+
+		// Order the next frame's first submission on every queue after all of this frame's work
+		mFrameFencePendingQueues = GpuQueueMask::kAll;
+		mFrameFenceMarkerIndex = frameIndex;
 
 		// Wait for all tracked command buffers from the previous frame, up to the submit index captured at that frame's
 		// boundary. Checking the full range ensures every command buffer pool and its resources are safe to reuse.

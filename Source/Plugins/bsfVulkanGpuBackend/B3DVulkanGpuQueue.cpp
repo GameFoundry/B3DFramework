@@ -133,6 +133,31 @@ void VulkanGpuQueue::AppendSyncMaskWaits(GpuQueueMask syncMask, SubmitWorkBuffer
 	}
 }
 
+void VulkanGpuQueue::AppendFrameFenceWaits(GpuQueueMask syncMask, SubmitWorkBuffer& outWorkBuffer)
+{
+	AssertIfNotSubmitThread();
+
+	VulkanGpuDevice& device = GetDevice();
+	const TArrayView<const u64> waitValues = device.GetSubmitThread().ConsumeFrameFence(*this);
+	if(waitValues.IsEmpty())
+		return;
+
+	// A timeline wait at ALL_COMMANDS is a full execution and memory dependency on every command submitted before the
+	// signal. Waiting on this queue's own timeline replaces a pipeline barrier, which AppendSyncMaskWaits() never adds.
+	device.DoForEachQueue([this, syncMask, waitValues, &outWorkBuffer](GpuQueue& queue)
+	{
+		const GpuQueueId queueId = queue.GetId();
+		const u64 waitValue = waitValues[queueId.Id];
+		if(waitValue == 0)
+			return;
+
+		if(queueId.Id != GetId().Id && syncMask.IsSet(queueId))
+			return;
+
+		outWorkBuffer.AddWait(static_cast<VulkanGpuQueue&>(queue).mProgressTimeline, waitValue);
+	});
+}
+
 void VulkanGpuQueue::RetainSemaphores(SubmissionRecord& outRecord, TArrayView<VulkanSemaphore* const> semaphores)
 {
 	AssertIfNotSubmitThread();
@@ -221,6 +246,7 @@ void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const VulkanGpuCommandBufferSub
 		waitWorkBuffer.AddWait(semaphore->GetHandle());
 
 	AppendSyncMaskWaits(syncMask, waitWorkBuffer);
+	AppendFrameFenceWaits(syncMask, waitWorkBuffer);
 
 	for(VulkanSemaphore* semaphore : submitInformation.SignalSemaphores)
 	{

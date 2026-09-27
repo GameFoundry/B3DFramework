@@ -89,6 +89,14 @@ namespace b3d
 			 */
 			u32 GetLastSubmitIndex() const { return mNextSubmitIndex - 1; }
 
+			/**
+			 * Returns the progress timeline value of the most recent submission on this queue, or 0 if nothing has been
+			 * submitted yet.
+			 *
+			 * @note	Submit thread only.
+			 */
+			u64 GetLastSubmittedProgressValue() const { return mLastSubmittedProgressValue; }
+
 		protected:
 			/**
 			 * Scratch storage backing a single VkSubmitInfo (or VkPresentInfoKHR). Its data must stay untouched until the
@@ -124,6 +132,12 @@ namespace b3d
 
 			/** Appends timeline waits covering the last submission of every source queue selected by @p syncMask. Submit thread only. */
 			void AppendSyncMaskWaits(GpuQueueMask syncMask, SubmitWorkBuffer& outWorkBuffer) const;
+
+			/**
+			 * Appends the waits of the frame fence if this is the queue's first submission since the frame boundary. Skips
+			 * other queues in @p syncMask, whose latest value AppendSyncMaskWaits() already waits on. Submit thread only.
+			 */
+			void AppendFrameFenceWaits(GpuQueueMask syncMask, SubmitWorkBuffer& outWorkBuffer);
 
 			/** Marks the semaphores as in use by this queue and stores them in @p outRecord for release on retirement. Submit thread only. */
 			void RetainSemaphores(SubmissionRecord& outRecord, TArrayView<VulkanSemaphore* const> semaphores);

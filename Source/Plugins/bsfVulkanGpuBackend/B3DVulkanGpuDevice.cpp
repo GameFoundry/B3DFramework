@@ -536,6 +536,11 @@ u32 VulkanGpuDevice::GetLastSubmitIndex(const GpuQueue& queue) const
 	return static_cast<const VulkanGpuQueue&>(queue).GetLastSubmitIndex();
 }
 
+u64 VulkanGpuDevice::GetLastSubmittedFenceValue(const GpuQueue& queue) const
+{
+	return static_cast<const VulkanGpuQueue&>(queue).GetLastSubmittedProgressValue();
+}
+
 void VulkanGpuDevice::ExecuteWaitUntilIdle()
 {
 	const VkResult result = vkDeviceWaitIdle(mLogicalDevice);

@@ -1032,6 +1032,11 @@ namespace b3d
 			return static_cast<const MetalGpuQueue&>(queue).GetLastSubmitIndex();
 		}
 
+		u64 MetalGpuDevice::GetLastSubmittedFenceValue(const GpuQueue& queue) const
+		{
+			return static_cast<const MetalGpuQueue&>(queue).GetLastCommittedEventValue();
+		}
+
 		void MetalGpuDevice::ExecuteWaitUntilIdle()
 		{
 			// Native device-wide wait: drain every queue's shared event and fence its completion

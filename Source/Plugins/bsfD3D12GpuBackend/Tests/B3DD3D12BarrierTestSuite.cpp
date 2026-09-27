@@ -10,7 +10,9 @@
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuSubmitThread.h"
 #include "GpuBackend/B3DGpuWorkContext.h"
+#include "CoreObject/B3DRenderThread.h"
 #include "Image/B3DTexture.h"
 
 using namespace b3d;
@@ -71,6 +73,7 @@ D3D12BarrierTestSuite::D3D12BarrierTestSuite() : TestSuite("D3D12BarrierTestSuit
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestSameQueueSubmissionHazards)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestMultisampleResolve)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestResolveValidation)
+	B3D_ADD_TEST(D3D12BarrierTestSuite::TestFrameFence)
 }
 
 void D3D12BarrierTestSuite::TestBufferBarrierScopes()
@@ -1042,4 +1045,46 @@ void D3D12BarrierTestSuite::TestResolveValidation()
 		loggingScope.ExpectError("D3D12 texture resolves require a graphics command buffer.");
 		B3D_TEST_ASSERT(!transferResolveCommandBuffer->CopyTexture(source, destination))
 	}
+}
+
+void D3D12BarrierTestSuite::TestFrameFence()
+{
+	GetRenderThread().PostCommand([this]()
+	{
+		GpuDevice* const device = GetActiveD3D12Device();
+		if(device == nullptr || device->GetQueueCount(GQT_GRAPHICS) == 0 || device->GetQueueCount(GQT_COMPUTE) == 0)
+			return;
+
+		const GpuQueue& graphicsQueue = *device->GetQueue(GQT_GRAPHICS, 0);
+		const GpuQueue& computeQueue = *device->GetQueue(GQT_COMPUTE, 0);
+		const GpuSubmitThread& submitThread = device->GetSubmitThread();
+
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		const auto fnSubmit = [device, &context](GpuQueueType queueType)
+		{
+			const TShared<GpuCommandBufferPool> pool = device->CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread(queueType));
+			context->SubmitCommandBuffer(pool->Create(GpuCommandBufferCreateInformation::Create("D3D12 frame boundary test")), GpuQueueMask::kNone);
+			device->WaitUntilIdle();
+		};
+
+		// Give both queues work in the ending frame, so the frame fence has non-zero values to wait on
+		fnSubmit(GQT_GRAPHICS);
+		fnSubmit(GQT_COMPUTE);
+
+		device->EndFrame();
+		device->WaitUntilIdle();
+		B3D_TEST_ASSERT(submitThread.IsFrameFencePending(graphicsQueue))
+		B3D_TEST_ASSERT(submitThread.IsFrameFencePending(computeQueue))
+
+		// The first submission on a queue consumes the frame fence, and later submissions don't re-arm it
+		fnSubmit(GQT_GRAPHICS);
+		B3D_TEST_ASSERT(!submitThread.IsFrameFencePending(graphicsQueue))
+		B3D_TEST_ASSERT(submitThread.IsFrameFencePending(computeQueue))
+
+		fnSubmit(GQT_GRAPHICS);
+		B3D_TEST_ASSERT(!submitThread.IsFrameFencePending(graphicsQueue))
+
+		fnSubmit(GQT_COMPUTE);
+		B3D_TEST_ASSERT(!submitThread.IsFrameFencePending(computeQueue))
+	}, "D3D12BarrierTestSuite::TestFrameFence", true);
 }

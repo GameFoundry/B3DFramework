@@ -160,6 +160,23 @@ void D3D12GpuQueue::ExecuteSubmitOnSubmitThread(const D3D12GpuCommandBufferSubmi
 
 	WaitForQueuesInMask(*this, syncMask);
 
+	// The queue's own earlier work needs no frame fence wait, because an ExecuteCommandLists() boundary is already a full
+	// synchronization point. Other queues in the sync mask were already waited on at their latest value, which covers the
+	// frame boundary.
+	const TArrayView<const u64> frameFenceValues = device.GetSubmitThread().ConsumeFrameFence(*this);
+	if (!frameFenceValues.IsEmpty())
+	{
+		device.DoForEachQueue([this, syncMask, frameFenceValues](GpuQueue& queue)
+		{
+			const GpuQueueId queueId = queue.GetId();
+			const u64 waitValue = frameFenceValues[queueId.Id];
+			if (waitValue == 0 || queueId.Id == GetId().Id || syncMask.IsSet(queueId))
+				return;
+
+			Wait(static_cast<D3D12GpuQueue&>(queue).GetSubmitFence(), waitValue);
+		});
+	}
+
 	TInlineArray<ID3D12CommandList*, 2> commandLists;
 	if (submitInformation.TransitionCommandBuffer != nullptr)
 	{

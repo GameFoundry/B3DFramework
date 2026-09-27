@@ -347,6 +347,11 @@ u32 D3D12GpuDevice::GetLastSubmitIndex(const GpuQueue& queue) const
 	return static_cast<const D3D12GpuQueue&>(queue).GetLastSubmitIndex();
 }
 
+u64 D3D12GpuDevice::GetLastSubmittedFenceValue(const GpuQueue& queue) const
+{
+	return static_cast<const D3D12GpuQueue&>(queue).GetLastSignaledFenceValue();
+}
+
 void D3D12GpuDevice::ExecuteWaitUntilIdle()
 {
 	for (u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
