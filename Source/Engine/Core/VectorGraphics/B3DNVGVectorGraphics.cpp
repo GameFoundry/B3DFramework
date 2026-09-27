@@ -814,8 +814,9 @@ namespace b3d::render
 		// Create or reuse GPU parameters
 		if(!mRenderBuffers.GpuParameterSet)
 		{
-			// Create new GPU parameters object
-			mRenderBuffers.GpuParameterSet = VectorGraphicsMaterial::Get()->CreateGpuParameterSet();
+			// Create new GPU parameters object. Like the buffers above, it must be destroyed on the render thread because the
+			// renderable can be released on the main thread (e.g. by the GUI vector sprite atlas).
+			mRenderBuffers.GpuParameterSet = VectorGraphicsMaterial::Get()->CreateGpuParameterSet(0, GpuObjectCreateFlag::RenderThreadDestroy);
 
 			// Set uniform buffers
 			mRenderBuffers.GpuParameterSet->SetUniformBuffer("RenderUniforms", mRenderBuffers.RenderUniformBuffer);

@@ -50,17 +50,6 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** Flags that control creation of GPU objects via GpuDevice factory methods. */
-	enum class GpuObjectCreateFlag
-	{
-		None = 0,
-		DeferredInitialize = 1 << 0, /**< Don't call Initialize() automatically. Caller must ensure it gets called after creation. */
-		RenderThreadDestroy = 1 << 1 /**< Ensures the object will always get destroyed on the render thread. Only relevant for render proxy objects. */
-	};
-
-	using GpuObjectCreateFlags = Flags<GpuObjectCreateFlag>;
-	B3D_FLAGS_OPERATORS(GpuObjectCreateFlag)
-
 	/**
 	 * Provides access to a particular GPU device.
 	 *
@@ -303,24 +292,6 @@ namespace b3d
 		 */
 		virtual float ConvertTimestampToMilliseconds(u64 timestamp) = 0;
 
-	protected:
-		friend class GpuWorkContext;
-
-		GpuDevice() = default;
-
-		/**
-		 * Creates a new GPU buffer whose backing memory is suballocated from an explicitly provided
-		 * @p allocator instead of the device's persistent allocator. The allocator must be compatible
-		 * with the buffer's memory type, i.e. resolved for the type returned by PickBufferMemoryType()
-		 * (GpuWorkContext::CreateTransientGpuBuffer is the canonical caller). @p allocator must outlive the
-		 * returned buffer.
-		 *
-		 * @param	createInformation	Object describing the buffer to create.
-		 * @param	allocator			Allocator the buffer's backing memory is suballocated from.
-		 * @param	flags				Creation flags. @see GpuObjectCreateFlag
-		 */
-		virtual TShared<render::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, IGpuAllocator& allocator, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None);
-
 		/**
 		 * Explicit deleter for objects that derive from RenderProxy. By default render proxy objects provide a custom deleter that
 		 * ensure they always get deleted on the render thread. But this behaviour is not always wanted (i.e. if creating a GPU object
@@ -339,6 +310,24 @@ namespace b3d
 
 			return TShared<Type>(data, fnStandaloneDeleter, StdAlloc<Type, PointerDataAllocatorTag>());
 		}
+
+	protected:
+		friend class GpuWorkContext;
+
+		GpuDevice() = default;
+
+		/**
+		 * Creates a new GPU buffer whose backing memory is suballocated from an explicitly provided
+		 * @p allocator instead of the device's persistent allocator. The allocator must be compatible
+		 * with the buffer's memory type, i.e. resolved for the type returned by PickBufferMemoryType()
+		 * (GpuWorkContext::CreateTransientGpuBuffer is the canonical caller). @p allocator must outlive the
+		 * returned buffer.
+		 *
+		 * @param	createInformation	Object describing the buffer to create.
+		 * @param	allocator			Allocator the buffer's backing memory is suballocated from.
+		 * @param	flags				Creation flags. @see GpuObjectCreateFlag
+		 */
+		virtual TShared<render::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, IGpuAllocator& allocator, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None);
 
 		mutable UnorderedMap<SamplerStateCreateInformation, TShared<SamplerState>> mCachedSamplerStates;
 		mutable Mutex mSamplerStateMutex;

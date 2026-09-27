@@ -69,11 +69,10 @@ namespace b3d
 		 *
 		 * @param layout				Layout that describes the GPU parameters for the set.
 		 * @param setIndex				Index of the parameter set that the object will be used for binding parameters for.
-		 * @param deferredInitialize	If true, Initialize() will not be called on the returned object, and the caller
-		 *								is expected to call it themselves before first using the object.
+		 * @param flags					Creation flags. @see GpuObjectCreateFlag
 		 * @return						The created parameter set, or nullptr if allocation failed (e.g., pool exhausted).
 		 */
-		virtual TShared<render::GpuParameterSet> Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize = false) = 0;
+		virtual TShared<render::GpuParameterSet> Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
 
 		/**
 		 * Resets the pool, freeing all allocated sets at once. Only relevant for transient mode pools.

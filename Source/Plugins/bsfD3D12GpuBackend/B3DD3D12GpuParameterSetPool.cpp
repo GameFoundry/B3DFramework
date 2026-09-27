@@ -11,15 +11,20 @@ namespace b3d::render
 	{
 	}
 
-	TShared<GpuParameterSet> D3D12GpuParameterSetPool::Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize)
+	TShared<GpuParameterSet> D3D12GpuParameterSetPool::Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, GpuObjectCreateFlags flags)
 	{
 		if (mAllocatedSetCount >= mInformation.MaxSets)
 			return nullptr;
 
-		TShared<D3D12GpuParameters> parameterSet = B3DMakeShared<D3D12GpuParameters>(layout, mDevice, setIndex);
+		D3D12GpuParameters* rawParameterSet = new(B3DAllocate<D3D12GpuParameters>()) D3D12GpuParameters(layout, mDevice, setIndex);
+
+		TShared<D3D12GpuParameters> parameterSet = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
+			? B3DMakeSharedFromExisting(rawParameterSet)
+			: GpuDevice::MakeSharedStandalone(rawParameterSet);
+
 		parameterSet->SetShared(parameterSet);
 
-		if (!deferredInitialize)
+		if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 			parameterSet->Initialize();
 
 		mAllocatedSetCount++;

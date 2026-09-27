@@ -74,12 +74,17 @@ namespace b3d::render
 		}
 	}
 
-	TShared<GpuParameterSet> VulkanGpuParameterSetPool::Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize)
+	TShared<GpuParameterSet> VulkanGpuParameterSetPool::Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, GpuObjectCreateFlags flags)
 	{
-		TShared<VulkanGpuParameterSet> output = B3DMakeShared<VulkanGpuParameterSet>(mDevice, layout, setIndex, *this);
+		VulkanGpuParameterSet* rawParameterSet = new(B3DAllocate<VulkanGpuParameterSet>()) VulkanGpuParameterSet(mDevice, layout, setIndex, *this);
+
+		TShared<VulkanGpuParameterSet> output = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
+			? B3DMakeSharedFromExisting(rawParameterSet)
+			: GpuDevice::MakeSharedStandalone(rawParameterSet);
+
 		output->SetShared(output);
 
-		if (!deferredInitialize)
+		if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 			output->Initialize();
 
 		return output;

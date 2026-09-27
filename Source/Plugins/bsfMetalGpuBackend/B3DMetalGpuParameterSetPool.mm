@@ -50,7 +50,7 @@ namespace b3d
 			mDirectBuffers.clear();
 		}
 
-		TShared<GpuParameterSet> MetalGpuParameterSetPool::Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize)
+		TShared<GpuParameterSet> MetalGpuParameterSetPool::Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, GpuObjectCreateFlags flags)
 		{
 			if (setIndex > kMetalMaximumParameterSetIndex)
 			{
@@ -84,11 +84,16 @@ namespace b3d
 			// a set released after Reset must observe its argument buffer as potentially reused, but
 			// the engine's contract is to drop all sets *before* Reset, so holding a raw pool pointer
 			// here is safe.
-			auto paramSet = B3DMakeShared<MetalGpuParameters>(mDevice, layout, setIndex,
+			MetalGpuParameters* rawParamSet = new(B3DAllocate<MetalGpuParameters>()) MetalGpuParameters(mDevice, layout, setIndex,
 				mInformation.Mode == GpuParameterSetPoolMode::Transient ? this : nullptr);
+
+			TShared<MetalGpuParameters> paramSet = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
+				? B3DMakeSharedFromExisting(rawParamSet)
+				: GpuDevice::MakeSharedStandalone(rawParamSet);
+
 			paramSet->SetShared(paramSet);
 
-			if (!deferredInitialize)
+			if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 			{
 				paramSet->Initialize();
 				if (!paramSet->IsMetalBindingReady())

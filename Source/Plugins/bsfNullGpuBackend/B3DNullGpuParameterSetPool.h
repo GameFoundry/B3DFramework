@@ -22,7 +22,7 @@ namespace b3d
 			NullGpuParameterSetPool(NullGpuDevice& device, const GpuParameterSetPoolCreateInformation& createInformation);
 			~NullGpuParameterSetPool() override = default;
 
-			TShared<GpuParameterSet> Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize = false) override;
+			TShared<GpuParameterSet> Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
 			void Reset() override;
 
 		private:

@@ -165,8 +165,13 @@ namespace b3d
 			/** Returns the internal parameter set containing GPU bindable parameters. */
 			TShared<GpuParameterSet> GetGpuParameterSet() const { return mGpuParameterSet; }
 
-			/** Creates a new instance of GPU parameters for this material. */
-			virtual TShared<GpuParameterSet> CreateGpuParameterSet(u32 set = 0) const = 0;
+			/**
+			 * Creates a new instance of GPU parameters for this material.
+			 *
+			 * @param set		Index of the parameter set to create.
+			 * @param flags		Creation flags. @see GpuObjectCreateFlag
+			 */
+			virtual TShared<GpuParameterSet> CreateGpuParameterSet(u32 set = 0, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) const = 0;
 
 			/** Returns the material's graphics pipeline state. This will be null if the material is a compute material. */
 			TShared<GpuGraphicsPipelineState> GetGraphicsPipeline() const { return mGraphicsPipeline; }
@@ -315,7 +320,7 @@ namespace b3d
 			static ShaderDefines GetShaderDefines() { return GetMetaData().Defines; }
 
 			/** Creates a new instance of GPU parameters for this material, allocated from the owning context's pool. */
-			TShared<GpuParameterSet> CreateGpuParameterSet(u32 set = 0) const override;
+			TShared<GpuParameterSet> CreateGpuParameterSet(u32 set = 0, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) const override;
 
 		protected:
 			RendererMaterial() = default;
@@ -975,15 +980,15 @@ namespace b3d
 		}
 
 		template <class T>
-		TShared<GpuParameterSet> RendererMaterial<T>::CreateGpuParameterSet(u32 set) const
+		TShared<GpuParameterSet> RendererMaterial<T>::CreateGpuParameterSet(u32 set, GpuObjectCreateFlags flags) const
 		{
 			B3D_ASSERT(mOwnerContext != nullptr);
 			GpuParameterSetPool& pool = mOwnerContext->GetParameterSetPool();
 
 			if(mGraphicsPipeline != nullptr)
-				return pool.Create(mGraphicsPipeline->GetParameterLayout()->GetSet(set), set);
+				return pool.Create(mGraphicsPipeline->GetParameterLayout()->GetSet(set), set, flags);
 			else if(mComputePipeline != nullptr)
-				return pool.Create(mComputePipeline->GetParameterLayout()->GetSet(set), set);
+				return pool.Create(mComputePipeline->GetParameterLayout()->GetSet(set), set, flags);
 
 			return nullptr;
 		}
