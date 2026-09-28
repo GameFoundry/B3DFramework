@@ -25,7 +25,7 @@ namespace b3d
 
 			mCommandBuffers[commandBufferId] = commandBuffer;
 
-			// The completion handlers installed by CommitInternal keep the buffer alive via GetShared()
+			// The completion handlers installed by ExecuteSubmitOnSubmitThread keep the buffer alive via GetShared()
 			commandBuffer->SetShared(commandBuffer);
 			return commandBuffer;
 		}

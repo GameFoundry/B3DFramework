@@ -641,7 +641,7 @@ namespace b3d
 		{
 			MetalGpuQueue& metalQueue = static_cast<MetalGpuQueue&>(queue);
 			MetalGpuCommandBuffer& metalCommandBuffer = static_cast<MetalGpuCommandBuffer&>(*commandBuffer);
-			metalCommandBuffer.CommitInternal(metalQueue, syncMask, signalFences);
+			metalCommandBuffer.ExecuteSubmitOnSubmitThread(metalQueue, syncMask, signalFences);
 		}
 
 		void MetalGpuDevice::RefreshCompletionState(GpuQueue& queue, bool forceWait, u32 lastSubmitIndex)

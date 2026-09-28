@@ -99,6 +99,35 @@ namespace b3d
 			}
 		}
 
+		bool MetalUtility::PixelFormatHasDepth(MTLPixelFormat format)
+		{
+			switch (format)
+			{
+			case MTLPixelFormatDepth16Unorm:
+			case MTLPixelFormatDepth32Float:
+			case MTLPixelFormatDepth24Unorm_Stencil8:
+			case MTLPixelFormatDepth32Float_Stencil8:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		bool MetalUtility::PixelFormatHasStencil(MTLPixelFormat format)
+		{
+			switch (format)
+			{
+			case MTLPixelFormatStencil8:
+			case MTLPixelFormatDepth24Unorm_Stencil8:
+			case MTLPixelFormatDepth32Float_Stencil8:
+			case MTLPixelFormatX24_Stencil8:
+			case MTLPixelFormatX32_Stencil8:
+				return true;
+			default:
+				return false;
+			}
+		}
+
 		MTLRenderStages MetalUtility::GetRenderStages(GpuProgramStageBits stages)
 		{
 			// Guards the fold below against a stage bit added to the engine after this mapping was written:

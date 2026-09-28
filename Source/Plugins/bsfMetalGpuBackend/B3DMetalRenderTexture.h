@@ -25,6 +25,8 @@ namespace b3d
 
 	namespace render
 	{
+		class MetalFramebuffer;
+
 		/**
 		 * Metal implementation of a render texture.
 		 *
@@ -34,13 +36,15 @@ namespace b3d
 		{
 		public:
 			MetalRenderTexture(const RenderTextureCreateInformation& createInformation);
-			~MetalRenderTexture() override = default;
+			~MetalRenderTexture() override;
 
-			/** Returns the full color surface binding (texture + face + mip + face count) at the given attachment index. */
-			const RenderSurfaceInformation& GetColorSurface(u32 attachmentIndex) const { return mInformation.ColorSurfaces[attachmentIndex]; }
+			void Initialize() override;
 
-			/** Returns the full depth/stencil surface binding, or one with a null Texture if none is attached. */
-			const RenderSurfaceInformation& GetDepthStencilSurface() const { return mInformation.DepthStencilSurface; }
+			/** Returns the framebuffer holding this render texture's attachments. Null until Initialize() is called. */
+			MetalFramebuffer* GetFramebuffer() const { return mFramebuffer.get(); }
+
+		private:
+			TUnique<MetalFramebuffer> mFramebuffer;
 		};
 
 	} // namespace render

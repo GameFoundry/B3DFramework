@@ -50,6 +50,12 @@ namespace b3d
 			 */
 			static MTLPixelFormat GetPixelFormat(PixelFormat format, bool gamma);
 
+			/** Returns true if the Metal pixel format has a depth component. */
+			static bool PixelFormatHasDepth(MTLPixelFormat format);
+
+			/** Returns true if the Metal pixel format has a stencil component. */
+			static bool PixelFormatHasStencil(MTLPixelFormat format);
+
 			/** Converts an engine texture type to the Metal texture-target enum. */
 			static MTLTextureType GetTextureType(TextureType type, u32 sampleCount, u32 arraySliceCount);
 

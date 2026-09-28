@@ -20,7 +20,7 @@ namespace b3d
 		 *
 		 * Wraps a single MTLSharedEvent. The fence's monotonically increasing 64-bit value is the
 		 * event's signaledValue, advanced on the GPU side by encodeSignalEvent:value: encoded into
-		 * the command buffer at submit time (see MetalGpuCommandBuffer::CommitInternal). CPU readers
+		 * the command buffer at submit time (see MetalGpuCommandBuffer::ExecuteSubmitOnSubmitThread). CPU readers
 		 * poll @c GetCompletedValue, which is lock-free per Apple's @c MTLSharedEvent contract.
 		 */
 		class MetalGpuTimelineFence final : public GpuTimelineFence
