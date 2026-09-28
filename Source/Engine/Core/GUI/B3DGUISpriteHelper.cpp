@@ -29,15 +29,19 @@ void GUIBackgroundSprite::BuildRenderElements(const GUIBackgroundSpriteCreateInf
 	const float height = (float)createInformation.Size.Height;
 	const float minimumExtent = Math::Min(width, height) * 0.5f;
 
-	const float borderTopLeftRadius = Math::Min(minimumExtent, (float)createInformation.Rules.BorderTopLeftRadius);
-	const float borderTopRightRadius = Math::Min(minimumExtent, (float)createInformation.Rules.BorderTopRightRadius);
-	const float borderBottomLeftRadius = Math::Min(minimumExtent, (float)createInformation.Rules.BorderBottomLeftRadius);
-	const float borderBottomRightRadius = Math::Min(minimumExtent, (float)createInformation.Rules.BorderBottomRightRadius);
+	const GUIStyleSheetRules& rules = createInformation.Rules;
+	const float scale = createInformation.Scale;
 
-	const u32 scale9GridBorderLeft = (u32)Math::Max(borderTopLeftRadius, borderBottomLeftRadius) + createInformation.Rules.BorderLeft.GetVisibleWidth();
-	const u32 scale9GridBorderRight = (u32)Math::Max(borderTopRightRadius, borderBottomRightRadius) + createInformation.Rules.BorderRight.GetVisibleWidth();
-	const u32 scale9GridBorderTop = (u32)Math::Max(borderTopLeftRadius, borderTopRightRadius) + createInformation.Rules.BorderTop.GetVisibleWidth();
-	const u32 scale9GridBorderBottom = (u32)Math::Max(borderBottomLeftRadius, borderBottomRightRadius) + createInformation.Rules.BorderBottom.GetVisibleWidth();
+	const float borderTopLeftRadius = Math::Min(minimumExtent, rules.BorderTopLeftRadius * scale);
+	const float borderTopRightRadius = Math::Min(minimumExtent, rules.BorderTopRightRadius * scale);
+	const float borderBottomLeftRadius = Math::Min(minimumExtent, rules.BorderBottomLeftRadius * scale);
+	const float borderBottomRightRadius = Math::Min(minimumExtent, rules.BorderBottomRightRadius * scale);
+
+	// Corners and borders must fall entirely within the unstretched edges of the grid
+	const u32 scale9GridBorderLeft = (u32)Math::CeilToInt(Math::Max(borderTopLeftRadius, borderBottomLeftRadius) + rules.BorderLeft.GetPhysicalWidth(scale));
+	const u32 scale9GridBorderRight = (u32)Math::CeilToInt(Math::Max(borderTopRightRadius, borderBottomRightRadius) + rules.BorderRight.GetPhysicalWidth(scale));
+	const u32 scale9GridBorderTop = (u32)Math::CeilToInt(Math::Max(borderTopLeftRadius, borderTopRightRadius) + rules.BorderTop.GetPhysicalWidth(scale));
+	const u32 scale9GridBorderBottom = (u32)Math::CeilToInt(Math::Max(borderBottomLeftRadius, borderBottomRightRadius) + rules.BorderBottom.GetPhysicalWidth(scale));
 
 	Size2I vectorShapeSize = createInformation.Size.To<i32>();
 
@@ -60,7 +64,7 @@ void GUIBackgroundSprite::BuildRenderElements(const GUIBackgroundSpriteCreateInf
 	{
 		SpriteVectorPathCreateInformation spriteVectorPathCreateInformation;
 		spriteVectorPathCreateInformation.DefaultSize = vectorShapeSize;
-		spriteVectorPathCreateInformation.VectorPath = mBackgroundPathBuilder->BuildPath(vectorShapeSize, createInformation.Rules);
+		spriteVectorPathCreateInformation.VectorPath = mBackgroundPathBuilder->BuildPath(vectorShapeSize, createInformation.Rules, scale);
 
 		mBackgroundSpriteInformation.Image = SpriteVectorPath::Create(spriteVectorPathCreateInformation);
 	}
@@ -251,6 +255,7 @@ void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIBac
 
 	GUIBackgroundSpriteCreateInformation backgroundSpriteCreateInformation(size, styleSheetRules, tint, batchId);
 	backgroundSpriteCreateInformation.Depth = depth;
+	backgroundSpriteCreateInformation.Scale = element.GetAbsoluteScale();
 	backgroundSpriteCreateInformation.Offset = offset;
 
 	sprite.BuildRenderElements(backgroundSpriteCreateInformation, element.mRenderElements);

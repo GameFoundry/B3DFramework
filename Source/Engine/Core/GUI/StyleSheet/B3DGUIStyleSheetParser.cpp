@@ -1352,7 +1352,7 @@ bool GUIStyleSheetParser::TryParseRectOffset(RectOffset& outValue)
 	return TryParsePropertyValueSides(ValueType::Pixel, outValue.Top, outValue.Right, outValue.Bottom, outValue.Left);
 }
 
-bool GUIStyleSheetParser::TryParseBorderRadius(u32& outTopLeft, u32& outTopRight, u32& outBottomLeft, u32& outBottomRight)
+bool GUIStyleSheetParser::TryParseBorderRadius(float& outTopLeft, float& outTopRight, float& outBottomLeft, float& outBottomRight)
 {
 	return TryParsePropertyValueSides(ValueType::Pixel, outTopLeft, outTopRight, outBottomRight, outBottomLeft);
 }
@@ -1362,7 +1362,7 @@ bool GUIStyleSheetParser::TryParseBorderStyle(GUIBorderElementStyle& outTop, GUI
 	return TryParsePropertyValueSides(ValueType::BorderStyle, outTop, outRight, outBottom, outLeft);
 }
 
-bool GUIStyleSheetParser::TryParseBorderWidth(u32& outTop, u32& outRight, u32& outBottom, u32& outLeft)
+bool GUIStyleSheetParser::TryParseBorderWidth(float& outTop, float& outRight, float& outBottom, float& outLeft)
 {
 	return TryParsePropertyValueSides(ValueType::Pixel, outTop, outRight, outBottom, outLeft);
 }

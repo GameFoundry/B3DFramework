@@ -67,7 +67,11 @@ namespace b3d
 		 */
 		float GetDPIScale() const { return mDPIScale; }
 
-		/** Changes the DPI scale of all the GUI elements in the widget. Triggers a full GUI rebuild. */
+		/**
+		 * Overrides the DPI scale of all the GUI elements in the widget, which otherwise follows the DPI scale of the render
+		 * target the widget renders to. Provide 0 to follow the render target again. Triggers a full GUI rebuild if the
+		 * scale changes.
+		 */
 		void SetDPIScale(float dpiScale);
 
 		/** @copydoc GUIWidget::GetTarget */
@@ -198,7 +202,8 @@ namespace b3d
 		u8 mDepth = 128;
 		TShared<GUINavGroup> mDefaultNavGroup;
 
-		float mDPIScale = 1.0f; // TODO - This should be grabbed from the destination render target
+		float mDPIScale = 1.0f;
+		float mDPIScaleOverride = 0.0f; // 0 if the DPI scale follows the render target
 
 		Set<GUIRenderable*> mDirtyContents;
 		Set<GUIRenderable*> mDirtyContentsTemp;
