@@ -16,8 +16,9 @@ GUILogicalSize GUIUtility::CalculateSizeWithPaddingAndBorder(const GUILogicalSiz
 	const GUILogicalUnit paddingWidth = styleSheetRule.Padding.Left + styleSheetRule.Padding.Right;
 	const GUILogicalUnit paddingHeight = styleSheetRule.Padding.Top + styleSheetRule.Padding.Bottom;
 
-	const GUILogicalUnit borderWidth = (i32)styleSheetRule.BorderLeft.GetVisibleWidth() + (i32)styleSheetRule.BorderRight.GetVisibleWidth();
-	const GUILogicalUnit borderHeight = (i32)styleSheetRule.BorderTop.GetVisibleWidth() + (i32)styleSheetRule.BorderBottom.GetVisibleWidth();
+	const RectOffset border = styleSheetRule.GetBorderInsets();
+	const GUILogicalUnit borderWidth = border.Left + border.Right;
+	const GUILogicalUnit borderHeight = border.Top + border.Bottom;
 
 	return GUILogicalSize(contentSize.Width + paddingWidth + borderWidth, contentSize.Height + paddingHeight + borderHeight);
 }
@@ -30,7 +31,8 @@ GUILogicalSize GUIUtility::CalculateOptimalContentSizeWithPaddingAndBorder(const
 	if(image.IsLoaded())
 	{
 		const GUILogicalUnit paddingHeight = styleSheetRule.Padding.Top + styleSheetRule.Padding.Bottom;
-		const GUILogicalUnit borderHeight = (i32)styleSheetRule.BorderTop.GetVisibleWidth() + (i32)styleSheetRule.BorderBottom.GetVisibleWidth();
+		const RectOffset border = styleSheetRule.GetBorderInsets();
+		const GUILogicalUnit borderHeight = border.Top + border.Bottom;
 
 		const GUILogicalSize& imageSize = image->GetDefaultAllocatedImage().GetSize().To<GUILogicalUnit>();
 		contentBounds.Width += imageSize.Width + GUIContent::kImageTextSpacing;
@@ -69,15 +71,16 @@ GUILogicalArea GUIUtility::RemovePaddingAndBorder(const GUILogicalSize& layoutSi
 	const GUILogicalUnit paddingWidth = padding.Left + padding.Right;
 	const GUILogicalUnit paddingHeight = padding.Top + padding.Bottom;
 
-	const GUILogicalUnit borderWidth = (i32)styleSheetRules.BorderLeft.GetVisibleWidth() + (i32)styleSheetRules.BorderRight.GetVisibleWidth();
-	const GUILogicalUnit borderHeight = (i32)styleSheetRules.BorderTop.GetVisibleWidth() + (i32)styleSheetRules.BorderBottom.GetVisibleWidth();
+	const RectOffset border = styleSheetRules.GetBorderInsets();
+	const GUILogicalUnit borderWidth = border.Left + border.Right;
+	const GUILogicalUnit borderHeight = border.Top + border.Bottom;
 
 	GUILogicalArea bounds(0, 0, layoutSize.Width, layoutSize.Height);
 	const GUILogicalUnit nonContentWidth = Math::Min(bounds.Width, paddingWidth + borderWidth);
 	const GUILogicalUnit nonContentHeight = Math::Min(bounds.Height, paddingHeight + borderHeight);
 
-	bounds.X += Math::Min(bounds.Width, padding.Left + (i32)styleSheetRules.BorderLeft.GetVisibleWidth());
-	bounds.Y += Math::Min(bounds.Height, padding.Top + (i32)styleSheetRules.BorderTop.GetVisibleWidth());
+	bounds.X += Math::Min(bounds.Width, padding.Left + border.Left);
+	bounds.Y += Math::Min(bounds.Height, padding.Top + border.Top);
 	bounds.Width -= nonContentWidth;
 	bounds.Height -= nonContentHeight;
 
