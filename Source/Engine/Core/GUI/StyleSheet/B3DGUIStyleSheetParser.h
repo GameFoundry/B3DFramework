@@ -316,7 +316,7 @@ namespace b3d
 		 * Attempts to parse the next set of 1 to 4 tokens as pixel literals for each side. If successful, returns true and outputs the parsed values.
 		 * @copydoc StyleSheetSides
 		 */
-		bool TryParseBorderWidth(u32& outTop, u32& outRight, u32& outBottom, u32& outLeft);
+		bool TryParseBorderWidth(float& outTop, float& outRight, float& outBottom, float& outLeft);
 
 		/**
 		 * Attempts to parse the next set of 1 to 4 tokens as colors for each side. If successful, returns true and outputs the parsed values.
@@ -348,7 +348,7 @@ namespace b3d
 		 * If four values are parsed, first value is assigned to top-left, second value to top-right, third value to bottom-right, and fourth value to bottom-left corner.
 
 		 */
-		bool TryParseBorderRadius(u32& outTopLeft, u32& outTopRight, u32& outBottomLeft, u32& outBottomRight);
+		bool TryParseBorderRadius(float& outTopLeft, float& outTopRight, float& outBottomLeft, float& outBottomRight);
 
 		/**
 		 * Attempts to parse the variable value of the specified type. Internally redirects to the correct parsing method depending on the value type. 

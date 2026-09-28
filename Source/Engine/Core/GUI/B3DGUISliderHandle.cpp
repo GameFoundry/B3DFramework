@@ -71,6 +71,7 @@ void GUISliderHandle::UpdateRenderElements()
 
 		GUIBackgroundSpriteCreateInformation createInformation(size, styleSheetRules, tint, batchId);
 		createInformation.Offset = offset;
+		createInformation.Scale = GetAbsoluteScale();
 
 		mBackgroundSprite.BuildRenderElements(createInformation, mRenderElements);
 	}

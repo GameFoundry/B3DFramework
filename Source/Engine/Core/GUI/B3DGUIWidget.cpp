@@ -84,13 +84,8 @@ Viewport* GUIWidget::GetTarget() const
 
 void GUIWidget::SetDPIScale(float dpiScale)
 {
-	if(mDPIScale == dpiScale)
-		return;
-
-	mDPIScale = dpiScale;
-	mWidgetIsDirty = true;
-
-	UpdateRootPanel();
+	mDPIScaleOverride = std::max(dpiScale, 0.0f);
+	UpdateRenderTarget();
 }
 
 void GUIWidget::SetCamera(const HCamera& camera)
@@ -229,19 +224,29 @@ void GUIWidget::UpdateRenderTarget()
 {
 	TShared<RenderTarget> rt;
 	u64 newRTId = 0;
+	float newDPIScale = mDPIScale;
 	if(mCamera != nullptr)
 	{
 		rt = mCamera->GetViewport()->GetTarget();
 		if(rt != nullptr)
 		{
 			newRTId = rt->GetInternalId();
-			mDPIScale = rt->GetProperties().DPIScale;
+			newDPIScale = rt->GetProperties().DPIScale;
 		}
 	}
 
-	if(mCachedRTId != newRTId)
+	if(mDPIScaleOverride > 0.0f)
+		newDPIScale = mDPIScaleOverride;
+
+	const bool dpiScaleChanged = mDPIScale != newDPIScale;
+	if(mCachedRTId != newRTId || dpiScaleChanged)
 	{
 		mCachedRTId = newRTId;
+		mDPIScale = newDPIScale;
+
+		if(dpiScaleChanged)
+			mWidgetIsDirty = true;
+
 		UpdateRootPanel();
 	}
 }
