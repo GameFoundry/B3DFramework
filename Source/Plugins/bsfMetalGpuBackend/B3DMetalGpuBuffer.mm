@@ -39,8 +39,8 @@ namespace b3d
 
 			// Allocator-backed spans return through their stamped allocator; direct device allocations
 			// carry an invalid location and were fully released by the handle release above. Persistent
-			// TLSF spans reclaim immediately, while transient linear spans retire with their page.
-			if (mAllocation.IsValid())
+			// TLSF spans reclaim immediately, while scratch linear spans retire with their page.
+			if (mAllocation.IsOwned())
 				mAllocation.Allocator->Free(mAllocation);
 		}
 
@@ -58,16 +58,9 @@ namespace b3d
 			}
 		}
 
-		MetalGpuBuffer::MetalGpuBuffer(MetalGpuDevice& device, const GpuBufferCreateInformation& createInformation)
-			: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device)), mGpuDevice(device), mMemoryType(MetalHeapAllocator::PickBufferMemoryType(createInformation)), mDirectlyMappable(createInformation.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess) || createInformation.Type == GpuBufferType::StagingRead || createInformation.Type == GpuBufferType::StagingWrite)
+		MetalGpuBuffer::MetalGpuBuffer(MetalGpuDevice& device, const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location)
+			: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device), location), mGpuDevice(device), mMemoryType(MetalHeapAllocator::GetBufferMemoryType(createInformation)), mDirectlyMappable(createInformation.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess) || createInformation.Type == GpuBufferType::StagingRead || createInformation.Type == GpuBufferType::StagingWrite)
 		{ }
-
-		MetalGpuBuffer::MetalGpuBuffer(MetalGpuDevice& device, const GpuBufferCreateInformation& createInformation,
-			IGpuAllocator& allocator)
-			: MetalGpuBuffer(device, createInformation)
-		{
-			mAllocator = &allocator;
-		}
 
 		MetalGpuBuffer::~MetalGpuBuffer()
 		{
@@ -96,13 +89,10 @@ namespace b3d
 				size = 64;
 
 			GpuResourceLocation location;
-			MetalBufferNativeHandle handle = mAllocator != nullptr
-				? mGpuDevice.GetHeapAllocator().AllocateBuffer(size, mMemoryType, *mAllocator, location)
-				: mGpuDevice.GetHeapAllocator().AllocateBuffer(size, mMemoryType, location);
+			MetalBufferNativeHandle handle = mGpuDevice.GetHeapAllocator().AllocateBuffer(size, mMemoryType, mLocation, location);
 			if (handle == nil)
 			{
-				B3D_LOG(Error, LogRenderBackend, "Failed to create {0} MTLBuffer of {1} bytes.",
-					mAllocator != nullptr ? "transient" : "persistent", size);
+				B3D_LOG(Error, LogRenderBackend, "Failed to create MTLBuffer of {0} bytes.", size);
 				return nullptr;
 			}
 

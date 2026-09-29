@@ -10,7 +10,7 @@ In this chapter we'll show how is geometry of an object represented, and how to 
 # Vertex buffer
 **render::GpuBuffer** is a buffer that contains all vertices of the object we wish to render. When drawing the vertices will be interpreted as primitives (either points, lines or triangles) and rendered. Each vertex can have one or multiple properties associated with it.
 
-To create a vertex buffer call @b3d::render::GpuDevice::CreateGpuBuffer with a populated @b3d::GpuBufferCreateInformation structure. You can use the helper method @b3d::GpuBufferCreateInformation::CreateVertex to build the descriptor. You need to know the size of an individual vertex (determined by the properties each vertex requires) and the number of vertices.
+To create a vertex buffer call @b3d::GpuDevice::CreateGpuBuffer with a populated @b3d::GpuBufferCreateInformation structure. You can use the helper method @b3d::GpuBufferCreateInformation::CreateVertex to build the descriptor. You need to know the size of an individual vertex (determined by the properties each vertex requires) and the number of vertices.
 
 ~~~~~~~~~~~~~{.cpp}
 // Create a vertex buffer containing 8 vertices with just a vertex position (3D float)

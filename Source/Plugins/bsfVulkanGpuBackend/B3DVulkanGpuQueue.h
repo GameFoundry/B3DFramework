@@ -73,25 +73,18 @@ namespace b3d
 			 * Checks if any of the active command buffers finished executing on the queue and updates their states accordingly. Note that you must follow this call
 			 * with a call to RefreshCompletionStateOnRenderThread() in order for the states to correctly update if the command buffers are owned by the render thread.
 			 *
-			 * @param	forceWait		Set to true if the system should wait until all command buffers finish executing.
-			 * @param	lastSubmitIndex	Index of the last submitted command buffer which should be checked. If ~0u is provided, all submitted command buffers will be checked.
+			 * @param	forceWait			Set to true if the system should wait until all command buffers finish executing.
+			 * @param	lastProgressValue	Progress timeline value of the last submission which should be checked. If ~0 is
+			 *								provided, all submitted command buffers will be checked.
 			 *
 			 * @note	Submit thread only.
 			 */
-			void RefreshCompletionState(bool forceWait, u32 lastSubmitIndex = ~0u);
-
-			/**
-			 * Returns the submit index of the most recently submitted work on this queue, or 0 if nothing has been
-			 * submitted yet. Capture this at a frame boundary and pass it to RefreshCompletionState() to wait for all
-			 * of that frame's work to complete.
-			 *
-			 * @note	Submit thread only.
-			 */
-			u32 GetLastSubmitIndex() const { return mNextSubmitIndex - 1; }
+			void RefreshCompletionState(bool forceWait, u64 lastProgressValue = ~0ull);
 
 			/**
 			 * Returns the progress timeline value of the most recent submission on this queue, or 0 if nothing has been
-			 * submitted yet.
+			 * submitted yet. Capture this at a frame boundary and pass it to RefreshCompletionState() to wait for all
+			 * of that frame's work to complete.
 			 *
 			 * @note	Submit thread only.
 			 */
@@ -124,7 +117,7 @@ namespace b3d
 			/** A submitted command buffer batch together with everything that must stay alive until the GPU finishes executing it. */
 			struct SubmissionRecord
 			{
-				u32 SubmitIndex = 0;
+				u64 ProgressValue = 0; /**< Progress timeline value the submission signals. */
 				TInlineArray<TShared<VulkanGpuCommandBuffer>, 2> CommandBuffers; /**< Command buffers in submission order. The last one owns the fence used to detect completion. */
 				TInlineArray<VulkanSemaphore*, 4> RetainedSemaphores; /**< Managed semaphores the submission waits on, released on retirement. */
 				TInlineArray<TShared<GpuTimelineFence>, 2> RetainedFences; /**< Keeps fences the submission signals alive until the signal has executed. */
@@ -150,7 +143,6 @@ namespace b3d
 			u64 mNextProgressValue = 1;
 			u64 mLastSubmittedProgressValue = 0; /**< Timeline value of the most recent successful submission, or 0 if nothing was submitted yet. */
 
-			u32 mNextSubmitIndex = 1;
 			Deque<SubmissionRecord> mActiveSubmissions;
 
 			Array<SubmitWorkBuffer, 2> mSubmitWorkBuffers; /**< Slot 0 backs the transition submit (or a present), slot 1 the primary submit. */

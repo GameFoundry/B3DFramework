@@ -6,14 +6,38 @@
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DGpuBackend.h"
+#include "GpuBackend/Allocators/B3DGpuTlsfAllocator.h"
 
 namespace b3d
 {
 	namespace render
 	{
-		/** @addtogroup NullGpuBackend 
+		/** @addtogroup NullGpuBackend
 		 *  @{
 		 */
+
+		/** Heap created by NullHeapBackend. It has no backing memory. */
+		struct NullGpuHeap : IGpuHeap
+		{
+			u64 Size = 0; /**< Size of the heap in bytes. */
+		};
+
+		/** Heap backend for the null device. Heaps only exist to give GPU resource locations an identity. */
+		class NullHeapBackend
+		{
+		public:
+			using HeapHandle = IGpuHeap*;
+
+			/** Initializer struct for CreateHeap(). The null backend has no heap properties. */
+			struct HeapCreateInformation
+			{ };
+
+			/** Creates a heap of @p sizeInBytes bytes. */
+			HeapHandle CreateHeap(u64 sizeInBytes, const HeapCreateInformation& createInformation);
+
+			/** Destroys a heap previously created with CreateHeap(). */
+			void DestroyHeap(HeapHandle handle);
+		};
 
 		/**
 		 * Represents a single null GPU device.
@@ -50,8 +74,9 @@ namespace b3d
 			void BeginFrame() override {}
 
 			TShared<render::GpuCommandBufferPool> CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation) override;
-			TShared<Texture> CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags) override;
-			TShared<GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags) override;
+			GpuMemoryRequirements GetMemoryRequirements(const TextureCreateInformation& createInformation) const override;
+			GpuMemoryRequirements GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const override;
+			IGpuAllocator& GetPersistentAllocator(u32 memoryType) override;
 			TShared<GpuQueryPool> CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation) override;
 			TShared<EventQuery> CreateEventQuery() override;
 			TShared<GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
@@ -77,6 +102,8 @@ namespace b3d
 			};
 
 			TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
+			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags) override;
+			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags) override;
 
 			/** Initializes capabilities with reasonable defaults for a null backend. */
 			void InitializeCapabilities();
@@ -85,8 +112,13 @@ namespace b3d
 			QueueInfo mQueueInfos[GQT_COUNT];
 			GpuDeviceCapabilities mCapabilities;
 			TShared<VideoModeInfo> mVideoModeInfo;
+
+			NullHeapBackend mHeapBackend;
+			TUnique<TGpuTlsfAllocator<NullHeapBackend>> mPersistentAllocator; /**< Allocator for the device's only memory type. */
 		};
 
 		/** @} */
 	} // namespace render
 } // namespace b3d
+
+B3D_STATIC_ASSERT_HEAP_BACKEND_IS_VALID(b3d::render::NullHeapBackend);

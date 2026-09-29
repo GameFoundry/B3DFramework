@@ -60,20 +60,20 @@ TShared<GpuWorkContext> GpuWorkContext::Create(GpuDevice& device, IGpuCompletion
 	return B3DMakeShared<GpuWorkContext>(PrivatelyConstruct(), device, tracker);
 }
 
-IGpuAllocator* GpuWorkContext::TryGetOrCreateTransientAllocator(u32 memoryType)
+IGpuAllocator* GpuWorkContext::TryGetOrCreateScratchAllocator(u32 memoryType)
 {
-	TUnique<IGpuAllocator>& slot = mTransientAllocators[memoryType];
+	TUnique<IGpuAllocator>& slot = mScratchAllocators[memoryType];
 	if (slot == nullptr)
-		slot = mDevice.CreateTransientAllocator(memoryType, *mTracker);
+		slot = mDevice.CreateScratchAllocator(memoryType, *mTracker);
 
 	return slot.get();
 }
 
-IGpuAllocator& GpuWorkContext::GetOrCreateTransientAllocator(u32 memoryType)
+IGpuAllocator& GpuWorkContext::GetOrCreateScratchAllocator(u32 memoryType)
 {
-	IGpuAllocator* allocator = TryGetOrCreateTransientAllocator(memoryType);
+	IGpuAllocator* allocator = TryGetOrCreateScratchAllocator(memoryType);
 
-	B3D_ASSERT(allocator != nullptr && "Backend does not support context transient allocation.");
+	B3D_ASSERT(allocator != nullptr && "Backend does not support context scratch allocation.");
 	return *allocator;
 }
 
@@ -94,34 +94,35 @@ IGpuWorkContextLocal& GpuWorkContext::AddLocal(const void* key, TUnique<IGpuWork
 	return *slot;
 }
 
-TShared<render::GpuBuffer> GpuWorkContext::CreateTransientGpuBuffer(const GpuBufferCreateInformation& createInformation)
+TShared<render::GpuBuffer> GpuWorkContext::CreateScratchGpuBuffer(const GpuBufferCreateInformation& createInformation)
 {
-	// A buffer's memory type is a pure function of its create information, so its transient allocator
-	// can be resolved once, up front, and carried by the buffer for life.
-	const u32 memoryType = mDevice.PickBufferMemoryType(createInformation);
-	IGpuAllocator* allocator = TryGetOrCreateTransientAllocator(memoryType);
+	const GpuMemoryRequirements memoryRequirements = mDevice.GetMemoryRequirements(createInformation);
+	if (memoryRequirements.MemoryType == GpuMemoryRequirements::kUnsupportedMemoryType)
+		return nullptr;
 
-	// Backends without context transient allocation fall back to a persistent allocation.
+	IGpuAllocator* allocator = TryGetOrCreateScratchAllocator(memoryRequirements.MemoryType);
+
+	// Backends without context scratch allocation fall back to a persistent allocation.
 	if (allocator == nullptr)
 		return mDevice.CreateGpuBuffer(createInformation, GpuObjectCreateFlag::None);
 
-	return mDevice.CreateGpuBuffer(createInformation, *allocator, GpuObjectCreateFlag::None);
+	return mDevice.CreateGpuBuffer(createInformation, GpuResourceLocation::FromAllocator(*allocator), GpuObjectCreateFlag::None);
 }
 
 
 GpuWorkContext::~GpuWorkContext()
 {
 	// Contexts owning a fence tracker (workers) settle their own GPU work: wait for it and reclaim the
-	// transient memory before tearing down. Contexts borrowing an external tracker are frame-driven;
+	// scratch memory before tearing down. Contexts borrowing an external tracker are frame-driven;
 	// their owner destroys them only once their GPU work is known complete (e.g. after a device idle at
 	// shutdown), so no wait is performed (or possible) here.
 	if (mOwnedTracker != nullptr)
 		WaitAndReclaim();
 
-	B3D_DEBUG_ONLY(AssertNoOutstandingTransientAllocations());
+	B3D_DEBUG_ONLY(AssertNoOutstandingScratchAllocations());
 
 	// Context-local objects are normally destroyed by WaitAndReclaim() (after the GPU drain, before the
-	// transient memory is reclaimed) - both the worker path above and the borrowed-tracker owner's explicit
+	// scratch memory is reclaimed) - both the worker path above and the borrowed-tracker owner's explicit
 	// drain go through it, so this is a no-op in the normal path. It remains as a defensive teardown for a
 	// borrowed-tracker context destroyed without its owner having called WaitAndReclaim(); the pools below
 	// (declared after mLocalObjects) are still alive, so any parameter sets the locals hold free cleanly.
@@ -192,7 +193,7 @@ void GpuWorkContext::SubmitCommandBuffer(const GpuSubmissionInformation& informa
 	}
 
 	// Contexts owning a fence tracker tag every submission with the tracker's fence for the target queue, so
-	// the tracker observes GPU progress: transient pages retire against these markers and WaitAndReclaim()
+	// the tracker observes GPU progress: scratch pages retire against these markers and WaitAndReclaim()
 	// blocks on the outstanding ones.
 	GpuSubmissionInformation taggedInformation = information;
 	taggedInformation.SignalFences.Add(mOwnedTracker->NotifyWillSubmit(queue->GetId()));
@@ -247,10 +248,10 @@ void GpuWorkContext::AdvanceFrame()
 
 	mTransferCommandBuffer = nullptr;
 
-	// Reclaim transient memory at the frame boundary: retire each linear allocator's open page, then
-	// drain any pages whose completion marker has signaled. No-op for backends with no transient
+	// Reclaim scratch memory at the frame boundary: retire each linear allocator's open page, then
+	// drain any pages whose completion marker has signaled. No-op for backends with no scratch
 	// allocators (the map stays empty).
-	for (auto& entry : mTransientAllocators)
+	for (auto& entry : mScratchAllocators)
 	{
 		if (entry.second == nullptr)
 			continue;
@@ -269,9 +270,9 @@ void GpuWorkContext::WaitAndReclaim()
 	const bool hasSubmittedWork = mOwnedTracker != nullptr && mOwnedTracker->GetLastSubmittedMarker() != 0;
 
 	// Drain the GPU before tearing anything down, so destroying the context-local objects below releases
-	// their GPU resources safely. A context that never submitted work and never allocated transient memory
+	// their GPU resources safely. A context that never submitted work and never allocated scratch memory
 	// has nothing to drain.
-	if (hasSubmittedWork || !mTransientAllocators.empty())
+	if (hasSubmittedWork || !mScratchAllocators.empty())
 	{
 		// Block (yieldably) until the GPU drains this context's outstanding submissions on every queue.
 		if (mOwnedTracker != nullptr)
@@ -280,7 +281,7 @@ void GpuWorkContext::WaitAndReclaim()
 		// A signaled fence does not mean the work's completion callbacks have run - those are delivered
 		// through the command pools' message queues once the submit thread processes the finished
 		// submissions. The queue-level wait forces that processing and blocks until every completion
-		// callback has been consumed on its pool's owning thread, so callbacks holding transient buffers
+		// callback has been consumed on its pool's owning thread, so callbacks holding scratch buffers
 		// have released them by the time the pages are drained below.
 		// TODO: This waits on the whole queue, serializing concurrent contexts at teardown. Replace it with
 		//		 a targeted completion-refresh + pump of this context's pools once contexts run concurrently.
@@ -290,20 +291,20 @@ void GpuWorkContext::WaitAndReclaim()
 	}
 
 	// Destroy context-local objects now that the GPU is idle. They may hold context-allocated resources -
-	// parameter sets, and the transient buffers those parameter sets reference - which must be released
-	// before the transient allocations are asserted clean and reclaimed below. Borrowed-tracker contexts
+	// parameter sets, and the scratch buffers those parameter sets reference - which must be released
+	// before the scratch allocations are asserted clean and reclaimed below. Borrowed-tracker contexts
 	// rely on their owner having drained the GPU before calling this (see the destructor contract).
 	mLocalObjects.clear();
 
-	// With the locals gone, a context with no submitted work and no transient memory has nothing left to do.
-	if (!hasSubmittedWork && mTransientAllocators.empty())
+	// With the locals gone, a context with no submitted work and no scratch memory has nothing left to do.
+	if (!hasSubmittedWork && mScratchAllocators.empty())
 		return;
 
-	B3D_DEBUG_ONLY(AssertNoOutstandingTransientAllocations());
+	B3D_DEBUG_ONLY(AssertNoOutstandingScratchAllocations());
 
 	// Retire the open pages and force-drain everything. Safe because the GPU work consuming the pages
 	// finished above; the drained pages return to the device's shared page pool for reuse.
-	for (auto& entry : mTransientAllocators)
+	for (auto& entry : mScratchAllocators)
 	{
 		if (entry.second == nullptr)
 			continue;
@@ -314,15 +315,15 @@ void GpuWorkContext::WaitAndReclaim()
 }
 
 #if B3D_DEBUG
-void GpuWorkContext::AssertNoOutstandingTransientAllocations() const
+void GpuWorkContext::AssertNoOutstandingScratchAllocations() const
 {
-	for (const auto& entry : mTransientAllocators)
+	for (const auto& entry : mScratchAllocators)
 	{
 		if (entry.second == nullptr)
 			continue;
 
 		B3D_ASSERT(entry.second->GetOutstandingAllocationCount() == 0 &&
-			"A transient allocation outlived its work context. Release all transient buffers before the context is reclaimed or destroyed.");
+			"A scratch allocation outlived its work context. Release all scratch buffers before the context is reclaimed or destroyed.");
 	}
 }
 #endif

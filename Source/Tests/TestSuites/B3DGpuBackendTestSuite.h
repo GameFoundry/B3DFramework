@@ -52,6 +52,9 @@ namespace b3d
 		/** Verifies only uniform buffers declared with a dynamic offset receive dynamic-offset indices, and that stages must agree on the declaration. */
 		void TestDynamicOffsetUniformBufferLayout();
 
+		/** Verifies creation of buffers and textures at pending, owned and non-owning memory locations, and rejection of invalid ones. */
+		void TestResourceLocations();
+
 #if !B3D_PLATFORM_PS5
 		/** Reads back static and dynamic uniform buffers across offset, pipeline and command-buffer changes on Vulkan and D3D12. */
 		void TestDynamicUniformBufferOffsets();

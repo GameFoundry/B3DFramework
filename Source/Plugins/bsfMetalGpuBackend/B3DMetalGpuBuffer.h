@@ -101,15 +101,20 @@ namespace b3d
 		 * @c [buffer contents] directly; all other buffers use private storage, which makes them
 		 * CPU-invisible so @c GpuBufferUtility routes their CPU traffic through a staging buffer +
 		 * @c CopyBufferToBuffer on the transfer queue. Persistent buffers use the device's
-		 * per-memory-type TLSF allocator; work-context transient buffers use a completion-tracked
+		 * per-memory-type TLSF allocator; work-context scratch buffers use a completion-tracked
 		 * linear allocator (see MetalHeapAllocator).
 		 */
 		class MetalGpuBuffer : public GpuBuffer
 		{
 		public:
-			MetalGpuBuffer(MetalGpuDevice& device, const GpuBufferCreateInformation& createInformation);
-			MetalGpuBuffer(MetalGpuDevice& device, const GpuBufferCreateInformation& createInformation,
-				IGpuAllocator& allocator);
+			/**
+			 * @param	device				Device the buffer is created on.
+			 * @param	createInformation	Describes the buffer to create.
+			 * @param	location			Location the buffer's memory comes from, every time the internal buffer is
+			 *								(re)created. See GpuDevice::CreateGpuBuffer(). Its allocator or heap must
+			 *								outlive the buffer.
+			 */
+			MetalGpuBuffer(MetalGpuDevice& device, const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location);
 			~MetalGpuBuffer();
 
 			void SetName(const StringView& name) override;
@@ -152,9 +157,6 @@ namespace b3d
 
 			/** Memory type the buffer's backing memory allocates from. Pure function of the create information, resolved once. */
 			u32 mMemoryType = 0;
-
-			/** Explicit backing allocator for transient buffers; null selects the device's persistent allocator. */
-			IGpuAllocator* mAllocator = nullptr;
 
 			bool mDirectlyMappable : 1;
 		};

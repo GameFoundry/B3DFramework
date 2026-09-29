@@ -195,7 +195,7 @@ namespace b3d
 			 * Ends the current frame: runs the incremental defragmentation pass on GPU memory, flushes
 			 * the work context's pending transfers, blocks until previous frame is done (if needed)
 			 * advances the GPU context across the frame boundary (recycling transfer pools and reclaiming 
-			 * transient memory) and finally advances the frame completion tracker. Call once per frame after the
+			 * scratch memory) and finally advances the frame completion tracker. Call once per frame after the
 			 * frame's GPU work is recorded, paired with BeginFrame(). Render thread only.
 			 */
 			void EndFrame();
@@ -395,7 +395,7 @@ namespace b3d
 			GpuFrameCompletionTracker mFrameCompletionTracker;
 
 			/**
-			 * Render-thread work context this renderer owns: transient allocators, transfer command
+			 * Render-thread work context this renderer owns: scratch allocators, transfer command
 			 * buffers, parameter set pool and command buffer submission for render-thread work. 
 			 * Borrows the renderer's frame completion tracker.
 			 */

@@ -723,7 +723,7 @@ namespace b3d
 					for(u32 passIndex = 0; passIndex < passes.Size(); ++passIndex)
 					{
 						const TextureCompressPass& pass = passes[passIndex];
-						const TShared<render::GpuBuffer> parameterBuffer = render::gTextureCompressParameters.CreateTransientBuffer(gpuContext);
+						const TShared<render::GpuBuffer> parameterBuffer = render::gTextureCompressParameters.CreateScratchBuffer(gpuContext);
 						if(parameterBuffer == nullptr)
 						{
 							op.CompleteOperation(nullptr);

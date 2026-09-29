@@ -64,6 +64,7 @@ PFN_vkGetSemaphoreCounterValue vkGetSemaphoreCounterValue = nullptr;
 PFN_vkWaitSemaphores vkWaitSemaphores = nullptr;
 
 PFN_vkGetDeviceBufferMemoryRequirementsKHR vkGetDeviceBufferMemoryRequirementsKHR = nullptr;
+PFN_vkGetDeviceImageMemoryRequirementsKHR vkGetDeviceImageMemoryRequirementsKHR = nullptr;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 // Diagnostics (VK_KHR_pipeline_executable_properties): used by the optional gpu.DumpPipelineStats occupancy dump.

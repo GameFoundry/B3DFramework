@@ -27,7 +27,7 @@ namespace b3d
 		 * SubmitCommandBuffer() validates and hands off to GpuSubmitThread::QueueSubmit, which calls back
 		 * into MetalGpuDevice::ExecuteSubmit -> MetalGpuCommandBuffer::CommitInternal on the submit
 		 * thread. The submit-thread-facing half of the queue (ExecuteWaitUntilIdle,
-		 * RefreshCompletionState, GetLastSubmitIndex) backs the device's IGpuSubmitThreadBackend
+		 * RefreshCompletionState, GetLastCommittedEventValue) backs the device's IGpuSubmitThreadBackend
 		 * implementation.
 		 *
 		 * The queue owns a single @c MTLSharedEvent that is signaled on every committed command buffer.
@@ -86,16 +86,16 @@ namespace b3d
 			 * reverse reservation order), the stored mark is left unchanged. Release-store pairs with
 			 * acquire-loads inside @c GetLastCommittedEventValue and the cross-queue wait encoders.
 			 *
-			 * Additionally assigns the submission the next engine submit index and records the
-			 * (submit index, event value) pair for RefreshCompletionState / GetLastSubmitIndex
-			 * (frame pacing via GpuSubmitThread).
+			 * Additionally records the submission for RefreshCompletionState (frame pacing via
+			 * GpuSubmitThread).
 			 */
 			void NotifySubmissionCommitted(u64 value, id<MTLCommandBuffer> commandBuffer,
 				const TShared<WaitGroup>& ownerCompletion = nullptr);
 
 			/**
 			 * Records owner-side completion for a submission that failed before any native command buffer
-			 * was committed. This advances only the engine submit index; no shared-event value is published.
+			 * was committed. No shared-event value is published; the record carries the last committed value
+			 * so it retires together with the preceding work.
 			 */
 			void NotifySubmissionFailed(const TShared<WaitGroup>& ownerCompletion);
 
@@ -129,25 +129,18 @@ namespace b3d
 			/**
 			 * Checks which submissions on this queue have finished executing and prunes the internal
 			 * submission records accordingly. A forced frame-boundary wait blocks directly on the native
-			 * command buffer associated with @p lastSubmitIndex, avoiding an extra empty submission and
+			 * command buffer associated with @p lastEventValue, avoiding an extra empty submission and
 			 * guaranteeing that command buffer's completion handler has returned.
 			 *
-			 * @param	forceWait		If true, blocks until every submission up to @p lastSubmitIndex has
+			 * @param	forceWait		If true, blocks until every submission up to @p lastEventValue has
 			 *							finished executing, and waits until the finished buffers' owner-side
 			 *							completion and cleanup callbacks have executed.
-			 * @param	lastSubmitIndex	Index of the last submission to check. If ~0u, all submissions are
-			 *							checked.
+			 * @param	lastEventValue	Committed event value of the last submission to check, as returned by
+			 *							GetLastCommittedEventValue(). If ~0, all submissions are checked.
 			 *
 			 * @note	Submit thread only.
 			 */
-			void RefreshCompletionState(bool forceWait, u32 lastSubmitIndex = ~0u);
-
-			/**
-			 * Returns the submit index of the most recently committed submission on this queue, or 0 if
-			 * nothing has been committed yet. Captured at a frame boundary by GpuSubmitThread and passed
-			 * back to RefreshCompletionState() to wait for all of that frame's work.
-			 */
-			u32 GetLastSubmitIndex() const;
+			void RefreshCompletionState(bool forceWait, u64 lastEventValue = ~0ull);
 
 			/** @} */
 

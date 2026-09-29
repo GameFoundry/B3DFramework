@@ -105,7 +105,7 @@ namespace b3d
 	{
 		/**
 		 * Default for backends without proper IGpuResource lifecycle wiring, and for the 
-		 * linear / transient allocators. Free queues the allocation against the current frame index; 
+		 * linear / scratch allocators. Free queues the allocation against the current frame index; 
 		 * the queue drains when IGpuCompletionTracker::IsMarkerComplete(marker) is true. Defrag
 		 * retires the source slot the same way. Requires a non-null IGpuCompletionTracker.
 		 */
@@ -309,16 +309,7 @@ namespace b3d
 #endif
 		}
 
-		/**
-		 * Debug guard: balances the outstanding-allocation count TryAllocate maintains, on the free paths.
-		 * The count exists to catch an allocation that outlived its owning context (asserted == 0 at
-		 * GpuWorkContext teardown), not to detect double-frees — the authoritative guard for those is the
-		 * GpuResourceLocation::IsValid() early-out at the resource-free entry point, which makes a second
-		 * free a no-op before it ever reaches the allocator. The decrement is therefore clamped at zero
-		 * rather than asserting a prior allocation: white-box allocator tests legitimately fabricate
-		 * locations and drive Free/FreeAndReclaim directly (without a counted TryAllocate) to exercise the
-		 * deferred-free queue in isolation, and must not trip on the instrumentation.
-		 */
+		/** Debug guard: balances the outstanding-allocation count TryAllocate maintains, on the free paths. */
 		void DebugCountFreedAllocation()
 		{
 #if B3D_DEBUG

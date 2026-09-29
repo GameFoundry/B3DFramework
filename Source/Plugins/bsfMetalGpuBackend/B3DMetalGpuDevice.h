@@ -195,11 +195,9 @@ namespace b3d
 			void EndFrame() override;
 
 			TShared<render::GpuCommandBufferPool> CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation) override;
-			TShared<Texture> CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags) override;
-			TShared<GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags) override;
-			TShared<GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation,
-				IGpuAllocator& allocator, GpuObjectCreateFlags flags) override;
-			u32 PickBufferMemoryType(const GpuBufferCreateInformation& createInformation) const override;
+			GpuMemoryRequirements GetMemoryRequirements(const TextureCreateInformation& createInformation) const override;
+			GpuMemoryRequirements GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const override;
+			IGpuAllocator& GetPersistentAllocator(u32 memoryType) override;
 			TShared<GpuQueryPool> CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation) override;
 			TShared<EventQuery> CreateEventQuery() override;
 			TShared<GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
@@ -209,7 +207,7 @@ namespace b3d
 			TShared<GpuPipelineParameterSetLayout> CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription, const TShared<GpuResourceTableLayout>& resourceTableLayout, u32 tableIndex) override;
 			TUnique<GpuParameterSetPool> CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation) override;
 			TShared<GpuTimelineFence> CreateTimelineFence() override;
-			TUnique<IGpuAllocator> CreateTransientAllocator(u32 memoryType,
+			TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType,
 				IGpuCompletionTracker& completionTracker) override;
 
 			void ConvertProjectionMatrix(const Matrix4& input, Matrix4& output) override;
@@ -237,8 +235,7 @@ namespace b3d
 
 			void NotifyWillQueueForSubmit(GpuCommandBuffer& commandBuffer) override;
 			void ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences) override;
-			void RefreshCompletionState(GpuQueue& queue, bool forceWait, u32 lastSubmitIndex) override;
-			u32 GetLastSubmitIndex(const GpuQueue& queue) const override;
+			void RefreshCompletionState(GpuQueue& queue, bool forceWait, u64 lastFenceValue) override;
 			u64 GetLastSubmittedFenceValue(const GpuQueue& queue) const override;
 			void ExecuteWaitUntilIdle() override;
 			void ExecuteWaitUntilIdle(GpuQueue& queue) override;
@@ -246,6 +243,8 @@ namespace b3d
 			/** @} */
 
 			TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
+			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags) override;
+			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags) override;
 
 			/** Initializes capabilities by querying the underlying MTLDevice. */
 			void InitializeCapabilities();

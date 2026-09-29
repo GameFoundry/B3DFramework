@@ -75,24 +75,19 @@ namespace b3d
 			/** One engine-visible submission on this queue that may not have retired yet. */
 			struct SubmissionRecord
 			{
-				u32 SubmitIndex = 0; /**< Engine submit index (monotonic, starts at 1). */
-				u64 EventValue = 0;  /**< Shared-event value, or zero for a pre-commit failure. */
+				u64 EventValue = 0; /**< Shared-event value, or the last committed value for a pre-commit failure. */
 				id<MTLCommandBuffer> CommandBuffer = nil; /**< Native buffer, or nil for a pre-commit failure. */
 				TShared<WaitGroup> OwnerCompletion; /**< Signaled after the owner-side cleanup callback runs. */
 			};
 
 			/**
-			 * Engine submissions that have not yet been observed complete, in ascending
-			 * SubmitIndex / EventValue order. Appended by NotifySubmissionCommitted, pruned by
-			 * RefreshCompletionState. Guarded by @c SubmissionMutex so diagnostic reads remain safe
-			 * while completion state is refreshed.
+			 * Engine submissions that have not yet been observed complete, in ascending EventValue
+			 * order. Appended by NotifySubmissionCommitted, pruned by RefreshCompletionState. Guarded
+			 * by @c SubmissionMutex so diagnostic reads remain safe while completion state is refreshed.
 			 */
 			Vector<SubmissionRecord> ActiveSubmissions;
 
-			/** Engine submit index handed to the next committed submission. Guarded by @c SubmissionMutex. */
-			u32 NextSubmitIndex = 1;
-
-			/** Guards @c ActiveSubmissions / @c NextSubmitIndex. */
+			/** Guards @c ActiveSubmissions. */
 			Mutex SubmissionMutex;
 		};
 
@@ -192,16 +187,16 @@ namespace b3d
 				}
 			}
 
-			// Record the submission for frame pacing: GpuSubmitThread snapshots GetLastSubmitIndex()
+			// Record the submission for frame pacing: GpuSubmitThread snapshots GetLastCommittedEventValue()
 			// at frame boundaries and later waits on it through RefreshCompletionState().
 			Lock lock(mImpl->SubmissionMutex);
-			mImpl->ActiveSubmissions.push_back({ mImpl->NextSubmitIndex++, value, commandBuffer, ownerCompletion });
+			mImpl->ActiveSubmissions.push_back({ value, commandBuffer, ownerCompletion });
 		}
 
 		void MetalGpuQueue::NotifySubmissionFailed(const TShared<WaitGroup>& ownerCompletion)
 		{
 			Lock lock(mImpl->SubmissionMutex);
-			mImpl->ActiveSubmissions.push_back({ mImpl->NextSubmitIndex++, 0, nil, ownerCompletion });
+			mImpl->ActiveSubmissions.push_back({ GetLastCommittedEventValue(), nil, ownerCompletion });
 		}
 
 		void MetalGpuQueue::SubmitCommandBuffer(const GpuSubmissionInformation& information)
@@ -270,11 +265,11 @@ namespace b3d
 			FenceCompletionHandlers();
 		}
 
-		void MetalGpuQueue::RefreshCompletionState(bool forceWait, u32 lastSubmitIndex)
+		void MetalGpuQueue::RefreshCompletionState(bool forceWait, u64 lastEventValue)
 		{
 			AssertIfNotSubmitThread();
 
-			// Resolve the native command buffer covering every submission up to @p lastSubmitIndex.
+			// Resolve the native command buffer covering every submission up to @p lastEventValue.
 			// Records are appended in ascending order, so the last qualifying record is the boundary.
 			id<MTLCommandBuffer> waitCommandBuffer = nil;
 			TInlineArray<TShared<WaitGroup>, 16> ownerCompletions;
@@ -282,7 +277,7 @@ namespace b3d
 				Lock lock(mImpl->SubmissionMutex);
 				for (const Impl::SubmissionRecord& record : mImpl->ActiveSubmissions)
 				{
-					if (lastSubmitIndex != ~0u && record.SubmitIndex > lastSubmitIndex)
+					if (record.EventValue > lastEventValue)
 						break;
 
 					if (record.CommandBuffer != nil)
@@ -312,19 +307,13 @@ namespace b3d
 			{
 				size_t retiredCount = 0;
 				while (retiredCount < mImpl->ActiveSubmissions.size()
-					&& (lastSubmitIndex == ~0u || mImpl->ActiveSubmissions[retiredCount].SubmitIndex <= lastSubmitIndex))
+					&& mImpl->ActiveSubmissions[retiredCount].EventValue <= lastEventValue)
 				{
 					retiredCount++;
 				}
 
 				mImpl->ActiveSubmissions.erase(mImpl->ActiveSubmissions.begin(), mImpl->ActiveSubmissions.begin() + retiredCount);
 			}
-		}
-
-		u32 MetalGpuQueue::GetLastSubmitIndex() const
-		{
-			Lock lock(mImpl->SubmissionMutex);
-			return mImpl->NextSubmitIndex - 1;
 		}
 
 		void MetalGpuQueue::FenceCompletionHandlers()

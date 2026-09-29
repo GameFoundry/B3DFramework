@@ -352,8 +352,8 @@ TShared<Texture> Texture::kBlack;
 TShared<Texture> Texture::kPink;
 TShared<Texture> Texture::kNormal;
 
-Texture::Texture(const TextureCreateInformation& createInformation)
-	: mProperties(createInformation), mInitData(createInformation.InitialData), mName(createInformation.Name)
+Texture::Texture(const TextureCreateInformation& createInformation, const GpuResourceLocation& location)
+	: mName(createInformation.Name), mProperties(createInformation), mInitData(createInformation.InitialData), mRequestedLocation(location)
 {}
 
 void Texture::Initialize()
@@ -479,7 +479,7 @@ TShared<GpuBuffer> TextureUtility::CreateStagingBuffer(GpuWorkContext& gpuContex
 	createInformation.Type = readable ? GpuBufferType::StagingRead : GpuBufferType::StagingWrite;
 	createInformation.Staging.Size = pixelData.GetSize();
 
-	return gpuContext.CreateTransientGpuBuffer(createInformation);
+	return gpuContext.CreateScratchGpuBuffer(createInformation);
 }
 
 void TextureUtility::Write(GpuWorkContext& gpuContext, const TShared<Texture>& texture, const PixelData& source, u32 mipLevel, u32 arrayLayer, TextureWriteFlags flags, TShared<GpuCommandBuffer> commandBuffer)
@@ -506,7 +506,7 @@ void TextureUtility::Write(GpuWorkContext& gpuContext, const TShared<Texture>& t
 		return;
 	}
 
-	const bool canDiscardContents = flags.IsSet(TextureWriteFlag::Discard);
+	const bool canDiscardContents = flags.IsSet(TextureWriteFlag::Discard) && !texture->HasFixedLocation();
 	const bool noOverwrite = flags.IsSet(TextureWriteFlag::NoOverwrite);
 	const bool supportsGPUWrites = textureProperties.Usage.IsSetAny(TextureUsageFlag::AllowUnorderedAccessOnTheGPU);
 

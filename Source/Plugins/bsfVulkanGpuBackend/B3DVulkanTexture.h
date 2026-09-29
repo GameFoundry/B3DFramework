@@ -245,6 +245,25 @@ namespace b3d
 			VkImageLayout mLayout;
 		};
 
+		/** Native image description derived from a texture's properties. */
+		struct VulkanTextureDescription
+		{
+			/**
+			 * Image create information, with the format resolved from InternalFormat. pQueueFamilyIndices is left null, point
+			 * it to QueueFamilies before use.
+			 */
+			VkImageCreateInfo CreateInfo{};
+
+			TInlineArray<u32, GQT_COUNT> QueueFamilies; /**< Queue families sharing the image, if concurrent sharing is used. */
+			PixelFormat InternalFormat = PF_UNKNOWN; /**< Closest pixel format supported by the device. */
+			VkMemoryPropertyFlags RequiredMemoryFlags = 0; /**< Memory properties the image memory must have. */
+			VkMemoryPropertyFlags PreferredMemoryFlags = 0; /**< Memory properties preferred for the image memory. */
+			GpuResourceKind Kind = GpuResourceKind::NonLinear; /**< Placement kind of the image memory. */
+			bool DirectlyMappable = false; /**< True if the image uses linear tiling, and can be mapped by the CPU. */
+			bool SupportsGPUWrites = false; /**< True if the GPU can write to the image. */
+			bool UsesGeneralLayout = false; /**< True if the image stays in the general layout. */
+		};
+
 		/**	Vulkan implementation of a texture. */
 		class VulkanTexture : public Texture
 		{
@@ -271,24 +290,27 @@ namespace b3d
 			void Invalidate(u32 mipLevel, u32 arrayLayer) override;
 			void RecreateInternalTexture() override;
 
+			/** Builds the native image description of a texture with properties @p properties, on device @p device. */
+			static void BuildDescription(const VulkanGpuDevice& device, const TextureProperties& properties, VulkanTextureDescription& outDescription);
+
 		protected:
 			friend class VulkanGpuDevice;
 			friend class VulkanImage;
 
-			VulkanTexture(VulkanGpuDevice& gpuDevice, const TextureCreateInformation& createInformation);
+			VulkanTexture(VulkanGpuDevice& gpuDevice, const TextureCreateInformation& createInformation, const GpuResourceLocation& location);
 
 			void Initialize() override;
 
 		private:
-			/** Creates a new image for the specified device, matching the current properties. */
-			VulkanImage* CreateImage(PixelFormat format);
+			/** Creates a new image at the texture's location, matching the current properties. */
+			VulkanImage* CreateImage();
 
 			/**
-			 * Recreates this proxy's internal VulkanImage at the provided pre-reserved allocation slot,
+			 * Recreates this proxy's internal VulkanImage at the provided pre-reserved location,
 			 * records a GPU-side copy from the current image into the new one on @p commandBuffer. The caller
 			 * is responsible for queuing the old wrapper for destroy.
 			 */
-			VulkanImage* RelocateInternalTexture(const VulkanAllocationResult& preReserved, render::GpuCommandBuffer& commandBuffer);
+			VulkanImage* RelocateInternalTexture(const GpuResourceLocation& newLocation, render::GpuCommandBuffer& commandBuffer);
 
 			/**
 			 * Builds a VulkanImageCreateInformation reflecting this texture's current shape (CreateInfo, Layout,
@@ -308,6 +330,8 @@ namespace b3d
 			PixelFormat mInternalFormat = PF_UNKNOWN;
 
 			VkImageCreateInfo mImageCreateInformation;
+			TInlineArray<u32, GQT_COUNT> mQueueFamilies;
+			GpuResourceKind mKind = GpuResourceKind::NonLinear;
 			bool mDirectlyMappable : 1;
 			bool mSupportsGPUWrites : 1;
 			bool mUsesGeneralLayout : 1;

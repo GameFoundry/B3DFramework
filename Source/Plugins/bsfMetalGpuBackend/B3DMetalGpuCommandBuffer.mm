@@ -3462,7 +3462,7 @@ namespace b3d
 					owner->OnDidComplete();
 					// Release completion listeners and cached recording state on the owner thread;
 					// listener closures may hold the last references to GPU resources (e.g.
-					// transient buffers) that must not outlive the submission.
+					// scratch buffers) that must not outlive the submission.
 					owner->ClearRecordingState();
 					ownerCompletion->NotifyDone();
 				}, "MetalGpuCommandBuffer completion");
@@ -3546,8 +3546,8 @@ namespace b3d
 			// notify+clear, queue sync mask reset, event clearing, and cached-state teardown. Runs on
 			// the owner thread — either from the completion handler's message-queue lambda
 			// (CommitInternal) or from pool-level reset / destroy. Clearing OnDidComplete releases
-			// listener closures, which may hold the last references to GPU resources (e.g. transient
-			// buffers) that must be freed before GpuWorkContext::WaitAndReclaim drains its transient
+			// listener closures, which may hold the last references to GPU resources (e.g. scratch
+			// buffers) that must be freed before GpuWorkContext::WaitAndReclaim drains its scratch
 			// allocators.
 			//
 			// Resource tracker: mirror VulkanGpuCommandBuffer::ClearRecordingState — a buffer whose resources were

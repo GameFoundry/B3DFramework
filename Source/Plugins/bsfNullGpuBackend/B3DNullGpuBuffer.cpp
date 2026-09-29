@@ -7,15 +7,29 @@ namespace b3d
 {
 	namespace render
 	{
-		NullGpuBuffer::NullGpuBuffer(NullGpuDevice& device, const GpuBufferCreateInformation& createInformation)
-			: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device))
+		NullGpuBuffer::NullGpuBuffer(NullGpuDevice& device, const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location)
+			: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device), location)
 		{
+			if(location.IsPending())
+			{
+				const GpuMemoryRequirements requirements = device.GetMemoryRequirements(createInformation);
+
+				const bool ok = location.Allocator->TryAllocate(requirements.Size, (u32)requirements.Alignment, requirements.Kind, nullptr, mAllocation);
+				B3D_ASSERT(ok && "Allocator failed to satisfy the allocation request.");
+				(void)ok;
+			}
+			else
+				mAllocation = location;
+
 			// Allocate a dummy buffer for persistently mapped memory
 			mMappedMemory = B3DAllocate(mTotalSize);
 		}
 
 		NullGpuBuffer::~NullGpuBuffer()
 		{
+			if(mAllocation.IsOwned())
+				mAllocation.Allocator->Free(mAllocation);
+
 			if (mMappedMemory)
 			{
 				B3DFree(mMappedMemory);

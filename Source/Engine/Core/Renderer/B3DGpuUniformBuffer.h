@@ -193,7 +193,7 @@ namespace b3d
 			 * Note that transient buffer allocations might be larger than size returned by GetSize(), due to alignment requirements.
 			 *
 			 * @note NOT thread safe. The backing TransientGpuBufferPool may only be used from the render thread. Off-render-thread
-			 *       callers must allocate from their own worker GpuWorkContext instead (GpuWorkContext::CreateTransientGpuBuffer).
+			 *       callers must allocate from their own worker GpuWorkContext instead (GpuWorkContext::CreateScratchGpuBuffer).
 			 */
 			GpuBufferSuballocation AllocateTransient()
 			{
@@ -201,17 +201,17 @@ namespace b3d
 			}
 
 			/**
-			 * Allocates a one-shot uniform buffer backed by the given work context's transient (linear) allocator.
+			 * Allocates a one-shot uniform buffer backed by the given work context's scratch (linear) allocator.
 			 *
 			 * The returned buffer's memory is reclaimed in bulk once the GPU work that used it completes, so it must
 			 * only be used for the single operation that created it.
 			 *
-			 * @param	gpuContext	Work context whose transient allocator backs the buffer.
-			 * @return				The transient buffer.
+			 * @param	gpuContext	Work context whose scratch allocator backs the buffer.
+			 * @return				The scratch buffer.
 			 */
-			TShared<GpuBuffer> CreateTransientBuffer(GpuWorkContext& gpuContext) const
+			TShared<GpuBuffer> CreateScratchBuffer(GpuWorkContext& gpuContext) const
 			{
-				return gpuContext.CreateTransientGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBufferSize, GpuBufferFlag::StoreOnCPUWithGPUAccess, 1));
+				return gpuContext.CreateScratchGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBufferSize, GpuBufferFlag::StoreOnCPUWithGPUAccess, 1));
 			}
 
 		protected:

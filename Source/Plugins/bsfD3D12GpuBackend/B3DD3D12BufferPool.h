@@ -74,7 +74,7 @@ namespace b3d::render
 		D3D12GpuDevice& mDevice;
 	};
 
-	/** Owns persistent and transient buffer-page allocators, partitioned by native heap and resource flags. */
+	/** Owns persistent and scratch buffer-page allocators, partitioned by native heap and resource flags. */
 	class D3D12BufferPool
 	{
 	public:
@@ -95,7 +95,7 @@ namespace b3d::render
 		IGpuAllocator& GetOrCreatePersistentAllocator(MemoryType memoryType);
 
 		/** Creates a context-owned linear allocator for @p memoryType, backed by the shared page pool for that type. */
-		TUnique<IGpuAllocator> CreateTransientAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker);
+		TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker);
 
 		/** Returns the memory type compatible with @p heapType and @p resourceFlags, or Count when unsupported. */
 		static MemoryType GetMemoryType(D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_FLAGS resourceFlags);
@@ -103,9 +103,9 @@ namespace b3d::render
 	private:
 		using PersistentAllocator = TGpuTlsfAllocator<D3D12BufferPageBackend>;
 		using LinearPagePool = TGpuLinearPagePool<D3D12BufferPageBackend>;
-		using TransientAllocator = TGpuLinearAllocator<D3D12BufferPageBackend>;
+		using ScratchAllocator = TGpuLinearAllocator<D3D12BufferPageBackend>;
 
-		/** Lazily creates and returns the shared transient page pool for @p memoryType. */
+		/** Lazily creates and returns the shared scratch page pool for @p memoryType. */
 		LinearPagePool& GetOrCreateLinearPagePool(MemoryType memoryType);
 
 		/** Returns the native page properties for @p memoryType. */
@@ -114,14 +114,14 @@ namespace b3d::render
 		/** Returns the initial persistent TLSF page size for @p memoryType. */
 		static u64 GetPersistentPageSize(MemoryType memoryType);
 
-		/** Returns the transient linear page size for @p memoryType. */
-		static u64 GetTransientPageSize(MemoryType memoryType);
+		/** Returns the scratch linear page size for @p memoryType. */
+		static u64 GetScratchPageSize(MemoryType memoryType);
 
 		D3D12BufferPageBackend mBackend;
 		TUnique<PersistentAllocator> mPersistentAllocators[(u32)MemoryType::Count];
 		TUnique<LinearPagePool> mLinearPagePools[(u32)MemoryType::Count];
 
-		/** Guards lazy creation of persistent allocators and transient page pools. */
+		/** Guards lazy creation of persistent allocators and scratch page pools. */
 		Mutex mAllocatorMutex;
 	};
 }

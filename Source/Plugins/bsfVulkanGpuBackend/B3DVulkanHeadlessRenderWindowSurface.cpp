@@ -62,7 +62,7 @@ void VulkanHeadlessRenderWindowSurface::CreateSwapChainImages()
 		imageCreateInformation.IsShaderReadAllowed = false;
 
 		// Purposefully not setting parent so these images don't participate in defragmentation
-		mColorImages[imageIndex] = presentDevice->CreateImage(imageCreateInformation, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0, GpuResourceKind::NonLinear, nullptr);
+		mColorImages[imageIndex] = presentDevice->CreateImage(imageCreateInformation, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0, GpuResourceKind::NonLinear);
 		if(mColorImages[imageIndex] != nullptr)
 			mColorImages[imageIndex]->SetName("HeadlessSwapChainColor" + ToString(imageIndex));
 	}
@@ -81,7 +81,7 @@ void VulkanHeadlessRenderWindowSurface::CreateSwapChainImages()
 		imageCreateInformation.IsShaderReadAllowed = false;
 
 		// Purposefully not setting parent so these images don't participate in defragmentation
-		mDepthImage = presentDevice->CreateImage(imageCreateInformation, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0, GpuResourceKind::NonLinear, nullptr);
+		mDepthImage = presentDevice->CreateImage(imageCreateInformation, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0, GpuResourceKind::NonLinear);
 		if(mDepthImage != nullptr)
 			mDepthImage->SetName("HeadlessSwapChainDepth");
 	}

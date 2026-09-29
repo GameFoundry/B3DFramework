@@ -4,6 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "B3DGpuDevice.h"
+#include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "CoreObject/B3DCoreObject.h"
 #include "CoreObject/B3DRenderProxy.h"
 
@@ -475,6 +476,7 @@ namespace b3d
 
 		/** Calculates the size of a buffer described by the provided information, in bytes. */
 		static u32 CalculateTotalBufferSize(const GpuBufferInformation& information, const TShared<GpuDevice>& gpuDevice);
+		static u32 CalculateTotalBufferSize(const GpuBufferInformation& information, const GpuDevice& gpuDevice);
 
 		/**
 		 * Calculates the distance between two buffers, in case the buffer contains sub-allocated buffers. This is guaranteed to be at
@@ -674,6 +676,12 @@ namespace b3d::render
 		/** Number of in-flight submissions currently referencing this buffer. */
 		virtual u32 GetUseCount() const = 0;
 
+		/**
+		 * Returns true if the buffer is fixed to the memory it was created at. Such a buffer never recreates its native
+		 * resource, so writes cannot discard its contents.
+		 */
+		bool HasFixedLocation() const { return !mRequestedLocation.IsPending(); }
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		/** Checks if any suballocation overlapping the given byte range is bound. */
 		virtual bool IsRangeBound(u32 offset, u32 size) const = 0;
@@ -687,8 +695,11 @@ namespace b3d::render
 		friend class b3d::GpuBuffer;
 		friend struct GpuBufferUtility;
 
-		/** Constructs a new GPU buffer. */
-		GpuBuffer(GpuDevice& device, const GpuBufferCreateInformation& createInformation, u32 suballocationSize);
+		/**
+		 * Constructs a new GPU buffer whose native resource is created at @p location. See
+		 * GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation&, const GpuResourceLocation&, GpuObjectCreateFlags).
+		 */
+		GpuBuffer(GpuDevice& device, const GpuBufferCreateInformation& createInformation, u32 suballocationSize, const GpuResourceLocation& location);
 
 		void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
 
@@ -707,6 +718,13 @@ namespace b3d::render
 		u32 mSuballocationSize = 0;
 		u32 mTotalSize = 0;
 		void* mMappedMemory = nullptr;
+
+		/**
+		 * Location requested at creation, reused every time the native resource is (re)created. Either memory the native
+		 * resource is placed at, or a pending location naming the allocator each (re)creation allocates from. Never owned
+		 * by the proxy itself.
+		 */
+		GpuResourceLocation mRequestedLocation;
 	};
 
 	/** Flags used to control the GPU buffer writes. */
@@ -745,10 +763,10 @@ namespace b3d::render
 	{
 		/**
 		 * Creates a staging buffer that can be used for as copy source or destination for the provided buffer. Staging
-		 * buffers are single-use, so they are allocated from the performing context's transient allocator — the memory
+		 * buffers are single-use, so they are allocated from the performing context's scratch allocator — the memory
 		 * is reclaimed in bulk once the GPU work that used it completes, and must not be retained past that point.
 		 *
-		 * @param	gpuContext	Context whose transient allocator backs the staging buffer.
+		 * @param	gpuContext	Context whose scratch allocator backs the staging buffer.
 		 * @param	buffer		Buffer to create the the staging buffer for. The staging buffer will have enough size to fit the contents of this buffer.
 		 * @param	readable	True if the buffer needs to be CPU-readable, false if the buffer needs to be CPU-writeable.
 		 * @return				Newly created buffer.
@@ -799,7 +817,7 @@ namespace b3d::render
 		 * Performs a non-blocking read operation. The GPU will execute the read when the command buffer reaches the execution point
 		 * and the asynchronous operation will be signaled with the return value.
 		 *
-		 * @param	gpuContext		Context whose transient allocator backs the internal staging buffer.
+		 * @param	gpuContext		Context whose scratch allocator backs the internal staging buffer.
 		 * @param	buffer			Buffer to read from.
 		 * @param	offset			Offset in bytes from which to read the data.
 		 * @param	length			Length of the area you want to read, in bytes.

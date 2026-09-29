@@ -71,22 +71,16 @@ namespace b3d::render
 		 *
 		 * @param	queue			Queue whose completion state to refresh.
 		 * @param	forceWait		If true, waits until the relevant command buffers finish executing.
-		 * @param	lastSubmitIndex	Index of the last submitted command buffer to check. If ~0u, all submitted
-		 *							command buffers are checked.
+		 * @param	lastFenceValue	Fence value of the last submission to check, as returned by
+		 *							GetLastSubmittedFenceValue(). If ~0, all submitted command buffers are checked.
 		 */
-		virtual void RefreshCompletionState(GpuQueue& queue, bool forceWait, u32 lastSubmitIndex = ~0u) = 0;
-
-		/**
-		 * Returns the submit index of the most recently tracked submission on the provided queue, or 0 if nothing
-		 * has been submitted yet. Captured at a frame boundary and passed to RefreshCompletionState() to wait for
-		 * the command-buffer work associated with that frame.
-		 */
-		virtual u32 GetLastSubmitIndex(const GpuQueue& queue) const = 0;
+		virtual void RefreshCompletionState(GpuQueue& queue, bool forceWait, u64 lastFenceValue = ~0ull) = 0;
 
 		/**
 		 * Returns the value the queue's own fence is signalled with by its most recent submission, or 0 if nothing has
-		 * been submitted yet. A GPU wait on the value must order the waiting submission after all work submitted on the
-		 * queue up to that point, with all of that work's writes available and visible.
+		 * been submitted yet. Values increase with submission order. A GPU wait on the value must order the waiting
+		 * submission after all work submitted on the queue up to that point, with all of that work's writes available
+		 * and visible.
 		 */
 		virtual u64 GetLastSubmittedFenceValue(const GpuQueue& queue) const = 0;
 
@@ -110,15 +104,9 @@ namespace b3d::render
 		struct FrameCompletionMarker
 		{
 			/**
-			 * Submit index of the last tracked submission on each queue (indexed by GpuQueueId) as of this frame's
-			 * boundary. Waiting on every queue up to its captured index guarantees all tracked command buffers from
-			 * the frame have completed.
-			 */
-			Array<u32, B3D_MAX_UNIQUE_QUEUES> LastSubmitIndices = {};
-
-			/**
 			 * Fence value of the last submission on each queue (indexed by GpuQueueId) as of this frame's boundary. The
-			 * next frame's first submission on every queue waits on all of them. See ConsumeFrameFence().
+			 * next frame's first submission on every queue waits on all of them (see ConsumeFrameFence()), and frame
+			 * pacing waits until every queue reaches its value before the frame's resources are reused.
 			 */
 			Array<u64, B3D_MAX_UNIQUE_QUEUES> LastFenceValues = {};
 
@@ -222,7 +210,7 @@ namespace b3d::render
 		/** Current frame index (0 to kFrameCount-1), tracked internally by submit thread. */
 		u32 mCurrentFrameIndex = 0;
 
-		/** Per-frame completion tracking (per-queue submit-index snapshot and completion event). */
+		/** Per-frame completion tracking (per-queue fence value snapshot and completion event). */
 		Array<FrameCompletionMarker, kFrameCount> mFrameMarkers;
 
 		/** Queues whose next command buffer submission must wait on the frame fence. Submit thread only. */

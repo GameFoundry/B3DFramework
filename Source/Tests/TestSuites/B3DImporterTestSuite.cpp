@@ -872,7 +872,7 @@ namespace
 
 		const Vector2I size((i32)width, (i32)height);
 
-		const TShared<render::GpuBuffer> parameterBuffer = render::gTextureDecompressParameters.CreateTransientBuffer(gpuContext);
+		const TShared<render::GpuBuffer> parameterBuffer = render::gTextureDecompressParameters.CreateScratchBuffer(gpuContext);
 		if(parameterBuffer == nullptr)
 		{
 			op.CompleteOperation(nullptr);

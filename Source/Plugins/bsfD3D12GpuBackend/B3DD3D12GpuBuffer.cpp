@@ -22,38 +22,6 @@ namespace
 	constexpr u32 kTypedBufferViewAlignment = 48;
 
 	/**
-	 * Returns an alignment that keeps the pooled slice valid for every native view and copy footprint the logical
-	 * buffer may use. The copy alignment is included for every buffer so a later buffer-to-image operation never
-	 * depends on how the buffer was originally classified.
-	 */
-	u32 GetBufferSliceAlignment(const GpuBufferInformation& information)
-	{
-		u32 viewAlignment = 4;
-		switch(information.Type)
-		{
-		case GpuBufferType::Uniform:
-			viewAlignment = kConstantBufferViewSizeAlignment;
-			break;
-		case GpuBufferType::SimpleStorage:
-			viewAlignment = kTypedBufferViewAlignment;
-			break;
-		case GpuBufferType::StructuredStorage:
-			viewAlignment = information.StructuredStorage.ElementSize;
-			break;
-		case GpuBufferType::Vertex:
-			viewAlignment = information.Vertex.ElementSize;
-			break;
-		case GpuBufferType::Index:
-			viewAlignment = information.Index.Type == IT_32BIT ? 4 : 2;
-			break;
-		default:
-			break;
-		}
-
-		return std::lcm(viewAlignment, (u32)D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
-	}
-
-	/**
 	 * Converts an engine buffer element format into the DXGI format used to type a typed (simple storage) buffer
 	 * view. Returns DXGI_FORMAT_UNKNOWN for formats without a direct 1:1 mapping.
 	 */
@@ -131,9 +99,49 @@ D3D12_HEAP_TYPE D3D12Buffer::GetHeapType() const
 	return page != nullptr ? page->GetHeapType() : D3D12_HEAP_TYPE_DEFAULT;
 }
 
-D3D12GpuBuffer::D3D12GpuBuffer(const GpuBufferCreateInformation& createInformation, GpuDevice& device, IGpuAllocator& allocator)
-	: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device)), mAllocator(allocator)
+D3D12GpuBuffer::D3D12GpuBuffer(const GpuBufferCreateInformation& createInformation, GpuDevice& device, const GpuResourceLocation& location)
+	: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device), location)
 {
+}
+
+u32 D3D12GpuBuffer::GetSliceSize(const GpuBufferInformation& information, u32 totalSize)
+{
+	// Not allowed to have size 0 buffer
+	u32 bufferSize = Math::Max(totalSize, 64u);
+
+	// Constant buffer views must be sized to a 256-byte multiple, and may not extend past the end of the
+	// resource, so uniform buffers get their backing resource padded accordingly.
+	if(information.Type == GpuBufferType::Uniform)
+		bufferSize = Math::CeilToMultiple(bufferSize, kConstantBufferViewSizeAlignment);
+
+	return bufferSize;
+}
+
+u32 D3D12GpuBuffer::GetSliceAlignment(const GpuBufferInformation& information)
+{
+	u32 viewAlignment = 4;
+	switch(information.Type)
+	{
+	case GpuBufferType::Uniform:
+		viewAlignment = kConstantBufferViewSizeAlignment;
+		break;
+	case GpuBufferType::SimpleStorage:
+		viewAlignment = kTypedBufferViewAlignment;
+		break;
+	case GpuBufferType::StructuredStorage:
+		viewAlignment = information.StructuredStorage.ElementSize;
+		break;
+	case GpuBufferType::Vertex:
+		viewAlignment = information.Vertex.ElementSize;
+		break;
+	case GpuBufferType::Index:
+		viewAlignment = information.Index.Type == IT_32BIT ? 4 : 2;
+		break;
+	default:
+		break;
+	}
+
+	return std::lcm(viewAlignment, (u32)D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
 }
 
 D3D12GpuBuffer::~D3D12GpuBuffer()
@@ -184,23 +192,21 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 	const GpuBufferInformation& information = GetInformation();
 	const D3D12_HEAP_TYPE heapType = D3D12Utility::GetHeapType(information.Type, information.Flags);
 
-	// Not allowed to have size 0 buffer
-	u32 bufferSize = Math::Max(mTotalSize, 64u);
-
-	// Constant buffer views must be sized to a 256-byte multiple, and may not extend past the end of the
-	// resource, so uniform buffers get their backing resource padded accordingly.
-	if(information.Type == GpuBufferType::Uniform)
-		bufferSize = Math::CeilToMultiple(bufferSize, kConstantBufferViewSizeAlignment);
+	const u32 bufferSize = GetSliceSize(information, mTotalSize);
+	const D3D12_RESOURCE_FLAGS resourceFlags = D3D12Utility::GetBufferResourceFlags(information.Flags);
+	const u32 alignment = GetSliceAlignment(information);
 
 	GpuResourceLocation allocation;
-	const D3D12_RESOURCE_FLAGS resourceFlags = D3D12Utility::GetBufferResourceFlags(information.Flags);
-	const u32 alignment = GetBufferSliceAlignment(information);
-	if(!mAllocator.TryAllocate(bufferSize, alignment, GpuResourceKind::Linear, nullptr, allocation))
+	if(!mRequestedLocation.IsPending())
+		allocation = mRequestedLocation;
+	else if(!mRequestedLocation.Allocator->TryAllocate(bufferSize, alignment, GpuResourceKind::Linear, nullptr, allocation))
 	{
 		B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to allocate a pooled buffer slice (size={0}, alignment={1}, type={2}, heapType={3}, resourceFlags={4}).",
 			bufferSize, alignment, (u32)information.Type, (u32)heapType, (u32)resourceFlags);
 		return;
 	}
+
+	B3D_ASSERT(D3D12BufferPool::GetMemoryType(static_cast<D3D12BufferPage*>(allocation.Heap)->GetHeapType(), static_cast<D3D12BufferPage*>(allocation.Heap)->GetFlags()) == D3D12BufferPool::GetMemoryType(heapType, resourceFlags) && "Location's memory type cannot back the buffer.");
 
 	mBuffer = device.GetResourceManager().Create<D3D12Buffer>(allocation, mName);
 	D3D12BufferPage* const page = mBuffer->GetPage();

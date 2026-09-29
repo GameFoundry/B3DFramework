@@ -23,10 +23,78 @@ TShared<GpuProgramBytecode> GpuDevice::CompileGpuProgramBytecode(const GpuProgra
 	return bytecodeCompiler->CompileBytecode(createInformation);
 }
 
-TUnique<IGpuAllocator> GpuDevice::CreateTransientAllocator(u32 /*memoryType*/, IGpuCompletionTracker& /*completionTracker*/)
+TUnique<IGpuAllocator> GpuDevice::CreateScratchAllocator(u32 /*memoryType*/, IGpuCompletionTracker& /*completionTracker*/)
 {
-	// Default: context-owned transient allocation is unsupported. Backends that support it override this.
+	// Default: context-owned scratch allocation is unsupported. Backends that support it override this.
 	return nullptr;
+}
+
+namespace
+{
+	/**
+	 * Checks that a resource with @p memoryRequirements can be created at @p location with @p flags, logging the reason
+	 * if it can't.
+	 */
+	bool ValidateResourceLocation(const GpuResourceLocation& location, const GpuMemoryRequirements& memoryRequirements, GpuObjectCreateFlags flags)
+	{
+		if(!B3D_ENSURE_LOG(location.HasMemory() || location.IsPending(), "Cannot create a GPU resource at an empty memory location."))
+			return false;
+
+		if(!B3D_ENSURE_LOG(!flags.IsSet(GpuObjectCreateFlag::Aliased) || location.HasMemory(), "Only a GPU resource created at a fixed memory location can be aliased."))
+			return false;
+
+		if(memoryRequirements.MemoryType == GpuMemoryRequirements::kUnsupportedMemoryType)
+			return false;
+
+		if(!location.HasMemory())
+			return true;
+
+		return B3D_ENSURE_LOG(location.Size >= memoryRequirements.Size && location.Offset % memoryRequirements.Alignment == 0,
+			"Memory location (offset {0}, size {1}) does not satisfy the resource's requirements (size {2}, alignment {3}).",
+			location.Offset, location.Size, memoryRequirements.Size, memoryRequirements.Alignment);
+	}
+}
+
+TShared<render::Texture> GpuDevice::CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
+{
+	const GpuMemoryRequirements memoryRequirements = GetMemoryRequirements(createInformation);
+	if(memoryRequirements.MemoryType == GpuMemoryRequirements::kUnsupportedMemoryType)
+		return nullptr;
+
+	const GpuResourceLocation location = GpuResourceLocation::FromAllocator(GetPersistentAllocator(memoryRequirements.MemoryType));
+	if(!ValidateResourceLocation(location, memoryRequirements, flags))
+		return nullptr;
+
+	return CreateTextureInternal(createInformation, location, flags);
+}
+
+TShared<render::Texture> GpuDevice::CreateTexture(const TextureCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags)
+{
+	if(!ValidateResourceLocation(location, GetMemoryRequirements(createInformation), flags))
+		return nullptr;
+
+	return CreateTextureInternal(createInformation, location, flags);
+}
+
+TShared<render::GpuBuffer> GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
+{
+	const GpuMemoryRequirements memoryRequirements = GetMemoryRequirements(createInformation);
+	if(memoryRequirements.MemoryType == GpuMemoryRequirements::kUnsupportedMemoryType)
+		return nullptr;
+
+	const GpuResourceLocation location = GpuResourceLocation::FromAllocator(GetPersistentAllocator(memoryRequirements.MemoryType));
+	if(!ValidateResourceLocation(location, memoryRequirements, flags))
+		return nullptr;
+
+	return CreateGpuBufferInternal(createInformation, location, flags);
+}
+
+TShared<render::GpuBuffer> GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags)
+{
+	if(!ValidateResourceLocation(location, GetMemoryRequirements(createInformation), flags))
+		return nullptr;
+
+	return CreateGpuBufferInternal(createInformation, location, flags);
 }
 
 void GpuDevice::DoForEachQueue(const std::function<void(GpuQueue&)>&& callback) const
@@ -42,12 +110,6 @@ void GpuDevice::DoForEachQueue(const std::function<void(GpuQueue&)>&& callback) 
 			callback(*queue);
 		}
 	}
-}
-
-TShared<render::GpuBuffer> GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& /*createInformation*/, IGpuAllocator& /*allocator*/, GpuObjectCreateFlags /*flags*/)
-{
-	B3D_ENSURE_LOG(false, "This backend does not support allocator-driven buffer creation.");
-	return nullptr;
 }
 
 TShared<SamplerState> GpuDevice::FindOrCreateSamplerState(const SamplerStateCreateInformation& createInformation)

@@ -59,7 +59,7 @@ void Renderer::EndFrame()
 	mDevice->EndFrame();
 
 	// Advance the context across the frame boundary: recycles its transfer pools and reclaims
-	// transient memory (retire each transient allocator's active page, drain everything whose frame
+	// scratch memory (retire each scratch allocator's active page, drain everything whose frame
 	// is complete). Important this is done after the backend wait above, and before the frame tracker
 	// increments so the retired pages are stamped with the frame that used them.
 	gpuContext.AdvanceFrame();
@@ -148,7 +148,7 @@ void Renderer::ResolveOutstandingScreenCaptures()
 
 void Renderer::InitializeOnRenderThread()
 {
-	// Borrows the renderer's frame completion tracker; all thread-affine state (transfer pools, transient
+	// Borrows the renderer's frame completion tracker; all thread-affine state (transfer pools, scratch
 	// allocators, parameter set pool) binds lazily on first use, here on the render thread.
 	mGpuContext = GpuWorkContext::Create(*mDevice, mFrameCompletionTracker);
 }
@@ -177,9 +177,9 @@ void Renderer::DestroyOnRenderThread()
 	GpuUniformBufferManager::ShutDown();
 	GpuProfiler::Instance().Clear();
 
-	// All GPU work this context drove must have drained before the context (and the transient memory
+	// All GPU work this context drove must have drained before the context (and the scratch memory
 	// and parameter sets it owns) is torn down. WaitAndReclaim also ensures the completion callbacks of
-	// finished command buffers have run, releasing any transient buffers they hold.
+	// finished command buffers have run, releasing any scratch buffers they hold.
 	if (mGpuContext != nullptr)
 	{
 		mGpuContext->WaitAndReclaim();

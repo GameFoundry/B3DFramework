@@ -143,7 +143,7 @@ namespace b3d
 		class MetalTexture : public Texture
 		{
 		public:
-			MetalTexture(MetalGpuDevice& gpuDevice, const TextureCreateInformation& createInformation);
+			MetalTexture(MetalGpuDevice& gpuDevice, const TextureCreateInformation& createInformation, const GpuResourceLocation& location);
 			~MetalTexture();
 
 			void SetName(const StringView& name) override;
@@ -167,6 +167,12 @@ namespace b3d
 
 			/** Returns a cached subresource-range view of the backing image (see MetalImage::GetSubresourceView), or nil when no image exists. */
 			id<MTLTexture> GetSubresourceView(const TextureSurface& surface);
+
+			/**
+			 * Creates the descriptor of a native texture with @p properties on @p device. Logs an error and returns nil if the
+			 * texture cannot be represented. The caller owns the returned descriptor.
+			 */
+			static MTLTextureDescriptor* CreateDescriptor(id<MTLDevice> device, const TextureProperties& properties);
 #endif
 
 		protected:

@@ -760,9 +760,47 @@ namespace b3d
 			return B3DMakeSharedFromExisting(new(B3DAllocate<MetalGpuCommandBufferPool>()) MetalGpuCommandBufferPool(*this, createInformation));
 		}
 
-		TShared<Texture> MetalGpuDevice::CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
+		GpuMemoryRequirements MetalGpuDevice::GetMemoryRequirements(const TextureCreateInformation& createInformation) const
 		{
-			MetalTexture* rawTexture = new(B3DAllocate<MetalTexture>()) MetalTexture(*this, createInformation);
+			@autoreleasepool
+			{
+				MTLTextureDescriptor* descriptor = MetalTexture::CreateDescriptor(GetMetalDevice(), TextureProperties(createInformation));
+				if (descriptor == nil)
+				{
+					GpuMemoryRequirements output;
+					output.MemoryType = GpuMemoryRequirements::kUnsupportedMemoryType;
+					return output;
+				}
+
+				const GpuMemoryRequirements output = mHeapAllocator->GetTextureMemoryRequirements(descriptor);
+#if !__has_feature(objc_arc)
+				[descriptor release];
+#endif
+				return output;
+			}
+		}
+
+		GpuMemoryRequirements MetalGpuDevice::GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const
+		{
+			// Metal disallows zero-length buffers; clamp to a small minimum
+			u64 size = b3d::GpuBuffer::CalculateTotalBufferSize(createInformation, *this);
+			if (size == 0)
+				size = 64;
+
+			@autoreleasepool
+			{
+				return mHeapAllocator->GetBufferMemoryRequirements(size, MetalHeapAllocator::GetBufferMemoryType(createInformation));
+			}
+		}
+
+		IGpuAllocator& MetalGpuDevice::GetPersistentAllocator(u32 memoryType)
+		{
+			return mHeapAllocator->GetAllocator(memoryType);
+		}
+
+		TShared<Texture> MetalGpuDevice::CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags)
+		{
+			MetalTexture* rawTexture = new(B3DAllocate<MetalTexture>()) MetalTexture(*this, createInformation, location);
 
 			TShared<MetalTexture> texture = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
 				? B3DMakeSharedFromExisting(rawTexture)
@@ -776,9 +814,9 @@ namespace b3d
 			return texture;
 		}
 
-		TShared<GpuBuffer> MetalGpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
+		TShared<GpuBuffer> MetalGpuDevice::CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags)
 		{
-			MetalGpuBuffer* rawBuffer = new(B3DAllocate<MetalGpuBuffer>()) MetalGpuBuffer(*this, createInformation);
+			MetalGpuBuffer* rawBuffer = new(B3DAllocate<MetalGpuBuffer>()) MetalGpuBuffer(*this, createInformation, location);
 
 			TShared<MetalGpuBuffer> buffer = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
 				? B3DMakeSharedFromExisting(rawBuffer)
@@ -792,35 +830,13 @@ namespace b3d
 			return buffer;
 		}
 
-		TShared<GpuBuffer> MetalGpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation,
-			IGpuAllocator& allocator, GpuObjectCreateFlags flags)
-		{
-			MetalGpuBuffer* rawBuffer = new(B3DAllocate<MetalGpuBuffer>()) MetalGpuBuffer(*this, createInformation, allocator);
-
-			TShared<MetalGpuBuffer> buffer = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
-				? B3DMakeSharedFromExisting(rawBuffer)
-				: MakeSharedStandalone<MetalGpuBuffer>(rawBuffer);
-
-			buffer->SetShared(buffer);
-
-			if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
-				buffer->Initialize();
-
-			return buffer;
-		}
-
-		u32 MetalGpuDevice::PickBufferMemoryType(const GpuBufferCreateInformation& createInformation) const
-		{
-			return MetalHeapAllocator::PickBufferMemoryType(createInformation);
-		}
-
-		TUnique<IGpuAllocator> MetalGpuDevice::CreateTransientAllocator(u32 memoryType,
+		TUnique<IGpuAllocator> MetalGpuDevice::CreateScratchAllocator(u32 memoryType,
 			IGpuCompletionTracker& completionTracker)
 		{
 			if (mHeapAllocator == nullptr)
 				return nullptr;
 
-			return mHeapAllocator->CreateTransientAllocator(memoryType, completionTracker);
+			return mHeapAllocator->CreateScratchAllocator(memoryType, completionTracker);
 		}
 
 		TShared<GpuQueryPool> MetalGpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)
@@ -1001,7 +1017,7 @@ namespace b3d
 			ASSERT_IF_NOT_RENDER_THREAD
 
 			// Signal end-of-frame to the submit thread. This blocks until the previous frame's
-			// resources are safe to reuse (per-queue submit indices captured at the frame boundary are
+			// resources are safe to reuse (per-queue fence values captured at the frame boundary are
 			// waited on via RefreshCompletionState). Mirrors VulkanGpuDevice::EndFrame.
 			GetSubmitThread().QueueEndFrameAndWaitForPreviousFrame();
 		}
@@ -1022,14 +1038,9 @@ namespace b3d
 			metalCommandBuffer.CommitInternal(metalQueue, syncMask, signalFences);
 		}
 
-		void MetalGpuDevice::RefreshCompletionState(GpuQueue& queue, bool forceWait, u32 lastSubmitIndex)
+		void MetalGpuDevice::RefreshCompletionState(GpuQueue& queue, bool forceWait, u64 lastFenceValue)
 		{
-			static_cast<MetalGpuQueue&>(queue).RefreshCompletionState(forceWait, lastSubmitIndex);
-		}
-
-		u32 MetalGpuDevice::GetLastSubmitIndex(const GpuQueue& queue) const
-		{
-			return static_cast<const MetalGpuQueue&>(queue).GetLastSubmitIndex();
+			static_cast<MetalGpuQueue&>(queue).RefreshCompletionState(forceWait, lastFenceValue);
 		}
 
 		u64 MetalGpuDevice::GetLastSubmittedFenceValue(const GpuQueue& queue) const

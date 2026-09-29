@@ -286,7 +286,7 @@ void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const VulkanGpuCommandBufferSub
 
 	submitInfos.Add(BuildVkSubmitInfo(primaryWorkBuffer));
 
-	record.SubmitIndex = mNextSubmitIndex++;
+	record.ProgressValue = mNextProgressValue;
 	mActiveSubmissions.push_back(std::move(record));
 
 	const VkResult result = vkQueueSubmit(mQueue, (u32)submitInfos.Size(), submitInfos.Data(), primaryCommandBuffer->GetFence());
@@ -362,14 +362,14 @@ VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageI
 	return result;
 }
 
-void VulkanGpuQueue::RefreshCompletionState(bool forceWait, u32 lastSubmitIndex)
+void VulkanGpuQueue::RefreshCompletionState(bool forceWait, u64 lastProgressValue)
 {
 	AssertIfNotSubmitThread();
 
-	u32 lastFinishedSubmission = 0;
+	u64 lastFinishedProgressValue = 0;
 	for(const SubmissionRecord& record : mActiveSubmissions)
 	{
-		if(lastSubmitIndex != ~0u && record.SubmitIndex > lastSubmitIndex)
+		if(record.ProgressValue > lastProgressValue)
 			break;
 
 		if(!record.CommandBuffers.Back()->UpdateExecutionStatus(forceWait))
@@ -378,7 +378,7 @@ void VulkanGpuQueue::RefreshCompletionState(bool forceWait, u32 lastSubmitIndex)
 			break; // No chance of any later CBs of being done either
 		}
 
-		lastFinishedSubmission = record.SubmitIndex;
+		lastFinishedProgressValue = record.ProgressValue;
 	}
 
 	WaitGroup waitGroup;
@@ -386,7 +386,7 @@ void VulkanGpuQueue::RefreshCompletionState(bool forceWait, u32 lastSubmitIndex)
 	while(!mActiveSubmissions.empty())
 	{
 		SubmissionRecord& record = mActiveSubmissions.front();
-		if(record.SubmitIndex > lastFinishedSubmission)
+		if(record.ProgressValue > lastFinishedProgressValue)
 			break;
 
 		SingleConsumerQueue& messageBackQueue = record.CommandBuffers.Front()->GetPool().GetMessageQueue();

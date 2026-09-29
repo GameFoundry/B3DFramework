@@ -29,6 +29,18 @@ namespace b3d
 		NonLinear	= 1
 	};
 
+	/** Memory a texture or a buffer needs, as reported by the GPU device before the resource is created. */
+	struct GpuMemoryRequirements
+	{
+		/** Memory type reported for a resource the device cannot create. */
+		static constexpr u32 kUnsupportedMemoryType = ~0u;
+
+		u32 MemoryType = 0; /**< Backend-defined index of the memory pool the resource must be placed in. */
+		u64 Size = 0; /**< Minimum size of the memory range, in bytes. */
+		u64 Alignment = 1; /**< Required alignment of the memory range's offset, in bytes. */
+		GpuResourceKind Kind = GpuResourceKind::Linear;
+	};
+
 	/**
 	 * Opaque, backend-owned GPU memory heap.
 	 *
@@ -95,7 +107,7 @@ namespace b3d
 #if B3D_DEBUG
 		/**
 		 * Number of live allocations produced by this allocator that have not yet been freed. Debug-only
-		 * diagnostic, used to catch allocations that outlive their allocator (e.g. a transient buffer
+		 * diagnostic, used to catch allocations that outlive their allocator (e.g. a scratch buffer
 		 * outliving its GpuWorkContext).
 		 */
 		virtual u64 GetOutstandingAllocationCount() const { return 0; }
@@ -112,6 +124,12 @@ namespace b3d
 	 * supplies a fresh replacement location to IGpuResource::MoveAllocation when defragmentation
 	 * moves the allocation.
 	 *
+	 * A location is in one of four states, determined by which of Heap and Allocator are set:
+	 *  - Empty (neither): refers to nothing.
+	 *  - Pending (Allocator only): requests memory from Allocator. See FromAllocator().
+	 *  - Non-owning (Heap only): refers to memory owned elsewhere, which must never be freed through the location.
+	 *  - Owned (both): a live allocation owned through Allocator, and freed through it.
+	 *
 	 * Must stay standard-layout and trivially-copyable.
 	 */
 	struct GpuResourceLocation
@@ -127,11 +145,23 @@ namespace b3d
 		u32 AllocatorData0 = 0;
 		u32 AllocatorData1 = 0;
 
-		/** Returns true if the location currently refers to a live allocation owned by some allocator. */
-		bool IsValid() const
+		/** Creates a pending location, which requests its memory from @p allocator. */
+		static GpuResourceLocation FromAllocator(IGpuAllocator& allocator)
 		{
-			return Allocator != nullptr;
+			GpuResourceLocation output;
+			output.Allocator = &allocator;
+
+			return output;
 		}
+
+		/** Returns true if the location refers to memory, owned or not. */
+		bool HasMemory() const { return Heap != nullptr; }
+
+		/** Returns true if the location requests memory from its allocator, but has none yet. */
+		bool IsPending() const { return Heap == nullptr && Allocator != nullptr; }
+
+		/** Returns true if the location refers to a live allocation owned through its allocator. */
+		bool IsOwned() const { return Heap != nullptr && Allocator != nullptr; }
 
 		/** Resets the location to the empty state. */
 		void Reset()

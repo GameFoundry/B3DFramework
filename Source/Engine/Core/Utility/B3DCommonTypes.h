@@ -502,7 +502,14 @@ namespace b3d
 	{
 		None = 0,
 		DeferredInitialize = 1 << 0, /**< Don't call Initialize() automatically. Caller must ensure it gets called after creation. */
-		RenderThreadDestroy = 1 << 1 /**< Ensures the object will always get destroyed on the render thread. Only relevant for render proxy objects. */
+		RenderThreadDestroy = 1 << 1, /**< Ensures the object will always get destroyed on the render thread. Only relevant for render proxy objects. */
+
+		/**
+		 * The texture or buffer is created at memory it shares with other resources over time. Earlier occupants may
+		 * still use that memory on the GPU, so creation must not write to it; the resource's first alias acquire
+		 * initializes it instead. Only valid for a location with memory.
+		 */
+		Aliased = 1 << 2
 	};
 
 	using GpuObjectCreateFlags = Flags<GpuObjectCreateFlag>;

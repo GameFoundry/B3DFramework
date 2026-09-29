@@ -109,12 +109,12 @@ namespace b3d
 		 *
 		 * Persistent requests the TLSF path cannot serve fall back to direct device allocations with
 		 * an invalid GpuResourceLocation. Explicit-allocator requests never fall back because doing so
-		 * would silently escape the transient allocator's frame-retirement contract.
+		 * would silently escape the scratch allocator's frame-retirement contract.
 		 *
 		 * Ownership/lifetime: returned native handles are +1 references the caller owns (MRC).
 		 * The paired GpuResourceLocation must be freed via its stamped allocator
 		 * (location.Allocator->Free) once the resource's IGpuResource lifecycle reports it retired.
-		 * Persistent TLSF allocators reclaim immediately under ResourceLifecycle deferral; transient
+		 * Persistent TLSF allocators reclaim immediately under ResourceLifecycle deferral; scratch
 		 * linear allocators recycle their whole page after the completion tracker signals.
 		 *
 		 * @note Thread safe.
@@ -144,37 +144,37 @@ namespace b3d
 			 * buffer's memory type is a pure function of its create information, fixed for its
 			 * lifetime. Thread safe.
 			 */
-			static u32 PickBufferMemoryType(const GpuBufferInformation& information);
+			static u32 GetBufferMemoryType(const GpuBufferInformation& information);
 
 			/**
 			 * Returns the persistent allocator for @p memoryType. Intended for device-level wiring
-			 * (PickBufferMemoryType / CreateTransientAllocator overrides) and diagnostics.
+			 * (GetPersistentAllocator / CreateScratchAllocator overrides) and diagnostics.
 			 */
 			IGpuAllocator& GetAllocator(u32 memoryType);
 
 			/**
-			 * Creates a context-owned transient linear allocator for @p memoryType. Normal pages are
+			 * Creates a context-owned scratch linear allocator for @p memoryType. Normal pages are
 			 * obtained from a device-owned per-memory-type pool and retired through
 			 * @p completionTracker.
 			 */
-			TUnique<IGpuAllocator> CreateTransientAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker);
+			TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker);
 
 #ifdef __OBJC__
-			/**
-			 * Allocates an MTLBuffer of @p length bytes from the persistent allocator for
-			 * @p memoryType, placing it at the allocator-chosen heap offset. On success
-			 * @p outLocation holds the backing span (free it via outLocation.Allocator->Free once
-			 * the resource retires). On any heap-path miss the buffer is allocated directly on the
-			 * device and @p outLocation is left invalid. Returns nil only on hard failure.
-			 */
-			id<MTLBuffer> AllocateBuffer(u64 length, u32 memoryType, GpuResourceLocation& outLocation);
+			/** Returns the memory requirements of a buffer of @p length bytes, allocated from @p memoryType. */
+			GpuMemoryRequirements GetBufferMemoryRequirements(u64 length, u32 memoryType) const;
+
+			/** Returns the memory requirements of a texture described by @p descriptor. */
+			GpuMemoryRequirements GetTextureMemoryRequirements(MTLTextureDescriptor* descriptor) const;
 
 			/**
-			 * Allocates a placed buffer through an explicitly supplied allocator. The allocator must
-			 * produce Metal heaps of @p memoryType. Unlike the persistent overload, this method does
-			 * not fall back to a direct allocation when the allocator cannot satisfy the request.
+			 * Allocates an MTLBuffer of @p length bytes of @p memoryType at @p location. A pending location
+			 * suballocates from its allocator, which must produce Metal heaps of @p memoryType.
+			 * A location with memory places the buffer at it directory. On success @p outLocation holds the
+			 * backing span (free it via outLocation.Allocator->Free once the resource retires, if owned).
+			 * If the persistent allocator for @p memoryType misses, the buffer is allocated directly on the
+			 * device and @p outLocation is left empty. Returns nil on failure.
 			 */
-			id<MTLBuffer> AllocateBuffer(u64 length, u32 memoryType, IGpuAllocator& allocator, GpuResourceLocation& outLocation);
+			id<MTLBuffer> AllocateBuffer(u64 length, u32 memoryType, const GpuResourceLocation& location, GpuResourceLocation& outLocation);
 
 			/**
 			 * Counterpart of AllocateBuffer for textures. The memory type is derived from
@@ -182,22 +182,16 @@ namespace b3d
 			 * allocation. The descriptor must carry the configured hazard mode for the direct path;
 			 * heap-placed resources inherit the heap's matching mode.
 			 */
-			id<MTLTexture> AllocateTexture(MTLTextureDescriptor* descriptor, GpuResourceLocation& outLocation);
+			id<MTLTexture> AllocateTexture(MTLTextureDescriptor* descriptor, const GpuResourceLocation& location, GpuResourceLocation& outLocation);
 #endif
 
 		private:
 			using MemoryAllocator = TGpuTlsfAllocator<MetalHeapBackend>;
 			using LinearPagePool = TGpuLinearPagePool<MetalHeapBackend>;
-			using TransientAllocator = TGpuLinearAllocator<MetalHeapBackend>;
+			using ScratchAllocator = TGpuLinearAllocator<MetalHeapBackend>;
 
-			/** Returns the lazily-created shared transient-page pool for @p memoryType. */
+			/** Returns the lazily-created shared scratch-page pool for @p memoryType. */
 			LinearPagePool& GetOrCreateLinearPagePool(u32 memoryType);
-
-#ifdef __OBJC__
-			/** Shared buffer allocation implementation for persistent and explicit allocator paths. */
-			id<MTLBuffer> AllocateBufferInternal(u64 length, u32 memoryType, IGpuAllocator& allocator,
-				bool allowDirectFallback, GpuResourceLocation& outLocation);
-#endif
 
 			MetalGpuDevice& mDevice;
 			MetalHeapBackend mBackend;

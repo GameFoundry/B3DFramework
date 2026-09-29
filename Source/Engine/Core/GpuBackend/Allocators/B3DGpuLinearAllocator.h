@@ -146,7 +146,7 @@ namespace b3d
 	};
 
 	/**
-	 * Linear (bump) GPU memory allocator for transient allocations such as staging buffers and
+	 * Linear (bump) GPU memory allocator for scratch allocations such as staging buffers and
 	 * one-off scratch buffers. Allocations are produced by bumping a per-page offset; per-allocation
 	 * Free is a no-op. Whole pages recycle once their retire fence completes — at which point the
 	 * page returns to its page source (a shared @ref TGpuLinearPagePool when one is supplied, otherwise

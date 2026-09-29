@@ -88,7 +88,7 @@ namespace b3d
 			// Allocator-backed spans return to the device's persistent TLSF pool; direct device
 			// allocations carry an invalid location. ResourceLifecycle deferral mode reclaims
 			// immediately.
-			if (mAllocation.IsValid())
+			if (mAllocation.IsOwned())
 				mAllocation.Allocator->Free(mAllocation);
 		}
 
@@ -262,8 +262,8 @@ namespace b3d
 			return view;
 		}
 
-		MetalTexture::MetalTexture(MetalGpuDevice& gpuDevice, const TextureCreateInformation& createInformation)
-			: Texture(createInformation), mGpuDevice(gpuDevice)
+		MetalTexture::MetalTexture(MetalGpuDevice& gpuDevice, const TextureCreateInformation& createInformation, const GpuResourceLocation& location)
+			: Texture(createInformation, location), mGpuDevice(gpuDevice)
 		{ }
 
 		MetalTexture::~MetalTexture()
@@ -338,75 +338,66 @@ namespace b3d
 			mImage = newImage;
 		}
 
-		MetalImage* MetalTexture::CreateImage()
+		MTLTextureDescriptor* MetalTexture::CreateDescriptor(id<MTLDevice> device, const TextureProperties& properties)
 		{
-			// Descriptor / NSString / texture allocations below are autoreleased; drain them
-			// locally rather than relying on a runloop — there may be none under the engine's
-			// fiber scheduler.
-			@autoreleasepool
-			{
-			id<MTLDevice> device = mGpuDevice.GetMetalDevice();
-			if (device == nil)
-				return nullptr;
-
-			bool useSRGB = mProperties.UseHardwareSRGB;
-			MTLPixelFormat mtlFormat = MetalUtility::GetPixelFormat(mProperties.Format, useSRGB);
+			bool useSRGB = properties.UseHardwareSRGB;
+			MTLPixelFormat mtlFormat = MetalUtility::GetPixelFormat(properties.Format, useSRGB);
 			if (mtlFormat == MTLPixelFormatInvalid && useSRGB)
 			{
 				// Retry without sRGB; match the Vulkan backend's behavior where the linear variant
 				// is used if the hardware cannot honor the sRGB request.
 				B3D_LOG(Warning, LogRenderBackend,
 					"MTLPixelFormat for format {0} unavailable in sRGB variant; falling back to linear.",
-					(u32)mProperties.Format);
+					(u32)properties.Format);
 				useSRGB = false;
-				mtlFormat = MetalUtility::GetPixelFormat(mProperties.Format, false);
+				mtlFormat = MetalUtility::GetPixelFormat(properties.Format, false);
 			}
 			if (mtlFormat == MTLPixelFormatInvalid)
 			{
-				B3D_LOG(Error, LogRenderBackend, "Cannot create MTLTexture: unsupported pixel format {0}.", (u32)mProperties.Format);
-				return nullptr;
+				B3D_LOG(Error, LogRenderBackend, "Cannot create MTLTexture: unsupported pixel format {0}.", (u32)properties.Format);
+				return nil;
 			}
 
 			// MSAA textures cannot have mip chains on Metal — descriptor validation rejects
 			// sampleCount > 1 combined with mipmapLevelCount > 1. Fail unsupported combinations so
 			// engine-visible properties remain identical to the native resource.
-			if (PixelUtility::IsCompressed(mProperties.Format) && ![device supportsBCTextureCompression])
+			if (PixelUtility::IsCompressed(properties.Format) && ![device supportsBCTextureCompression])
 			{
 				B3D_LOG(Error, LogRenderBackend,
 					"Cannot create compressed MTLTexture: this Apple GPU does not support BC texture compression.");
-				return nullptr;
+				return nil;
 			}
 
-			if (mProperties.Width == 0 || (mProperties.Type != TEX_TYPE_1D && mProperties.Height == 0) ||
-				(mProperties.Type == TEX_TYPE_3D && mProperties.Depth == 0))
+			if (properties.Width == 0 || (properties.Type != TEX_TYPE_1D && properties.Height == 0) ||
+				(properties.Type == TEX_TYPE_3D && properties.Depth == 0))
 			{
 				B3D_LOG(Error, LogRenderBackend, "Cannot create an MTLTexture with a zero relevant dimension.");
-				return nullptr;
+				return nil;
 			}
 
-			const u32 width = mProperties.Width;
-			const u32 height = mProperties.Type == TEX_TYPE_1D ? 1u : mProperties.Height;
-			const u32 depth = mProperties.Type == TEX_TYPE_3D ? mProperties.Depth : 1u;
-			const u32 mipCount = mProperties.MipMapCount + 1;
-			const u32 sampleCount = std::max(1u, mProperties.SampleCount);
+			const u32 width = properties.Width;
+			const u32 height = properties.Type == TEX_TYPE_1D ? 1u : properties.Height;
+			const u32 depth = properties.Type == TEX_TYPE_3D ? properties.Depth : 1u;
+			const u32 mipCount = properties.MipMapCount + 1;
+			const u32 sampleCount = std::max(1u, properties.SampleCount);
 
-			if (mProperties.ArraySliceCount == 0)
+			if (properties.ArraySliceCount == 0)
 			{
 				B3D_LOG(Error, LogRenderBackend, "Cannot create MTLTexture with zero array slices.");
-				return nullptr;
+				return nil;
 			}
 
-			if ((mProperties.Type == TEX_TYPE_1D && (mProperties.Height > 1 || mProperties.Depth > 1)) ||
-				((mProperties.Type == TEX_TYPE_2D || mProperties.Type == TEX_TYPE_CUBE_MAP) && mProperties.Depth > 1))
+			if ((properties.Type == TEX_TYPE_1D && (properties.Height > 1 || properties.Depth > 1)) ||
+				((properties.Type == TEX_TYPE_2D || properties.Type == TEX_TYPE_CUBE_MAP) && properties.Depth > 1))
 			{
 				B3D_LOG(Error, LogRenderBackend, "MTLTexture dimensions do not match the requested texture type.");
-				return nullptr;
+				return nil;
 			}
 
-			if (mProperties.Type == TEX_TYPE_CUBE_MAP && width != height)
+			if (properties.Type == TEX_TYPE_CUBE_MAP && width != height)
 			{
 				B3D_LOG(Error, LogRenderBackend, "Cannot create a non-square Metal cube texture ({0}x{1}).", width, height);
-				return nullptr;
+				return nil;
 			}
 
 			u32 maximumMipCount = 1;
@@ -416,29 +407,29 @@ namespace b3d
 			{
 				B3D_LOG(Error, LogRenderBackend,
 					"Cannot create MTLTexture with {0} mip levels; dimensions allow at most {1}.", mipCount, maximumMipCount);
-				return nullptr;
+				return nil;
 			}
 
 			if (sampleCount > 1 && ![device supportsTextureSampleCount:sampleCount])
 			{
 				B3D_LOG(Error, LogRenderBackend, "MTLDevice does not support texture sample count {0}.", sampleCount);
-				return nullptr;
+				return nil;
 			}
 
 			if (sampleCount > 1 && mipCount > 1)
 			{
 				B3D_LOG(Error, LogRenderBackend, "Metal does not support multisampled textures with mipmaps.");
-				return nullptr;
+				return nil;
 			}
 
-			if (sampleCount > 1 && mProperties.Type != TEX_TYPE_2D)
+			if (sampleCount > 1 && properties.Type != TEX_TYPE_2D)
 			{
 				B3D_LOG(Error, LogRenderBackend, "Metal multisampling is supported only for 2D textures.");
-				return nullptr;
+				return nil;
 			}
 
 			MTLTextureDescriptor* desc = [[MTLTextureDescriptor alloc] init];
-			desc.textureType = MetalUtility::GetTextureType(mProperties.Type, sampleCount, mProperties.ArraySliceCount);
+			desc.textureType = MetalUtility::GetTextureType(properties.Type, sampleCount, properties.ArraySliceCount);
 			desc.pixelFormat = mtlFormat;
 			desc.width = width;
 			desc.height = height;
@@ -447,19 +438,19 @@ namespace b3d
 			desc.sampleCount = sampleCount;
 			// For cube maps Metal's arrayLength is the number of cube sets (faces = 6 * arrayLength),
 			// so propagate ArraySliceCount directly. Only TEX_TYPE_3D is non-array in Metal.
-			desc.arrayLength = (mProperties.Type == TEX_TYPE_3D) ? 1 : mProperties.ArraySliceCount;
+			desc.arrayLength = (properties.Type == TEX_TYPE_3D) ? 1 : properties.ArraySliceCount;
 
 			// Map engine usage flags to Metal usage flags. MTLTextureUsagePixelFormatView is set
 			// only for explicit mutable resources and depth-stencil plane views. Linear/sRGB views
 			// do not require it, allowing immutable textures to retain the optimal native layout.
 			MTLTextureUsage usage = MTLTextureUsageShaderRead;
-			if (mProperties.Usage.IsSet(TextureUsageFlag::MutableFormat) || mProperties.Format == PF_D32_S8X24)
+			if (properties.Usage.IsSet(TextureUsageFlag::MutableFormat) || properties.Format == PF_D32_S8X24)
 				usage |= MTLTextureUsagePixelFormatView;
-			if (mProperties.Usage & TextureUsageFlag::RenderTarget)
+			if (properties.Usage & TextureUsageFlag::RenderTarget)
 				usage |= MTLTextureUsageRenderTarget;
-			if (mProperties.Usage & TextureUsageFlag::DepthStencil)
+			if (properties.Usage & TextureUsageFlag::DepthStencil)
 				usage |= MTLTextureUsageRenderTarget;
-			if (mProperties.Usage & TextureUsageFlag::AllowUnorderedAccessOnTheGPU)
+			if (properties.Usage & TextureUsageFlag::AllowUnorderedAccessOnTheGPU)
 				usage |= MTLTextureUsageShaderWrite;
 			desc.usage = usage;
 
@@ -476,13 +467,28 @@ namespace b3d
 			desc.hazardTrackingMode = MTLHazardTrackingModeTracked;
 #endif
 
+			return desc;
+		}
+
+		MetalImage* MetalTexture::CreateImage()
+		{
+			@autoreleasepool
+			{
+			id<MTLDevice> device = mGpuDevice.GetMetalDevice();
+			if (device == nil)
+				return nullptr;
+
+			MTLTextureDescriptor* desc = CreateDescriptor(device, mProperties);
+			if (desc == nil)
+				return nullptr;
+
 			// Route through the device's memory manager so the texture sub-allocates out of a
 			// pooled placement MTLHeap at an allocator-chosen offset rather than paying the
 			// per-resource driver-side allocation cost. Oversized or non-poolable requests fall
 			// back to direct device allocation inside the allocator; the invalid location tells the
 			// wrapper nothing needs freeing back to the pool.
 			GpuResourceLocation location;
-			MetalTextureNativeHandle handle = mGpuDevice.GetHeapAllocator().AllocateTexture(desc, location);
+			MetalTextureNativeHandle handle = mGpuDevice.GetHeapAllocator().AllocateTexture(desc, mLocation, location);
 #if !__has_feature(objc_arc)
 			[desc release];
 #endif
@@ -495,6 +501,8 @@ namespace b3d
 			}
 
 			mInternalFormat = mProperties.Format;
+
+			const u32 mipCount = mProperties.MipMapCount + 1;
 
 			MetalImageCreateInformation imageCreateInformation;
 			imageCreateInformation.Type = mProperties.Type;

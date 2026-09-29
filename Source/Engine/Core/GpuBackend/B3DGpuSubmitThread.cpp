@@ -154,13 +154,12 @@ void GpuSubmitThread::QueueEndFrameAndWaitForPreviousFrame()
 
 	auto fnCommand = [this, frameIndex, nextFrameIndex]
 	{
-		// Snapshot the last submit index on every queue, marking the boundary of tracked command-buffer work issued
-		// during this frame. By the time this runs all of the frame's submit commands have already executed because the
-		// command queue is processed in order.
+		// Snapshot the last fence value on every queue, marking the boundary of work issued during this frame. By the
+		// time this runs all of the frame's submit commands have already executed because the command queue is
+		// processed in order.
 		FrameCompletionMarker& currentMarker = mFrameMarkers[frameIndex];
 		mGpuDevice.DoForEachQueue([this, &currentMarker](GpuQueue& queue)
 		{
-			currentMarker.LastSubmitIndices[queue.GetId().Id] = mBackend.GetLastSubmitIndex(queue);
 			currentMarker.LastFenceValues[queue.GetId().Id] = mBackend.GetLastSubmittedFenceValue(queue);
 		});
 
@@ -168,13 +167,13 @@ void GpuSubmitThread::QueueEndFrameAndWaitForPreviousFrame()
 		mFrameFencePendingQueues = GpuQueueMask::kAll;
 		mFrameFenceMarkerIndex = frameIndex;
 
-		// Wait for all tracked command buffers from the previous frame, up to the submit index captured at that frame's
-		// boundary. Checking the full range ensures every command buffer pool and its resources are safe to reuse.
+		// Wait for all command buffers from the previous frame, up to the fence value captured at that frame's boundary.
+		// Checking the full range ensures every command buffer pool and its resources are safe to reuse.
 		const FrameCompletionMarker& previousMarker = mFrameMarkers[nextFrameIndex];
 		mGpuDevice.DoForEachQueue([this, &previousMarker](GpuQueue& queue)
 		{
-			const u32 lastSubmitIndex = previousMarker.LastSubmitIndices[queue.GetId().Id];
-			mBackend.RefreshCompletionState(queue, true, lastSubmitIndex);
+			const u64 lastFenceValue = previousMarker.LastFenceValues[queue.GetId().Id];
+			mBackend.RefreshCompletionState(queue, true, lastFenceValue);
 		});
 
 		// TODO: This could be signalled earlier. In case the frame's work finishes earlier the submit thread could set the signal

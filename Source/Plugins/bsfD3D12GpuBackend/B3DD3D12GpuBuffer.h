@@ -70,8 +70,8 @@ namespace b3d
 			};
 
 		public:
-			/** Creates an uninitialized D3D12 buffer whose native slice is obtained from @p allocator. */
-			D3D12GpuBuffer(const GpuBufferCreateInformation& createInformation, GpuDevice& device, IGpuAllocator& allocator);
+			/** Creates an uninitialized D3D12 buffer whose native slice is placed at @p location. See GpuDevice::CreateGpuBuffer(). */
+			D3D12GpuBuffer(const GpuBufferCreateInformation& createInformation, GpuDevice& device, const GpuResourceLocation& location);
 			~D3D12GpuBuffer() override;
 
 			void Initialize() override;
@@ -125,6 +125,16 @@ namespace b3d
 			 */
 			D3D12_CPU_DESCRIPTOR_HANDLE GetUAVHandle(GpuBufferFormat format = BF_UNKNOWN) const;
 
+			/** Returns the size of the native slice backing a buffer described by @p information, of @p totalSize bytes. */
+			static u32 GetSliceSize(const GpuBufferInformation& information, u32 totalSize);
+
+			/**
+			 * Returns an alignment that keeps the pooled slice valid for every native view and copy footprint the logical
+			 * buffer may use. The copy alignment is included for every buffer so a later buffer-to-image operation never
+			 * depends on how the buffer was originally classified.
+			 */
+			static u32 GetSliceAlignment(const GpuBufferInformation& information);
+
 		protected:
 			void RecreateInternalBuffer() override;
 
@@ -140,7 +150,6 @@ namespace b3d
 			D3D12_CPU_DESCRIPTOR_HANDLE GetOrCreateView(GpuBufferFormat format, ViewType type, u32 offset = 0) const;
 
 			D3D12Buffer* mBuffer = nullptr;
-			IGpuAllocator& mAllocator; /**< Allocator that owns the buffer's native slice. */
 
 			D3D12_VERTEX_BUFFER_VIEW mVertexBufferView{};
 			D3D12_INDEX_BUFFER_VIEW mIndexBufferView{};

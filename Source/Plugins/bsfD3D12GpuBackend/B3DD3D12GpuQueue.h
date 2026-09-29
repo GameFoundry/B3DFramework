@@ -54,20 +54,12 @@ namespace b3d
 			 * accordingly (completion notifications are posted back to the command buffers' owning threads).
 			 *
 			 * @param	forceWait		Set to true if the system should wait until all command buffers finish executing.
-			 * @param	lastSubmitIndex	Index of the last submitted command buffer which should be checked. If ~0u is
+			 * @param	lastFenceValue	Submit fence value of the last submission which should be checked. If ~0 is
 			 *							provided, all submitted command buffers will be checked.
 			 *
 			 * @note	Submit thread only.
 			 */
-			void RefreshCompletionState(bool forceWait, u32 lastSubmitIndex = ~0u);
-
-			/**
-			 * Returns the submit index of the most recently submitted work on this queue, or 0 if nothing has been
-			 * submitted yet.
-			 *
-			 * @note	Submit thread only.
-			 */
-			u32 GetLastSubmitIndex() const { return mNextSubmitIndex - 1; }
+			void RefreshCompletionState(bool forceWait, u64 lastFenceValue = ~0ull);
 
 			/**
 			 * Checks if anything is currently executing on this queue.
@@ -142,13 +134,13 @@ namespace b3d
 			/** Information about a command buffer submission on the queue. */
 			struct QueueSubmissionInformation
 			{
-				/** Retains the command buffers belonging to submission @p submitIndex until completion. */
-				QueueSubmissionInformation(const TShared<D3D12GpuCommandBuffer>& commandBuffer, const TShared<D3D12GpuCommandBuffer>& transitionCommandBuffer, u32 submitIndex) : CommandBuffer(commandBuffer), TransitionCommandBuffer(transitionCommandBuffer), SubmitIndex(submitIndex)
+				/** Retains the command buffers belonging to the submission that signals @p fenceValue until completion. */
+				QueueSubmissionInformation(const TShared<D3D12GpuCommandBuffer>& commandBuffer, const TShared<D3D12GpuCommandBuffer>& transitionCommandBuffer, u64 fenceValue) : CommandBuffer(commandBuffer), TransitionCommandBuffer(transitionCommandBuffer), FenceValue(fenceValue)
 				{}
 
 				TShared<D3D12GpuCommandBuffer> CommandBuffer; /**< Recorded command buffer this submission was made for. */
 				TShared<D3D12GpuCommandBuffer> TransitionCommandBuffer; /**< Internal prologue command buffer to execute before @p CommandBuffer. */
-				u32 SubmitIndex; /**< Value GetLastSubmitIndex() reported for this submission. */
+				u64 FenceValue; /**< Submit fence value the submission signals. */
 			};
 
 			ComPtr<ID3D12CommandQueue> mQueue;
@@ -160,7 +152,6 @@ namespace b3d
 			mutable Mutex mMutex;
 			List<QueueSubmissionInformation> mActiveSubmissions;
 			TShared<D3D12GpuCommandBuffer> mLastSubmittedCommandBuffer;
-			u32 mNextSubmitIndex = 1;
 		};
 
 		/** @} */
