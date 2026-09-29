@@ -186,9 +186,13 @@ cp "$FRAMEWORK_DIR/Scripts/CI/B3DCIDeploy.sh" "$DEPLOY_DIR/deploy.sh"
 cp "$FRAMEWORK_DIR/Scripts/B3DUploadBinaries.sh" "$DEPLOY_DIR/tools/B3DUploadBinaries.sh"
 
 # Every dependency the configure step had to build from source (no package server holds those
-# yet) is archived. Such a folder carries a .builtfromsource stamp, which downloading a published
-# package removes. Dependencies live in the framework's Dependencies folder or in the active
-# platform's overlay.
+# yet) is archived. Such a folder carries a .builtfromsource stamp. Dependencies live in the
+# framework's Dependencies folder or in the active platform's overlay.
+#
+# The stamp is removed once the archive exists, so only this build carries it: deploying this
+# build publishes it. Otherwise the stamp would survive in the incremental workspace, and every
+# later build would archive the dependency again. If this build is never deployed the package
+# stays unpublished, and the next build that cannot download it builds and archives it again.
 for depStamp in "$FRAMEWORK_DIR"/Dependencies/*/.builtfromsource "$FRAMEWORK_DIR/Platform/$CMAKE_PLATFORM"/Dependencies/*/.builtfromsource; do
 	[ -f "$depStamp" ] || continue
 	depFolder=$(dirname "$depStamp")
@@ -196,6 +200,7 @@ for depStamp in "$FRAMEWORK_DIR"/Dependencies/*/.builtfromsource "$FRAMEWORK_DIR
 	echo "Packaging source-built dependency $depName v$(tr -d '\r\n' < "$depStamp")..."
 	"$FRAMEWORK_DIR/Scripts/B3DUploadBinaries.sh" "$depName" --no-upload --no-bump \
 		--folder "$depFolder" --platform "$CMAKE_PLATFORM" --output "$DEPLOY_DIR/dependencies"
+	rm -f "$depStamp"
 done
 
 # The framework archive is a build option (PACKAGE_FRAMEWORK) of framework configurations: the
