@@ -29,7 +29,7 @@ namespace b3d
 #endif
 			mBuffer = nullptr;
 
-			if (mAllocation.IsValid())
+			if (mAllocation.IsOwned())
 				mAllocation.Allocator->Free(mAllocation);
 		}
 
@@ -62,8 +62,11 @@ namespace b3d
 			 */
 			MetalArgumentBuffer* CreateArgumentBuffer(MetalGpuDevice& device, u64 size)
 			{
+				MetalHeapAllocator& heapAllocator = device.GetHeapAllocator();
+				const u32 memoryType = MetalHeapAllocator::kMemoryTypeShared;
+
 				GpuResourceLocation location;
-				id<MTLBuffer> buffer = device.GetHeapAllocator().AllocateBuffer(size, MetalHeapAllocator::kMemoryTypeShared, location);
+				id<MTLBuffer> buffer = heapAllocator.AllocateBuffer(size, memoryType, GpuResourceLocation::FromAllocator(heapAllocator.GetAllocator(memoryType)), location);
 				if (buffer == nil)
 					return nullptr;
 
