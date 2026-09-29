@@ -108,13 +108,14 @@ namespace
 	/**
 	 * Returns true if the shader's stored compiler version and source/include hashes still match the current compiler
 	 * and the source/include files currently on disk - i.e. the compiled shader is up to date. A shader with no compiler
-	 * meta-data cannot be validated and is treated as up to date, as is one when no compiler is available (in that case
-	 * recompilation is impossible and the cached data is the best we have).
+	 * meta-data cannot be validated, so it is treated as out of date unless no compiler is available (in that case
+	 * recompilation is impossible and the cached data is the best we have). Compiled and cooked shaders always carry
+	 * meta-data, so a missing one means the data was written in a format this build cannot fully read.
 	 */
 	bool IsShaderUpToDate(const TShared<ShaderCompilerMetaData>& compilerMetaData, const Array<u64, 2>& sourceHash, const IShaderCompiler* currentCompiler)
 	{
 		if(compilerMetaData == nullptr)
-			return true;
+			return currentCompiler == nullptr;
 
 		if(currentCompiler != nullptr && compilerMetaData->CompilerVersion != currentCompiler->GetVersion())
 			return false;
