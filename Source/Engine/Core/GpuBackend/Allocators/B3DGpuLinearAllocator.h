@@ -162,7 +162,7 @@ namespace b3d
 	 *    @ref FreeAll was called. Their existing allocations are still being read by the GPU, so the
 	 *    memory cannot be reused yet — the page sits in the base's deferred-free queue stamped
 	 *    against the frame index that retired it. Slot indices in mPages stay live so the
-	 *    page-index stored in Location::AllocatorData0 keeps resolving.
+	 *    page-index stored in GpuAllocation::AllocatorData0 keeps resolving.
 	 *  - Spare pages: pages whose retire fence has completed (drained by ReclaimUnused). Bump offset is
 	 *    reset to zero, GPU-safe to overwrite, eligible for immediate reuse on the next overflow.
 	 *
@@ -171,13 +171,13 @@ namespace b3d
 	 * if no spare is available).
 	 *
 	 * **Oversize allocations.** A request larger than Configuration::PageSize allocates a
-	 * dedicated one-shot heap sized exactly to the request, emits the location into it, then
+	 * dedicated one-shot heap sized exactly to the request, emits the allocation into it, then
 	 * immediately retires that heap. Oversize heaps never re-enter the spare list; @ref FreeAndReclaimImpl
 	 * destroys them outright once their fence completes.
 	 *
 	 * **Free model.** Both @ref FreeImpl (deferred Free) and the per-allocation FreeAndReclaim path
-	 * are no-ops apart from the base-driven Location::Reset. A page is shared by every allocation
-	 * that fit into it, so a single Location can't reclaim the page without invalidating its peers.
+	 * are no-ops apart from the base-driven GpuAllocation::Reset. A page is shared by every allocation
+	 * that fit into it, so a single GpuAllocation can't reclaim the page without invalidating its peers.
 	 * Reclaim is meaningful at the page level only — pages are retired implicitly on overflow or
 	 * explicitly via @ref FreeAll, and the actual recycling runs from the deferred-free drain after
 	 * the retired page's fence completes.
@@ -243,18 +243,18 @@ namespace b3d
 		 * requests. @p kind must be GpuResourceKind::Linear and @p owner must be null — linear
 		 * allocations don't participate in defragmentation.
 		 */
-		bool TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuResourceLocation& out);
+		bool TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuAllocation& out);
 
 		/**
-		 * No-op apart from the base-driven Location::Reset. Linear allocations don't track
+		 * No-op apart from the base-driven GpuAllocation::Reset. Linear allocations don't track
 		 * per-allocation lifetime; the page is the unit of recycling.
 		 */
-		void FreeImpl(GpuResourceLocation& allocation);
+		void FreeImpl(GpuAllocation& allocation);
 
 		/**
 		 * Reached from two different paths, distinguished by @p reclaimKind:
 		 *  - @p kReclaimAllocation (per-allocation FreeAndReclaim): no-op. A page is shared by every
-		 *    allocation that fit into it, so a single Location can't release the page without
+		 *    allocation that fit into it, so a single GpuAllocation can't release the page without
 		 *    invalidating its peers.
 		 *  - @p kReclaimPage (page-retirement drain): returns the page to the spare list when it's a
 		 *    normal page and the spare list isn't full; otherwise destroys it via HeapBackend::DestroyHeap.
@@ -295,7 +295,7 @@ namespace b3d
 		static constexpr u32 kInvalidPageIndex = 0xFFFFFFFFu;
 
 		/**
-		 * Discriminator stored in @p Location::AllocatorData1 (and in the matching deferred-free queue
+		 * Discriminator stored in @p GpuAllocation::AllocatorData1 (and in the matching deferred-free queue
 		 * entry) so @p FreeAndReclaimImpl can tell whether it was reached via the per-allocation
 		 * @p FreeAndReclaim / @p Free path or via the page-retirement drain. The two paths want completely
 		 * different behavior — see @p FreeAndReclaimImpl.
@@ -374,7 +374,7 @@ namespace b3d
 	}
 
 	template <typename HeapBackend>
-	bool TGpuLinearAllocator<HeapBackend>::TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuResourceLocation& out)
+	bool TGpuLinearAllocator<HeapBackend>::TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuAllocation& out)
 	{
 		B3D_ASSERT(out.Allocator == nullptr);
 		B3D_ASSERT(alignment > 0);
@@ -445,11 +445,11 @@ namespace b3d
 	}
 
 	template <typename HeapBackend>
-	void TGpuLinearAllocator<HeapBackend>::FreeImpl(GpuResourceLocation& allocation)
+	void TGpuLinearAllocator<HeapBackend>::FreeImpl(GpuAllocation& allocation)
 	{
 		// Per-allocation Free is a no-op for the linear allocator. Pages recycle as a whole when they
 		// fill up or when Reset is called; individual allocations never reclaim space. The base wraps
-		// this call with allocation.Reset() so the caller's Location is invalidated as expected.
+		// this call with allocation.Reset() so the caller's GpuAllocation is invalidated as expected.
 		(void)allocation;
 	}
 
@@ -457,7 +457,7 @@ namespace b3d
 	void TGpuLinearAllocator<HeapBackend>::FreeAndReclaimImpl(u32 pageIndex, u32 reclaimKind)
 	{
 		// Per-allocation FreeAndReclaim is a no-op for the linear allocator: a page is shared by every
-		// allocation that fit into it, so a single Location can't release the page without invalidating
+		// allocation that fit into it, so a single GpuAllocation can't release the page without invalidating
 		// its peers. Pages recycle as a whole via the page-retirement drain (kReclaimPage), which is the
 		// only path that should actually return memory.
 		if (reclaimKind == kReclaimAllocation)
@@ -613,7 +613,7 @@ namespace b3d
 		B3D_ASSERT(pageIndex < (u32)mPages.size());
 		B3D_ASSERT(mPages[pageIndex] != nullptr);
 
-		GpuResourceLocation snapshot;
+		GpuAllocation snapshot;
 		snapshot.Allocator = this;
 		snapshot.AllocatorData0 = pageIndex;
 		snapshot.AllocatorData1 = kReclaimPage;

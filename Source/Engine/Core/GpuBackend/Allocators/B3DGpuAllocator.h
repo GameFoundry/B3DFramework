@@ -116,7 +116,7 @@ namespace b3d
 		 * FreeAndReclaimImpl - as its assumed the caller will free memory only after the lifecycle
 		 * reports the resource is no longer being used on the GPU. Similarly, defragment operation
 		 * will not free memory internally, it relies on the tracking to release the resource from
-		 * the old memory location.
+		 * the old allocation.
 		 */
 		ResourceLifecycle
 	};
@@ -141,7 +141,7 @@ namespace b3d
 		B3D_STATIC_ASSERT_HEAP_BACKEND_IS_VALID(HeapBackend);
 
 		/** Attempts to allocate @p size bytes with @p alignment. Resource kind defaults to Linear. The allocation is untracked (won't participate in defragmentation). */
-		bool TryAllocate(u64 size, u32 alignment, GpuResourceLocation& out)
+		bool TryAllocate(u64 size, u32 alignment, GpuAllocation& out)
 		{
 			return TryAllocate(size, alignment, GpuResourceKind::Linear, nullptr, out);
 		}
@@ -150,7 +150,7 @@ namespace b3d
 		 * Attempts to allocate @p size bytes with @p alignment, tagged with @p kind so the strategy
 		 * can honor buffer-image granularity (if needed by the backend). The allocation is untracked (won't participate in defragmentation).
 		 */
-		bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, GpuResourceLocation& out)
+		bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, GpuAllocation& out)
 		{
 			return TryAllocate(size, alignment, kind, nullptr, out);
 		}
@@ -160,7 +160,7 @@ namespace b3d
 		 * @p owner as the resource the allocator will call back during defragmentation. Pass
 		 * nullptr if the allocation is untracked (won't participate in defragmentation).
 		 */
-		bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuResourceLocation& out) override
+		bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuAllocation& out) override
 		{
 			ScopedLock lock(mMutex);
 			DebugCheckThreadConfinement();
@@ -176,10 +176,10 @@ namespace b3d
 		}
 
 		/**
-		 * Retires a previously allocated location and resets it to the empty state. Frees are
+		 * Retires a previously allocated allocation and resets it to the empty state. Frees are
 		 * deferred until the associated resource is no longer used on the GPU.
 		 */
-		void Free(GpuResourceLocation& allocation) override
+		void Free(GpuAllocation& allocation) override
 		{
 			ScopedLock lock(mMutex);
 			DebugCheckThreadConfinement();
@@ -201,7 +201,7 @@ namespace b3d
 		 * example, when the caller already gates resource destruction on a separate use-count or
 		 * frame fence. Use Free when no such guarantee exists.
 		 */
-		void FreeAndReclaim(GpuResourceLocation& allocation) override
+		void FreeAndReclaim(GpuAllocation& allocation) override
 		{
 			ScopedLock lock(mMutex);
 			DebugCheckThreadConfinement();
@@ -322,7 +322,7 @@ namespace b3d
 		 * Schedule deferred-free of @p allocation against the allocator's current completion marker.
 		 * Caller must hold the allocator mutex when @p ThreadPolicy is ThreadSafe.
 		 */
-		void RetireAllocation(const GpuResourceLocation& allocation)
+		void RetireAllocation(const GpuAllocation& allocation)
 		{
 			B3D_ASSERT(mCompletionTracker != nullptr);
 

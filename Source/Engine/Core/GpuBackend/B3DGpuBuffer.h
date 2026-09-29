@@ -680,7 +680,7 @@ namespace b3d::render
 		 * Returns true if the buffer is fixed to the memory it was created at. Such a buffer never recreates its native
 		 * resource, so writes cannot discard its contents.
 		 */
-		bool HasFixedLocation() const { return !mRequestedLocation.IsPending(); }
+		bool HasFixedLocation() const { return !mRequestedAllocation.IsPending(); }
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		/** Checks if any suballocation overlapping the given byte range is bound. */
@@ -696,10 +696,10 @@ namespace b3d::render
 		friend struct GpuBufferUtility;
 
 		/**
-		 * Constructs a new GPU buffer whose native resource is created at @p location. See
-		 * GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation&, const GpuResourceLocation&, GpuObjectCreateFlags).
+		 * Constructs a new GPU buffer whose native resource is created at @p allocation. See
+		 * GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation&, const GpuAllocation&, GpuObjectCreateFlags).
 		 */
-		GpuBuffer(GpuDevice& device, const GpuBufferCreateInformation& createInformation, u32 suballocationSize, const GpuResourceLocation& location);
+		GpuBuffer(GpuDevice& device, const GpuBufferCreateInformation& createInformation, u32 suballocationSize, const GpuAllocation& allocation);
 
 		void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
 
@@ -720,11 +720,11 @@ namespace b3d::render
 		void* mMappedMemory = nullptr;
 
 		/**
-		 * Location requested at creation, reused every time the native resource is (re)created. Either memory the native
-		 * resource is placed at, or a pending location naming the allocator each (re)creation allocates from. Never owned
+		 * Allocation requested at creation, reused every time the native resource is (re)created. Either memory the native
+		 * resource is placed at, or a pending allocation naming the allocator each (re)creation allocates from. Never owned
 		 * by the proxy itself.
 		 */
-		GpuResourceLocation mRequestedLocation;
+		GpuAllocation mRequestedAllocation;
 	};
 
 	/** Flags used to control the GPU buffer writes. */

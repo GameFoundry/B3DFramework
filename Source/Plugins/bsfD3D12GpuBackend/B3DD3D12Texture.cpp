@@ -101,8 +101,8 @@ namespace b3d
 			return range;
 		}
 
-		D3D12Texture::D3D12Texture(const TextureCreateInformation& createInformation, GpuDevice& device, const GpuResourceLocation& location)
-			: Texture(createInformation, location), mGpuDevice(device)
+		D3D12Texture::D3D12Texture(const TextureCreateInformation& createInformation, GpuDevice& device, const GpuAllocation& allocation)
+			: Texture(createInformation, allocation), mGpuDevice(device)
 		{
 		}
 
@@ -235,8 +235,8 @@ namespace b3d
 			}
 
 			ComPtr<ID3D12Resource> resource;
-			GpuResourceLocation allocation;
-			HRESULT hr = device.CreateResource(resourceDesc, mRequestedLocation, D3D12_BARRIER_LAYOUT_UNDEFINED, optimizedClearValue, resource, allocation);
+			GpuAllocation allocation;
+			HRESULT hr = device.CreateResource(resourceDesc, mRequestedAllocation, D3D12_BARRIER_LAYOUT_UNDEFINED, optimizedClearValue, resource, allocation);
 
 			if (FAILED(hr))
 			{

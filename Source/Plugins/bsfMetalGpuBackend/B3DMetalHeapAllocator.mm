@@ -53,7 +53,7 @@ namespace b3d
 
 			// Placement heaps: the engine-side TLSF/linear allocators own offsets, so resources
 			// are created at explicit allocator-chosen offsets (mirroring Vulkan's
-			// bind-at-offset model). Automatic heaps cannot honor GpuResourceLocation offsets.
+			// bind-at-offset model). Automatic heaps cannot honor GpuAllocation offsets.
 			heapDescriptor.type = MTLHeapTypePlacement;
 
 			// Tracked mode delegates hazards to Metal. Explicit mode uses untracked heaps and
@@ -268,10 +268,10 @@ namespace b3d
 			return output;
 		}
 
-		id<MTLBuffer> MetalHeapAllocator::AllocateBuffer(u64 length, u32 memoryType, const GpuResourceLocation& location,
-			GpuResourceLocation& outLocation)
+		id<MTLBuffer> MetalHeapAllocator::AllocateBuffer(u64 length, u32 memoryType, const GpuAllocation& requestedAllocation,
+			GpuAllocation& outAllocation)
 		{
-			outLocation.Reset();
+			outAllocation.Reset();
 
 			if (length == 0 || memoryType >= kMemoryTypeCount)
 				return nil;
@@ -286,24 +286,24 @@ namespace b3d
 			{
 				// Memory at a fixed location is placed as is. Only the device's persistent allocator falls back to
 				// a direct device allocation when it cannot satisfy the request.
-				if (location.HasMemory())
+				if (requestedAllocation.HasMemory())
 				{
-					MetalGpuHeap& heap = ToMetalGpuHeap(location.Heap);
-					B3D_ASSERT(heap.MemoryType == memoryType && "Location's memory type cannot back the buffer.");
+					MetalGpuHeap& heap = ToMetalGpuHeap(requestedAllocation.Heap);
+					B3D_ASSERT(heap.MemoryType == memoryType && "Allocation's memory type cannot back the buffer.");
 
-					id<MTLBuffer> buffer = [heap.Heap newBufferWithLength:length options:options offset:location.Offset];
+					id<MTLBuffer> buffer = [heap.Heap newBufferWithLength:length options:options offset:requestedAllocation.Offset];
 					if (buffer != nil)
-						outLocation = location;
+						outAllocation = requestedAllocation;
 
 					return buffer;
 				}
 
-				IGpuAllocator& allocator = *location.Allocator;
+				IGpuAllocator& allocator = *requestedAllocation.Allocator;
 				const bool allowDirectFallback = &allocator == mAllocators[memoryType].get();
 
 				const MTLSizeAndAlign sizeAndAlign = [device heapBufferSizeAndAlignWithLength:length options:options];
 
-				GpuResourceLocation allocation;
+				GpuAllocation allocation;
 				if (allocator.TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align,
 					GpuResourceKind::Linear, nullptr, allocation))
 				{
@@ -313,7 +313,7 @@ namespace b3d
 						id<MTLBuffer> buffer = [heap.Heap newBufferWithLength:length options:options offset:allocation.Offset];
 						if (buffer != nil)
 						{
-							outLocation = allocation;
+							outAllocation = allocation;
 
 							return buffer;
 						}
@@ -338,9 +338,9 @@ namespace b3d
 			} // @autoreleasepool
 		}
 
-		id<MTLTexture> MetalHeapAllocator::AllocateTexture(MTLTextureDescriptor* descriptor, const GpuResourceLocation& location, GpuResourceLocation& outLocation)
+		id<MTLTexture> MetalHeapAllocator::AllocateTexture(MTLTextureDescriptor* descriptor, const GpuAllocation& requestedAllocation, GpuAllocation& outAllocation)
 		{
-			outLocation.Reset();
+			outAllocation.Reset();
 
 			if (descriptor == nil)
 				return nil;
@@ -361,14 +361,14 @@ namespace b3d
 			@autoreleasepool
 			{
 			// Memory at a fixed location is placed as is
-			if (location.HasMemory())
+			if (requestedAllocation.HasMemory())
 			{
-				MetalGpuHeap& heap = ToMetalGpuHeap(location.Heap);
-				B3D_ASSERT(heap.MemoryType == memoryType && "Location's memory type cannot back the texture.");
+				MetalGpuHeap& heap = ToMetalGpuHeap(requestedAllocation.Heap);
+				B3D_ASSERT(heap.MemoryType == memoryType && "Allocation's memory type cannot back the texture.");
 
-				id<MTLTexture> texture = [heap.Heap newTextureWithDescriptor:descriptor offset:location.Offset];
+				id<MTLTexture> texture = [heap.Heap newTextureWithDescriptor:descriptor offset:requestedAllocation.Offset];
 				if (texture != nil)
-					outLocation = location;
+					outAllocation = requestedAllocation;
 
 				return texture;
 			}
@@ -378,23 +378,23 @@ namespace b3d
 				// Free layout query, mirrors the buffer path above.
 				const MTLSizeAndAlign sizeAndAlign = [device heapTextureSizeAndAlignWithDescriptor:descriptor];
 
-				GpuResourceLocation allocation;
-				if (location.Allocator->TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align, GpuResourceKind::NonLinear, nullptr, allocation))
+				GpuAllocation allocation;
+				if (requestedAllocation.Allocator->TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align, GpuResourceKind::NonLinear, nullptr, allocation))
 				{
 					MetalGpuHeap& heap = ToMetalGpuHeap(allocation.Heap);
 					id<MTLTexture> texture = [heap.Heap newTextureWithDescriptor:descriptor offset:allocation.Offset];
 					if (texture != nil)
 					{
-						outLocation = allocation;
+						outAllocation = allocation;
 						return texture;
 					}
 
-					location.Allocator->FreeAndReclaim(allocation);
+					requestedAllocation.Allocator->FreeAndReclaim(allocation);
 				}
 			}
 
 			// Only the device's persistent allocators fall back to a direct device allocation
-			if (memoryType < kMemoryTypeCount && location.Allocator != mAllocators[memoryType].get())
+			if (memoryType < kMemoryTypeCount && requestedAllocation.Allocator != mAllocators[memoryType].get())
 				return nil;
 
 			return [device newTextureWithDescriptor:descriptor];

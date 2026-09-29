@@ -12,7 +12,7 @@ namespace b3d
 {
 	namespace render
 	{
-		MetalBuffer::MetalBuffer(MetalResourceManager* owner, const MetalBufferCreateInformation& createInformation, MetalBufferNativeHandle buffer, const GpuResourceLocation& allocation, void* mappedMemory)
+		MetalBuffer::MetalBuffer(MetalResourceManager* owner, const MetalBufferCreateInformation& createInformation, MetalBufferNativeHandle buffer, const GpuAllocation& allocation, void* mappedMemory)
 			: TMetalResource<IGpuBufferResource>(owner, createInformation.DebugName), mType(createInformation.Type), mFlags(createInformation.Flags), mBuffer(buffer), mAllocation(allocation), mMappedMemory(mappedMemory)
 		{ }
 
@@ -38,7 +38,7 @@ namespace b3d
 			mMappedMemory = nullptr;
 
 			// Allocator-backed spans return through their stamped allocator; direct device allocations
-			// carry an invalid location and were fully released by the handle release above. Persistent
+			// carry an invalid allocation and were fully released by the handle release above. Persistent
 			// TLSF spans reclaim immediately, while scratch linear spans retire with their page.
 			if (mAllocation.IsOwned())
 				mAllocation.Allocator->Free(mAllocation);
@@ -58,8 +58,8 @@ namespace b3d
 			}
 		}
 
-		MetalGpuBuffer::MetalGpuBuffer(MetalGpuDevice& device, const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location)
-			: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device), location), mGpuDevice(device), mMemoryType(MetalHeapAllocator::GetBufferMemoryType(createInformation)), mDirectlyMappable(createInformation.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess) || createInformation.Type == GpuBufferType::StagingRead || createInformation.Type == GpuBufferType::StagingWrite)
+		MetalGpuBuffer::MetalGpuBuffer(MetalGpuDevice& device, const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation)
+			: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device), allocation), mGpuDevice(device), mMemoryType(MetalHeapAllocator::GetBufferMemoryType(createInformation)), mDirectlyMappable(createInformation.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess) || createInformation.Type == GpuBufferType::StagingRead || createInformation.Type == GpuBufferType::StagingWrite)
 		{ }
 
 		MetalGpuBuffer::~MetalGpuBuffer()
@@ -88,8 +88,8 @@ namespace b3d
 			if (size == 0)
 				size = 64;
 
-			GpuResourceLocation location;
-			MetalBufferNativeHandle handle = mGpuDevice.GetHeapAllocator().AllocateBuffer(size, mMemoryType, mRequestedLocation, location);
+			GpuAllocation allocation;
+			MetalBufferNativeHandle handle = mGpuDevice.GetHeapAllocator().AllocateBuffer(size, mMemoryType, mRequestedAllocation, allocation);
 			if (handle == nil)
 			{
 				B3D_LOG(Error, LogRenderBackend, "Failed to create MTLBuffer of {0} bytes.", size);
@@ -105,7 +105,7 @@ namespace b3d
 			// buffers return nullptr here; the engine interprets that as "use a staging path".
 			void* mappedMemory = mDirectlyMappable ? [handle contents] : nullptr;
 
-			MetalBuffer* buffer = mGpuDevice.GetResourceManager().Create<MetalBuffer>(createInformation, handle, location, mappedMemory);
+			MetalBuffer* buffer = mGpuDevice.GetResourceManager().Create<MetalBuffer>(createInformation, handle, allocation, mappedMemory);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			// Range-level bound/in-use validation for sub-allocated buffers (dynamic-offset binds).

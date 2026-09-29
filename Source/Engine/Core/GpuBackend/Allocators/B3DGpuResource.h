@@ -11,7 +11,7 @@ namespace b3d
 {
 	class GpuResourceManager;
 	class IGpuResource;
-	struct GpuResourceLocation;
+	struct GpuAllocation;
 	namespace render { class GpuCommandBuffer; }
 
 	/** @addtogroup GpuBackend
@@ -69,13 +69,13 @@ namespace b3d
 		 * callbacks (pass nullptr for an untracked allocation). On success populates @p out — including
 		 * stamping @p out.Allocator with this allocator — and returns true.
 		 */
-		virtual bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuResourceLocation& out) = 0;
+		virtual bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuAllocation& out) = 0;
 
 		/** Retires @p allocation (deferred free per the allocator's policy) and resets it to the empty state. */
-		virtual void Free(GpuResourceLocation& allocation) = 0;
+		virtual void Free(GpuAllocation& allocation) = 0;
 
 		/** Releases @p allocation immediately, bypassing any deferred-free queue, and resets it to the empty state. */
-		virtual void FreeAndReclaim(GpuResourceLocation& allocation) = 0;
+		virtual void FreeAndReclaim(GpuAllocation& allocation) = 0;
 
 		/**
 		 * Releases every retired allocation whose completion marker has signaled (per
@@ -119,20 +119,20 @@ namespace b3d
 
 	/**
 	 * GPU memory allocation as returned by a GPU memory allocator. Used for freeing the allocation, as well
-	 * as referencing the underlying memory. Each consumer owns their location and is the sole writer; the
-	 * allocator only writes to the consumer's location once during the initial TryAllocate, and then
-	 * supplies a fresh replacement location to IGpuResource::MoveAllocation when defragmentation
+	 * as referencing the underlying memory. Each consumer owns their allocation and is the sole writer; the
+	 * allocator only writes to the consumer's allocation once during the initial TryAllocate, and then
+	 * supplies a fresh replacement allocation to IGpuResource::MoveAllocation when defragmentation
 	 * moves the allocation.
 	 *
-	 * A location is in one of four states, determined by which of Heap and Allocator are set:
+	 * An allocation is in one of four states, determined by which of Heap and Allocator are set:
 	 *  - Empty (neither): refers to nothing.
-	 *  - Pending (Allocator only): requests memory from Allocator. See FromAllocator().
-	 *  - Non-owning (Heap only): refers to memory owned elsewhere, which must never be freed through the location.
+	 *  - Pending (Allocator only): requests memory from Allocator. See CreatePending().
+	 *  - Non-owning (Heap only): refers to memory owned elsewhere, which must never be freed through the allocation.
 	 *  - Owned (both): a live allocation owned through Allocator, and freed through it.
 	 *
 	 * Must stay standard-layout and trivially-copyable.
 	 */
-	struct GpuResourceLocation
+	struct GpuAllocation
 	{
 		IGpuHeap* Heap = nullptr;
 		u64 Offset = 0;
@@ -145,25 +145,25 @@ namespace b3d
 		u32 AllocatorData0 = 0;
 		u32 AllocatorData1 = 0;
 
-		/** Creates a pending location, which requests its memory from @p allocator. */
-		static GpuResourceLocation FromAllocator(IGpuAllocator& allocator)
+		/** Creates a pending allocation, which requests its memory from @p allocator. */
+		static GpuAllocation CreatePending(IGpuAllocator& allocator)
 		{
-			GpuResourceLocation output;
+			GpuAllocation output;
 			output.Allocator = &allocator;
 
 			return output;
 		}
 
-		/** Returns true if the location refers to memory, owned or not. */
+		/** Returns true if the allocation refers to memory, owned or not. */
 		bool HasMemory() const { return Heap != nullptr; }
 
-		/** Returns true if the location requests memory from its allocator, but has none yet. */
+		/** Returns true if the allocation requests memory from its allocator, but has none yet. */
 		bool IsPending() const { return Heap == nullptr && Allocator != nullptr; }
 
-		/** Returns true if the location refers to a live allocation owned through its allocator. */
+		/** Returns true if the allocation refers to a live allocation owned through its allocator. */
 		bool IsOwned() const { return Heap != nullptr && Allocator != nullptr; }
 
-		/** Resets the location to the empty state. */
+		/** Resets the allocation to the empty state. */
 		void Reset()
 		{
 			Heap = nullptr;
@@ -337,12 +337,12 @@ namespace b3d
 
 		/**
 		 * Called after the owning allocator has reserved a new home for this resource during defragmentation.
-		 * Inside this call, the consumer's old GpuResourceLocation is still intact — the implementation can
+		 * Inside this call, the consumer's old GpuAllocation is still intact — the implementation can
 		 * read its source heap / offset / size off it. The implementation must:
 		 *   1. Record a copy from the source range to the destination range using @p commandBuffer.
 		 *   2. Recreate any placed backend object (VkBuffer / VkImage / ...) bound to the new memory range.
-		 *   3. Replace the IGpuResource's GpuResourceLocation with @p newLocation, so the location identifies
-		 *      the destination slot from now on. The IGpuResource holding the new location must be returned
+		 *   3. Replace the IGpuResource's GpuAllocation with @p newAllocation, so the allocation identifies
+		 *      the destination slot from now on. The IGpuResource holding the new allocation must be returned
 		 *      from MoveAllocation; how this is done depends on the allocator's @c FreeDeferralMode:
 		 *
 		 *      - FreeDeferralMode::ResourceLifecycle: the implementation must create a brand-new IGpuResource,
@@ -350,18 +350,18 @@ namespace b3d
 				  old object's memory once its no longer used on the GPU.
 		 *
 		 *      - FreeDeferralMode::FrameTracker: the implementation must patch the existing IGpuResource
-		 *        in place to the new memory location and return 'this'. The allocator will interally free old memory 
+		 *        in place to the new allocation and return 'this'. The allocator will interally free old memory 
 		 *		  after the IFrameTracker reports it is no longer being used.
 		 *
-		 * @p newLocation is a backend-agnostic GpuResourceLocation; the consumer downcasts its opaque
+		 * @p newAllocation is a backend-agnostic GpuAllocation; the consumer downcasts its opaque
 		 * IGpuHeap* to the concrete backend heap to access native fields and slot identity.
 		 *
 		 * Must succeed; backends should not pick candidates whose recreation can fail.
 		 */
-		virtual IGpuResource* MoveAllocation(render::GpuCommandBuffer& commandBuffer, const GpuResourceLocation& newLocation)
+		virtual IGpuResource* MoveAllocation(render::GpuCommandBuffer& commandBuffer, const GpuAllocation& newAllocation)
 		{
 			(void)commandBuffer;
-			(void)newLocation;
+			(void)newAllocation;
 			return this;
 		}
 

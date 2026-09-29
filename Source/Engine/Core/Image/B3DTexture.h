@@ -493,10 +493,10 @@ namespace b3d
 		{
 		public:
 			/**
-			 * Constructs a texture whose native resource is created at @p location. See
-			 * GpuDevice::CreateTexture(const TextureCreateInformation&, const GpuResourceLocation&, GpuObjectCreateFlags).
+			 * Constructs a texture whose native resource is created at @p allocation. See
+			 * GpuDevice::CreateTexture(const TextureCreateInformation&, const GpuAllocation&, GpuObjectCreateFlags).
 			 */
-			Texture(const TextureCreateInformation& createInformation, const GpuResourceLocation& location);
+			Texture(const TextureCreateInformation& createInformation, const GpuAllocation& allocation);
 			virtual ~Texture() {}
 
 			void Initialize() override;
@@ -571,7 +571,7 @@ namespace b3d
 			 * Returns true if the texture is fixed to the memory it was created at. Such a texture never recreates its
 			 * native resource, so writes cannot discard its contents.
 			 */
-			bool HasFixedLocation() const { return !mRequestedLocation.IsPending(); }
+			bool HasFixedLocation() const { return !mRequestedAllocation.IsPending(); }
 
 			/**	Returns properties that contain information about the texture. */
 			const TextureProperties& GetProperties() const { return mProperties; }
@@ -629,11 +629,11 @@ namespace b3d
 			void* mMappedMemory = nullptr;
 
 			/**
-			 * Location requested at creation, reused every time the native resource is (re)created. Either memory the native
-			 * resource is placed at, or a pending location naming the allocator each (re)creation allocates from. Never owned
+			 * Allocation requested at creation, reused every time the native resource is (re)created. Either memory the native
+			 * resource is placed at, or a pending allocation naming the allocator each (re)creation allocates from. Never owned
 			 * by the proxy itself.
 			 */
-			GpuResourceLocation mRequestedLocation;
+			GpuAllocation mRequestedAllocation;
 		};
 
 		/** Flags controlling texture write behavior. */

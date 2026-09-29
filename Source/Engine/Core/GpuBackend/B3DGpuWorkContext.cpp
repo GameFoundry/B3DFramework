@@ -106,7 +106,7 @@ TShared<render::GpuBuffer> GpuWorkContext::CreateScratchGpuBuffer(const GpuBuffe
 	if (allocator == nullptr)
 		return mDevice.CreateGpuBuffer(createInformation, GpuObjectCreateFlag::None);
 
-	return mDevice.CreateGpuBuffer(createInformation, GpuResourceLocation::FromAllocator(*allocator), GpuObjectCreateFlag::None);
+	return mDevice.CreateGpuBuffer(createInformation, GpuAllocation::CreatePending(*allocator), GpuObjectCreateFlag::None);
 }
 
 

@@ -352,8 +352,8 @@ TShared<Texture> Texture::kBlack;
 TShared<Texture> Texture::kPink;
 TShared<Texture> Texture::kNormal;
 
-Texture::Texture(const TextureCreateInformation& createInformation, const GpuResourceLocation& location)
-	: mName(createInformation.Name), mProperties(createInformation), mInitData(createInformation.InitialData), mRequestedLocation(location)
+Texture::Texture(const TextureCreateInformation& createInformation, const GpuAllocation& allocation)
+	: mName(createInformation.Name), mProperties(createInformation), mInitData(createInformation.InitialData), mRequestedAllocation(allocation)
 {}
 
 void Texture::Initialize()

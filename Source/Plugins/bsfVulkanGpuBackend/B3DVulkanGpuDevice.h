@@ -42,14 +42,14 @@ namespace b3d
 		};
 
 		/**
-		 * Memory a native resource is bound to. Wraps a GPU location (offset within a VkDeviceMemory heap)
+		 * Memory a native resource is bound to. Wraps a GPU allocation (offset within a VkDeviceMemory heap)
 		 * plus an optional persistent map. MappedMemory is non-null when the allocation lives in a
 		 * persistently-mapped, host-visible heap and points to the start of the allocation's memory range.
 		 */
 		struct VulkanAllocationResult
 		{
-			GpuResourceLocation Location; /**< Allocator slot — heap, offset, size, owning allocator, allocator-private bookkeeping. */
-			void* MappedMemory = nullptr; /**< Heap.Mapped + Location.Offset for host-visible heaps; null otherwise. */
+			GpuAllocation Allocation; /**< Allocator slot — heap, offset, size, owning allocator, allocator-private bookkeeping. */
+			void* MappedMemory = nullptr; /**< Heap.Mapped + Allocation.Offset for host-visible heaps; null otherwise. */
 		};
 
 		/** Represents a single GPU device usable by Vulkan. */
@@ -145,18 +145,18 @@ namespace b3d
 			 */
 
 			/**
-			 * Creates a VkBuffer described by @p createInformation, binds it to memory at @p location and wraps the result in a
-			 * VulkanBuffer. A pending location suballocates the memory from its allocator, which must serve the
-			 * buffer's memory type (see GetMemoryRequirements()). A location with memory binds the buffer to it; the
-			 * buffer frees it on destruction only if the location is owned.
+			 * Creates a VkBuffer described by @p createInformation, binds it to memory at @p requestedAllocation and wraps the result in a
+			 * VulkanBuffer. A pending allocation suballocates the memory from its allocator, which must serve the
+			 * buffer's memory type (see GetMemoryRequirements()). An allocation with memory binds the buffer to it; the
+			 * buffer frees it on destruction only if the allocation is owned.
 			 *
 			 * Provide @p parent so the buffer can participate in defragmentation - the parent will be notified
 			 * when it needs to re-allocate the buffer in the new destination. Only valid for allocators that
 			 * support defragmentation.
 			 *
-			 * Thread safe if the location's allocator is.
+			 * Thread safe if the allocation's allocator is.
 			 */
-			VulkanBuffer* CreateBuffer(const VulkanBufferCreateInformation& createInformation, const GpuResourceLocation& location, VulkanGpuBuffer* parent);
+			VulkanBuffer* CreateBuffer(const VulkanBufferCreateInformation& createInformation, const GpuAllocation& requestedAllocation, VulkanGpuBuffer* parent);
 
 			/**
 			 * Creates a VkImage described by @p createInformation, suballocates compatible memory from the persistent allocators and
@@ -168,16 +168,16 @@ namespace b3d
 			VulkanImage* CreateImage(const VulkanImageCreateInformation& createInformation, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags, GpuResourceKind kind);
 
 			/**
-			 * Creates a VkImage described by @p createInformation, binds it to memory at @p location and wraps the result in a
-			 * VulkanImage. Location rules match CreateBuffer(const VulkanBufferCreateInformation&, const GpuResourceLocation&, VulkanGpuBuffer*).
+			 * Creates a VkImage described by @p createInformation, binds it to memory at @p requestedAllocation and wraps the result in a
+			 * VulkanImage. Allocation rules match CreateBuffer(const VulkanBufferCreateInformation&, const GpuAllocation&, VulkanGpuBuffer*).
 			 *
 			 * Provide @p parent so the image can participate in defragmentation - the parent will be notified
 			 * when it needs to re-allocate the image in the new destination. Only valid for allocators that
 			 * support defragmentation.
 			 *
-			 * Thread safe if the location's allocator is.
+			 * Thread safe if the allocation's allocator is.
 			 */
-			VulkanImage* CreateImage(const VulkanImageCreateInformation& createInformation, const GpuResourceLocation& location, GpuResourceKind kind, VulkanTexture* parent);
+			VulkanImage* CreateImage(const VulkanImageCreateInformation& createInformation, const GpuAllocation& requestedAllocation, GpuResourceKind kind, VulkanTexture* parent);
 
 			/**
 			 * Returns @p allocation to its allocator's free pool synchronously. The slot becomes
@@ -245,17 +245,17 @@ namespace b3d
 			/** @} */
 
 			TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
-			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags) override;
-			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags) override;
+			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
+			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
 
 			/** Initializes the capabilities of the device. */
 			void InitializeCapabilities();
 
 			/**
-			 * Resolves @p location into the memory a native resource with @p requirements is bound to. A pending location
-			 * suballocates from its allocator; a location with memory is used as is.
+			 * Resolves @p requestedAllocation into the memory a native resource with @p requirements is bound to. A pending allocation
+			 * suballocates from its allocator; an allocation with memory is used as is.
 			 */
-			VulkanAllocationResult ResolveAllocation(const GpuResourceLocation& location, const VkMemoryRequirements& requirements, GpuResourceKind kind) const;
+			VulkanAllocationResult ResolveAllocation(const GpuAllocation& requestedAllocation, const VkMemoryRequirements& requirements, GpuResourceKind kind) const;
 
 			/**
 			 * Common bind-and-wrap helper for buffers. Binds @p buffer to @p allocation, constructs the

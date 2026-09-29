@@ -26,7 +26,7 @@ namespace b3d
 	}
 
 	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
-	bool TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuResourceLocation& out)
+	bool TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuAllocation& out)
 	{
 		B3D_ASSERT(out.Allocator == nullptr);
 
@@ -46,7 +46,7 @@ namespace b3d
 	}
 
 	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
-	void TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::FreeImpl(GpuResourceLocation& allocation)
+	void TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::FreeImpl(GpuAllocation& allocation)
 	{
 		B3D_ASSERT(allocation.Allocator == this);
 
@@ -71,7 +71,7 @@ namespace b3d
 	}
 
 	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
-	void TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::SetAllocationOwner(const GpuResourceLocation& allocation, IGpuResource* owner)
+	void TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::SetAllocationOwner(const GpuAllocation& allocation, IGpuResource* owner)
 	{
 		typename Base::ScopedLock lock(this->GetMutex());
 		B3D_ASSERT(allocation.Allocator == this);
@@ -109,19 +109,19 @@ namespace b3d
 
 		Heap* destHeap = mInternal.GetHeapSlot(destination.HeapIndex);
 
-		// 3. Build the destination Location
-		GpuResourceLocation newLocation;
-		newLocation.Heap = destHeap->Handle();
-		newLocation.Offset = destination.Offset;
-		newLocation.Size = sourceSize;
-		newLocation.Allocator = this;
-		newLocation.AllocatorData0 = destination.HeapIndex;
-		newLocation.AllocatorData1 = destination.NodeIndex;
+		// 3. Build the destination GpuAllocation
+		GpuAllocation newAllocation;
+		newAllocation.Heap = destHeap->Handle();
+		newAllocation.Offset = destination.Offset;
+		newAllocation.Size = sourceSize;
+		newAllocation.Allocator = this;
+		newAllocation.AllocatorData0 = destination.HeapIndex;
+		newAllocation.AllocatorData1 = destination.NodeIndex;
 
 		// 4. Notify the owner: depending on DeferralMode it will either re-allocate a brand new IGpuResource
-		//    at the destination location (if resource tracking is used), or patch the existing
+		//    at the destination allocation (if resource tracking is used), or patch the existing
 		//    resource (if frame tracking is used).
-		IGpuResource* newOwner = owner->MoveAllocation(commandBuffer, newLocation);
+		IGpuResource* newOwner = owner->MoveAllocation(commandBuffer, newAllocation);
 
 		// 5. Mark the destination with the new owner
 		destHeap->SetNodeOwner(destination.NodeIndex, newOwner);
@@ -140,7 +140,7 @@ namespace b3d
 				"FreeDeferralMode::FrameTracker requires MoveAllocation to return the same IGpuResource it was called on. "
 				"Wrapper-swap patterns require FreeDeferralMode::ResourceLifecycle.");
 
-			GpuResourceLocation sourceSnapshot;
+			GpuAllocation sourceSnapshot;
 			sourceSnapshot.Allocator = this;
 			sourceSnapshot.AllocatorData0 = sourceHeapIndex;
 			sourceSnapshot.AllocatorData1 = sourceNodeIndex;

@@ -23,7 +23,7 @@ namespace b3d
 		{
 		public:
 			/** Creates a logical buffer owning @p allocation until its tracked GPU uses complete. */
-			D3D12Buffer(D3D12ResourceManager* owner, GpuResourceLocation allocation, const StringView& name = "");
+			D3D12Buffer(D3D12ResourceManager* owner, GpuAllocation allocation, const StringView& name = "");
 			~D3D12Buffer() override;
 
 			/** Returns the native D3D12 resource. */
@@ -42,7 +42,7 @@ namespace b3d
 			D3D12_HEAP_TYPE GetHeapType() const;
 
 		private:
-			GpuResourceLocation mAllocation;
+			GpuAllocation mAllocation;
 		};
 
 		/** DirectX 12 implementation of a GPU buffer. */
@@ -70,8 +70,8 @@ namespace b3d
 			};
 
 		public:
-			/** Creates an uninitialized D3D12 buffer whose native slice is placed at @p location. See GpuDevice::CreateGpuBuffer(). */
-			D3D12GpuBuffer(const GpuBufferCreateInformation& createInformation, GpuDevice& device, const GpuResourceLocation& location);
+			/** Creates an uninitialized D3D12 buffer whose native slice is placed at @p allocation. See GpuDevice::CreateGpuBuffer(). */
+			D3D12GpuBuffer(const GpuBufferCreateInformation& createInformation, GpuDevice& device, const GpuAllocation& allocation);
 			~D3D12GpuBuffer() override;
 
 			void Initialize() override;

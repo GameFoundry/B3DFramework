@@ -64,7 +64,7 @@ namespace b3d
 			D3D12GpuDevice& mDevice;
 			ComPtr<ID3D12QueryHeap> mQueryHeap;
 			ComPtr<ID3D12Resource> mReadbackBuffer;
-			GpuResourceLocation mReadbackAllocation;
+			GpuAllocation mReadbackAllocation;
 			D3D12_QUERY_TYPE mD3D12QueryType = D3D12_QUERY_TYPE_OCCLUSION;
 			D3D12_QUERY_HEAP_TYPE mD3D12QueryHeapType = D3D12_QUERY_HEAP_TYPE_OCCLUSION;
 

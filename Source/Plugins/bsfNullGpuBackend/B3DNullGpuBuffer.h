@@ -19,7 +19,7 @@ namespace b3d
 		class NullGpuBuffer : public GpuBuffer
 		{
 		public:
-			NullGpuBuffer(NullGpuDevice& device, const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location);
+			NullGpuBuffer(NullGpuDevice& device, const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation);
 			~NullGpuBuffer();
 
 			void SetName(const StringView& name) override { mName = name; }
@@ -39,7 +39,7 @@ namespace b3d
 			void RecreateInternalBuffer() override {}
 
 		private:
-			GpuResourceLocation mAllocation; /**< Memory the buffer is placed at. Freed on destruction if owned. */
+			GpuAllocation mAllocation; /**< Memory the buffer is placed at. Freed on destruction if owned. */
 		};
 
 		/** @} */

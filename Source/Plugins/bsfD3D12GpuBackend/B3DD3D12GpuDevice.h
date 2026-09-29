@@ -98,17 +98,17 @@ namespace b3d
 			 * Creates a resource using the matching heap pool. When valid, @p outAllocation owns the suballocation and 
 			 * must be released with FreeMemory after the native resource is destroyed.
 			 */
-			HRESULT CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, D3D12_HEAP_TYPE heapType, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuResourceLocation& outAllocation);
+			HRESULT CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, D3D12_HEAP_TYPE heapType, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuAllocation& outAllocation);
 
 			/**
-			 * Creates a resource placed at @p location. A pending location suballocates from its allocator, which must
-			 * serve the resource's heap pool. A location with memory is used as is. @p outAllocation receives the memory
+			 * Creates a resource placed at @p requestedAllocation. A pending allocation suballocates from its allocator, which must
+			 * serve the resource's heap pool. An allocation with memory is used as is. @p outAllocation receives the memory
 			 * the resource is placed at, and must be released with FreeMemory after the native resource is destroyed.
 			 */
-			HRESULT CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, const GpuResourceLocation& location, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuResourceLocation& outAllocation);
+			HRESULT CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, const GpuAllocation& requestedAllocation, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuAllocation& outAllocation);
 
 			/** Releases a TLSF suballocation if it is owned. The native resource using it must already have been destroyed. */
-			void FreeMemory(GpuResourceLocation& allocation);
+			void FreeMemory(GpuAllocation& allocation);
 
 			/**
 			 * Drains any warnings/errors stored in the D3D12 debug layer's info queue into the engine log. No-op
@@ -144,8 +144,8 @@ namespace b3d
 			/** @} */
 
 			TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
-			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags) override;
-			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags) override;
+			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
+			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
 
 			/** Initializes the capabilities of the device. */
 			void InitializeCapabilities();

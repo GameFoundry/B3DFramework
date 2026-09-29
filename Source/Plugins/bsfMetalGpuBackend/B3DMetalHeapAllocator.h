@@ -108,12 +108,12 @@ namespace b3d
 		 * cost on Apple Silicon for resource-heavy scenes.
 		 *
 		 * Persistent requests the TLSF path cannot serve fall back to direct device allocations with
-		 * an invalid GpuResourceLocation. Explicit-allocator requests never fall back because doing so
+		 * an invalid GpuAllocation. Explicit-allocator requests never fall back because doing so
 		 * would silently escape the scratch allocator's frame-retirement contract.
 		 *
 		 * Ownership/lifetime: returned native handles are +1 references the caller owns (MRC).
-		 * The paired GpuResourceLocation must be freed via its stamped allocator
-		 * (location.Allocator->Free) once the resource's IGpuResource lifecycle reports it retired.
+		 * The paired GpuAllocation must be freed via its stamped allocator
+		 * (allocation.Allocator->Free) once the resource's IGpuResource lifecycle reports it retired.
 		 * Persistent TLSF allocators reclaim immediately under ResourceLifecycle deferral; scratch
 		 * linear allocators recycle their whole page after the completion tracker signals.
 		 *
@@ -167,14 +167,14 @@ namespace b3d
 			GpuMemoryRequirements GetTextureMemoryRequirements(MTLTextureDescriptor* descriptor) const;
 
 			/**
-			 * Allocates an MTLBuffer of @p length bytes of @p memoryType at @p location. A pending location
+			 * Allocates an MTLBuffer of @p length bytes of @p memoryType at @p requestedAllocation. A pending allocation
 			 * suballocates from its allocator, which must produce Metal heaps of @p memoryType.
-			 * A location with memory places the buffer at it directory. On success @p outLocation holds the
-			 * backing span (free it via outLocation.Allocator->Free once the resource retires, if owned).
+			 * An allocation with memory places the buffer at it directory. On success @p outAllocation holds the
+			 * backing span (free it via outAllocation.Allocator->Free once the resource retires, if owned).
 			 * If the persistent allocator for @p memoryType misses, the buffer is allocated directly on the
-			 * device and @p outLocation is left empty. Returns nil on failure.
+			 * device and @p outAllocation is left empty. Returns nil on failure.
 			 */
-			id<MTLBuffer> AllocateBuffer(u64 length, u32 memoryType, const GpuResourceLocation& location, GpuResourceLocation& outLocation);
+			id<MTLBuffer> AllocateBuffer(u64 length, u32 memoryType, const GpuAllocation& requestedAllocation, GpuAllocation& outAllocation);
 
 			/**
 			 * Counterpart of AllocateBuffer for textures. The memory type is derived from
@@ -182,7 +182,7 @@ namespace b3d
 			 * allocation. The descriptor must carry the configured hazard mode for the direct path;
 			 * heap-placed resources inherit the heap's matching mode.
 			 */
-			id<MTLTexture> AllocateTexture(MTLTextureDescriptor* descriptor, const GpuResourceLocation& location, GpuResourceLocation& outLocation);
+			id<MTLTexture> AllocateTexture(MTLTextureDescriptor* descriptor, const GpuAllocation& requestedAllocation, GpuAllocation& outAllocation);
 #endif
 
 		private:

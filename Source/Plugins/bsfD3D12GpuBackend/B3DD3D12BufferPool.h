@@ -14,7 +14,7 @@ namespace b3d::render
 	{
 	public:
 		/** Takes ownership of @p resource and its @p backingAllocation. */
-		D3D12BufferPage(D3D12ResourceManager* owner, ComPtr<ID3D12Resource> resource, GpuResourceLocation backingAllocation, D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_FLAGS flags, void* mappedData);
+		D3D12BufferPage(D3D12ResourceManager* owner, ComPtr<ID3D12Resource> resource, GpuAllocation backingAllocation, D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_FLAGS flags, void* mappedData);
 		~D3D12BufferPage() override;
 
 		/** Returns the native resource backing every slice on this page. */
@@ -37,7 +37,7 @@ namespace b3d::render
 
 	private:
 		ComPtr<ID3D12Resource> mResource;
-		GpuResourceLocation mBackingAllocation;
+		GpuAllocation mBackingAllocation;
 		D3D12_HEAP_TYPE mHeapType = D3D12_HEAP_TYPE_DEFAULT;
 		D3D12_RESOURCE_FLAGS mFlags = D3D12_RESOURCE_FLAG_NONE;
 		void* mMappedData = nullptr;

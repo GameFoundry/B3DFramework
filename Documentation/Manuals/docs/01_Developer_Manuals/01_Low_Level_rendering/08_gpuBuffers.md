@@ -59,13 +59,13 @@ GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
 TShared<render::GpuBuffer> scratchBuffer = gpuContext.CreateScratchGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, 32));
 ~~~~~~~~~~~~~
 
-## Memory locations
-By default a buffer allocates its memory from the device's persistent allocator. You can instead choose where the memory comes from, by passing a @b3d::GpuResourceLocation to @b3d::GpuDevice::CreateGpuBuffer. Textures accept a location through @b3d::GpuDevice::CreateTexture in the same way.
+## Memory allocations
+By default a buffer allocates its memory from the device's persistent allocator. You can instead choose where the memory comes from, by passing a @b3d::GpuAllocation to @b3d::GpuDevice::CreateGpuBuffer. Textures accept an allocation through @b3d::GpuDevice::CreateTexture in the same way.
 
 Call @b3d::GpuDevice::GetMemoryRequirements first. The returned @b3d::GpuMemoryRequirements holds the memory type, size, alignment and placement kind the resource needs. A memory type of @b3d::GpuMemoryRequirements::kUnsupportedMemoryType means the device cannot create the resource. @b3d::GpuDevice::GetPersistentAllocator returns the persistent allocator that serves a memory type.
 
-A location is in one of four states:
- - Pending - only the allocator is set. The resource allocates its memory from that allocator every time it creates its native resource. Create it with @b3d::GpuResourceLocation::FromAllocator. The allocator must serve the resource's memory type.
+An allocation is in one of four states:
+ - Pending - only the allocator is set. The resource allocates its memory from that allocator every time it creates its native resource. Create it with @b3d::GpuAllocation::CreatePending. The allocator must serve the resource's memory type.
  - Owned - both the heap and the allocator are set, as returned by a successful **TryAllocate**. The resource adopts the memory and frees it when it is destroyed.
  - Non-owning - only the heap is set. The resource binds to the memory but never frees it. The caller keeps the memory alive for the resource's lifetime and frees it afterwards.
  - Empty - neither is set. Creation fails with an error.
@@ -76,12 +76,12 @@ GpuMemoryRequirements requirements = gpuDevice->GetMemoryRequirements(createInfo
 IGpuAllocator& allocator = gpuDevice->GetPersistentAllocator(requirements.MemoryType);
 
 // Pending: the buffer allocates from the allocator
-TShared<render::GpuBuffer> pendingBuffer = gpuDevice->CreateGpuBuffer(createInformation, GpuResourceLocation::FromAllocator(allocator));
+TShared<render::GpuBuffer> pendingBuffer = gpuDevice->CreateGpuBuffer(createInformation, GpuAllocation::CreatePending(allocator));
 
 // Owned: the buffer adopts memory allocated by the caller, and frees it on destruction
-GpuResourceLocation location;
-if(allocator.TryAllocate(requirements.Size, (u32)requirements.Alignment, requirements.Kind, nullptr, location))
-	TShared<render::GpuBuffer> ownedBuffer = gpuDevice->CreateGpuBuffer(createInformation, location);
+GpuAllocation allocation;
+if(allocator.TryAllocate(requirements.Size, (u32)requirements.Alignment, requirements.Kind, nullptr, allocation))
+	TShared<render::GpuBuffer> ownedBuffer = gpuDevice->CreateGpuBuffer(createInformation, allocation);
 ~~~~~~~~~~~~~
 
 ## Suballocations
@@ -248,7 +248,7 @@ Both pool types automatically grow by allocating new backing **GpuBuffer** objec
 # GPU memory allocators
 Backend buffer and texture creation is layered on top of a backend-private GPU memory allocator. The framework ships @b3d::TGpuTlsfAllocator — a Two-Level Segregated Fit allocator with O(1) bitmap-driven bucket lookup, full coalescing on free, leading-padding alignment splits (including non-power-of-two alignments), multi-heap growth, and optional buffer-image granularity tracking. Backends parameterise the template with their own heap-backend trait; Vulkan uses **VulkanHeapBackend**, while D3D12 uses **D3D12HeapBackend** and **D3D12BufferPageBackend**.
 
-Each successful **TryAllocate** writes the result into a @b3d::GpuResourceLocation — a POD that holds the heap handle, byte offset, size, and two strategy-private slot identity fields. Consumers own their location; the allocator only writes to it during initial allocation, and supplies a fresh replacement location through **MoveAllocation** when defragmentation moves the allocation. Pass the owning resource as the `owner` argument to **TryAllocate** (`nullptr` for an untracked allocation that won't participate in defragmentation).
+Each successful **TryAllocate** writes the result into a @b3d::GpuAllocation — a POD that holds the heap handle, byte offset, size, and two strategy-private slot identity fields. Consumers own their allocation; the allocator only writes to it during initial allocation, and supplies a fresh replacement allocation through **MoveAllocation** when defragmentation moves the allocation. Pass the owning resource as the `owner` argument to **TryAllocate** (`nullptr` for an untracked allocation that won't participate in defragmentation).
 
 ## Deferral modes
 Each @b3d::TGpuTlsfAllocator instance is configured with one of two deferral modes that govern how @b3d::TGpuTlsfAllocator::Free releases the slot and how @b3d::TGpuTlsfAllocator::Defrag retires source slots after a move.
@@ -267,13 +267,13 @@ Allocators key their deferred-free queue on a monotonic completion marker expose
 
 For an allocation to participate, the consumer must:
  - Pass a non-null @b3d::IGpuResource pointer for the resource as the owner argument to @b3d::TGpuAllocator::TryAllocate. Allocations with a null owner are untracked; @b3d::TGpuTlsfAllocator::Defrag skips them.
- - Override @b3d::IGpuResource::MoveAllocation on the resource. The override receives the @b3d::render::GpuCommandBuffer the move's GPU copy must be recorded into and a fresh @b3d::GpuResourceLocation passed by reference. The override records the source→destination GPU copy on the supplied command buffer, replaces the resource's location with the supplied new location, recreates the placed backend object at the new memory range, and returns the @b3d::IGpuResource pointer that should own the destination from now on. The source heap, offset, and size are read from the consumer's still-intact location when @b3d::IGpuResource::MoveAllocation is called; the allocator never writes to the consumer's location during defragmentation.
+ - Override @b3d::IGpuResource::MoveAllocation on the resource. The override receives the @b3d::render::GpuCommandBuffer the move's GPU copy must be recorded into and a fresh @b3d::GpuAllocation passed by reference. The override records the source→destination GPU copy on the supplied command buffer, replaces the resource's allocation with the supplied new allocation, recreates the placed backend object at the new memory range, and returns the @b3d::IGpuResource pointer that should own the destination from now on. The source heap, offset, and size are read from the consumer's still-intact allocation when @b3d::IGpuResource::MoveAllocation is called; the allocator never writes to the consumer's allocation during defragmentation.
 
 The deferral mode further constrains the override:
  - @b3d::GpuAllocatorFreeDeferralMode::FrameTracker requires the override to return @c this. Wrapper-swap is forbidden — the new wrapper would @b3d::IGpuResource::Destroy the old, whose destructor would free the source slot while the allocator is also retiring it. The allocator asserts on the returned pointer.
  - @b3d::GpuAllocatorFreeDeferralMode::ResourceLifecycle accepts either @c this (in-place patch) or a freshly-constructed @b3d::IGpuResource (wrapper swap). For wrapper swap, the old wrapper is @b3d::IGpuResource::Destroy-ed inside the override; its destructor calls into the backend's free path to release the source slot once the GPU is done.
 
-Every tracked allocation (non-null owner) is a candidate regardless of in-flight or bound state. Correctness depends on submission ordering, not on filtering: the caller must submit the @b3d::render::GpuCommandBuffer passed to @b3d::TGpuTlsfAllocator::Defrag next, with no intervening submissions, so that pre-recorded CBs that reference the OLD backend object run on the GPU before the move's copy. After @b3d::IGpuResource::MoveAllocation returns, all newly recorded references go to the NEW backend object via the patched location.
+Every tracked allocation (non-null owner) is a candidate regardless of in-flight or bound state. Correctness depends on submission ordering, not on filtering: the caller must submit the @b3d::render::GpuCommandBuffer passed to @b3d::TGpuTlsfAllocator::Defrag next, with no intervening submissions, so that pre-recorded CBs that reference the OLD backend object run on the GPU before the move's copy. After @b3d::IGpuResource::MoveAllocation returns, all newly recorded references go to the NEW backend object via the patched allocation.
 
 Per-call soft budgets in @b3d::TGpuTlsfAllocator::DefragmentationInfo cap the work done in one @b3d::TGpuTlsfAllocator::Defrag call (default 32 MB). The returned @b3d::TGpuTlsfAllocator::DefragmentationStats reports moves attempted, moves completed, bytes moved, and whether either budget aborted the walk early.
 

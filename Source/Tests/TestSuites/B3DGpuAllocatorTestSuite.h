@@ -23,7 +23,7 @@ namespace b3d
 	private:
 		/**
 		 * Compile-time + runtime contract surface of TGpuAllocator: trait static asserts, layout
-		 * guarantees on GpuResourceLocation, retire/drain ordering and IGpuResource callback dispatch.
+		 * guarantees on GpuAllocation, retire/drain ordering and IGpuResource callback dispatch.
 		 */
 		void TestGpuAllocatorContract();
 
@@ -31,7 +31,7 @@ namespace b3d
 		 * Behavioural cases for the deferred-delete queue: FIFO drain stops at the first incomplete
 		 * entry, subsequent advances drain remaining entries in order, Flush(true) drains
 		 * unconditionally, and the public Free path snapshots slot identity into the queue
-		 * then resets the caller's location.
+		 * then resets the caller's allocation.
 		 */
 		void TestGpuAllocatorDeferredDelete();
 
@@ -119,7 +119,7 @@ namespace b3d
 		/** A tracked allocation whose owner reports GetUseCount > 0 / GetBoundCount > 0 is still moved. */
 		void TestTlsf_Defrag_MovesInFlightResource();
 
-		/** MoveAllocation is invoked with a populated new Location identifying a live destination slot. */
+		/** MoveAllocation is invoked with a populated new GpuAllocation identifying a live destination slot. */
 		void TestTlsf_Defrag_MoveAllocationReceivesContext();
 
 		/**
@@ -154,7 +154,7 @@ namespace b3d
 		 * Concurrent allocate/free workers running alongside a defragmentation thread. The defrag
 		 * thread invokes MoveAllocation under the recursive lock; the allocator must not deadlock,
 		 * lose track of slots, or corrupt the heap when a worker re-enters the lock through a freshly
-		 * allocated location. Final state is verified to be coherent after all threads join.
+		 * allocated allocation. Final state is verified to be coherent after all threads join.
 		 */
 		void TestTlsf_ConcurrentDefragWithAllocateAndFree();
 
@@ -192,10 +192,10 @@ namespace b3d
 		/** Drained pages beyond @c MaxRetainedPages destruct rather than going to spares. */
 		void TestLinear_SparePageCap();
 
-		/** Per-allocation Free is a no-op apart from resetting the caller's location — page state is unchanged and no retire entry is queued. */
+		/** Per-allocation Free is a no-op apart from resetting the caller's allocation — page state is unchanged and no retire entry is queued. */
 		void TestLinear_FreeIsNoop();
 
-		/** Per-allocation FreeAndReclaim is also a no-op: calling it on one Location does not invalidate peer Locations sharing the same page, and the page itself is not recycled. */
+		/** Per-allocation FreeAndReclaim is also a no-op: calling it on one GpuAllocation does not invalidate peer allocations sharing the same page, and the page itself is not recycled. */
 		void TestLinear_FreeImmediateOnSharedPageIsNoop();
 
 		/** Two ThreadUnsafe allocators backed by one shared page pool recycle each other's drained pages instead of creating fresh heaps. */
@@ -219,7 +219,7 @@ namespace b3d
 		void TestAllocatorIdentity_FreeRoutesByCarriedAllocator();
 
 		/**
-		 * After defragmentation relocates an allocation, the replacement Location the allocator hands to
+		 * After defragmentation relocates an allocation, the replacement GpuAllocation the allocator hands to
 		 * MoveAllocation still carries the producing allocator, so the moved resource can be freed
 		 * through its (new) carried handle without orphaning the free path.
 		 */

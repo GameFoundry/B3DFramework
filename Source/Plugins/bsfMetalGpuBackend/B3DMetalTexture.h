@@ -71,10 +71,10 @@ namespace b3d
 			 * @param	owner				Resource manager that keeps track of lifetime of this resource.
 			 * @param	createInformation	Describes the image being wrapped.
 			 * @param	texture				Native MTLTexture handle the wrapper takes ownership of (+1 reference under MRC).
-			 * @param	allocation			Engine allocator span backing the image's memory, or an invalid location for
+			 * @param	allocation			Engine allocator span backing the image's memory, or an invalid allocation for
 			 *								direct (non-sub-allocated) device allocations.
 			 */
-			MetalImage(MetalResourceManager* owner, const MetalImageCreateInformation& createInformation, MetalTextureNativeHandle texture, const GpuResourceLocation& allocation);
+			MetalImage(MetalResourceManager* owner, const MetalImageCreateInformation& createInformation, MetalTextureNativeHandle texture, const GpuAllocation& allocation);
 			~MetalImage();
 
 			/** Assigns a name to the image, primarily used for easier debugging. */
@@ -109,7 +109,7 @@ namespace b3d
 
 		private:
 			MetalTextureNativeHandle mTexture = nullptr;
-			GpuResourceLocation mAllocation;
+			GpuAllocation mAllocation;
 
 			/**
 			 * Lazily-created MTLPixelFormat -> view cache, used for depth-stencil / sRGB shader-read
@@ -143,7 +143,7 @@ namespace b3d
 		class MetalTexture : public Texture
 		{
 		public:
-			MetalTexture(MetalGpuDevice& gpuDevice, const TextureCreateInformation& createInformation, const GpuResourceLocation& location);
+			MetalTexture(MetalGpuDevice& gpuDevice, const TextureCreateInformation& createInformation, const GpuAllocation& allocation);
 			~MetalTexture();
 
 			void SetName(const StringView& name) override;

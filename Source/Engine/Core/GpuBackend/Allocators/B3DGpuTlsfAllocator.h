@@ -26,8 +26,8 @@ namespace b3d
 	/**
 	 * Two-Level Segregated Fit GPU memory allocator. O(1) bitmap-driven bucket lookup, leading-padding
 	 * split for alignment, full coalescing on free, multi-heap growable. One allocator instance manages
-	 * a list of backend heaps; allocations report back to the consumer via GpuResourceLocation, with
-	 * the heap index and pool node index stored in the location's two strategy-private slots.
+	 * a list of backend heaps; allocations report back to the consumer via GpuAllocation, with
+	 * the heap index and pool node index stored in the allocation's two strategy-private slots.
 	 *
 	 * **Threading.** When ThreadPolicy is ThreadSafe (the default), every public entry point — including
 	 * TryAllocate, Free, FreeAndReclaim, ReclaimUnused, Defrag, SetAllocationOwner and the diagnostic accessors —
@@ -84,8 +84,8 @@ namespace b3d
 		 *  @{
 		 */
 
-		bool TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuResourceLocation& out);
-		void FreeImpl(GpuResourceLocation& allocation);
+		bool TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuAllocation& out);
+		void FreeImpl(GpuAllocation& allocation);
 		void FreeAndReclaimImpl(u32 heapIndex, u32 nodeIndex);
 
 		/**
@@ -94,7 +94,7 @@ namespace b3d
 		 * the IGpuResource wrapper exists, then the wrapper registers itself post-construction).
 		 * Pass nullptr to clear the owner — the slot remains live but becomes ineligible for defrag.
 		 */
-		void SetAllocationOwner(const GpuResourceLocation& allocation, IGpuResource* owner);
+		void SetAllocationOwner(const GpuAllocation& allocation, IGpuResource* owner);
 
 		/** TLSF tracks per-allocation owners and relocates allocations during Defrag. */
 		bool SupportsDefragmentation() const override { return true; }

@@ -42,7 +42,7 @@ namespace b3d
 			VulkanBuffer(VulkanResourceManager* owner, const VulkanBufferCreateInformation& createInformation, VkBuffer buffer, VulkanAllocationResult allocation, VulkanGpuBuffer* parent = nullptr);
 			~VulkanBuffer();
 
-			IGpuResource* MoveAllocation(render::GpuCommandBuffer& commandBuffer, const GpuResourceLocation& newLocation) override;
+			IGpuResource* MoveAllocation(render::GpuCommandBuffer& commandBuffer, const GpuAllocation& newAllocation) override;
 
 			/** Returns the internal handle to the Vulkan object. */
 			VkBuffer GetVulkanHandle() const { return mBuffer; }
@@ -118,11 +118,11 @@ namespace b3d
 			/**
 			 * @param	device				Device the buffer is created on.
 			 * @param	createInformation	Describes the buffer to create.
-			 * @param	location			Location the buffer's memory comes from, every time the internal buffer is
+			 * @param	allocation			Allocation the buffer's memory comes from, every time the internal buffer is
 			 *								(re)created. See GpuDevice::CreateGpuBuffer(). Its allocator or heap must
 			 *								outlive the buffer.
 			 */
-			VulkanGpuBuffer(VulkanGpuDevice& device, const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location);
+			VulkanGpuBuffer(VulkanGpuDevice& device, const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation);
 			~VulkanGpuBuffer();
 
 			void SetName(const StringView& name) override;
@@ -170,15 +170,15 @@ namespace b3d
 			void Initialize() override;
 			void RecreateInternalBuffer() override;
 
-			/** Creates a new buffer at @p location for the specified device, matching the current buffer properties. */
-			VulkanBuffer* CreateBuffer(VulkanGpuDevice& device, u32 size, bool staging, bool readable, const GpuResourceLocation& location);
+			/** Creates a new buffer at @p allocation for the specified device, matching the current buffer properties. */
+			VulkanBuffer* CreateBuffer(VulkanGpuDevice& device, u32 size, bool staging, bool readable, const GpuAllocation& allocation);
 
 			/**
-			 * Recreates this proxy's internal VulkanBuffer at the provided pre-reserved location,
+			 * Recreates this proxy's internal VulkanBuffer at the provided pre-reserved allocation,
 			 * records a GPU-side copy from the current buffer into the new one on @p commandBuffer. The caller
 			 * is responsible for queuing the old wrapper for destroy.
 			 */
-			VulkanBuffer* RelocateInternalBuffer(const GpuResourceLocation& newLocation, render::GpuCommandBuffer& commandBuffer);
+			VulkanBuffer* RelocateInternalBuffer(const GpuAllocation& newAllocation, render::GpuCommandBuffer& commandBuffer);
 
 			/** Gets the GPU device the buffer is created on. */
 			VulkanGpuDevice& GetVulkanDevice() const { return static_cast<VulkanGpuDevice&>(mDevice); }

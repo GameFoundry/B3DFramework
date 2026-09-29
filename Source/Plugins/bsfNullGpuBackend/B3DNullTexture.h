@@ -24,7 +24,7 @@ namespace b3d
 		class NullTexture : public Texture
 		{
 		public:
-			NullTexture(NullGpuDevice& gpuDevice, const TextureCreateInformation& createInformation, const GpuResourceLocation& location);
+			NullTexture(NullGpuDevice& gpuDevice, const TextureCreateInformation& createInformation, const GpuAllocation& allocation);
 			~NullTexture();
 
 			void SetName(const StringView& name) override { mName = name; }
@@ -44,7 +44,7 @@ namespace b3d
 			NullGpuDevice& mGpuDevice;
 			PixelData* mMappedBuffer = nullptr;
 			String mName;
-			GpuResourceLocation mAllocation; /**< Memory the texture is placed at. Freed on destruction if owned. */
+			GpuAllocation mAllocation; /**< Memory the texture is placed at. Freed on destruction if owned. */
 		};
 
 		/** @} */

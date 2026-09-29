@@ -22,7 +22,7 @@ namespace b3d
 			u64 Size = 0; /**< Size of the heap in bytes. */
 		};
 
-		/** Heap backend for the null device. Heaps only exist to give GPU resource locations an identity. */
+		/** Heap backend for the null device. Heaps only exist to give GPU allocations an identity. */
 		class NullHeapBackend
 		{
 		public:
@@ -102,8 +102,8 @@ namespace b3d
 			};
 
 			TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
-			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags) override;
-			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags) override;
+			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
+			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
 
 			/** Initializes capabilities with reasonable defaults for a null backend. */
 			void InitializeCapabilities();

@@ -35,7 +35,7 @@ namespace b3d
 			: MetalResource(owner, name), mLayout(layout)
 		{ }
 
-		MetalImage::MetalImage(MetalResourceManager* owner, const MetalImageCreateInformation& createInformation, MetalTextureNativeHandle texture, const GpuResourceLocation& allocation)
+		MetalImage::MetalImage(MetalResourceManager* owner, const MetalImageCreateInformation& createInformation, MetalTextureNativeHandle texture, const GpuAllocation& allocation)
 			: TMetalResource<IGpuImageResource>(owner, createInformation.DebugName, createInformation.FaceCount, createInformation.MipLevelCount, GetFullAspectFlags(createInformation.Usage, createInformation.Format)), mTexture(texture), mAllocation(allocation)
 		{
 			// Fill in the per-(face x mip x aspect) subresource wrappers the IGpuImageResource base
@@ -86,7 +86,7 @@ namespace b3d
 			mTexture = nullptr;
 
 			// Allocator-backed spans return to the device's persistent TLSF pool; direct device
-			// allocations carry an invalid location. ResourceLifecycle deferral mode reclaims
+			// allocations carry an invalid allocation. ResourceLifecycle deferral mode reclaims
 			// immediately.
 			if (mAllocation.IsOwned())
 				mAllocation.Allocator->Free(mAllocation);
@@ -262,8 +262,8 @@ namespace b3d
 			return view;
 		}
 
-		MetalTexture::MetalTexture(MetalGpuDevice& gpuDevice, const TextureCreateInformation& createInformation, const GpuResourceLocation& location)
-			: Texture(createInformation, location), mGpuDevice(gpuDevice)
+		MetalTexture::MetalTexture(MetalGpuDevice& gpuDevice, const TextureCreateInformation& createInformation, const GpuAllocation& allocation)
+			: Texture(createInformation, allocation), mGpuDevice(gpuDevice)
 		{ }
 
 		MetalTexture::~MetalTexture()
@@ -485,10 +485,10 @@ namespace b3d
 			// Route through the device's memory manager so the texture sub-allocates out of a
 			// pooled placement MTLHeap at an allocator-chosen offset rather than paying the
 			// per-resource driver-side allocation cost. Oversized or non-poolable requests fall
-			// back to direct device allocation inside the allocator; the invalid location tells the
+			// back to direct device allocation inside the allocator; the invalid allocation tells the
 			// wrapper nothing needs freeing back to the pool.
-			GpuResourceLocation location;
-			MetalTextureNativeHandle handle = mGpuDevice.GetHeapAllocator().AllocateTexture(desc, mRequestedLocation, location);
+			GpuAllocation allocation;
+			MetalTextureNativeHandle handle = mGpuDevice.GetHeapAllocator().AllocateTexture(desc, mRequestedAllocation, allocation);
 #if !__has_feature(objc_arc)
 			[desc release];
 #endif
@@ -512,7 +512,7 @@ namespace b3d
 			imageCreateInformation.Usage = mProperties.Usage;
 			imageCreateInformation.DebugName = GetName();
 
-			MetalImage* image = mGpuDevice.GetResourceManager().Create<MetalImage>(imageCreateInformation, handle, location);
+			MetalImage* image = mGpuDevice.GetResourceManager().Create<MetalImage>(imageCreateInformation, handle, allocation);
 
 			if (!GetName().empty())
 				image->SetName(GetName());

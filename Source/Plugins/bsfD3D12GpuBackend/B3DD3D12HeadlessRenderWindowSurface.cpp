@@ -51,7 +51,7 @@ void D3D12HeadlessRenderWindowSurface::CreateSurfaceResources()
 
 	for (u32 imageIndex = 0; imageIndex < mBackBufferCount; imageIndex++)
 	{
-		GpuResourceLocation allocation;
+		GpuAllocation allocation;
 		const HRESULT result = mDevice.CreateResource(colorDescription, D3D12_HEAP_TYPE_DEFAULT, D3D12_BARRIER_LAYOUT_UNDEFINED, &colorClearValue, mColorBuffers[imageIndex], allocation);
 		if (FAILED(result))
 		{
@@ -93,7 +93,7 @@ void D3D12HeadlessRenderWindowSurface::CreateSurfaceResources()
 		depthStencilClearValue.Format = mDepthFormat;
 		depthStencilClearValue.DepthStencil.Depth = 1.0f;
 
-		GpuResourceLocation allocation;
+		GpuAllocation allocation;
 		const HRESULT result = mDevice.CreateResource(depthStencilDescription, D3D12_HEAP_TYPE_DEFAULT, D3D12_BARRIER_LAYOUT_UNDEFINED, &depthStencilClearValue, mDepthStencilBuffer, allocation);
 		if (FAILED(result))
 		{

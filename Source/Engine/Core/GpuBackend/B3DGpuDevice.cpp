@@ -32,26 +32,26 @@ TUnique<IGpuAllocator> GpuDevice::CreateScratchAllocator(u32 /*memoryType*/, IGp
 namespace
 {
 	/**
-	 * Checks that a resource with @p memoryRequirements can be created at @p location with @p flags, logging the reason
+	 * Checks that a resource with @p memoryRequirements can be created at @p allocation with @p flags, logging the reason
 	 * if it can't.
 	 */
-	bool ValidateResourceLocation(const GpuResourceLocation& location, const GpuMemoryRequirements& memoryRequirements, GpuObjectCreateFlags flags)
+	bool ValidateResourceAllocation(const GpuAllocation& allocation, const GpuMemoryRequirements& memoryRequirements, GpuObjectCreateFlags flags)
 	{
-		if(!B3D_ENSURE_LOG(location.HasMemory() || location.IsPending(), "Cannot create a GPU resource at an empty memory location."))
+		if(!B3D_ENSURE_LOG(allocation.HasMemory() || allocation.IsPending(), "Cannot create a GPU resource at an empty allocation."))
 			return false;
 
-		if(!B3D_ENSURE_LOG(!flags.IsSet(GpuObjectCreateFlag::Aliased) || location.HasMemory(), "Only a GPU resource created at a fixed memory location can be aliased."))
+		if(!B3D_ENSURE_LOG(!flags.IsSet(GpuObjectCreateFlag::Aliased) || allocation.HasMemory(), "Only a GPU resource created at a fixed memory location can be aliased."))
 			return false;
 
 		if(memoryRequirements.MemoryType == GpuMemoryRequirements::kUnsupportedMemoryType)
 			return false;
 
-		if(!location.HasMemory())
+		if(!allocation.HasMemory())
 			return true;
 
-		return B3D_ENSURE_LOG(location.Size >= memoryRequirements.Size && location.Offset % memoryRequirements.Alignment == 0,
-			"Memory location (offset {0}, size {1}) does not satisfy the resource's requirements (size {2}, alignment {3}).",
-			location.Offset, location.Size, memoryRequirements.Size, memoryRequirements.Alignment);
+		return B3D_ENSURE_LOG(allocation.Size >= memoryRequirements.Size && allocation.Offset % memoryRequirements.Alignment == 0,
+			"Allocation (offset {0}, size {1}) does not satisfy the resource's requirements (size {2}, alignment {3}).",
+			allocation.Offset, allocation.Size, memoryRequirements.Size, memoryRequirements.Alignment);
 	}
 }
 
@@ -61,19 +61,19 @@ TShared<render::Texture> GpuDevice::CreateTexture(const TextureCreateInformation
 	if(memoryRequirements.MemoryType == GpuMemoryRequirements::kUnsupportedMemoryType)
 		return nullptr;
 
-	const GpuResourceLocation location = GpuResourceLocation::FromAllocator(GetPersistentAllocator(memoryRequirements.MemoryType));
-	if(!ValidateResourceLocation(location, memoryRequirements, flags))
+	const GpuAllocation allocation = GpuAllocation::CreatePending(GetPersistentAllocator(memoryRequirements.MemoryType));
+	if(!ValidateResourceAllocation(allocation, memoryRequirements, flags))
 		return nullptr;
 
-	return CreateTextureInternal(createInformation, location, flags);
+	return CreateTextureInternal(createInformation, allocation, flags);
 }
 
-TShared<render::Texture> GpuDevice::CreateTexture(const TextureCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags)
+TShared<render::Texture> GpuDevice::CreateTexture(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags)
 {
-	if(!ValidateResourceLocation(location, GetMemoryRequirements(createInformation), flags))
+	if(!ValidateResourceAllocation(allocation, GetMemoryRequirements(createInformation), flags))
 		return nullptr;
 
-	return CreateTextureInternal(createInformation, location, flags);
+	return CreateTextureInternal(createInformation, allocation, flags);
 }
 
 TShared<render::GpuBuffer> GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
@@ -82,19 +82,19 @@ TShared<render::GpuBuffer> GpuDevice::CreateGpuBuffer(const GpuBufferCreateInfor
 	if(memoryRequirements.MemoryType == GpuMemoryRequirements::kUnsupportedMemoryType)
 		return nullptr;
 
-	const GpuResourceLocation location = GpuResourceLocation::FromAllocator(GetPersistentAllocator(memoryRequirements.MemoryType));
-	if(!ValidateResourceLocation(location, memoryRequirements, flags))
+	const GpuAllocation allocation = GpuAllocation::CreatePending(GetPersistentAllocator(memoryRequirements.MemoryType));
+	if(!ValidateResourceAllocation(allocation, memoryRequirements, flags))
 		return nullptr;
 
-	return CreateGpuBufferInternal(createInformation, location, flags);
+	return CreateGpuBufferInternal(createInformation, allocation, flags);
 }
 
-TShared<render::GpuBuffer> GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags)
+TShared<render::GpuBuffer> GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags)
 {
-	if(!ValidateResourceLocation(location, GetMemoryRequirements(createInformation), flags))
+	if(!ValidateResourceAllocation(allocation, GetMemoryRequirements(createInformation), flags))
 		return nullptr;
 
-	return CreateGpuBufferInternal(createInformation, location, flags);
+	return CreateGpuBufferInternal(createInformation, allocation, flags);
 }
 
 void GpuDevice::DoForEachQueue(const std::function<void(GpuQueue&)>&& callback) const

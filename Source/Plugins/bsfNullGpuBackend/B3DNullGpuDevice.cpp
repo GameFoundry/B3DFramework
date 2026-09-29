@@ -207,9 +207,9 @@ namespace b3d
 			return *mPersistentAllocator;
 		}
 
-		TShared<Texture> NullGpuDevice::CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags)
+		TShared<Texture> NullGpuDevice::CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags)
 		{
-			NullTexture* rawTexture = new(B3DAllocate<NullTexture>()) NullTexture(*this, createInformation, location);
+			NullTexture* rawTexture = new(B3DAllocate<NullTexture>()) NullTexture(*this, createInformation, allocation);
 
 			// Default: standalone (calling-thread deletion)
 			// With RenderProxy flag: forward destruction to render thread
@@ -225,9 +225,9 @@ namespace b3d
 			return texture;
 		}
 
-		TShared<GpuBuffer> NullGpuDevice::CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags)
+		TShared<GpuBuffer> NullGpuDevice::CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags)
 		{
-			NullGpuBuffer* rawBuffer = new(B3DAllocate<NullGpuBuffer>()) NullGpuBuffer(*this, createInformation, location);
+			NullGpuBuffer* rawBuffer = new(B3DAllocate<NullGpuBuffer>()) NullGpuBuffer(*this, createInformation, allocation);
 
 			// Default: standalone (calling-thread deletion)
 			// With RenderProxy flag: forward destruction to render thread

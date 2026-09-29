@@ -44,11 +44,11 @@ namespace b3d
 			 * @param	owner				Manager that takes care of tracking and releasing of this object.
 			 * @param	createInformation	Describes the buffer being wrapped.
 			 * @param	buffer				Native MTLBuffer handle the wrapper takes ownership of (+1 reference under MRC).
-			 * @param	allocation			Engine allocator span backing the buffer's memory, or an invalid location for
+			 * @param	allocation			Engine allocator span backing the buffer's memory, or an invalid allocation for
 			 *								direct (non-sub-allocated) device allocations.
 			 * @param	mappedMemory		CPU-visible contents pointer for shared-storage buffers, null otherwise.
 			 */
-			MetalBuffer(MetalResourceManager* owner, const MetalBufferCreateInformation& createInformation, MetalBufferNativeHandle buffer, const GpuResourceLocation& allocation, void* mappedMemory);
+			MetalBuffer(MetalResourceManager* owner, const MetalBufferCreateInformation& createInformation, MetalBufferNativeHandle buffer, const GpuAllocation& allocation, void* mappedMemory);
 			~MetalBuffer();
 
 			/** Assigns a name to the buffer, primarily used for easier debugging. */
@@ -84,7 +84,7 @@ namespace b3d
 			GpuBufferType mType;
 			GpuBufferFlags mFlags;
 			MetalBufferNativeHandle mBuffer = nullptr;
-			GpuResourceLocation mAllocation;
+			GpuAllocation mAllocation;
 			void* mMappedMemory = nullptr;
 			Vector<TextureBufferView> mTextureBufferViews;
 
@@ -110,11 +110,11 @@ namespace b3d
 			/**
 			 * @param	device				Device the buffer is created on.
 			 * @param	createInformation	Describes the buffer to create.
-			 * @param	location			Location the buffer's memory comes from, every time the internal buffer is
+			 * @param	allocation			Allocation the buffer's memory comes from, every time the internal buffer is
 			 *								(re)created. See GpuDevice::CreateGpuBuffer(). Its allocator or heap must
 			 *								outlive the buffer.
 			 */
-			MetalGpuBuffer(MetalGpuDevice& device, const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location);
+			MetalGpuBuffer(MetalGpuDevice& device, const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation);
 			~MetalGpuBuffer();
 
 			void SetName(const StringView& name) override;

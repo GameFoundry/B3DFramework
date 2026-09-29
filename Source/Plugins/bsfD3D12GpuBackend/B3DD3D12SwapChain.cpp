@@ -164,7 +164,7 @@ void D3D12SwapChain::Initialize()
 		clearValue.Format = mCreateInformation.DepthStencilFormat;
 		clearValue.DepthStencil.Depth = 1.0f;
 
-		GpuResourceLocation depthStencilAllocation;
+		GpuAllocation depthStencilAllocation;
 		result = mDevice.CreateResource(depthStencilDescription, D3D12_HEAP_TYPE_DEFAULT, D3D12_BARRIER_LAYOUT_UNDEFINED, &clearValue, mDepthStencilBuffer, depthStencilAllocation);
 
 		if (FAILED(result))

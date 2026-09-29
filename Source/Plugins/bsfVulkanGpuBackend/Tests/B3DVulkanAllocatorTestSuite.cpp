@@ -165,15 +165,15 @@ void VulkanAllocatorTestSuite::TestAllocateAndFreeHostVisibleBuffer()
 	auto config = BuildAllocatorConfig(memProps, device->GetDeviceProperties().limits, memoryTypeIndex);
 	TGpuTlsfAllocator<VulkanHeapBackend> allocator(&device->GetHeapBackend(), &render::GetRenderer()->GetFrameCompletionTracker(), config);
 
-	GpuResourceLocation location;
-	const bool ok = allocator.TryAllocate(requirements.size, (u32)requirements.alignment, GpuResourceKind::Linear, location);
+	GpuAllocation allocation;
+	const bool ok = allocator.TryAllocate(requirements.size, (u32)requirements.alignment, GpuResourceKind::Linear, allocation);
 	B3D_TEST_ASSERT(ok)
-	B3D_TEST_ASSERT(location.IsOwned())
-	B3D_TEST_ASSERT(ToVulkanGpuHeap(location.Heap).Mapped != nullptr)
+	B3D_TEST_ASSERT(allocation.IsOwned())
+	B3D_TEST_ASSERT(ToVulkanGpuHeap(allocation.Heap).Mapped != nullptr)
 
 	// Sentinel write to confirm the persistent map is actually writable for this allocation's slice.
 	{
-		u8* mapped = static_cast<u8*>(ToVulkanGpuHeap(location.Heap).Mapped) + location.Offset;
+		u8* mapped = static_cast<u8*>(ToVulkanGpuHeap(allocation.Heap).Mapped) + allocation.Offset;
 		mapped[0] = 0xA5;
 		mapped[kSize - 1] = 0x5A;
 		B3D_TEST_ASSERT(mapped[0] == 0xA5)
@@ -182,7 +182,7 @@ void VulkanAllocatorTestSuite::TestAllocateAndFreeHostVisibleBuffer()
 
 	vkDestroyBuffer(device->GetLogical(), buffer, nullptr);
 
-	allocator.FreeAndReclaim(location);
+	allocator.FreeAndReclaim(allocation);
 	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
 }
 
@@ -220,17 +220,17 @@ void VulkanAllocatorTestSuite::TestAllocateAndFreeDeviceLocalImage()
 	auto config = BuildAllocatorConfig(memProps, device->GetDeviceProperties().limits, memoryTypeIndex);
 	TGpuTlsfAllocator<VulkanHeapBackend> allocator(&device->GetHeapBackend(), &render::GetRenderer()->GetFrameCompletionTracker(), config);
 
-	GpuResourceLocation location;
-	const bool ok = allocator.TryAllocate(requirements.size, (u32)requirements.alignment, GpuResourceKind::NonLinear, location);
+	GpuAllocation allocation;
+	const bool ok = allocator.TryAllocate(requirements.size, (u32)requirements.alignment, GpuResourceKind::NonLinear, allocation);
 	B3D_TEST_ASSERT(ok)
-	B3D_TEST_ASSERT(location.IsOwned())
+	B3D_TEST_ASSERT(allocation.IsOwned())
 
-	const VkMemoryPropertyFlags flags = memProps.memoryTypes[ToVulkanGpuHeap(location.Heap).MemoryTypeIndex].propertyFlags;
+	const VkMemoryPropertyFlags flags = memProps.memoryTypes[ToVulkanGpuHeap(allocation.Heap).MemoryTypeIndex].propertyFlags;
 	B3D_TEST_ASSERT((flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0)
 
 	vkDestroyImage(device->GetLogical(), image, nullptr);
 
-	allocator.FreeAndReclaim(location);
+	allocator.FreeAndReclaim(allocation);
 	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
 }
 
@@ -270,17 +270,17 @@ void VulkanAllocatorTestSuite::TestBufferHeapGrowth()
 
 	// Allocate enough 1 MiB chunks to exceed the 4 MiB initial heap and force a second heap.
 	constexpr u32 kAllocCount = 6;
-	GpuResourceLocation locations[kAllocCount];
+	GpuAllocation allocations[kAllocCount];
 	for (u32 entryIndex = 0; entryIndex < kAllocCount; entryIndex++)
 	{
-		const bool ok = allocator.TryAllocate(probeReq.size, (u32)probeReq.alignment, GpuResourceKind::Linear, locations[entryIndex]);
+		const bool ok = allocator.TryAllocate(probeReq.size, (u32)probeReq.alignment, GpuResourceKind::Linear, allocations[entryIndex]);
 		B3D_TEST_ASSERT(ok)
 	}
 
 	B3D_TEST_ASSERT(allocator.GetHeapCount() > 1)
 
 	for (u32 entryIndex = 0; entryIndex < kAllocCount; entryIndex++)
-		allocator.FreeAndReclaim(locations[entryIndex]);
+		allocator.FreeAndReclaim(allocations[entryIndex]);
 
 	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
 }

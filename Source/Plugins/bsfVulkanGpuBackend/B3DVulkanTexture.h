@@ -59,7 +59,7 @@ namespace b3d
 			~VulkanImage();
 
 			void Destroy() override;
-			IGpuResource* MoveAllocation(GpuCommandBuffer& commandBuffer, const GpuResourceLocation& newLocation) override;
+			IGpuResource* MoveAllocation(GpuCommandBuffer& commandBuffer, const GpuAllocation& newAllocation) override;
 
 			/** Returns the internal handle to the Vulkan object. */
 			VkImage GetVulkanHandle() const { return mImage; }
@@ -297,20 +297,20 @@ namespace b3d
 			friend class VulkanGpuDevice;
 			friend class VulkanImage;
 
-			VulkanTexture(VulkanGpuDevice& gpuDevice, const TextureCreateInformation& createInformation, const GpuResourceLocation& location);
+			VulkanTexture(VulkanGpuDevice& gpuDevice, const TextureCreateInformation& createInformation, const GpuAllocation& allocation);
 
 			void Initialize() override;
 
 		private:
-			/** Creates a new image at the texture's location, matching the current properties. */
+			/** Creates a new image at the texture's allocation, matching the current properties. */
 			VulkanImage* CreateImage();
 
 			/**
-			 * Recreates this proxy's internal VulkanImage at the provided pre-reserved location,
+			 * Recreates this proxy's internal VulkanImage at the provided pre-reserved allocation,
 			 * records a GPU-side copy from the current image into the new one on @p commandBuffer. The caller
 			 * is responsible for queuing the old wrapper for destroy.
 			 */
-			VulkanImage* RelocateInternalTexture(const GpuResourceLocation& newLocation, render::GpuCommandBuffer& commandBuffer);
+			VulkanImage* RelocateInternalTexture(const GpuAllocation& newAllocation, render::GpuCommandBuffer& commandBuffer);
 
 			/**
 			 * Builds a VulkanImageCreateInformation reflecting this texture's current shape (CreateInfo, Layout,

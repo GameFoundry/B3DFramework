@@ -28,7 +28,7 @@ namespace b3d
 	class GpuCommandCapture;
 	class IGpuAllocator;
 	struct GpuMemoryRequirements;
-	struct GpuResourceLocation;
+	struct GpuAllocation;
 	struct SamplerStateCreateInformation;
 	struct TextureCreateInformation;
 	struct TextureCopyInformation;
@@ -144,18 +144,18 @@ namespace b3d
 		TShared<render::Texture> CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None);
 
 		/**
-		 * Creates a new GPU texture at the provided memory location.
+		 * Creates a new GPU texture at the provided allocation.
 		 *
-		 * A pending location allocates from its allocator, including whenever the texture recreates its native resource.
-		 * A location with memory fixes the texture to that memory, which must satisfy GetMemoryRequirements() for
+		 * A pending allocation allocates from its allocator, including whenever the texture recreates its native resource.
+		 * An allocation with memory fixes the texture to that memory, which must satisfy GetMemoryRequirements() for
 		 * @p createInformation.
 		 *
 		 * @param	createInformation	Object describing the texture to create.
-		 * @param	location			Memory the texture is created at. Must not be empty.
+		 * @param	allocation			Memory the texture is created at. Must not be empty.
 		 * @param	flags				Creation flags. @see GpuObjectCreateFlag
-		 * @return						Created texture, or null if @p location is not valid for @p createInformation.
+		 * @return						Created texture, or null if @p allocation is not valid for @p createInformation.
 		 */
-		TShared<render::Texture> CreateTexture(const TextureCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None);
+		TShared<render::Texture> CreateTexture(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None);
 
 		/**
 		 * Creates a new GPU buffer whose memory comes from the device's persistent allocator for its memory type. Use
@@ -167,15 +167,15 @@ namespace b3d
 		TShared<render::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None);
 
 		/**
-		 * Creates a new GPU buffer at the provided memory location. Location rules match
-		 * CreateTexture(const TextureCreateInformation&, const GpuResourceLocation&, GpuObjectCreateFlags).
+		 * Creates a new GPU buffer at the provided allocation. Allocation rules match
+		 * CreateTexture(const TextureCreateInformation&, const GpuAllocation&, GpuObjectCreateFlags).
 		 *
 		 * @param	createInformation	Object describing the buffer to create.
-		 * @param	location			Memory the buffer is created at. Must not be empty.
+		 * @param	allocation			Memory the buffer is created at. Must not be empty.
 		 * @param	flags				Creation flags. @see GpuObjectCreateFlag
-		 * @return						Created buffer, or null if @p location is not valid for @p createInformation.
+		 * @return						Created buffer, or null if @p allocation is not valid for @p createInformation.
 		 */
-		TShared<render::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None);
+		TShared<render::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None);
 
 		/** Returns the memory a texture described by @p createInformation needs. Thread safe. */
 		virtual GpuMemoryRequirements GetMemoryRequirements(const TextureCreateInformation& createInformation) const = 0;
@@ -342,16 +342,16 @@ namespace b3d
 		GpuDevice() = default;
 
 		/**
-		 * Creates a new GPU texture at @p location, which is pending or has memory that satisfies the texture's memory
-		 * requirements. See CreateTexture(const TextureCreateInformation&, const GpuResourceLocation&, GpuObjectCreateFlags).
+		 * Creates a new GPU texture at @p allocation, which is pending or has memory that satisfies the texture's memory
+		 * requirements. See CreateTexture(const TextureCreateInformation&, const GpuAllocation&, GpuObjectCreateFlags).
 		 */
-		virtual TShared<render::Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags) = 0;
+		virtual TShared<render::Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) = 0;
 
 		/**
-		 * Creates a new GPU buffer at @p location, which is pending or has memory that satisfies the buffer's memory
-		 * requirements. See CreateGpuBuffer(const GpuBufferCreateInformation&, const GpuResourceLocation&, GpuObjectCreateFlags).
+		 * Creates a new GPU buffer at @p allocation, which is pending or has memory that satisfies the buffer's memory
+		 * requirements. See CreateGpuBuffer(const GpuBufferCreateInformation&, const GpuAllocation&, GpuObjectCreateFlags).
 		 */
-		virtual TShared<render::GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags) = 0;
+		virtual TShared<render::GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) = 0;
 
 		mutable UnorderedMap<SamplerStateCreateInformation, TShared<SamplerState>> mCachedSamplerStates;
 		mutable Mutex mSamplerStateMutex;

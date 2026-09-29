@@ -64,7 +64,7 @@ namespace b3d
 		struct D3D12ImageCreateInformation
 		{
 			ComPtr<ID3D12Resource> Resource; /**< Native resource wrapped by the image. */
-			GpuResourceLocation Allocation; /**< Memory allocation backing the resource. Invalid for externally owned resources (swap-chain buffers). */
+			GpuAllocation Allocation; /**< Memory allocation backing the resource. Invalid for externally owned resources (swap-chain buffers). */
 			DXGI_FORMAT ViewFormat = DXGI_FORMAT_UNKNOWN; /**< Default typed format used by native views. */
 			D3D12TextureLayout InitialLayout; /**< Native layout the resource was created or acquired in for every plane. */
 			u32 FaceCount = 1; /**< Number of array slices (or cube faces) in the image. */
@@ -117,7 +117,7 @@ namespace b3d
 
 		private:
 			ComPtr<ID3D12Resource> mResource;
-			GpuResourceLocation mAllocation;
+			GpuAllocation mAllocation;
 			DXGI_FORMAT mViewFormat = DXGI_FORMAT_UNKNOWN;
 			bool mAllowConcurrentQueueReads = false;
 			bool mIsPresentable = false;
@@ -128,10 +128,10 @@ namespace b3d
 		{
 		public:
 			/**
-			 * Creates a texture owned by @p device, whose native resource is placed at @p location. See
+			 * Creates a texture owned by @p device, whose native resource is placed at @p allocation. See
 			 * GpuDevice::CreateTexture(). Call Initialize() before use.
 			 */
-			D3D12Texture(const TextureCreateInformation& createInformation, GpuDevice& device, const GpuResourceLocation& location);
+			D3D12Texture(const TextureCreateInformation& createInformation, GpuDevice& device, const GpuAllocation& allocation);
 			~D3D12Texture() override;
 
 			void Initialize() override;

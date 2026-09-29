@@ -123,12 +123,12 @@ VulkanImage::~VulkanImage()
 	}
 }
 
-IGpuResource* VulkanImage::MoveAllocation(render::GpuCommandBuffer& commandBuffer, const GpuResourceLocation& newLocation)
+IGpuResource* VulkanImage::MoveAllocation(render::GpuCommandBuffer& commandBuffer, const GpuAllocation& newAllocation)
 {
 	B3D_ASSERT(mParent != nullptr && "VulkanImage::MoveAllocation invoked on an untracked wrapper (no parent VulkanTexture).");
 	B3D_ASSERT(mParent->GetVulkanResource() == this && "Parent's mImage no longer points at this wrapper — proxy invariant broken.");
 
-	VulkanImage* newImage = mParent->RelocateInternalTexture(newLocation, commandBuffer);
+	VulkanImage* newImage = mParent->RelocateInternalTexture(newAllocation, commandBuffer);
 
 	// Destroy self
 	Destroy();
@@ -429,8 +429,8 @@ VulkanImageSubresource::VulkanImageSubresource(VulkanResourceManager* owner, VkI
 	: VulkanResource(owner, concurrentQueueAccess, name), mLayout(layout)
 {}
 
-VulkanTexture::VulkanTexture(VulkanGpuDevice& gpuDevice, const TextureCreateInformation& createInformation, const GpuResourceLocation& location)
-	: Texture(createInformation, location), mGpuDevice(gpuDevice), mDirectlyMappable(false), mSupportsGPUWrites(false), mUsesGeneralLayout(false)
+VulkanTexture::VulkanTexture(VulkanGpuDevice& gpuDevice, const TextureCreateInformation& createInformation, const GpuAllocation& allocation)
+	: Texture(createInformation, allocation), mGpuDevice(gpuDevice), mDirectlyMappable(false), mSupportsGPUWrites(false), mUsesGeneralLayout(false)
 {
 }
 
@@ -653,9 +653,9 @@ VulkanImage* VulkanTexture::CreateImage()
 	VulkanImageCreateInformation imageInfo = BuildImageCreateInformation();
 
 	// Textures participate in defragmentation only when they allocate from an allocator that supports it
-	VulkanTexture* const proxyParent = mRequestedLocation.IsPending() && mRequestedLocation.Allocator->SupportsDefragmentation() ? this : nullptr;
+	VulkanTexture* const proxyParent = mRequestedAllocation.IsPending() && mRequestedAllocation.Allocator->SupportsDefragmentation() ? this : nullptr;
 
-	VulkanImage* const vulkanImage = mGpuDevice.CreateImage(imageInfo, mRequestedLocation, mKind, proxyParent);
+	VulkanImage* const vulkanImage = mGpuDevice.CreateImage(imageInfo, mRequestedAllocation, mKind, proxyParent);
 	if (vulkanImage != nullptr)
 		vulkanImage->SetName(mName);
 
@@ -743,13 +743,13 @@ void VulkanTexture::RecreateInternalTexture()
 	mMappedMemory = mImage->GetMappedMemory();
 }
 
-VulkanImage* VulkanTexture::RelocateInternalTexture(const GpuResourceLocation& newLocation, render::GpuCommandBuffer& commandBuffer)
+VulkanImage* VulkanTexture::RelocateInternalTexture(const GpuAllocation& newAllocation, render::GpuCommandBuffer& commandBuffer)
 {
 	VulkanImageCreateInformation imageInfo = BuildImageCreateInformation();
 
 	VulkanImage* const oldImage = mImage;
 
-	VulkanImage* newImage = mGpuDevice.CreateImage(imageInfo, newLocation, mKind, this);
+	VulkanImage* newImage = mGpuDevice.CreateImage(imageInfo, newAllocation, mKind, this);
 	if (newImage != nullptr)
 		newImage->SetName(mName);
 

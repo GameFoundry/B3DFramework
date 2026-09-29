@@ -67,7 +67,7 @@ namespace
 	}
 }
 
-D3D12Buffer::D3D12Buffer(D3D12ResourceManager* owner, GpuResourceLocation allocation, const StringView& name)
+D3D12Buffer::D3D12Buffer(D3D12ResourceManager* owner, GpuAllocation allocation, const StringView& name)
 	: D3D12BufferResource(owner, name), mAllocation(allocation)
 { }
 
@@ -99,8 +99,8 @@ D3D12_HEAP_TYPE D3D12Buffer::GetHeapType() const
 	return page != nullptr ? page->GetHeapType() : D3D12_HEAP_TYPE_DEFAULT;
 }
 
-D3D12GpuBuffer::D3D12GpuBuffer(const GpuBufferCreateInformation& createInformation, GpuDevice& device, const GpuResourceLocation& location)
-	: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device), location)
+D3D12GpuBuffer::D3D12GpuBuffer(const GpuBufferCreateInformation& createInformation, GpuDevice& device, const GpuAllocation& allocation)
+	: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device), allocation)
 {
 }
 
@@ -196,17 +196,17 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 	const D3D12_RESOURCE_FLAGS resourceFlags = D3D12Utility::GetBufferResourceFlags(information.Flags);
 	const u32 alignment = GetSliceAlignment(information);
 
-	GpuResourceLocation allocation;
-	if(!mRequestedLocation.IsPending())
-		allocation = mRequestedLocation;
-	else if(!mRequestedLocation.Allocator->TryAllocate(bufferSize, alignment, GpuResourceKind::Linear, nullptr, allocation))
+	GpuAllocation allocation;
+	if(!mRequestedAllocation.IsPending())
+		allocation = mRequestedAllocation;
+	else if(!mRequestedAllocation.Allocator->TryAllocate(bufferSize, alignment, GpuResourceKind::Linear, nullptr, allocation))
 	{
 		B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to allocate a pooled buffer slice (size={0}, alignment={1}, type={2}, heapType={3}, resourceFlags={4}).",
 			bufferSize, alignment, (u32)information.Type, (u32)heapType, (u32)resourceFlags);
 		return;
 	}
 
-	B3D_ASSERT(D3D12BufferPool::GetMemoryType(static_cast<D3D12BufferPage*>(allocation.Heap)->GetHeapType(), static_cast<D3D12BufferPage*>(allocation.Heap)->GetFlags()) == D3D12BufferPool::GetMemoryType(heapType, resourceFlags) && "Location's memory type cannot back the buffer.");
+	B3D_ASSERT(D3D12BufferPool::GetMemoryType(static_cast<D3D12BufferPage*>(allocation.Heap)->GetHeapType(), static_cast<D3D12BufferPage*>(allocation.Heap)->GetFlags()) == D3D12BufferPool::GetMemoryType(heapType, resourceFlags) && "Allocation's memory type cannot back the buffer.");
 
 	mBuffer = device.GetResourceManager().Create<D3D12Buffer>(allocation, mName);
 	D3D12BufferPage* const page = mBuffer->GetPage();

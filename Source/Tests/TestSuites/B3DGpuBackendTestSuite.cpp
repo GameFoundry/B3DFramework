@@ -274,29 +274,29 @@ void GpuBackendTestSuite::TestResourceLocations()
 
 	IGpuAllocator& bufferAllocator = device->GetPersistentAllocator(bufferRequirements.MemoryType);
 
-	// Pending location: memory is allocated from the allocator, and the buffer stays relocatable
-	const TShared<render::GpuBuffer> pendingBuffer = device->CreateGpuBuffer(bufferInformation, GpuResourceLocation::FromAllocator(bufferAllocator));
+	// Pending allocation: memory is allocated from the allocator, and the buffer stays relocatable
+	const TShared<render::GpuBuffer> pendingBuffer = device->CreateGpuBuffer(bufferInformation, GpuAllocation::CreatePending(bufferAllocator));
 	B3D_TEST_ASSERT(pendingBuffer != nullptr && !pendingBuffer->HasFixedLocation())
 
-	// Owned location: the buffer adopts memory allocated by the caller
-	GpuResourceLocation ownedLocation;
-	B3D_TEST_ASSERT(bufferAllocator.TryAllocate(bufferRequirements.Size, (u32)bufferRequirements.Alignment, bufferRequirements.Kind, nullptr, ownedLocation))
-	B3D_TEST_ASSERT(ownedLocation.IsOwned())
-	if(!ownedLocation.IsOwned())
+	// Owned allocation: the buffer adopts memory allocated by the caller
+	GpuAllocation ownedAllocation;
+	B3D_TEST_ASSERT(bufferAllocator.TryAllocate(bufferRequirements.Size, (u32)bufferRequirements.Alignment, bufferRequirements.Kind, nullptr, ownedAllocation))
+	B3D_TEST_ASSERT(ownedAllocation.IsOwned())
+	if(!ownedAllocation.IsOwned())
 		return;
 
-	const TShared<render::GpuBuffer> ownedBuffer = device->CreateGpuBuffer(bufferInformation, ownedLocation);
+	const TShared<render::GpuBuffer> ownedBuffer = device->CreateGpuBuffer(bufferInformation, ownedAllocation);
 	B3D_TEST_ASSERT(ownedBuffer != nullptr && ownedBuffer->HasFixedLocation())
 
-	// Non-owning location: the buffer binds to memory that stays owned by the caller
-	GpuResourceLocation sharedLocation;
-	B3D_TEST_ASSERT(bufferAllocator.TryAllocate(bufferRequirements.Size, (u32)bufferRequirements.Alignment, bufferRequirements.Kind, nullptr, sharedLocation))
+	// Non-owning allocation: the buffer binds to memory that stays owned by the caller
+	GpuAllocation sharedAllocation;
+	B3D_TEST_ASSERT(bufferAllocator.TryAllocate(bufferRequirements.Size, (u32)bufferRequirements.Alignment, bufferRequirements.Kind, nullptr, sharedAllocation))
 
-	GpuResourceLocation nonOwningLocation = sharedLocation;
-	nonOwningLocation.Allocator = nullptr;
-	B3D_TEST_ASSERT(nonOwningLocation.HasMemory() && !nonOwningLocation.IsOwned() && !nonOwningLocation.IsPending())
+	GpuAllocation nonOwningAllocation = sharedAllocation;
+	nonOwningAllocation.Allocator = nullptr;
+	B3D_TEST_ASSERT(nonOwningAllocation.HasMemory() && !nonOwningAllocation.IsOwned() && !nonOwningAllocation.IsPending())
 
-	TShared<render::GpuBuffer> nonOwningBuffer = device->CreateGpuBuffer(bufferInformation, nonOwningLocation);
+	TShared<render::GpuBuffer> nonOwningBuffer = device->CreateGpuBuffer(bufferInformation, nonOwningAllocation);
 	B3D_TEST_ASSERT(nonOwningBuffer != nullptr && nonOwningBuffer->HasFixedLocation())
 	if(pendingBuffer == nullptr || ownedBuffer == nullptr || nonOwningBuffer == nullptr)
 		return;
@@ -319,7 +319,7 @@ void GpuBackendTestSuite::TestResourceLocations()
 
 	const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 	const TShared<render::GpuCommandBufferPool> pool = device->CreateGpuCommandBufferPool(render::GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_GRAPHICS));
-	const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Resource locations"));
+	const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Resource allocations"));
 	commands->CopyBufferToBuffer(upload, ownedBuffer, 0, 0, sizeof(expected));
 	commands->CopyBufferToBuffer(ownedBuffer, nonOwningBuffer, 0, 0, sizeof(expected));
 	commands->CopyBufferToBuffer(nonOwningBuffer, pendingBuffer, 0, 0, sizeof(expected));
@@ -333,14 +333,14 @@ void GpuBackendTestSuite::TestResourceLocations()
 			B3D_TEST_ASSERT(memcmp(mapping.GetMappedMemory(), expected, sizeof(expected)) == 0)
 	}
 
-	// Memory behind a non-owning location outlives the buffer, and is released by its owner
+	// Memory behind a non-owning allocation outlives the buffer, and is released by its owner
 	nonOwningBuffer = nullptr;
 	device->WaitUntilIdle();
-	bufferAllocator.Free(sharedLocation);
+	bufferAllocator.Free(sharedAllocation);
 
 	// Textures follow the same rules
 	TextureCreateInformation textureInformation;
-	textureInformation.Name = "Resource location test";
+	textureInformation.Name = "Resource allocation test";
 	textureInformation.Width = 64;
 	textureInformation.Height = 64;
 	textureInformation.Format = PF_RGBA8;
@@ -354,8 +354,8 @@ void GpuBackendTestSuite::TestResourceLocations()
 
 	IGpuAllocator& textureAllocator = device->GetPersistentAllocator(textureRequirements.MemoryType);
 
-	GpuResourceLocation textureLocation;
-	B3D_TEST_ASSERT(textureAllocator.TryAllocate(textureRequirements.Size, (u32)textureRequirements.Alignment, textureRequirements.Kind, nullptr, textureLocation))
+	GpuAllocation textureAllocation;
+	B3D_TEST_ASSERT(textureAllocator.TryAllocate(textureRequirements.Size, (u32)textureRequirements.Alignment, textureRequirements.Kind, nullptr, textureAllocation))
 
 	TextureCreateInformation cpuTextureInformation = textureInformation;
 	cpuTextureInformation.Usage = TextureUsageFlag::StoreOnCPUWithGPUAccess;
@@ -363,22 +363,22 @@ void GpuBackendTestSuite::TestResourceLocations()
 	const GpuMemoryRequirements cpuTextureRequirements = device->GetMemoryRequirements(cpuTextureInformation);
 	IGpuAllocator& cpuTextureAllocator = device->GetPersistentAllocator(cpuTextureRequirements.MemoryType);
 
-	GpuResourceLocation cpuTextureLocation;
-	B3D_TEST_ASSERT(cpuTextureAllocator.TryAllocate(cpuTextureRequirements.Size, (u32)cpuTextureRequirements.Alignment, cpuTextureRequirements.Kind, nullptr, cpuTextureLocation))
+	GpuAllocation cpuTextureAllocation;
+	B3D_TEST_ASSERT(cpuTextureAllocator.TryAllocate(cpuTextureRequirements.Size, (u32)cpuTextureRequirements.Alignment, cpuTextureRequirements.Kind, nullptr, cpuTextureAllocation))
 
 	bool pendingTextureCreated = false;
 	bool ownedTextureCreated = false;
 	bool cpuTextureCreated = false;
 	GetRenderThread().PostCommand([&]()
 	{
-		const TShared<render::Texture> pendingTexture = device->CreateTexture(textureInformation, GpuResourceLocation::FromAllocator(textureAllocator));
+		const TShared<render::Texture> pendingTexture = device->CreateTexture(textureInformation, GpuAllocation::CreatePending(textureAllocator));
 		pendingTextureCreated = pendingTexture != nullptr && !pendingTexture->HasFixedLocation();
 
-		const TShared<render::Texture> ownedTexture = device->CreateTexture(textureInformation, textureLocation);
+		const TShared<render::Texture> ownedTexture = device->CreateTexture(textureInformation, textureAllocation);
 		ownedTextureCreated = ownedTexture != nullptr && ownedTexture->HasFixedLocation();
 
 		// CPU accessible textures can be created at a fixed location
-		const TShared<render::Texture> cpuTexture = device->CreateTexture(cpuTextureInformation, cpuTextureLocation);
+		const TShared<render::Texture> cpuTexture = device->CreateTexture(cpuTextureInformation, cpuTextureAllocation);
 		cpuTextureCreated = cpuTexture != nullptr && cpuTexture->HasFixedLocation();
 	}, "GpuBackendTestSuite::TestResourceLocations", true);
 
@@ -386,17 +386,17 @@ void GpuBackendTestSuite::TestResourceLocations()
 	B3D_TEST_ASSERT(ownedTextureCreated)
 	B3D_TEST_ASSERT(cpuTextureCreated)
 
-	// Invalid locations are rejected
+	// Invalid allocations are rejected
 	{
 		LoggingScope logs(*this);
-		logs.ExpectError("Cannot create a GPU resource at an empty memory location.");
-		B3D_TEST_ASSERT(device->CreateGpuBuffer(bufferInformation, GpuResourceLocation()) == nullptr)
+		logs.ExpectError("Cannot create a GPU resource at an empty allocation.");
+		B3D_TEST_ASSERT(device->CreateGpuBuffer(bufferInformation, GpuAllocation()) == nullptr)
 	}
 
 	{
 		LoggingScope logs(*this);
 		logs.ExpectError("Only a GPU resource created at a fixed memory location can be aliased.");
-		B3D_TEST_ASSERT(device->CreateGpuBuffer(bufferInformation, GpuResourceLocation::FromAllocator(bufferAllocator), GpuObjectCreateFlag::Aliased) == nullptr)
+		B3D_TEST_ASSERT(device->CreateGpuBuffer(bufferInformation, GpuAllocation::CreatePending(bufferAllocator), GpuObjectCreateFlag::Aliased) == nullptr)
 	}
 
 	// CPU accessible and suballocated buffers can be created at a fixed location
@@ -405,10 +405,10 @@ void GpuBackendTestSuite::TestResourceLocations()
 		const GpuMemoryRequirements uniformRequirements = device->GetMemoryRequirements(uniformInformation);
 		IGpuAllocator& uniformAllocator = device->GetPersistentAllocator(uniformRequirements.MemoryType);
 
-		GpuResourceLocation uniformLocation;
-		B3D_TEST_ASSERT(uniformAllocator.TryAllocate(uniformRequirements.Size, (u32)uniformRequirements.Alignment, uniformRequirements.Kind, nullptr, uniformLocation))
+		GpuAllocation uniformAllocation;
+		B3D_TEST_ASSERT(uniformAllocator.TryAllocate(uniformRequirements.Size, (u32)uniformRequirements.Alignment, uniformRequirements.Kind, nullptr, uniformAllocation))
 
-		const TShared<render::GpuBuffer> uniformBuffer = device->CreateGpuBuffer(uniformInformation, uniformLocation);
+		const TShared<render::GpuBuffer> uniformBuffer = device->CreateGpuBuffer(uniformInformation, uniformAllocation);
 		B3D_TEST_ASSERT(uniformBuffer != nullptr && uniformBuffer->HasFixedLocation())
 		if(uniformBuffer != nullptr)
 		{

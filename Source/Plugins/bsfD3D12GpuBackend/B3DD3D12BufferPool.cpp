@@ -7,7 +7,7 @@
 using namespace b3d;
 using namespace b3d::render;
 
-D3D12BufferPage::D3D12BufferPage(D3D12ResourceManager* owner, ComPtr<ID3D12Resource> resource, GpuResourceLocation backingAllocation, D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_FLAGS flags, void* mappedData)
+D3D12BufferPage::D3D12BufferPage(D3D12ResourceManager* owner, ComPtr<ID3D12Resource> resource, GpuAllocation backingAllocation, D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_FLAGS flags, void* mappedData)
 	: D3D12BufferResource(owner, "D3D12 buffer page"), mResource(std::move(resource)), mBackingAllocation(backingAllocation), mHeapType(heapType), mFlags(flags), mMappedData(mappedData)
 { }
 
@@ -37,7 +37,7 @@ IGpuHeap* D3D12BufferPageBackend::CreateHeap(u64 sizeInBytes, const HeapCreateIn
 	// TODO - We're using two allocator layers here. We could be allocating the memory directly here, since the buffer heaps are regularly sized,
 	// probably no need to call into the generic TLSF allocator, and then have our own TLSF on top.
 	ComPtr<ID3D12Resource> resource;
-	GpuResourceLocation backingAllocation;
+	GpuAllocation backingAllocation;
 	HRESULT result = mDevice.CreateResource(resourceDescription, createInformation.HeapType, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, resource, backingAllocation);
 	if(FAILED(result))
 	{

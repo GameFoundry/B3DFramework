@@ -184,9 +184,9 @@ TShared<GpuCommandBufferPool> D3D12GpuDevice::CreateGpuCommandBufferPool(const r
 	return B3DMakeSharedFromExisting(new (B3DAllocate<D3D12GpuCommandBufferPool>()) D3D12GpuCommandBufferPool(*this, createInformation));
 }
 
-TShared<render::Texture> D3D12GpuDevice::CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags)
+TShared<render::Texture> D3D12GpuDevice::CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags)
 {
-	D3D12Texture* rawTexture = new (B3DAllocate<D3D12Texture>()) D3D12Texture(createInformation, *this, location);
+	D3D12Texture* rawTexture = new (B3DAllocate<D3D12Texture>()) D3D12Texture(createInformation, *this, allocation);
 
 	TShared<Texture> output = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy) ? B3DMakeSharedFromExisting(rawTexture) : MakeSharedStandalone<D3D12Texture>(rawTexture);
 
@@ -198,9 +198,9 @@ TShared<render::Texture> D3D12GpuDevice::CreateTextureInternal(const TextureCrea
 	return output;
 }
 
-TShared<render::GpuBuffer> D3D12GpuDevice::CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags)
+TShared<render::GpuBuffer> D3D12GpuDevice::CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags)
 {
-	D3D12GpuBuffer* rawBuffer = new (B3DAllocate<D3D12GpuBuffer>()) D3D12GpuBuffer(createInformation, *this, location);
+	D3D12GpuBuffer* rawBuffer = new (B3DAllocate<D3D12GpuBuffer>()) D3D12GpuBuffer(createInformation, *this, allocation);
 
 	TShared<GpuBuffer> output = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy) ? B3DMakeSharedFromExisting(rawBuffer) : MakeSharedStandalone<D3D12GpuBuffer>(rawBuffer);
 
@@ -510,16 +510,16 @@ D3D12GpuDevice::GpuMemoryAllocator& D3D12GpuDevice::GetOrCreateGpuMemoryAllocato
 	return *slot;
 }
 
-HRESULT D3D12GpuDevice::CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, D3D12_HEAP_TYPE heapType, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuResourceLocation& outAllocation)
+HRESULT D3D12GpuDevice::CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, D3D12_HEAP_TYPE heapType, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuAllocation& outAllocation)
 {
 	const MemoryPoolType poolType = GetMemoryPoolType(resourceDesc, heapType);
 	if(poolType == MemoryPoolType::Count)
 		return E_INVALIDARG;
 
-	return CreateResource(resourceDesc, GpuResourceLocation::FromAllocator(GetOrCreateGpuMemoryAllocator(poolType)), initialLayout, optimizedClearValue, outResource, outAllocation);
+	return CreateResource(resourceDesc, GpuAllocation::CreatePending(GetOrCreateGpuMemoryAllocator(poolType)), initialLayout, optimizedClearValue, outResource, outAllocation);
 }
 
-HRESULT D3D12GpuDevice::CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, const GpuResourceLocation& location, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuResourceLocation& outAllocation)
+HRESULT D3D12GpuDevice::CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, const GpuAllocation& requestedAllocation, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuAllocation& outAllocation)
 {
 	B3D_ASSERT(!outAllocation.IsOwned());
 	outResource.Reset();
@@ -536,7 +536,7 @@ HRESULT D3D12GpuDevice::CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, 
 	enhancedResourceDescription.Layout = resourceDesc.Layout;
 	enhancedResourceDescription.Flags = resourceDesc.Flags;
 
-	if(location.IsPending())
+	if(requestedAllocation.IsPending())
 	{
 		// TODO - Query D3D12_FEATURE_D3D12_TIGHT_ALIGNMENT and use D3D12_RESOURCE_FLAG_USE_TIGHT_ALIGNMENT to avoid 64 KiB placement granularity where supported.
 		const D3D12_RESOURCE_ALLOCATION_INFO allocationInfo = mDevice->GetResourceAllocationInfo(0, 1, &resourceDesc);
@@ -544,11 +544,11 @@ HRESULT D3D12GpuDevice::CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, 
 			return E_INVALIDARG;
 
 		const GpuResourceKind resourceKind = resourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER || resourceDesc.Layout == D3D12_TEXTURE_LAYOUT_ROW_MAJOR ? GpuResourceKind::Linear : GpuResourceKind::NonLinear;
-		if(!location.Allocator->TryAllocate(allocationInfo.SizeInBytes, (u32)allocationInfo.Alignment, resourceKind, nullptr, outAllocation))
+		if(!requestedAllocation.Allocator->TryAllocate(allocationInfo.SizeInBytes, (u32)allocationInfo.Alignment, resourceKind, nullptr, outAllocation))
 			return E_OUTOFMEMORY;
 	}
 	else
-		outAllocation = location;
+		outAllocation = requestedAllocation;
 
 	B3D_ASSERT(outAllocation.HasMemory());
 
@@ -557,16 +557,16 @@ HRESULT D3D12GpuDevice::CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, 
 		&enhancedResourceDescription, initialLayout, optimizedClearValue, 0, nullptr, IID_PPV_ARGS(&outResource));
 	if(FAILED(hr))
 	{
-		if(location.IsPending())
+		if(requestedAllocation.IsPending())
 			outAllocation.Allocator->Free(outAllocation);
 		else
-			outAllocation = GpuResourceLocation();
+			outAllocation = GpuAllocation();
 	}
 
 	return hr;
 }
 
-void D3D12GpuDevice::FreeMemory(GpuResourceLocation& allocation)
+void D3D12GpuDevice::FreeMemory(GpuAllocation& allocation)
 {
 	if(!allocation.IsOwned())
 		return;
