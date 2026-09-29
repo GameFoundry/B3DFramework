@@ -130,7 +130,7 @@ namespace b3d
 		 * to the command buffer after GpuParameterSet using this layout have been bound on the command buffer.
 		 *
 		 * Returns ~0u if parameter at the specific slot doesn't support dynamic offsets (supported on uniform buffers declared
-		 * with GpuUniformBufferInformation::UsesDynamicOffset), or if the parameter is not found.
+		 * with GpuUniformBufferInformation::UsesDynamicOffset), if the parameter is not found, or if @p arrayIndex is nonzero.
 		 */
 		u32 GetDynamicOffsetIndex(u32 slot, u32 arrayIndex = 0) const;
 
@@ -139,7 +139,7 @@ namespace b3d
 		 * to the command buffer after GpuParameterSet using this layout have been bound on the command buffer.
 		 *
 		 * Returns ~0u if parameter at the specific set/slot combination doesn't support dynamic offsets (supported on uniform buffers declared
-		 * with GpuUniformBufferInformation::UsesDynamicOffset), or if the parameter is not found.
+		 * with GpuUniformBufferInformation::UsesDynamicOffset), if the parameter is not found, or if @p arrayIndex is nonzero.
 		 */
 		u32 GetDynamicOffsetIndex(const StringView& name, u32 arrayIndex = 0) const;
 

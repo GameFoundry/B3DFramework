@@ -15,7 +15,7 @@ namespace b3d
 	class B3D_EXPORT GUIBackgroundVectorPathBuilder : public IGUIVectorPathBuilder
 	{
 	public:
-		HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule) const override;
+		HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule, float scale) const override;
 
 		/** Returns a singleton instance of this builder. */
 		static const GUIBackgroundVectorPathBuilder* Get()
@@ -29,7 +29,7 @@ namespace b3d
 	class B3D_EXPORT GUICheckmarkVectorPathBuilder : public IGUIVectorPathBuilder
 	{
 	public:
-		HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule) const override;
+		HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule, float scale) const override;
 
 		/** Returns a singleton instance of this builder. */
 		static const GUICheckmarkVectorPathBuilder* Get()
@@ -43,7 +43,7 @@ namespace b3d
 	class B3D_EXPORT GUITabBackgroundVectorPathBuilder : public IGUIVectorPathBuilder
 	{
 	public:
-		HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule) const override;
+		HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule, float scale) const override;
 
 		/** Returns a singleton instance of this builder. */
 		static const GUITabBackgroundVectorPathBuilder* Get()
@@ -57,7 +57,7 @@ namespace b3d
 	class B3D_EXPORT GUIDropDownArrowVectorPathBuilder : public IGUIVectorPathBuilder
 	{
 	public:
-		HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule) const override;
+		HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule, float scale) const override;
 
 		/** Returns a singleton instance of this builder. */
 		static const GUIDropDownArrowVectorPathBuilder* Get()
@@ -71,7 +71,7 @@ namespace b3d
 	class B3D_EXPORT GUIScrollArrowVectorPathBuilder : public IGUIVectorPathBuilder
 	{
 	public:
-		HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule) const override;
+		HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule, float scale) const override;
 
 		/** Returns a singleton instance of this builder. */
 		static const GUIScrollArrowVectorPathBuilder* Get()
@@ -85,7 +85,7 @@ namespace b3d
 	class B3D_EXPORT GUIScrollHandleVectorPathBuilder : public IGUIVectorPathBuilder
 	{
 	public:
-		HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule) const override;
+		HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule, float scale) const override;
 
 		/** Returns a singleton instance of this builder. */
 		static const GUIScrollHandleVectorPathBuilder* Get()
@@ -99,7 +99,7 @@ namespace b3d
 	class B3D_EXPORT GUIResizableVerticalScrollHandleVectorPathBuilder : public IGUIVectorPathBuilder
 	{
 	public:
-		HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule) const override;
+		HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule, float scale) const override;
 
 		/** Returns a singleton instance of this builder. */
 		static const GUIResizableVerticalScrollHandleVectorPathBuilder* Get()
@@ -116,7 +116,7 @@ namespace b3d
 	class B3D_EXPORT GUIResizableHorizontalScrollHandleVectorPathBuilder : public IGUIVectorPathBuilder
 	{
 	public:
-		HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule) const override;
+		HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule, float scale) const override;
 
 		/** Returns a singleton instance of this builder. */
 		static const GUIResizableHorizontalScrollHandleVectorPathBuilder* Get()
@@ -133,7 +133,7 @@ namespace b3d
 	class B3D_EXPORT GUISeparatorVectorPathBuilder : public IGUIVectorPathBuilder
 	{
 	public:
-		HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule) const override;
+		HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule, float scale) const override;
 
 		/** Returns a singleton instance of this builder. */
 		static const GUISeparatorVectorPathBuilder* Get()

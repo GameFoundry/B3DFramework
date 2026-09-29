@@ -41,6 +41,16 @@ namespace b3d
 		/** Unloads a previously loaded plugin. Calls the unload function if available, then unloads the dynamic library in dynamic library mode. */
 		static void Unload(LoadedPlugin& plugin);
 
+		/**
+		 * Unlike Load(), makes the code of a plugin or other library resident without calling its LoadPlugin() entry point,
+		 * so that only its load-time registrations run. A plugin in the static registry is already resident. Anything else
+		 * is loaded as a dynamic library, which stays loaded until the dynamic library manager shuts down.
+		 *
+		 * @param	name	Name of the plugin or library, without the platform prefix and extension.
+		 * @return			True if the code is resident. Load failures are reported through the error log.
+		 */
+		static bool LoadWithoutEntryPoint(const String& name);
+
 		/** Gets the plugin name. */
 		static const char* GetName(const LoadedPlugin& plugin);
 	};

@@ -8,6 +8,7 @@
 #include "Utility/B3DTArrayView.h"
 #include "GpuBackend/B3DVertexDescription.h"
 #include "Image/B3DPixelData.h"
+#include "Material/B3DShaderReflection.h"
 
 namespace b3d
 {
@@ -42,16 +43,15 @@ namespace b3d
 	 * binding (Kind == Resource). References to other tables are by array index into GpuResourceTableLayout::Tables,
 	 * never by pointer, so the whole layout is trivially serializable and relocatable.
 	 *
-	 * A resource listed directly in the root table is not stored in any table's memory: the backend binds it
-	 * individually, so the entry carries a binding index rather than a byte offset, and names its set 
-	 * explicitly since there is no parent set table to inherit it from.
+	 * A resource listed directly in the root table names its set explicitly. Its placement is either a byte offset
+	 * within the root data or an individual binding index, depending on the backend.
 	 */
 	struct GpuDescriptorTableEntry
 	{
 		GpuDescriptorEntryKind Kind = GpuDescriptorEntryKind::Resource; /**< Selects which of the fields below apply. */
 		union
 		{
-			u32 OffsetInBytes = 0; /**< Byte offset of this entry within its parent table. Not used by root-table resources. */
+			u32 OffsetInBytes = 0; /**< Byte offset of this entry within its parent table, including inline root resources. */
 			u32 BindingIndex;      /**< Backend binding index of a resource listed directly in the root table. */
 		};
 
@@ -155,9 +155,14 @@ namespace b3d
 		GpuProgramType Type = GPT_VERTEX_PROGRAM; /**< Type of the program, for example vertex or fragment. */
 		bool RequiresAdjacency = false; /**< If true then adjacency information will be provided when rendering. */
 
-		// Reflection data (usually things that cannot be reflected by the bytecode compiler on all or some backends)
-		Array<u32, 3> ThreadGroupSize = { 1, 1, 1 }; /**< Compute threads per threadgroup declared by the source program. */
-		u32 PushConstantBufferSize = 0; /**< Declared push-constant buffer size in bytes, or zero when unused. */
+		/**
+		 * Optional reflection data generated when @p source was cross-compiled from a higher level language,
+		 * providing additional information that may not be accessible from native reflection.
+		 */
+		TShared<b3d::ShaderReflection> ShaderReflection;
+
+		/** Returns source metadata for EntryPoint, or defaults when no shader reflection is attached. */
+		const ShaderEntryPointReflection& GetEntryPointReflection() const;
 
 		/**
 		 * Pixel formats of the render targets a fragment program writes to, indexed by target. PF_UNKNOWN (the default)
@@ -287,6 +292,7 @@ namespace b3d
 		String mName;
 		String mEntryPoint;
 		String mSource;
+		TShared<ShaderReflection> mShaderReflection;
 
 		TShared<GpuProgramBytecode> mBytecode;
 

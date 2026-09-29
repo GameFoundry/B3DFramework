@@ -127,7 +127,7 @@ namespace b3d
 	/** Style information for a single border side (left, right, top or bottom). */
 	struct GUIStyleSheetBorderElement
 	{
-		u32 Width = 0; /**< Size of the border in logical pixel units. Zero means no border. */
+		float Width = 0.0f; /**< Size of the border in logical pixel units. May be fractional. Zero means no border. */
 		Color Color; /**< Color of the border. */
 		GUIBorderElementStyle Style = GUIBorderElementStyle::Solid; /**< Style how to render the border. */
 
@@ -136,8 +136,22 @@ namespace b3d
 			return Width == other.Width && Color == other.Color && Style == other.Style;
 		}
 
-		/** Returns the width of the border if visible, or zero otherwise. */
-		u32 GetVisibleWidth() const { return Style != GUIBorderElementStyle::None ? Width : 0; }
+		/** Returns the width of the border in logical pixel units, or zero if the border isn't visible. */
+		float GetLogicalWidth() const { return Style != GUIBorderElementStyle::None ? Width : 0.0f; }
+
+		/**
+		 * Returns the width of the border as drawn, in physical pixels at the provided DPI scale, or zero if the border isn't
+		 * visible. Visible borders are snapped down to whole pixels but are always at least one pixel wide.
+		 */
+		float GetPhysicalWidth(float scale) const
+		{
+			const float width = GetLogicalWidth() * scale;
+			if(width <= 0.0f)
+				return 0.0f;
+
+			// Small bias keeps e.g. 2 * 1.5 from flooring to 2 due to floating point error
+			return std::max(1.0f, std::floor(width + 0.001f));
+		}
 	};
 
 	/** If multiple selectors are provided for a style sheet, this is used for determining their relationship. */
@@ -212,10 +226,10 @@ namespace b3d
 		GUIStyleSheetBorderElement BorderTop; /**< Style information for the top border. */
 		GUIStyleSheetBorderElement BorderBottom; /**< Style information for the bottom border. */
 
-		u32 BorderTopLeftRadius = 0; /**< Radius of the top left border corner, if rounded corners are desired. In logical pixel units. */
-		u32 BorderTopRightRadius = 0; /**< Radius of the top right border corner, if rounded corners are desired. In logical pixel units. */
-		u32 BorderBottomLeftRadius = 0; /**< Radius of the bottom left border corner, if rounded corners are desired. In logical pixel units. */
-		u32 BorderBottomRightRadius = 0; /**< Radius of the bottom right border corner, if rounded corners are desired. In logical pixel units. */
+		float BorderTopLeftRadius = 0.0f; /**< Radius of the top left border corner, if rounded corners are desired. In logical pixel units. */
+		float BorderTopRightRadius = 0.0f; /**< Radius of the top right border corner, if rounded corners are desired. In logical pixel units. */
+		float BorderBottomLeftRadius = 0.0f; /**< Radius of the bottom left border corner, if rounded corners are desired. In logical pixel units. */
+		float BorderBottomRightRadius = 0.0f; /**< Radius of the bottom right border corner, if rounded corners are desired. In logical pixel units. */
 
 		HFontFamily FontFamily; /**< Font family to render the text contents of the GUI element with. */
 		FontWeight FontWeight = FontWeight::Normal; /**< Weight of the font family face to render the text with. */
@@ -232,6 +246,17 @@ namespace b3d
 		 * the requested weight and slant, which may be a substitute when the family provides no exact match.
 		 */
 		B3D_NO_RREF const HFont& GetFont() const;
+
+		/**
+		 * Returns the space reserved by the visible borders on each side, in logical pixel units. Each side is rounded to
+		 * whole pixels separately, as layout works in whole logical pixels.
+		 */
+		RectOffset GetBorderInsets() const
+		{
+			return RectOffset(
+				Math::RoundToI32(BorderLeft.GetLogicalWidth()), Math::RoundToI32(BorderRight.GetLogicalWidth()),
+				Math::RoundToI32(BorderTop.GetLogicalWidth()), Math::RoundToI32(BorderBottom.GetLogicalWidth()));
+		}
 
 		/** Returns the typographic controls to apply on top of the font's own metrics, scaled from logical to physical units by @p scale. */
 		TextMetrics GetTextMetrics(float scale = 1.0f) const { return TextMetrics{ LineHeight, LetterSpacing * scale }; }

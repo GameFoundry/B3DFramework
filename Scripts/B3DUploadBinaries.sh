@@ -17,10 +17,14 @@
 #   --no-bump         Re-upload current version without incrementing it
 #   --dry-run         Print actions without executing
 #   --credentials     Path to credentials file
-#   --platform <name> Target platform suffix (Win32/MacOS/Linux/...) instead of the host's
-#   --folder <path>   Package folder to archive, for dependencies outside Framework/Dependencies
+#   --platform <name> Platform the package belongs to (Win32/MacOS/Linux/PS5/...) instead of the host.
+#                     Names the archive suffix, locates the package in the platform overlay's
+#                     Dependencies folder when the overlay has one, and selects the platform's
+#                     upload location from the credentials file (see below)
+#   --folder <path>   Package folder to archive, for dependencies outside the Dependencies folders
 #   --output <dir>    Copy the created archive into this folder (implies --no-upload)
-#   --archive <path>  Upload an already prepared archive instead of packaging a folder
+#   --archive <path>  Upload an already prepared archive instead of packaging a folder; the
+#                     archive's name carries its platform, which selects the upload location
 #                     (with --exists only the file name matters; the file need not exist locally)
 #   --version <n>     Package version to use instead of the folder's .reqversion (implies --no-bump)
 #   --exists          Report whether the package version is on the server: exit 0 present, 3 absent, 1 error
@@ -34,9 +38,15 @@
 #       B3D_UPLOAD_BACKEND=rclone
 #       B3D_FTP_URL=ftp://example.com
 #       B3D_R2_ACCOUNT_ID=...
+#     A key suffixed with a platform name in upper case (e.g. B3D_R2_BUCKET_PS5) applies to that
+#     platform's packages only and overrides the plain key for them. This routes a platform
+#     overlay's packages to a location of their own, which must be the one the overlay's
+#     Platform.cmake downloads from (see Framework/Platform/README.md). Unsuffixed keys fill in
+#     whatever the platform does not override, so a platform may share the account and
+#     credentials and change only the bucket, or use another backend entirely.
 #   - Legacy 3-line FTP format (URL / user / pass) is still accepted.
 #
-# Environment variables (checked if not in credentials file):
+# Environment variables (checked if not in credentials file; the platform suffix applies to them too):
 #   B3D_UPLOAD_BACKEND         Backend used when --backend is not given
 #   FTP backend:
 #     B3D_FTP_URL              FTP server URL
@@ -76,16 +86,18 @@ CheckExists=false
 IfMissing=false
 
 # Credentials (populated by load_credentials)
-B3D_FTP_URL="${B3D_FTP_URL:-}"
-B3D_FTP_USER="${B3D_FTP_USER:-}"
-B3D_FTP_PASS="${B3D_FTP_PASS:-}"
-B3D_R2_ACCOUNT_ID="${B3D_R2_ACCOUNT_ID:-}"
-B3D_R2_ACCESS_KEY_ID="${B3D_R2_ACCESS_KEY_ID:-}"
-B3D_R2_SECRET_ACCESS_KEY="${B3D_R2_SECRET_ACCESS_KEY:-}"
-B3D_R2_BUCKET="${B3D_R2_BUCKET:-}"
-B3D_R2_PATH="${B3D_R2_PATH:-}"
-B3D_R2_PUBLIC_URL="${B3D_R2_PUBLIC_URL:-}"
-B3D_UPLOAD_BACKEND="${B3D_UPLOAD_BACKEND:-}"
+CredentialKeys=(
+	B3D_UPLOAD_BACKEND
+	B3D_FTP_URL B3D_FTP_USER B3D_FTP_PASS
+	B3D_R2_ACCOUNT_ID B3D_R2_ACCESS_KEY_ID B3D_R2_SECRET_ACCESS_KEY B3D_R2_BUCKET B3D_R2_PATH B3D_R2_PUBLIC_URL
+)
+for credentialKey in "${CredentialKeys[@]}"; do
+	printf -v "$credentialKey" '%s' "${!credentialKey:-}"
+done
+
+# Platform the package being handled belongs to, or empty for a platform-independent package (data packages).
+# Its upper-case form suffixes the credential keys that apply to it alone.
+PackagePlatform=""
 
 # -----------------------------------------------
 # Usage/Help
@@ -101,10 +113,14 @@ show_usage() {
 	echo "  --no-bump         Re-upload current version without incrementing it"
 	echo "  --dry-run         Print actions without executing"
 	echo "  --credentials     Path to credentials file"
-	echo "  --platform <name> Target platform suffix (Win32/MacOS/Linux/...) instead of the host's"
-	echo "  --folder <path>   Package folder to archive, for dependencies outside Framework/Dependencies"
+	echo "  --platform <name> Platform the package belongs to (Win32/MacOS/Linux/PS5/...) instead of the host."
+	echo "                    Names the archive suffix, locates the package in the platform overlay's"
+	echo "                    Dependencies folder when the overlay has one, and selects the platform's"
+	echo "                    upload location from the credentials file"
+	echo "  --folder <path>   Package folder to archive, for dependencies outside the Dependencies folders"
 	echo "  --output <dir>    Copy the created archive into this folder (implies --no-upload)"
-	echo "  --archive <path>  Upload an already prepared archive instead of packaging a folder"
+	echo "  --archive <path>  Upload an already prepared archive instead of packaging a folder; the archive's"
+	echo "                    name carries its platform, which selects the upload location"
 	echo "                    (with --exists only the file name matters; the file need not exist locally)"
 	echo "  --version <n>     Package version to use instead of the folder's .reqversion (implies --no-bump)"
 	echo "  --exists          Report whether the package version is on the server: exit 0 present, 3 absent, 1 error"
@@ -115,9 +131,11 @@ show_usage() {
 	echo ""
 	echo "Credentials file format:"
 	echo "  - key=value lines (preferred); recognized keys are the env vars below"
+	echo "  - A key suffixed with a platform name in upper case (e.g. B3D_R2_BUCKET_PS5) applies to that"
+	echo "    platform's packages only and overrides the plain key for them; plain keys fill in the rest"
 	echo "  - Legacy 3-line FTP format (URL / user / pass) is still accepted"
 	echo ""
-	echo "Environment variables (checked if not in credentials file):"
+	echo "Environment variables (checked if not in credentials file; the platform suffix applies too):"
 	echo "  FTP backend:"
 	echo "    B3D_FTP_URL              FTP server URL"
 	echo "    B3D_FTP_USER             FTP username"
@@ -138,6 +156,7 @@ show_usage() {
 	echo "  $0 XShaderCompiler --no-upload         # Create archive only"
 	echo "  $0 XShaderCompiler --no-bump           # Re-upload current version"
 	echo "  $0 XShaderCompiler --exists            # Is the required version on the server?"
+	echo "  $0 snappy --platform PS5               # Upload the PS5 overlay's snappy to the PS5 location"
 	echo "  $0 --archive XShaderCompiler_Win32_12.tar.gz --if-missing   # Publish a prepared archive"
 }
 
@@ -179,6 +198,13 @@ is_package_outdated() {
 	return 1
 }
 
+# Prints the platform name a package folder under Framework/Platform/<name>/Dependencies/ belongs to.
+overlay_platform_name() {
+	local dependenciesDir
+	dependenciesDir=$(dirname "${1%/}")
+	basename "$(dirname "$dependenciesDir")"
+}
+
 # -----------------------------------------------
 # List Available Packages
 # -----------------------------------------------
@@ -200,6 +226,21 @@ list_packages() {
 		done
 	else
 		echo "  (No dependencies folder found)"
+	fi
+
+	echo ""
+	echo "=== Platform Overlay Dependency Packages (pass --platform <name>) ==="
+	local foundOverlayPackage=false
+	for dir in "$FrameworkDir"/Platform/*/Dependencies/*/; do
+		[ -d "$dir" ] || continue
+		name=$(basename "$dir")
+		if [[ "$name" != .* ]]; then
+			printf "  %-8s %s\n" "$(overlay_platform_name "$dir")" "$name"
+			foundOverlayPackage=true
+		fi
+	done
+	if [ "$foundOverlayPackage" = false ]; then
+		echo "  (none)"
 	fi
 
 	echo ""
@@ -249,6 +290,17 @@ check_outdated() {
 	fi
 
 	echo ""
+	echo "=== Platform Overlay Dependency Packages ==="
+	for dir in "$FrameworkDir"/Platform/*/Dependencies/*/; do
+		[ -d "$dir" ] || continue
+		name=$(basename "$dir")
+		if [[ "$name" != .* ]] && is_package_outdated "$dir"; then
+			printf "  %-8s %-22s  [OUTDATED]\n" "$(overlay_platform_name "$dir")" "$name"
+			foundOutdated=true
+		fi
+	done
+
+	echo ""
 	echo "=== Data Packages ==="
 	if is_package_outdated "$FrameworkDir/Data"; then
 		printf "  %-22s  [OUTDATED]\n" "FrameworkData"
@@ -284,13 +336,20 @@ check_outdated() {
 # -----------------------------------------------
 # Credentials Loading
 #
-# Reads credentials from a key=value file into the B3D_FTP_* / B3D_R2_* shell
-# variables. Existing values (e.g. set via real env vars) are preserved -
-# the file only fills in keys that are currently empty.
+# Reads credentials from a key=value file and settles the B3D_FTP_* / B3D_R2_*
+# shell variables. For a package that belongs to a platform, a key suffixed
+# with the platform's name in upper case (e.g. B3D_R2_BUCKET_PS5) overrides the
+# plain key, so the platform's packages can go to a location of their own.
+# Within each, real environment variables take precedence over the file.
 #
 # A credentials file with no '=' on its first non-comment line is treated as
 # the legacy 3-line FTP format (URL / user / pass) for backward compatibility.
 # -----------------------------------------------
+
+# Entries of a key=value credentials file, as parallel arrays (populated by load_credentials_file)
+CredentialFileKeys=()
+CredentialFileValues=()
+
 load_credentials_file() {
 	local credFile="$1"
 	local line key value firstContent=""
@@ -332,24 +391,39 @@ load_credentials_file() {
 			value="${value:1:${#value}-2}"
 		fi
 
-		case "$key" in
-			B3D_FTP_URL)              [ -z "$B3D_FTP_URL" ]              && B3D_FTP_URL="$value" ;;
-			B3D_FTP_USER)             [ -z "$B3D_FTP_USER" ]             && B3D_FTP_USER="$value" ;;
-			B3D_FTP_PASS)             [ -z "$B3D_FTP_PASS" ]             && B3D_FTP_PASS="$value" ;;
-			B3D_R2_ACCOUNT_ID)        [ -z "$B3D_R2_ACCOUNT_ID" ]        && B3D_R2_ACCOUNT_ID="$value" ;;
-			B3D_R2_ACCESS_KEY_ID)     [ -z "$B3D_R2_ACCESS_KEY_ID" ]     && B3D_R2_ACCESS_KEY_ID="$value" ;;
-			B3D_R2_SECRET_ACCESS_KEY) [ -z "$B3D_R2_SECRET_ACCESS_KEY" ] && B3D_R2_SECRET_ACCESS_KEY="$value" ;;
-			B3D_R2_BUCKET)            [ -z "$B3D_R2_BUCKET" ]            && B3D_R2_BUCKET="$value" ;;
-			B3D_R2_PATH)              [ -z "$B3D_R2_PATH" ]              && B3D_R2_PATH="$value" ;;
-			B3D_R2_PUBLIC_URL)        [ -z "$B3D_R2_PUBLIC_URL" ]        && B3D_R2_PUBLIC_URL="$value" ;;
-			B3D_UPLOAD_BACKEND)       [ -z "$B3D_UPLOAD_BACKEND" ]       && B3D_UPLOAD_BACKEND="$value" ;;
-		esac
+		CredentialFileKeys+=("$key")
+		CredentialFileValues+=("$value")
 	done < "$credFile"
 }
 
-# Selects which credentials file to read (CLI flag, then default locations) and
-# loads it. Real environment variables always take precedence. Missing files
-# at the default locations are not an error - the user may rely on env vars.
+# Prints the value the credentials file holds for a key, or nothing.
+credential_file_value() {
+	local i
+	for i in "${!CredentialFileKeys[@]}"; do
+		if [ "${CredentialFileKeys[$i]}" = "$1" ]; then
+			printf '%s' "${CredentialFileValues[$i]}"
+			return
+		fi
+	done
+}
+
+# Settles one credential into the shell variable of the same name: the package platform's key
+# (<key>_<PLATFORM>) wins over the plain one, and within each the environment wins over the file.
+resolve_credential() {
+	local key="$1" value=""
+	if [ -n "$PackagePlatform" ]; then
+		local platformKey="${key}_${PackagePlatform^^}"
+		value="${!platformKey:-}"
+		[ -z "$value" ] && value=$(credential_file_value "$platformKey")
+	fi
+	[ -z "$value" ] && value="${!key:-}"
+	[ -z "$value" ] && value=$(credential_file_value "$key")
+	printf -v "$key" '%s' "$value"
+}
+
+# Selects which credentials file to read (CLI flag, then default locations),
+# loads it and settles every credential for the package's platform. Missing
+# files at the default locations are not an error - the user may rely on env vars.
 load_credentials() {
 	if [ -n "$CredentialsFile" ]; then
 		if [ ! -f "$CredentialsFile" ]; then
@@ -368,6 +442,11 @@ load_credentials() {
 			load_credentials_file "$defaultDir/ftp_credentials"
 		fi
 	fi
+
+	local key
+	for key in "${CredentialKeys[@]}"; do
+		resolve_credential "$key"
+	done
 
 	# --backend wins; otherwise the credentials file (or environment) chooses; otherwise rclone.
 	if [ -z "$Backend" ]; then
@@ -517,11 +596,11 @@ rclone_remote_base() {
 require_rclone() {
 	if ! command -v rclone >/dev/null 2>&1; then
 		echo "[Error] 'rclone' not found on PATH. Install it with:"
-		case "$PlatformSuffix" in
-			Win32) echo "          winget install Rclone.Rclone" ;;
-			Linux) echo "          sudo -v ; curl https://rclone.org/install.sh | sudo bash" ;;
-			MacOS) echo "          brew install rclone" ;;
-			*)     echo "          See https://rclone.org/downloads/" ;;
+		case "$Platform" in
+			win32|msys)  echo "          winget install Rclone.Rclone" ;;
+			linux-gnu*)  echo "          sudo -v ; curl https://rclone.org/install.sh | sudo bash" ;;
+			darwin*)     echo "          brew install rclone" ;;
+			*)           echo "          See https://rclone.org/downloads/" ;;
 		esac
 		echo "        Or run with --backend ftp."
 		return 1
@@ -616,6 +695,10 @@ while [[ $# -gt 0 ]]; do
 			;;
 		--credentials)
 			CredentialsFile="$2"
+			# Made absolute now because the script changes directory into the package folder before reading it
+			if [ -f "$CredentialsFile" ]; then
+				CredentialsFile="$(cd "$(dirname "$CredentialsFile")" && pwd)/$(basename "$CredentialsFile")"
+			fi
 			shift 2
 			;;
 		--platform)
@@ -702,8 +785,9 @@ fi
 # -----------------------------------------------
 # Platform Detection
 #
-# The archive suffix names the platform the package was built for, which is the host unless a
-# target was given (console builds cross-compile from a Windows host).
+# The archive suffix names the platform the package belongs to, which is the host unless a
+# platform was given (console builds cross-compile from a Windows host, and a platform overlay
+# may ship host tooling as its own package).
 # -----------------------------------------------
 if [ -n "$PlatformOverride" ]; then
 	PlatformSuffix="$PlatformOverride"
@@ -722,7 +806,9 @@ fi
 # Prepared Archive
 #
 # An archive produced earlier (e.g. by a CI build) carries its own name, so it is checked or
-# uploaded as-is without touching any package folder or version stamp.
+# uploaded as-is without touching any package folder or version stamp. The name also carries the
+# platform the package belongs to (<Package>_<Platform>_<Version>.tar.gz, or
+# <Package>_<Version>.tar.gz for a platform-independent one), which picks the upload location.
 # -----------------------------------------------
 if [ -n "$PreparedArchive" ]; then
 	if [ -n "$PackageName" ]; then
@@ -737,8 +823,21 @@ if [ -n "$PreparedArchive" ]; then
 
 	ArchivePath="$PreparedArchive"
 	ArchiveName=$(basename "$PreparedArchive")
+
+	# Package names carry no underscore, so the platform is the middle segment when there is one.
+	if [[ "$ArchiveName" =~ ^[^_]+(_([^_]+))?_[0-9]+\.tar\.gz$ ]]; then
+		PackagePlatform="${BASH_REMATCH[2]}"
+	else
+		echo "[Error] Archive name '$ArchiveName' is not of the form <Package>[_<Platform>]_<Version>.tar.gz"
+		exit 1
+	fi
+	if [ -n "$PlatformOverride" ] && [ "$PlatformOverride" != "$PackagePlatform" ]; then
+		echo "[Error] --platform $PlatformOverride does not match the archive's platform (${PackagePlatform:-none})"
+		exit 1
+	fi
+
 	TempDir=$(mktemp -d)
-	echo "Prepared archive: $ArchiveName"
+	echo "Prepared archive: $ArchiveName (platform: ${PackagePlatform:-independent})"
 
 	load_credentials
 	if [ "$CheckExists" = true ]; then
@@ -805,8 +904,15 @@ case "$PackageName" in
 		IsPlatformSpecific=false
 		;;
 	*)
-		# Check if it's a dependency
-		PackageFolder="${FolderOverride:-$FrameworkDir/Dependencies/$PackageName}"
+		# A dependency lives in the shared Dependencies folder, unless its platform is an overlay with a
+		# Dependencies folder of its own (the same rule as B3DGetBundledDependencyFolder in CMake).
+		if [ -n "$FolderOverride" ]; then
+			PackageFolder="$FolderOverride"
+		elif [ -d "$FrameworkDir/Platform/$PlatformSuffix/Dependencies" ]; then
+			PackageFolder="$FrameworkDir/Platform/$PlatformSuffix/Dependencies/$PackageName"
+		else
+			PackageFolder="$FrameworkDir/Dependencies/$PackageName"
+		fi
 		ArchivePrefix="$PackageName"
 		if [ ! -d "$PackageFolder" ]; then
 			echo "[Error] Package not found: $PackageName"
@@ -816,6 +922,10 @@ case "$PackageName" in
 		fi
 		;;
 esac
+
+if [ "$IsPlatformSpecific" = true ]; then
+	PackagePlatform="$PlatformSuffix"
+fi
 
 echo "Package folder: $PackageFolder"
 

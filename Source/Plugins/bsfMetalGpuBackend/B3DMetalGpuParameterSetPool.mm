@@ -32,7 +32,7 @@ namespace b3d
 			mDirectBuffers.clear();
 		}
 
-		TShared<GpuParameterSet> MetalGpuParameterSetPool::Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize)
+		TShared<GpuParameterSet> MetalGpuParameterSetPool::Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, GpuObjectCreateFlags flags)
 		{
 			if (setIndex > kMetalMaximumParameterSetIndex)
 			{
@@ -49,10 +49,12 @@ namespace b3d
 				mAllocatedSetCount++;
 			}
 
-			auto parameterSet = B3DMakeShared<MetalGpuParameters>(mDevice, layout, setIndex, isTransient ? this : nullptr);
+			MetalGpuParameters* rawParameterSet = new(B3DAllocate<MetalGpuParameters>()) MetalGpuParameters(mDevice, layout, setIndex, isTransient ? this : nullptr);
+
+			TShared<MetalGpuParameters> parameterSet = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy) ? B3DMakeSharedFromExisting(rawParameterSet) : GpuDevice::MakeSharedStandalone(rawParameterSet);
 			parameterSet->SetShared(parameterSet);
 
-			if (!deferredInitialize)
+			if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 			{
 				parameterSet->Initialize();
 				if (!parameterSet->IsArgumentBufferAllocated())

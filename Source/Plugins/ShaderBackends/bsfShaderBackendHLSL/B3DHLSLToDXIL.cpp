@@ -6,6 +6,7 @@
 #include "GpuBackend/B3DGpuProgram.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DVertexDescription.h"
+#include "Material/B3DShaderParameterDescription.h"
 #include "Debug/B3DLog.h"
 #include "Math/B3DMath.h"
 #include "String/B3DStringFormat.h"
@@ -320,8 +321,6 @@ namespace
 			bufferInformation.Set = bindDesc.Space; // Register space maps to descriptor set
 			bufferInformation.Size = cbDesc.Size / 4; // Core API expects size in multiples of 4 bytes
 			bufferInformation.IsShareable = true;
-			// TODO: Take this from the [dynamicOffset] attribute once the shader compiler reflects it; until then every uniform buffer is bound with a dynamic offset.
-			bufferInformation.UsesDynamicOffset = true;
 			// TODO(d3d12-port): Stage flags are not derivable from HLSL reflection alone; left at the default.
 
 			for (u32 variableIndex = 0; variableIndex < cbDesc.Variables; variableIndex++)
@@ -746,6 +745,11 @@ TShared<GpuProgramBytecode> HLSLToDXIL::CompileBytecode(const GpuProgramCreateIn
 
 	if (!ReflectShader(mUtilities.Get(), compilationResult.Get(), createInformation.Type, *bytecode))
 		return bytecode;
+
+	if(createInformation.ShaderReflection != nullptr && createInformation.ShaderReflection->Parameters != nullptr)
+	{
+		ShaderParameterDescription::IterateMatching(createInformation.ShaderReflection->Parameters->GetUniformBuffers(), bytecode->ParameterDescription->UniformBuffers, [](const auto& source, auto& outTarget) { outTarget.UsesDynamicOffset = source.UsesDynamicOffset; }, [](u32 slot) { return MapRegisterToSlot(slot, HLSLRegisterClass::ConstantBuffer); });
+	}
 
 	ComPtr<IDxcBlob> shaderBlob;
 	result = compilationResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);

@@ -554,21 +554,31 @@ void VulkanGpuCommandBuffer::SetDynamicBufferOffset(u32 set, u32 bufferIndex, u3
 {
 	EnsureValidThread();
 
+	if(set >= (u32)mBoundGpuParameterSets.Size() || mBoundGpuParameterSets[set] == nullptr)
+		return;
+
+	if(!B3D_ENSURE_LOG(bufferIndex < mBoundGpuParameterSets[set]->GetLayout()->GetDynamicOffsetCount(), "Dynamic offset index {0} is out of range for parameter set {1}.", bufferIndex, set))
+		return;
+
 	// Ensure storage is sized
 	while(mDynamicOffsetsOverridesPerSet.size() <= set)
 		mDynamicOffsetsOverridesPerSet.Add(UnorderedMap<u32, u32>());
 
-	mDynamicOffsetsOverridesPerSet[set][bufferIndex] = offset;
+	auto& overrides = mDynamicOffsetsOverridesPerSet[set];
+	if(const auto found = overrides.find(bufferIndex); found != overrides.end() && found->second == offset)
+		return;
+
+	overrides[bufferIndex] = offset;
 	mDescriptorSetsBindState = DescriptorSetBindFlag::Graphics | DescriptorSetBindFlag::Compute;
 
-	// If GPU params were bound already, we retrieved the initial set of offsets, so just override it
-	if(!mBoundParamsDirty && set < mDynamicOffsetsPerSet.size())
+	// Already-prepared sets only need their bind-time offsets changed.
+	if(!mBoundParamsDirty && set < mDynamicOffsetsPerSet.size() && bufferIndex < mDynamicOffsetsPerSet[set].size())
 	{
-		if(bufferIndex < mDynamicOffsetsPerSet[set].size())
-		{
-			mDynamicOffsetsPerSet[set][bufferIndex] = offset;
-			RebuildFlatDynamicOffsets();
-		}
+		mDynamicOffsetsPerSet[set][bufferIndex] = offset;
+		RebuildFlatDynamicOffsets();
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		mBoundGpuParameterSets[set]->TrackDynamicUniformBufferOffsets(mResourceTracker, mDynamicOffsetsPerSet[set]);
+#endif
 	}
 }
 
@@ -1933,6 +1943,11 @@ bool VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParamete
 				if(index < setDynamicOffsets.size())
 					setDynamicOffsets[index] = offsetVal;
 			}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			// Render-pass access was declared before the pass; offset changes only select another suballocation.
+			boundGpuParameterSet->TrackDynamicUniformBufferOffsets(mResourceTracker, setDynamicOffsets);
+#endif
 
 			mDynamicOffsetsPerSet[set] = setDynamicOffsets;
 			mBoundDescriptorSetCount++;

@@ -122,6 +122,7 @@ namespace b3d
 			B3D_RTTI_MEMBER(MissingGlyph, 3)
 			B3D_RTTI_MEMBER(SpaceWidth, 4)
 			B3D_RTTI_MEMBER(Characters, 6)
+			B3D_RTTI_MEMBER(SubpixelPositionCount, 7)
 		B3D_RTTI_END_MEMBERS
 
 	public:

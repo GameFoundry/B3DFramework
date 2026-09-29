@@ -87,7 +87,8 @@ namespace b3d
 			return D3D12BarrierUtility::TranslateTextureLayout(layout, queueType, options);
 		}
 
-		D3D12Texture::D3D12Texture(const TextureCreateInformation& createInformation, GpuDevice& device) : Texture(createInformation), mGpuDevice(device)
+		D3D12Texture::D3D12Texture(const TextureCreateInformation& createInformation, GpuDevice& device, const GpuResourceLocation& location)
+			: Texture(createInformation, location), mGpuDevice(device)
 		{
 		}
 
@@ -117,20 +118,16 @@ namespace b3d
 			mImage = nullptr;
 		}
 
-		void D3D12Texture::CreateTexture()
+		bool D3D12Texture::BuildResourceDescription(const TextureProperties& properties, D3D12_RESOURCE_DESC& outResourceDesc, DXGI_FORMAT& outViewFormat)
 		{
-			D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mGpuDevice);
-
-			const TextureProperties& properties = GetProperties();
-
 			// Convert pixel format to DXGI format. sRGB variants cannot be used with UAVs, so unordered-access
 			// textures keep the linear variant (mirroring the Vulkan backend's storage-image behavior).
 			const bool useSRGB = properties.UseHardwareSRGB && !properties.Usage.IsSet(TextureUsageFlag::AllowUnorderedAccessOnTheGPU);
-			mViewFormat = D3D12Utility::GetDXGIFormat(properties.Format, useSRGB);
-			if (mViewFormat == DXGI_FORMAT_UNKNOWN)
+			outViewFormat = D3D12Utility::GetDXGIFormat(properties.Format, useSRGB);
+			if (outViewFormat == DXGI_FORMAT_UNKNOWN)
 			{
 				B3D_LOG(Error, LogRenderBackend, "D3D12: Unsupported texture format");
-				return;
+				return false;
 			}
 
 			// Determine resource dimension. Array-ness is expressed through the face count rather than through
@@ -150,20 +147,21 @@ namespace b3d
 				break;
 			default:
 				B3D_LOG(Error, LogRenderBackend, "D3D12: Unsupported texture type");
-				return;
+				return false;
 			}
 
 			const u32 faceCount = properties.GetFaceCount();
 
 			// Create resource description
-			D3D12_RESOURCE_DESC resourceDesc = {};
+			D3D12_RESOURCE_DESC& resourceDesc = outResourceDesc;
+			resourceDesc = {};
 			resourceDesc.Dimension = dimension;
 			resourceDesc.Alignment = 0; // Let D3D12 choose appropriate alignment
 			resourceDesc.Width = properties.Width;
 			resourceDesc.Height = properties.Height;
 			resourceDesc.DepthOrArraySize = (dimension == D3D12_RESOURCE_DIMENSION_TEXTURE3D) ? (u16)properties.Depth : (u16)faceCount;
 			resourceDesc.MipLevels = (u16)(properties.MipMapCount + 1);
-			resourceDesc.Format = D3D12Utility::GetTextureResourceFormat(mViewFormat);
+			resourceDesc.Format = D3D12Utility::GetTextureResourceFormat(outViewFormat);
 			resourceDesc.SampleDesc.Count = properties.SampleCount > 0 ? properties.SampleCount : 1;
 			resourceDesc.SampleDesc.Quality = 0;
 			resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -183,6 +181,21 @@ namespace b3d
 
 			if (properties.Usage.IsSet(TextureUsageFlag::AllowUnorderedAccessOnTheGPU))
 				resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+
+			return true;
+		}
+
+		void D3D12Texture::CreateTexture()
+		{
+			D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mGpuDevice);
+
+			const TextureProperties& properties = GetProperties();
+
+			D3D12_RESOURCE_DESC resourceDesc;
+			if (!BuildResourceDescription(properties, resourceDesc, mViewFormat))
+				return;
+
+			const u32 faceCount = properties.GetFaceCount();
 
 			// Determine clear value for render targets / depth-stencil targets
 			D3D12_CLEAR_VALUE clearValue = {};
@@ -209,7 +222,7 @@ namespace b3d
 
 			ComPtr<ID3D12Resource> resource;
 			GpuResourceLocation allocation;
-			HRESULT hr = device.CreateResource(resourceDesc, D3D12_HEAP_TYPE_DEFAULT, D3D12_BARRIER_LAYOUT_UNDEFINED, optimizedClearValue, resource, allocation);
+			HRESULT hr = device.CreateResource(resourceDesc, mRequestedLocation, D3D12_BARRIER_LAYOUT_UNDEFINED, optimizedClearValue, resource, allocation);
 
 			if (FAILED(hr))
 			{

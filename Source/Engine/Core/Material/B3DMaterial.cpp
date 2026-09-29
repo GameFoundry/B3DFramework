@@ -11,6 +11,7 @@
 #include "Math/B3DVector4I.h"
 #include "Material/B3DMaterialParameters.h"
 #include "Material/B3DMaterialParameterAdapter.h"
+#include "Material/B3DShaderReflection.h"
 #include "Animation/B3DAnimationCurve.h"
 #include "CoreObject/B3DCoreObjectSync.h"
 #include "RTTI/B3DShaderVariationRTTI.h"
@@ -57,7 +58,43 @@ TShared<typename TMaterial<IsRenderProxy>::MaterialParameterAdapterType> TMateri
 	if(variationIndex >= (u32)mVariations.size())
 		return nullptr;
 
-	TShared<VariationType> variation = mVariations[variationIndex];
+	const TShared<VariationType>& variation = mVariations[variationIndex];
+	if(!variation->IsCompiled())
+	{
+		B3D_LOG(Error, LogMaterial, "Cannot create material parameter adapter for shader '{0}', variation {1}: compile the variation first.", mShader->GetShaderName(), variationIndex);
+		return nullptr;
+	}
+
+	TInlineArray<const ShaderParameterDescription*, 4> passParameters;
+	bool hasCompleteShaderReflection = true;
+	for(u32 passIndex = 0; passIndex < variation->GetPassCount(); passIndex++)
+	{
+		const TShared<PassType>& pass = variation->GetPass(passIndex);
+		for(u32 stageIndex = 0; stageIndex < GPT_COUNT; stageIndex++)
+		{
+			const GpuProgramCreateInformation& program = pass->GetGpuProgramCreateInformation((GpuProgramType)stageIndex);
+			if(program.ShaderReflection != nullptr && program.ShaderReflection->Parameters != nullptr)
+			{
+				const ShaderParameterDescription* parameters = program.ShaderReflection->Parameters.get();
+				if(std::find(passParameters.begin(), passParameters.end(), parameters) == passParameters.end())
+					passParameters.Add(parameters);
+			}
+			else if(!program.Source.empty() || program.Bytecode != nullptr)
+				hasCompleteShaderReflection = false;
+		}
+	}
+
+	// Programs without shader reflection skip material-interface validation
+	if(hasCompleteShaderReflection && !passParameters.Empty())
+	{
+		const Result result = mShader->GetParameterDescription()->ValidateMaterialInterface(passParameters);
+		if(!result.IsSuccessful())
+		{
+			B3D_LOG(Error, LogMaterial, "Cannot create material parameter adapter for shader '{0}', variation {1}: {2}", mShader->GetShaderName(), variationIndex, result.GetFullErrorMessage());
+			return nullptr;
+		}
+	}
+
 	return B3DMakeShared<MaterialParameterAdapterType>(variation, mShader, mParameters);
 }
 
@@ -377,12 +414,12 @@ void TMaterial<IsRenderProxy>::InitializeVariations()
 
 template <bool IsRenderProxy>
 template <typename T>
-void TMaterial<IsRenderProxy>::SetParamValue(const String& name, u8* buffer, u32 numElements)
+void TMaterial<IsRenderProxy>::SetParamValue(const String& name, const u8* buffer, u32 numElements)
 {
 	TMaterialParameterPrimitive<T, IsRenderProxy> param;
 	GetParam(name, param);
 
-	T* ptr = (T*)buffer;
+	const T* ptr = (const T*)buffer;
 	for(u32 i = 0; i < numElements; i++)
 		param.Set(ptr[i], i);
 }
@@ -396,7 +433,7 @@ void TMaterial<IsRenderProxy>::InitializeDefaultParameters()
 		if(paramData.second.DefaultValueIndex == (u32)-1)
 			continue;
 
-		u8* buffer = (u8*)mShader->GetDefaultValue(paramData.second.DefaultValueIndex);
+		const u8* buffer = mShader->GetDefaultValue(paramData.second.DefaultValueIndex);
 		if(buffer == nullptr)
 			continue;
 
@@ -475,8 +512,8 @@ void TMaterial<IsRenderProxy>::InitializeDefaultParameters()
 			{
 				TMaterialParameterStruct<IsRenderProxy> param = GetParamStruct(paramData.first);
 
-				u32 elementSizeBytes = paramData.second.ElementSize * sizeof(u32);
-				u8* ptr = buffer;
+				u32 elementSizeBytes = paramData.second.ElementSize;
+				const u8* ptr = buffer;
 				for(u32 i = 0; i < paramData.second.ArraySize; i++)
 				{
 					param.Set(ptr, elementSizeBytes, i);

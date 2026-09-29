@@ -515,6 +515,24 @@ namespace b3d
 		GQT_UNKNOWN
 	};
 
+	/** Flags that control creation of GPU objects via GpuDevice and GpuParameterSetPool factory methods. */
+	enum class GpuObjectCreateFlag
+	{
+		None = 0,
+		DeferredInitialize = 1 << 0, /**< Don't call Initialize() automatically. Caller must ensure it gets called after creation. */
+		RenderThreadDestroy = 1 << 1, /**< Ensures the object will always get destroyed on the render thread. Only relevant for render proxy objects. */
+
+		/**
+		 * The texture or buffer is created at memory it shares with other resources over time. Earlier occupants may
+		 * still use that memory on the GPU, so creation must not write to it; the resource's first alias acquire
+		 * initializes it instead. Only valid for a location with memory.
+		 */
+		Aliased = 1 << 2
+	};
+
+	using GpuObjectCreateFlags = Flags<GpuObjectCreateFlag>;
+	B3D_FLAGS_OPERATORS(GpuObjectCreateFlag)
+
 	/**
 	 * Bits that map to a specific surface of a render target. Combine the bits to generate a mask that references
 	 * only specific render target surfaces.

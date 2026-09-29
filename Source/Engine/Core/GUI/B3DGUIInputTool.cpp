@@ -40,7 +40,7 @@ void GUIInputTool::UpdateText(const GUIInteractable* element, const TextSpriteIn
 		u32 currentCharacterIndex = 0;
 		u32 currentLineIndex = 0;
 
-		Vector2I* alignmentOffsets = B3DFrameNew<Vector2I>(lineCount);
+		Vector2* alignmentOffsets = B3DFrameNew<Vector2>(lineCount);
 		TextSprite::GetAlignmentOffsets(textGeometry, (u32)mTextDesc.Size.Width, (u32)mTextDesc.Size.Height, mTextDesc.HorzAlign, mTextDesc.VertAlign, alignmentOffsets);
 
 		for(u32 lineIndex = 0; lineIndex < lineCount; lineIndex++)
@@ -53,7 +53,7 @@ void GUIInputTool::UpdateText(const GUIInteractable* element, const TextSpriteIn
 			u32 startChar = currentCharacterIndex;
 			u32 endChar = currentCharacterIndex + line.GetCharacterCount() + (hasNewline ? 1 : 0);
 			u32 lineHeight = Math::RoundToU32(line.GetYOffset());
-			i32 lineYStart = alignmentOffsets[currentLineIndex].Y;
+			i32 lineYStart = Math::RoundToI32(alignmentOffsets[currentLineIndex].Y);
 
 			GUIInputLineDesc lineDesc(startChar, endChar, lineHeight, lineYStart, hasNewline);
 			mLineDescs.push_back(lineDesc);

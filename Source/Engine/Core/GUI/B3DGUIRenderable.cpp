@@ -217,9 +217,8 @@ GUILogicalPoint GUIRenderable::GetContentOffset() const
 		const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
 
 		const RectOffset& padding = GetPadding();
-		return GUILogicalPoint(
-			padding.Left + styleSheetRules.BorderLeft.GetVisibleWidth(),
-			padding.Top + styleSheetRules.BorderTop.GetVisibleWidth());
+		const RectOffset border = styleSheetRules.GetBorderInsets();
+		return GUILogicalPoint(padding.Left + border.Left, padding.Top + border.Top);
 	}
 
 	return GUILogicalPoint(0, 0);

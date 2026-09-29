@@ -5,6 +5,27 @@
 set(B3D_PREBUILT_DEPENDENCIES_URL "https://dependencies.banshee3d.io" CACHE STRING "The location that binary packages (prebuilt dependencies, built-in assets) will be pulled from.")
 mark_as_advanced(B3D_PREBUILT_DEPENDENCIES_URL)
 
+# Resolves the package server that holds a package. A platform overlay may declare a server of its own by setting
+# B3D_PLATFORM_<name>_PACKAGE_URL in its Platform.cmake. Otherwise we fall back to B3D_PREBUILT_DEPENDENCIES_URL.
+#
+# A platform's server that only serves authorized clients also takes a read-only token from B3D_PLATFORM_<name>_PACKAGE_TOKEN.
+#
+# @param	platform	Platform the package belongs to (e.g. PS5), or an empty string for a platform-independent package
+# @param	outURL		Receives the base URL of the package server
+# @param	outToken	Receives the token to authorize downloads with, or an empty string if the server takes none
+# @param	outIsPublic	Receives TRUE if the server is the default one, FALSE if it is a platform's own.
+function(B3DGetPackageServer platform outURL outToken outIsPublic)
+	if(platform AND B3D_PLATFORM_${platform}_PACKAGE_URL)
+		set(${outURL} ${B3D_PLATFORM_${platform}_PACKAGE_URL} PARENT_SCOPE)
+		set(${outToken} "${B3D_PLATFORM_${platform}_PACKAGE_TOKEN}" PARENT_SCOPE)
+		set(${outIsPublic} FALSE PARENT_SCOPE)
+	else()
+		set(${outURL} ${B3D_PREBUILT_DEPENDENCIES_URL} PARENT_SCOPE)
+		set(${outToken} "" PARENT_SCOPE)
+		set(${outIsPublic} TRUE PARENT_SCOPE)
+	endif()
+endfunction()
+
 # Name of the stamp file a dependency folder carries while its contents were built from source rather than
 # downloaded. The value is the version that was built. CI scans for it to find the packages no package server holds.
 set(B3D_BUILT_FROM_SOURCE_STAMP ".builtfromsource")
@@ -63,13 +84,27 @@ endfunction()
 # @param	archivePrefix		Prefix for the archive name (version will be appended, e.g. XShaderCompiler_Win32)
 # @param	extractedFolderName	Name of the folder inside the archive (e.g. XShaderCompiler)
 # @param	version				Version of the package to download
+# @param	platform			Platform the package belongs to (e.g. PS5), or an empty string for a platform-independent
+#								package. Selects the package server, see B3DGetPackageServer.
 # @param	outSucceeded		Receives TRUE if the package was downloaded and extracted, FALSE if the download failed
-function(B3DDownloadPackage targetFolder archivePrefix extractedFolderName version outSucceeded)
+function(B3DDownloadPackage targetFolder archivePrefix extractedFolderName version platform outSucceeded)
 	set(${outSucceeded} FALSE PARENT_SCOPE)
 
 	set(tempFolder ${B3D_FRAMEWORK_ROOT_FOLDER}/Temp)
 	set(archiveName ${archivePrefix}_${version}.tar.gz)
-	set(packageURL ${B3D_PREBUILT_DEPENDENCIES_URL}/${archiveName})
+
+	B3DGetPackageServer("${platform}" serverURL serverToken isPublicServer)
+	set(packageURL ${serverURL}/${archiveName})
+
+	# A platform's server keeps its URL out of messages as it's usually private
+	set(extraDownloadArguments "")
+	if(NOT isPublicServer)
+		list(APPEND extraDownloadArguments LOG downloadLog)
+	endif()
+
+	if(serverToken)
+		list(APPEND extraDownloadArguments HTTPHEADER "Authorization: Bearer ${serverToken}")
+	endif()
 
 	# Clean and create a temporary folder
 	execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${tempFolder})
@@ -77,13 +112,33 @@ function(B3DDownloadPackage targetFolder archivePrefix extractedFolderName versi
 
 	message(STATUS "Downloading ${archiveName}...")
 	file(DOWNLOAD ${packageURL} ${tempFolder}/${archiveName}
+			${extraDownloadArguments}
 			SHOW_PROGRESS
 			STATUS DOWNLOAD_STATUS)
 
 	list(GET DOWNLOAD_STATUS 0 statusCode)
 	if(NOT statusCode EQUAL 0)
 		list(GET DOWNLOAD_STATUS 1 statusMessage)
-		message(STATUS "Package failed to download from URL: ${packageURL} (${statusMessage})")
+		if(isPublicServer)
+			message(STATUS "Package failed to download from URL: ${packageURL} (${statusMessage})")
+		else()
+			# the last response status line in the log belongs to the final response
+			string(REGEX MATCHALL "HTTP/[0-9.]+ [0-9][0-9][0-9]" responseStatusLines "${downloadLog}")
+			if(responseStatusLines)
+				list(GET responseStatusLines -1 responseStatusLine)
+				string(REGEX REPLACE "^.* " "" httpStatus ${responseStatusLine})
+				if((httpStatus STREQUAL "401" OR httpStatus STREQUAL "403") AND serverToken)
+					set(statusMessage "HTTP ${httpStatus}, the server rejected B3D_PLATFORM_${platform}_PACKAGE_TOKEN")
+				elseif(httpStatus STREQUAL "401" OR httpStatus STREQUAL "403")
+					set(statusMessage "HTTP ${httpStatus}, the server needs a token in B3D_PLATFORM_${platform}_PACKAGE_TOKEN")
+				elseif(httpStatus STREQUAL "404")
+					set(statusMessage "HTTP 404, the server does not hold this package")
+				else()
+					set(statusMessage "HTTP ${httpStatus}")
+				endif()
+			endif()
+			message(STATUS "Package ${archiveName} failed to download from the ${platform} package server (${statusMessage})")
+		endif()
 		execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${tempFolder})
 		return()
 	endif()
@@ -158,7 +213,7 @@ function(B3DDownloadPackageIfNeeded targetFolder archivePrefix extractedFolderNa
 		return()
 	endif()
 
-	B3DDownloadPackage(${targetFolder} ${archivePrefix} ${extractedFolderName} ${requiredVersion} downloaded)
+	B3DDownloadPackage(${targetFolder} ${archivePrefix} ${extractedFolderName} ${requiredVersion} "" downloaded)
 	if(NOT downloaded)
 		message(FATAL_ERROR "Failed to download package '${archivePrefix}' version ${requiredVersion}.")
 	endif()
@@ -244,6 +299,15 @@ function(B3DBuildDependencyFromSource dependencyName buildScript dependencyFolde
 		message(FATAL_ERROR "Build script '${buildScript}' for dependency '${dependencyName}' failed (exit code ${scriptResult}). See the output above.")
 	endif()
 
+	# A script may succeed without producing this dependency (e.g. one that skips an optional part it has no access
+	# to). Stamping the empty folder would make every later configure keep it, so fail instead.
+	file(GLOB installedItems ${dependencyFolder}/*)
+	list(FILTER installedItems EXCLUDE REGEX "/\\.[^/]*$")
+	if(NOT installedItems)
+		message(FATAL_ERROR "Build script '${buildScript}' succeeded but installed nothing into '${dependencyFolder}', so "
+			"dependency '${dependencyName}' is still missing. See the output above.")
+	endif()
+
 	# The script stamps .version relative to whatever was on disk before. The build satisfies the required version,
 	# so record that instead, otherwise the next configure would try to update the dependency again.
 	file(WRITE ${dependencyFolder}/.version "${requiredVersion}")
@@ -266,15 +330,23 @@ endfunction()
 # source instead. With bundled libraries disabled (B3D_USE_BUNDLED_LIBRARIES=OFF) no download is attempted, and an
 # out-of-date dependency is always built from source.
 #
-# The prebuilt-archive suffix is the active platform (B3D_PLATFORM, e.g. Win32/Linux/MacOS),
-# resolved during platform discovery in Prerequisites.cmake.
+# The prebuilt archive is named after the dependency and the platform it belongs to (e.g. snappy_Win32), and is
+# fetched from that platform's package server if it declares one (see B3DGetPackageServer).
+#
+# @p platform only picks the archive name and package server. What a build from source produces is decided by the
+# tree: the build script targets the active platform (it gets '--target <B3D_PLATFORM>' unless that is the host), so
+# a PS5 tree builds PS5 libraries and a host tree builds host tools. The two differ only when @p platform is not the
+# active platform, e.g. the PS5 shader compiler backend looked up from a Win32 tree: its package is a PS5 one, and a
+# build correctly produces the Windows DLL. Pass a build script for such a call only if the dependency is a host tool.
 #
 # @param	dependencyFolder	Folder the dependency is installed in
 # @param	dependencyName		Name of the dependency, which is also its folder name and prebuilt-archive prefix
+# @param	platform			Platform the dependency belongs to (e.g. Win32, PS5); names the archive suffix and
+#								selects the package server
 # @param	buildScript			File name of the script in Framework/Scripts that builds the dependency from source
 #								(e.g. 'B3DBuildShaderCompiler.sh'), or an empty string if it has no build script. A
 #								dependency without a build script can only be downloaded.
-function(B3DUpdateDependency dependencyFolder dependencyName buildScript)
+function(B3DUpdateDependency dependencyFolder dependencyName platform buildScript)
 	# Without a build script an unbundled build has no way to provide the dependency, so leave it to the user.
 	if(NOT B3D_USE_BUNDLED_LIBRARIES AND NOT buildScript)
 		return()
@@ -292,8 +364,8 @@ function(B3DUpdateDependency dependencyFolder dependencyName buildScript)
 	endif()
 
 	if(B3D_USE_BUNDLED_LIBRARIES)
-		set(archivePrefix ${dependencyName}_${B3D_PLATFORM})
-		B3DDownloadPackage(${dependencyFolder} ${archivePrefix} ${dependencyName} ${requiredVersion} downloaded)
+		set(archivePrefix ${dependencyName}_${platform})
+		B3DDownloadPackage(${dependencyFolder} ${archivePrefix} ${dependencyName} ${requiredVersion} ${platform} downloaded)
 		if(downloaded)
 			return()
 		endif()
@@ -345,35 +417,41 @@ function(B3DEnsureBundledDependency packageName)
 	endif()
 
 	get_filename_component(dependencyName ${bundledFolder} NAME)
-	B3DUpdateDependency(${bundledFolder} ${dependencyName} "${ARG_BUILD_SCRIPT}")
+	B3DUpdateDependency(${bundledFolder} ${dependencyName} ${B3D_PLATFORM} "${ARG_BUILD_SCRIPT}")
 endfunction()
 
 # Ensures a dependency is present and up to date, see B3DUpdateDependency for how it is provided. Locates the
 # dependency folder by name; prefer B3DEnsureBundledDependency for a dependency that has a Find module.
 #
 # @param	dependencyName		Name of the dependency (e.g. 'FontAwesome', 'LLVM', etc.)
-# @param	USE_PLATFORM_FOLDER	(optional) If present, the dependency lives in the active platform's Dependencies folder
-#								(Framework/Platform/<B3D_PLATFORM>/Dependencies), otherwise the dependency lives in
-#								the framework's global Dependencies folder.
+# @param	PLATFORM			(optional) Name of the platform overlay the dependency belongs to (e.g. PS5). The
+#								dependency lives in the overlay's Dependencies folder
+#								(Framework/Platform/<name>/Dependencies), and its packages carry that platform's
+#								suffix and come from that platform's package server, if it declares one. Use it for a
+#								dependency an overlay ships for host builds too (e.g. a shader backend), so it resolves
+#								the same way from every tree. Without it the dependency lives in the framework's
+#								global Dependencies folder and its packages are the active platform's (B3D_PLATFORM).
 # @param	BUILD_SCRIPT		(optional) File name of the script in Framework/Scripts that builds the dependency
 #								from source (e.g. 'B3DBuildShaderCompiler.sh'). Without it the dependency can only be
 #								downloaded.
 function(B3DCheckAndUpdatePrebuiltDependency dependencyName)
-	cmake_parse_arguments(ARG "USE_PLATFORM_FOLDER" "BUILD_SCRIPT" "" ${ARGN})
+	cmake_parse_arguments(ARG "" "PLATFORM;BUILD_SCRIPT" "" ${ARGN})
 	if(ARG_UNPARSED_ARGUMENTS)
-		message(FATAL_ERROR "B3DCheckAndUpdatePrebuiltDependency(${dependencyName}): unknown arguments '${ARG_UNPARSED_ARGUMENTS}'. Use USE_PLATFORM_FOLDER and/or BUILD_SCRIPT <script>.")
+		message(FATAL_ERROR "B3DCheckAndUpdatePrebuiltDependency(${dependencyName}): unknown arguments '${ARG_UNPARSED_ARGUMENTS}'. Use PLATFORM <name> and/or BUILD_SCRIPT <script>.")
 	endif()
 
-	if(ARG_USE_PLATFORM_FOLDER)
-		if(NOT B3D_PLATFORM_${B3D_PLATFORM}_DEPENDENCIES_FOLDER)
-			message(FATAL_ERROR "Platform '${B3D_PLATFORM}' has no Dependencies folder; cannot update '${dependencyName}'.")
+	if(ARG_PLATFORM)
+		if(NOT B3D_PLATFORM_${ARG_PLATFORM}_DEPENDENCIES_FOLDER)
+			message(FATAL_ERROR "Platform '${ARG_PLATFORM}' is not available; cannot update '${dependencyName}'.")
 		endif()
-		set(dependencyFolder ${B3D_PLATFORM_${B3D_PLATFORM}_DEPENDENCIES_FOLDER}/${dependencyName})
+		set(dependencyFolder ${B3D_PLATFORM_${ARG_PLATFORM}_DEPENDENCIES_FOLDER}/${dependencyName})
+		set(platform ${ARG_PLATFORM})
 	else()
 		set(dependencyFolder ${B3D_DEPENDENCY_DIRECTORY}/${dependencyName})
+		set(platform ${B3D_PLATFORM})
 	endif()
 
-	B3DUpdateDependency(${dependencyFolder} ${dependencyName} "${ARG_BUILD_SCRIPT}")
+	B3DUpdateDependency(${dependencyFolder} ${dependencyName} ${platform} "${ARG_BUILD_SCRIPT}")
 endfunction()
 
 #######################################################################################

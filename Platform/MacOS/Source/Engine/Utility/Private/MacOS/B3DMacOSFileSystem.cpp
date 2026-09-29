@@ -19,12 +19,12 @@ TShared<DataStream> FileSystem::CreateFileStream(const Path& path, FileAccessFla
 	return stream;
 }
 
-void FileSystem::StartUp()
+void FileSystem::PlatformStartUp()
 {
 	// Do nothing
 }
 
-void FileSystem::ShutDown()
+void FileSystem::PlatformShutDown()
 {
 	// Do nothing
 }

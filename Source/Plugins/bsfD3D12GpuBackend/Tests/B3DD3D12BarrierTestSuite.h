@@ -58,5 +58,8 @@ namespace b3d
 
 		/** Rejects resolve requests that cannot be represented by D3D12 ResolveSubresource. */
 		void TestResolveValidation();
+
+		/** Checks that a frame boundary arms frame-start waits on every queue, and that each queue's next submission alone consumes them. */
+		void TestFrameFence();
 	};
 } // namespace b3d

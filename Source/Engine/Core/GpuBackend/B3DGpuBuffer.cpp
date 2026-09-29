@@ -244,14 +244,23 @@ u32 GpuBuffer::CalculateSuballocatedBufferSize(const GpuBufferInformation& infor
 
 u32 GpuBuffer::CalculateTotalBufferSize(const GpuBufferInformation& information, const TShared<GpuDevice>& gpuDevice)
 {
+	// Without a device, suballocations stay unaligned, matching CalculateSuballocatedBufferSize()
+	if(gpuDevice == nullptr)
+		return CalculateUnalignedGpuBufferSize(information) * Math::Max(1u, information.SuballocationCount);
+
+	return CalculateTotalBufferSize(information, *gpuDevice);
+}
+
+u32 GpuBuffer::CalculateTotalBufferSize(const GpuBufferInformation& information, const GpuDevice& gpuDevice)
+{
 	const u32 stride = CalculateSuballocatedBufferSize(information, gpuDevice);
 	return stride * Math::Max(1u, information.SuballocationCount);
 }
 
 namespace b3d::render
 {
-	GpuBuffer::GpuBuffer(GpuDevice& device, const GpuBufferCreateInformation& createInformation, u32 suballocationSize)
-		: mInformation(createInformation), mDevice(device), mSuballocationSize(suballocationSize), mTotalSize(createInformation.SuballocationCount * mSuballocationSize)
+	GpuBuffer::GpuBuffer(GpuDevice& device, const GpuBufferCreateInformation& createInformation, u32 suballocationSize, const GpuResourceLocation& location)
+		: mInformation(createInformation), mDevice(device), mSuballocationSize(suballocationSize), mTotalSize(createInformation.SuballocationCount * mSuballocationSize), mRequestedLocation(location)
 	{ }
 
 	GpuBuffer::~GpuBuffer()
@@ -357,7 +366,7 @@ namespace b3d::render
 		createInformation.Type = readable ? GpuBufferType::StagingRead : GpuBufferType::StagingWrite;
 		createInformation.Staging.Size = buffer->GetTotalSize();
 
-		return gpuContext.CreateTransientGpuBuffer(createInformation);
+		return gpuContext.CreateScratchGpuBuffer(createInformation);
 	}
 
 	void GpuBufferUtility::Write(GpuWorkContext& gpuContext, const TShared<GpuBuffer>& buffer, u32 offset, u32 length, const void* source, GpuBufferWriteFlags flags, TShared<GpuCommandBuffer> commandBuffer)
@@ -377,7 +386,7 @@ namespace b3d::render
 		if(flags.IsSet(GpuBufferWriteFlag::NoOverwrite))
 			mapOptions |= GpuMapOption::NoOverwrite;
 
-		const bool canDiscardBuffer = flags.IsSet(GpuBufferWriteFlag::Discard) || (offset == 0 && length == buffer->GetTotalSize());
+		const bool canDiscardBuffer = (flags.IsSet(GpuBufferWriteFlag::Discard) || (offset == 0 && length == buffer->GetTotalSize())) && !buffer->HasFixedLocation();
 
 		// Check is the GPU currently reading or writing from the buffer
 		const GpuQueueMask useMask = buffer->GetUseMask(GpuAccessFlag::Read | GpuAccessFlag::Write);

@@ -139,10 +139,6 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 		rootParameters.push_back(rootBufferParameter);
 	}
 
-	// TODO(d3d12): Add a dynamic-offset flag to buffer bindings and a matching buffer capability flag. Only flagged
-	// bindings should consume these root CBVs; Vulkan should select its dynamic descriptor types from the same flag,
-	// and core pipeline-layout validation should enforce the shared limit of kD3D12DynamicConstantBufferCount.
-
 	// Determine root constant buffers
 	u32 rootBufferCount = 0;
 	for(u32 setIndex = 0; setIndex < setCount; setIndex++)
@@ -166,9 +162,10 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 
 		for(const UniformInformation* uniformInformation : uniformBuffers)
 		{
-			if(uniformInformation->ArraySize != 1)
+			if(uniformInformation->DynamicOffsetIndex == ~0u)
 				continue;
 
+			// TODO - Enforce the shared dynamic-buffer limit in core pipeline-layout validation.
 			if(rootBufferCount >= kD3D12DynamicConstantBufferCount)
 			{
 				B3D_LOG(Error, LogRenderBackend, "D3D12 root signature requires more than the supported {0} dynamic uniform buffers.", kD3D12DynamicConstantBufferCount);
@@ -208,7 +205,7 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 				if(uniformInformation == nullptr)
 					continue;
 
-				if(type == GpuParameterType::UniformBuffer && uniformInformation->ArraySize == 1)
+				if(type == GpuParameterType::UniformBuffer && uniformInformation->DynamicOffsetIndex != ~0u)
 					continue;
 
 				D3D12DescriptorBindingLayout bindingLayout;

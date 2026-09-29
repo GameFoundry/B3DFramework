@@ -103,6 +103,76 @@ if ! git submodule update --init --recursive --depth=1; then
 	git submodule update --init --recursive --depth=1
 fi
 
+# Optional submodules (`update = none` in .gitmodules, placeholder URL) hold platform overlays
+# whose sources are not public, so the recursive update above skips them. A build for such a
+# platform needs its overlay at Platform/<Platform> under the framework: the real repository URL
+# comes from the agent's environment as B3D_SUBMODULE_URL_<NAME> (NAME = the .gitmodules section
+# name, uppercased) and is never written to the checkout, the build record or the log.
+if [ -f "$WORKSPACE/Framework/CMakeLists.txt" ]; then
+	FRAMEWORK_DIR="$WORKSPACE/Framework"
+else
+	FRAMEWORK_DIR="$WORKSPACE"
+fi
+
+# Runs git with stderr captured, printing it with the private URL redacted only when git fails.
+# git_redacted <url> <git args...>
+git_redacted() {
+	local url="$1" output
+	shift
+	if ! output=$(git "$@" 2>&1); then
+		echo "${output//"$url"/<private url>}" >&2
+		return 1
+	fi
+}
+
+# Checks out an optional submodule at its pinned commit. checkout_optional_submodule <name> <path> <url>
+checkout_optional_submodule() {
+	local subName="$1" subPath="$2" subUrl="$3"
+	local subDir="$FRAMEWORK_DIR/$subPath" subSha subBranch
+	subSha=$(git -C "$FRAMEWORK_DIR" ls-tree HEAD "$subPath" | awk '{print $3}')
+	if [ -z "$subSha" ]; then
+		echo "::error::Optional submodule '$subName' has no pinned commit at ${subDir#$WORKSPACE/}"
+		exit 1
+	fi
+
+	echo "Checking out optional submodule '$subName' (${subDir#$WORKSPACE/}) at $subSha..."
+	git -C "$FRAMEWORK_DIR" config --local "submodule.$subName.url" "$subUrl"
+	git -C "$FRAMEWORK_DIR" config --local "submodule.$subName.update" checkout
+	git -C "$FRAMEWORK_DIR" config --local "submodule.$subName.active" true
+	if [ -e "$subDir/.git" ]; then
+		git -C "$subDir" remote set-url origin "$subUrl"
+	fi
+
+	# The same shallow update the public submodules got, then the same by-branch fallback.
+	if ! git_redacted "$subUrl" -C "$FRAMEWORK_DIR" submodule --quiet update --init --recursive --depth=1 -- "$subPath"; then
+		if [ ! -e "$subDir/.git" ]; then
+			echo "::error::Could not clone optional submodule '$subName'; check the agent account's git credentials for the repository in B3D_SUBMODULE_URL_${subName^^}"
+			exit 1
+		fi
+		subBranch=$(git -C "$FRAMEWORK_DIR" config -f .gitmodules "submodule.$subName.branch" || true)
+		fetch_commit "$subDir" "$subSha" "${subBranch:-$GIT_BRANCH}"
+		checkout_commit "$subDir" "$subSha"
+		git_redacted "$subUrl" -C "$subDir" submodule --quiet update --init --recursive --depth=1
+	fi
+}
+
+for subName in $(git -C "$FRAMEWORK_DIR" config -f .gitmodules --get-regexp '^submodule\..*\.update$' 2>/dev/null | awk '$2 == "none" { sub(/^submodule\./, "", $1); sub(/\.update$/, "", $1); print $1 }'); do
+	subPath=$(git -C "$FRAMEWORK_DIR" config -f .gitmodules "submodule.$subName.path")
+
+	# Only the overlay of the platform being built (Platform/<Platform>, compared case-insensitively).
+	subPlatform="${subPath#Platform/}"
+	if [ "$subPlatform" = "$subPath" ] || [ "${subPlatform,,}" != "${PLATFORM:-}" ]; then
+		continue
+	fi
+
+	urlVariable="B3D_SUBMODULE_URL_${subName^^}"
+	if [ -z "${!urlVariable:-}" ]; then
+		echo "::error::Build for platform $PLATFORM requires the optional submodule '$subName' ($subPath), which is not configured on this agent. Set $urlVariable in the agent's environment."
+		exit 1
+	fi
+	checkout_optional_submodule "$subName" "$subPath" "${!urlVariable}"
+done
+
 # Verify the root before anything is built from it; the orchestrator refuses a build whose root differs.
 ACTUAL=$(git rev-parse HEAD)
 if [ "$ACTUAL" != "$ROOT_COMMIT" ]; then

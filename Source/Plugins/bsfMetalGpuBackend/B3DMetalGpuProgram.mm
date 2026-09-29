@@ -21,7 +21,7 @@ namespace b3d
 		MetalGpuProgram::MetalGpuProgram(MetalGpuDevice& gpuDevice, const GpuProgramCreateInformation& createInformation)
 			: GpuProgram(createInformation), mGpuDevice(gpuDevice), mImpl(B3DMakeUnique<Impl>())
 		{
-			const Array<u32, 3>& threadGroupSize = createInformation.Bytecode != nullptr ? createInformation.Bytecode->ThreadGroupSize : createInformation.ThreadGroupSize;
+			const Array<u32, 3>& threadGroupSize = createInformation.Bytecode != nullptr ? createInformation.Bytecode->ThreadGroupSize : createInformation.GetEntryPointReflection().ThreadGroupSize;
 			mWorkgroupSize[0] = threadGroupSize[0];
 			mWorkgroupSize[1] = threadGroupSize[1];
 			mWorkgroupSize[2] = threadGroupSize[2];
@@ -74,12 +74,7 @@ namespace b3d
 				createInformation.EntryPoint = mEntryPoint;
 				createInformation.Language = mLanguage;
 				createInformation.Source = mSource;
-
-				Array<u32, 3> threadGroupSize = { mWorkgroupSize[0], mWorkgroupSize[1], mWorkgroupSize[2] };
-				if(mBytecode != nullptr)
-					threadGroupSize = mBytecode->ThreadGroupSize;
-
-				createInformation.ThreadGroupSize = threadGroupSize;
+				createInformation.ShaderReflection = mShaderReflection;
 
 				mBytecode = mGpuDevice.CompileGpuProgramBytecode(createInformation);
 			}

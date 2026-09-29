@@ -325,37 +325,24 @@ bool FileSystem::Iterate(const Path& dirPath, std::function<bool(const Path&)> f
 
 Path FileSystem::GetTemporaryFolderPath()
 {
+	// Returns the shared system temporary folder, same as Win32. Callers create uniquely named entries inside it.
 	String tmpdir;
-
-	// Try different things:
-	// 1) If defined, honor the TMPDIR environnement variable
-	char* TMPDIR = getenv("TMPDIR");
-	if(TMPDIR != nullptr)
+	const char* TMPDIR = getenv("TMPDIR");
+	if(TMPDIR != nullptr && TMPDIR[0] != '\0')
 		tmpdir = TMPDIR;
 	else
 	{
-		// 2) If defined, honor the P_tmpdir macro
 #ifdef P_tmpdir
 		tmpdir = String(P_tmpdir);
 #else
-		// 3) If everything else fails, simply default to /tmp
 		tmpdir = String("/tmp");
 #endif
 	}
 
-	tmpdir.append("/bsf-XXXXXX");
+	if(tmpdir.back() != '/')
+		tmpdir.push_back('/');
 
-	// null terminated, modifiable tmpdir name template
-	Vector<char> nameTemplate(tmpdir.c_str(), tmpdir.c_str() + tmpdir.size() + 1);
-	char* directoryName = mkdtemp(nameTemplate.data());
-
-	if(directoryName == nullptr)
-	{
-		B3D_LOG(Error, LogFileSystem, "{0}: {1}", String(__FUNCTION__), String(strerror(errno)));
-		return Path(StringUtility::kBlank);
-	}
-
-	return Path(String(directoryName) + "/");
+	return Path(tmpdir);
 }
 
 Path FileSystem::GetExecutableFolderPath()

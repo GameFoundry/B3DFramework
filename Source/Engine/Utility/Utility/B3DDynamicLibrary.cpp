@@ -24,8 +24,9 @@ String DynamicLibrary::EnsureFileName(const StringView& name)
 	if (kPrefix != nullptr)
 	{
 		const String prefix(kPrefix);
-		if (fileName.length() < prefix.length() || fileName.substr(0, prefix.length()) != prefix)
-			fileName.insert(0, prefix);
+		const String::size_type filenameStart = fileName.find_last_of("/\\") + 1;
+		if (fileName.compare(filenameStart, prefix.length(), prefix) != 0)
+			fileName.insert(filenameStart, prefix);
 	}
 
 	return fileName;

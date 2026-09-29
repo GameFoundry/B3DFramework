@@ -12,6 +12,8 @@
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DGpuPushConstants.h"
 #include "GpuBackend/B3DVertexDescription.h"
+#include "Material/B3DShaderParameterDescription.h"
+#include "Material/B3DShaderReflection.h"
 #include "Math/B3DMath.h"
 #include "Utility/B3DScopeGuard.h"
 
@@ -316,6 +318,46 @@ namespace
 		}
 
 		return reflectionValid;
+	}
+
+	/**
+	 * Restores the declared type of uniform-buffer members that SPIRV-Cross widened to satisfy MSL packing rules.
+	 * A std140 array of scalars or small vectors, or a matrix whose column stride exceeds its native MSL size, is
+	 * emitted as a wider physical type (e.g. float[N] becomes float4[N]), which is what Metal reflection reports.
+	 * The member keeps the reflected offsets and strides, since those describe the actual buffer layout.
+	 */
+	void RestoreDeclaredMemberTypes(const ShaderReflection* shaderReflection, GpuProgramParameterDescription& outDescription)
+	{
+		if(shaderReflection == nullptr || shaderReflection->Parameters == nullptr)
+			return;
+
+		for(const auto& entry : shaderReflection->Parameters->GetDataParameters())
+		{
+			const ShaderDataParameterInformation& declared = entry.second;
+			// Color is a source-level alias of float4/float3, and structs are reflected with their own layout.
+			if(declared.Type == GPDT_UNKNOWN || declared.Type == GPDT_STRUCT || declared.Type == GPDT_COLOR)
+				continue;
+
+			const auto found = outDescription.UniformBufferMembers.find(declared.GpuVariableName);
+			if(found == outDescription.UniformBufferMembers.end())
+				continue;
+
+			GpuUniformBufferMemberInformation& member = found->second;
+			if(member.Type == declared.Type || member.Type == GPDT_STRUCT || member.Type == GPDT_UNKNOWN)
+				continue;
+
+			// Only narrow a type that is a widened version of the declared one, so genuine mismatches still surface.
+			const GpuDataParameterTypeInformation& declaredType = b3d::GpuParameterSet::kParamSizes.Lookup[(u32)declared.Type];
+			const GpuDataParameterTypeInformation& reflectedType = b3d::GpuParameterSet::kParamSizes.Lookup[(u32)member.Type];
+			const bool isWidened = declaredType.BaseTypeSize == reflectedType.BaseTypeSize
+				&& declaredType.NumRows <= reflectedType.NumRows && declaredType.NumColumns <= reflectedType.NumColumns
+				&& declaredType.Size <= reflectedType.Size && declaredType.Size <= member.ArrayElementStride * 4;
+			if(!isWidened)
+				continue;
+
+			member.Type = declared.Type;
+			member.ElementSize = Math::DivideAndRoundUp(declaredType.Size, 4u);
+		}
 	}
 
 	bool ReflectArgumentMember(MTLStructMember* member, id<MTLBufferBinding> tableBinding, GpuProgramParameterDescription& outDescription, GpuDescriptorTableEntry& outEntry, String& outMessages)
@@ -740,10 +782,14 @@ bool BytecodeCompilerMSL::IsUpToDate(const GpuProgramBytecode& bytecode) const
 
 TShared<GpuProgramBytecode> BytecodeCompilerMSL::CompileBytecode(const GpuProgramCreateInformation& createInformation)
 {
+	const ShaderEntryPointReflection& entryPointReflection = createInformation.GetEntryPointReflection();
+	const Array<u32, 3>& threadGroupSize = entryPointReflection.ThreadGroupSize;
+	const u32 pushConstantBufferSize = entryPointReflection.PushConstantBufferSize;
+
 	TShared<GpuProgramBytecode> bytecode = B3DMakeShared<GpuProgramBytecode>();
 	bytecode->CompilerId = kMetalCompilerId;
 	bytecode->CompilerVersion = kMetalCompilerVersion;
-	bytecode->ThreadGroupSize = createInformation.ThreadGroupSize;
+	bytecode->ThreadGroupSize = threadGroupSize;
 
 	if(!IsProgramTypeSupported(createInformation.Type))
 	{
@@ -751,16 +797,16 @@ TShared<GpuProgramBytecode> BytecodeCompilerMSL::CompileBytecode(const GpuProgra
 		return bytecode;
 	}
 
-	if(createInformation.PushConstantBufferSize != 0 && ((createInformation.PushConstantBufferSize & 3u) != 0 || createInformation.PushConstantBufferSize > kMaxPushConstantSizeInBytes))
+	if(pushConstantBufferSize != 0 && ((pushConstantBufferSize & 3u) != 0 || pushConstantBufferSize > kMaxPushConstantSizeInBytes))
 	{
 		bytecode->Messages = StringUtility::Format("Metal push-constant size must be four-byte aligned and no greater than {0} bytes.", kMaxPushConstantSizeInBytes);
 		return bytecode;
 	}
 
-	if(createInformation.Bytecode != nullptr && createInformation.Bytecode->ParameterDescription != nullptr && IsUpToDate(*createInformation.Bytecode) && createInformation.Bytecode->ParameterDescription->PushConstantBufferSize == createInformation.PushConstantBufferSize)
+	if(createInformation.Bytecode != nullptr && createInformation.Bytecode->ParameterDescription != nullptr && IsUpToDate(*createInformation.Bytecode) && createInformation.Bytecode->ParameterDescription->PushConstantBufferSize == pushConstantBufferSize)
 		return createInformation.Bytecode;
 
-	if(createInformation.Type == GPT_COMPUTE_PROGRAM && (createInformation.ThreadGroupSize[0] == 0 || createInformation.ThreadGroupSize[1] == 0 || createInformation.ThreadGroupSize[2] == 0))
+	if(createInformation.Type == GPT_COMPUTE_PROGRAM && (threadGroupSize[0] == 0 || threadGroupSize[1] == 0 || threadGroupSize[2] == 0))
 	{
 		bytecode->Messages = "Metal compute threadgroup dimensions must all be greater than zero.";
 		return bytecode;
@@ -879,7 +925,7 @@ TShared<GpuProgramBytecode> BytecodeCompilerMSL::CompileBytecode(const GpuProgra
 
 		NSString* entryPointName = [NSString stringWithUTF8String:entryPoint.c_str()];
 		id<MTLFunction> function = nil;
-		const bool reflectionSucceeded = ReflectLibrary(library, entryPointName, createInformation.Type, createInformation.PushConstantBufferSize, *bytecode, function);
+		const bool reflectionSucceeded = ReflectLibrary(library, entryPointName, createInformation.Type, pushConstantBufferSize, *bytecode, function);
 #if !__has_feature(objc_arc)
 		[function release];
 		[library release];
@@ -888,6 +934,8 @@ TShared<GpuProgramBytecode> BytecodeCompilerMSL::CompileBytecode(const GpuProgra
 
 		if(!reflectionSucceeded)
 			return bytecode;
+
+		RestoreDeclaredMemberTypes(createInformation.ShaderReflection.get(), *bytecode->ParameterDescription);
 	}
 
 	bytecode->Instructions.Size = (u32)libraryData.size();

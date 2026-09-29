@@ -65,6 +65,7 @@ shader ShadowProject
 		SamplerState gShadowSampler;
 	
 		[internal]
+		[dynamicOffset]
 		cbuffer Params
 		{
 			// Transform a point in mixed space (xy - clip space, z - view space) to a point

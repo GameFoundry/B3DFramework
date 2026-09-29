@@ -4,6 +4,9 @@ B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_RENDERBEAST_SRC)
 # Target
 B3DAddPlugin(bsfRenderBeast ENGINE ${BS_RENDERBEAST_SRC})
 
+# Loading the plugin registers its renderer materials, which the shader cook needs
+B3DRegisterShaderCookModule(bsfRenderBeast)
+
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(bsfRenderBeast)
 

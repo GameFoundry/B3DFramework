@@ -190,6 +190,7 @@ mixin DecalBase
 		};
 
 		[internal]
+		[dynamicOffset]
 		cbuffer DecalParams : register(c1, space1)
 		{
 			float4x4 gWorldToDecal;

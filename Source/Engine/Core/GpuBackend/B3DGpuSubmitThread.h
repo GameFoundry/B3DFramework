@@ -71,17 +71,18 @@ namespace b3d::render
 		 *
 		 * @param	queue			Queue whose completion state to refresh.
 		 * @param	forceWait		If true, waits until the relevant command buffers finish executing.
-		 * @param	lastSubmitIndex	Index of the last submitted command buffer to check. If ~0u, all submitted
-		 *							command buffers are checked.
+		 * @param	lastFenceValue	Fence value of the last submission to check, as returned by
+		 *							GetLastSubmittedFenceValue(). If ~0, all submitted command buffers are checked.
 		 */
-		virtual void RefreshCompletionState(GpuQueue& queue, bool forceWait, u32 lastSubmitIndex = ~0u) = 0;
+		virtual void RefreshCompletionState(GpuQueue& queue, bool forceWait, u64 lastFenceValue = ~0ull) = 0;
 
 		/**
-		 * Returns the submit index of the most recently tracked submission on the provided queue, or 0 if nothing
-		 * has been submitted yet. Captured at a frame boundary and passed to RefreshCompletionState() to wait for
-		 * the command-buffer work associated with that frame.
+		 * Returns the value the queue's own fence is signalled with by its most recent submission, or 0 if nothing has
+		 * been submitted yet. Values increase with submission order. A GPU wait on the value must order the waiting
+		 * submission after all work submitted on the queue up to that point, with all of that work's writes available
+		 * and visible.
 		 */
-		virtual u32 GetLastSubmitIndex(const GpuQueue& queue) const = 0;
+		virtual u64 GetLastSubmittedFenceValue(const GpuQueue& queue) const = 0;
 
 		/** Blocks until all work on the device finishes executing on the GPU, using the backend's native wait. */
 		virtual void ExecuteWaitUntilIdle() = 0;
@@ -103,11 +104,11 @@ namespace b3d::render
 		struct FrameCompletionMarker
 		{
 			/**
-			 * Submit index of the last tracked submission on each queue (indexed by GpuQueueId) as of this frame's
-			 * boundary. Waiting on every queue up to its captured index guarantees all tracked command buffers from
-			 * the frame have completed.
+			 * Fence value of the last submission on each queue (indexed by GpuQueueId) as of this frame's boundary. The
+			 * next frame's first submission on every queue waits on all of them (see ConsumeFrameFence()), and frame
+			 * pacing waits until every queue reaches its value before the frame's resources are reused.
 			 */
-			Array<u32, B3D_MAX_UNIQUE_QUEUES> LastSubmitIndices = {};
+			Array<u64, B3D_MAX_UNIQUE_QUEUES> LastFenceValues = {};
 
 			/** Event signalled when this frame has been completely processed by the submit thread. */
 			SignalEvent CompletionEvent;
@@ -172,6 +173,26 @@ namespace b3d::render
 		/** Blocks the calling thread until all commands on the provided queue have finished executing. */
 		void WaitUntilIdle(GpuQueue& queue);
 
+		/**
+		 * Returns the fence values every queue had at the last frame boundary if this is the first call for @p queue since
+		 * that boundary, or an empty view otherwise. Backends that synchronize explicitly call this for every command
+		 * buffer submission, including their own internal ones, and make the submission wait on each non-zero value, the
+		 * queue's own included. This orders all of a frame's work on every queue after all of the previous frame's work,
+		 * with all of its writes available and visible, even when submissions narrow their sync masks.
+		 * Frame-scoped systems, such as transient resource aliasing, rely on this.
+		 *
+		 * @note	Submit thread only. The returned view is valid until the next frame boundary.
+		 */
+		TArrayView<const u64> ConsumeFrameFence(const GpuQueue& queue);
+
+		/**
+		 * Returns true if the next command buffer submission on @p queue still has to wait on the last frame boundary's
+		 * fence values.
+		 *
+		 * @note	Submit thread only, or while the submit thread is idle.
+		 */
+		bool IsFrameFencePending(const GpuQueue& queue) const { return mFrameFencePendingQueues.IsSet(queue.GetId()); }
+
 		/** Returns a pool that may be used for allocating command buffers for the submit thread. */
 		GpuCommandBufferPool& GetCommandBufferPool(GpuQueueType queueType) const { return *mCommandBufferPools[queueType]; }
 
@@ -189,8 +210,14 @@ namespace b3d::render
 		/** Current frame index (0 to kFrameCount-1), tracked internally by submit thread. */
 		u32 mCurrentFrameIndex = 0;
 
-		/** Per-frame completion tracking (per-queue submit-index snapshot and completion event). */
+		/** Per-frame completion tracking (per-queue fence value snapshot and completion event). */
 		Array<FrameCompletionMarker, kFrameCount> mFrameMarkers;
+
+		/** Queues whose next command buffer submission must wait on the frame fence. Submit thread only. */
+		GpuQueueMask mFrameFencePendingQueues;
+
+		/** Index of the frame marker that holds the frame fence values. Submit thread only. */
+		u32 mFrameFenceMarkerIndex = 0;
 	};
 
 	/** Asserts if the current thread isn't the submit thread. */

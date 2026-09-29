@@ -218,7 +218,7 @@ namespace b3d
 			 * Reads the contents of this render target. Issues a copy command into the command buffer
 			 * and returns an async operation that triggers when the data has been read.
 			 *
-			 * @param	gpuContext			Work context whose transient allocator backs the readback staging buffer.
+			 * @param	gpuContext			Work context whose scratch allocator backs the readback staging buffer.
 			 * @param	commandBuffer		Command buffer to issue copy commands into.
 			 * @param	colorSurfaceIndex	Which color surface to read (default 0).
 			 * @param	mipLevel			Mip level to read (default 0).

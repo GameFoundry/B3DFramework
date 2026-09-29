@@ -5,9 +5,11 @@
 #include "B3DShaderCookerSource.h"
 #include "Material/B3DShaderCompiler.h"
 #include "Material/B3DShaderRegistry.h"
+#include "Plugin/B3DPluginLoader.h"
 #include "Renderer/B3DRendererMaterialManager.h"
 #include "Renderer/B3DRendererMaterial.h"
 #include "Resources/B3DBuiltinResources.h"
+#include "Resources/B3DPackage.h"
 #include "GpuBackend/B3DGpuProgram.h"
 #include "GpuBackend/B3DGpuBackend.h"
 #include "FileSystem/B3DFileSystem.h"
@@ -95,27 +97,41 @@ namespace
 		}
 	}
 
-	/** Runs the shader cook: all *.bsl shaders from @p inputFolders into a single store package. Returns the process exit code. */
-	int RunShaderCook(const Vector<Path>& inputFolders, const Path& outputPath, const String& language, bool force)
+	/**
+	 * Runs the shader cook: all *.bsl shaders from @p inputFolders into a single store package. @p modules name the
+	 * libraries whose renderer materials must be registered before the shaders are classified. Returns the process exit
+	 * code.
+	 */
+	int RunShaderCook(const Vector<Path>& inputFolders, const Vector<String>& modules, const Path& outputPath, const String& language, bool force)
 	{
 		if(!IsLanguageSupported(language))
 			return 2;
 
-		// Load renderer so we can query its renderer materials, but don't activate the renderer.
-		GetApplication().LoadPlugin("bsfRenderBeast");
+		if(modules.empty())
+			B3D_LOG(Warning, LogGeneric, "No shader cook modules were passed through -modules. Only renderer materials declared in bsf are registered, so shaders of renderer materials declared elsewhere are cooked without their defines.");
+
+		// Loading a module runs its renderer-material registrations. None of its entry points are called, so nothing is activated.
+		for(const String& module : modules)
+		{
+			if(!PluginLoader::LoadWithoutEntryPoint(module))
+			{
+				B3D_LOG(Error, LogGeneric, "Cannot load shader cook module \"{0}\". If the cook runs through B3D_HOST_TOOLS_DIR, build the module in the host tree.", module);
+				return 1;
+			}
+		}
 
 		// If nothing registered, every renderer-material shader would be mis-keyed, so abort loudly rather than cook silently wrong.
 		Vector<RendererMaterialManager::RendererMaterialShaderInfo> rendererMaterialShaders;
 		RendererMaterialManager::GetRegisteredMaterialShaders(rendererMaterialShaders);
 		if(rendererMaterialShaders.empty())
 		{
-			B3D_LOG(Error, LogGeneric, "No renderer materials are registered. The cook cannot classify renderer-material shaders; ensure bsfRenderBeast is available. Aborting.");
+			B3D_LOG(Error, LogGeneric, "No renderer materials are registered. The cook cannot classify renderer-material shaders; pass the libraries that declare them through -modules (see B3DRegisterShaderCookModule). Aborting.");
 			return 1;
 		}
 
 		B3D_LOG(Info, LogGeneric, "{0} renderer-material shader registration(s) found.", (u32)rendererMaterialShaders.size());
 
-		// Skip-up-to-date: if the output package is newer than every input file, there is nothing to do (unless forced).
+		// Skip only when the store uses the current cache format and is newer than every input file (unless forced).
 		if(!force && FileSystem::Exists(outputPath))
 		{
 			const std::time_t outputTime = FileSystem::GetLastModifiedTime(outputPath);
@@ -126,8 +142,15 @@ namespace
 
 			if(outputTime >= newestInputTime)
 			{
-				B3D_LOG(Info, LogGeneric, "Prebuilt shader store \"{0}\" is up to date. Skipping (use -force to re-cook).", outputPath.ToString());
-				return 0;
+				// Inspect the package index without deserializing potentially incompatible shader data.
+				const TShared<Package> package = Package::Load(outputPath);
+				if(package != nullptr && ShaderRegistry::DoesPrebuiltStoreVersionMatch(*package))
+				{
+					B3D_LOG(Info, LogGeneric, "Prebuilt shader store \"{0}\" is up to date. Skipping (use -force to re-cook).", outputPath.ToString());
+					return 0;
+				}
+
+				B3D_LOG(Info, LogGeneric, "Prebuilt shader store \"{0}\" has missing or incompatible version metadata. Rebuilding for version {1}.", outputPath.ToString(), ShaderRegistry::kCacheVersion);
 			}
 		}
 
@@ -155,9 +178,11 @@ int main(int argc, char* argv[])
 	CommandLine::Initialize(argc, argv);
 
 	// CLI: -input takes one or more shader source folders, separated by ';' (defaults to the engine's builtin shader
-	// folder). -output names the store package to write and -language the single low-level shading language to cook for
-	// (for example "-language vksl"). -force re-cooks even if up to date.
+	// folder). -modules takes the names of libraries that declare renderer materials, separated by ';' (for example
+	// "-modules bsfRenderBeast;FrameworkTests"). -output names the store package to write and -language the single
+	// low-level shading language to cook for (for example "-language vksl"). -force re-cooks even if up to date.
 	const String inputParameter = CommandLine::GetParameterValue("input");
+	const String modulesParameter = StringUtility::Trim(CommandLine::GetParameterValue("modules"));
 	const String outputParameter = CommandLine::GetParameterValue("output");
 
 	String language = StringUtility::Trim(CommandLine::GetParameterValue("language"));
@@ -189,12 +214,20 @@ int main(int argc, char* argv[])
 	if(inputFolders.empty())
 		inputFolders.push_back(BuiltinResources::GetShaderFolder());
 
+	Vector<String> modules;
+	for(const String& module : StringUtility::Split(modulesParameter, ";"))
+	{
+		const String trimmed = StringUtility::Trim(module);
+		if(!trimmed.empty())
+			modules.push_back(trimmed);
+	}
+
 	const Path outputPath = outputParameter.empty() ? ShaderRegistry::GetPrebuiltStorePath() : Path(outputParameter);
 
-	B3D_LOG(Info, LogGeneric, "Banshee Cook Tool started. Input {0}, output \"{1}\", language \"{2}\", force {3}.",
-		MakeFolderListing(inputFolders), outputPath.ToString(), language, force ? "yes" : "no");
+	B3D_LOG(Info, LogGeneric, "Banshee Cook Tool started. Input {0}, modules \"{1}\", output \"{2}\", language \"{3}\", force {4}.",
+		MakeFolderListing(inputFolders), modulesParameter, outputPath.ToString(), language, force ? "yes" : "no");
 
-	int exitCode = RunShaderCook(inputFolders, outputPath, language, force);
+	int exitCode = RunShaderCook(inputFolders, modules, outputPath, language, force);
 
 	Application::ShutDown();
 	return exitCode;

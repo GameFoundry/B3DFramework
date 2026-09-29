@@ -166,7 +166,7 @@ GUIPhysicalArea GUIListBox::GetArrowCachedContentBoundsInElementSpace() const
 		const GUIStyleSheetRules& arrowRules = arrowRuleInformation.CurrentStateRuleset->Rules;
 		logicalArea = GUIUtility::RemovePaddingAndBorder(GetArrowCachedContentSize(), arrowRules);
 
-		const GUILogicalUnit arrowAreaOffset = Math::Max(fullContentArea.Width - (logicalArea.Width + arrowRules.Padding.Right + (i32)arrowRules.BorderRight.GetVisibleWidth()), 0);
+		const GUILogicalUnit arrowAreaOffset = Math::Max(fullContentArea.Width - (logicalArea.Width + arrowRules.Padding.Right + arrowRules.GetBorderInsets().Right), 0);
 		logicalArea.X += fullContentArea.X + arrowAreaOffset;
 	}
 
@@ -183,9 +183,10 @@ GUILogicalSize GUIListBox::GetArrowCachedContentSize() const
 	if(arrowRuleInformation.CurrentStateRuleset != nullptr)
 	{
 		const GUIStyleSheetRules& arrowRules = arrowRuleInformation.CurrentStateRuleset->Rules;
+		const RectOffset arrowBorder = arrowRules.GetBorderInsets();
 		output.Width = (i32)arrowRules.Size.Width +
 			arrowRules.Padding.Left + arrowRules.Padding.Right +
-			(i32)arrowRules.BorderLeft.GetVisibleWidth() + (i32)arrowRules.BorderRight.GetVisibleWidth();
+			arrowBorder.Left + arrowBorder.Right;
 	}
 
 	return output;
@@ -213,7 +214,7 @@ void GUIListBox::UpdateRenderElements()
 	{
 		SpriteVectorPathCreateInformation spriteVectorPathCreateInformation;
 		spriteVectorPathCreateInformation.DefaultSize = mArrowSpriteInformation.Size;
-		spriteVectorPathCreateInformation.VectorPath = mArrowPathBuilder->BuildPath(spriteVectorPathCreateInformation.DefaultSize, arrowStyleSheetRules);
+		spriteVectorPathCreateInformation.VectorPath = mArrowPathBuilder->BuildPath(spriteVectorPathCreateInformation.DefaultSize, arrowStyleSheetRules, GetAbsoluteScale());
 
 		mArrowSpriteInformation.Image = SpriteVectorPath::Create(spriteVectorPathCreateInformation);
 	}

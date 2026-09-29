@@ -554,7 +554,7 @@ static TShared<GpuBuffer> CreateGpuParticleVertexInputBuffer()
 	GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
 
 	const u32 size = gGpuParticleTileVertexUniformDefinition.GetSize();
-	TShared<GpuBuffer> stagingBuffer = gpuContext.CreateTransientGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(size));
+	TShared<GpuBuffer> stagingBuffer = gpuContext.CreateScratchGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(size));
 	GpuBufferMappedScope stagingMemory = stagingBuffer->Map(GpuMapOption::Write);
 
 	TShared<GpuBuffer> inputBuffer = gGpuParticleTileVertexUniformDefinition.CreateBuffer(GpuBufferFlag::StoreOnGPU);

@@ -24,9 +24,11 @@ namespace b3d
 		 *
 		 * @param		size		Size of the path to be displayed on the screen, in pixels.
 		 * @param		rule		Current style sheet rule used by the GUI element.
+		 * @param		scale		Scale from the logical units of the style sheet rule (e.g. border widths and radii) to
+		 *							pixels, i.e. the DPI scale of the GUI element.
 		 * @return					New vector path.
 		 */
-		virtual HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& rule) const = 0;
+		virtual HVectorPath BuildPath(const Size2I& size, const GUIStyleSheetRules& rule, float scale) const = 0;
 	};
 
 	/** @} */

@@ -40,6 +40,7 @@ mixin DeferredLightCommon
 
 	code
 	{
+		[dynamicOffset]
 		cbuffer PerLight
 		{
 			// x, y, z - World position of the light

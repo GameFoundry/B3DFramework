@@ -68,28 +68,35 @@ namespace b3d
 			/**
 			 * Returns the material variation matching the provided parameters.
 			 *
-			 * @param	msaaCount		Number of MSAA samples in the input texture. If larger than 1 the texture will be resolved
-			 *							before written to the destination.
-			 * @param	isColor			If true the input is assumed to be a 4-component color texture. If false it is assumed
-			 *							the input is a 1-component depth texture. This controls how is the texture resolve and is
-			 *							only relevant if @p msaaCount > 1. Color texture MSAA samples will be averaged, while for
-			 *							depth textures the minimum of all samples will be used.
-			 * @param	isFiltered		True if to apply bilinear filtering to the sampled texture. Only relevant for color
-			 *							textures with no multiple samples.
-			 * @param	blend			If true blit source will be blended with the target image, rather than overwriting it, using
-			 *							the alpha value from the source.
-			 * @param	writeAlpha		If true, alpha value from the source will be passed to the destination. Only relevant when
-			 *							@p blend in enabled.
-			 * @param	srgbEncode		If true, the sampled color is encoded from linear into sRGB (gamma) space before being
-			 *							written. Used when compositing a hardware-sRGB source (which decodes to linear on sample)
-			 *							onto a non-sRGB target that expects sRGB-encoded values. Only relevant for color blits.
-			 * @param	output32Bit		True if the destination color surface uses a 32-bit float format. Backends that bake
-			 *							the render target format into the fragment program would otherwise truncate the
-			 *							output to 16 bits. Only relevant for color blits.
+			 * @param	msaaCount			Number of MSAA samples in the input texture. If larger than 1 the texture will be resolved
+			 *								before written to the destination.
+			 * @param	isColor				If true the input is assumed to be a 4-component color texture. If false it is assumed
+			 *								the input is a 1-component depth texture. This controls how is the texture resolve and is
+			 *								only relevant if @p msaaCount > 1. Color texture MSAA samples will be averaged, while for
+			 *								depth textures the minimum of all samples will be used.
+			 * @param	isFiltered			True if to apply bilinear filtering to the sampled texture. Only relevant for color
+			 *								textures with no multiple samples.
+			 * @param	blend				If true blit source will be blended with the target image, rather than overwriting it, using
+			 *								the alpha value from the source.
+			 * @param	premultipliedAlpha	If true the source color is assumed to be premultiplied by its alpha. Only relevant when
+			 *								@p blend is enabled.
+			 * @param	writeAlpha			If true, alpha value from the source will be passed to the destination. Only relevant when
+			 *								@p blend in enabled.
+			 * @param	srgbEncode			If true, the sampled color is encoded from linear into sRGB (gamma) space before being
+			 *								written. Used when compositing a hardware-sRGB source (which decodes to linear on sample)
+			 *								onto a non-sRGB target that expects sRGB-encoded values. Only relevant for color blits,
+			 *								and not supported for multisampled sources.
+			 * @param	output32Bit			True if the destination color surface uses a 32-bit float format. Backends that bake
+			 *								the render target format into the fragment program would otherwise truncate the
+			 *								output to 16 bits. Only relevant for color blits.
 			 */
-			static BlitMat* GetVariation(u32 msaaCount, bool isColor, bool isFiltered, bool blend = false, bool writeAlpha = false, bool srgbEncode = false, bool output32Bit = false);
+			static BlitMat* GetVariation(u32 msaaCount, bool isColor, bool isFiltered, bool blend = false, bool premultipliedAlpha = false, bool writeAlpha = false, bool srgbEncode = false, bool output32Bit = false);
 
 		private:
+			/** Returns a single-sample color variation that blends using the provided BLEND shader mode. */
+			template <u32 BLEND>
+			static BlitMat* GetBlendVariation(bool isFiltered, bool writeAlpha, bool srgbEncode, bool output32Bit);
+
 			bool mIsFiltered = false;
 		};
 
@@ -308,6 +315,12 @@ namespace b3d
 			bool UseBlend = false;
 
 			/**
+			 * If true, the source texture color is premultiplied by its alpha, and blending uses (one, inverse source alpha, add)
+			 * for both color and alpha. Only relevant when @p UseBlend is true.
+			 */
+			bool PremultipliedAlpha = false;
+
+			/**
 			 * Controls whether the alpha channel is written during blending operations. Only relevant
 			 * when @p UseBlend is true. If false, only RGB channels are written and alpha is preserved.
 			 * If true, all RGBA channels are written.
@@ -317,7 +330,8 @@ namespace b3d
 			/**
 			 * If true, the sampled color is encoded from linear into sRGB (gamma) space before being written.
 			 * Use when the source is a hardware-sRGB texture (which the GPU decodes to linear on sample) but the
-			 * destination is a non-sRGB target that expects sRGB-encoded values. Only relevant for color blits (@p IsDepth false).
+			 * destination is a non-sRGB target that expects sRGB-encoded values. Only relevant for color blits (@p IsDepth false),
+			 * and not supported for multisampled sources.
 			 */
 			bool SrgbEncode = false;
 

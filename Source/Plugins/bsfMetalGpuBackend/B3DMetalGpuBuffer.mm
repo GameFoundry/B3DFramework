@@ -35,7 +35,7 @@ namespace b3d
 			mBuffer = nullptr;
 			mMappedMemory = nullptr;
 
-			if (mAllocation.IsValid())
+			if (mAllocation.IsOwned())
 				mAllocation.Allocator->Free(mAllocation);
 		}
 
@@ -51,16 +51,9 @@ namespace b3d
 			}
 		}
 
-		MetalGpuBuffer::MetalGpuBuffer(MetalGpuDevice& device, const GpuBufferCreateInformation& createInformation)
-			: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device)), mGpuDevice(device), mMemoryType(MetalHeapAllocator::PickBufferMemoryType(createInformation)), mDirectlyMappable(createInformation.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess) || createInformation.Type == GpuBufferType::StagingRead || createInformation.Type == GpuBufferType::StagingWrite)
+		MetalGpuBuffer::MetalGpuBuffer(MetalGpuDevice& device, const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location)
+			: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device), location), mGpuDevice(device), mMemoryType(MetalHeapAllocator::GetBufferMemoryType(createInformation)), mDirectlyMappable(createInformation.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess) || createInformation.Type == GpuBufferType::StagingRead || createInformation.Type == GpuBufferType::StagingWrite)
 		{ }
-
-		MetalGpuBuffer::MetalGpuBuffer(MetalGpuDevice& device, const GpuBufferCreateInformation& createInformation,
-			IGpuAllocator& allocator)
-			: MetalGpuBuffer(device, createInformation)
-		{
-			mAllocator = &allocator;
-		}
 
 		MetalGpuBuffer::~MetalGpuBuffer()
 		{
@@ -81,12 +74,10 @@ namespace b3d
 				size = 64;
 
 			GpuResourceLocation location;
-			MetalBufferNativeHandle handle = mAllocator != nullptr
-				? mGpuDevice.GetHeapAllocator().AllocateBuffer(size, mMemoryType, *mAllocator, location)
-				: mGpuDevice.GetHeapAllocator().AllocateBuffer(size, mMemoryType, location);
+			MetalBufferNativeHandle handle = mGpuDevice.GetHeapAllocator().AllocateBuffer(size, mMemoryType, mRequestedLocation, location);
 			if (handle == nil)
 			{
-				B3D_LOG(Error, LogRenderBackend, "Failed to create {0} MTLBuffer of {1} bytes.", mAllocator != nullptr ? "transient" : "persistent", size);
+				B3D_LOG(Error, LogRenderBackend, "Failed to create MTLBuffer of {0} bytes.", size);
 				return nullptr;
 			}
 

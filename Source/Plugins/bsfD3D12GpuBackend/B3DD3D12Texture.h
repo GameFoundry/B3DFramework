@@ -122,8 +122,11 @@ namespace b3d
 		class D3D12Texture : public Texture
 		{
 		public:
-			/** Creates a texture owned by @p device. Call Initialize() before use. */
-			D3D12Texture(const TextureCreateInformation& createInformation, GpuDevice& device);
+			/**
+			 * Creates a texture owned by @p device, whose native resource is placed at @p location. See
+			 * GpuDevice::CreateTexture(). Call Initialize() before use.
+			 */
+			D3D12Texture(const TextureCreateInformation& createInformation, GpuDevice& device, const GpuResourceLocation& location);
 			~D3D12Texture() override;
 
 			void Initialize() override;
@@ -163,6 +166,12 @@ namespace b3d
 			 * valid for textures created with AllowUnorderedAccessOnTheGPU. Returns a zeroed handle otherwise.
 			 */
 			D3D12_CPU_DESCRIPTOR_HANDLE GetUAVHandle(const TextureSurface& surface);
+
+			/**
+			 * Builds the native resource description of a texture with @p properties, and the default typed format its
+			 * views use. Logs an error and returns false if the texture cannot be represented.
+			 */
+			static bool BuildResourceDescription(const TextureProperties& properties, D3D12_RESOURCE_DESC& outResourceDesc, DXGI_FORMAT& outViewFormat);
 
 		private:
 			/** Distinguishes cached view types. */

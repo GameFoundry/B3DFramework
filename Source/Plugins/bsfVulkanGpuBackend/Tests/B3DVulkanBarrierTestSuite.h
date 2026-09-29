@@ -42,5 +42,8 @@ namespace b3d
 
 		/** Two dispatches reuse one storage-image binding and consume each other's writes. */
 		void TestRepeatedStorageImageDispatch();
+
+		/** Checks that a frame boundary arms frame-start waits on every queue, and that each queue's next submission alone consumes them. */
+		void TestFrameFence();
 	};
 } // namespace b3d

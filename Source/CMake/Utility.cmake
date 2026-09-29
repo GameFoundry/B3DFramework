@@ -84,8 +84,9 @@ function(B3DRegisterOptionalFrameworkSubdirectories)
 	# Stock icon generation script
 	include(${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/StockIcons.cmake)
 
-	# Shader cook, once every contributor (engine, examples) has registered its shader folders
-	B3DAddShaderCookTarget()
+	# Shader cook, deferred to the end of the calling folder so that targets added after this call (such as the editor)
+	# can still register shader folders and shader cook modules
+	cmake_language(DEFER CALL B3DAddShaderCookTarget)
 endfunction()
 
 # Registers all relevant runtime dependencies for the specified target. This includes the minimal subset of

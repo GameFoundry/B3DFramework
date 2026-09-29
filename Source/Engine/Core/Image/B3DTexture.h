@@ -492,7 +492,11 @@ namespace b3d
 		class B3D_EXPORT Texture : public RenderProxy
 		{
 		public:
-			Texture(const TextureCreateInformation& createInformation);
+			/**
+			 * Constructs a texture whose native resource is created at @p location. See
+			 * GpuDevice::CreateTexture(const TextureCreateInformation&, const GpuResourceLocation&, GpuObjectCreateFlags).
+			 */
+			Texture(const TextureCreateInformation& createInformation, const GpuResourceLocation& location);
 			virtual ~Texture() {}
 
 			void Initialize() override;
@@ -563,6 +567,12 @@ namespace b3d
 			/** Number of in-flight submissions currently referencing the given subresource. */
 			virtual u32 GetUseCount(u32 subresourceIdx = 0) const = 0;
 
+			/**
+			 * Returns true if the texture is fixed to the memory it was created at. Such a texture never recreates its
+			 * native resource, so writes cannot discard its contents.
+			 */
+			bool HasFixedLocation() const { return !mRequestedLocation.IsPending(); }
+
 			/**	Returns properties that contain information about the texture. */
 			const TextureProperties& GetProperties() const { return mProperties; }
 
@@ -617,6 +627,13 @@ namespace b3d
 			TextureProperties mProperties;
 			TShared<PixelData> mInitData;
 			void* mMappedMemory = nullptr;
+
+			/**
+			 * Location requested at creation, reused every time the native resource is (re)created. Either memory the native
+			 * resource is placed at, or a pending location naming the allocator each (re)creation allocates from. Never owned
+			 * by the proxy itself.
+			 */
+			GpuResourceLocation mRequestedLocation;
 		};
 
 		/** Flags controlling texture write behavior. */
@@ -654,10 +671,10 @@ namespace b3d
 		{
 			/**
 			 * Creates a staging buffer sized appropriately for texture data transfer. Staging buffers are single-use, so
-			 * they are allocated from the performing context's transient allocator — the memory is reclaimed in bulk once
+			 * they are allocated from the performing context's scratch allocator — the memory is reclaimed in bulk once
 			 * the GPU work that used it completes, and must not be retained past that point.
 			 *
-			 * @param gpuContext	Context whose transient allocator backs the staging buffer.
+			 * @param gpuContext	Context whose scratch allocator backs the staging buffer.
 			 * @param texture		Texture for which to create the staging buffer.
 			 * @param mipLevel		Mip level of the texture subresource.
 			 * @param readable		True if the buffer needs to be CPU-readable (for readback), false if CPU-writeable (for upload).
@@ -668,7 +685,7 @@ namespace b3d
 			/**
 			 * Creates a staging buffer with the specified size. See the other overload regarding staging buffer lifetime.
 			 *
-			 * @param gpuContext	Context whose transient allocator backs the staging buffer.
+			 * @param gpuContext	Context whose scratch allocator backs the staging buffer.
 			 * @param texture		Texture for which to create the staging buffer.
 			 * @param pixelData		Pixel data structure with initialized row/depth pitch, used to determine buffer size.
 			 * @param readable		True if the buffer needs to be CPU-readable (for readback), false if CPU-writeable (for upload).
@@ -716,7 +733,7 @@ namespace b3d
 			 * Performs a non-blocking read operation. The GPU will execute the read when the command buffer reaches the execution point
 			 * and the asynchronous operation will be signaled with the return value.
 			 *
-			 * @param	gpuContext		Context whose transient allocator backs the internal staging buffer.
+			 * @param	gpuContext		Context whose scratch allocator backs the internal staging buffer.
 			 * @param	texture			Texture to read the data from.
 			 * @param	commandBuffer	Command buffer to queue the operation on.
 			 * @param	mipLevel		Mipmap level to read from.

@@ -1,5 +1,5 @@
 diff --git a/include/freetype/config/ftoption.h b/include/freetype/config/ftoption.h
-index b857e0ebb..2234851a2 100644
+index b857e0ebb..0d32c5d6d 100644
 --- a/include/freetype/config/ftoption.h
 +++ b/include/freetype/config/ftoption.h
 @@ -109,7 +109,8 @@ FT_BEGIN_HEADER
@@ -12,3 +12,13 @@ index b857e0ebb..2234851a2 100644
  
  
    /**************************************************************************
+@@ -801,7 +802,8 @@ FT_BEGIN_HEADER
+    * sophisticated kerning variants.  Use a higher-level library like
+    * HarfBuzz instead for that.
+    */
+-/* #define TT_CONFIG_OPTION_GPOS_KERNING */
++/* Some fonts kern only through GPOS and have no legacy 'kern' table. */
++#define TT_CONFIG_OPTION_GPOS_KERNING
+ 
+ 
+   /*************************************************************************/

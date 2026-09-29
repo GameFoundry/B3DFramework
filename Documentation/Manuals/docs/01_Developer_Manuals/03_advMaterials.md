@@ -96,84 +96,80 @@ TShared<Variation> variation = Variation::Create("HLSL", { pass });
 ~~~~~~~~~~~~~
   
 ## Creating a shader
-Now that we have a variation we can create the shader by calling @b3d::Shader::Create, which expects the name of the shader and a @b3d::TSHADER_DESC<T> structure as input.
-	
-@b3d::TSHADER_DESC<T> contains a list of variations to initialize the shader with, as well as a set of optional parameters to control how the shader rendering works:
-  - @b3d::TSHADER_DESC<T>::QueueSortType - Controls how should objects rendered with this shader be sorted. Either front to back, back to front, or without sorting. This property can be used for the active renderer to properly render objects, as certain effects (like transparency) require their objects to be rendered in a specific order.
-  - @b3d::TSHADER_DESC<T>::QueuePriority - Controls at what point should objects rendered with this shader be rendered relative to other objects. Objects with higher priority will be rendered before ones with lower priority, and sorting due to **SHADER_DESC::QueueSortType** will never sort outside of priority groups. This can allow you to render a certain type of objects before all others (e.g. all opaque objects should be rendered before transparent ones).
-  - @b3d::TSHADER_DESC<T>::SeparablePasses - An optimization hint to the renderer that can improve performance when turned on. Only relevant if the shader has variations with multiple passes. When true the renderer will not necessarily execute passes right after another, but might render other objects in-between passes. This can reduce state switching as multiple objects can be rendered with a single pass, but is only relevant for algorithms that can handle such a process (most can't).
+
+@b3d::ShaderCreateInformation contains the shader's variations and a shared @b3d::ShaderDescription. The description holds material parameters, variation declarations, and render settings:
+
+- @b3d::ShaderDescription::QueueSortType controls object sorting.
+- @b3d::ShaderDescription::QueuePriority places higher-priority objects before lower-priority objects.
+- @b3d::ShaderDescription::SeparablePasses allows other objects to render between the shader's passes.
 
 ~~~~~~~~~~~~~{.cpp}
-TShared<Variation> variation = ...;
-	
-SHADER_DESC desc;
-desc.queueSortType = QueueSortType::None;
-desc.queuePriority = 0;
-desc.separablePasses = false;
-desc.variations = { variation };
+ShaderCreateInformation createInformation;
+createInformation.Variations.push_back(variation);
+createInformation.Description->QueueSortType = QueueSortType::None;
 
-TShared<Shader> shader = Shader::Create("MyShader", desc);
-~~~~~~~~~~~~~ 
-  
-## Shader parameters
-Shader parameters allow you to change values of parameters in GPU programs through the **Material** interface. They are similar to GPU program parameters described earlier, but they set the values on all GPU programs on all passes in the active variation, instead of doing so only on a single GPU program. Additionally they also support renderer semantics (see below).
-
-To create the parameter interface you must populate the **SHADER_DESC** structure by calling one of the @b3d::TSHADER_DESC<T>::AddParameter overloads.
-
-Parameters come in two variants:
- - Data - These are primitive types like float, int or bool. This includes their vector and array variants. Check @b3d::GpuDataParameterType for a list of all data parameter types. In **SHADER_DESC** they are represented with the @b3d::SHADER_DATA_PARAM_DESC type.
- - Object - These are object types like texture, buffer or sampler state. Check @b3d::GpuParameterObjectType for a list of all object parameter types. In **SHADER_DESC** they are represented with the @b3d::SHADER_OBJECT_PARAM_DESC type.
-
-For each parameter you must specify:
- - Its name. This will be the name accessible through **Material**. It can be anything you like, as long as it is unique.
- - Name of the GPU variable it maps to. This must be a variable defined in source code of one or multiple GPU programs used in the shader (across all variations/passes).
- - Type of the GPU variable, as described above.
-
-~~~~~~~~~~~~~{.cpp}
-// Extended example from above
-TShared<Variation> variation = ...;
-	
-SHADER_DESC desc;
-desc.queueSortType = QueueSortType::None;
-desc.queuePriority = 0;
-desc.separablePasses = false;
-desc.variations = { variation };
-
-// Add a 4x4 transform matrix data parameter
-desc.AddParameter(SHADER_DATA_PARAM_DESC("WorldTfrm", "WorldTfrm", GPDT_MATRIX_4X4));
-
-// Add a texture parameter
-desc.AddParameter(SHADER_OBJECT_PARAM_DESC("AlbedoTex", "AlbedoTex", GPOT_TEXTURE2D));
-
-TShared<Shader> shader = Shader::Create("MyShader", desc);
+HShader shader = Shader::Create("MyShader", createInformation);
 ~~~~~~~~~~~~~
 
-### Advanced parameters
-When adding parameters you can also specify two additional properties we didn't touch on in the previous section: renderer semantic and default value.
+Finish configuring the description before creating the shader; do not modify it afterward.
 
-Renderer semantic allows you to give the parameter a unique tag that can be recognized by the active renderer. The renderer can then use these semantics to automatically assign values to them while rendering. For example the "WVP" semantic might notify the renderer to populate this parameter with the world-view-projection matrix. This way the user is not responsible for setting such parameters manually. The actual semantics supported depend on the active renderer. If provided and renderer doesn't support a semantic, it will be ignored. We'll talk more on how to access semantics in the renderer manual.
+## Shader parameters
 
-The parameter default value allows you to provide a value that will be used for initializing the parameter when a **Material** is initially constructed. For data parameters the default value is a provided as a raw block of memory, and for object parameters it can be a reference to a **Texture** or a **SamplerState**.
+Shader parameters expose GPU program variables through **Material**. Setting a material parameter updates its matching variables across the passes in the selected variation.
+
+Register parameters through **createInformation.Description->Parameters**, using @b3d::ShaderParameterDescription::AddParameter. Parameters come in two forms:
+
+- @b3d::ShaderDataParameterInformation for scalar, vector, matrix, array and structure values. See @b3d::GpuDataParameterType for supported types.
+- @b3d::ShaderObjectParameterInformation for textures, buffers and samplers. See @b3d::GpuParameterObjectType for supported types.
+
+For each parameter, provide a unique material-facing name, the name of the variable in the GPU program, and its type. For arrays, also set **ArraySize** to match the declaration in the GPU program.
 
 ~~~~~~~~~~~~~{.cpp}
-// An extended example from above with semantics and default values:
-TShared<Variation> variation = ...;
-	
-SHADER_DESC desc;
-desc.queueSortType = QueueSortType::None;
-desc.queuePriority = 0;
-desc.separablePasses = false;
-desc.variations = { variation };
+ShaderCreateInformation createInformation;
+createInformation.Variations.push_back(variation);
 
-// Add a 4x4 transform matrix data parameter with a "W" semantic and identity matrix as default
-desc.AddParameter(SHADER_DATA_PARAM_DESC("WorldTfrm", "WorldTfrm", GPDT_MATRIX_4X4, "W"), &Matrix4::kIdentity);
+ShaderParameterDescription& parameters = *createInformation.Description->Parameters;
+parameters.AddParameter(ShaderDataParameterInformation("Roughness", "roughness", GPDT_FLOAT1));
+parameters.AddParameter(ShaderObjectParameterInformation("Albedo", "albedoTexture", GPOT_TEXTURE2D));
 
-// Add a texture parameter with an "Albedo" semantic and a white texture as default
-desc.AddParameter(SHADER_OBJECT_PARAM_DESC("AlbedoTex", "AlbedoTex", GPOT_TEXTURE2D, "Albedo"), Texture::kWhite);
+HShader shader = Shader::Create("MyShader", createInformation);
+~~~~~~~~~~~~~
 
-HShader shader = Shader::Create("MyShader", desc);
-~~~~~~~~~~~~~  
-  
+Variations used with **Material** must expose the same parameter names, types and array sizes. Parameters marked `[internal]` in BSL may differ between variations. **RendererMaterial** and direct low-level rendering do not require a common material parameter interface.
+
+### Renderer semantics
+
+A renderer semantic is an optional tag identifying a parameter's purpose to the renderer. The renderer can use it to supply a value automatically, such as an object's world transform. Pass the semantic as the fourth argument to the parameter information constructor:
+
+~~~~~~~~~~~~~{.cpp}
+// Assumes the active renderer recognizes "W" as the world-transform semantic.
+parameters.AddParameter(ShaderDataParameterInformation("WorldTransform", "worldTransform", GPDT_MATRIX_4X4, StringID("W")));
+~~~~~~~~~~~~~
+
+Supported semantics and the required parameter types depend on the active renderer; **"W"** is only an example, not a built-in guarantee. Leave renderer-managed parameters to the renderer instead of assigning them through **Material**. Omit the semantic, or use **StringID::kNone**, for parameters you set yourself.
+
+### Default values
+
+The optional second argument to **AddParameter()** supplies the initial value used when a **Material** is created with the shader. You can override it afterward using the material's parameter setters.
+
+- Data parameters accept a **TArrayView<const u8>** containing the complete value, including all array elements. The bytes are copied by **AddParameter()**, so the source value need not remain alive afterward.
+- Texture parameters accept **ShaderDefaultTextureType::White**, **Black**, **Normal** or **None**. To use another texture, assign it to the material with **SetTexture()**.
+- Sampler parameters accept a **SamplerStateCreateInformation** describing the default sampler settings.
+
+To supply defaults in the earlier example, replace its parameter registration calls with:
+
+~~~~~~~~~~~~~{.cpp}
+// Register defaults before creating the shader.
+const float roughness = 0.5f;
+parameters.AddParameter(ShaderDataParameterInformation("Roughness", "roughness", GPDT_FLOAT1), TArrayView<const u8>((const u8*)&roughness, sizeof(roughness)));
+parameters.AddParameter(ShaderObjectParameterInformation("Albedo", "albedoTexture", GPOT_TEXTURE2D), ShaderDefaultTextureType::White);
+
+SamplerStateCreateInformation samplerInformation;
+samplerInformation.MinFilter = FO_POINT;
+samplerInformation.MagFilter = FO_POINT;
+parameters.AddParameter(ShaderObjectParameterInformation("AlbedoSampler", "albedoSampler", GPOT_SAMPLER2D), samplerInformation);
+~~~~~~~~~~~~~
+
 # Manually rendering using the material
 In an earlier manual we have shown how to render using a **Material** by attaching it to a **Renderable** component and letting the renderer do the rest. You can however render using the material completely manually, using the low-level rendering API.
 
@@ -202,6 +198,8 @@ Alternatively you can use the helper methods @b3d::render::RendererUtility::SetP
 ## Binding material parameters
 In order to bind material parameters we need to somehow get access to a **GpuParameterSet** object from the material. This is done through an intermediate class @b3d::MaterialParameterAdapter, created by a call to @b3d::Material::CreateParameterAdapter(), which as a parameter takes a variation index.
 
+Compile the selected variation and wait for completion before creating its adapter. Adapter creation never triggers compilation and returns null if the variation is uncompiled or its material interface is incompatible.
+
 **GpuParameterSet** for a specific pass can then be retrieved by calling @b3d::MaterialParameterAdapter::GetGpuParameterSet() with the pass index and set index. They can then be bound as described in the low level render API manual.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -209,7 +207,13 @@ TShared<Material> material = ...;
 
 u32 passIndex = 0;
 u32 variationIndex = 0;
+
+const TAsyncOp<bool> compilation = material->GetVariation(variationIndex)->Compile();
+compilation.BlockUntilComplete();
+
 TShared<MaterialParameterAdapter> parameterAdapter = material->CreateParameterAdapter(variationIndex);
+if(parameterAdapter == nullptr)
+	return;
 
 GpuCommandBuffer& commandBuffer = ...;
 commandBuffer.SetGpuParameterSet(parameterAdapter->GetGpuParameterSet(passIndex, 0));

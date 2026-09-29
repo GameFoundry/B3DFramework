@@ -124,6 +124,8 @@ importOptions->SRgb = true;
 
 > How do you know when an image is in gamma space and when in linear space? As a general rule, albedo (diffuse) images are in gamma space, and normal maps are in linear space. For other types of images you need to consult the tool you use to create/save them, but in most cases they will be in gamma space.
 
+> Textures displayed in GUI are an exception. GUI is composited in gamma space, so GUI textures should be imported with **SRgb** disabled even though the image itself is in gamma space. See the [sprite images](../07_GUI/00_spriteImages.md) manual for details.
+
 ## Cubemap import
 Textures can be imported as cubemaps for environment mapping and reflections:
 

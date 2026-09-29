@@ -80,9 +80,10 @@ namespace b3d
 		 * @param	horzAlign		Specifies how is text horizontally aligned within its bounds.
 		 * @param	vertAlign		Specifies how is text vertically aligned within its bounds.
 		 * @param	output			Pre-allocated buffer to output the results in. Buffer must have an element
-		 *							for every line in @p textData.
+		 *							for every line in @p textData. Vertical offsets are whole pixels, while horizontal
+		 *							offsets may be fractional so characters can be placed at subpixel positions.
 		 */
-		static void GetAlignmentOffsets(const TextGeometry& textGeometry, u32 width, u32 height, GUIHorizontalTextAlignment horzAlign, GUIVerticalTextAlignment vertAlign, Vector2I* output);
+		static void GetAlignmentOffsets(const TextGeometry& textGeometry, u32 width, u32 height, GUIHorizontalTextAlignment horzAlign, GUIVerticalTextAlignment vertAlign, Vector2* output);
 
 		/**
 		 * Calculates text quads you may use for text rendering, based on the specified text data. Only generates quads for

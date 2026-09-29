@@ -51,12 +51,37 @@ The @b3d::GpuBufferFlag flags control where the buffer memory is stored:
  - @b3d::GpuBufferFlag::StoreOnGPU - Buffer is placed in device memory. Fast GPU access, but CPU reads/writes require staging buffers. This is the default for most buffer types.
  - @b3d::GpuBufferFlag::StoreOnCPUWithGPUAccess - Buffer is placed in CPU-visible memory accessible to the GPU. Faster CPU updates (no staging needed), but slower GPU access through the PCI Express bus. This is the default for uniform and staging buffers.
 
-## Transient buffers
-Short-lived, single-use buffers (compute scratch, staging) can instead be created through @b3d::GpuWorkContext::CreateTransientGpuBuffer. Such buffers are backed by the work context's transient (linear) allocator: allocation and free are extremely cheap, but the memory is reclaimed in bulk once the GPU work that used it completes, so the buffer must not be retained past the frame/operation that created it. See the [GPU work context](../Low_Level_rendering/gpuWorkContext) manual for what a work context is and how to obtain one.
+## Scratch buffers
+Short-lived, single-use buffers (compute scratch, staging) can instead be created through @b3d::GpuWorkContext::CreateScratchGpuBuffer. Such buffers are backed by the work context's scratch (linear) allocator: allocation and free are extremely cheap, but the memory is reclaimed in bulk once the GPU work that used it completes, so the buffer must not be retained past the frame/operation that created it. See the [GPU work context](../Low_Level_rendering/gpuWorkContext) manual for what a work context is and how to obtain one.
 
 ~~~~~~~~~~~~~{.cpp}
 GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
-TShared<render::GpuBuffer> scratchBuffer = gpuContext.CreateTransientGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, 32));
+TShared<render::GpuBuffer> scratchBuffer = gpuContext.CreateScratchGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, 32));
+~~~~~~~~~~~~~
+
+## Memory locations
+By default a buffer allocates its memory from the device's persistent allocator. You can instead choose where the memory comes from, by passing a @b3d::GpuResourceLocation to @b3d::GpuDevice::CreateGpuBuffer. Textures accept a location through @b3d::GpuDevice::CreateTexture in the same way.
+
+Call @b3d::GpuDevice::GetMemoryRequirements first. The returned @b3d::GpuMemoryRequirements holds the memory type, size, alignment and placement kind the resource needs. A memory type of @b3d::GpuMemoryRequirements::kUnsupportedMemoryType means the device cannot create the resource. @b3d::GpuDevice::GetPersistentAllocator returns the persistent allocator that serves a memory type.
+
+A location is in one of four states:
+ - Pending - only the allocator is set. The resource allocates its memory from that allocator every time it creates its native resource. Create it with @b3d::GpuResourceLocation::FromAllocator. The allocator must serve the resource's memory type.
+ - Owned - both the heap and the allocator are set, as returned by a successful **TryAllocate**. The resource adopts the memory and frees it when it is destroyed.
+ - Non-owning - only the heap is set. The resource binds to the memory but never frees it. The caller keeps the memory alive for the resource's lifetime and frees it afterwards.
+ - Empty - neither is set. Creation fails with an error.
+
+~~~~~~~~~~~~~{.cpp}
+GpuBufferCreateInformation createInformation = GpuBufferCreateInformation::CreateStructuredStorage(sizeof(MyData), 32);
+GpuMemoryRequirements requirements = gpuDevice->GetMemoryRequirements(createInformation);
+IGpuAllocator& allocator = gpuDevice->GetPersistentAllocator(requirements.MemoryType);
+
+// Pending: the buffer allocates from the allocator
+TShared<render::GpuBuffer> pendingBuffer = gpuDevice->CreateGpuBuffer(createInformation, GpuResourceLocation::FromAllocator(allocator));
+
+// Owned: the buffer adopts memory allocated by the caller, and frees it on destruction
+GpuResourceLocation location;
+if(allocator.TryAllocate(requirements.Size, (u32)requirements.Alignment, requirements.Kind, nullptr, location))
+	TShared<render::GpuBuffer> ownedBuffer = gpuDevice->CreateGpuBuffer(createInformation, location);
 ~~~~~~~~~~~~~
 
 ## Suballocations
@@ -72,7 +97,7 @@ Each suballocation may be larger than the requested size due to GPU alignment re
 
 A @b3d::render::GpuBufferSuballocation is a lightweight handle referencing a specific suballocation within a buffer. It provides the buffer pointer, the byte offset, and the suballocation size.
 
-To select a suballocation per draw, the uniform buffer must be declared with a dynamic offset. Uniform buffers reflected from shaders are flagged automatically, while hand-built @b3d::GpuUniformBufferInformation entries must set `UsesDynamicOffset`. Only such buffers receive an index from @b3d::GpuPipelineParameterSetLayout::GetDynamicOffsetIndex, which is then passed to @b3d::render::GpuCommandBuffer::SetDynamicBufferOffset. Backends bind these buffers through their cheapest per-draw path. Dynamic offsets are not supported on arrays of uniform buffers.
+To select a suballocation per draw, mark the BSL uniform-buffer declaration with `[dynamicOffset]`, or set `UsesDynamicOffset` on hand-built @b3d::GpuUniformBufferInformation entries. Unmarked shader buffers do not support dynamic offsets. Only marked buffers receive an index from @b3d::GpuPipelineParameterSetLayout::GetDynamicOffsetIndex, which is then passed to @b3d::render::GpuCommandBuffer::SetDynamicBufferOffset. Dynamic offsets are not supported on storage buffers or arrays of buffer resources; arrays of values inside a uniform buffer are allowed.
 
 # Reading and writing
 
@@ -132,7 +157,7 @@ render::GpuBufferSuballocation suballocation = ...;
  - @b3d::render::GpuBufferUtility::Write - Writes data into a buffer. If the buffer is not CPU-writable or is currently used by the GPU, it internally creates a staging buffer and issues a copy command via the provided command buffer (or the work context's transfer buffer if none is provided).
  - @b3d::render::GpuBufferUtility::Read - Reads data from a buffer, staging through the work context if needed. Blocks if the buffer is in GPU use.
  - @b3d::render::GpuBufferUtility::ReadAsync - Non-blocking read via a command buffer. Returns a @b3d::TAsyncOp that is signaled when the data is ready.
- - @b3d::render::GpuBufferUtility::CreateStaging - Creates a staging buffer matching the size of a given buffer. The staging buffer is allocated from the work context's transient allocator, so it is single-use and must not be retained once the GPU work that used it completes.
+ - @b3d::render::GpuBufferUtility::CreateStaging - Creates a staging buffer matching the size of a given buffer. The staging buffer is allocated from the work context's scratch allocator, so it is single-use and must not be retained once the GPU work that used it completes.
 
 ~~~~~~~~~~~~~{.cpp}
 TShared<render::GpuBuffer> gpuOnlyBuffer = ...; // Created with StoreOnGPU
@@ -228,7 +253,7 @@ Each successful **TryAllocate** writes the result into a @b3d::GpuResourceLocati
 ## Deferral modes
 Each @b3d::TGpuTlsfAllocator instance is configured with one of two deferral modes that govern how @b3d::TGpuTlsfAllocator::Free releases the slot and how @b3d::TGpuTlsfAllocator::Defrag retires source slots after a move.
 
-@b3d::GpuAllocatorFreeDeferralMode::FrameTracker (default, used by backends without per-resource use-count tracking — Metal and Null today, plus the future linear / transient allocator). @b3d::TGpuTlsfAllocator::Free queues the allocation in a FIFO retire queue keyed on the current frame index, and @b3d::TGpuTlsfAllocator::ReclaimUnused drains entries whose frame is no longer in flight (i.e. the current frame index has advanced by @c kMaximumFramesInFlight beyond the retired entry's frame). Defragmentation retires the source slot the same way. Backends configured for @b3d::GpuAllocatorFreeDeferralMode::FrameTracker are expected to call @b3d::TGpuTlsfAllocator::ReclaimUnused once per frame after @b3d::render::Renderer::EndGpuFrame to drain entries whose retire frame is no longer in flight.
+@b3d::GpuAllocatorFreeDeferralMode::FrameTracker (default, used by backends without per-resource use-count tracking — Metal and Null today, plus the linear scratch allocators). @b3d::TGpuTlsfAllocator::Free queues the allocation in a FIFO retire queue keyed on the current frame index, and @b3d::TGpuTlsfAllocator::ReclaimUnused drains entries whose frame is no longer in flight (i.e. the current frame index has advanced by @c kMaximumFramesInFlight beyond the retired entry's frame). Defragmentation retires the source slot the same way. Backends configured for @b3d::GpuAllocatorFreeDeferralMode::FrameTracker are expected to call @b3d::TGpuTlsfAllocator::ReclaimUnused once per frame after @b3d::render::Renderer::EndGpuFrame to drain entries whose retire frame is no longer in flight.
 
 @b3d::GpuAllocatorFreeDeferralMode::ResourceLifecycle (used by the Vulkan and D3D12 plugins, where @b3d::IGpuResource::Notify* events are fully wired). @b3d::TGpuTlsfAllocator::Free releases the slot synchronously — the caller has already gated GPU completion through the resource's bound-count gate (the wrapper's destructor only fires once @c mUsedCount reaches zero, by which point every command buffer referencing it has retired). Defragmentation does not retire the source slot; the consumer's @b3d::IGpuResource::Destroy lifecycle frees it when the wrapper's use-count proves GPU completion. This is strictly tighter than frame-based deferral: it waits for the specific command buffers that touched the resource, rather than every command buffer outstanding at retire time.
 

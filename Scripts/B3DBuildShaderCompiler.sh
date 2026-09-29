@@ -214,6 +214,11 @@ fi
 
 B3DStampDependencyBuild "$ShaderCompilerOutputFolder"
 
+# Each built backend is a package of its overlay, versioned by the .reqversion in its folder, so it is stamped the same way
+for overlay in $ActiveBackendOverlays; do
+	B3DStampDependencyBuild "$PlatformOverlayDependencyOutputRoot/$overlay/Dependencies/B3DShaderCompilerBackend"
+done
+
 echo ""
 echo "======================================================================"
 echo "Build complete!"

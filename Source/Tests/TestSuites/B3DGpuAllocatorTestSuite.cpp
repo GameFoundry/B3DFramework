@@ -444,13 +444,17 @@ void GpuAllocatorTestSuite::TestGpuAllocatorContract()
 	MockAllocator allocator(&backend, &tracker);
 
 	// Exercise the full public surface so the linker resolves every entry point.
-	MockLocation location;
-	location.Allocator = &allocator;
+	MockLocation location = MockLocation::FromAllocator(allocator);
+	B3D_TEST_ASSERT(location.IsPending())
+	B3D_TEST_ASSERT(!location.HasMemory())
+
+	location.Heap = backend.CreateHeap(256, MockHeapBackend::HeapCreateInformation());
 	location.Size = 256;
 	location.AllocatorData0 = 5;
 	location.AllocatorData1 = 7;
 
-	B3D_TEST_ASSERT(location.IsValid())
+	B3D_TEST_ASSERT(location.IsOwned())
+	B3D_TEST_ASSERT(location.HasMemory())
 
 	// Real-world ordering with the "stamp with latest" pattern: a touching submit advances the device
 	// counter first, then the deallocate stamps the retire entry with the current latest value. Mirror
@@ -466,7 +470,7 @@ void GpuAllocatorTestSuite::TestGpuAllocatorContract()
 	B3D_TEST_ASSERT(allocator.FreedSlots[0].AllocatorData1 == 7)
 
 	location.Reset();
-	B3D_TEST_ASSERT(!location.IsValid())
+	B3D_TEST_ASSERT(!location.IsOwned())
 	B3D_TEST_ASSERT(location.AllocatorData0 == 0)
 	B3D_TEST_ASSERT(location.AllocatorData1 == 0)
 }
@@ -559,7 +563,7 @@ void GpuAllocatorTestSuite::TestGpuAllocatorDeferredDelete()
 
 		// Auto-Reset on the caller's location: the resource sees an invalid handle the moment Free
 		// returns, even though the queue still holds a snapshot of the slot.
-		B3D_TEST_ASSERT(!location.IsValid())
+		B3D_TEST_ASSERT(!location.IsOwned())
 		B3D_TEST_ASSERT(location.AllocatorData0 == 0)
 		B3D_TEST_ASSERT(location.AllocatorData1 == 0)
 
@@ -761,7 +765,7 @@ void GpuAllocatorTestSuite::TestTlsf_ContractAndInitialState()
 	B3D_TEST_ASSERT(allocator.GetHeapCount() == 1)
 	B3D_TEST_ASSERT(allocator.GetCommittedBytes() == 1 * 1024 * 1024)
 	B3D_TEST_ASSERT(backend.LiveHeapCount() == 1)
-	B3D_TEST_ASSERT(location.IsValid())
+	B3D_TEST_ASSERT(location.IsOwned())
 	B3D_TEST_ASSERT(location.Size >= 1024)
 	B3D_TEST_ASSERT((location.Offset & 15) == 0)
 
@@ -792,7 +796,7 @@ void GpuAllocatorTestSuite::TestTlsf_SingleAllocateFree()
 	// the submission has been signaled and Flush() runs.
 	const u64 retireSubmission = tracker.AdvanceFrame();
 	allocator.Free(location);
-	B3D_TEST_ASSERT(!location.IsValid())
+	B3D_TEST_ASSERT(!location.IsOwned())
 	B3D_TEST_ASSERT(allocator.GetUsedBytes() == usedAfterAlloc) // Still accounted for — fence pending.
 
 	tracker.MarkFrameComplete(retireSubmission);
@@ -818,7 +822,7 @@ void GpuAllocatorTestSuite::TestTlsf_FailsSoftOnHeapCreationFailure()
 	const bool allocated = allocator.TryAllocate(256, 16, GpuResourceKind::Linear, nullptr, location);
 
 	B3D_TEST_ASSERT(allocated == false)
-	B3D_TEST_ASSERT(location.IsValid() == false)
+	B3D_TEST_ASSERT(location.IsOwned() == false)
 	B3D_TEST_ASSERT(backend.CreateCallCount == 1)
 	B3D_TEST_ASSERT(backend.DestroyCallCount == 0)
 	B3D_TEST_ASSERT(allocator.GetHeapCount() == 0)
@@ -1547,7 +1551,7 @@ void GpuAllocatorTestSuite::TestTlsf_Defrag_MoveAllocationReceivesContext()
 		B3D_TEST_ASSERT(holder.Resource.LastSourceOffset == originalOffset)
 
 		const MockLocation& newLocation = holder.Resource.LastNewLocation;
-		B3D_TEST_ASSERT(newLocation.IsValid())
+		B3D_TEST_ASSERT(newLocation.IsOwned())
 		B3D_TEST_ASSERT(newLocation.Offset != originalOffset)
 		B3D_TEST_ASSERT(newLocation.Size == kAllocSize)
 
@@ -1582,7 +1586,7 @@ void GpuAllocatorTestSuite::TestTlsf_ResourceLifecyclePolicy_FreesImmediately()
 
 	// Synchronous release — no Flush needed, no frame-tracker tick required.
 	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
-	B3D_TEST_ASSERT(!location.IsValid())
+	B3D_TEST_ASSERT(!location.IsOwned())
 }
 
 void GpuAllocatorTestSuite::TestTlsf_FrameTrackerPolicy_DefersAcrossFrames()
@@ -1604,7 +1608,7 @@ void GpuAllocatorTestSuite::TestTlsf_FrameTrackerPolicy_DefersAcrossFrames()
 	// Free stamps the entry against the current frame index. With no tick the queue stays held.
 	const u64 retireFrame = tracker.CurrentFrameIndex();
 	allocator.Free(location);
-	B3D_TEST_ASSERT(!location.IsValid())
+	B3D_TEST_ASSERT(!location.IsOwned())
 	allocator.ReclaimUnused(false);
 	B3D_TEST_ASSERT(allocator.GetUsedBytes() == usedAfterAlloc)
 
@@ -1709,7 +1713,7 @@ void GpuAllocatorTestSuite::TestTlsf_Defrag_LifecycleAllowsSwap()
 	{
 		const Holder& holder = *holders[holderIndex];
 		B3D_TEST_ASSERT(holder.Resource.MovedCount == 1)
-		B3D_TEST_ASSERT(holder.ReplacementLocation.IsValid())
+		B3D_TEST_ASSERT(holder.ReplacementLocation.IsOwned())
 		B3D_TEST_ASSERT(holder.ReplacementLocation.AllocatorData0 == heap0Slot)
 		B3D_TEST_ASSERT(holder.ReplacementLocation.Size == kAllocSize)
 
@@ -1961,7 +1965,7 @@ void GpuAllocatorTestSuite::TestLinear_ContractAndInitialState()
 	B3D_TEST_ASSERT(allocator.GetLivePageCount() == 1)
 	B3D_TEST_ASSERT(allocator.GetCommittedBytes() == 64 * 1024)
 	B3D_TEST_ASSERT(backend.LiveHeapCount() == 1)
-	B3D_TEST_ASSERT(location.IsValid())
+	B3D_TEST_ASSERT(location.IsOwned())
 	B3D_TEST_ASSERT(location.Allocator == &allocator)
 	B3D_TEST_ASSERT(location.Size == 1024)
 	B3D_TEST_ASSERT((location.Offset & 15) == 0)
@@ -2022,12 +2026,12 @@ void GpuAllocatorTestSuite::TestLinear_FailsSoftOnHeapCreationFailure()
 
 	GpuResourceLocation regularLocation;
 	B3D_TEST_ASSERT(!allocator.TryAllocate(256, 16, GpuResourceKind::Linear, nullptr, regularLocation))
-	B3D_TEST_ASSERT(!regularLocation.IsValid())
+	B3D_TEST_ASSERT(!regularLocation.IsOwned())
 	B3D_TEST_ASSERT(allocator.GetOutstandingAllocationCount() == 0)
 
 	GpuResourceLocation oversizeLocation;
 	B3D_TEST_ASSERT(!allocator.TryAllocate(8 * 1024, 16, GpuResourceKind::Linear, nullptr, oversizeLocation))
-	B3D_TEST_ASSERT(!oversizeLocation.IsValid())
+	B3D_TEST_ASSERT(!oversizeLocation.IsOwned())
 	B3D_TEST_ASSERT(allocator.GetOutstandingAllocationCount() == 0)
 
 	B3D_TEST_ASSERT(backend.CreateCallCount == 2)
@@ -2222,7 +2226,7 @@ void GpuAllocatorTestSuite::TestLinear_FreeIsNoop()
 	// Free is a no-op for the linear allocator: the location is reset by the base, but the active
 	// page's bump offset is unchanged and no retire entry is queued.
 	allocator.Free(first);
-	B3D_TEST_ASSERT(!first.IsValid())
+	B3D_TEST_ASSERT(!first.IsOwned())
 	B3D_TEST_ASSERT(allocator.GetUsedBytes() == usedBefore)
 	B3D_TEST_ASSERT(allocator.GetLivePageCount() == livePagesBefore)
 
@@ -2260,9 +2264,9 @@ void GpuAllocatorTestSuite::TestLinear_FreeImmediateOnSharedPageIsNoop()
 
 	// FreeAndReclaim one of the three. The page must NOT be recycled — peers are still live.
 	allocator.FreeAndReclaim(a);
-	B3D_TEST_ASSERT(!a.IsValid())
-	B3D_TEST_ASSERT(b.IsValid())
-	B3D_TEST_ASSERT(c.IsValid())
+	B3D_TEST_ASSERT(!a.IsOwned())
+	B3D_TEST_ASSERT(b.IsOwned())
+	B3D_TEST_ASSERT(c.IsOwned())
 	B3D_TEST_ASSERT(allocator.GetUsedBytes() == usedBefore)        // Bump offset unchanged.
 	B3D_TEST_ASSERT(allocator.GetLivePageCount() == livePagesBefore)
 	B3D_TEST_ASSERT(allocator.GetSparePageCount() == 0)              // No spurious spare entry.
@@ -2458,7 +2462,7 @@ void GpuAllocatorTestSuite::TestAllocatorIdentity_FreeRoutesByCarriedAllocator()
 	// type at the call site. Dispatch reaches the TLSF strategy and (ResourceLifecycle) reclaims it.
 	IGpuAllocator* tlsfHandle = tlsfLocation.Allocator;
 	tlsfHandle->FreeAndReclaim(tlsfLocation);
-	B3D_TEST_ASSERT(!tlsfLocation.IsValid())
+	B3D_TEST_ASSERT(!tlsfLocation.IsOwned())
 	B3D_TEST_ASSERT(tlsfAllocator.GetUsedBytes() == 0)
 
 	// Free one linear slot through its carried base pointer. Dispatch reaches the linear strategy,
@@ -2468,8 +2472,8 @@ void GpuAllocatorTestSuite::TestAllocatorIdentity_FreeRoutesByCarriedAllocator()
 	const u32 linearDestroyBefore = linearBackend.DestroyCount();
 	IGpuAllocator* linearHandle = linearFirst.Allocator;
 	linearHandle->FreeAndReclaim(linearFirst);
-	B3D_TEST_ASSERT(!linearFirst.IsValid())
-	B3D_TEST_ASSERT(linearSecond.IsValid())
+	B3D_TEST_ASSERT(!linearFirst.IsOwned())
+	B3D_TEST_ASSERT(linearSecond.IsOwned())
 	B3D_TEST_ASSERT(linearAllocator.GetLivePageCount() == linearLivePagesBefore)
 	B3D_TEST_ASSERT(linearBackend.DestroyCount() == linearDestroyBefore)
 
@@ -2549,7 +2553,7 @@ void GpuAllocatorTestSuite::TestAllocatorIdentity_DefraggedAllocationFreesThroug
 	for (u32 holderIndex = 2; holderIndex < kAllocCount; holderIndex++)
 	{
 		MockLocation& location = holders[holderIndex]->Location;
-		B3D_TEST_ASSERT(location.IsValid())
+		B3D_TEST_ASSERT(location.IsOwned())
 		location.Allocator->Free(location);
 	}
 	tracker.MarkAllFramesComplete();

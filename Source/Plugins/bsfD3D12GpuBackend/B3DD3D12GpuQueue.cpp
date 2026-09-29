@@ -160,6 +160,23 @@ void D3D12GpuQueue::ExecuteSubmitOnSubmitThread(const D3D12GpuCommandBufferSubmi
 
 	WaitForQueuesInMask(*this, syncMask);
 
+	// The queue's own earlier work needs no frame fence wait, because an ExecuteCommandLists() boundary is already a full
+	// synchronization point. Other queues in the sync mask were already waited on at their latest value, which covers the
+	// frame boundary.
+	const TArrayView<const u64> frameFenceValues = device.GetSubmitThread().ConsumeFrameFence(*this);
+	if (!frameFenceValues.IsEmpty())
+	{
+		device.DoForEachQueue([this, syncMask, frameFenceValues](GpuQueue& queue)
+		{
+			const GpuQueueId queueId = queue.GetId();
+			const u64 waitValue = frameFenceValues[queueId.Id];
+			if (waitValue == 0 || queueId.Id == GetId().Id || syncMask.IsSet(queueId))
+				return;
+
+			Wait(static_cast<D3D12GpuQueue&>(queue).GetSubmitFence(), waitValue);
+		});
+	}
+
 	TInlineArray<ID3D12CommandList*, 2> commandLists;
 	if (submitInformation.TransitionCommandBuffer != nullptr)
 	{
@@ -199,17 +216,17 @@ void D3D12GpuQueue::ExecuteSubmitOnSubmitThread(const D3D12GpuCommandBufferSubmi
 
 	{
 		Lock lock(mMutex);
-		mActiveSubmissions.push_back(QueueSubmissionInformation(commandBuffer, submitInformation.TransitionCommandBuffer, mNextSubmitIndex++));
+		mActiveSubmissions.push_back(QueueSubmissionInformation(commandBuffer, submitInformation.TransitionCommandBuffer, mLastSignaledFenceValue));
 	}
 
 	mLastSubmittedCommandBuffer = commandBuffer;
 }
 
-void D3D12GpuQueue::RefreshCompletionState(bool forceWait, u32 lastSubmitIndex)
+void D3D12GpuQueue::RefreshCompletionState(bool forceWait, u64 lastFenceValue)
 {
 	AssertIfNotSubmitThread();
 
-	u32 lastFinishedSubmitIndex = 0;
+	u64 lastFinishedFenceValue = 0;
 
 	{
 		Lock lock(mMutex);
@@ -218,7 +235,7 @@ void D3D12GpuQueue::RefreshCompletionState(bool forceWait, u32 lastSubmitIndex)
 		while (submissionIterator != mActiveSubmissions.end())
 		{
 			const TShared<D3D12GpuCommandBuffer> commandBuffer = submissionIterator->CommandBuffer;
-			if (lastSubmitIndex != ~0u && submissionIterator->SubmitIndex > lastSubmitIndex)
+			if (submissionIterator->FenceValue > lastFenceValue)
 				break;
 
 			if (!commandBuffer->UpdateExecutionStatus(forceWait))
@@ -227,7 +244,7 @@ void D3D12GpuQueue::RefreshCompletionState(bool forceWait, u32 lastSubmitIndex)
 				break; // No chance of any later CBs being done either
 			}
 
-			lastFinishedSubmitIndex = submissionIterator->SubmitIndex;
+			lastFinishedFenceValue = submissionIterator->FenceValue;
 			++submissionIterator;
 		}
 	}
@@ -255,7 +272,7 @@ void D3D12GpuQueue::RefreshCompletionState(bool forceWait, u32 lastSubmitIndex)
 		auto submissionIterator = mActiveSubmissions.begin();
 		while (submissionIterator != mActiveSubmissions.end())
 		{
-			if (submissionIterator->SubmitIndex > lastFinishedSubmitIndex)
+			if (submissionIterator->FenceValue > lastFinishedFenceValue)
 				break;
 
 			const TShared<D3D12GpuCommandBuffer> commandBuffer = submissionIterator->CommandBuffer;

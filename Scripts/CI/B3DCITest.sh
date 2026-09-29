@@ -46,11 +46,14 @@ case "$PLATFORM" in
 		EXE_SUFFIX=""
 		;;
 	*)
-		# Console platforms run their tests through an overlay (see below); binaries are not local.
+		# Console platforms run every test through their overlay (see below): the host test steps
+		# are skipped and the overlay must register itself or the run fails.
+		OVERLAY_PLATFORM=1
 		ARCH="${ARCH:-x64}"
 		EXE_SUFFIX=""
 		;;
 esac
+OVERLAY_PLATFORM="${OVERLAY_PLATFORM:-0}"
 BIN_DIR="$BUILD_DIR/bin/$ARCH/$BUILD_TYPE"
 
 echo "::phase::setup"
@@ -65,6 +68,8 @@ mkdir -p "$RESULTS_DIR/snapshots"
 
 # Track test failures
 FAILED_TESTS=()
+
+if [ "$OVERLAY_PLATFORM" != "1" ]; then
 
 echo "::phase::unit_tests"
 
@@ -101,6 +106,8 @@ if [ $UNIT_TEST_EXIT_CODE -ne 0 ]; then
 	echo "::error::UnitTestRunner failed with exit code $UNIT_TEST_EXIT_CODE"
 	exit $UNIT_TEST_EXIT_CODE
 fi
+
+fi # host unit tests
 
 # ---------------------------------------------------------------------------
 # Snapshot test categories. Each category runs the same snapshot mechanism with
@@ -182,6 +189,11 @@ for OVERLAY_SCRIPT in "$FRAMEWORK_DIR"/Platform/*/Scripts/CI/B3DCITestOverlay.sh
 		source "$OVERLAY_SCRIPT"
 	fi
 done
+
+if [ "$OVERLAY_PLATFORM" = "1" ] && [ ${#OVERLAY_UNIT_TEST_HOOKS[@]} -eq 0 ] && [ ${#SNAPSHOT_CATEGORIES[@]} -eq 0 ]; then
+	echo "::error::No test overlay registered for platform $PLATFORM (expected Platform/<Platform>/Scripts/CI/B3DCITestOverlay.sh under the framework)"
+	exit 1
+fi
 
 for OVERLAY_HOOK in "${OVERLAY_UNIT_TEST_HOOKS[@]}"; do
 	"$OVERLAY_HOOK"

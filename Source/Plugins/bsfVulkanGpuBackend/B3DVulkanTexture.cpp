@@ -119,9 +119,7 @@ VulkanImage::~VulkanImage()
 	if(mOwnsImage)
 	{
 		vkDestroyImage(vkDevice, mImage, gVulkanAllocator);
-
-		if (mAllocation.IsValid())
-			device.FreeMemory(mAllocation);
+		device.FreeMemory(mAllocation);
 	}
 }
 
@@ -130,13 +128,7 @@ IGpuResource* VulkanImage::MoveAllocation(render::GpuCommandBuffer& commandBuffe
 	B3D_ASSERT(mParent != nullptr && "VulkanImage::MoveAllocation invoked on an untracked wrapper (no parent VulkanTexture).");
 	B3D_ASSERT(mParent->GetVulkanResource() == this && "Parent's mImage no longer points at this wrapper — proxy invariant broken.");
 
-	const VulkanGpuHeap& heap = ToVulkanGpuHeap(newLocation.Heap);
-
-	VulkanAllocationResult preReserved;
-	preReserved.Location = newLocation;
-	preReserved.MappedMemory = heap.Mapped != nullptr ? static_cast<u8*>(heap.Mapped) + newLocation.Offset : nullptr;
-
-	VulkanImage* newImage = mParent->RelocateInternalTexture(preReserved, commandBuffer);
+	VulkanImage* newImage = mParent->RelocateInternalTexture(newLocation, commandBuffer);
 
 	// Destroy self
 	Destroy();
@@ -425,8 +417,8 @@ VulkanImageSubresource::VulkanImageSubresource(VulkanResourceManager* owner, VkI
 	: VulkanResource(owner, concurrentQueueAccess, name), mLayout(layout)
 {}
 
-VulkanTexture::VulkanTexture(VulkanGpuDevice& gpuDevice, const TextureCreateInformation& createInformation)
-	: Texture(createInformation), mGpuDevice(gpuDevice), mDirectlyMappable(false), mSupportsGPUWrites(false), mUsesGeneralLayout(false)
+VulkanTexture::VulkanTexture(VulkanGpuDevice& gpuDevice, const TextureCreateInformation& createInformation, const GpuResourceLocation& location)
+	: Texture(createInformation, location), mGpuDevice(gpuDevice), mDirectlyMappable(false), mSupportsGPUWrites(false), mUsesGeneralLayout(false)
 {
 }
 
@@ -438,63 +430,60 @@ VulkanTexture::~VulkanTexture()
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_Texture);
 }
 
-void VulkanTexture::Initialize()
+void VulkanTexture::BuildDescription(const VulkanGpuDevice& device, const TextureProperties& properties, VulkanTextureDescription& outDescription)
 {
-	ASSERT_IF_NOT_RENDER_THREAD;
+	VkImageCreateInfo& createInfo = outDescription.CreateInfo;
+	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	createInfo.pNext = nullptr;
+	createInfo.flags = 0;
 
-	const TextureProperties& props = mProperties;
-
-	mImageCreateInformation.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	mImageCreateInformation.pNext = nullptr;
-	mImageCreateInformation.flags = 0;
-
-	TextureType texType = props.Type;
+	TextureType texType = properties.Type;
 	switch(texType)
 	{
 	case TEX_TYPE_1D:
-		mImageCreateInformation.imageType = VK_IMAGE_TYPE_1D;
+		createInfo.imageType = VK_IMAGE_TYPE_1D;
 		break;
 	case TEX_TYPE_2D:
-		mImageCreateInformation.imageType = VK_IMAGE_TYPE_2D;
+		createInfo.imageType = VK_IMAGE_TYPE_2D;
 		break;
 	case TEX_TYPE_3D:
-		mImageCreateInformation.imageType = VK_IMAGE_TYPE_3D;
+		createInfo.imageType = VK_IMAGE_TYPE_3D;
 
-		if(mProperties.Usage.IsSet(TextureUsageFlag::RenderTarget))
-			mImageCreateInformation.flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
+		if(properties.Usage.IsSet(TextureUsageFlag::RenderTarget))
+			createInfo.flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
 
 		break;
 	case TEX_TYPE_CUBE_MAP:
-		mImageCreateInformation.imageType = VK_IMAGE_TYPE_2D;
-		mImageCreateInformation.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+		createInfo.imageType = VK_IMAGE_TYPE_2D;
+		createInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 		break;
 	}
 
 	// Note: I force rendertarget and depthstencil types to be readable in shader. Depending on performance impact
 	// it might be beneficial to allow the user to enable this explicitly only when needed.
 
-	mImageCreateInformation.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	createInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
-	TextureUsageFlags usage = props.Usage;
+	TextureUsageFlags usage = properties.Usage;
 	if(usage.IsSet(TextureUsageFlag::RenderTarget))
 	{
-		mImageCreateInformation.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-		mSupportsGPUWrites = true;
+		createInfo.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		outDescription.SupportsGPUWrites = true;
 	}
 	else if(usage.IsSet(TextureUsageFlag::DepthStencil))
 	{
-		mImageCreateInformation.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-		mSupportsGPUWrites = true;
+		createInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		outDescription.SupportsGPUWrites = true;
 	}
 
 	if(usage.IsSet(TextureUsageFlag::AllowUnorderedAccessOnTheGPU))
 	{
-		mImageCreateInformation.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
-		mSupportsGPUWrites = true;
+		createInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+		outDescription.SupportsGPUWrites = true;
 	}
 
 	// Storage images are accessed in the general layout, and keeping CPU-accessible images in it lets them be mapped without a transition
-	mUsesGeneralLayout = usage.IsSet(TextureUsageFlag::AllowUnorderedAccessOnTheGPU) || usage.IsSet(TextureUsageFlag::StoreOnCPUWithGPUAccess);
+	outDescription.UsesGeneralLayout = usage.IsSet(TextureUsageFlag::AllowUnorderedAccessOnTheGPU) || usage.IsSet(TextureUsageFlag::StoreOnCPUWithGPUAccess);
 
 	VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL;
 	VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -503,13 +492,13 @@ void VulkanTexture::Initialize()
 		// Only support 2D textures, with one sample and one mip level, only used for shader reads
 		// (Optionally check vkGetPhysicalDeviceFormatProperties & vkGetPhysicalDeviceImageFormatProperties for
 		// additional supported configs, but right now there doesn't seem to be any additional support)
-		if(texType == TEX_TYPE_2D && props.SampleCount <= 1 && props.MipMapCount == 0 &&
-		   props.GetFaceCount() == 1 && (mImageCreateInformation.usage & VK_IMAGE_USAGE_SAMPLED_BIT) != 0)
+		if(texType == TEX_TYPE_2D && properties.SampleCount <= 1 && properties.MipMapCount == 0 &&
+		   properties.GetFaceCount() == 1 && (createInfo.usage & VK_IMAGE_USAGE_SAMPLED_BIT) != 0)
 		{
 			// Also, only support normal textures, not render targets or storage textures
-			if(!mSupportsGPUWrites)
+			if(!outDescription.SupportsGPUWrites)
 			{
-				mDirectlyMappable = true;
+				outDescription.DirectlyMappable = true;
 				tiling = VK_IMAGE_TILING_LINEAR;
 				layout = VK_IMAGE_LAYOUT_PREINITIALIZED;
 			}
@@ -517,47 +506,83 @@ void VulkanTexture::Initialize()
 	}
 
 	if(usage.IsSet(TextureUsageFlag::MutableFormat))
-		mImageCreateInformation.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+		createInfo.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
 
-	u32 width = mProperties.Width;
-	u32 height = mProperties.Height;
-	u32 depth = mProperties.Depth;
+	u32 width = properties.Width;
+	u32 height = properties.Height;
+	u32 depth = properties.Depth;
 
 	// 0-sized textures aren't supported by the API
 	width = std::max(width, 1U);
 	height = std::max(height, 1U);
 	depth = std::max(depth, 1U);
 
-	mImageCreateInformation.extent = { width, height, depth };
-	mImageCreateInformation.mipLevels = props.MipMapCount + 1;
-	mImageCreateInformation.arrayLayers = props.GetFaceCount();
-	mImageCreateInformation.samples = VulkanUtility::GetSampleFlags(props.SampleCount);
-	mImageCreateInformation.tiling = tiling;
-	mImageCreateInformation.initialLayout = layout;
-	TInlineArray<u32, GQT_COUNT> queueFamilies;
+	createInfo.extent = { width, height, depth };
+	createInfo.mipLevels = properties.MipMapCount + 1;
+	createInfo.arrayLayers = properties.GetFaceCount();
+	createInfo.samples = VulkanUtility::GetSampleFlags(properties.SampleCount);
+	createInfo.tiling = tiling;
+	createInfo.initialLayout = layout;
+
+	TInlineArray<u32, GQT_COUNT>& queueFamilies = outDescription.QueueFamilies;
+	queueFamilies.Clear();
 	if(usage.IsSet(TextureUsageFlag::AllowConcurrentQueueReads))
 	{
 		for(u32 queueType = 0; queueType < GQT_COUNT; queueType++)
 		{
 			const GpuQueueType type = (GpuQueueType)queueType;
-			if(mGpuDevice.GetQueueCount(type) == 0)
+			if(device.GetQueueCount(type) == 0)
 				continue;
 
-			const u32 family = mGpuDevice.GetQueueFamily(type);
+			const u32 family = device.GetQueueFamily(type);
 			if(std::find(queueFamilies.begin(), queueFamilies.end(), family) == queueFamilies.end())
 				queueFamilies.Add(family);
 		}
 	}
 
 	const bool usesConcurrentSharing = queueFamilies.Size() > 1;
-	mImageCreateInformation.sharingMode = usesConcurrentSharing ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
-	mImageCreateInformation.queueFamilyIndexCount = usesConcurrentSharing ? (u32)queueFamilies.Size() : 0;
-	mImageCreateInformation.pQueueFamilyIndices = usesConcurrentSharing ? queueFamilies.data() : nullptr;
+	createInfo.sharingMode = usesConcurrentSharing ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
+	createInfo.queueFamilyIndexCount = usesConcurrentSharing ? (u32)queueFamilies.Size() : 0;
+	createInfo.pQueueFamilyIndices = nullptr;
 
 	bool optimalTiling = tiling == VK_IMAGE_TILING_OPTIMAL;
 
-	mInternalFormat = VulkanUtility::GetClosestSupportedPixelFormat(mGpuDevice, props.Format, props.Type, props.Usage, optimalTiling, props.UseHardwareSRGB);
-	mImage = CreateImage(mInternalFormat);
+	outDescription.InternalFormat = VulkanUtility::GetClosestSupportedPixelFormat(device, properties.Format, properties.Type, properties.Usage, optimalTiling, properties.UseHardwareSRGB);
+	createInfo.format = VulkanUtility::GetPixelFormat(outDescription.InternalFormat, properties.UseHardwareSRGB);
+
+	// Linearly-tiled images are CPU-accessible by spec and route through host-visible memory; optimally-tiled
+	// images live exclusively in DEVICE_LOCAL memory and are populated via staging copies.
+	if(outDescription.DirectlyMappable)
+	{
+		outDescription.RequiredMemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+		outDescription.PreferredMemoryFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+		outDescription.Kind = GpuResourceKind::Linear;
+	}
+	else
+	{
+		outDescription.RequiredMemoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+		outDescription.PreferredMemoryFlags = 0;
+		outDescription.Kind = GpuResourceKind::NonLinear;
+	}
+}
+
+void VulkanTexture::Initialize()
+{
+	ASSERT_IF_NOT_RENDER_THREAD;
+
+	VulkanTextureDescription description;
+	BuildDescription(mGpuDevice, mProperties, description);
+
+	mQueueFamilies = description.QueueFamilies;
+	mImageCreateInformation = description.CreateInfo;
+	mImageCreateInformation.pQueueFamilyIndices = mImageCreateInformation.queueFamilyIndexCount > 0 ? mQueueFamilies.data() : nullptr;
+	mInternalFormat = description.InternalFormat;
+	mKind = description.Kind;
+	mDirectlyMappable = description.DirectlyMappable;
+	mSupportsGPUWrites = description.SupportsGPUWrites;
+	mUsesGeneralLayout = description.UsesGeneralLayout;
+
+	mImage = CreateImage();
 	mMappedMemory = mImage->GetMappedMemory();
 
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_Texture);
@@ -611,33 +636,14 @@ void VulkanTexture::Invalidate(u32 mipLevel, u32 arrayLayer)
 	mImage->Invalidate(layout.offset, layout.size);
 }
 
-VulkanImage* VulkanTexture::CreateImage(PixelFormat format)
+VulkanImage* VulkanTexture::CreateImage()
 {
-	const bool directlyMappable = mImageCreateInformation.tiling == VK_IMAGE_TILING_LINEAR;
-
-	// Linearly-tiled images are CPU-accessible by spec and route through host-visible memory; optimally-tiled
-	// images live exclusively in DEVICE_LOCAL memory and are populated via staging copies.
-	VkMemoryPropertyFlags requiredFlags;
-	VkMemoryPropertyFlags preferredFlags;
-	GpuResourceKind kind;
-	if(directlyMappable)
-	{
-		requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-		preferredFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-		kind = GpuResourceKind::Linear;
-	}
-	else
-	{
-		requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-		preferredFlags = 0;
-		kind = GpuResourceKind::NonLinear;
-	}
-
-	mImageCreateInformation.format = VulkanUtility::GetPixelFormat(format, mProperties.UseHardwareSRGB);
-
 	VulkanImageCreateInformation imageInfo = BuildImageCreateInformation();
 
-	VulkanImage* const vulkanImage = mGpuDevice.CreateImage(imageInfo, requiredFlags, preferredFlags, kind, /*parent*/ this);
+	// Textures participate in defragmentation only when they allocate from an allocator that supports it
+	VulkanTexture* const proxyParent = mRequestedLocation.IsPending() && mRequestedLocation.Allocator->SupportsDefragmentation() ? this : nullptr;
+
+	VulkanImage* const vulkanImage = mGpuDevice.CreateImage(imageInfo, mRequestedLocation, mKind, proxyParent);
 	if (vulkanImage != nullptr)
 		vulkanImage->SetName(mName);
 
@@ -719,19 +725,19 @@ void VulkanTexture::CopyImageToImage(VulkanGpuCommandBuffer& commandBuffer, Vulk
 
 void VulkanTexture::RecreateInternalTexture()
 {
-	VulkanImage* const newImage = CreateImage(mInternalFormat);
+	VulkanImage* const newImage = CreateImage();
 	mImage->Destroy();
 	mImage = newImage;
 	mMappedMemory = mImage->GetMappedMemory();
 }
 
-VulkanImage* VulkanTexture::RelocateInternalTexture(const VulkanAllocationResult& preReserved, render::GpuCommandBuffer& commandBuffer)
+VulkanImage* VulkanTexture::RelocateInternalTexture(const GpuResourceLocation& newLocation, render::GpuCommandBuffer& commandBuffer)
 {
 	VulkanImageCreateInformation imageInfo = BuildImageCreateInformation();
 
 	VulkanImage* const oldImage = mImage;
 
-	VulkanImage* newImage = mGpuDevice.CreateImage(imageInfo, preReserved, this);
+	VulkanImage* newImage = mGpuDevice.CreateImage(imageInfo, newLocation, mKind, this);
 	if (newImage != nullptr)
 		newImage->SetName(mName);
 

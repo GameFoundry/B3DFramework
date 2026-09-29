@@ -41,7 +41,7 @@ namespace b3d
 	 * Owns various GPU state for work on a single thread/fiber, and is used for submitting GPU work from that
 	 * thread/fiber. Backed by a GpuDevice; one device can have multiple contexts active at a time.
 	 * 
-	 * Provides parameter set and command buffer pools, transfer command buffers, transient memory allocations 
+	 * Provides parameter set and command buffer pools, transfer command buffers, scratch memory allocations 
 	 * and a completion tracker. 
 	 * 
 	 * It's expected that the renderer will have one of these, and any worker operation will create its own context.
@@ -108,25 +108,25 @@ namespace b3d
 		IGpuCompletionTracker& GetCompletionTracker() const { return *mTracker; }
 
 		/**
-		 * Returns this context's transient (linear/bump) allocator for memory type @p memoryType, lazily
-		 * manufacturing it via GpuDevice::CreateTransientAllocator on first use. The allocator draws pages
+		 * Returns this context's scratch (linear/bump) allocator for memory type @p memoryType, lazily
+		 * manufacturing it via GpuDevice::CreateScratchAllocator on first use. The allocator draws pages
 		 * from the device's shared per-type page pool and retires them against this context's completion
 		 * tracker.
 		 */
-		IGpuAllocator& GetOrCreateTransientAllocator(u32 memoryType);
+		IGpuAllocator& GetOrCreateScratchAllocator(u32 memoryType);
 
 		/**
-		 * Creates a buffer whose backing memory comes from this context's transient (linear/bump) allocator
+		 * Creates a buffer whose backing memory comes from this context's scratch (linear/bump) allocator
 		 * for the buffer's memory type. Allocation and free are extremely cheap — memory is not freed
 		 * per-buffer but reclaimed in bulk by AdvanceFrame() once the GPU work that used it completes — so
 		 * the buffer must only be used for short-lived, single-use work (compute scratch, staging) bounded
 		 * by the frame/operation that created it, and must not be retained past that point.
 		 *
-		 * On backends without context transient allocation this falls back to a regular persistent buffer.
+		 * On backends without context scratch allocation this falls back to a regular persistent buffer.
 		 *
 		 * @param	createInformation	Object describing the buffer to create.
 		 */
-		TShared<render::GpuBuffer> CreateTransientGpuBuffer(const GpuBufferCreateInformation& createInformation);
+		TShared<render::GpuBuffer> CreateScratchGpuBuffer(const GpuBufferCreateInformation& createInformation);
 
 		/**
 		 * Returns this context's pool for allocating GPU parameter sets. Parameter sets allocated from it must not
@@ -199,8 +199,8 @@ namespace b3d
 
 		/**
 		 * Advances to the next frame at the frame boundary: recycles the transfer pool ring (clearing the
-		 * active transfer command buffer) and reclaims transient memory the GPU has finished with - retiring
-		 * each transient allocator's open page and draining everything whose completion marker has signaled
+		 * active transfer command buffer) and reclaims scratch memory the GPU has finished with - retiring
+		 * each scratch allocator's open page and draining everything whose completion marker has signaled
 		 * (non-blocking; drains only what is already complete). Call once per frame after the prior frame's
 		 * work is known safe to reuse, and before the frame index advances so retired pages are stamped with
 		 * the correct frame.
@@ -211,7 +211,7 @@ namespace b3d
 		 * Blocking teardown of all outstanding GPU work owned by this context: flushes any pending
 		 * transfer command buffer, blocks (yieldably) until the GPU drains this context's outstanding
 		 * submissions on every queue, ensures the completion callbacks of the finished work have run (releasing any
-		 * transient buffers they hold), then retires and force-drains all transient memory back to the
+		 * scratch buffers they hold), then retires and force-drains all scratch memory back to the
 		 * device's shared page pool. Called automatically by the destructor for contexts that own their
 		 * fence tracker. Must run on the owning thread.
 		 */
@@ -219,19 +219,19 @@ namespace b3d
 
 	private:
 		/**
-		 * Same as GetOrCreateTransientAllocator, but returns null when the backend does not support
-		 * context transient allocation, instead of asserting.
+		 * Same as GetOrCreateScratchAllocator, but returns null when the backend does not support
+		 * context scratch allocation, instead of asserting.
 		 */
-		IGpuAllocator* TryGetOrCreateTransientAllocator(u32 memoryType);
+		IGpuAllocator* TryGetOrCreateScratchAllocator(u32 memoryType);
 
 #if B3D_DEBUG
 		/**
-		 * Asserts no transient allocation produced by this context is still alive — catching transient
+		 * Asserts no scratch allocation produced by this context is still alive — catching scratch
 		 * buffers that outlived their context. Only meaningful once the completion callbacks of the
-		 * context's finished GPU work have run (they hold the last references to transient buffers), so
+		 * context's finished GPU work have run (they hold the last references to scratch buffers), so
 		 * call after the WaitAndReclaim() wait, or at destruction.
 		 */
-		void AssertNoOutstandingTransientAllocations() const;
+		void AssertNoOutstandingScratchAllocations() const;
 #endif
 
 		GpuDevice& mDevice; /**< Non-owning back-ref to the device. */
@@ -239,11 +239,11 @@ namespace b3d
 		TUnique<GpuFenceCompletionTracker> mOwnedTracker; /**< Non-null only owning a tracker. */
 
 		/**
-		 * Per-memory-type transient (linear) allocators this context owns and drives. Lazily populated by
-		 * GetOrCreateTransientAllocator; each draws from the device's shared page pool for its type. Owned
+		 * Per-memory-type scratch (linear) allocators this context owns and drives. Lazily populated by
+		 * GetOrCreateScratchAllocator; each draws from the device's shared page pool for its type. Owned
 		 * through IGpuAllocator (whose destructor is virtual), and destroyed with the context.
 		 */
-		Map<u32, TUnique<IGpuAllocator>> mTransientAllocators;
+		Map<u32, TUnique<IGpuAllocator>> mScratchAllocators;
 
 		/** Pool for GPU parameter sets allocated through this context. */
 		TUnique<GpuParameterSetPool> mParameterSetPool;

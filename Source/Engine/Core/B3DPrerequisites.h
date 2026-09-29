@@ -334,8 +334,8 @@ namespace b3d
 	B3D_CORE_OBJECT_FORWARD_DECLARE_STRUCT(DepthOfFieldSettings)
 	B3D_CORE_OBJECT_FORWARD_DECLARE_STRUCT(ChromaticAberrationSettings)
 	B3D_CORE_OBJECT_FORWARD_DECLARE_STRUCT(RenderSettings)
-	B3D_CORE_OBJECT_FORWARD_DECLARE_STRUCT(ShaderInformation)
 	B3D_CORE_OBJECT_FORWARD_DECLARE_STRUCT(ShaderCreateInformation)
+	struct ShaderDescription;
 
 	class ParticleSystem;
 	class Renderable;
@@ -757,9 +757,9 @@ namespace b3d
 		TID_PassRenderProxy = 1219,
 		TID_VariationRenderProxy = 1220,
 		TID_ShaderCompilerMetaData = 1221,
-		TID_ShaderInformationBase = 1222,
-		TID_ShaderInformation = 1223,
-		TID_ShaderInformationRenderProxy = 1224,
+		//TID_ShaderInformationBase = 1222,
+		//TID_ShaderInformation = 1223,
+		//TID_ShaderInformationRenderProxy = 1224,
 		TID_ShaderRenderProxy = 1225,
 		TID_VectorPathCommand = 1226,
 		TID_VectorGraphicsPaint = 1227,
@@ -828,6 +828,14 @@ namespace b3d
 		TID_FontMetaData = 1288,
 		TID_FontFamilyFace = 1289,
 		TID_FontFamily = 1290,
+		TID_ShaderDescription = 1291,
+		TID_ShaderReflection = 1292,
+		TID_ShaderEntryPointReflection = 1293,
+		//TID_ShaderUniformBufferBindingInformation = 1294,
+		TID_ShaderParameterDescription = 1295,
+		TID_ShaderCreateInformation = 1296,
+		TID_ShaderCreateInformationRenderProxy = 1297,
+		TID_ShaderRegistryMetaData = 1298,
 
 		// Moved from Engine layer
 		TID_Camera = 30000,

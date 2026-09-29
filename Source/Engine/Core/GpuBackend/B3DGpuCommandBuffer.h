@@ -475,12 +475,12 @@ namespace b3d
 
 			/**
 			 * Applies an offset from which reads in a buffer should start in a GPU program. This allows caller to quickly change
-			 * buffer contents as seen by the shader, without having to rebind GPU program parameters. You should only call this
-			 * after binding all parameter sets, as the offsets will be reset when parameters are changed.
+			 * buffer contents as seen by the shader, without having to rebind GPU program parameters. Only non-array uniform buffers
+			 * declared with dynamic offsets support this. Call after binding the parameter set; rebinding that set resets its offsets.
 			 *
 			 * @param set				Descriptor set index.
-			 * @param bufferIndex		Dynamic buffer index within the set, as retrieved from GpuPipelineParameterLayout::GetDynamicOffsetIndex.
-			 * @param offset			Offset to apply. Must be within the range of the currently bound buffer size and respect hardware alignment requirements.
+			 * @param bufferIndex		Dynamic buffer index within the bound set's GpuPipelineParameterSetLayout, as retrieved from GetDynamicOffsetIndex.
+			 * @param offset			Byte offset replacing the initial binding offset. Must leave room for one suballocation in the bound buffer and respect hardware alignment requirements.
 			 */
 			virtual void SetDynamicBufferOffset(u32 set, u32 bufferIndex, u32 offset) = 0;
 

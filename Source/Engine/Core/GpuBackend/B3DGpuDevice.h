@@ -27,6 +27,8 @@ namespace b3d
 	class GpuPipelineParameterSetLayout;
 	class GpuCommandCapture;
 	class IGpuAllocator;
+	struct GpuMemoryRequirements;
+	struct GpuResourceLocation;
 	struct SamplerStateCreateInformation;
 	struct TextureCreateInformation;
 	struct TextureCopyInformation;
@@ -49,17 +51,6 @@ namespace b3d
 	/** @addtogroup GpuBackend
 	 *  @{
 	 */
-
-	/** Flags that control creation of GPU objects via GpuDevice factory methods. */
-	enum class GpuObjectCreateFlag
-	{
-		None = 0,
-		DeferredInitialize = 1 << 0, /**< Don't call Initialize() automatically. Caller must ensure it gets called after creation. */
-		RenderThreadDestroy = 1 << 1 /**< Ensures the object will always get destroyed on the render thread. Only relevant for render proxy objects. */
-	};
-
-	using GpuObjectCreateFlags = Flags<GpuObjectCreateFlag>;
-	B3D_FLAGS_OPERATORS(GpuObjectCreateFlag)
 
 	/**
 	 * Provides access to a particular GPU device.
@@ -145,33 +136,58 @@ namespace b3d
 		virtual TShared<render::GpuCommandBufferPool> CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation) = 0;
 
 		/**
-		 * Creates a new GPU texture.
+		 * Creates a new GPU texture whose memory comes from the device's persistent allocator for its memory type.
 		 *
 		 * @param	createInformation	Object describing the texture to create.
 		 * @param	flags				Creation flags. @see GpuObjectCreateFlag
 		 */
-		virtual TShared<render::Texture> CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
+		TShared<render::Texture> CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None);
 
 		/**
-		 * Creates a new GPU buffer. The buffer's backing memory comes from the device's persistent
-		 * per-memory-type allocator; use GpuWorkContext::CreateTransientGpuBuffer for short-lived buffers
-		 * backed by a context's transient allocator.
+		 * Creates a new GPU texture at the provided memory location.
+		 *
+		 * A pending location allocates from its allocator, including whenever the texture recreates its native resource.
+		 * A location with memory fixes the texture to that memory, which must satisfy GetMemoryRequirements() for
+		 * @p createInformation.
+		 *
+		 * @param	createInformation	Object describing the texture to create.
+		 * @param	location			Memory the texture is created at. Must not be empty.
+		 * @param	flags				Creation flags. @see GpuObjectCreateFlag
+		 * @return						Created texture, or null if @p location is not valid for @p createInformation.
+		 */
+		TShared<render::Texture> CreateTexture(const TextureCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None);
+
+		/**
+		 * Creates a new GPU buffer whose memory comes from the device's persistent allocator for its memory type. Use
+		 * GpuWorkContext::CreateScratchGpuBuffer for short-lived buffers backed by a context's scratch allocator.
 		 *
 		 * @param	createInformation	Object describing the buffer to create.
 		 * @param	flags				Creation flags. @see GpuObjectCreateFlag
 		 */
-		virtual TShared<render::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
+		TShared<render::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None);
 
 		/**
-		 * Determines the backend memory type a buffer described by @p createInformation allocates from.
-		 * A buffer's memory type is a pure function of its create information, fixed for its lifetime, so
-		 * the per-type allocator backing the buffer can be resolved once, up front. The base
-		 * implementation returns 0 (no meaningful memory types); backends with per-type allocators
-		 * override this.
+		 * Creates a new GPU buffer at the provided memory location. Location rules match
+		 * CreateTexture(const TextureCreateInformation&, const GpuResourceLocation&, GpuObjectCreateFlags).
 		 *
-		 * Thread safe.
+		 * @param	createInformation	Object describing the buffer to create.
+		 * @param	location			Memory the buffer is created at. Must not be empty.
+		 * @param	flags				Creation flags. @see GpuObjectCreateFlag
+		 * @return						Created buffer, or null if @p location is not valid for @p createInformation.
 		 */
-		virtual u32 PickBufferMemoryType(const GpuBufferCreateInformation& /*createInformation*/) const { return 0; }
+		TShared<render::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None);
+
+		/** Returns the memory a texture described by @p createInformation needs. Thread safe. */
+		virtual GpuMemoryRequirements GetMemoryRequirements(const TextureCreateInformation& createInformation) const = 0;
+
+		/** Returns the memory a buffer described by @p createInformation needs. Thread safe. */
+		virtual GpuMemoryRequirements GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const = 0;
+
+		/**
+		 * Returns the device-owned persistent allocator for memory type @p memoryType, as reported by
+		 * GetMemoryRequirements(). Thread safe.
+		 */
+		virtual IGpuAllocator& GetPersistentAllocator(u32 memoryType) = 0;
 
 		/**
 		 * Creates a new sampler state, or returns an existing one if one with the same create information was already created.
@@ -266,14 +282,14 @@ namespace b3d
 		virtual TShared<GpuTimelineFence> CreateTimelineFence() = 0;
 
 		/**
-		 * Backend factory for a context-owned transient (linear/bump) allocator. Manufactures an
+		 * Backend factory for a context-owned scratch (linear/bump) allocator. Manufactures an
 		 * allocator for memory type @p memoryType, drawing pages from the device's shared per-type page
 		 * pool and retiring them against @p completionTracker. Ownership transfers to the caller.
 		 *
-		 * The base implementation returns nullptr (context transient allocation unsupported); backends
+		 * The base implementation returns nullptr (context scratch allocation unsupported); backends
 		 * that support it override this.
 		 */
-		virtual TUnique<IGpuAllocator> CreateTransientAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker);
+		virtual TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker);
 
 		/************************************************************************/
 		/* 								UTILITY METHODS                    		*/
@@ -303,24 +319,6 @@ namespace b3d
 		 */
 		virtual float ConvertTimestampToMilliseconds(u64 timestamp) = 0;
 
-	protected:
-		friend class GpuWorkContext;
-
-		GpuDevice() = default;
-
-		/**
-		 * Creates a new GPU buffer whose backing memory is suballocated from an explicitly provided
-		 * @p allocator instead of the device's persistent allocator. The allocator must be compatible
-		 * with the buffer's memory type, i.e. resolved for the type returned by PickBufferMemoryType()
-		 * (GpuWorkContext::CreateTransientGpuBuffer is the canonical caller). @p allocator must outlive the
-		 * returned buffer.
-		 *
-		 * @param	createInformation	Object describing the buffer to create.
-		 * @param	allocator			Allocator the buffer's backing memory is suballocated from.
-		 * @param	flags				Creation flags. @see GpuObjectCreateFlag
-		 */
-		virtual TShared<render::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, IGpuAllocator& allocator, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None);
-
 		/**
 		 * Explicit deleter for objects that derive from RenderProxy. By default render proxy objects provide a custom deleter that
 		 * ensure they always get deleted on the render thread. But this behaviour is not always wanted (i.e. if creating a GPU object
@@ -339,6 +337,21 @@ namespace b3d
 
 			return TShared<Type>(data, fnStandaloneDeleter, StdAlloc<Type, PointerDataAllocatorTag>());
 		}
+
+	protected:
+		GpuDevice() = default;
+
+		/**
+		 * Creates a new GPU texture at @p location, which is pending or has memory that satisfies the texture's memory
+		 * requirements. See CreateTexture(const TextureCreateInformation&, const GpuResourceLocation&, GpuObjectCreateFlags).
+		 */
+		virtual TShared<render::Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags) = 0;
+
+		/**
+		 * Creates a new GPU buffer at @p location, which is pending or has memory that satisfies the buffer's memory
+		 * requirements. See CreateGpuBuffer(const GpuBufferCreateInformation&, const GpuResourceLocation&, GpuObjectCreateFlags).
+		 */
+		virtual TShared<render::GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags) = 0;
 
 		mutable UnorderedMap<SamplerStateCreateInformation, TShared<SamplerState>> mCachedSamplerStates;
 		mutable Mutex mSamplerStateMutex;

@@ -243,7 +243,7 @@ void GUIToggleable::UpdateRenderElements()
 		{
 			SpriteVectorPathCreateInformation spriteVectorPathCreateInformation;
 			spriteVectorPathCreateInformation.DefaultSize = checkmarkAreaSize.To<i32>();
-			spriteVectorPathCreateInformation.VectorPath = mCheckmarkPathBuilder->BuildPath(spriteVectorPathCreateInformation.DefaultSize, checkmarkStyleSheetRules);
+			spriteVectorPathCreateInformation.VectorPath = mCheckmarkPathBuilder->BuildPath(spriteVectorPathCreateInformation.DefaultSize, checkmarkStyleSheetRules, GetAbsoluteScale());
 
 			mCheckmarkSpriteInformation.Image = SpriteVectorPath::Create(spriteVectorPathCreateInformation);
 			mCheckmarkSpriteInformation.Color = Color::kWhite;

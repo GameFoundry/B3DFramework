@@ -6,7 +6,7 @@
 
 using namespace b3d;
 
-HVectorPath GUIBackgroundVectorPathBuilder::BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule) const
+HVectorPath GUIBackgroundVectorPathBuilder::BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule, float scale) const
 {
 	HVectorPath path = VectorPath::Create(Size2((float)size.Width, (float)size.Height));
 
@@ -15,20 +15,22 @@ HVectorPath GUIBackgroundVectorPathBuilder::BuildPath(const Size2I& size, const 
 		styleSheetRule.BorderLeft == styleSheetRule.BorderTop &&
 		styleSheetRule.BorderLeft == styleSheetRule.BorderBottom;
 
-	const bool drawBorder = ((styleSheetRule.BorderLeft.Width > 0 && styleSheetRule.BorderLeft.Style != GUIBorderElementStyle::None)
-		|| (styleSheetRule.BorderRight.Width > 0 && styleSheetRule.BorderRight.Style != GUIBorderElementStyle::None)
-		|| (styleSheetRule.BorderTop.Width > 0 && styleSheetRule.BorderTop.Style != GUIBorderElementStyle::None)
-		|| (styleSheetRule.BorderBottom.Width > 0 && styleSheetRule.BorderBottom.Style != GUIBorderElementStyle::None));
+	const float leftBorderWidth = styleSheetRule.BorderLeft.GetPhysicalWidth(scale);
+	const float rightBorderWidth = styleSheetRule.BorderRight.GetPhysicalWidth(scale);
+	const float topBorderWidth = styleSheetRule.BorderTop.GetPhysicalWidth(scale);
+	const float bottomBorderWidth = styleSheetRule.BorderBottom.GetPhysicalWidth(scale);
+
+	const bool drawBorder = leftBorderWidth > 0.0f || rightBorderWidth > 0.0f || topBorderWidth > 0.0f || bottomBorderWidth > 0.0f;
 
 	const float width = (float)size.Width;
 	const float height = (float)size.Height;
 
 	const float minimumExtent = Math::Min(width, height) * 0.5f;
 
-	const float borderTopLeftRadius = Math::Min(minimumExtent, (float)styleSheetRule.BorderTopLeftRadius);
-	const float borderTopRightRadius = Math::Min(minimumExtent, (float)styleSheetRule.BorderTopRightRadius);
-	const float borderBottomLeftRadius = Math::Min(minimumExtent, (float)styleSheetRule.BorderBottomLeftRadius);
-	const float borderBottomRightRadius = Math::Min(minimumExtent, (float)styleSheetRule.BorderBottomRightRadius);
+	const float borderTopLeftRadius = Math::Min(minimumExtent, styleSheetRule.BorderTopLeftRadius * scale);
+	const float borderTopRightRadius = Math::Min(minimumExtent, styleSheetRule.BorderTopRightRadius * scale);
+	const float borderBottomLeftRadius = Math::Min(minimumExtent, styleSheetRule.BorderBottomLeftRadius * scale);
+	const float borderBottomRightRadius = Math::Min(minimumExtent, styleSheetRule.BorderBottomRightRadius * scale);
 
 	// If no border, or border with all equal sides, draw border using a stroke
 	if(!drawBorder || allBordersEqual)
@@ -36,10 +38,15 @@ HVectorPath GUIBackgroundVectorPathBuilder::BuildPath(const Size2I& size, const 
 		// Drawing stroke will extend the width/height by 'strokeWidth', so account for that so our final drawn area matches the requested size. i.e.
 		// If user requests a height of 35 pixels, a top & bottom borders of 5 pixels each (strokeWidth = 5), we want the fill rectangle to be 30 pixels high.
 		// Note that the total border height in the above example is 10 pixels (5 for top, 5 for bottom), but the other 5 pixels are taken from the fill size, so they won't expand the drawn area.
-		const float strokeWidth = drawBorder ? (float)styleSheetRule.BorderLeft.Width : 0.0f;
-		const Area2 fillArea = Area2(strokeWidth * 0.5f, strokeWidth * 0.5f, (float)size.Width - strokeWidth, (float)size.Height - strokeWidth);
+		const float strokeWidth = drawBorder ? leftBorderWidth : 0.0f;
+		const float halfStrokeWidth = strokeWidth * 0.5f;
+		const Area2 fillArea = Area2(halfStrokeWidth, halfStrokeWidth, width - strokeWidth, height - strokeWidth);
 
-		path->DrawRoundedRectangle(fillArea, borderTopLeftRadius, borderTopRightRadius, borderBottomLeftRadius, borderBottomRightRadius)
+		// As in CSS, the radius applies to the outer edge of the border and the inner edge is rounded by the radius minus the
+		// border width. The stroke is centered between the two, so its path is rounded by the radius minus half the width.
+		path->DrawRoundedRectangle(fillArea,
+				Math::Max(0.0f, borderTopLeftRadius - halfStrokeWidth), Math::Max(0.0f, borderTopRightRadius - halfStrokeWidth),
+				Math::Max(0.0f, borderBottomLeftRadius - halfStrokeWidth), Math::Max(0.0f, borderBottomRightRadius - halfStrokeWidth))
 			.ClosePath()
 			.SetFillPaint(styleSheetRule.BackgroundColor)
 			.DrawFill();
@@ -57,11 +64,6 @@ HVectorPath GUIBackgroundVectorPathBuilder::BuildPath(const Size2I& size, const 
 	{
 		const float x = 0.0f;
 		const float y = 0.0f;
-
-		const float leftBorderWidth = styleSheetRule.BorderLeft.Style != GUIBorderElementStyle::None ? (float)styleSheetRule.BorderLeft.Width : 0.0f;
-		const float rightBorderWidth = styleSheetRule.BorderRight.Style != GUIBorderElementStyle::None ? (float)styleSheetRule.BorderRight.Width : 0.0f;
-		const float topBorderWidth = styleSheetRule.BorderTop.Style != GUIBorderElementStyle::None ? (float)styleSheetRule.BorderTop.Width : 0.0f;
-		const float bottomBorderWidth = styleSheetRule.BorderBottom.Style != GUIBorderElementStyle::None ? (float)styleSheetRule.BorderBottom.Width : 0.0f;
 
 		// Inner border is the edge of the center rectangle
 		const float innerX = x + leftBorderWidth;
@@ -99,14 +101,28 @@ HVectorPath GUIBackgroundVectorPathBuilder::BuildPath(const Size2I& size, const 
 		cornerRadii[BC_BottomLeft] = borderBottomLeftRadius;
 		cornerRadii[BC_BottomRight] = borderBottomRightRadius;
 
-		GUIStyleSheetBorderElement borderStylePerSide[4];
-		borderStylePerSide[BS_Top] = styleSheetRule.BorderTop;
-		borderStylePerSide[BS_Left] = styleSheetRule.BorderLeft;
-		borderStylePerSide[BS_Bottom] = styleSheetRule.BorderBottom;
-		borderStylePerSide[BS_Right] = styleSheetRule.BorderRight;
+		// As in CSS, the inner edge is rounded by the outer radius minus the border width. CSS uses an elliptical corner when
+		// the two adjacent borders differ, which is approximated with a circle reduced by the wider of the two.
+		float innerCornerRadii[4];
+		innerCornerRadii[BC_TopRight] = Math::Max(0.0f, borderTopRightRadius - Math::Max(topBorderWidth, rightBorderWidth));
+		innerCornerRadii[BC_TopLeft] = Math::Max(0.0f, borderTopLeftRadius - Math::Max(topBorderWidth, leftBorderWidth));
+		innerCornerRadii[BC_BottomLeft] = Math::Max(0.0f, borderBottomLeftRadius - Math::Max(bottomBorderWidth, leftBorderWidth));
+		innerCornerRadii[BC_BottomRight] = Math::Max(0.0f, borderBottomRightRadius - Math::Max(bottomBorderWidth, rightBorderWidth));
+
+		Color borderColorPerSide[4];
+		borderColorPerSide[BS_Top] = styleSheetRule.BorderTop.Color;
+		borderColorPerSide[BS_Left] = styleSheetRule.BorderLeft.Color;
+		borderColorPerSide[BS_Bottom] = styleSheetRule.BorderBottom.Color;
+		borderColorPerSide[BS_Right] = styleSheetRule.BorderRight.Color;
+
+		float borderWidthPerSide[4];
+		borderWidthPerSide[BS_Top] = topBorderWidth;
+		borderWidthPerSide[BS_Left] = leftBorderWidth;
+		borderWidthPerSide[BS_Bottom] = bottomBorderWidth;
+		borderWidthPerSide[BS_Right] = rightBorderWidth;
 
 		// Generates centers we can use for drawing the corner arcs
-		auto fnGenerateCornerCenters = [&cornerRadii](float x, float y, float width, float height) {
+		auto fnGenerateCornerCenters = [](const float (&radii)[4], float x, float y, float width, float height) {
 			const float halfWidth = Math::Abs(width) * 0.5f;
 			const float halfHeight = Math::Abs(height) * 0.5f;
 
@@ -116,10 +132,9 @@ HVectorPath GUIBackgroundVectorPathBuilder::BuildPath(const Size2I& size, const 
 			Vector2 borderCornerOffset[4];
 			for(u32 cornerIndex = 0; cornerIndex < 4; ++cornerIndex)
 			{
-				// TODO - Known issue if the radius is larger than the half height of the inner border, border will not match up with the center rectangle
 				borderCornerOffset[cornerIndex] = Vector2(
-					Math::Min(cornerRadii[cornerIndex], halfWidth) * Math::Sign(width),
-					Math::Min(cornerRadii[cornerIndex], halfHeight) * Math::Sign(height));
+					Math::Min(radii[cornerIndex], halfWidth) * Math::Sign(width),
+					Math::Min(radii[cornerIndex], halfHeight) * Math::Sign(height));
 			}
 
 			Array<Vector2, 4> cornerCenters;
@@ -132,18 +147,21 @@ HVectorPath GUIBackgroundVectorPathBuilder::BuildPath(const Size2I& size, const 
 		};
 
 		// Generate centers which form the centers of circles used for the corner arcs
-		const Array<Vector2, 4> outerBorderCornerCenters = fnGenerateCornerCenters(x, y, width, height);
-		const Array<Vector2, 4> innerBorderCornerCenters = fnGenerateCornerCenters(innerX, innerY, innerWidth, innerHeight);
+		const Array<Vector2, 4> outerBorderCornerCenters = fnGenerateCornerCenters(cornerRadii, x, y, width, height);
+		const Array<Vector2, 4> innerBorderCornerCenters = fnGenerateCornerCenters(innerCornerRadii, innerX, innerY, innerWidth, innerHeight);
 
 		// Draw borders separately for each side. Each border is formed by an outer edge and an inner edge, connecting to form the shape we'll fill to draw the border.
-		// Inner edge is inset by the border width. Both edges are composed of a 45 degree arc, followed by a straight line, and another 45 degree arc. 
+		// Inner edge is inset by the border width. Both edges are composed of a 45 degree arc, followed by a straight line, and another 45 degree arc.
 		Degree currentAngle(315.0f);
 		const Degree kAngle45(45.0f);
 		for(u32 side = 0; side < 4; ++side)
 		{
-			const bool isVisible = borderStylePerSide[side].Style != GUIBorderElementStyle::None && borderStylePerSide[side].Width > 0;
+			const bool isVisible = borderWidthPerSide[side] > 0.0f;
 			if(!isVisible)
+			{
+				currentAngle -= kAngle45 * 2.0f;
 				continue;
+			}
 
 			const u32 sideCornerA = kCornersPerSide[side][0];
 			const u32 sideCornerB = kCornersPerSide[side][1];
@@ -164,25 +182,26 @@ HVectorPath GUIBackgroundVectorPathBuilder::BuildPath(const Size2I& size, const 
 			// Inner edge of the border (matches the center rectangle)
 			path->DrawArc(
 				innerBorderCornerCenters[sideCornerB],
-				cornerRadii[sideCornerB],
+				innerCornerRadii[sideCornerB],
 				currentAngle - kAngle45 * 2.0,
 				currentAngle - kAngle45, VectorGraphicsPathWinding::Clockwise);
 			// Line connecting the arcs is done implicitly by the DrawArc call if the new arc's starting coordinate doesn't match previous end coordinate.
 			path->DrawArc(
 				innerBorderCornerCenters[sideCornerA],
-				cornerRadii[sideCornerA],
+				innerCornerRadii[sideCornerA],
 				currentAngle - kAngle45,
 				currentAngle, VectorGraphicsPathWinding::Clockwise);
 
 			path->ClosePath();
-			path->SetFillPaint(borderStylePerSide[side].Color);
+			path->SetFillPaint(borderColorPerSide[side]);
 			path->DrawFill();
 
 			currentAngle -= kAngle45 * 2.0f;
 		}
 
 		// Center rectangle
-		path->DrawRoundedRectangle(Area2(innerX, innerY, innerWidth, innerHeight), (float)styleSheetRule.BorderTopLeftRadius, (float)styleSheetRule.BorderTopRightRadius, (float)styleSheetRule.BorderBottomLeftRadius, (float)styleSheetRule.BorderBottomRightRadius);
+		path->DrawRoundedRectangle(Area2(innerX, innerY, innerWidth, innerHeight),
+			innerCornerRadii[BC_TopLeft], innerCornerRadii[BC_TopRight], innerCornerRadii[BC_BottomLeft], innerCornerRadii[BC_BottomRight]);
 		path->SetFillPaint(styleSheetRule.BackgroundColor);
 		path->DrawFill();
 	}
@@ -190,7 +209,7 @@ HVectorPath GUIBackgroundVectorPathBuilder::BuildPath(const Size2I& size, const 
 	return path;
 }
 
-HVectorPath GUICheckmarkVectorPathBuilder::BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule) const
+HVectorPath GUICheckmarkVectorPathBuilder::BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule, float scale) const
 {
 	HVectorPath path = VectorPath::Create(Size2(512.0f, 512.0f));
 
@@ -208,7 +227,7 @@ HVectorPath GUICheckmarkVectorPathBuilder::BuildPath(const Size2I& size, const G
 	return path;
 }
 
-HVectorPath GUITabBackgroundVectorPathBuilder::BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule) const
+HVectorPath GUITabBackgroundVectorPathBuilder::BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule, float scale) const
 {
 	HVectorPath path = VectorPath::Create(Size2(135.0f, 27.0f));
 
@@ -221,18 +240,18 @@ HVectorPath GUITabBackgroundVectorPathBuilder::BuildPath(const Size2I& size, con
 		.SetFillPaint(styleSheetRule.BackgroundColor)
 		.DrawFill();
 
-	const bool drawBorder = styleSheetRule.BorderLeft.Width > 0 && styleSheetRule.BorderLeft.Style != GUIBorderElementStyle::None;
+	const bool drawBorder = styleSheetRule.BorderLeft.Width > 0.0f && styleSheetRule.BorderLeft.Style != GUIBorderElementStyle::None;
 	if(drawBorder)
 	{
 		path->SetStrokePaint(styleSheetRule.BorderLeft.Color)
-			.SetStrokeWidth((float)styleSheetRule.BorderLeft.Width)
+			.SetStrokeWidth(styleSheetRule.BorderLeft.Width)
 			.DrawStroke();
 	}
 
 	return path;
 }
 
-HVectorPath GUIDropDownArrowVectorPathBuilder::BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule) const
+HVectorPath GUIDropDownArrowVectorPathBuilder::BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule, float scale) const
 {
 	constexpr float kCanvasSize = 100.0f;
 	constexpr float kArrowSize = kCanvasSize * 0.75f;
@@ -253,7 +272,7 @@ HVectorPath GUIDropDownArrowVectorPathBuilder::BuildPath(const Size2I& size, con
 	return path;
 }
 
-HVectorPath GUIScrollArrowVectorPathBuilder::BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule) const
+HVectorPath GUIScrollArrowVectorPathBuilder::BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule, float scale) const
 {
 	HVectorPath path = VectorPath::Create(Size2(100.0f, 75.0f));
 
@@ -265,18 +284,18 @@ HVectorPath GUIScrollArrowVectorPathBuilder::BuildPath(const Size2I& size, const
 		.SetFillPaint(styleSheetRule.Color)
 		.DrawFill();
 
-	const bool drawBorder = styleSheetRule.BorderLeft.Width > 0 && styleSheetRule.BorderLeft.Style != GUIBorderElementStyle::None;
+	const bool drawBorder = styleSheetRule.BorderLeft.Width > 0.0f && styleSheetRule.BorderLeft.Style != GUIBorderElementStyle::None;
 	if(drawBorder)
 	{
 		path->SetStrokePaint(styleSheetRule.BorderLeft.Color)
-			.SetStrokeWidth((float)styleSheetRule.BorderLeft.Width)
+			.SetStrokeWidth(styleSheetRule.BorderLeft.Width)
 			.DrawStroke();
 	}
 
 	return path;
 }
 
-HVectorPath GUIScrollHandleVectorPathBuilder::BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule) const
+HVectorPath GUIScrollHandleVectorPathBuilder::BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule, float scale) const
 {
 	constexpr u32 kReferenceRasterSize = 13; // Reference size of the handle in pixels, both width and height
 	constexpr float kReferenceCanvasSize = 100.0f; // Reference size of the vector path canvas
@@ -301,18 +320,18 @@ HVectorPath GUIScrollHandleVectorPathBuilder::BuildPath(const Size2I& size, cons
 		.SetFillPaint(styleSheetRule.Color)
 		.DrawFill();
 
-	const bool drawBorder = styleSheetRule.BorderLeft.Width > 0 && styleSheetRule.BorderLeft.Style != GUIBorderElementStyle::None;
+	const bool drawBorder = styleSheetRule.BorderLeft.Width > 0.0f && styleSheetRule.BorderLeft.Style != GUIBorderElementStyle::None;
 	if(drawBorder)
 	{
 		path->SetStrokePaint(styleSheetRule.BorderLeft.Color)
-			.SetStrokeWidth((float)styleSheetRule.BorderLeft.Width)
+			.SetStrokeWidth(styleSheetRule.BorderLeft.Width)
 			.DrawStroke();
 	}
 
 	return path;
 }
 
-HVectorPath GUIResizableVerticalScrollHandleVectorPathBuilder::BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule) const
+HVectorPath GUIResizableVerticalScrollHandleVectorPathBuilder::BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule, float scale) const
 {
 	const Size2 constrainedSize(
 		Math::Max(1.0f, (float)size.Width),
@@ -330,7 +349,7 @@ HVectorPath GUIResizableVerticalScrollHandleVectorPathBuilder::BuildPath(const S
 	return path;
 }
 
-HVectorPath GUIResizableHorizontalScrollHandleVectorPathBuilder::BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule) const
+HVectorPath GUIResizableHorizontalScrollHandleVectorPathBuilder::BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule, float scale) const
 {
 	const Size2 constrainedSize(
 		Math::Max(kResizableHandlePadding * 2.0f + kResizableHandleSize * 3.0f, (float)size.Width),
@@ -348,7 +367,7 @@ HVectorPath GUIResizableHorizontalScrollHandleVectorPathBuilder::BuildPath(const
 	return path;
 }
 
-HVectorPath GUISeparatorVectorPathBuilder::BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule) const
+HVectorPath GUISeparatorVectorPathBuilder::BuildPath(const Size2I& size, const GUIStyleSheetRules& styleSheetRule, float scale) const
 {
 	HVectorPath path = VectorPath::Create(Size2((float)size.Width, (float)size.Height));
 

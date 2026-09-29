@@ -171,6 +171,7 @@ shader VectorGraphics
 
 	code
 	{
+		[dynamicOffset]
 		cbuffer RenderUniforms
 		{
 			float4x4 gScissorMatrix;

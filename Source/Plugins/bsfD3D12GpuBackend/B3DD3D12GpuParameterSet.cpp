@@ -104,9 +104,9 @@ void D3D12GpuParameters::Initialize()
 			if (uniformInformation == nullptr)
 				continue;
 
-			// Single-element uniform buffers occupy a root CBV descriptor instead of a descriptor table (this must
+			// Dynamic uniform buffers occupy a root CBV descriptor instead of a descriptor table (this must
 			// mirror the root signature's promotion choice, see D3D12GpuPipelineParameterLayout::CreateRootSignature).
-			if (type == GpuParameterType::UniformBuffer && uniformInformation->ArraySize == 1)
+			if (type == GpuParameterType::UniformBuffer && uniformInformation->DynamicOffsetIndex != ~0u)
 			{
 				RootConstantBuffer& rootBuffer = mRootConstantBuffers[uniformInformation->Slot];
 				rootBuffer.DataIndex = uniformInformation->SequentialResourceIndex;
@@ -152,13 +152,11 @@ bool D3D12GpuParameters::SetUniformBuffer(u32 slot, const TShared<GpuBuffer>& un
 	if (!GpuParameterSet::SetUniformBuffer(slot, uniformBuffer, arrayIndex, offset))
 		return false;
 
-	// Single-element uniform buffers are bound as root CBVs: the buffer and its suballocation offset are read from
+	// Dynamic uniform buffers are bound as root CBVs: the buffer and its suballocation offset are read from
 	// the base class's bound-buffer data at bind time, no descriptor is involved.
 	if (mRootConstantBuffers.find(slot) != mRootConstantBuffers.end())
 		return true;
 
-	// TODO(d3d12-port): Suballocation offset is stored by the base class but not applied to arrayed CBVs; the CBV created on the buffer always covers suballocation 0. 
-	// Technically we don't want to support this at all, so this should be rejected at the core level (arrays of dynamic offset buffers)
 	if (uniformBuffer == nullptr)
 	{
 		// A cleared handle makes the GPU-visible copy substitute a null CBV (see UpdateGPUDescriptors)
@@ -167,7 +165,7 @@ bool D3D12GpuParameters::SetUniformBuffer(u32 slot, const TShared<GpuBuffer>& un
 	}
 
 	auto* d3d12Buffer = static_cast<D3D12GpuBuffer*>(uniformBuffer.get());
-	SetDescriptor(slot, arrayIndex, d3d12Buffer->GetCBVHandle());
+	SetDescriptor(slot, arrayIndex, d3d12Buffer->GetCBVHandle(offset));
 	return true;
 }
 

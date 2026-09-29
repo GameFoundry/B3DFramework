@@ -143,7 +143,7 @@ u64 D3D12BufferPool::GetPersistentPageSize(MemoryType memoryType)
 	return memoryType == MemoryType::Default || memoryType == MemoryType::DefaultUnorderedAccess ? 16ull * 1024 * 1024 : 4ull * 1024 * 1024;
 }
 
-u64 D3D12BufferPool::GetTransientPageSize(MemoryType memoryType)
+u64 D3D12BufferPool::GetScratchPageSize(MemoryType memoryType)
 {
 	return memoryType == MemoryType::Default || memoryType == MemoryType::DefaultUnorderedAccess ? 8ull * 1024 * 1024 : 4ull * 1024 * 1024;
 }
@@ -181,7 +181,7 @@ D3D12BufferPool::LinearPagePool& D3D12BufferPool::GetOrCreateLinearPagePool(Memo
 	if(pagePool == nullptr)
 	{
 		LinearPagePool::Configuration configuration;
-		configuration.PageSize = GetTransientPageSize(memoryType);
+		configuration.PageSize = GetScratchPageSize(memoryType);
 		configuration.MaxRetainedPages = 4;
 		configuration.HeapCreateInfo = GetPageCreateInformation(memoryType);
 
@@ -191,7 +191,7 @@ D3D12BufferPool::LinearPagePool& D3D12BufferPool::GetOrCreateLinearPagePool(Memo
 	return *pagePool;
 }
 
-TUnique<IGpuAllocator> D3D12BufferPool::CreateTransientAllocator(u32 memoryTypeIndex, IGpuCompletionTracker& completionTracker)
+TUnique<IGpuAllocator> D3D12BufferPool::CreateScratchAllocator(u32 memoryTypeIndex, IGpuCompletionTracker& completionTracker)
 {
 	if(memoryTypeIndex >= (u32)MemoryType::Count)
 		return nullptr;
@@ -199,9 +199,9 @@ TUnique<IGpuAllocator> D3D12BufferPool::CreateTransientAllocator(u32 memoryTypeI
 	const MemoryType memoryType = (MemoryType)memoryTypeIndex;
 	LinearPagePool& pagePool = GetOrCreateLinearPagePool(memoryType);
 
-	TransientAllocator::Configuration configuration;
+	ScratchAllocator::Configuration configuration;
 	configuration.PageSize = pagePool.GetPageSize();
 	configuration.HeapCreateInfo = GetPageCreateInformation(memoryType);
 
-	return B3DMakeUnique<TransientAllocator>(&mBackend, &completionTracker, configuration, &pagePool);
+	return B3DMakeUnique<ScratchAllocator>(&mBackend, &completionTracker, configuration, &pagePool);
 }

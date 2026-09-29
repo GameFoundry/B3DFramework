@@ -44,23 +44,23 @@ float TextGeometry::Word::CalculateWidthWithCharacter(const CharacterInformation
 	return mWidth + CalculateCharacterWidth(mLastCharacter, characterInformation, letterSpacing);
 }
 
+/** Returns the kerning offset to apply between @p leftCharacter and the character immediately following it. */
+static float GetKerning(const CharacterInformation& leftCharacter, u32 rightCharacterId)
+{
+	for(const KerningPair& kerningPair : leftCharacter.KerningPairs)
+	{
+		if(kerningPair.OtherCharId == rightCharacterId)
+			return kerningPair.Amount;
+	}
+
+	return 0.0f;
+}
+
 float TextGeometry::Word::CalculateCharacterWidth(const CharacterInformation* previousCharacter, const CharacterInformation& currentCharacter, float letterSpacing)
 {
 	float characterWidth = currentCharacter.XAdvance + letterSpacing;
 	if(previousCharacter != nullptr)
-	{
-		float kerning = 0.0f;
-		for(size_t j = 0; j < previousCharacter->KerningPairs.size(); j++)
-		{
-			if(previousCharacter->KerningPairs[j].OtherCharId == currentCharacter.CharId)
-			{
-				kerning = previousCharacter->KerningPairs[j].Amount;
-				break;
-			}
-		}
-
-		characterWidth += kerning;
-	}
+		characterWidth += GetKerning(*previousCharacter, currentCharacter.CharId);
 
 	return characterWidth;
 }
@@ -185,14 +185,14 @@ bool TextGeometry::Line::IsAtWordBoundary() const
 	return mIsEmpty || PerThreadTemporaryBuffer->WordBuffer[mWordEndIndex].IsSpacer();
 }
 
-u32 TextGeometry::Line::FillBuffer(u32 page, Vector2* outVertices, Vector2* outUVs, u32* outIndices, u32 offset, u32 size) const
+u32 TextGeometry::Line::FillBuffer(u32 page, Vector2* outVertices, Vector2* outUVs, u32* outIndices, u32 offset, u32 size, float startX) const
 {
 	u32 quadCount = 0;
 
 	if(mIsEmpty)
 		return quadCount;
 
-	float penX = 0;
+	float penX = startX;
 	for(u32 wordIndex = mWordStartIndex; wordIndex <= mWordEndIndex; wordIndex++)
 	{
 		const Word& word = mTextData->GetWord(wordIndex);
@@ -246,30 +246,28 @@ u32 TextGeometry::Line::FillBuffer(u32 page, Vector2* outVertices, Vector2* outU
 		else
 		{
 			const float letterSpacing = mTextData->GetMetrics().LetterSpacing;
+			const u32 subpixelPositionCount = mTextData->mFontBitmapInformation->SubpixelPositionCount;
 
-			float kerning = 0.0f;
 			for(u32 characterIndex = word.GetStartCharacterIndex(); characterIndex <= word.GetEndCharacterIndex(); characterIndex++)
 			{
 				const CharacterInformation& currentCharacterInformation = mTextData->GetCharacter(characterIndex);
 
-				float curX = penX + currentCharacterInformation.XOffset;
+				// The fractional part of the pen position selects which subpixel position the character was rendered at.
+				// Positions round to the nearest one, and the last one rounds up to the next pixel.
+				const i32 subpixelX = Math::RoundToI32(penX * (float)subpixelPositionCount);
+				const i32 pixelX = Math::FloorToInt((float)subpixelX / (float)subpixelPositionCount);
+				const u32 subpixelPositionIndex = (u32)(subpixelX - pixelX * (i32)subpixelPositionCount);
+
+				float curX = (float)pixelX + currentCharacterInformation.XOffset;
 				float curY = mTextData->GetBaselineOffset() - currentCharacterInformation.YOffset;
+				const float uvX = currentCharacterInformation.UvX + (float)subpixelPositionIndex * currentCharacterInformation.UvWidth;
+
+				// Kerning of the pair (current, next) moves the next character, so it is part of the current advance
+				float kerning = 0.0f;
+				if((characterIndex + 1) <= word.GetEndCharacterIndex())
+					kerning = GetKerning(currentCharacterInformation, mTextData->GetCharacter(characterIndex + 1).CharId);
 
 				penX += currentCharacterInformation.XAdvance + kerning + letterSpacing;
-
-				kerning = 0.0f;
-				if((characterIndex + 1) <= word.GetEndCharacterIndex())
-				{
-					const CharacterInformation& nextChar = mTextData->GetCharacter(characterIndex + 1);
-					for(size_t j = 0; j < currentCharacterInformation.KerningPairs.size(); j++)
-					{
-						if(currentCharacterInformation.KerningPairs[j].OtherCharId == nextChar.CharId)
-						{
-							kerning = currentCharacterInformation.KerningPairs[j].Amount;
-							break;
-						}
-					}
-				}
 
 				if(currentCharacterInformation.Page != page)
 					continue;
@@ -284,10 +282,10 @@ u32 TextGeometry::Line::FillBuffer(u32 page, Vector2* outVertices, Vector2* outU
 
 				if(outUVs != nullptr)
 				{
-					outUVs[curVert + 0] = Vector2(currentCharacterInformation.UvX, currentCharacterInformation.UvY);
-					outUVs[curVert + 1] = Vector2(currentCharacterInformation.UvX + currentCharacterInformation.UvWidth, currentCharacterInformation.UvY);
-					outUVs[curVert + 2] = Vector2(currentCharacterInformation.UvX, currentCharacterInformation.UvY + currentCharacterInformation.UvHeight);
-					outUVs[curVert + 3] = Vector2(currentCharacterInformation.UvX + currentCharacterInformation.UvWidth, currentCharacterInformation.UvY + currentCharacterInformation.UvHeight);
+					outUVs[curVert + 0] = Vector2(uvX, currentCharacterInformation.UvY);
+					outUVs[curVert + 1] = Vector2(uvX + currentCharacterInformation.UvWidth, currentCharacterInformation.UvY);
+					outUVs[curVert + 2] = Vector2(uvX, currentCharacterInformation.UvY + currentCharacterInformation.UvHeight);
+					outUVs[curVert + 3] = Vector2(uvX + currentCharacterInformation.UvWidth, currentCharacterInformation.UvY + currentCharacterInformation.UvHeight);
 				}
 
 				if(outIndices != nullptr)

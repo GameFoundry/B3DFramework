@@ -12,6 +12,7 @@
 #include "GpuBackend/B3DGpuProgram.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "B3DApplication.h"
+#include "RTTI/B3DShaderReflectionRTTI.h"
 
 namespace b3d
 {
@@ -161,8 +162,7 @@ namespace b3d
 			B3D_RTTI_MEMBER(Type, 4)
 			B3D_RTTI_MEMBER(RequiresAdjacency, 5)
 			B3D_RTTI_MEMBER(Bytecode, 6)
-			B3D_RTTI_MEMBER(ThreadGroupSize, 7)
-			B3D_RTTI_MEMBER(PushConstantBufferSize, 8)
+			B3D_RTTI_MEMBER(ShaderReflection, 7)
 			B3D_RTTI_MEMBER(RenderTargetFormats, 9)
 		B3D_RTTI_END_MEMBERS
 

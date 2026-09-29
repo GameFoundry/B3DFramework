@@ -19,6 +19,7 @@
 #include "GpuBackend/B3DVideoModeInfo.h"
 #include "GpuBackend/B3DGpuTimelineFence.h"
 #include "Math/B3DMatrix4.h"
+#include "Image/B3DPixelUtility.h"
 
 namespace b3d
 {
@@ -41,6 +42,17 @@ namespace b3d
 		NullGpuDevice::NullGpuDevice()
 		{
 			mVideoModeInfo = B3DMakeShared<VideoModeInfo>();
+
+			TGpuTlsfAllocator<NullHeapBackend>::Configuration configuration;
+			configuration.InitialHeapSize = 64ull * 1024 * 1024;
+			configuration.MaxHeapSize = 256ull * 1024 * 1024;
+			configuration.GrowthFactor = 2;
+			configuration.MaxEmptyHeapCount = 1;
+			configuration.MinAllocationSize = 16;
+			configuration.Granularity = 1;
+			configuration.DeferralMode = GpuAllocatorFreeDeferralMode::ResourceLifecycle;
+
+			mPersistentAllocator = B3DMakeUnique<TGpuTlsfAllocator<NullHeapBackend>>(&mHeapBackend, nullptr, configuration);
 		}
 
 		bool NullGpuDevice::Initialize()
@@ -143,9 +155,61 @@ namespace b3d
 			return B3DMakeSharedFromExisting(new(B3DAllocate<NullGpuCommandBufferPool>()) NullGpuCommandBufferPool(*this, createInformation));
 		}
 
-		TShared<Texture> NullGpuDevice::CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
+		IGpuHeap* NullHeapBackend::CreateHeap(u64 sizeInBytes, const HeapCreateInformation& createInformation)
 		{
-			NullTexture* rawTexture = new(B3DAllocate<NullTexture>()) NullTexture(*this, createInformation);
+			NullGpuHeap* heap = B3DNew<NullGpuHeap>();
+			heap->Size = sizeInBytes;
+
+			return heap;
+		}
+
+		void NullHeapBackend::DestroyHeap(HeapHandle handle)
+		{
+			B3DDelete(static_cast<NullGpuHeap*>(handle));
+		}
+
+		GpuMemoryRequirements NullGpuDevice::GetMemoryRequirements(const TextureCreateInformation& createInformation) const
+		{
+			const TextureProperties properties(createInformation);
+
+			u64 size = 0;
+			for(u32 mipLevel = 0; mipLevel <= properties.MipMapCount; mipLevel++)
+			{
+				const u32 mipWidth = std::max(1u, properties.Width >> mipLevel);
+				const u32 mipHeight = std::max(1u, properties.Height >> mipLevel);
+				const u32 mipDepth = std::max(1u, properties.Depth >> mipLevel);
+
+				size += (u64)PixelUtility::GetMemorySize(mipWidth, mipHeight, mipDepth, properties.Format) * properties.GetFaceCount();
+			}
+
+			GpuMemoryRequirements output;
+			output.Size = std::max(size, (u64)1) * std::max(properties.SampleCount, 1u);
+			output.Alignment = 256;
+			output.Kind = GpuResourceKind::NonLinear;
+
+			return output;
+		}
+
+		GpuMemoryRequirements NullGpuDevice::GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const
+		{
+			GpuMemoryRequirements output;
+			output.Size = std::max(b3d::GpuBuffer::CalculateTotalBufferSize(createInformation, *this), 1u);
+			output.Alignment = 16;
+			output.Kind = GpuResourceKind::Linear;
+
+			return output;
+		}
+
+		IGpuAllocator& NullGpuDevice::GetPersistentAllocator(u32 memoryType)
+		{
+			B3D_ASSERT(memoryType == 0);
+
+			return *mPersistentAllocator;
+		}
+
+		TShared<Texture> NullGpuDevice::CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags)
+		{
+			NullTexture* rawTexture = new(B3DAllocate<NullTexture>()) NullTexture(*this, createInformation, location);
 
 			// Default: standalone (calling-thread deletion)
 			// With RenderProxy flag: forward destruction to render thread
@@ -161,9 +225,9 @@ namespace b3d
 			return texture;
 		}
 
-		TShared<GpuBuffer> NullGpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
+		TShared<GpuBuffer> NullGpuDevice::CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags)
 		{
-			NullGpuBuffer* rawBuffer = new(B3DAllocate<NullGpuBuffer>()) NullGpuBuffer(*this, createInformation);
+			NullGpuBuffer* rawBuffer = new(B3DAllocate<NullGpuBuffer>()) NullGpuBuffer(*this, createInformation, location);
 
 			// Default: standalone (calling-thread deletion)
 			// With RenderProxy flag: forward destruction to render thread

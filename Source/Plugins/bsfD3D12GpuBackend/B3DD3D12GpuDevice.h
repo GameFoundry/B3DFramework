@@ -55,11 +55,10 @@ namespace b3d
 			void EndFrame() override;
 
 			TShared<GpuCommandBufferPool> CreateGpuCommandBufferPool(const GpuCommandBufferPoolCreateInformation& createInformation) override;
-			TShared<Texture> CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags) override;
-			TShared<GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags) override;
-			TShared<GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, IGpuAllocator& allocator, GpuObjectCreateFlags flags) override;
-			u32 PickBufferMemoryType(const GpuBufferCreateInformation& createInformation) const override;
-			TUnique<IGpuAllocator> CreateTransientAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker) override;
+			GpuMemoryRequirements GetMemoryRequirements(const TextureCreateInformation& createInformation) const override;
+			GpuMemoryRequirements GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const override;
+			IGpuAllocator& GetPersistentAllocator(u32 memoryType) override;
+			TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker) override;
 			TShared<GpuQueryPool> CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation) override;
 			TShared<EventQuery> CreateEventQuery() override;
 			TShared<GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
@@ -101,7 +100,14 @@ namespace b3d
 			 */
 			HRESULT CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, D3D12_HEAP_TYPE heapType, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuResourceLocation& outAllocation);
 
-			/** Releases a TLSF suballocation. The native resource using it must already have been destroyed. */
+			/**
+			 * Creates a resource placed at @p location. A pending location suballocates from its allocator, which must
+			 * serve the resource's heap pool. A location with memory is used as is. @p outAllocation receives the memory
+			 * the resource is placed at, and must be released with FreeMemory after the native resource is destroyed.
+			 */
+			HRESULT CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, const GpuResourceLocation& location, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuResourceLocation& outAllocation);
+
+			/** Releases a TLSF suballocation if it is owned. The native resource using it must already have been destroyed. */
 			void FreeMemory(GpuResourceLocation& allocation);
 
 			/**
@@ -130,14 +136,16 @@ namespace b3d
 
 			void NotifyWillQueueForSubmit(GpuCommandBuffer& commandBuffer) override;
 			void ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences) override;
-			void RefreshCompletionState(GpuQueue& queue, bool forceWait, u32 lastSubmitIndex) override;
-			u32 GetLastSubmitIndex(const GpuQueue& queue) const override;
+			void RefreshCompletionState(GpuQueue& queue, bool forceWait, u64 lastFenceValue) override;
+			u64 GetLastSubmittedFenceValue(const GpuQueue& queue) const override;
 			void ExecuteWaitUntilIdle() override;
 			void ExecuteWaitUntilIdle(GpuQueue& queue) override;
 
 			/** @} */
 
 			TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
+			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags) override;
+			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags) override;
 
 			/** Initializes the capabilities of the device. */
 			void InitializeCapabilities();
@@ -145,6 +153,10 @@ namespace b3d
 			/** Marks the device as a primary device. */
 			void SetIsPrimary() { mIsPrimary = true; }
 
+			/**
+			 * Heap pools for placed resources. The memory type index of a pool follows the buffer pool's memory types, see
+			 * GetMemoryRequirements().
+			 */
 			enum class MemoryPoolType : u32
 			{
 				DefaultBuffer,                  /**< GPU-local buffers. */

@@ -4,6 +4,7 @@
 
 #include "B3DSLPrerequisites.h"
 #include "Material/B3DShaderCompiler.h"
+#include "Material/B3DShaderReflection.h"
 
 namespace b3d
 {
@@ -26,6 +27,15 @@ namespace b3d
 		bool KeepsEntryPointNames = false;
 	};
 
+	/** Generated source and its associated shader reflection. */
+	struct ShaderCrossCompileOutput
+	{
+		ShaderCrossCompileOutput() = default;
+
+		String Source; /**< Generated shader source; empty when the stage is absent. */
+		TShared<ShaderReflection> Reflection; /**< Metadata using the generated entry-point names and bindings. */
+	};
+
 	/**	Transforms HLSL into other shading languages, and also outputs reflection data. */
 	class HLSLCrossCompiler
 	{
@@ -36,15 +46,12 @@ namespace b3d
 		 * @param	hlsl						HLSL to cross compile.
 		 * @param	type						GPU program stage that the HLSL code represents.
 		 * @param	target						Description of the language to cross-compile to.
-		 * @param	inOutStartBindingSlot		Slot at which to start assigning resource bindings. This is important if your shader has multiple GPU program types, in which case you wish to set
-		 *										this to 0 for the first program type, and keep passing the value to any next program, which ensures that each program of the shader gets a unique set of bindings.
-		 * @param	outSource					Cross compiled shader source, if successful. Empty (with no error reported) if the source declares no entry
-		 *										point for @p type, which happens when the stage is excluded through the target's preprocessor define.
-		 * @param	outThreadGroupSize			Compute threads per threadgroup declared by the source program.
-		 * @param	outPushConstantBufferSize	Declared push-constant buffer size in bytes, or zero when unused.
+		 * @param	inOutStartBindingSlot		First generated resource binding, updated past the assigned bindings. Use the same starting slot for every stage of a pass.
+		 * @param	output						Generated source and reflection; empty source means the stage is absent.
+		 * @param	sharedReflection			Optional reflection from another stage of the same pass. Reuses its parameters after checking the source layout matches.
 		 * @return								A result object containing an error message if not successful.
 		 */
-		static ShaderCompilerResult CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target, u32& inOutStartBindingSlot, String& outSource, Array<u32, 3>& outThreadGroupSize, u32& outPushConstantBufferSize);
+		static ShaderCompilerResult CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target, u32& inOutStartBindingSlot, ShaderCrossCompileOutput& output, const ShaderReflection* sharedReflection = nullptr);
 
 		/**
 		 * Registers every cross-compilation target supported by this build. Call once during plugin start-up.
@@ -66,29 +73,10 @@ namespace b3d
 		 */
 		static const HLSLCrossCompileTarget* GetTarget(const String& language);
 
-		/**
-		 * Parses the provided HLSL source code and outputs reflection information.
-		 *
-		 * @param	hlsl							HLSL to reflect.
-		 * @param	outShaderCreateInformation		Object which will be appended with information about GPU program parameters.
-		 * @param	outEntryPoints					A list of all detected entry points in the sshader.
-		 * @return									A result object containing an error message if not successful.
-		 */
-		static ShaderCompilerResult Reflect(const String& hlsl, ShaderCreateInformation& outShaderCreateInformation, TInlineArray<GpuProgramType, 2>& outEntryPoints)
-		{
-			return TReflect<false>(hlsl, outShaderCreateInformation, outEntryPoints);
-		}
-
-		/** @copydoc Reflect(const String&, ShaderCreateInformation&, SmallVector<GpuProgramType, 2>&) */
-		static ShaderCompilerResult Reflect(const String& hlsl, render::ShaderCreateInformation& outShaderCreateInformation, TInlineArray<GpuProgramType, 2>& outEntryPoints)
-		{
-			return TReflect<true>(hlsl, outShaderCreateInformation, outEntryPoints);
-		}
+		/** Reflects material-visible parameters and discovers entry points. An optional target selects the binding layout and backend defines. */
+		static ShaderCompilerResult Reflect(const String& hlsl, ShaderReflection& outReflection, const HLSLCrossCompileTarget* target = nullptr);
 
 	private:
-		template<bool IsRenderProxy>
-		static ShaderCompilerResult TReflect(const String& hlsl, CoreVariantType<ShaderCreateInformation, IsRenderProxy>& outShaderCreateInformation, TInlineArray<GpuProgramType, 2>& outEntryPoints); // TODO - Output reflection information in a more generalized form, rather than ShaderCreateInformation
-
 		/**
 		 * Registers (or replaces) the cross-compilation target for the given shading language identifier.
 		 *

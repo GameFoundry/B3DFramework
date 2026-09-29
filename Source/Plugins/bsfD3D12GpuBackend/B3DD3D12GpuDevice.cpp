@@ -184,9 +184,9 @@ TShared<GpuCommandBufferPool> D3D12GpuDevice::CreateGpuCommandBufferPool(const r
 	return B3DMakeSharedFromExisting(new (B3DAllocate<D3D12GpuCommandBufferPool>()) D3D12GpuCommandBufferPool(*this, createInformation));
 }
 
-TShared<render::Texture> D3D12GpuDevice::CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
+TShared<render::Texture> D3D12GpuDevice::CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags)
 {
-	D3D12Texture* rawTexture = new (B3DAllocate<D3D12Texture>()) D3D12Texture(createInformation, *this);
+	D3D12Texture* rawTexture = new (B3DAllocate<D3D12Texture>()) D3D12Texture(createInformation, *this, location);
 
 	TShared<Texture> output = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy) ? B3DMakeSharedFromExisting(rawTexture) : MakeSharedStandalone<D3D12Texture>(rawTexture);
 
@@ -198,22 +198,9 @@ TShared<render::Texture> D3D12GpuDevice::CreateTexture(const TextureCreateInform
 	return output;
 }
 
-TShared<render::GpuBuffer> D3D12GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
+TShared<render::GpuBuffer> D3D12GpuDevice::CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags)
 {
-	const D3D12BufferPool::MemoryType memoryType = (D3D12BufferPool::MemoryType)PickBufferMemoryType(createInformation);
-	if(memoryType == D3D12BufferPool::MemoryType::Count)
-	{
-		// TODO - Fall back to device-local memory when CPU-visible storage is combined with unsupported resource flags.
-		B3D_LOG(Error, LogRenderBackend, "D3D12: Unsupported buffer memory configuration (type={0}, flags={1}).", (u32)createInformation.Type, (u32)createInformation.Flags);
-		return nullptr;
-	}
-
-	return CreateGpuBuffer(createInformation, mBufferPool->GetOrCreatePersistentAllocator(memoryType), flags);
-}
-
-TShared<render::GpuBuffer> D3D12GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, IGpuAllocator& allocator, GpuObjectCreateFlags flags)
-{
-	D3D12GpuBuffer* rawBuffer = new (B3DAllocate<D3D12GpuBuffer>()) D3D12GpuBuffer(createInformation, *this, allocator);
+	D3D12GpuBuffer* rawBuffer = new (B3DAllocate<D3D12GpuBuffer>()) D3D12GpuBuffer(createInformation, *this, location);
 
 	TShared<GpuBuffer> output = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy) ? B3DMakeSharedFromExisting(rawBuffer) : MakeSharedStandalone<D3D12GpuBuffer>(rawBuffer);
 
@@ -225,16 +212,73 @@ TShared<render::GpuBuffer> D3D12GpuDevice::CreateGpuBuffer(const GpuBufferCreate
 	return output;
 }
 
-u32 D3D12GpuDevice::PickBufferMemoryType(const GpuBufferCreateInformation& createInformation) const
+GpuMemoryRequirements D3D12GpuDevice::GetMemoryRequirements(const TextureCreateInformation& createInformation) const
 {
-	const D3D12_HEAP_TYPE heapType = D3D12Utility::GetHeapType(createInformation.Type, createInformation.Flags);
-	const D3D12_RESOURCE_FLAGS resourceFlags = D3D12Utility::GetBufferResourceFlags(createInformation.Flags);
-	return (u32)D3D12BufferPool::GetMemoryType(heapType, resourceFlags);
+	GpuMemoryRequirements output;
+
+	D3D12_RESOURCE_DESC resourceDesc;
+	DXGI_FORMAT viewFormat;
+	if(!D3D12Texture::BuildResourceDescription(TextureProperties(createInformation), resourceDesc, viewFormat))
+	{
+		output.MemoryType = GpuMemoryRequirements::kUnsupportedMemoryType;
+		return output;
+	}
+
+	const MemoryPoolType poolType = GetMemoryPoolType(resourceDesc, D3D12_HEAP_TYPE_DEFAULT);
+	const D3D12_RESOURCE_ALLOCATION_INFO allocationInfo = mDevice->GetResourceAllocationInfo(0, 1, &resourceDesc);
+	if(poolType == MemoryPoolType::Count || allocationInfo.SizeInBytes == UINT64_MAX)
+	{
+		B3D_LOG(Error, LogRenderBackend, "D3D12: Unsupported texture configuration (type={0}, format={1}, usage={2}).", (u32)createInformation.Type, (u32)createInformation.Format, (u32)createInformation.Usage);
+		output.MemoryType = GpuMemoryRequirements::kUnsupportedMemoryType;
+		return output;
+	}
+
+	// Texture heap pools are indexed after the buffer pool's memory types
+	output.MemoryType = (u32)D3D12BufferPool::MemoryType::Count + (u32)poolType;
+	output.Size = allocationInfo.SizeInBytes;
+	output.Alignment = allocationInfo.Alignment;
+	output.Kind = resourceDesc.Layout == D3D12_TEXTURE_LAYOUT_ROW_MAJOR ? GpuResourceKind::Linear : GpuResourceKind::NonLinear;
+	return output;
 }
 
-TUnique<IGpuAllocator> D3D12GpuDevice::CreateTransientAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker)
+GpuMemoryRequirements D3D12GpuDevice::GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const
 {
-	return mBufferPool->CreateTransientAllocator(memoryType, completionTracker);
+	GpuMemoryRequirements output;
+
+	const D3D12_HEAP_TYPE heapType = D3D12Utility::GetHeapType(createInformation.Type, createInformation.Flags);
+	const D3D12_RESOURCE_FLAGS resourceFlags = D3D12Utility::GetBufferResourceFlags(createInformation.Flags);
+	const D3D12BufferPool::MemoryType memoryType = D3D12BufferPool::GetMemoryType(heapType, resourceFlags);
+	if(memoryType == D3D12BufferPool::MemoryType::Count)
+	{
+		// TODO - Fall back to device-local memory when CPU-visible storage is combined with unsupported resource flags.
+		B3D_LOG(Error, LogRenderBackend, "D3D12: Unsupported buffer memory configuration (type={0}, flags={1}).", (u32)createInformation.Type, (u32)createInformation.Flags);
+		output.MemoryType = GpuMemoryRequirements::kUnsupportedMemoryType;
+		return output;
+	}
+
+	output.MemoryType = (u32)memoryType;
+	output.Size = D3D12GpuBuffer::GetSliceSize(createInformation, b3d::GpuBuffer::CalculateTotalBufferSize(createInformation, *this));
+	output.Alignment = D3D12GpuBuffer::GetSliceAlignment(createInformation);
+	output.Kind = GpuResourceKind::Linear;
+	return output;
+}
+
+IGpuAllocator& D3D12GpuDevice::GetPersistentAllocator(u32 memoryType)
+{
+	constexpr u32 kBufferMemoryTypeCount = (u32)D3D12BufferPool::MemoryType::Count;
+	if(memoryType < kBufferMemoryTypeCount)
+		return mBufferPool->GetOrCreatePersistentAllocator((D3D12BufferPool::MemoryType)memoryType);
+
+	return GetOrCreateGpuMemoryAllocator((MemoryPoolType)(memoryType - kBufferMemoryTypeCount));
+}
+
+TUnique<IGpuAllocator> D3D12GpuDevice::CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker)
+{
+	// Scratch allocations are only supported for buffers
+	if(memoryType >= (u32)D3D12BufferPool::MemoryType::Count)
+		return nullptr;
+
+	return mBufferPool->CreateScratchAllocator(memoryType, completionTracker);
 }
 
 TShared<GpuQueryPool> D3D12GpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)
@@ -337,14 +381,14 @@ void D3D12GpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuff
 	static_cast<D3D12GpuQueue&>(queue).ExecuteSubmitOnSubmitThread(submitInformation, syncMask, signalFences);
 }
 
-void D3D12GpuDevice::RefreshCompletionState(GpuQueue& queue, bool forceWait, u32 lastSubmitIndex)
+void D3D12GpuDevice::RefreshCompletionState(GpuQueue& queue, bool forceWait, u64 lastFenceValue)
 {
-	static_cast<D3D12GpuQueue&>(queue).RefreshCompletionState(forceWait, lastSubmitIndex);
+	static_cast<D3D12GpuQueue&>(queue).RefreshCompletionState(forceWait, lastFenceValue);
 }
 
-u32 D3D12GpuDevice::GetLastSubmitIndex(const GpuQueue& queue) const
+u64 D3D12GpuDevice::GetLastSubmittedFenceValue(const GpuQueue& queue) const
 {
-	return static_cast<const D3D12GpuQueue&>(queue).GetLastSubmitIndex();
+	return static_cast<const D3D12GpuQueue&>(queue).GetLastSignaledFenceValue();
 }
 
 void D3D12GpuDevice::ExecuteWaitUntilIdle()
@@ -468,7 +512,16 @@ D3D12GpuDevice::GpuMemoryAllocator& D3D12GpuDevice::GetOrCreateGpuMemoryAllocato
 
 HRESULT D3D12GpuDevice::CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, D3D12_HEAP_TYPE heapType, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuResourceLocation& outAllocation)
 {
-	B3D_ASSERT(!outAllocation.IsValid());
+	const MemoryPoolType poolType = GetMemoryPoolType(resourceDesc, heapType);
+	if(poolType == MemoryPoolType::Count)
+		return E_INVALIDARG;
+
+	return CreateResource(resourceDesc, GpuResourceLocation::FromAllocator(GetOrCreateGpuMemoryAllocator(poolType)), initialLayout, optimizedClearValue, outResource, outAllocation);
+}
+
+HRESULT D3D12GpuDevice::CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, const GpuResourceLocation& location, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuResourceLocation& outAllocation)
+{
+	B3D_ASSERT(!outAllocation.IsOwned());
 	outResource.Reset();
 
 	D3D12_RESOURCE_DESC1 enhancedResourceDescription = {};
@@ -483,33 +536,39 @@ HRESULT D3D12GpuDevice::CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, 
 	enhancedResourceDescription.Layout = resourceDesc.Layout;
 	enhancedResourceDescription.Flags = resourceDesc.Flags;
 
-	const MemoryPoolType poolType = GetMemoryPoolType(resourceDesc, heapType);
-	if(poolType == MemoryPoolType::Count)
-		return E_INVALIDARG;
+	if(location.IsPending())
+	{
+		// TODO - Query D3D12_FEATURE_D3D12_TIGHT_ALIGNMENT and use D3D12_RESOURCE_FLAG_USE_TIGHT_ALIGNMENT to avoid 64 KiB placement granularity where supported.
+		const D3D12_RESOURCE_ALLOCATION_INFO allocationInfo = mDevice->GetResourceAllocationInfo(0, 1, &resourceDesc);
+		if(allocationInfo.SizeInBytes == UINT64_MAX || allocationInfo.Alignment == 0 || allocationInfo.Alignment > UINT32_MAX)
+			return E_INVALIDARG;
 
-	// TODO - Query D3D12_FEATURE_D3D12_TIGHT_ALIGNMENT and use D3D12_RESOURCE_FLAG_USE_TIGHT_ALIGNMENT to avoid 64 KiB placement granularity where supported.
-	const D3D12_RESOURCE_ALLOCATION_INFO allocationInfo = mDevice->GetResourceAllocationInfo(0, 1, &resourceDesc);
-	if(allocationInfo.SizeInBytes == UINT64_MAX || allocationInfo.Alignment == 0 || allocationInfo.Alignment > UINT32_MAX)
-		return E_INVALIDARG;
+		const GpuResourceKind resourceKind = resourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER || resourceDesc.Layout == D3D12_TEXTURE_LAYOUT_ROW_MAJOR ? GpuResourceKind::Linear : GpuResourceKind::NonLinear;
+		if(!location.Allocator->TryAllocate(allocationInfo.SizeInBytes, (u32)allocationInfo.Alignment, resourceKind, nullptr, outAllocation))
+			return E_OUTOFMEMORY;
+	}
+	else
+		outAllocation = location;
 
-	GpuMemoryAllocator& allocator = GetOrCreateGpuMemoryAllocator(poolType);
-	const GpuResourceKind resourceKind = resourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER || resourceDesc.Layout == D3D12_TEXTURE_LAYOUT_ROW_MAJOR ? GpuResourceKind::Linear : GpuResourceKind::NonLinear;
-
-	if(!allocator.TryAllocate(allocationInfo.SizeInBytes, (u32)allocationInfo.Alignment, resourceKind, outAllocation))
-		return E_OUTOFMEMORY;
+	B3D_ASSERT(outAllocation.HasMemory());
 
 	D3D12GpuHeap& heap = ToD3D12GpuHeap(outAllocation.Heap);
 	const HRESULT hr = mEnhancedDevice->CreatePlacedResource2(heap.Heap.Get(), outAllocation.Offset,
 		&enhancedResourceDescription, initialLayout, optimizedClearValue, 0, nullptr, IID_PPV_ARGS(&outResource));
 	if(FAILED(hr))
-		allocator.Free(outAllocation);
+	{
+		if(location.IsPending())
+			outAllocation.Allocator->Free(outAllocation);
+		else
+			outAllocation = GpuResourceLocation();
+	}
 
 	return hr;
 }
 
 void D3D12GpuDevice::FreeMemory(GpuResourceLocation& allocation)
 {
-	if(!allocation.IsValid())
+	if(!allocation.IsOwned())
 		return;
 
 	allocation.Allocator->Free(allocation);

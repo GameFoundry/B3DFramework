@@ -24,7 +24,8 @@
 #undef None // Conflicting define from Xlib
 
 #if B3D_MONOLITHIC_BUILD
-#	define B3D_VULKAN_EXPORT
+	// The backend is linked into the framework library, which exports these symbols for the backend's test plugin
+#	define B3D_VULKAN_EXPORT B3D_EXPORT
 #elif B3D_PLATFORM_WIN32
 #	if defined(B3D_VULKAN_EXPORTS)
 #		define B3D_VULKAN_EXPORT __declspec(dllexport)

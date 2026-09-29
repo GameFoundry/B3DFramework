@@ -42,7 +42,7 @@ namespace b3d
 		};
 
 		/**
-		 * Result from the allocation functions. Wraps a GPU location (offset within a VkDeviceMemory heap)
+		 * Memory a native resource is bound to. Wraps a GPU location (offset within a VkDeviceMemory heap)
 		 * plus an optional persistent map. MappedMemory is non-null when the allocation lives in a
 		 * persistently-mapped, host-visible heap and points to the start of the allocation's memory range.
 		 */
@@ -50,9 +50,6 @@ namespace b3d
 		{
 			GpuResourceLocation Location; /**< Allocator slot — heap, offset, size, owning allocator, allocator-private bookkeeping. */
 			void* MappedMemory = nullptr; /**< Heap.Mapped + Location.Offset for host-visible heaps; null otherwise. */
-
-			/** Returns true once the allocator has populated this result with a live slot. */
-			bool IsValid() const { return Location.IsValid(); }
 		};
 
 		/** Represents a single GPU device usable by Vulkan. */
@@ -86,9 +83,9 @@ namespace b3d
 			void RunDefragPass(GpuWorkContext& gpuContext) override;
 
 			TShared<GpuCommandBufferPool> CreateGpuCommandBufferPool(const GpuCommandBufferPoolCreateInformation& createInformation) override;
-			TShared<Texture> CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
-			TShared<GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
-			TShared<GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, IGpuAllocator& allocator, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
+			GpuMemoryRequirements GetMemoryRequirements(const TextureCreateInformation& createInformation) const override;
+			GpuMemoryRequirements GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const override;
+			IGpuAllocator& GetPersistentAllocator(u32 memoryType) override;
 			TShared<GpuQueryPool> CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation) override;
 			TShared<EventQuery> CreateEventQuery() override;
 			TShared<GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
@@ -98,7 +95,7 @@ namespace b3d
 			TShared<GpuPipelineParameterSetLayout> CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription, const TShared<GpuResourceTableLayout>& resourceTableLayout, u32 tableIndex) override;
 			TUnique<GpuParameterSetPool> CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation) override;
 			TShared<GpuTimelineFence> CreateTimelineFence() override;
-			TUnique<IGpuAllocator> CreateTransientAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker) override;
+			TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker) override;
 
 			void ConvertProjectionMatrix(const Matrix4& input, Matrix4& output) override;
 			GpuUniformBufferInformation GenerateUniformBufferInformation(const String& name, TArray<GpuUniformBufferMemberInformation>& inOutUniforms) override;
@@ -148,50 +145,39 @@ namespace b3d
 			 */
 
 			/**
-			 * Creates a VkBuffer described by @p info, suballocates compatible memory for it from
-			 * @p allocator and binds the two together, and wraps the result in a VulkanBuffer. The
-			 * allocator must be resolved for the buffer's memory type (see PickBufferMemoryType).
-
+			 * Creates a VkBuffer described by @p createInformation, binds it to memory at @p location and wraps the result in a
+			 * VulkanBuffer. A pending location suballocates the memory from its allocator, which must serve the
+			 * buffer's memory type (see GetMemoryRequirements()). A location with memory binds the buffer to it; the
+			 * buffer frees it on destruction only if the location is owned.
+			 *
 			 * Provide @p parent so the buffer can participate in defragmentation - the parent will be notified
 			 * when it needs to re-allocate the buffer in the new destination. Only valid for allocators that
 			 * support defragmentation.
 			 *
-			 * Thread safe if @p allocator is.
+			 * Thread safe if the location's allocator is.
 			 */
-			VulkanBuffer* CreateBuffer(const VulkanBufferCreateInformation& createInformation, IGpuAllocator& allocator, VulkanGpuBuffer* parent);
+			VulkanBuffer* CreateBuffer(const VulkanBufferCreateInformation& createInformation, const GpuResourceLocation& location, VulkanGpuBuffer* parent);
 
 			/**
-			 * Same as the other overload, but binds the VkBuffer to externally allocated @p allocation slot instead of allocating new memory.
-			 *
-			 * Thread safe.
-			 */
-			VulkanBuffer* CreateBuffer(const VulkanBufferCreateInformation& createInformation, const VulkanAllocationResult& allocation, VulkanGpuBuffer* parent);
-
-			/**
-			 * Determines the best the memory-type for a buffer described by @p createInformation.
-			 *
-			 * Thread safe.
-			 */
-			u32 PickBufferMemoryType(const GpuBufferCreateInformation& createInformation) const override;
-
-			/**
-			 * Creates a VkImage described by @p info, suballocates compatible memory and binds the
-			 * two together, and wraps the result in a VulkanImage. @p kind controls buffer-image 
+			 * Creates a VkImage described by @p createInformation, suballocates compatible memory from the persistent allocators and
+			 * binds the two together, and wraps the result in a VulkanImage. @p kind controls buffer-image
 			 * granularity placement (Non-linear for optimally-tiled images, Linear for linearly-tiled).
 			 *
-			 * Provide @p parent so the buffer can participate in defragmentation - the parent will be notified
-			 * when it needs to re-allocate the image in the new destination.
-			 *
 			 * Thread safe.
 			 */
-			VulkanImage* CreateImage(const VulkanImageCreateInformation& createInformation, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags, GpuResourceKind kind, VulkanTexture* parent);
+			VulkanImage* CreateImage(const VulkanImageCreateInformation& createInformation, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags, GpuResourceKind kind);
 
 			/**
-			 * Same as the other overload, but binds the VkImage to externally allocated @p allocation slot instead of allocating new memory.
+			 * Creates a VkImage described by @p createInformation, binds it to memory at @p location and wraps the result in a
+			 * VulkanImage. Location rules match CreateBuffer(const VulkanBufferCreateInformation&, const GpuResourceLocation&, VulkanGpuBuffer*).
 			 *
-			 * Thread safe.
+			 * Provide @p parent so the image can participate in defragmentation - the parent will be notified
+			 * when it needs to re-allocate the image in the new destination. Only valid for allocators that
+			 * support defragmentation.
+			 *
+			 * Thread safe if the location's allocator is.
 			 */
-			VulkanImage* CreateImage(const VulkanImageCreateInformation& createInformation, const VulkanAllocationResult& allocation, VulkanTexture* parent);
+			VulkanImage* CreateImage(const VulkanImageCreateInformation& createInformation, const GpuResourceLocation& location, GpuResourceKind kind, VulkanTexture* parent);
 
 			/**
 			 * Returns @p allocation to its allocator's free pool synchronously. The slot becomes
@@ -251,40 +237,37 @@ namespace b3d
 
 			void NotifyWillQueueForSubmit(GpuCommandBuffer& commandBuffer) override;
 			void ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences) override;
-			void RefreshCompletionState(GpuQueue& queue, bool forceWait, u32 lastSubmitIndex) override;
-			u32 GetLastSubmitIndex(const GpuQueue& queue) const override;
+			void RefreshCompletionState(GpuQueue& queue, bool forceWait, u64 lastFenceValue) override;
+			u64 GetLastSubmittedFenceValue(const GpuQueue& queue) const override;
 			void ExecuteWaitUntilIdle() override;
 			void ExecuteWaitUntilIdle(GpuQueue& queue) override;
 
 			/** @} */
 
 			TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
+			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags) override;
+			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuResourceLocation& location, GpuObjectCreateFlags flags) override;
 
 			/** Initializes the capabilities of the device. */
 			void InitializeCapabilities();
 
 			/**
-			 * Allocates a memory slot for @p image. Picks the best memory type satisfying @p requiredFlags and
-			 * (where possible) the @p preferredFlags hint, then suballocates from the per-memory-type allocator.
-			 * @p kind controls buffer-image granularity placement. The caller is responsible for binding via
-			 * vkBindImageMemory; this method does not bind.
-			 *
-			 * Internal — invoked only by CreateImage. External callers route through CreateImage so the wrapper
-			 * registration with the allocator (owner stamping for defragmentation) cannot be skipped.
+			 * Resolves @p location into the memory a native resource with @p requirements is bound to. A pending location
+			 * suballocates from its allocator; a location with memory is used as is.
 			 */
-			VulkanAllocationResult AllocateMemory(VkImage image, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags, GpuResourceKind kind);
+			VulkanAllocationResult ResolveAllocation(const GpuResourceLocation& location, const VkMemoryRequirements& requirements, GpuResourceKind kind) const;
 
 			/**
 			 * Common bind-and-wrap helper for buffers. Binds @p buffer to @p allocation, constructs the
 			 * VulkanBuffer wrapper, and stamps the allocator owner when @p parent is non-null.
 			 */
-			VulkanBuffer* BindBufferToAllocation(const VulkanBufferCreateInformation& createInformation, VkBuffer buffer, VulkanAllocationResult allocation, VulkanGpuBuffer* parent);
+			VulkanBuffer* BindBufferToAllocation(const VulkanBufferCreateInformation& createInformation, VkBuffer buffer, const VulkanAllocationResult& allocation, VulkanGpuBuffer* parent);
 
 			/**
 			 * Common bind-and-wrap helper for images. Binds @p image to @p allocation, constructs the
-			 * VulkanImage wrapper, and stamps the allocator owner when @p parent is non-null. 
+			 * VulkanImage wrapper, and stamps the allocator owner when @p parent is non-null.
 			 */
-			VulkanImage* BindBufferToAllocation(const VulkanImageCreateInformation& info, VkImage image, VulkanAllocationResult allocation, VulkanTexture* parent);
+			VulkanImage* BindBufferToAllocation(const VulkanImageCreateInformation& info, VkImage image, const VulkanAllocationResult& allocation, VulkanTexture* parent);
 
 			/**
 			 * Associates a IGpuResource owner onto an existing allocation, so the allocation participates
@@ -309,7 +292,7 @@ namespace b3d
 			 * Returns the shared linear page pool backing memory type @p memoryTypeIndex, lazily creating it on
 			 * first use. Every GpuWorkContext's transient (linear) allocator for this memory type draws pages
 			 * from (and returns drained pages to) this device-owned, thread-safe pool, bounding the number of
-			 * VkDeviceMemory heaps under bursty transient allocation. See CreateTransientAllocator.
+			 * VkDeviceMemory heaps under bursty transient allocation. See CreateScratchAllocator.
 			 */
 			TGpuLinearPagePool<VulkanHeapBackend>& GetOrCreateLinearPagePool(u32 memoryTypeIndex);
 

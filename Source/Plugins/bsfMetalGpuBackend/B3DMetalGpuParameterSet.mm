@@ -234,7 +234,7 @@ namespace b3d
 
 		bool MetalGpuParameters::SetUniformBuffer(u32 slot, const TShared<GpuBuffer>& uniformBuffer, u32 arrayIndex, u32 offset)
 		{
-			if (!ValidateBufferRange(uniformBuffer, offset, 0, "uniform-buffer"))
+			if (!ValidateBufferRange(uniformBuffer, offset, uniformBuffer != nullptr ? uniformBuffer->GetSuballocationSize() : 0, "uniform-buffer"))
 				return false;
 
 			if (!GpuParameterSet::SetUniformBuffer(slot, uniformBuffer, arrayIndex, offset))

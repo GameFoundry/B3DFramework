@@ -6,6 +6,7 @@
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DVertexDescription.h"
 #include "GpuBackend/B3DGpuProgram.h"
+#include "Material/B3DShaderParameterDescription.h"
 #include "Math/B3DMath.h"
 #include "Debug/B3DLog.h"
 
@@ -405,8 +406,6 @@ namespace
 		uniformBufferInformation.IsShareable = true;
 		uniformBufferInformation.Slot = compiler.get_decoration(resource.id, spv::DecorationBinding);
 		uniformBufferInformation.Set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-		// TODO: Take this from the [dynamicOffset] attribute once the shader compiler reflects it; until then every uniform buffer is bound with a dynamic offset.
-		uniformBufferInformation.UsesDynamicOffset = true;
 
 		return uniformBufferInformation;
 	}
@@ -907,6 +906,11 @@ TShared<GpuProgramBytecode> GLSLToSPIRV::CompileBytecode(const GpuProgramCreateI
 	{
 		bytecode->Messages = messageLog.str();
 		return bytecode;
+	}
+
+	if(desc.ShaderReflection != nullptr && desc.ShaderReflection->Parameters != nullptr)
+	{
+		ShaderParameterDescription::IterateMatching(desc.ShaderReflection->Parameters->GetUniformBuffers(), bytecode->ParameterDescription->UniformBuffers, [](const auto& source, auto& outTarget) { outTarget.UsesDynamicOffset = source.UsesDynamicOffset; });
 	}
 
 	const String& messageLogString = messageLog.str();

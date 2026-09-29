@@ -77,6 +77,17 @@ namespace b3d
 		plugin = {};
 	}
 
+	bool PluginLoader::LoadWithoutEntryPoint(const String& name)
+	{
+#if B3D_MONOLITHIC_BUILD
+		if(FindStaticPlugin(name) != nullptr)
+			return true;
+#endif
+
+		const DynamicLibrary* library = DynamicLibraryManager::Instance().Load(name);
+		return library != nullptr && library->IsLoaded();
+	}
+
 	const char* PluginLoader::GetName(const LoadedPlugin& plugin)
 	{
 		return plugin.PluginName ? plugin.PluginName : "";

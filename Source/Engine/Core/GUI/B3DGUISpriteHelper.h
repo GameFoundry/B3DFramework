@@ -26,6 +26,7 @@ namespace b3d
 		u32 Depth = 1; /**< Depth at which to render the sprite. Higher depth means a sprite is rendered behind sprites with lower depth. */
 		Color Tint; /**< Runtime color tint to apply to the sprite. */
 		u64 BatchId = 0; /**< ID that specifies if the sprite is allowed to be batched with other sprites. Only sprites with the same batch ID can be batched. */
+		float Scale = 1.0f; /**< Scale from the logical units of the style sheet rules (e.g. border widths and radii) to pixels, i.e. the DPI scale of the GUI element. */
 
 		const GUIStyleSheetRules& Rules; /**< Style sheet rules that determine how to style the sprite. */
 	};

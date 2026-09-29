@@ -161,6 +161,11 @@ namespace b3d
 			 */
 			void TrackBufferAccess(IGpuBufferResource* buffer, GpuStageFlags stages, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, u32 dynamicOffset = 0);
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			/** Marks the suballocation at @p offset as bound without changing resource access or queuing barriers. The buffer's access must already be tracked. */
+			void TrackBufferSuballocation(IGpuBufferResource* buffer, u32 offset);
+#endif
+
 			/**
 			 * Lets the tracker know that the provided image resource will be used on the associated command buffer. Call this before the image is used, with
 			 * the appropriate stage + access flags. Execute the barriers queued in @p barrierHelper before use.

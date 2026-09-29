@@ -17,6 +17,7 @@
 #include "GpuBackend/B3DGpuPipelineParameterLayout.h"
 #include "GpuBackend/B3DGpuParameterSetPool.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
+#include "GpuBackend/B3DGpuSubmitThread.h"
 #include "Image/B3DTexture.h"
 
 using namespace b3d;
@@ -118,6 +119,7 @@ VulkanBarrierTestSuite::VulkanBarrierTestSuite()
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestSwapChainTransitions)
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestMultisampleResolve)
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestRepeatedStorageImageDispatch)
+	B3D_ADD_TEST(VulkanBarrierTestSuite::TestFrameFence)
 }
 
 void VulkanBarrierTestSuite::TestGraphicsToComputeBufferHandoff()
@@ -464,4 +466,46 @@ void VulkanBarrierTestSuite::TestSwapChainTransitions()
 			window->RebuildSwapChain();
 		}
 	}, "VulkanBarrierTestSuite::TestSwapChainTransitions", true);
+}
+
+void VulkanBarrierTestSuite::TestFrameFence()
+{
+	GetRenderThread().PostCommand([this]()
+	{
+		VulkanGpuDevice* const device = GetActiveVulkanDevice();
+		if(device == nullptr || device->GetQueueCount(GQT_GRAPHICS) == 0 || device->GetQueueCount(GQT_COMPUTE) == 0)
+			return;
+
+		const GpuQueue& graphicsQueue = *device->GetQueue(GQT_GRAPHICS, 0);
+		const GpuQueue& computeQueue = *device->GetQueue(GQT_COMPUTE, 0);
+		const GpuSubmitThread& submitThread = device->GetSubmitThread();
+
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		const auto fnSubmit = [device, &context](GpuQueueType queueType)
+		{
+			const TShared<render::GpuCommandBufferPool> pool = device->CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread(queueType));
+			context->SubmitCommandBuffer(pool->Create(GpuCommandBufferCreateInformation::Create("Vulkan frame boundary test")), GpuQueueMask::kNone);
+			device->WaitUntilIdle();
+		};
+
+		// Give both queues work in the ending frame, so the frame fence has non-zero values to wait on
+		fnSubmit(GQT_GRAPHICS);
+		fnSubmit(GQT_COMPUTE);
+
+		device->EndFrame();
+		device->WaitUntilIdle();
+		B3D_TEST_ASSERT(submitThread.IsFrameFencePending(graphicsQueue))
+		B3D_TEST_ASSERT(submitThread.IsFrameFencePending(computeQueue))
+
+		// The first submission on a queue consumes the frame fence, and later submissions don't re-arm it
+		fnSubmit(GQT_GRAPHICS);
+		B3D_TEST_ASSERT(!submitThread.IsFrameFencePending(graphicsQueue))
+		B3D_TEST_ASSERT(submitThread.IsFrameFencePending(computeQueue))
+
+		fnSubmit(GQT_GRAPHICS);
+		B3D_TEST_ASSERT(!submitThread.IsFrameFencePending(graphicsQueue))
+
+		fnSubmit(GQT_COMPUTE);
+		B3D_TEST_ASSERT(!submitThread.IsFrameFencePending(computeQueue))
+	}, "VulkanBarrierTestSuite::TestFrameFence", true);
 }

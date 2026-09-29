@@ -168,7 +168,7 @@ void VulkanAllocatorTestSuite::TestAllocateAndFreeHostVisibleBuffer()
 	GpuResourceLocation location;
 	const bool ok = allocator.TryAllocate(requirements.size, (u32)requirements.alignment, GpuResourceKind::Linear, location);
 	B3D_TEST_ASSERT(ok)
-	B3D_TEST_ASSERT(location.IsValid())
+	B3D_TEST_ASSERT(location.IsOwned())
 	B3D_TEST_ASSERT(ToVulkanGpuHeap(location.Heap).Mapped != nullptr)
 
 	// Sentinel write to confirm the persistent map is actually writable for this allocation's slice.
@@ -223,7 +223,7 @@ void VulkanAllocatorTestSuite::TestAllocateAndFreeDeviceLocalImage()
 	GpuResourceLocation location;
 	const bool ok = allocator.TryAllocate(requirements.size, (u32)requirements.alignment, GpuResourceKind::NonLinear, location);
 	B3D_TEST_ASSERT(ok)
-	B3D_TEST_ASSERT(location.IsValid())
+	B3D_TEST_ASSERT(location.IsOwned())
 
 	const VkMemoryPropertyFlags flags = memProps.memoryTypes[ToVulkanGpuHeap(location.Heap).MemoryTypeIndex].propertyFlags;
 	B3D_TEST_ASSERT((flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0)

@@ -8,12 +8,26 @@ namespace b3d
 {
 	namespace render
 	{
-		NullTexture::NullTexture(NullGpuDevice& gpuDevice, const TextureCreateInformation& createInformation)
-			: Texture(createInformation), mGpuDevice(gpuDevice)
-		{ }
+		NullTexture::NullTexture(NullGpuDevice& gpuDevice, const TextureCreateInformation& createInformation, const GpuResourceLocation& location)
+			: Texture(createInformation, location), mGpuDevice(gpuDevice)
+		{
+			if(location.IsPending())
+			{
+				const GpuMemoryRequirements requirements = gpuDevice.GetMemoryRequirements(createInformation);
+
+				const bool ok = location.Allocator->TryAllocate(requirements.Size, (u32)requirements.Alignment, requirements.Kind, nullptr, mAllocation);
+				B3D_ASSERT(ok && "Allocator failed to satisfy the allocation request.");
+				(void)ok;
+			}
+			else
+				mAllocation = location;
+		}
 
 		NullTexture::~NullTexture()
 		{
+			if(mAllocation.IsOwned())
+				mAllocation.Allocator->Free(mAllocation);
+
 			if (mMappedBuffer)
 			{
 				B3DDelete(mMappedBuffer);

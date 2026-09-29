@@ -15,6 +15,8 @@ To create a GPU program you need to fill out a @b3d::GpuProgramCreateInformation
  - @b3d::GpuProgramCreateInformation::Language - Language the source code is written in. This can be "hlsl" or "vksl".
  - @b3d::GpuProgramCreateInformation::Type - @b3d::GpuProgramType of the GPU program (vertex, fragment, etc.).
 
+@b3d::GpuProgramCreateInformation::ShaderReflection optionally carries @b3d::ShaderReflection produced if source code was cross compiled from a higher-level shader language. Its entry-point metadata supplements native bytecode reflection with information such as compute threadgroup dimensions and declared push-constant size. BSL supplies it automatically. The object is shared and must not be modified after attaching it to a program.
+
 GPU programs are created on the GPU device. You access the GPU device through a @b3d::render::GpuCommandBuffer object.
 
 For example if we wanted to create a HLSL fragment program (HLSL source not shown):

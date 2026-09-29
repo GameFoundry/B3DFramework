@@ -17,7 +17,7 @@ ENDMACRO()
 # @param	packageName		Name of the package (also its sub-folder name).
 # @param	resultVar		Output variable to receive the resolved install directory.
 MACRO(B3DGetBundledDependencyFolder packageName resultVar)
-	if(B3D_PLATFORM_${B3D_PLATFORM}_DEPENDENCIES_FOLDER)
+	if(B3D_PLATFORM_${B3D_PLATFORM}_DEPENDENCIES_FOLDER AND IS_DIRECTORY ${B3D_PLATFORM_${B3D_PLATFORM}_DEPENDENCIES_FOLDER})
 		set(${resultVar} ${B3D_PLATFORM_${B3D_PLATFORM}_DEPENDENCIES_FOLDER}/${packageName})
 	else()
 		set(${resultVar} ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/${packageName})

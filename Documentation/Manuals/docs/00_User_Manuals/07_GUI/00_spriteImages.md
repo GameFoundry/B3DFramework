@@ -40,6 +40,27 @@ You can also retrieve the underlying atlas texture by calling @b3d::SpriteTextur
 HTexture atlasTexture = spriteTexturePartial->GetAtlasTexture();
 ~~~~~~~~~~~~~
 
+## Importing textures for GUI
+
+GUI is composited in gamma (sRGB) space, the same way web browsers do it. Texture colors are blended exactly as they are stored in the image file, so a GUI image looks the same as it does in your image editor.
+
+For this reason textures displayed in GUI should be imported with @b3d::TextureImportOptions::SRgb disabled, which is the default. Enabling it makes the GPU convert the texture to linear space when sampling it, and the GUI then displays those converted values directly, making the image look noticeably darker in the mid-tones.
+
+~~~~~~~~~~~~~{.cpp}
+auto importOptions = TextureImportOptions::Create();
+importOptions->SRgb = false; // Already the default, set here for clarity
+importOptions->GenerateMips = false; // Mip-maps have no benefit for GUI
+
+HTexture iconTexture = GetImporter().Import<Texture>("myIcon.png", importOptions);
+HSpriteTexture iconSprite = SpriteTexture::Create(iconTexture);
+~~~~~~~~~~~~~
+
+This is the opposite of textures used for 3D rendering (e.g. albedo textures assigned to materials), which should be imported with **SRgb** enabled, as described in the [importing textures](../04_Rendering/04_importingTextures.md) manual. If the same image is needed both in GUI and on a 3D object, import it twice with different import options.
+
+Sprite textures used outside of GUI, for example by particle emitters, are rendered in linear space like other 3D content and follow the 3D rule instead.
+
+> GUI can optionally be composited in linear space by setting the `gui.UseLinearColorSpace` config variable to true on startup. In that mode the rule is reversed: GUI textures should be imported with **SRgb** enabled. Keep the default unless you have a specific reason not to, as it matches how browsers and image editors display colors.
+
 # SpriteVectorPath
 
 The @b3d::SpriteVectorPath class renders vector graphics paths as sprite images. Vector paths can be scaled to any size while maintaining quality, making them ideal for resolution-independent graphics.

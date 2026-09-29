@@ -2,11 +2,17 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DGpuBackendTestSuite.h"
 #include "Utility/B3DPushConstantShaderCompilationTest.h"
+#include "CoreObject/B3DRenderThread.h"
 #include "GpuBackend/B3DGpuHazards.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
 #include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuCommandBuffer.h"
+#include "GpuBackend/B3DGpuParameterSet.h"
+#include "GpuBackend/B3DGpuParameterSetPool.h"
+#include "GpuBackend/B3DGpuPipelineState.h"
+#include "GpuBackend/B3DGpuWorkContext.h"
 #include "GpuBackend/B3DGpuPipelineParameterLayout.h"
 #include "GpuBackend/B3DGpuResourceTracker.h"
 #include "GpuBackend/B3DGpuResourceTracker.inl"
@@ -236,8 +242,10 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantWrites)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantSerialization)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestDynamicOffsetUniformBufferLayout)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestResourceLocations)
 	// Shader compilation is performed on the host; console applications load cooked shaders.
 #if !B3D_PLATFORM_PS5
+	B3D_ADD_TEST(GpuBackendTestSuite::TestDynamicUniformBufferOffsets)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestHostPushConstantShaderCompilation)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestVulkanStorageBufferAccessReflection)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestHlslShaderModel66Compilation)
@@ -245,6 +253,169 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 #if B3D_PLATFORM_MACOS
 	B3D_ADD_TEST(GpuBackendTestSuite::TestMetalDynamicUniformBufferReflection)
 #endif
+}
+
+void GpuBackendTestSuite::TestResourceLocations()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+
+	constexpr u32 kElementCount = 64;
+	const GpuBufferCreateInformation bufferInformation = GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kElementCount);
+	const GpuMemoryRequirements bufferRequirements = device->GetMemoryRequirements(bufferInformation);
+	B3D_TEST_ASSERT(bufferRequirements.MemoryType != GpuMemoryRequirements::kUnsupportedMemoryType)
+	B3D_TEST_ASSERT(bufferRequirements.Size >= kElementCount * sizeof(u32))
+	B3D_TEST_ASSERT(bufferRequirements.Alignment > 0)
+	if(bufferRequirements.MemoryType == GpuMemoryRequirements::kUnsupportedMemoryType)
+		return;
+
+	IGpuAllocator& bufferAllocator = device->GetPersistentAllocator(bufferRequirements.MemoryType);
+
+	// Pending location: memory is allocated from the allocator, and the buffer stays relocatable
+	const TShared<render::GpuBuffer> pendingBuffer = device->CreateGpuBuffer(bufferInformation, GpuResourceLocation::FromAllocator(bufferAllocator));
+	B3D_TEST_ASSERT(pendingBuffer != nullptr && !pendingBuffer->HasFixedLocation())
+
+	// Owned location: the buffer adopts memory allocated by the caller
+	GpuResourceLocation ownedLocation;
+	B3D_TEST_ASSERT(bufferAllocator.TryAllocate(bufferRequirements.Size, (u32)bufferRequirements.Alignment, bufferRequirements.Kind, nullptr, ownedLocation))
+	B3D_TEST_ASSERT(ownedLocation.IsOwned())
+	if(!ownedLocation.IsOwned())
+		return;
+
+	const TShared<render::GpuBuffer> ownedBuffer = device->CreateGpuBuffer(bufferInformation, ownedLocation);
+	B3D_TEST_ASSERT(ownedBuffer != nullptr && ownedBuffer->HasFixedLocation())
+
+	// Non-owning location: the buffer binds to memory that stays owned by the caller
+	GpuResourceLocation sharedLocation;
+	B3D_TEST_ASSERT(bufferAllocator.TryAllocate(bufferRequirements.Size, (u32)bufferRequirements.Alignment, bufferRequirements.Kind, nullptr, sharedLocation))
+
+	GpuResourceLocation nonOwningLocation = sharedLocation;
+	nonOwningLocation.Allocator = nullptr;
+	B3D_TEST_ASSERT(nonOwningLocation.HasMemory() && !nonOwningLocation.IsOwned() && !nonOwningLocation.IsPending())
+
+	TShared<render::GpuBuffer> nonOwningBuffer = device->CreateGpuBuffer(bufferInformation, nonOwningLocation);
+	B3D_TEST_ASSERT(nonOwningBuffer != nullptr && nonOwningBuffer->HasFixedLocation())
+	if(pendingBuffer == nullptr || ownedBuffer == nullptr || nonOwningBuffer == nullptr)
+		return;
+
+	// Round-trip data through the fixed location buffers, to verify the native resources are bound to usable memory
+	u32 expected[kElementCount];
+	for(u32 elementIndex = 0; elementIndex < kElementCount; elementIndex++)
+		expected[elementIndex] = 0xC0DE0000 + elementIndex;
+
+	const TShared<render::GpuBuffer> upload = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(sizeof(expected)));
+	const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(sizeof(expected)));
+	{
+		const render::GpuBufferMappedScope mapping = upload->Map(GpuMapOption::Write);
+		B3D_TEST_ASSERT(mapping.IsValid())
+		if(!mapping.IsValid())
+			return;
+
+		memcpy(mapping.GetMappedMemory(), expected, sizeof(expected));
+	}
+
+	const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+	const TShared<render::GpuCommandBufferPool> pool = device->CreateGpuCommandBufferPool(render::GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_GRAPHICS));
+	const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Resource locations"));
+	commands->CopyBufferToBuffer(upload, ownedBuffer, 0, 0, sizeof(expected));
+	commands->CopyBufferToBuffer(ownedBuffer, nonOwningBuffer, 0, 0, sizeof(expected));
+	commands->CopyBufferToBuffer(nonOwningBuffer, pendingBuffer, 0, 0, sizeof(expected));
+	commands->CopyBufferToBuffer(pendingBuffer, readback, 0, 0, sizeof(expected));
+	context->SubmitCommandBuffer(commands);
+	device->WaitUntilIdle();
+	{
+		const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
+		B3D_TEST_ASSERT(mapping.IsValid())
+		if(mapping.IsValid())
+			B3D_TEST_ASSERT(memcmp(mapping.GetMappedMemory(), expected, sizeof(expected)) == 0)
+	}
+
+	// Memory behind a non-owning location outlives the buffer, and is released by its owner
+	nonOwningBuffer = nullptr;
+	device->WaitUntilIdle();
+	bufferAllocator.Free(sharedLocation);
+
+	// Textures follow the same rules
+	TextureCreateInformation textureInformation;
+	textureInformation.Name = "Resource location test";
+	textureInformation.Width = 64;
+	textureInformation.Height = 64;
+	textureInformation.Format = PF_RGBA8;
+	textureInformation.Usage = TextureUsageFlag::Default;
+
+	const GpuMemoryRequirements textureRequirements = device->GetMemoryRequirements(textureInformation);
+	B3D_TEST_ASSERT(textureRequirements.MemoryType != GpuMemoryRequirements::kUnsupportedMemoryType)
+	B3D_TEST_ASSERT(textureRequirements.Size >= 64 * 64 * 4)
+	if(textureRequirements.MemoryType == GpuMemoryRequirements::kUnsupportedMemoryType)
+		return;
+
+	IGpuAllocator& textureAllocator = device->GetPersistentAllocator(textureRequirements.MemoryType);
+
+	GpuResourceLocation textureLocation;
+	B3D_TEST_ASSERT(textureAllocator.TryAllocate(textureRequirements.Size, (u32)textureRequirements.Alignment, textureRequirements.Kind, nullptr, textureLocation))
+
+	TextureCreateInformation cpuTextureInformation = textureInformation;
+	cpuTextureInformation.Usage = TextureUsageFlag::StoreOnCPUWithGPUAccess;
+
+	const GpuMemoryRequirements cpuTextureRequirements = device->GetMemoryRequirements(cpuTextureInformation);
+	IGpuAllocator& cpuTextureAllocator = device->GetPersistentAllocator(cpuTextureRequirements.MemoryType);
+
+	GpuResourceLocation cpuTextureLocation;
+	B3D_TEST_ASSERT(cpuTextureAllocator.TryAllocate(cpuTextureRequirements.Size, (u32)cpuTextureRequirements.Alignment, cpuTextureRequirements.Kind, nullptr, cpuTextureLocation))
+
+	bool pendingTextureCreated = false;
+	bool ownedTextureCreated = false;
+	bool cpuTextureCreated = false;
+	GetRenderThread().PostCommand([&]()
+	{
+		const TShared<render::Texture> pendingTexture = device->CreateTexture(textureInformation, GpuResourceLocation::FromAllocator(textureAllocator));
+		pendingTextureCreated = pendingTexture != nullptr && !pendingTexture->HasFixedLocation();
+
+		const TShared<render::Texture> ownedTexture = device->CreateTexture(textureInformation, textureLocation);
+		ownedTextureCreated = ownedTexture != nullptr && ownedTexture->HasFixedLocation();
+
+		// CPU accessible textures can be created at a fixed location
+		const TShared<render::Texture> cpuTexture = device->CreateTexture(cpuTextureInformation, cpuTextureLocation);
+		cpuTextureCreated = cpuTexture != nullptr && cpuTexture->HasFixedLocation();
+	}, "GpuBackendTestSuite::TestResourceLocations", true);
+
+	B3D_TEST_ASSERT(pendingTextureCreated)
+	B3D_TEST_ASSERT(ownedTextureCreated)
+	B3D_TEST_ASSERT(cpuTextureCreated)
+
+	// Invalid locations are rejected
+	{
+		LoggingScope logs(*this);
+		logs.ExpectError("Cannot create a GPU resource at an empty memory location.");
+		B3D_TEST_ASSERT(device->CreateGpuBuffer(bufferInformation, GpuResourceLocation()) == nullptr)
+	}
+
+	{
+		LoggingScope logs(*this);
+		logs.ExpectError("Only a GPU resource created at a fixed memory location can be aliased.");
+		B3D_TEST_ASSERT(device->CreateGpuBuffer(bufferInformation, GpuResourceLocation::FromAllocator(bufferAllocator), GpuObjectCreateFlag::Aliased) == nullptr)
+	}
+
+	// CPU accessible and suballocated buffers can be created at a fixed location
+	{
+		const GpuBufferCreateInformation uniformInformation = GpuBufferCreateInformation::CreateUniform(16, GpuBufferFlag::StoreOnCPUWithGPUAccess, 4);
+		const GpuMemoryRequirements uniformRequirements = device->GetMemoryRequirements(uniformInformation);
+		IGpuAllocator& uniformAllocator = device->GetPersistentAllocator(uniformRequirements.MemoryType);
+
+		GpuResourceLocation uniformLocation;
+		B3D_TEST_ASSERT(uniformAllocator.TryAllocate(uniformRequirements.Size, (u32)uniformRequirements.Alignment, uniformRequirements.Kind, nullptr, uniformLocation))
+
+		const TShared<render::GpuBuffer> uniformBuffer = device->CreateGpuBuffer(uniformInformation, uniformLocation);
+		B3D_TEST_ASSERT(uniformBuffer != nullptr && uniformBuffer->HasFixedLocation())
+		if(uniformBuffer != nullptr)
+		{
+			const render::GpuBufferMappedScope mapping = uniformBuffer->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+		}
+	}
 }
 
 void GpuBackendTestSuite::TestDynamicOffsetUniformBufferLayout()
@@ -300,6 +471,127 @@ void GpuBackendTestSuite::TestDynamicOffsetUniformBufferLayout()
 	B3D_TEST_ASSERT(!combined.TryCombine(fragment, GpuProgramStageBit::Fragment).IsSuccessful())
 }
 
+#if !B3D_PLATFORM_PS5
+void GpuBackendTestSuite::TestDynamicUniformBufferOffsets()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	const String backendName = backend.GetBackendName();
+	if(backend.GetDeviceCount() == 0 || (backendName != "bsfD3D12GpuBackend" && backendName != "bsfVulkanGpuBackend"))
+		return;
+
+	GpuDevice* const device = backend.GetDevice(0).get();
+	const String language = backendName == "bsfD3D12GpuBackend" ? "hlsl" : "vksl";
+
+	const TShared<IShaderCompiler> compiler = ShaderCompilers::Instance().GetCompiler("bsl");
+	B3D_TEST_ASSERT(compiler != nullptr)
+	if(compiler == nullptr)
+		return;
+
+	const String source = R"(
+shader DynamicUniformBufferOffsets
+{
+	code
+	{
+		cbuffer StaticParameters : register(c0, space0) { uint StaticValue; };
+		[dynamicOffset] cbuffer DynamicParameters : register(c3, space0) { uint DynamicValue; };
+		[dynamicOffset] cbuffer OtherParameters : register(c1, space1) { uint OtherValue; };
+		[pushConstant] cbuffer Constants { uint OutputIndex; };
+		RWStructuredBuffer<uint> Output;
+		[numthreads(1, 1, 1)]
+		void csmain() { Output[OutputIndex] = StaticValue + 100 * DynamicValue + 10000 * OtherValue; }
+	};
+};
+)";
+	TShared<b3d::Shader> shader;
+	const ShaderCompilerResult result = compiler->Compile("DynamicUniformBufferOffsets", source, {}, { language }, true, shader);
+	B3D_TEST_ASSERT_MSG(result.ErrorMessage.empty(), result.ErrorMessage)
+	B3D_TEST_ASSERT(shader != nullptr && shader->GetVariations().size() == 1)
+	if(!result.ErrorMessage.empty() || shader == nullptr || shader->GetVariations().size() != 1)
+		return;
+
+	const TShared<b3d::Variation>& variation = shader->GetVariations().front();
+	B3D_TEST_ASSERT(variation->GetPassCount() == 1)
+	if(variation->GetPassCount() != 1)
+		return;
+
+	GpuComputePipelineStateCreateInformation pipelineInformation;
+	pipelineInformation.Program = device->CreateGpuProgram(variation->GetPass(0)->GetGpuProgramCreateInformation(GPT_COMPUTE_PROGRAM));
+	const TShared<GpuComputePipelineState> pipeline = device->CreateGpuComputePipelineState(pipelineInformation);
+	const TShared<GpuComputePipelineState> alternatePipeline = device->CreateGpuComputePipelineState(pipelineInformation);
+	B3D_TEST_ASSERT(pipeline != nullptr && alternatePipeline != nullptr)
+	if(pipeline == nullptr || alternatePipeline == nullptr)
+		return;
+
+	const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+	const TShared<render::GpuBuffer> values = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(16, GpuBufferFlag::StoreOnCPUWithGPUAccess, 4));
+	const u32 stride = values->GetSuballocationSize();
+	{
+		const render::GpuBufferMappedScope mapping = values->Map(GpuMapOption::Write);
+		B3D_TEST_ASSERT(mapping.IsValid())
+		if(!mapping.IsValid())
+			return;
+
+		for(u32 valueIndex = 0; valueIndex < 4; valueIndex++)
+			*reinterpret_cast<u32*>(static_cast<u8*>(mapping.GetMappedMemory()) + valueIndex * stride) = 1 + 10 * valueIndex;
+	}
+
+	const u32 expected[] = { 12111, 13111, 213111, 210111, 212131, 212111 };
+	const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 6, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+	const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(sizeof(expected)));
+	const TShared<GpuPipelineParameterSetLayout> firstLayout = pipeline->GetParameterLayout()->GetSet(0);
+	const TShared<GpuPipelineParameterSetLayout> secondLayout = pipeline->GetParameterLayout()->GetSet(1);
+	const TShared<render::GpuParameterSet> firstSet = context->GetParameterSetPool().Create(firstLayout, 0);
+	const TShared<render::GpuParameterSet> secondSet = context->GetParameterSetPool().Create(secondLayout, 1);
+	firstSet->SetUniformBuffer("DynamicParameters", values, 0, 2 * stride);
+	firstSet->SetStorageBuffer("Output", output);
+	secondSet->SetUniformBuffer("OtherParameters", values);
+	const TShared<render::GpuCommandBufferPool> pool = device->CreateGpuCommandBufferPool(render::GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_GRAPHICS));
+
+	// Reusing parameter sets with a fresh command buffer restores their initial offsets.
+	for(u32 iteration = 0; iteration < 2; iteration++)
+	{
+		firstSet->SetUniformBuffer("StaticParameters", values, 0, stride);
+		const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Dynamic uniform offsets"));
+		commands->SetGpuComputePipelineState(pipeline);
+		commands->SetGpuParameterSet(firstSet);
+		commands->SetGpuParameterSet(secondSet);
+		for(u32 outputIndex = 0; outputIndex < 6; outputIndex++)
+		{
+			if(outputIndex == 1)
+				commands->SetDynamicBufferOffset(0, firstLayout->GetDynamicOffsetIndex("DynamicParameters"), 3 * stride);
+			else if(outputIndex == 2)
+				commands->SetDynamicBufferOffset(1, secondLayout->GetDynamicOffsetIndex("OtherParameters"), 2 * stride);
+			else if(outputIndex == 3)
+			{
+				commands->SetGpuComputePipelineState(alternatePipeline);
+				commands->SetDynamicBufferOffset(0, firstLayout->GetDynamicOffsetIndex("DynamicParameters"), 0);
+			}
+			else if(outputIndex >= 4)
+			{
+				firstSet->SetUniformBuffer("StaticParameters", values, 0, outputIndex == 4 ? 3 * stride : stride);
+				commands->SetGpuParameterSet(firstSet);
+			}
+
+			commands->SetPushConstants(0, sizeof(outputIndex), &outputIndex);
+			commands->DispatchCompute(1);
+		}
+
+		commands->CopyBufferToBuffer(output, readback, 0, 0, sizeof(expected));
+		context->SubmitCommandBuffer(commands);
+		device->WaitUntilIdle();
+
+		const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
+		B3D_TEST_ASSERT(mapping.IsValid())
+		if(!mapping.IsValid())
+			return;
+
+		const u32* actual = static_cast<const u32*>(mapping.GetMappedMemory());
+		for(u32 outputIndex = 0; outputIndex < 6; outputIndex++)
+			B3D_TEST_ASSERT(actual[outputIndex] == expected[outputIndex])
+	}
+}
+#endif
+
 #if B3D_PLATFORM_MACOS
 void GpuBackendTestSuite::TestMetalDynamicUniformBufferReflection()
 {
@@ -314,11 +606,13 @@ shader MetalDynamicUniformBufferReflection
 {
 	code
 	{
+		[dynamicOffset]
 		cbuffer PerObject
 		{
 			float4x4 gTransform;
 		};
 
+		[dynamicOffset]
 		cbuffer Tint
 		{
 			float4 gColor;
@@ -470,7 +764,9 @@ void GpuBackendTestSuite::TestPushConstantSerialization()
 	GpuProgramCreateInformation createInformation;
 	createInformation.Name = "PushConstantSerialization";
 	createInformation.Type = GPT_COMPUTE_PROGRAM;
-	createInformation.PushConstantBufferSize = 12;
+	createInformation.ShaderReflection = B3DMakeShared<ShaderReflection>();
+	createInformation.ShaderReflection->EntryPoints[createInformation.EntryPoint].Type = createInformation.Type;
+	createInformation.ShaderReflection->EntryPoints[createInformation.EntryPoint].PushConstantBufferSize = 12;
 	createInformation.Bytecode = B3DMakeShared<GpuProgramBytecode>();
 	createInformation.Bytecode->ParameterDescription = B3DMakeShared<GpuProgramParameterDescription>();
 	createInformation.Bytecode->ParameterDescription->PushConstantBufferSize = 12;
@@ -486,7 +782,7 @@ void GpuBackendTestSuite::TestPushConstantSerialization()
 	if(decoded == nullptr)
 		return;
 
-	B3D_TEST_ASSERT(decoded->PushConstantBufferSize == 12)
+	B3D_TEST_ASSERT(decoded->GetEntryPointReflection().PushConstantBufferSize == 12)
 	B3D_TEST_ASSERT(decoded->Bytecode != nullptr)
 	if(decoded->Bytecode == nullptr)
 		return;

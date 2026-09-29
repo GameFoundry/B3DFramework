@@ -51,6 +51,11 @@ namespace b3d
 			 */
 			bool PrepareForBind(VulkanResourceTracker& resourceTracker, VulkanBarrierHelper& barrierHelper, TInlineArray<u32, 4>& outDynamicOffsets, VkDescriptorSet& outSet);
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			/** Tracks the selected suballocations after resource access has been prepared, without queuing barriers or changing descriptors. */
+			void TrackDynamicUniformBufferOffsets(VulkanResourceTracker& resourceTracker, TArrayView<const u32> offsets) const;
+#endif
+
 		protected:
 			/** All GPU param data related to a single descriptor set. */
 			struct SetInformation

@@ -23,7 +23,7 @@ namespace b3d::render
 	public:
 		D3D12GpuParameterSetPool(D3D12GpuDevice& device, const GpuParameterSetPoolCreateInformation& createInformation);
 
-		TShared<GpuParameterSet> Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, bool deferredInitialize = false) override;
+		TShared<GpuParameterSet> Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
 		void Reset() override;
 
 	private:

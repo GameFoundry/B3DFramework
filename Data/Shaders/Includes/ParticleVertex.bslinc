@@ -86,10 +86,12 @@ mixin ParticleVertex
 		[internal]
 		Texture2D gCurvesTex;
 		
+		[internal]
 		[alias(gCurvesTex)]
 		SamplerState gCurvesSampler;
 		
 		[internal]
+		[dynamicOffset]
 		cbuffer GpuParticleParams : register(c1, space1)
 		{
 			float2 gColorCurveOffset;

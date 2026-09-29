@@ -56,9 +56,8 @@ namespace b3d
 		void RunTests(TestOutput& output);
 
 		/**
-		 * Scans the runner's executable directory for sibling DLLs matching @c bsf*Tests and loads any
-		 * that export a parameter-less @c RegisterTestSuites C function. Successfully loaded modules are
-		 * pushed onto @c mPluginModules for later invocation during the Core phase.
+		 * Loads plugin test libraries beside the executable for the Plugins layer, excluding inactive GPU backends.
+		 * Libraries must export a parameter-less @c RegisterTestSuites C function.
 		 */
 		void DiscoverPluginModules();
 
