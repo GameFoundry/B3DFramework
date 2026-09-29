@@ -137,7 +137,10 @@ namespace b3d
 		struct PrivatelyConstruct { };
 
 	public:
-		/** Version of the cache. Ticking this value will cause any cached data using the old version to be invalidated. */
+		/**
+		 * Version of the cache. Ticking this value will cause any cached data using the old version to be invalidated. Data
+		 * written by a newer version is ignored but kept.
+		 */
 		static constexpr u32 kVersion = 2;
 
 		PersistentCache(PrivatelyConstruct);

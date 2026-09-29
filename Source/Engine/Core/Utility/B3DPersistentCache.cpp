@@ -118,6 +118,7 @@ void PersistentCache::Initialize(const Path& cacheFolder)
 					return true;
 
 				bool isPackageOutOfDate = false;
+				bool isPackageFromNewerVersion = false;
 				for(const auto& resourceUUID : package->CreateResourceIdList())
 				{
 					const TShared<const PackageResourceMetaData> resourceMetaData = package->GetResourceMetaData(resourceUUID);
@@ -134,6 +135,12 @@ void PersistentCache::Initialize(const Path& cacheFolder)
 						break;
 					}
 
+					if(cacheObjectMetaData->CacheVersion > kVersion)
+					{
+						isPackageFromNewerVersion = true;
+						break;
+					}
+
 					CacheEntry cacheEntry;
 					cacheEntry.Priority = cacheObjectMetaData->Priority;
 					cacheEntry.LastUsedTimestamp = cacheObjectMetaData->LastUsedTimestamp;
@@ -146,6 +153,11 @@ void PersistentCache::Initialize(const Path& cacheFolder)
 					mUsedCacheSizeInBytes += cacheEntry.SizeInBytes;
 				}
 
+				// The cache folder is shared by every engine build on the machine, so leave data from newer builds in place
+				// for them, but never read it since its format may have changed
+				if(isPackageFromNewerVersion)
+					return true;
+
 				if(isPackageOutOfDate)
 				{
 					package = nullptr;
@@ -153,8 +165,6 @@ void PersistentCache::Initialize(const Path& cacheFolder)
 
 					return true;
 				}
-
-				mUsedCacheSizeInBytes += (u64)FileSystem::GetFileSize(path);
 
 				return true;
 			};

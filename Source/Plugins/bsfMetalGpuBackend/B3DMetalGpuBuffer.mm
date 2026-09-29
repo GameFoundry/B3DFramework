@@ -89,7 +89,7 @@ namespace b3d
 				size = 64;
 
 			GpuResourceLocation location;
-			MetalBufferNativeHandle handle = mGpuDevice.GetHeapAllocator().AllocateBuffer(size, mMemoryType, mLocation, location);
+			MetalBufferNativeHandle handle = mGpuDevice.GetHeapAllocator().AllocateBuffer(size, mMemoryType, mRequestedLocation, location);
 			if (handle == nil)
 			{
 				B3D_LOG(Error, LogRenderBackend, "Failed to create MTLBuffer of {0} bytes.", size);

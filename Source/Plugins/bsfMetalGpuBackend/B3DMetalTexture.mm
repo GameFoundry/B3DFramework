@@ -488,7 +488,7 @@ namespace b3d
 			// back to direct device allocation inside the allocator; the invalid location tells the
 			// wrapper nothing needs freeing back to the pool.
 			GpuResourceLocation location;
-			MetalTextureNativeHandle handle = mGpuDevice.GetHeapAllocator().AllocateTexture(desc, mLocation, location);
+			MetalTextureNativeHandle handle = mGpuDevice.GetHeapAllocator().AllocateTexture(desc, mRequestedLocation, location);
 #if !__has_feature(objc_arc)
 			[desc release];
 #endif
