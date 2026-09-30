@@ -116,7 +116,7 @@ namespace b3d
 
 			/**
 			 * Returns the device-owned resource manager that mints and tracks the lifetime of the
-			 * low-level tracked wrappers (@c MetalBuffer / @c MetalImage / @c MetalImageSubresource).
+			 * low-level tracked wrappers (@c MetalBuffer / @c MetalImage).
 			 * Wrappers are created via @c GetResourceManager().Create<T>(...) and retired via
 			 * @c IGpuResource::Destroy(); the manager defers the actual free until every command
 			 * buffer referencing the wrapper has retired. Created in @c Initialize (after the heap

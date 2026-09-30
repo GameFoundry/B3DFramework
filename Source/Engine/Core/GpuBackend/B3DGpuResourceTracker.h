@@ -381,6 +381,24 @@ namespace b3d
 			/** Retains the image and its affected subresources. Use GpuAccessFlag::None to retain them without declaring a read or write. */
 			void RegisterImageSubresources(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuAccessFlags accessFlags);
 
+			/**
+			 * Builds, visits and commits the submission transition of @p range of an image, whose submission and native state are held by
+			 * @p stateResource.
+			 *
+			 * @param	image					Image being transitioned.
+			 * @param	trackingState			Partition that recorded the accesses to @p range.
+			 * @param	range					Range whose subresources share @p stateResource.
+			 * @param	stateResource			Subresource holding the state that the transition starts from, and receiving the new state.
+			 * @param	inFlightReadQueues		Queues with in-flight reads of any subresource in @p range.
+			 * @param	destinationQueueId		Queue the command buffer is being submitted on.
+			 * @param	visitor					Visitor recording the backend synchronization.
+			 */
+			void ResolveImageSubmissionTransition(IGpuImageResource* image, const GpuImageSubresourceTrackingState& trackingState, const GpuTextureSubresourceRange& range,
+				GpuImageSubresource& stateResource, GpuQueueMask inFlightReadQueues, GpuQueueId destinationQueueId, GpuSubmissionTransitionVisitor& visitor);
+
+			/** Selects the accesses executed for one submitted subresource. @p subresource holds the state the submission starts from. */
+			const GpuResourceHazardState& ResolveImageSubmissionHazards(IGpuImageResource* image, const GpuImageSubresourceTrackingState& trackingState, GpuImageSubresource& subresource) { return *trackingState.HazardState; }
+
 			/** Determines if a barrier is required for the provided destination usage/access, and if so queues a barrier in the barrier helper, to be executed before the next buffer access. */
 			void QueueRequiredBufferBarrier(IGpuBufferResource* buffer, const GpuBufferTrackingState& bufferTrackingState, GpuStageFlags destinationStages, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper);
 
@@ -392,9 +410,6 @@ namespace b3d
 
 			/** Creates optional backend meta-data values for a new image range. */
 			TShared<GpuImageMetadataState> CreateImageMetadataState(IGpuImageResource* image, const GpuTextureSubresourceRange& range) { return nullptr; }
-
-			/** Selects the accesses executed for one submitted subresource. */
-			const GpuResourceHazardState& ResolveImageSubmissionHazards(IGpuImageResource* image, const GpuImageSubresourceTrackingState& trackingState, IGpuResource& subresource) { return *trackingState.HazardState; }
 
 			/** Maps images to their tracking state index in mImageTrackingState. */
 			TDenseMap<IGpuImageResource*, u32> mImages;

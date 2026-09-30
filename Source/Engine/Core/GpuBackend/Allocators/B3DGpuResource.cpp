@@ -142,21 +142,110 @@ namespace b3d
 	IGpuImageResource::IGpuImageResource(GpuResourceManager* owner, const StringView& name, u32 faceCount, u32 mipLevelCount, GpuTextureAspectFlags aspectMask)
 		: IGpuResource(owner, name), mFaceCount(faceCount), mMipLevelCount(mipLevelCount), mFullRange(0, mipLevelCount, 0, faceCount, aspectMask)
 	{
-		B3D_ASSERT(aspectMask);
+		CreateSubresources();
+	}
 
-		const u32 subresourceCount = GetSubresourceCount();
-		mSubresources = (IGpuResource**)B3DAllocate(sizeof(IGpuResource*) * subresourceCount);
-		for(u32 subresourceIndex = 0; subresourceIndex < subresourceCount; subresourceIndex++)
-			mSubresources[subresourceIndex] = nullptr;
+	IGpuImageResource::IGpuImageResource(u32 faceCount, u32 mipLevelCount, GpuTextureAspectFlags aspectMask)
+		: mFaceCount(faceCount), mMipLevelCount(mipLevelCount), mFullRange(0, mipLevelCount, 0, faceCount, aspectMask)
+	{
+		CreateSubresources();
 	}
 
 	IGpuImageResource::~IGpuImageResource()
 	{
-		if(mSubresources != nullptr)
+		const u32 subresourceCount = GetSubresourceCount() + 1;
+		for(u32 subresourceIndex = 0; subresourceIndex < subresourceCount; subresourceIndex++)
+			B3D_ASSERT(!mSubresources[subresourceIndex].IsBound()); // Image being freed while its subresources are still bound somewhere
+
+		B3DDeleteMultiple(mSubresources, subresourceCount);
+	}
+
+	void IGpuImageResource::CreateSubresources()
+	{
+		B3D_ASSERT(mFullRange.AspectMask);
+
+		mSubresources = B3DNewMultiple<GpuImageSubresource>(GetSubresourceCount() + 1);
+		mHasUniformSubmissionState = mFullRange.HasSingleAspect();
+	}
+
+	void IGpuImageResource::InitializeNativeState(GpuTextureAspectFlags aspects, const render::GpuImageNativeState& state)
+	{
+		for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
 		{
-			B3DFree(mSubresources);
-			mSubresources = nullptr;
+			if(!aspects.IsSet(aspect))
+				continue;
+
+			for(u32 mipLevel = 0; mipLevel < mMipLevelCount; mipLevel++)
+			{
+				for(u32 face = 0; face < mFaceCount; face++)
+					GetSubresource(face, mipLevel, aspect)->NativeState = state;
+			}
 		}
+
+		// Only read while the image is uniform, which requires a single aspect
+		GetFullRangeSubresource()->NativeState = state;
+	}
+
+	bool IGpuImageResource::IsFullRange(const GpuTextureSubresourceRange& range) const
+	{
+		return range.BaseMipLevel == 0 && range.MipLevelCount >= mMipLevelCount &&
+			range.BaseArrayLayer == 0 && range.ArrayLayerCount >= mFaceCount &&
+			(range.AspectMask & mFullRange.AspectMask) == mFullRange.AspectMask;
+	}
+
+	GpuImageSubresource& IGpuImageResource::GetSubmissionStateResource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const
+	{
+		if(mHasUniformSubmissionState)
+			return *GetFullRangeSubresource();
+
+		return *GetSubresource(face, mipLevel, aspect);
+	}
+
+	void IGpuImageResource::SplitSubmissionState()
+	{
+		B3D_ASSERT(mHasUniformSubmissionState);
+
+		const GpuImageSubresource& fullRangeSubresource = *GetFullRangeSubresource();
+		const u32 subresourceCount = GetSubresourceCount();
+		for(u32 subresourceIndex = 0; subresourceIndex < subresourceCount; subresourceIndex++)
+		{
+			mSubresources[subresourceIndex].SubmissionState = fullRangeSubresource.SubmissionState;
+			mSubresources[subresourceIndex].NativeState = fullRangeSubresource.NativeState;
+		}
+
+		mHasUniformSubmissionState = false;
+	}
+
+	bool IGpuImageResource::TryMergeSubmissionState()
+	{
+		B3D_ASSERT(!mHasUniformSubmissionState);
+
+		// For convenience we never keep multi-aspect images uniform (e.g. depth and stencil layouts), and they rarely need it
+		if(!mFullRange.HasSingleAspect())
+			return false;
+
+		// Native state has no conservative union, so every subresource must already share it
+		const u32 subresourceCount = GetSubresourceCount();
+		const render::GpuImageNativeState& nativeState = mSubresources[0].NativeState;
+		for(u32 subresourceIndex = 1; subresourceIndex < subresourceCount; subresourceIndex++)
+		{
+			if(mSubresources[subresourceIndex].NativeState != nativeState)
+				return false;
+		}
+
+		render::GpuResourceSubmissionState mergedState = mSubresources[0].SubmissionState;
+		for(u32 subresourceIndex = 1; subresourceIndex < subresourceCount; subresourceIndex++)
+		{
+			if(!mergedState.TryMerge(mSubresources[subresourceIndex].SubmissionState))
+				return false;
+		}
+
+		GpuImageSubresource& fullRangeSubresource = *GetFullRangeSubresource();
+		fullRangeSubresource.SubmissionState = std::move(mergedState);
+		fullRangeSubresource.NativeState = nativeState;
+		mHasUniformSubmissionState = true;
+
+		return true;
 	}
 
 	u32 IGpuImageResource::GetSubresourceIndex(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const
@@ -177,9 +266,9 @@ namespace b3d
 		return aspectIndex * mFaceCount * mMipLevelCount + mipLevel * mFaceCount + face;
 	}
 
-	IGpuResource* IGpuImageResource::GetSubresource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const
+	GpuImageSubresource* IGpuImageResource::GetSubresource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const
 	{
-		return mSubresources[GetSubresourceIndex(face, mipLevel, aspect)];
+		return &mSubresources[GetSubresourceIndex(face, mipLevel, aspect)];
 	}
 
 	GpuQueueMask IGpuImageResource::GetSubresourceUseInfo(u32 face, u32 mipLevel, GpuAccessFlags useFlags) const
@@ -193,7 +282,7 @@ namespace b3d
 			useMask |= GetSubresource(face, mipLevel, aspect)->GetUseInfo(useFlags);
 		}
 
-		return useMask;
+		return useMask | GetFullRangeSubresource()->GetUseInfo(useFlags);
 	}
 
 	u32 IGpuImageResource::GetSubresourceBoundCount(u32 face, u32 mipLevel) const
@@ -205,7 +294,7 @@ namespace b3d
 				boundCount += GetSubresource(face, mipLevel, aspect)->GetBoundCount();
 		}
 
-		return boundCount;
+		return boundCount + GetFullRangeSubresource()->GetBoundCount();
 	}
 
 	u32 IGpuImageResource::GetSubresourceUseCount(u32 face, u32 mipLevel) const
@@ -217,7 +306,7 @@ namespace b3d
 				useCount += GetSubresource(face, mipLevel, aspect)->GetUseCount();
 		}
 
-		return useCount;
+		return useCount + GetFullRangeSubresource()->GetUseCount();
 	}
 
 #if B3D_BUILD_TYPE_DEVELOPMENT

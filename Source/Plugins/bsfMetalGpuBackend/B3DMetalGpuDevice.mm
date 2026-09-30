@@ -551,8 +551,8 @@ namespace b3d
 			// resources do not outlive their parent heap.
 			mHeapAllocator = B3DMakeUnique<MetalHeapAllocator>(*this);
 
-			// Resource manager mints and tracks the low-level MetalBuffer / MetalImage /
-			// MetalImageSubresource wrappers minted by GetResourceManager().Create<T>. Constructed
+			// Resource manager mints and tracks the low-level MetalBuffer / MetalImage
+			// wrappers minted by GetResourceManager().Create<T>. Constructed
 			// after the heap allocator (wrappers sub-allocate from it) and torn down before it in the
 			// destructor so heap-backed wrappers free their spans before the heaps are destroyed.
 			mResourceManager = B3DMakeUnique<MetalResourceManager>(*this);

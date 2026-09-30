@@ -1375,18 +1375,17 @@ namespace b3d
 		void VulkanSubmissionTransitionVisitor::VisitImage(const GpuSubmissionImageTransition& transition)
 		{
 			VulkanImage* const image = static_cast<VulkanImage*>(transition.Image);
-			VulkanImageSubresource* const subresource = static_cast<VulkanImageSubresource*>(transition.StateResource);
-			const VkImageLayout oldLayout = subresource->GetLayout();
+			GpuImageNativeState& nativeState = *transition.NativeState;
+			const VkImageLayout oldLayout = (VkImageLayout)nativeState.Layout;
 			const VkImageLayout requestedInitialLayout = VulkanUtility::ToVkImageLayout(transition.InitialLayout);
 			const VkImageLayout newLayout = requestedInitialLayout != VK_IMAGE_LAYOUT_UNDEFINED ? requestedInitialLayout : oldLayout;
 			const bool discardContents = transition.SubmissionBarrierFlags.IsSet(GpuImageBarrierFlag::DiscardContents);
 			const bool layoutMismatch = requestedInitialLayout != VK_IMAGE_LAYOUT_UNDEFINED && (oldLayout != newLayout || discardContents);
 			const VkImageSubresourceRange vkRange = VulkanUtility::ToVkImageSubresourceRange(transition.ImageRange);
 
-			GpuQueueId ownerQueueId;
-			const bool hasOwnerQueue = subresource->GetOwnerQueueId(ownerQueueId);
-			const u32 sourceQueueFamily = hasOwnerQueue ? mDevice.GetQueueFamily(ownerQueueId.GetType()) : mDestinationQueueFamily;
-			const bool needsOwnershipTransfer = hasOwnerQueue && subresource->IsExclusive() && sourceQueueFamily != mDestinationQueueFamily;
+			const TOptional<GpuQueueId> ownerQueueId = nativeState.StateQueue;
+			const u32 sourceQueueFamily = ownerQueueId.has_value() ? mDevice.GetQueueFamily(ownerQueueId->GetType()) : mDestinationQueueFamily;
+			const bool needsOwnershipTransfer = ownerQueueId.has_value() && image->IsExclusive() && sourceQueueFamily != mDestinationQueueFamily;
 			const bool needsFullSync = needsOwnershipTransfer || layoutMismatch;
 
 			if(!needsFullSync && transition.HasSameQueueDependency())
@@ -1415,7 +1414,7 @@ namespace b3d
 
 			if(needsOwnershipTransfer)
 			{
-				SourceQueueTransitionInformation& sourceQueueTransitionInformation = GetSourceQueueTransitionInformation(ownerQueueId, transition.ExclusiveAccessWaitMask);
+				SourceQueueTransitionInformation& sourceQueueTransitionInformation = GetSourceQueueTransitionInformation(*ownerQueueId, transition.ExclusiveAccessWaitMask);
 				sourceQueueTransitionInformation.Barriers.AddImageBarrier(image->GetVulkanHandle(), vkRange, sourceStages, sourceAccess, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, barrierOldLayout, newLayout, sourceQueueFamily, mDestinationQueueFamily);
 				mDestinationQueueBarriers.AddImageBarrier(image->GetVulkanHandle(), vkRange, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, destinationStages, destinationAccess, barrierOldLayout, newLayout, sourceQueueFamily, mDestinationQueueFamily);
 			}
@@ -1425,8 +1424,8 @@ namespace b3d
 				mDestinationQueueBarriers.AddImageBarrier(image->GetVulkanHandle(), vkRange, sourceStages, sourceAccess, destinationStages, destinationAccess, barrierOldLayout, newLayout);
 			}
 
-			subresource->SetLayout(VulkanUtility::ToVkImageLayout(transition.FinalLayout));
-			subresource->SetOwnerQueueId(mDestinationQueueId);
+			nativeState.Layout = (u32)VulkanUtility::ToVkImageLayout(transition.FinalLayout);
+			nativeState.StateQueue = mDestinationQueueId;
 		}
 
 		void VulkanSubmissionTransitionVisitor::Finalize(VkCommandBuffer destinationCommandBuffer)

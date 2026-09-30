@@ -31,40 +31,18 @@ namespace b3d
 			}
 		}
 
-		MetalImageSubresource::MetalImageSubresource(MetalResourceManager* owner, GpuImageLayout layout, const StringView& name)
-			: MetalResource(owner, name), mLayout(layout)
-		{ }
-
 		MetalImage::MetalImage(MetalResourceManager* owner, const MetalImageCreateInformation& createInformation, MetalTextureNativeHandle texture, const GpuAllocation& allocation)
 			: TMetalResource<IGpuImageResource>(owner, createInformation.DebugName, createInformation.FaceCount, createInformation.MipLevelCount, GetFullAspectFlags(createInformation.Usage, createInformation.Format)), mTexture(texture), mAllocation(allocation)
 		{
-			// Fill in the per-(face x mip x aspect) subresource wrappers the IGpuImageResource base
-			// allocated (zero-initialized). The resource tracker uses these to track subresource
-			// usage individually. Fresh image contents are undefined, mirroring Vulkan's
-			// VK_IMAGE_LAYOUT_UNDEFINED starting state.
-			for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
-			{
-				if(!mFullRange.AspectMask.IsSet(aspect))
-					continue;
-
-				for(u32 mipLevel = 0; mipLevel < mMipLevelCount; mipLevel++)
-				{
-					for(u32 face = 0; face < mFaceCount; face++)
-						mSubresources[GetSubresourceIndex(face, mipLevel, aspect)] = owner->Create<MetalImageSubresource>(GpuImageLayout::Undefined);
-				}
-			}
+			// Metal has no native image layouts; the native state stores the tracked GpuImageLayout. Fresh image contents are
+			// undefined, mirroring Vulkan's VK_IMAGE_LAYOUT_UNDEFINED starting state.
+			GpuImageNativeState initialNativeState;
+			initialNativeState.Layout = (u32)GpuImageLayout::Undefined;
+			InitializeNativeState(mFullRange.AspectMask, initialNativeState);
 		}
 
 		MetalImage::~MetalImage()
 		{
-			const u32 subresourceCount = GetSubresourceCount();
-			for (u32 subresourceIndex = 0; subresourceIndex < subresourceCount; subresourceIndex++)
-			{
-				B3D_ASSERT(!mSubresources[subresourceIndex]->IsBound()); // Image being freed but its subresources are still bound somewhere
-
-				mSubresources[subresourceIndex]->Destroy();
-			}
-
 			// Views reinterpret this image's storage, so they must be released no later than the
 			// parent handle. The manager's deferred-destroy path guarantees this destructor only
 			// runs once no command buffer references the image, so synchronous release is safe.
@@ -104,11 +82,6 @@ namespace b3d
 				const String nameCopy(name.data(), name.size());
 				[mTexture setLabel:[NSString stringWithUTF8String:nameCopy.c_str()]];
 			}
-		}
-
-		MetalImageSubresource* MetalImage::GetSubresource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const
-		{
-			return static_cast<MetalImageSubresource*>(IGpuImageResource::GetSubresource(face, mipLevel, aspect));
 		}
 
 		id<MTLTexture> MetalImage::GetShaderReadView(MTLPixelFormat viewFormat)

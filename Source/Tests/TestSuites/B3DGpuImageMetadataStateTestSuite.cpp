@@ -18,13 +18,9 @@ namespace
 		return tracker.TrackImageUsage(image, range, layout, usage, access, helper);
 	}
 
-	/** CPU resource carrying a synthetic native encoding. */
-	class NativeTestSubresource : public IGpuResource
-	{
-	public:
-		NativeTestSubresource() = default;
-		bool Compressed = true;
-	};
+	/** Synthetic native encodings stored in GpuImageNativeState::Layout. */
+	constexpr u32 kNativeTestExpanded = 0;
+	constexpr u32 kNativeTestCompressed = 1;
 
 	/** Two possible native executions used to exercise the core's optional state contract. */
 	class NativeTestState : public GpuImageMetadataState
@@ -42,20 +38,12 @@ namespace
 	{
 	public:
 		explicit NativeTestImage(u32 mipLevelCount = 1)
+			: IGpuImageResource(2, mipLevelCount, GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil)
 		{
-			mFaceCount = 2;
-			mMipLevelCount = mipLevelCount;
-			mFullRange = GpuTextureSubresourceRange(0, mipLevelCount, 0, 2, GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil);
-			mSubresources = (IGpuResource**)B3DAllocate(sizeof(IGpuResource*) * GetSubresourceCount());
-			for(u32 subresourceIndex = 0; subresourceIndex < GetSubresourceCount(); subresourceIndex++)
-				mSubresources[subresourceIndex] = B3DNew<NativeTestSubresource>();
+			GpuImageNativeState compressed;
+			compressed.Layout = kNativeTestCompressed;
+			InitializeNativeState(mFullRange.AspectMask, compressed);
 		}
-		~NativeTestImage() override
-		{
-			for(u32 subresourceIndex = 0; subresourceIndex < GetSubresourceCount(); subresourceIndex++)
-				B3DDelete(mSubresources[subresourceIndex]);
-		}
-
 	};
 
 	class NativeTestTracker;
@@ -128,15 +116,14 @@ namespace
 			}
 		}
 
-		const GpuResourceHazardState& ResolveImageSubmissionHazards(IGpuImageResource*, const GpuImageSubresourceTrackingState& trackingState, IGpuResource& resource)
+		const GpuResourceHazardState& ResolveImageSubmissionHazards(IGpuImageResource*, const GpuImageSubresourceTrackingState& trackingState, GpuImageSubresource& subresource)
 		{
 			if(trackingState.MetadataState == nullptr)
 				return *trackingState.HazardState;
 
 			const NativeTestState& state = static_cast<NativeTestState&>(*trackingState.MetadataState);
-			NativeTestSubresource& subresource = static_cast<NativeTestSubresource&>(resource);
-			const bool wasCompressed = subresource.Compressed;
-			subresource.Compressed = false;
+			const bool wasCompressed = subresource.NativeState.Layout == kNativeTestCompressed;
+			subresource.NativeState.Layout = kNativeTestExpanded;
 			return wasCompressed ? state.Compressed : state.Expanded;
 		}
 	};
@@ -217,7 +204,7 @@ void GpuImageMetadataStateTestSuite::TestSubmissionSelection()
 	{
 		NativeTestImage image;
 		const GpuTextureSubresourceRange range(0, 1, 0, 1, GpuTextureAspectFlag::Depth);
-		NativeTestSubresource& subresource = static_cast<NativeTestSubresource&>(*image.GetSubresource(0, 0, GpuTextureAspectFlag::Depth));
+		GpuImageSubresource& subresource = *image.GetSubresource(0, 0, GpuTextureAspectFlag::Depth);
 		NativeTestTracker tracker;
 		NativeTestBarrierHelper barrierHelper(&tracker);
 		tracker.TrackImageAccess(&image, range, GpuImageLayout::ShaderReadOnly, GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Read, barrierHelper);
@@ -227,19 +214,19 @@ void GpuImageMetadataStateTestSuite::TestSubmissionSelection()
 		tracker.CommitPendingAccesses();
 
 		// The predecessor is assigned after recording; recording order must not select an execution.
-		subresource.Compressed = enableRewrite;
+		subresource.NativeState.Layout = enableRewrite ? kNativeTestCompressed : kNativeTestExpanded;
 		GpuResourceSubmissionState predecessor;
 		predecessor.ReaderQueues = GpuQueueMask(graphics);
 		predecessor.ReaderStages = GpuStageFlag::FragmentShaderNonUniform;
-		subresource.SetSubmissionState(std::move(predecessor));
+		subresource.SubmissionState = std::move(predecessor);
 		subresource.NotifyBound();
 		subresource.NotifyUsed(graphics, GpuAccessFlag::Read);
 		NativeTestVisitor visitor;
 		tracker.ResolveSubmissionTransitions(compute, visitor);
 		B3D_TEST_ASSERT(visitor.Writes == (enableRewrite ? 1u : 0u))
 		B3D_TEST_ASSERT(visitor.Waits.IsSet(graphics) == enableRewrite)
-		B3D_TEST_ASSERT(subresource.GetSubmissionState().HasWriter == enableRewrite)
-		B3D_TEST_ASSERT(subresource.GetSubmissionState().ReaderQueues.IsSet(compute) != enableRewrite)
+		B3D_TEST_ASSERT(subresource.SubmissionState.HasWriter == enableRewrite)
+		B3D_TEST_ASSERT(subresource.SubmissionState.ReaderQueues.IsSet(compute) != enableRewrite)
 		tracker.NotifyUsed(compute);
 		B3D_TEST_ASSERT(subresource.GetUseInfo(GpuAccessFlag::Write).IsSet(compute) == enableRewrite)
 		B3D_TEST_ASSERT(image.GetUseInfo(GpuAccessFlag::Write).IsSet(compute) == enableRewrite)
@@ -565,7 +552,7 @@ void GpuImageMetadataStateTestSuite::TestExplicitBarrierRetention()
 				}
 
 				// Only one incoming depth encoding selects the internal write; stencil has no meta-data operation.
-				static_cast<NativeTestSubresource&>(*image.GetSubresource(face, 1, GpuTextureAspectFlag::Depth)).Compressed = enableRewrite && face == 0;
+				image.GetSubresource(face, 1, GpuTextureAspectFlag::Depth)->NativeState.Layout = enableRewrite && face == 0 ? kNativeTestCompressed : kNativeTestExpanded;
 			}
 
 			GpuImageSubresourceTrackingState& trackingState = tracker.GetSubresourceTrackingState(&image, 0, 1, GpuTextureAspectFlag::Depth);

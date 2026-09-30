@@ -150,13 +150,38 @@ void GpuResourceHazardState::RecordBarrier(const GpuBarrierScope& barrier)
 		LastBarrier = barrier;
 }
 
-GpuSubmissionTransition::GpuSubmissionTransition(IGpuResource& stateResource, const GpuAccessScope& submissionBarrierAccessScope, const GpuAccessScope& destinationAllAccessScope)
-	: StateResource(&stateResource), SubmissionBarrierAccessScope(submissionBarrierAccessScope), DestinationAllAccessScope(destinationAllAccessScope)
+bool GpuResourceSubmissionState::TryMerge(const GpuResourceSubmissionState& other)
+{
+	// One state records one writer queue
+	if(HasWriter && other.HasWriter && WriterQueueId.Id != other.WriterQueueId.Id)
+		return false;
+
+	if(HasWriter && other.HasWriter)
+	{
+		WriterHazards.WriteStages |= other.WriterHazards.WriteStages;
+		WriterHazards.ReaderStages |= other.WriterHazards.ReaderStages;
+		WriterHazards.VisibleStages &= other.WriterHazards.VisibleStages;
+		AcquiredQueues &= other.AcquiredQueues;
+	}
+	else if(other.HasWriter)
+	{
+		WriterHazards = other.WriterHazards;
+		WriterQueueId = other.WriterQueueId;
+		AcquiredQueues = other.AcquiredQueues;
+		HasWriter = true;
+	}
+
+	ReaderQueues |= other.ReaderQueues;
+	ReaderStages |= other.ReaderStages;
+	return true;
+}
+
+GpuSubmissionTransition::GpuSubmissionTransition(const GpuAccessScope& submissionBarrierAccessScope, const GpuAccessScope& destinationAllAccessScope)
+	: SubmissionBarrierAccessScope(submissionBarrierAccessScope), DestinationAllAccessScope(destinationAllAccessScope)
 { }
 
-GpuSubmissionTransition GpuSubmissionTransition::Build(IGpuResource& stateResource, GpuQueueId destinationQueueId, const GpuResourceHazardState& destinationHazardState)
+GpuSubmissionTransition GpuSubmissionTransition::Build(const GpuResourceSubmissionState& sourceState, GpuQueueMask inFlightReadQueues, GpuQueueId destinationQueueId, const GpuResourceHazardState& destinationHazardState)
 {
-	const GpuResourceSubmissionState& sourceState = stateResource.GetSubmissionState();
 	const GpuAccessScope& destinationAllAccessScope = destinationHazardState.AllAccessScope;
 	const bool performsReads = destinationAllAccessScope.ReadStages != GpuStageFlag::None;
 	const bool performsWrites = destinationAllAccessScope.WriteStages != GpuStageFlag::None;
@@ -164,9 +189,9 @@ GpuSubmissionTransition GpuSubmissionTransition::Build(IGpuResource& stateResour
 
 	// Backends must preserve a waitable progress point for the latest submission on every queue. Cross-queue dependencies remain
 	// required after the source submission completes because its memory dependency must still be acquired by a destination queue.
-	const GpuQueueMask activeReaderQueues = sourceState.ReaderQueues & stateResource.GetUseInfo(GpuAccessFlag::Read);
+	const GpuQueueMask activeReaderQueues = sourceState.ReaderQueues & inFlightReadQueues;
 
-	GpuSubmissionTransition transition(stateResource, destinationHazardState.GetSubmissionBarrierAccessScope(), destinationAllAccessScope);
+	GpuSubmissionTransition transition(destinationHazardState.GetSubmissionBarrierAccessScope(), destinationAllAccessScope);
 	transition.PostTransitionSubmissionState = sourceState;
 	transition.SourceAccessScope = sourceState.GetUnsafeAccessScope();
 

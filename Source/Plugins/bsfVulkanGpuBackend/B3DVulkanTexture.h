@@ -15,8 +15,6 @@ namespace b3d
 		 *  @{
 		 */
 
-		class VulkanImageSubresource;
-
 		/** Descriptor used for initializing a VulkanImage. */
 		struct VulkanImageCreateInformation
 		{
@@ -114,12 +112,6 @@ namespace b3d
 			/** Retrieves a subresource range covering the specified sub-resource range of the image. */
 			GpuTextureSubresourceRange GetRange(const TextureSurface& surface) const;
 
-			/**
-			 * Retrieves a separate resource for a specific image face & mip level. This allows the caller to track subresource
-			 * usage individually, instead for the entire image.
-			 */
-			VulkanImageSubresource* GetSubresource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const;
-
 			/** Returns a pointer to persistently mapped memory of the image, or null pointer if the image is not mappable. */
 			void* GetMappedMemory() const { return mMappedMemory; }
 
@@ -206,43 +198,6 @@ namespace b3d
 			mutable VkDeviceSize mMappedOffset = 0;
 			mutable VkDeviceSize mMappedSize = 0;
 			mutable Mutex mViewsMutex;
-		};
-
-		/** Represents a single sub-resource (face & mip level) of a larger image object. */
-		class VulkanImageSubresource : public VulkanResource
-		{
-		public:
-			/** Creates a tracked subresource with the image's queue-family sharing policy. */
-			VulkanImageSubresource(VulkanResourceManager* owner, VkImageLayout layout, bool concurrentQueueAccess, const StringView& name = "");
-
-			/**
-			 * Returns the layout the subresource is currently in. Note that this is only used to communicate layouts between
-			 * different command buffers, and will only be updated only after command buffer submit. In short this means
-			 * you should only care about this value on the submit thread.
-			 *
-			 * @note	Submit thread only.
-			 */
-			VkImageLayout GetLayout() const
-			{
-				AssertIfNotSubmitThread();
-
-				return mLayout;
-			}
-
-			/**
-			 * Notifies the resource that the current subresource layout has changed.
-			 *
-			 * @note	Submit thread only.
-			 */
-			void SetLayout(VkImageLayout layout)
-			{
-				AssertIfNotSubmitThread();
-
-				mLayout = layout;
-			}
-
-		private:
-			VkImageLayout mLayout;
 		};
 
 		/** Native image description derived from a texture's properties. */

@@ -3229,7 +3229,7 @@ namespace b3d
 				void VisitImage(const GpuSubmissionImageTransition& transition) override
 				{
 					mRequiredWaitMask |= transition.ParallelAccessWaitMask;
-					static_cast<MetalImageSubresource*>(transition.StateResource)->SetLayout(transition.FinalLayout);
+					transition.NativeState->Layout = (u32)transition.FinalLayout;
 				}
 
 				GpuQueueMask GetRequiredWaitMask() const { return mRequiredWaitMask; }

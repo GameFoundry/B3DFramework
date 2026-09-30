@@ -37,32 +37,6 @@ namespace b3d
 			StringView DebugName; /**< Optional name of the resource, for debugging purposes. */
 		};
 
-		/** Represents a single sub-resource (face & mip level) of a larger image object. */
-		class MetalImageSubresource : public MetalResource
-		{
-		public:
-			MetalImageSubresource(MetalResourceManager* owner, GpuImageLayout layout, const StringView& name = "");
-
-			/**
-			 * Returns the layout the subresource is currently in. Metal has no native image
-			 * layouts; this is engine-side bookkeeping used to communicate tracked layout state
-			 * between command buffers, updated while a command buffer is prepared for submission.
-			 *
-			 * @note	Submit thread only.
-			 */
-			GpuImageLayout GetLayout() const { return mLayout; }
-
-			/**
-			 * Notifies the resource that the tracked subresource layout has changed.
-			 *
-			 * @note	Submit thread only.
-			 */
-			void SetLayout(GpuImageLayout layout) { mLayout = layout; }
-
-		private:
-			GpuImageLayout mLayout;
-		};
-
 		/** Wrapper around a Metal texture object that manages its usage and lifetime. */
 		class MetalImage : public TMetalResource<IGpuImageResource>
 		{
@@ -79,12 +53,6 @@ namespace b3d
 
 			/** Assigns a name to the image, primarily used for easier debugging. */
 			void SetName(const StringView& name);
-
-			/**
-			 * Retrieves a separate resource for a specific image face & mip level. This allows the
-			 * caller to track subresource usage individually, instead of for the entire image.
-			 */
-			MetalImageSubresource* GetSubresource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const;
 
 #ifdef __OBJC__
 			/** Returns the internal handle to the Metal object. */

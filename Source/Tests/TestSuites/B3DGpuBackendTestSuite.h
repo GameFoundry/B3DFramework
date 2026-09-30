@@ -34,6 +34,24 @@ namespace b3d
 		/** Verifies incompatible shader layouts are coalesced only within one access epoch. */
 		void TestImageAccessEpochTracking();
 
+		/** Verifies full-range accesses register on the full-range subresource and count towards every subresource. */
+		void TestWholeImageRegistration();
+
+		/** Verifies a full-range command buffer on a uniform image resolves one transition for the whole image. */
+		void TestWholeImageSubmission();
+
+		/** Verifies a partial command buffer splits a uniform image, and untouched subresources inherit the uniform state. */
+		void TestImageSplit();
+
+		/** Verifies split images merge after submission only when their subresources can share one state. */
+		void TestImageMerge();
+
+		/** Verifies a merged image still waits for readers of every subresource, including partial reads from before the merge. */
+		void TestMergedStateWaits();
+
+		/** Verifies conservative merging of submission states. */
+		void TestSubmissionStateMerge();
+
 		/** Verifies framebuffer attachment normalization and render-pass usage construction. */
 		void TestFramebufferAttachmentUsage();
 

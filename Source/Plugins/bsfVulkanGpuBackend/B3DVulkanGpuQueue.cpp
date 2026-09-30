@@ -319,19 +319,20 @@ VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageI
 	VulkanGpuCommandBufferSubmitInformation bridgeSubmitInformation;
 
 	VulkanImage& image = static_cast<VulkanImage&>(*swapChain->GetFramebufferForImage(swapChainImageIndex)->GetColorAttachments()[0].Image);
-	VulkanImageSubresource& subresource = *image.GetSubresource(0, 0, GpuTextureAspectFlag::Color);
+	GpuImageSubresource& stateResource = image.GetSubmissionStateResource(0, 0, GpuTextureAspectFlag::Color);
 
 	// Present has no pipeline consumer; reuse submission ordering and ownership handling for its layout-only barrier.
 	// Swapchain destruction/recreation waits for device idle, including this bridge submission.
 	GpuResourceHazardState presentHazards;
 	presentHazards.HasLeadingBarrier = true;
 
-	GpuSubmissionImageTransition transition(image, GpuTextureSubresourceRange(0, 1, 0, 1, GpuTextureAspectFlag::Color), GpuImageLayout::Present, GpuImageLayout::Present, GpuImageBarrierFlag::None, GpuSubmissionTransition::Build(subresource, GetId(), presentHazards));
+	// The image has a single subresource, so the image's own counters are exactly its in-flight reads
+	GpuSubmissionImageTransition transition(image, GpuTextureSubresourceRange(0, 1, 0, 1, GpuTextureAspectFlag::Color), stateResource.NativeState, GpuImageLayout::Present, GpuImageLayout::Present, GpuImageBarrierFlag::None, GpuSubmissionTransition::Build(stateResource.SubmissionState, image.GetUseInfo(GpuAccessFlag::Read), GetId(), presentHazards));
 	VulkanSubmissionTransitionVisitor transitionVisitor(GetDevice(), GetId(), bridgeSubmitInformation);
 	transitionVisitor.VisitImage(transition);
 	transitionVisitor.Finalize(bridgeCommandBuffer->GetVulkanHandle());
 
-	subresource.SetSubmissionState(std::move(transition.PostTransitionSubmissionState));
+	stateResource.SubmissionState = std::move(transition.PostTransitionSubmissionState);
 	bridgeCommandBuffer->End();
 
 	bridgeSubmitInformation.PrimaryCommandBuffer = bridgeCommandBuffer;

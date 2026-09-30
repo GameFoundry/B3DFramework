@@ -16,50 +16,6 @@ namespace b3d
 		 *  @{
 		 */
 
-		/**
-		 * Represents a single subresource (face × mip) of a D3D12Image, so per-subresource usage can be tracked
-		 * individually by the resource tracker. Native submission state is isolated from command-buffer-local tracking.
-		 */
-		class D3D12ImageSubresource : public D3D12Resource
-		{
-		public:
-			/** Creates submission state initialized to @p layout. */
-			D3D12ImageSubresource(D3D12ResourceManager* owner, const D3D12TextureLayout& layout, const StringView& name = "");
-
-			/**
-			 * Returns the native layout committed by the most recently submitted command buffer.
-			 *
-			 * @note Submit thread only.
-			 */
-			const D3D12TextureLayout& GetLayout() const;
-
-			/** 
-			 * Updates the native layout after the command buffer that used this subresource has been submitted.
-			 *
-			 * @note Submit thread only. 
-			 */
-			void SetLayout(const D3D12TextureLayout& layout);
-
-			/** 
-			 * Returns the queue capable of transitioning the committed layout, if one exists. 
-			 *
-			 * @note Submit thread only. 
-			 */
-			bool GetLayoutTransitionQueueId(GpuQueueId& outQueueId) const;
-
-			/** 
-			 * Sets the queue that most recently transitioned the committed layout. 
-			 * 
-			 * @note Submit thread only. 
-			 */
-			void SetLayoutTransitionQueueId(GpuQueueId queueId);
-
-		private:
-			D3D12TextureLayout mLayout;
-			GpuQueueId mLayoutTransitionQueueId;
-			bool mHasLayoutTransitionQueue = false;
-		};
-
 		/** Descriptor structure used for initialization of a D3D12Image. */
 		struct D3D12ImageCreateInformation
 		{
@@ -78,7 +34,7 @@ namespace b3d
 		/**
 		 * Wraps a native D3D12 texture resource and its memory allocation. Lifetime is owned by the device's
 		 * resource manager and released via IGpuResource::Destroy(), deferred until the GPU is done with the
-		 * resource. Owns one D3D12ImageSubresource per (face × mip × aspect) for independent usage/state tracking.
+		 * resource. 
 		 */
 		class D3D12Image : public TD3D12Resource<IGpuImageResource>
 		{
@@ -105,12 +61,6 @@ namespace b3d
 
 			/** Builds the subresource range selected by @p surface (its face/mip window), clamped to the image. */
 			GpuTextureSubresourceRange GetRange(const TextureSurface& surface) const;
-
-			/** Returns the typed state object for one image subresource. */
-			D3D12ImageSubresource* GetD3D12Subresource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const
-			{
-				return static_cast<D3D12ImageSubresource*>(GetSubresource(face, mipLevel, aspect));
-			}
 
 			/** Returns the D3D12 subresource index (mip-major, as used by native transition barriers) for a face/mip pair. */
 			u32 GetNativeSubresourceIndex(u32 face, u32 mipLevel) const { return face * mMipLevelCount + mipLevel; }

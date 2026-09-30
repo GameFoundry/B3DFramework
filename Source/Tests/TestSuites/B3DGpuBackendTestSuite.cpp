@@ -79,42 +79,12 @@ namespace
 		SubmissionTestBuffer() = default;
 	};
 
-	class SubmissionTestImageSubresource : public IGpuResource
-	{
-	public:
-		SubmissionTestImageSubresource() = default;
-	};
-
 	class SubmissionTestImage : public IGpuImageResource
 	{
 	public:
 		SubmissionTestImage(u32 faceCount, u32 mipLevelCount, GpuTextureAspectFlags aspects)
-		{
-			mFaceCount = faceCount;
-			mMipLevelCount = mipLevelCount;
-			mFullRange = GpuTextureSubresourceRange(0, mipLevelCount, 0, faceCount, aspects);
-
-			const u32 subresourceCount = GetSubresourceCount();
-			mSubresources = (IGpuResource**)B3DAllocate(sizeof(IGpuResource*) * subresourceCount);
-			for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
-			{
-				if(!aspects.IsSet(aspect))
-					continue;
-
-				for(u32 mipLevel = 0; mipLevel < mipLevelCount; mipLevel++)
-				{
-					for(u32 face = 0; face < faceCount; face++)
-						mSubresources[GetSubresourceIndex(face, mipLevel, aspect)] = B3DNew<SubmissionTestImageSubresource>();
-				}
-			}
-		}
-
-		~SubmissionTestImage() override
-		{
-			const u32 subresourceCount = GetSubresourceCount();
-			for(u32 subresourceIndex = 0; subresourceIndex < subresourceCount; subresourceIndex++)
-				B3DDelete(mSubresources[subresourceIndex]);
-		}
+			: IGpuImageResource(faceCount, mipLevelCount, aspects)
+		{ }
 	};
 
 	class SubmissionTestFramebuffer : public GpuFramebuffer
@@ -137,12 +107,12 @@ namespace
 		{
 			B3D_ASSERT(transition.ImageRange.HasSingleAspect());
 			VisitedAspects |= transition.ImageRange.AspectMask;
-			StateResources.Add(transition.StateResource);
+			NativeStates.Add(transition.NativeState);
 			SubmissionBarrierFlags |= transition.SubmissionBarrierFlags;
 		}
 
 		GpuTextureAspectFlags VisitedAspects;
-		TInlineArray<IGpuResource*, 2> StateResources;
+		TInlineArray<GpuImageNativeState*, 2> NativeStates;
 		GpuImageBarrierFlags SubmissionBarrierFlags;
 	};
 
@@ -213,6 +183,51 @@ namespace
 		return result;
 	}
 
+	/** Records every image transition, and commits the final layout as native state like a backend would. */
+	class SubmissionImageRecordingVisitor : public GpuSubmissionTransitionVisitor
+	{
+	public:
+		void VisitBuffer(const GpuSubmissionBufferTransition&) override { }
+
+		void VisitImage(const GpuSubmissionImageTransition& transition) override
+		{
+			Ranges.Add(transition.ImageRange);
+			NativeStates.Add(transition.NativeState);
+			ParallelAccessWaitMask |= transition.ParallelAccessWaitMask;
+
+			transition.NativeState->Layout = (u32)transition.FinalLayout;
+		}
+
+		TInlineArray<GpuTextureSubresourceRange, 4> Ranges;
+		TInlineArray<GpuImageNativeState*, 4> NativeStates;
+		GpuQueueMask ParallelAccessWaitMask = GpuQueueMask::kNone;
+	};
+
+	/** Records one access to @p range of @p image and submits it on @p queueId. @p tracker stays in flight until its NotifyDone(). */
+	void SubmitTestImageAccess(SubmissionTestTracker& tracker, SubmissionImageRecordingVisitor& visitor, IGpuImageResource& image, const GpuTextureSubresourceRange& range,
+		GpuImageLayout layout, GpuAccessFlags access, GpuQueueId queueId)
+	{
+		const GpuStageFlags stages = access.IsSet(GpuAccessFlag::Write) ? GpuStageFlags(GpuStageFlag::Transfer) : GpuStageFlags(GpuStageFlag::FragmentShaderNonUniform);
+
+		SubmissionTestBarrierHelper barrierHelper;
+		tracker.TrackImageAccess(&image, range, layout, stages, access, barrierHelper);
+		tracker.CommitPendingAccesses();
+		tracker.ResolveSubmissionTransitions(queueId, visitor);
+		tracker.NotifyUsed(queueId);
+	}
+
+	/** Submits one access and completes it before returning. */
+	SubmissionImageRecordingVisitor ExecuteTestImageAccess(IGpuImageResource& image, const GpuTextureSubresourceRange& range, GpuImageLayout layout, GpuAccessFlags access, GpuQueueId queueId)
+	{
+		SubmissionTestTracker tracker;
+		SubmissionImageRecordingVisitor visitor;
+		SubmitTestImageAccess(tracker, visitor, image, range, layout, access, queueId);
+		tracker.NotifyDone(queueId);
+		tracker.Clear();
+
+		return visitor;
+	}
+
 	void BeginTestRead(SubmissionTestBuffer& buffer, GpuQueueId queueId)
 	{
 		buffer.NotifyBound();
@@ -236,6 +251,12 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestSubmissionTransitionPlanning)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestImageAspectTracking)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestImageAccessEpochTracking)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestWholeImageRegistration)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestWholeImageSubmission)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestImageSplit)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestImageMerge)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestMergedStateWaits)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestSubmissionStateMerge)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestFramebufferAttachmentUsage)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestRenderPassResourceTracking)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantMetadata)
@@ -1128,8 +1149,8 @@ void GpuBackendTestSuite::TestImageAspectTracking()
 	SubmissionImageTestVisitor visitor;
 	tracker.ResolveSubmissionTransitions(GpuQueueId(GQT_GRAPHICS, 0), visitor);
 	B3D_TEST_ASSERT(visitor.VisitedAspects == (GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil))
-	B3D_TEST_ASSERT(visitor.StateResources.Size() == 2)
-	B3D_TEST_ASSERT(visitor.StateResources[0] != visitor.StateResources[1])
+	B3D_TEST_ASSERT(visitor.NativeStates.Size() == 2)
+	B3D_TEST_ASSERT(visitor.NativeStates[0] != visitor.NativeStates[1])
 
 	const TArrayView<const GpuImageSubresourceTrackingState> finalPartitions = tracker.GetSubresourceTrackingStatesForImage(&image);
 	for(const GpuImageSubresourceTrackingState& partition : finalPartitions)
@@ -1153,6 +1174,298 @@ void GpuBackendTestSuite::TestImageAspectTracking()
 
 	combinedUseTracker.NotifyUnbound();
 	combinedUseTracker.Clear();
+}
+
+void GpuBackendTestSuite::TestWholeImageRegistration()
+{
+	const GpuQueueId graphics(GQT_GRAPHICS, 0);
+	SubmissionTestImage image(2, 3, GpuTextureAspectFlag::Color);
+	GpuImageSubresource& fullRangeSubresource = *image.GetFullRangeSubresource();
+	SubmissionTestBarrierHelper barrierHelper;
+
+	// A full-range access registers only the full-range subresource
+	SubmissionTestTracker fullRangeTracker;
+	fullRangeTracker.TrackImageAccess(&image, image.GetRange(), GpuImageLayout::ShaderReadOnly, GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read, barrierHelper);
+	B3D_TEST_ASSERT(image.GetBoundCount() == 1)
+	B3D_TEST_ASSERT(fullRangeSubresource.GetBoundCount() == 1)
+	for(u32 mipLevel = 0; mipLevel < 3; mipLevel++)
+	{
+		for(u32 face = 0; face < 2; face++)
+		{
+			B3D_TEST_ASSERT(image.GetSubresource(face, mipLevel, GpuTextureAspectFlag::Color)->GetBoundCount() == 0)
+			B3D_TEST_ASSERT(image.GetSubresourceBoundCount(face, mipLevel) == 1)
+		}
+	}
+
+	// A partial access registers only the subresources it touches
+	SubmissionTestTracker partialTracker;
+	partialTracker.TrackImageAccess(&image, GpuTextureSubresourceRange(1, 1, 0, 1, GpuTextureAspectFlag::Color), GpuImageLayout::ShaderReadOnly, GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read, barrierHelper);
+	B3D_TEST_ASSERT(image.GetBoundCount() == 2)
+	B3D_TEST_ASSERT(fullRangeSubresource.GetBoundCount() == 1)
+	B3D_TEST_ASSERT(image.GetSubresource(0, 1, GpuTextureAspectFlag::Color)->GetBoundCount() == 1)
+	B3D_TEST_ASSERT(image.GetSubresourceBoundCount(0, 1) == 2)
+	B3D_TEST_ASSERT(image.GetSubresourceBoundCount(1, 1) == 1)
+
+	// Full-range uses count towards every subresource
+	SubmissionImageRecordingVisitor visitor;
+	fullRangeTracker.CommitPendingAccesses();
+	fullRangeTracker.ResolveSubmissionTransitions(graphics, visitor);
+	fullRangeTracker.NotifyUsed(graphics);
+	for(u32 mipLevel = 0; mipLevel < 3; mipLevel++)
+	{
+		for(u32 face = 0; face < 2; face++)
+		{
+			B3D_TEST_ASSERT(image.GetSubresourceUseInfo(face, mipLevel, GpuAccessFlag::Read).IsSet(graphics))
+			B3D_TEST_ASSERT(image.GetSubresourceUseCount(face, mipLevel) == 1)
+		}
+	}
+
+	fullRangeTracker.NotifyDone(graphics);
+	fullRangeTracker.Clear();
+	partialTracker.NotifyUnbound();
+	partialTracker.Clear();
+	B3D_TEST_ASSERT(image.GetBoundCount() == 0 && fullRangeSubresource.GetBoundCount() == 0)
+	B3D_TEST_ASSERT(image.GetSubresourceBoundCount(0, 1) == 0 && image.GetSubresourceUseCount(0, 1) == 0)
+
+	// A render-pass style access to both aspects of a depth-stencil image covers its full range
+	SubmissionTestImage depthStencilImage(1, 1, GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil);
+	SubmissionTestTracker depthStencilTracker;
+	depthStencilTracker.TrackImageAccess(&depthStencilImage, depthStencilImage.GetRange(), GpuImageLayout::DepthStencilAttachment, GpuStageFlag::LateFragmentTests, GpuAccessFlag::Write, barrierHelper);
+	B3D_TEST_ASSERT(depthStencilImage.GetFullRangeSubresource()->GetBoundCount() == 1)
+	B3D_TEST_ASSERT(depthStencilImage.GetSubresource(0, 0, GpuTextureAspectFlag::Depth)->GetBoundCount() == 0)
+	B3D_TEST_ASSERT(depthStencilImage.GetSubresourceBoundCount(0, 0) == 1)
+	depthStencilTracker.NotifyUnbound();
+	depthStencilTracker.Clear();
+}
+
+void GpuBackendTestSuite::TestWholeImageSubmission()
+{
+	const GpuQueueId graphics(GQT_GRAPHICS, 0);
+	SubmissionTestImage image(1, 10, GpuTextureAspectFlag::Color);
+	GpuImageSubresource& fullRangeSubresource = *image.GetFullRangeSubresource();
+	B3D_TEST_ASSERT(image.HasUniformSubmissionState())
+
+	const SubmissionImageRecordingVisitor visitor = ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::TransferDestination, GpuAccessFlag::Write, graphics);
+	B3D_TEST_ASSERT(visitor.Ranges.Size() == 1)
+	B3D_TEST_ASSERT(visitor.Ranges[0].BaseMipLevel == 0 && visitor.Ranges[0].MipLevelCount == 10)
+	B3D_TEST_ASSERT(visitor.Ranges[0].BaseArrayLayer == 0 && visitor.Ranges[0].ArrayLayerCount == 1)
+	B3D_TEST_ASSERT(visitor.NativeStates[0] == &fullRangeSubresource.NativeState)
+
+	B3D_TEST_ASSERT(image.HasUniformSubmissionState())
+	B3D_TEST_ASSERT(fullRangeSubresource.SubmissionState.HasWriter)
+	B3D_TEST_ASSERT(fullRangeSubresource.NativeState.Layout == (u32)GpuImageLayout::TransferDestination)
+	B3D_TEST_ASSERT(&image.GetSubmissionStateResource(0, 5, GpuTextureAspectFlag::Color) == &fullRangeSubresource)
+
+	// Subresources are not touched while the image is uniform
+	B3D_TEST_ASSERT(!image.GetSubresource(0, 5, GpuTextureAspectFlag::Color)->SubmissionState.HasWriter)
+}
+
+void GpuBackendTestSuite::TestImageSplit()
+{
+	const GpuQueueId graphics(GQT_GRAPHICS, 0);
+	SubmissionTestImage image(1, 4, GpuTextureAspectFlag::Color);
+	ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::TransferDestination, GpuAccessFlag::Write, graphics);
+	B3D_TEST_ASSERT(image.HasUniformSubmissionState())
+
+	const SubmissionImageRecordingVisitor visitor = ExecuteTestImageAccess(image, GpuTextureSubresourceRange(2, 1, 0, 1, GpuTextureAspectFlag::Color), GpuImageLayout::ShaderReadOnly, GpuAccessFlag::Read, graphics);
+	B3D_TEST_ASSERT(visitor.Ranges.Size() == 1)
+	B3D_TEST_ASSERT(visitor.NativeStates[0] == &image.GetSubresource(0, 2, GpuTextureAspectFlag::Color)->NativeState)
+
+	// The read leaves mip 2 in a different layout, so the image stays split
+	B3D_TEST_ASSERT(!image.HasUniformSubmissionState())
+
+	// Untouched subresources inherit the uniform state
+	const GpuImageSubresource& untouched = image.GetSubmissionStateResource(0, 0, GpuTextureAspectFlag::Color);
+	B3D_TEST_ASSERT(&untouched == image.GetSubresource(0, 0, GpuTextureAspectFlag::Color))
+	B3D_TEST_ASSERT(untouched.SubmissionState.HasWriter && untouched.SubmissionState.WriterQueueId.Id == graphics.Id)
+	B3D_TEST_ASSERT(untouched.SubmissionState.ReaderQueues.IsEmpty())
+	B3D_TEST_ASSERT(untouched.NativeState.Layout == (u32)GpuImageLayout::TransferDestination)
+
+	const GpuImageSubresource& touched = image.GetSubmissionStateResource(0, 2, GpuTextureAspectFlag::Color);
+	B3D_TEST_ASSERT(touched.SubmissionState.HasWriter)
+	B3D_TEST_ASSERT(touched.SubmissionState.ReaderQueues.IsSet(graphics))
+	B3D_TEST_ASSERT(touched.NativeState.Layout == (u32)GpuImageLayout::ShaderReadOnly)
+}
+
+void GpuBackendTestSuite::TestImageMerge()
+{
+	const GpuQueueId graphics(GQT_GRAPHICS, 0);
+	const GpuQueueId compute(GQT_COMPUTE, 0);
+
+	// A full-range command buffer merges a split image, even when its subresources started in different layouts
+	{
+		SubmissionTestImage image(1, 4, GpuTextureAspectFlag::Color);
+		ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::TransferDestination, GpuAccessFlag::Write, graphics);
+		ExecuteTestImageAccess(image, GpuTextureSubresourceRange(2, 1, 0, 1, GpuTextureAspectFlag::Color), GpuImageLayout::ShaderReadOnly, GpuAccessFlag::Read, graphics);
+		B3D_TEST_ASSERT(!image.HasUniformSubmissionState())
+
+		const SubmissionImageRecordingVisitor visitor = ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::ShaderReadOnly, GpuAccessFlag::Read, graphics);
+		B3D_TEST_ASSERT(visitor.Ranges.Size() == 4)
+		B3D_TEST_ASSERT(image.HasUniformSubmissionState())
+
+		const GpuImageSubresource& fullRangeSubresource = *image.GetFullRangeSubresource();
+		B3D_TEST_ASSERT(fullRangeSubresource.NativeState.Layout == (u32)GpuImageLayout::ShaderReadOnly)
+		B3D_TEST_ASSERT(fullRangeSubresource.SubmissionState.HasWriter && fullRangeSubresource.SubmissionState.WriterQueueId.Id == graphics.Id)
+		B3D_TEST_ASSERT(fullRangeSubresource.SubmissionState.ReaderQueues.IsSet(graphics))
+
+		// The next full-range command buffer resolves one transition
+		const SubmissionImageRecordingVisitor nextVisitor = ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::ShaderReadOnly, GpuAccessFlag::Read, graphics);
+		B3D_TEST_ASSERT(nextVisitor.Ranges.Size() == 1)
+	}
+
+	// A partial command buffer merges only if it leaves every subresource in the same native state
+	{
+		SubmissionTestImage image(1, 3, GpuTextureAspectFlag::Color);
+		ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::TransferDestination, GpuAccessFlag::Write, graphics);
+		ExecuteTestImageAccess(image, GpuTextureSubresourceRange(1, 1, 0, 1, GpuTextureAspectFlag::Color), GpuImageLayout::TransferDestination, GpuAccessFlag::Write, graphics);
+		B3D_TEST_ASSERT(image.HasUniformSubmissionState())
+
+		ExecuteTestImageAccess(image, GpuTextureSubresourceRange(1, 1, 0, 1, GpuTextureAspectFlag::Color), GpuImageLayout::ShaderReadOnly, GpuAccessFlag::Read, graphics);
+		B3D_TEST_ASSERT(!image.HasUniformSubmissionState())
+	}
+
+	// Writers on different queues cannot share one state
+	{
+		SubmissionTestImage image(1, 2, GpuTextureAspectFlag::Color);
+		ExecuteTestImageAccess(image, GpuTextureSubresourceRange(0, 1, 0, 1, GpuTextureAspectFlag::Color), GpuImageLayout::TransferDestination, GpuAccessFlag::Write, graphics);
+		ExecuteTestImageAccess(image, GpuTextureSubresourceRange(1, 1, 0, 1, GpuTextureAspectFlag::Color), GpuImageLayout::TransferDestination, GpuAccessFlag::Write, compute);
+		B3D_TEST_ASSERT(image.GetSubresource(0, 0, GpuTextureAspectFlag::Color)->NativeState == image.GetSubresource(0, 1, GpuTextureAspectFlag::Color)->NativeState)
+		B3D_TEST_ASSERT(!image.HasUniformSubmissionState())
+	}
+
+	// Depth-stencil images keep per-aspect state and never merge
+	{
+		SubmissionTestImage image(1, 1, GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil);
+		B3D_TEST_ASSERT(!image.HasUniformSubmissionState())
+
+		const SubmissionImageRecordingVisitor visitor = ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::DepthStencilAttachment, GpuAccessFlag::Write, graphics);
+		B3D_TEST_ASSERT(visitor.Ranges.Size() == 2)
+		B3D_TEST_ASSERT(!image.HasUniformSubmissionState())
+	}
+}
+
+void GpuBackendTestSuite::TestMergedStateWaits()
+{
+	const GpuQueueId graphics(GQT_GRAPHICS, 0);
+	const GpuQueueId compute(GQT_COMPUTE, 0);
+	const GpuQueueId transfer(GQT_TRANSFER, 0);
+	SubmissionTestImage image(1, 2, GpuTextureAspectFlag::Color);
+
+	// A partial read stays in flight across the merge
+	SubmissionTestTracker partialReader;
+	SubmissionImageRecordingVisitor partialVisitor;
+	SubmitTestImageAccess(partialReader, partialVisitor, image, GpuTextureSubresourceRange(0, 1, 0, 1, GpuTextureAspectFlag::Color), GpuImageLayout::ShaderReadOnly, GpuAccessFlag::Read, compute);
+	B3D_TEST_ASSERT(!image.HasUniformSubmissionState())
+
+	// A full-range read leaves every subresource in the same layout, and stays in flight as well
+	SubmissionTestTracker fullRangeReader;
+	SubmissionImageRecordingVisitor fullRangeVisitor;
+	SubmitTestImageAccess(fullRangeReader, fullRangeVisitor, image, image.GetRange(), GpuImageLayout::ShaderReadOnly, GpuAccessFlag::Read, transfer);
+	B3D_TEST_ASSERT(image.HasUniformSubmissionState())
+
+	const GpuResourceSubmissionState& mergedState = image.GetFullRangeSubresource()->SubmissionState;
+	B3D_TEST_ASSERT(mergedState.ReaderQueues.IsSet(compute) && mergedState.ReaderQueues.IsSet(transfer))
+
+	// A write must wait for both the merged full-range reader and the partial reader from before the merge
+	SubmissionTestTracker writer;
+	SubmissionImageRecordingVisitor writeVisitor;
+	SubmitTestImageAccess(writer, writeVisitor, image, image.GetRange(), GpuImageLayout::TransferDestination, GpuAccessFlag::Write, graphics);
+	B3D_TEST_ASSERT(writeVisitor.Ranges.Size() == 1)
+	B3D_TEST_ASSERT(writeVisitor.ParallelAccessWaitMask.IsSet(compute))
+	B3D_TEST_ASSERT(writeVisitor.ParallelAccessWaitMask.IsSet(transfer))
+
+	for(auto [tracker, queue] : { std::make_pair(&partialReader, compute), std::make_pair(&fullRangeReader, transfer), std::make_pair(&writer, graphics) })
+	{
+		tracker->NotifyDone(queue);
+		tracker->Clear();
+	}
+
+	// Completed readers need no wait
+	const SubmissionImageRecordingVisitor readVisitor = ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::ShaderReadOnly, GpuAccessFlag::Read, compute);
+	B3D_TEST_ASSERT(readVisitor.ParallelAccessWaitMask.IsSet(graphics))
+	const SubmissionImageRecordingVisitor rewriteVisitor = ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::TransferDestination, GpuAccessFlag::Write, graphics);
+	B3D_TEST_ASSERT(rewriteVisitor.ParallelAccessWaitMask.IsEmpty())
+}
+
+void GpuBackendTestSuite::TestSubmissionStateMerge()
+{
+	const GpuQueueId graphics(GQT_GRAPHICS, 0);
+	const GpuQueueId compute(GQT_COMPUTE, 0);
+	const GpuQueueId transfer(GQT_TRANSFER, 0);
+
+	GpuResourceSubmissionState graphicsWriter;
+	graphicsWriter.HasWriter = true;
+	graphicsWriter.WriterQueueId = graphics;
+	graphicsWriter.WriterHazards.WriteStages = GpuStageFlag::Transfer;
+	graphicsWriter.WriterHazards.ReaderStages = GpuStageFlag::FragmentShaderNonUniform;
+	graphicsWriter.WriterHazards.VisibleStages = GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::ComputeShaderNonUniform;
+	graphicsWriter.AcquiredQueues = GpuQueueMask(graphics) | compute;
+	graphicsWriter.ReaderQueues = GpuQueueMask(compute);
+	graphicsWriter.ReaderStages = GpuStageFlag::ComputeShaderNonUniform;
+
+	GpuResourceSubmissionState reader;
+	reader.ReaderQueues = GpuQueueMask(transfer);
+	reader.ReaderStages = GpuStageFlag::Transfer;
+
+	// No writers: readers are combined
+	{
+		GpuResourceSubmissionState merged = reader;
+		GpuResourceSubmissionState otherReader;
+		otherReader.ReaderQueues = GpuQueueMask(compute);
+		otherReader.ReaderStages = GpuStageFlag::ComputeShaderNonUniform;
+		B3D_TEST_ASSERT(merged.TryMerge(otherReader))
+		B3D_TEST_ASSERT(!merged.HasWriter)
+		B3D_TEST_ASSERT(merged.ReaderQueues.IsSet(transfer) && merged.ReaderQueues.IsSet(compute))
+		B3D_TEST_ASSERT(merged.ReaderStages == (GpuStageFlag::Transfer | GpuStageFlag::ComputeShaderNonUniform))
+	}
+
+	// One writer: its write epoch is kept, in either order
+	for(bool writerFirst : { false, true })
+	{
+		GpuResourceSubmissionState merged = writerFirst ? graphicsWriter : reader;
+		B3D_TEST_ASSERT(merged.TryMerge(writerFirst ? reader : graphicsWriter))
+		B3D_TEST_ASSERT(merged.HasWriter && merged.WriterQueueId.Id == graphics.Id)
+		B3D_TEST_ASSERT(merged.WriterHazards.WriteStages == GpuStageFlag::Transfer)
+		B3D_TEST_ASSERT(merged.WriterHazards.VisibleStages == graphicsWriter.WriterHazards.VisibleStages)
+		B3D_TEST_ASSERT(merged.AcquiredQueues == graphicsWriter.AcquiredQueues)
+		B3D_TEST_ASSERT(merged.ReaderQueues.IsSet(transfer) && merged.ReaderQueues.IsSet(compute))
+		B3D_TEST_ASSERT(merged.ReaderStages == (GpuStageFlag::Transfer | GpuStageFlag::ComputeShaderNonUniform))
+	}
+
+	// Writers on the same queue: source stages widen, visibility and acquisition narrow
+	{
+		GpuResourceSubmissionState otherWriter;
+		otherWriter.HasWriter = true;
+		otherWriter.WriterQueueId = graphics;
+		otherWriter.WriterHazards.WriteStages = GpuStageFlag::ColorAttachment;
+		otherWriter.WriterHazards.VisibleStages = GpuStageFlag::FragmentShaderNonUniform;
+		otherWriter.AcquiredQueues = GpuQueueMask(graphics);
+
+		GpuResourceSubmissionState merged = graphicsWriter;
+		B3D_TEST_ASSERT(merged.TryMerge(otherWriter))
+		B3D_TEST_ASSERT(merged.WriterHazards.WriteStages == (GpuStageFlag::Transfer | GpuStageFlag::ColorAttachment))
+		B3D_TEST_ASSERT(merged.WriterHazards.ReaderStages == GpuStageFlag::FragmentShaderNonUniform)
+		B3D_TEST_ASSERT(merged.WriterHazards.VisibleStages == GpuStageFlag::FragmentShaderNonUniform)
+		B3D_TEST_ASSERT(merged.AcquiredQueues == GpuQueueMask(graphics))
+	}
+
+	// Writers on different queues: the merge fails and leaves the state unchanged
+	{
+		GpuResourceSubmissionState computeWriter;
+		computeWriter.HasWriter = true;
+		computeWriter.WriterQueueId = compute;
+		computeWriter.WriterHazards.WriteStages = GpuStageFlag::ComputeShaderNonUniform;
+		computeWriter.ReaderQueues = GpuQueueMask(transfer);
+
+		GpuResourceSubmissionState merged = graphicsWriter;
+		B3D_TEST_ASSERT(!merged.TryMerge(computeWriter))
+		B3D_TEST_ASSERT(merged.WriterQueueId.Id == graphics.Id)
+		B3D_TEST_ASSERT(merged.WriterHazards.WriteStages == graphicsWriter.WriterHazards.WriteStages)
+		B3D_TEST_ASSERT(merged.WriterHazards.VisibleStages == graphicsWriter.WriterHazards.VisibleStages)
+		B3D_TEST_ASSERT(merged.AcquiredQueues == graphicsWriter.AcquiredQueues)
+		B3D_TEST_ASSERT(merged.ReaderQueues == graphicsWriter.ReaderQueues)
+		B3D_TEST_ASSERT(merged.ReaderStages == graphicsWriter.ReaderStages)
+	}
 }
 
 void GpuBackendTestSuite::TestImageAccessEpochTracking()
@@ -1581,8 +1894,7 @@ void GpuBackendTestSuite::TestResourceTransition()
 	ResolveTestAccess(fragmentReadHazardState, GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read);
 
 	const GpuSubmissionTransition fragmentReadTransition =
-		GpuSubmissionTransition::Build(buffer, sourceQueueId, fragmentReadHazardState);
-	B3D_TEST_ASSERT(fragmentReadTransition.StateResource == &buffer)
+		GpuSubmissionTransition::Build(buffer.GetSubmissionState(), GpuQueueMask::kNone, sourceQueueId, fragmentReadHazardState);
 	B3D_TEST_ASSERT(fragmentReadTransition.MemoryBarrier.SourceStages == GpuStageFlag::Transfer)
 	B3D_TEST_ASSERT(fragmentReadTransition.MemoryBarrier.SourceAccess == GpuAccessFlag::Write)
 	B3D_TEST_ASSERT(fragmentReadTransition.MemoryBarrier.DestinationStages == GpuStageFlag::FragmentShaderNonUniform)
@@ -1599,7 +1911,7 @@ void GpuBackendTestSuite::TestResourceTransition()
 	GpuResourceSubmissionState fragmentReadPostState = fragmentReadTransition.PostTransitionSubmissionState;
 	buffer.SetSubmissionState(std::move(fragmentReadPostState));
 	const GpuSubmissionTransition computeReadTransition =
-		GpuSubmissionTransition::Build(buffer, sourceQueueId, computeReadHazardState);
+		GpuSubmissionTransition::Build(buffer.GetSubmissionState(), GpuQueueMask::kNone, sourceQueueId, computeReadHazardState);
 	B3D_TEST_ASSERT(computeReadTransition.MemoryBarrier.SourceStages == GpuStageFlag::Transfer)
 	B3D_TEST_ASSERT(computeReadTransition.MemoryBarrier.DestinationStages == GpuStageFlag::ComputeShaderNonUniform)
 
@@ -1609,7 +1921,7 @@ void GpuBackendTestSuite::TestResourceTransition()
 	ResolveTestAccess(readThenWriteHazardState, GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Write);
 
 	const GpuSubmissionTransition readThenWriteTransition =
-		GpuSubmissionTransition::Build(buffer, sourceQueueId, readThenWriteHazardState);
+		GpuSubmissionTransition::Build(buffer.GetSubmissionState(), GpuQueueMask::kNone, sourceQueueId, readThenWriteHazardState);
 	B3D_TEST_ASSERT(readThenWriteTransition.MemoryBarrier.SourceStages == GpuStageFlag::Transfer)
 	B3D_TEST_ASSERT(readThenWriteTransition.MemoryBarrier.SourceAccess == GpuAccessFlag::Write)
 	B3D_TEST_ASSERT(readThenWriteTransition.MemoryBarrier.DestinationStages == GpuStageFlag::ComputeShaderNonUniform)
@@ -1625,7 +1937,7 @@ void GpuBackendTestSuite::TestResourceTransition()
 	ResolveTestAccess(chainedWriteHazardState, GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Read);
 	ResolveTestAccess(chainedWriteHazardState, GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Write);
 	const GpuSubmissionTransition chainedWriteTransition =
-		GpuSubmissionTransition::Build(buffer, sourceQueueId, chainedWriteHazardState);
+		GpuSubmissionTransition::Build(buffer.GetSubmissionState(), GpuQueueMask::kNone, sourceQueueId, chainedWriteHazardState);
 	B3D_TEST_ASSERT(chainedWriteTransition.ExecutionBarrier.SourceStages == GpuStageFlag::VertexShaderNonUniform)
 	B3D_TEST_ASSERT(chainedWriteTransition.ExecutionBarrier.SourceAccess == GpuAccessFlag::Read)
 	B3D_TEST_ASSERT(chainedWriteTransition.ExecutionBarrier.DestinationStages == GpuStageFlag::ComputeShaderNonUniform)
@@ -1635,7 +1947,7 @@ void GpuBackendTestSuite::TestResourceTransition()
 	GpuResourceHazardState writeHazardState;
 	ResolveTestAccess(writeHazardState, GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write);
 	const GpuSubmissionTransition writeTransition =
-		GpuSubmissionTransition::Build(buffer, sourceQueueId, writeHazardState);
+		GpuSubmissionTransition::Build(buffer.GetSubmissionState(), GpuQueueMask::kNone, sourceQueueId, writeHazardState);
 	B3D_TEST_ASSERT(writeTransition.MemoryBarrier.SourceStages == GpuStageFlag::Transfer)
 	B3D_TEST_ASSERT(writeTransition.MemoryBarrier.SourceAccess == GpuAccessFlag::Write)
 	B3D_TEST_ASSERT(writeTransition.ExecutionBarrier.SourceStages == GpuStageFlag::VertexShaderNonUniform)
@@ -1650,7 +1962,7 @@ void GpuBackendTestSuite::TestResourceTransition()
 		GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read));
 	chainedReadHazardState.RecordAccess(GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read);
 	const GpuSubmissionTransition chainedReadTransition =
-		GpuSubmissionTransition::Build(buffer, sourceQueueId, chainedReadHazardState);
+		GpuSubmissionTransition::Build(buffer.GetSubmissionState(), GpuQueueMask::kNone, sourceQueueId, chainedReadHazardState);
 	B3D_TEST_ASSERT(chainedReadTransition.MemoryBarrier.DestinationStages == GpuStageFlag::VertexShaderNonUniform)
 	B3D_TEST_ASSERT(chainedReadTransition.PostTransitionSubmissionState.WriterHazards.ReaderStages ==
 		(GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::FragmentShaderNonUniform))
@@ -1661,7 +1973,7 @@ void GpuBackendTestSuite::TestResourceTransition()
 	ResolveTestAccess(exactLeadingBarrierHazardState, GpuStageFlag::FragmentShaderNonUniform,
 		GpuAccessFlag::Read);
 	const GpuSubmissionTransition exactLeadingBarrierTransition =
-		GpuSubmissionTransition::Build(buffer, sourceQueueId, exactLeadingBarrierHazardState);
+		GpuSubmissionTransition::Build(buffer.GetSubmissionState(), GpuQueueMask::kNone, sourceQueueId, exactLeadingBarrierHazardState);
 	B3D_TEST_ASSERT(exactLeadingBarrierTransition.MemoryBarrier.SourceStages == GpuStageFlag::Transfer)
 	B3D_TEST_ASSERT(exactLeadingBarrierTransition.MemoryBarrier.DestinationStages == GpuStageFlag::FragmentShaderNonUniform)
 
@@ -1669,7 +1981,7 @@ void GpuBackendTestSuite::TestResourceTransition()
 	GpuResourceHazardState leadingBarrierOnlyHazardState;
 	leadingBarrierOnlyHazardState.HasLeadingBarrier = true;
 	const GpuSubmissionTransition leadingBarrierOnlyTransition =
-		GpuSubmissionTransition::Build(buffer, sourceQueueId, leadingBarrierOnlyHazardState);
+		GpuSubmissionTransition::Build(buffer.GetSubmissionState(), GpuQueueMask::kNone, sourceQueueId, leadingBarrierOnlyHazardState);
 	B3D_TEST_ASSERT(leadingBarrierOnlyHazardState.HasSubmissionEffect())
 	B3D_TEST_ASSERT(!leadingBarrierOnlyTransition.SubmissionBarrierAccessScope.IsValid())
 	B3D_TEST_ASSERT(!leadingBarrierOnlyTransition.MemoryBarrier.IsValid())

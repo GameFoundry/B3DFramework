@@ -34,7 +34,6 @@ namespace b3d
 		class D3D12RenderTexture;
 		class D3D12SwapChain;
 		class D3D12Image;
-		class D3D12ImageSubresource;
 		class D3D12Buffer;
 		class D3D12BufferPage;
 		class D3D12BufferPool;

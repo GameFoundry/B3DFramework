@@ -318,12 +318,6 @@ namespace b3d
 		/** Returns queues on which the resource currently has in-flight accesses matching @p useFlags. */
 		GpuQueueMask GetUseInfo(GpuAccessFlags useFlags) const;
 
-		/** Returns submission hazards shared by all command buffers using this resource. Submit thread only. */
-		const render::GpuResourceSubmissionState& GetSubmissionState() const { return mSubmissionState; }
-
-		/** Commits submission hazards after native boundary synchronization has been constructed. Submit thread only. */
-		void SetSubmissionState(render::GpuResourceSubmissionState&& state) { mSubmissionState = std::move(state); }
-
 		/**
 		 * Queues the resource for destruction. If the resource is currently bound to a command buffer, the actual free
 		 * is deferred until the bound count drops to zero; otherwise the manager frees it immediately. Only valid for
@@ -422,9 +416,6 @@ namespace b3d
 		/** Deletes the resource. Caller must ensure resource is not being used on the GPU or bound to a command buffer. */
 		void DestroyImmediately();
 
-		/** Used for issuing transitions between command buffers. Stores information about last submitted state. Submit thread only. */
-		render::GpuResourceSubmissionState mSubmissionState;
-
 		bool mDestroyRequested = false;
 	};
 
@@ -483,6 +474,12 @@ namespace b3d
 		u32 GetSuballocationIndexForOffset(u32 offset) const;
 #endif
 
+		/** Returns submission hazards shared by all command buffers using this buffer. Submit thread only. */
+		const render::GpuResourceSubmissionState& GetSubmissionState() const { return mSubmissionState; }
+
+		/** Commits submission hazards after native boundary synchronization has been constructed. Submit thread only. */
+		void SetSubmissionState(render::GpuResourceSubmissionState&& state) { mSubmissionState = std::move(state); }
+
 	protected:
 		IGpuBufferResource() = default;
 
@@ -490,22 +487,39 @@ namespace b3d
 		TInlineArray<SuballocationTrackingState, 2> mSuballocationStates;
 		u32 mSuballocationSize = 0;  // Size of each suballocation (for range-to-index conversion)
 #endif
+
+	private:
+		/** Used for issuing transitions between command buffers. Stores information about last submitted state. Submit thread only. */
+		render::GpuResourceSubmissionState mSubmissionState;
 	};
 
 	/**
-	 * Base for GPU image resources. Stores the full-image subresource range and
-	 * the per-(face × mip × aspect) subresource resource pointers shared across backends.
-	 * The subresource array is allocated by the constructor (zero-initialized);
-	 * backends fill in the pointers during their own construction.
+	 * Use counters, submission state and native state of one face × mip × aspect of an image, or of the image's full range. Owned
+	 * by the image, which creates and destroys it; not owned by a GpuResourceManager.
+	 */
+	class B3D_EXPORT GpuImageSubresource final : public IGpuResource
+	{
+	public:
+		GpuImageSubresource() = default;
+
+		/** Submission hazards left by the last submitted command buffers using this subresource. Submit thread only. */
+		render::GpuResourceSubmissionState SubmissionState;
+
+		/** Backend-native state committed by the last submitted command buffer using this subresource. Submit thread only. */
+		render::GpuImageNativeState NativeState;
+	};
+
+	/**
+	 * Base for GPU image resources. Stores the full-image subresource range and owns one GpuImageSubresource per
+	 * face × mip × aspect, plus one full-range subresource.
+	 *
+	 * Submission state is either uniform or split. While uniform, the full-range subresource holds the submission and native state
+	 * of every subresource. While split, each subresource holds its own. Only single-aspect images can be uniform.
 	 */
 	class B3D_EXPORT IGpuImageResource : public IGpuResource
 	{
 	public:
-		/**
-		 * Constructs the image resource, recording its shape (face/mip counts + full-image subresource range)
-		 * and allocating the per-(face × mip × aspect) subresource pointer storage. The pointers are zero-initialized;
-		 * the backend fills them in during its own construction.
-		 */
+		/** Constructs a manager-owned image resource of the specified shape, and its subresources. */
 		IGpuImageResource(GpuResourceManager* owner, const StringView& name, u32 faceCount, u32 mipLevelCount, GpuTextureAspectFlags aspectMask);
 
 		~IGpuImageResource() override;
@@ -513,8 +527,36 @@ namespace b3d
 		/** Retrieves a subresource range covering all the sub-resources of the image. */
 		const GpuTextureSubresourceRange& GetRange() const { return mFullRange; }
 
-		/** Retrieves the persistent state resource for one image subresource. */
-		IGpuResource* GetSubresource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const;
+		/** Returns true if @p range covers every subresource of the image. */
+		bool IsFullRange(const GpuTextureSubresourceRange& range) const;
+
+		/** Retrieves the subresource holding use counters of partial accesses to one face, mip level and aspect. */
+		GpuImageSubresource* GetSubresource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const;
+
+		/** Retrieves the subresource holding use counters of accesses that cover the image's full range. */
+		GpuImageSubresource* GetFullRangeSubresource() const { return &mSubresources[GetSubresourceCount()]; }
+
+		/**
+		 * Returns true if the full-range subresource holds the submission state of every subresource. Always false for images
+		 * with more than one aspect. Submit thread only.
+		 */
+		bool HasUniformSubmissionState() const { return mHasUniformSubmissionState; }
+
+		/**
+		 * Returns the subresource holding the submission and native state of one face, mip level and aspect: the full-range
+		 * subresource if the image is uniform, the subresource itself otherwise. Submit thread only.
+		 */
+		GpuImageSubresource& GetSubmissionStateResource(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const;
+
+		/** Copies the full-range state into every subresource and switches the image to per-subresource state. Submit thread only. */
+		void SplitSubmissionState();
+
+		/**
+		 * Merges the state of every subresource into the full-range subresource and switches the image to uniform state. Fails and
+		 * changes nothing if the image has more than one aspect, if the native states differ, or if the submission states cannot
+		 * be represented by one state (see GpuResourceSubmissionState::TryMerge()). Submit thread only.
+		 */
+		bool TryMergeSubmissionState();
 
 		/** Returns queues using any aspect of the specified face and mip level. */
 		GpuQueueMask GetSubresourceUseInfo(u32 face, u32 mipLevel, GpuAccessFlags useFlags) const;
@@ -526,18 +568,29 @@ namespace b3d
 		u32 GetSubresourceUseCount(u32 face, u32 mipLevel) const;
 
 	protected:
-		IGpuImageResource() = default;
+		/** Constructs an unmanaged image resource (no owner). Reserved for test mocks, see IGpuResource(). */
+		IGpuImageResource(u32 faceCount, u32 mipLevelCount, GpuTextureAspectFlags aspectMask);
+
+		/** Sets the native state of every subresource of @p aspects, and of the full-range subresource. Backends call this during construction. */
+		void InitializeNativeState(GpuTextureAspectFlags aspects, const render::GpuImageNativeState& state);
 
 		/** Returns the storage index of one face, mip level and aspect. */
 		u32 GetSubresourceIndex(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const;
 
-		/** Returns the number of persistent subresource state objects owned by the image. */
+		/** Returns the number of face × mip × aspect subresources owned by the image, excluding the full-range subresource. */
 		u32 GetSubresourceCount() const { return mFaceCount * mMipLevelCount * mFullRange.GetAspectCount(); }
 
 		u32 mFaceCount = 0;
 		u32 mMipLevelCount = 0;
 		GpuTextureSubresourceRange mFullRange;
-		IGpuResource** mSubresources = nullptr;
+
+	private:
+		/** Creates the subresources and selects the initial submission state mode. */
+		void CreateSubresources();
+
+		/** Face × mip × aspect subresources, followed by the full-range subresource. */
+		GpuImageSubresource* mSubresources = nullptr;
+		bool mHasUniformSubmissionState = false;
 	};
 
 	/** Base GPU swap chain resources. */

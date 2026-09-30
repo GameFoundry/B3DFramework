@@ -27,10 +27,10 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions
 		if(trackingState.HazardState == nullptr || !trackingState.HazardState->HasSubmissionEffect())
 			continue;
 
-		GpuSubmissionBufferTransition transition(*buffer, GpuSubmissionTransition::Build(*buffer, destinationQueueId, *trackingState.HazardState));
+		GpuSubmissionBufferTransition transition(*buffer, GpuSubmissionTransition::Build(buffer->GetSubmissionState(), buffer->GetUseInfo(GpuAccessFlag::Read), destinationQueueId, *trackingState.HazardState));
 		visitor.VisitBuffer(transition);
 
-		transition.StateResource->SetSubmissionState(std::move(transition.PostTransitionSubmissionState));
+		buffer->SetSubmissionState(std::move(transition.PostTransitionSubmissionState));
 	}
 
 	for(const auto& entry : mImages)
@@ -38,6 +38,34 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions
 		IGpuImageResource* const image = entry.first;
 		const TArrayView<const GpuImageSubresourceTrackingState> trackingStates = GetSubresourceTrackingStatesForImage(image);
 
+		const GpuImageSubresourceTrackingState* firstEffectiveTrackingState = nullptr;
+		for(const GpuImageSubresourceTrackingState& trackingState : trackingStates)
+		{
+			if(trackingState.HazardState != nullptr && trackingState.HazardState->HasSubmissionEffect())
+			{
+				firstEffectiveTrackingState = &trackingState;
+				break;
+			}
+		}
+
+		// Nothing to transition, so the image's submission state stays as it is
+		if(firstEffectiveTrackingState == nullptr)
+			continue;
+
+		GpuImageSubresource& fullRangeSubresource = *image->GetFullRangeSubresource();
+		if(image->HasUniformSubmissionState())
+		{
+			// Partitions don't overlap, so a partition covering the full range is the only one
+			if(image->IsFullRange(firstEffectiveTrackingState->Range))
+			{
+				ResolveImageSubmissionTransition(image, *firstEffectiveTrackingState, image->GetRange(), fullRangeSubresource, image->GetUseInfo(GpuAccessFlag::Read), destinationQueueId, visitor);
+				continue;
+			}
+
+			image->SplitSubmissionState();
+		}
+
+		const GpuQueueMask fullRangeReadQueues = fullRangeSubresource.GetUseInfo(GpuAccessFlag::Read);
 		for(const GpuImageSubresourceTrackingState& trackingState : trackingStates)
 		{
 			B3D_ASSERT(trackingState.Range.HasSingleAspect());
@@ -52,35 +80,46 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions
 			{
 				for(u32 face = trackedRange.BaseArrayLayer; face < faceEnd; ++face)
 				{
-					IGpuResource* const subresource = image->GetSubresource(face, mipLevel, (GpuTextureAspectFlag)(u32)trackedRange.AspectMask);
-					B3D_ASSERT(subresource != nullptr);
+					GpuImageSubresource& subresource = *image->GetSubresource(face, mipLevel, (GpuTextureAspectFlag)(u32)trackedRange.AspectMask);
 
-					const GpuResourceHazardState& hazards = GetDerived().ResolveImageSubmissionHazards(image, trackingState, *subresource);
-					if(!hazards.HasSubmissionEffect())
-						continue;
-
-					// Selected meta-data work contributes to both subresource and parent-image use flags.
-					if(trackingState.MetadataState != nullptr && hazards.HasAccess())
-					{
-						GpuAccessFlags access;
-						if(hazards.AllAccessScope.ReadStages != GpuStageFlag::None)
-							access |= GpuAccessFlag::Read;
-						if(hazards.HasWrite())
-							access |= GpuAccessFlag::Write;
-
-						TrackResourceUsage(subresource, access);
-						GetImageTrackingState(image).UseHandle.Flags |= access;
-					}
-
-					const GpuTextureSubresourceRange range(mipLevel, 1, face, 1, trackedRange.AspectMask);
-					GpuSubmissionImageTransition transition(*image, range, trackingState.InitialLayout, trackingState.CurrentLayout, trackingState.SubmissionBarrierFlags, GpuSubmissionTransition::Build(*subresource, destinationQueueId, hazards));
-					visitor.VisitImage(transition);
-
-					transition.StateResource->SetSubmissionState(std::move(transition.PostTransitionSubmissionState));
+					// Full-range reads cover every subresource
+					const GpuQueueMask inFlightReadQueues = subresource.GetUseInfo(GpuAccessFlag::Read) | fullRangeReadQueues;
+					ResolveImageSubmissionTransition(image, trackingState, GpuTextureSubresourceRange(mipLevel, 1, face, 1, trackedRange.AspectMask), subresource, inFlightReadQueues, destinationQueueId, visitor);
 				}
 			}
 		}
+
+		// Return to one state as soon as the subresources share it. Never within a command buffer, and never by adding synchronization.
+		image->TryMergeSubmissionState();
 	}
+}
+
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveImageSubmissionTransition(IGpuImageResource* image, const GpuImageSubresourceTrackingState& trackingState, const GpuTextureSubresourceRange& range, GpuImageSubresource& stateResource, GpuQueueMask inFlightReadQueues, GpuQueueId destinationQueueId, GpuSubmissionTransitionVisitor& visitor)
+{
+	const GpuResourceHazardState& hazards = GetDerived().ResolveImageSubmissionHazards(image, trackingState, stateResource);
+	if(!hazards.HasSubmissionEffect())
+		return;
+
+	// Selected meta-data work contributes to both subresource and parent-image use flags.
+	if(trackingState.MetadataState != nullptr && hazards.HasAccess())
+	{
+		GpuAccessFlags access;
+		if(hazards.AllAccessScope.ReadStages != GpuStageFlag::None)
+			access |= GpuAccessFlag::Read;
+
+		if(hazards.HasWrite())
+			access |= GpuAccessFlag::Write;
+
+		TrackResourceUsage(&stateResource, access);
+		GetImageTrackingState(image).UseHandle.Flags |= access;
+	}
+
+	GpuSubmissionImageTransition transition(*image, range, stateResource.NativeState, trackingState.InitialLayout, trackingState.CurrentLayout, trackingState.SubmissionBarrierFlags,
+		GpuSubmissionTransition::Build(stateResource.SubmissionState, inFlightReadQueues, destinationQueueId, hazards));
+	visitor.VisitImage(transition);
+
+	stateResource.SubmissionState = std::move(transition.PostTransitionSubmissionState);
 }
 
 template<class TDerived, class TBarrierHelper>
@@ -510,6 +549,12 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::RegisterImageSubresources(IG
 	// Register any sub-resources
 	B3D_ASSERT(subresourceRange.ArrayLayerCount != ~0u);
 	B3D_ASSERT(subresourceRange.MipLevelCount != ~0u);
+
+	if(image->IsFullRange(subresourceRange))
+	{
+		TrackResourceUsage(image->GetFullRangeSubresource(), accessFlags);
+		return;
+	}
 
 	const GpuTextureAspectFlags trackedAspects = subresourceRange.AspectMask & image->GetRange().AspectMask;
 	for(GpuTextureAspectFlag aspect : kGpuTextureAspects)

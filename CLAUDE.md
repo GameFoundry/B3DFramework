@@ -8,23 +8,18 @@ bsf (Banshee 3D Framework) is a high-performance, multi-threaded game engine fra
 
 ## Build System
 
-The project uses CMake (3.31.0+) as its build system. All builds are configured from the repository root.
+The project uses CMake 4.2 or newer as its build system. Windows builds require Visual Studio 2026 with the v145 toolset. All builds are configured from the repository root.
 
 ### Building
 
 ```bash
-# Create build directory
-mkdir Build
-cd Build
-
-# Generate build files (example for Visual Studio 2017 64-bit)
-cmake -G "Visual Studio 15 2017 Win64" ../
+# Generate Visual Studio 2026 build files
+cmake -S . -B Build -G "Visual Studio 18 2026" -A x64
 
 # Build the project using generated files
-cd Build
-cmake -- build .
+cmake --build Build --config RelWithDebInfo
 
-# Build output goes to build/bin
+# Build output goes to Build/bin/x64/RelWithDebInfo
 ```
 
 ### Build Targets

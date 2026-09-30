@@ -15,39 +15,6 @@ namespace b3d
 {
 	namespace render
 	{
-		D3D12ImageSubresource::D3D12ImageSubresource(D3D12ResourceManager* owner, const D3D12TextureLayout& layout, const StringView& name) : D3D12Resource(owner, name), mLayout(layout)
-		{}
-
-		const D3D12TextureLayout& D3D12ImageSubresource::GetLayout() const
-		{
-			AssertIfNotSubmitThread();
-			return mLayout;
-		}
-
-		void D3D12ImageSubresource::SetLayout(const D3D12TextureLayout& layout)
-		{
-			AssertIfNotSubmitThread();
-			mLayout = layout;
-		}
-
-		bool D3D12ImageSubresource::GetLayoutTransitionQueueId(GpuQueueId& outQueueId) const
-		{
-			AssertIfNotSubmitThread();
-
-			if(!mHasLayoutTransitionQueue)
-				return false;
-
-			outQueueId = mLayoutTransitionQueueId;
-			return true;
-		}
-
-		void D3D12ImageSubresource::SetLayoutTransitionQueueId(GpuQueueId queueId)
-		{
-			AssertIfNotSubmitThread();
-			mLayoutTransitionQueueId = queueId;
-			mHasLayoutTransitionQueue = true;
-		}
-
 		D3D12Image::D3D12Image(D3D12ResourceManager* owner, const D3D12ImageCreateInformation& createInformation)
 			: TD3D12Resource<IGpuImageResource>(owner, createInformation.Name, createInformation.FaceCount, createInformation.MipLevelCount, createInformation.Aspect), mResource(createInformation.Resource), mAllocation(createInformation.Allocation), mViewFormat(createInformation.ViewFormat), mAllowConcurrentQueueReads(createInformation.AllowConcurrentQueueReads), mIsPresentable(createInformation.IsPresentable)
 		{
@@ -56,24 +23,14 @@ namespace b3d
 				if(!mFullRange.AspectMask.IsSet(aspect))
 					continue;
 
-				const D3D12TextureLayout aspectLayout(createInformation.InitialLayout.GetLayout(aspect));
-				for(u32 mipLevel = 0; mipLevel < mMipLevelCount; mipLevel++)
-				{
-					for(u32 face = 0; face < mFaceCount; face++)
-						mSubresources[GetSubresourceIndex(face, mipLevel, aspect)] = owner->Create<D3D12ImageSubresource>(aspectLayout);
-				}
+				GpuImageNativeState initialNativeState;
+				initialNativeState.Layout = (u32)createInformation.InitialLayout.GetLayout(aspect);
+				InitializeNativeState(aspect, initialNativeState);
 			}
 		}
 
 		D3D12Image::~D3D12Image()
 		{
-			const u32 subresourceCount = GetSubresourceCount();
-			for(u32 subresourceIndex = 0; subresourceIndex < subresourceCount; subresourceIndex++)
-			{
-				if(mSubresources[subresourceIndex] != nullptr)
-					mSubresources[subresourceIndex]->Destroy();
-			}
-
 			mResource.Reset();
 			GetDevice().FreeMemory(mAllocation);
 		}

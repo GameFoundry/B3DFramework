@@ -242,6 +242,32 @@ namespace b3d
 				scope.Add(WriterHazards.WriteStages, GpuAccessFlag::Write);
 				return scope;
 			}
+
+			/**
+			 * Widens this state so it requires every wait and barrier that @p other requires. Returns false and leaves this state
+			 * unchanged if one state cannot represent both, which happens when both have a writer on different queues.
+			 */
+			bool TryMerge(const GpuResourceSubmissionState& other);
+		};
+
+		/**
+		 * Backend-native state of an image subresource, committed when a command buffer using the subresource is submitted. Only the
+		 * backend interprets its contents.
+		 */
+		struct GpuImageNativeState
+		{
+			u32 Layout = 0; /**< Native layout (VkImageLayout, D3D12_BARRIER_LAYOUT, GpuImageLayout) or metadata encoding. */
+			TOptional<GpuQueueId> StateQueue; /**< Queue that established the native state: Vulkan queue family owner, D3D12 layout-transition queue. */
+
+			bool operator==(const GpuImageNativeState& other) const
+			{
+				if(Layout != other.Layout || StateQueue.has_value() != other.StateQueue.has_value())
+					return false;
+
+				return !StateQueue.has_value() || StateQueue->Id == other.StateQueue->Id;
+			}
+
+			bool operator!=(const GpuImageNativeState& other) const { return !(*this == other); }
 		};
 
 		/** 
@@ -257,7 +283,6 @@ namespace b3d
 		 */
 		struct B3D_EXPORT GpuSubmissionTransition
 		{
-			IGpuResource* StateResource = nullptr;
 			GpuAccessScope SubmissionBarrierAccessScope; /**< Destination access scope required by the submission barrier. */
 			GpuAccessScope DestinationAllAccessScope;
 			GpuAccessScope SourceAccessScope; /**< Conservative source scope for backend ownership/layout/state transitions. */
@@ -279,13 +304,20 @@ namespace b3d
 			 */
 			GpuQueueMask ExclusiveAccessWaitMask = GpuQueueMask::kNone;
 
-			GpuSubmissionTransition(IGpuResource& stateResource, const GpuAccessScope& submissionBarrierAccessScope, const GpuAccessScope& destinationAllAccessScope);
+			GpuSubmissionTransition(const GpuAccessScope& submissionBarrierAccessScope, const GpuAccessScope& destinationAllAccessScope);
 
 			/** Returns true if a barrier must be recorded on the destination queue. */
 			bool HasSameQueueDependency() const { return MemoryBarrier.IsValid() || ExecutionBarrier.IsValid(); }
 
-			/** Builds the complete synchronization and post-submission state for one resource on @p destinationQueueId. */
-			static GpuSubmissionTransition Build(IGpuResource& stateResource, GpuQueueId destinationQueueId, const GpuResourceHazardState& destinationHazardState);
+			/**
+			 * Builds the complete synchronization and post-submission state for one resource on @p destinationQueueId.
+			 *
+			 * @param	sourceState				Submission state left by previously submitted command buffers.
+			 * @param	inFlightReadQueues		Queues with in-flight reads of the resource. Readers in @p sourceState that are no longer in flight need no wait.
+			 * @param	destinationQueueId		Queue the command buffer is being submitted on.
+			 * @param	destinationHazardState	Hazards recorded by the command buffer being submitted.
+			 */
+			static GpuSubmissionTransition Build(const GpuResourceSubmissionState& sourceState, GpuQueueMask inFlightReadQueues, GpuQueueId destinationQueueId, const GpuResourceHazardState& destinationHazardState);
 		};
 
 		/** Submission-boundary description for a buffer. */
@@ -298,15 +330,21 @@ namespace b3d
 			IGpuBufferResource* Buffer = nullptr;
 		};
 
-		/** Submission-boundary description for one image face/mip. */
+		/** Submission-boundary description for a range of an image that shares one submission and native state. */
 		struct B3D_EXPORT GpuSubmissionImageTransition : GpuSubmissionTransition
 		{
-			GpuSubmissionImageTransition(IGpuImageResource& image, const GpuTextureSubresourceRange& imageRange, GpuImageLayout initialLayout, GpuImageLayout finalLayout, GpuImageBarrierFlags submissionBarrierFlags, GpuSubmissionTransition&& transition)
-				: GpuSubmissionTransition(std::move(transition)), Image(&image), ImageRange(imageRange), InitialLayout(initialLayout), FinalLayout(finalLayout), SubmissionBarrierFlags(submissionBarrierFlags)
+			GpuSubmissionImageTransition(IGpuImageResource& image, const GpuTextureSubresourceRange& imageRange, GpuImageNativeState& nativeState, GpuImageLayout initialLayout, GpuImageLayout finalLayout, GpuImageBarrierFlags submissionBarrierFlags, GpuSubmissionTransition&& transition)
+				: GpuSubmissionTransition(std::move(transition)), Image(&image), ImageRange(imageRange), NativeState(&nativeState), InitialLayout(initialLayout), FinalLayout(finalLayout), SubmissionBarrierFlags(submissionBarrierFlags)
 			{ }
 
 			IGpuImageResource* Image = nullptr;
 			GpuTextureSubresourceRange ImageRange;
+
+			/**
+			 * Native state shared by every subresource in ImageRange. The GpuSubmissionTransitionVisitor reads the
+			 * committed state from it and writes the state the command buffer leaves behind. Valid only during the VisitImage() call.
+			 */
+			GpuImageNativeState* NativeState = nullptr;
 			GpuImageLayout InitialLayout{};
 			GpuImageLayout FinalLayout{};
 			GpuImageBarrierFlags SubmissionBarrierFlags; /**< Behavior requested from the image's submission barrier. */

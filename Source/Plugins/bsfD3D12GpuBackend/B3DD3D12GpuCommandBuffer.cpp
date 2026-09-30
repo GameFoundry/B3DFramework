@@ -1203,10 +1203,10 @@ namespace
 		{
 			// Resolve the native layouts at the command buffer boundaries.
 			D3D12Image* const image = static_cast<D3D12Image*>(transition.Image);
-			D3D12ImageSubresource* const subresource = static_cast<D3D12ImageSubresource*>(transition.StateResource);
+			GpuImageNativeState& nativeState = *transition.NativeState;
 
 			const GpuQueueType destinationQueueType = mDestinationQueueId.GetType();
-			const D3D12TextureLayout committedLayout = subresource->GetLayout();
+			const D3D12TextureLayout committedLayout((D3D12_BARRIER_LAYOUT)nativeState.Layout);
 			const bool discardContents = transition.SubmissionBarrierFlags.IsSet(GpuImageBarrierFlag::DiscardContents) || committedLayout.IsUndefined(transition.ImageRange.AspectMask);
 			const D3D12_TEXTURE_BARRIER_FLAGS nativeBarrierFlags = discardContents ? D3D12_TEXTURE_BARRIER_FLAG_DISCARD : D3D12_TEXTURE_BARRIER_FLAG_NONE;
 
@@ -1230,8 +1230,8 @@ namespace
 
 			// Select a queue capable of establishing the initial layout.
 			D3D12TextureLayout transitionSourceLayout = discardContents ? D3D12TextureLayout::Undefined() : committedLayout;
-			GpuQueueId layoutTransitionQueueId;
-			const bool hasLayoutTransitionQueue = subresource->GetLayoutTransitionQueueId(layoutTransitionQueueId);
+			const bool hasLayoutTransitionQueue = nativeState.StateQueue.has_value();
+			GpuQueueId layoutTransitionQueueId = hasLayoutTransitionQueue ? *nativeState.StateQueue : GpuQueueId();
 			bool layoutTransitionQueueChanged = false;
 
 			const bool needsLayoutTransition = transitionSourceLayout != initialLayout;
@@ -1300,10 +1300,10 @@ namespace
 			}
 
 			// Publish the native state used by later submissions.
-			subresource->SetLayout(finalLayout);
+			nativeState.Layout = (u32)finalLayout.GetLayout(transition.ImageRange.AspectMask);
 
 			if(layoutTransitionQueueChanged)
-				subresource->SetLayoutTransitionQueueId(layoutTransitionQueueId);
+				nativeState.StateQueue = layoutTransitionQueueId;
 		}
 
 		/**
