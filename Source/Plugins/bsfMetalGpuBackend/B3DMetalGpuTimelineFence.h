@@ -20,7 +20,7 @@ namespace b3d
 		 *
 		 * Wraps a single MTLSharedEvent. The fence's monotonically increasing 64-bit value is the
 		 * event's signaledValue, advanced on the GPU side by encodeSignalEvent:value: encoded into
-		 * the command buffer at submit time (see MetalGpuCommandBuffer::CommitInternal). CPU readers
+		 * the command buffer at submit time (see MetalGpuCommandBuffer::ExecuteSubmitOnSubmitThread). CPU readers
 		 * poll @c GetCompletedValue, which is lock-free per Apple's @c MTLSharedEvent contract.
 		 */
 		class MetalGpuTimelineFence final : public GpuTimelineFence
@@ -40,16 +40,13 @@ namespace b3d
 #endif
 
 		protected:
-			/**
-			 * Native blocking wait on the fence's MTLSharedEvent via an MTLSharedEventListener +
-			 * dispatch semaphore. Invoked by Wait(). Replaces the base class' poll-with-sleep fallback
-			 * (mirrors VulkanGpuTimelineFence::WaitInternal, which uses vkWaitSemaphores).
-			 */
+			/** Native blocking wait on the fence's MTLSharedEvent via the device's shared event listener and a dispatch semaphore. */
 			void WaitInternal(u64 value) final;
 
 		private:
 			struct Impl;
 			TUnique<Impl> mImpl;
+			MetalGpuDevice& mDevice;
 		};
 
 		/** @} */

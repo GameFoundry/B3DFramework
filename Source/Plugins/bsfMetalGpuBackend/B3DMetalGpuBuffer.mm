@@ -18,16 +18,14 @@ namespace b3d
 
 		MetalBuffer::~MetalBuffer()
 		{
-			// The manager's deferred-destroy path guarantees this destructor only runs once the
-			// resource is no longer bound to any command buffer nor in flight on the GPU (the
-			// resource tracker drives NotifyBound/Used/Done), so the native handle and its memory
-			// span can be released synchronously — mirroring VulkanBuffer's destructor.
 			{
 				Lock lock(mViewCacheMutex);
+
 #if !__has_feature(objc_arc)
 				for (auto& viewEntry : mTextureBufferViews)
 					[viewEntry.View release];
 #endif
+
 				mTextureBufferViews.clear();
 			}
 
@@ -37,9 +35,6 @@ namespace b3d
 			mBuffer = nullptr;
 			mMappedMemory = nullptr;
 
-			// Allocator-backed spans return through their stamped allocator; direct device allocations
-			// carry an invalid allocation and were fully released by the handle release above. Persistent
-			// TLSF spans reclaim immediately, while scratch linear spans retire with their page.
 			if (mAllocation.IsOwned())
 				mAllocation.Allocator->Free(mAllocation);
 		}
@@ -49,8 +44,6 @@ namespace b3d
 			if (mBuffer == nullptr)
 				return;
 
-			// NSString below is autoreleased; drain locally — there may be no runloop under the
-			// engine's fiber scheduler. StringView is not guaranteed null-terminated, so copy first.
 			@autoreleasepool
 			{
 				const String nameCopy(name.data(), name.size());
@@ -64,26 +57,18 @@ namespace b3d
 
 		MetalGpuBuffer::~MetalGpuBuffer()
 		{
-			// Queue the wrapper for destruction; the manager defers the actual release until every
-			// command buffer referencing it has retired.
 			if (mBuffer != nullptr)
 				mBuffer->Destroy();
 		}
 
 		void MetalGpuBuffer::Initialize()
 		{
-			// Intentionally no "allocation failed -> skip base Initialize" guard analogous to
-			// MetalTexture::Initialize: there is no base GpuBuffer::Initialize asset-upload path to
-			// chain into on the render side — buffer content uploads are driven by
-			// GpuBufferUtility::Write through the command buffer, which already nil-checks the
-			// target. CreateBuffer logs its own failure reason.
 			RecreateInternalBuffer();
 		}
 
 		MetalBuffer* MetalGpuBuffer::CreateBuffer()
 		{
-			// Metal disallows zero-length buffers; clamp to a small minimum (mirrors the Vulkan
-			// backend's CreateBuffer).
+			// Metal disallows zero-length buffers; clamp to a small minimum
 			u64 size = mTotalSize;
 			if (size == 0)
 				size = 64;
@@ -101,14 +86,10 @@ namespace b3d
 			createInformation.Flags = mInformation.Flags;
 			createInformation.DebugName = mName;
 
-			// Only expose the CPU-visible pointer when the buffer actually has one. GPU-private
-			// buffers return nullptr here; the engine interprets that as "use a staging path".
 			void* mappedMemory = mDirectlyMappable ? [handle contents] : nullptr;
-
 			MetalBuffer* buffer = mGpuDevice.GetResourceManager().Create<MetalBuffer>(createInformation, handle, allocation, mappedMemory);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-			// Range-level bound/in-use validation for sub-allocated buffers (dynamic-offset binds).
 			if (mInformation.SuballocationCount > 1)
 				buffer->InitializeSuballocationTracking(mInformation.SuballocationCount, mSuballocationSize);
 #endif
@@ -123,9 +104,6 @@ namespace b3d
 		{
 			MetalBuffer* newBuffer = CreateBuffer();
 
-			// Queue the previous wrapper for destruction. The manager defers the release until
-			// every command buffer referencing it has retired, so in-flight GPU work keeps reading
-			// the old MTLBuffer safely while new writes target the fresh one.
 			if (mBuffer != nullptr)
 				mBuffer->Destroy();
 
@@ -135,7 +113,6 @@ namespace b3d
 
 		void MetalGpuBuffer::SetName(const StringView& name)
 		{
-			// Delegate to the base so GpuBuffer::mName (read by GetName) is the single source of truth.
 			GpuBuffer::SetName(name);
 
 			if (mBuffer != nullptr)
@@ -194,8 +171,7 @@ namespace b3d
 			const MTLPixelFormat pixelFormat = MetalUtility::GetBufferFormat(format);
 			if (pixelFormat == MTLPixelFormatInvalid)
 			{
-				B3D_LOG(Error, LogRenderBackend,
-					"Typed-buffer element format {0} has no Metal pixel-format mapping.", (u32)format);
+				B3D_LOG(Error, LogRenderBackend, "Typed-buffer element format {0} has no Metal pixel-format mapping.", (u32)format);
 				return nil;
 			}
 
@@ -203,8 +179,7 @@ namespace b3d
 			const u64 bufferLength = (u64)[mBuffer length];
 			if (elementSize == 0 || offset >= bufferLength)
 			{
-				B3D_LOG(Error, LogRenderBackend,
-					"Typed-buffer view range is outside the buffer. Offset: {0}, buffer length: {1}.", offset, bufferLength);
+				B3D_LOG(Error, LogRenderBackend, "Typed-buffer view range is outside the buffer. Offset: {0}, buffer length: {1}.", offset, bufferLength);
 				return nil;
 			}
 
@@ -218,15 +193,10 @@ namespace b3d
 			const NSUInteger alignment = [device minimumLinearTextureAlignmentForPixelFormat:pixelFormat];
 			if (alignment != 0 && (offset % alignment) != 0)
 			{
-				B3D_LOG(Error, LogRenderBackend,
-					"Typed-buffer view offset {0} violates the device's linear-texture alignment of {1}.",
-					offset, (u64)alignment);
+				B3D_LOG(Error, LogRenderBackend, "Typed-buffer view offset {0} violates the device's linear-texture alignment of {1}.", offset, (u64)alignment);
 				return nil;
 			}
 
-			// The descriptor below is autoreleased; drain locally — there may be no runloop under
-			// the engine's fiber scheduler. The view itself is a +1 reference (new* method) owned by
-			// the cache entry and survives the drain.
 			id<MTLTexture> view = nil;
 			@autoreleasepool
 			{
@@ -234,16 +204,14 @@ namespace b3d
 					textureBufferDescriptorWithPixelFormat:pixelFormat
 													 width:(NSUInteger)elementCount
 										   resourceOptions:MetalUtility::GetResourceOptions([mBuffer storageMode])
-													 usage:writable ? (MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite)
-																    : MTLTextureUsageShaderRead];
+													 usage:writable ? (MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite) : MTLTextureUsageShaderRead];
 				view = [mBuffer newTextureWithDescriptor:descriptor
 												  offset:offset
 											 bytesPerRow:(NSUInteger)(elementCount * elementSize)];
 			}
 			if (view == nil)
 			{
-				B3D_LOG(Error, LogRenderBackend,
-					"Failed to create a Metal texture-buffer view. Format: {0}, elements: {1}.", (u32)format, elementCount);
+				B3D_LOG(Error, LogRenderBackend, "Failed to create a Metal texture-buffer view. Format: {0}, elements: {1}.", (u32)format, elementCount);
 				return nil;
 			}
 
@@ -264,9 +232,9 @@ namespace b3d
 				return nil;
 
 			// An unspecified view format means "interpret the buffer with its own element format", matching
-			// GpuBufferViewInformation::Format and VulkanGpuBuffer::GetOrCreateView. Shader reflection cannot
-			// supply this: texture_buffer<float> reports only the component type, so a float4 buffer would
-			// otherwise be viewed as single-component and read back garbage.
+			// GpuBufferViewInformation::Format. Shader reflection cannot supply this: texture_buffer<float> 
+			// reports only the component type, so a float4 buffer would otherwise be viewed as single-component 
+			// and read back garbage.
 			if (format == BF_UNKNOWN)
 				format = mInformation.SimpleStorage.Format;
 

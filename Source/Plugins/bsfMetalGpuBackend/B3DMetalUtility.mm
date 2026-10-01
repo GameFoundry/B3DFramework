@@ -7,24 +7,13 @@
 #include "Threading/B3DThreading.h"
 #include <atomic>
 
-// TODO(C14): migrate the warn-once pattern below (and the two matching sites in
-// B3DMetalGpuCommandBuffer.mm) to a shared @c LogOnce(Level, Category, ...) helper once its home
-// is decided — keeping the pattern local here avoids pulling a new utility header into every
-// Metal backend TU for a three-site cleanup.
-
 namespace b3d
 {
 	namespace render
 	{
 		namespace
 		{
-			// File-local helper so @c GetPixelFormat's default / TARGET_OS_IPHONE paths can drop a
-			// warn-once log line before returning @c MTLPixelFormatInvalid. Per-format dedup means
-			// unmapped formats are surfaced one-by-one as they're first encountered, instead of a
-			// single overall log hiding the rest. The set is guarded by a mutex so worker fibers on
-			// different threads that first hit the same format can't race on the insert — without the
-			// lock two fibers could both @c find-miss, both call @c insert, and either corrupt the
-			// set internals or log the same format twice.
+			// File-local helper so @c GetPixelFormat's default / TARGET_OS_IPHONE paths can warn just once.
 			MTLPixelFormat InvalidFormatWarn(PixelFormat format)
 			{
 				static Mutex sWarnedFormatsMutex;
@@ -86,14 +75,11 @@ namespace b3d
 			case PF_R16:		return MTLPixelFormatR16Unorm;
 			case PF_RG16:		return MTLPixelFormatRG16Unorm;
 			case PF_RGBA16:		return MTLPixelFormatRGBA16Unorm;
-			// Packed float/unorm HDR formats — widely used for bloom / tone-mapped intermediate targets.
 			case PF_RG11B10F:	return MTLPixelFormatRG11B10Float;
 			case PF_RGB10A2:	return MTLPixelFormatRGB10A2Unorm;
 			case PF_D16:		return MTLPixelFormatDepth16Unorm;
 			case PF_D32:		return MTLPixelFormatDepth32Float;
 			case PF_D32_S8X24:	return MTLPixelFormatDepth32Float_Stencil8;
-			// BC1 with 1-bit alpha uses the same Metal format as BC1 without — Metal's BC1_RGBA honors
-			// the 1-bit alpha encoding, and there is no separate BC1_RGB format on any GPU family.
 			case PF_BC1a:
 #if !TARGET_OS_IPHONE
 			case PF_BC1:		return gamma ? MTLPixelFormatBC1_RGBA_sRGB : MTLPixelFormatBC1_RGBA;
@@ -113,6 +99,57 @@ namespace b3d
 			}
 		}
 
+		bool MetalUtility::PixelFormatHasDepth(MTLPixelFormat format)
+		{
+			switch (format)
+			{
+			case MTLPixelFormatDepth16Unorm:
+			case MTLPixelFormatDepth32Float:
+			case MTLPixelFormatDepth24Unorm_Stencil8:
+			case MTLPixelFormatDepth32Float_Stencil8:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		bool MetalUtility::PixelFormatHasStencil(MTLPixelFormat format)
+		{
+			switch (format)
+			{
+			case MTLPixelFormatStencil8:
+			case MTLPixelFormatDepth24Unorm_Stencil8:
+			case MTLPixelFormatDepth32Float_Stencil8:
+			case MTLPixelFormatX24_Stencil8:
+			case MTLPixelFormatX32_Stencil8:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		MTLRenderStages MetalUtility::GetRenderStages(GpuProgramStageBits stages)
+		{
+			// Guards the fold below against a stage bit added to the engine after this mapping was written:
+			// silently dropping one would under-declare resource usage and fault the GPU rather than fail loudly.
+			constexpr u32 kKnownStages = (u32)GpuProgramStageBit::Vertex | (u32)GpuProgramStageBit::Fragment
+				| (u32)GpuProgramStageBit::Hull | (u32)GpuProgramStageBit::Domain | (u32)GpuProgramStageBit::Geometry | (u32)GpuProgramStageBit::Compute;
+			B3D_ASSERT(((u32)stages & ~kKnownStages) == 0 && "Unhandled GpuProgramStageBit in GetRenderStages.");
+
+			MTLRenderStages renderStages = (MTLRenderStages)0;
+
+			// Hull, domain and geometry have no native Metal render stage; each is emulated by a compute
+			// pre-pass whose output is consumed by the vertex function, so the vertex stage stands in for them.
+			if (stages.IsSetAny(GpuProgramStageBit::Vertex | GpuProgramStageBit::Hull | GpuProgramStageBit::Domain | GpuProgramStageBit::Geometry))
+				renderStages |= MTLRenderStageVertex;
+
+			if (stages.IsSet(GpuProgramStageBit::Fragment))
+				renderStages |= MTLRenderStageFragment;
+
+			// GpuProgramStageBit::Compute is intentionally unmapped - compute work is encoded on a compute encoder, which takes no MTLRenderStages.
+			return renderStages;
+		}
+
 		MTLTextureType MetalUtility::GetTextureType(TextureType type, u32 sampleCount, u32 arraySliceCount)
 		{
 			const bool msaa = sampleCount > 1;
@@ -126,6 +163,7 @@ namespace b3d
 			case TEX_TYPE_2D:
 				if (msaa)
 					return array ? MTLTextureType2DMultisampleArray : MTLTextureType2DMultisample;
+
 				return array ? MTLTextureType2DArray : MTLTextureType2D;
 
 			case TEX_TYPE_3D:
@@ -147,6 +185,7 @@ namespace b3d
 			case FO_LINEAR:			return MTLSamplerMinMagFilterLinear;
 			case FO_ANISOTROPIC:	return MTLSamplerMinMagFilterLinear;
 			}
+
 			return MTLSamplerMinMagFilterNearest;
 		}
 
@@ -159,6 +198,7 @@ namespace b3d
 			case FO_LINEAR:			return MTLSamplerMipFilterLinear;
 			case FO_ANISOTROPIC:	return MTLSamplerMipFilterLinear;
 			}
+			
 			return MTLSamplerMipFilterNotMipmapped;
 		}
 
@@ -171,6 +211,7 @@ namespace b3d
 			case TAM_CLAMP:		return MTLSamplerAddressModeClampToEdge;
 			case TAM_BORDER:	return MTLSamplerAddressModeClampToBorderColor;
 			}
+
 			return MTLSamplerAddressModeClampToEdge;
 		}
 
@@ -187,6 +228,7 @@ namespace b3d
 			case CMPF_GREATER_EQUAL:	return MTLCompareFunctionGreaterEqual;
 			case CMPF_GREATER:			return MTLCompareFunctionGreater;
 			}
+
 			return MTLCompareFunctionAlways;
 		}
 
@@ -205,6 +247,7 @@ namespace b3d
 			case BF_INV_DEST_ALPHA:		return MTLBlendFactorOneMinusDestinationAlpha;
 			case BF_INV_SOURCE_ALPHA:	return MTLBlendFactorOneMinusSourceAlpha;
 			}
+
 			return MTLBlendFactorOne;
 		}
 
@@ -218,6 +261,7 @@ namespace b3d
 			case BO_MIN:				return MTLBlendOperationMin;
 			case BO_MAX:				return MTLBlendOperationMax;
 			}
+
 			return MTLBlendOperationAdd;
 		}
 
@@ -229,6 +273,7 @@ namespace b3d
 			case CULL_CLOCKWISE:		return MTLCullModeFront;
 			case CULL_COUNTERCLOCKWISE:	return MTLCullModeBack;
 			}
+
 			return MTLCullModeNone;
 		}
 
@@ -301,26 +346,11 @@ namespace b3d
 			case VET_FLOAT2:		return MTLVertexFormatFloat2;
 			case VET_FLOAT3:		return MTLVertexFormatFloat3;
 			case VET_FLOAT4:		return MTLVertexFormatFloat4;
-			// VET_COLOR_ABGR encodes bytes in memory as {r, g, b, a}, which is exactly what Metal's
-			// MTLVertexFormatUChar4Normalized reads per-lane, so the vertex-shader sees .rgba correctly.
-			// VET_COLOR is the engine's platform-preferred alias — on Metal the capability defaults to
-			// VertexColorType = VET_COLOR_ABGR, so meshes authored against VET_COLOR land in ABGR byte
-			// order and this fast path is correct for both.
 			case VET_COLOR:
 			case VET_COLOR_ABGR:
 			case VET_UBYTE4_NORM:	return MTLVertexFormatUChar4Normalized;
-			// VET_COLOR_ARGB encodes bytes as {a, r, g, b} — the D3D authoring order. Metal can't
-			// swizzle at vertex-fetch, so a mesh with VET_COLOR_ARGB read via UChar4Normalized would
-			// deliver (a, r, g, b) to the shader's .rgba lane and render with shifted channels. Warn
-			// once so the authoring side is visible, then fall back to UChar4Normalized — callers must
-			// either pre-swizzle the mesh to ABGR or target the D3D12 backend. The engine's own mesh
-			// generators already honor the capability's VertexColorType, so this case fires only for
-			// meshes that were hard-coded to ARGB.
 			case VET_COLOR_ARGB:
 			{
-				// @c std::atomic<bool>::exchange is the lightest safe primitive here: only the first
-				// caller across every worker fiber to flip false->true wins the race and emits the
-				// log; any concurrent callers see true and skip.
 				static std::atomic<bool> sWarnedArgb{false};
 				if (!sWarnedArgb.exchange(true, std::memory_order_relaxed))
 				{
@@ -357,8 +387,6 @@ namespace b3d
 
 		MTLPixelFormat MetalUtility::GetBufferFormat(GpuBufferFormat format)
 		{
-			// Mirrors VulkanUtility::GetBufferFormat; three-component and 64-bit formats have no Metal
-			// pixel-format equivalent and fall through to invalid.
 			switch (format)
 			{
 			case BF_16X1F:	return MTLPixelFormatR16Float;
@@ -441,11 +469,6 @@ namespace b3d
 
 		MTLStorageMode MetalUtility::GetBufferStorageMode(const GpuBufferInformation& information)
 		{
-			// CPU-visible buffers use shared storage so Map can expose [buffer contents] directly
-			// and the engine's GpuBufferUtility can memcpy in place. Everything else is GPU-private,
-			// which makes GpuBufferUtility fall back to its staging-buffer + CopyBufferToBuffer
-			// path. Managed storage (for discrete Macs) would need explicit didModifyRange on every
-			// write; shared works on all Apple platforms and is coherent on Apple Silicon.
 			const bool cpuVisible = information.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess)
 				|| information.Type == GpuBufferType::StagingRead
 				|| information.Type == GpuBufferType::StagingWrite;
@@ -467,9 +490,9 @@ namespace b3d
 			return options;
 		}
 
-		bool IsMetalPixelFormatSupported(PixelFormat format, bool gamma)
+		bool MetalUtility::IsPixelFormatSupported(PixelFormat format, bool gamma)
 		{
-			return MetalUtility::GetPixelFormat(format, gamma) != MTLPixelFormatInvalid;
+			return GetPixelFormat(format, gamma) != MTLPixelFormatInvalid;
 		}
 	} // namespace render
 } // namespace b3d

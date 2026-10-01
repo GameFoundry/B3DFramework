@@ -11,46 +11,52 @@ namespace b3d
 	{
 		namespace
 		{
+			/** Returns the name suffix of the fragment function writing @p colorCount attachments, and optionally depth. */
+			String GetFragmentFunctionSuffix(u32 colorCount, bool writesDepth)
+			{
+				return (writesDepth ? String("Depth") : String("")) + ToString(colorCount);
+			}
+
 			/**
-			 * Builds the MSL source for the clear shaders.
+			 * Clear shader source shared by every fragment function. The vertex function generates a full-screen triangle from
+			 * the vertex index alone, so no vertex buffers are needed.
+			 */
+			constexpr const char* kClearShaderCommonSource = R"(
+#include <metal_stdlib>
+using namespace metal;
+
+struct B3DClearParameters
+{
+	float4 Color[B3D_MAXIMUM_RENDER_TARGET_COUNT];
+	float Depth;
+};
+
+struct B3DClearVertexOutput
+{
+	float4 Position [[position]];
+};
+
+vertex B3DClearVertexOutput b3dClearVertex(uint vertexId [[vertex_id]])
+{
+	float2 corners[3] = { float2(-1.0f, -1.0f), float2(3.0f, -1.0f), float2(-1.0f, 3.0f) };
+	B3DClearVertexOutput output;
+	output.Position = float4(corners[vertexId], 0.0f, 1.0f);
+	return output;
+}
+)";
+
+			/**
+			 * Builds the MSL source of the clear shaders. Expects B3D_MAXIMUM_RENDER_TARGET_COUNT and
+			 * B3D_CLEAR_PARAMETERS_BUFFER_SLOT to be provided as preprocessor macros.
 			 *
-			 * The vertex stage emits an oversized triangle covering the whole of NDC from @c vertex_id
-			 * alone, so the pipeline declares no vertex inputs and the caller needs to bind no vertex
-			 * buffers. Rasterization is confined to the region being cleared by the viewport and scissor
-			 * the caller sets before drawing.
-			 *
-			 * The fragment stage is generated once per (color attachment count, writes depth) pair,
-			 * because Metal requires a fragment function's color outputs to match the render pass'
-			 * attachment layout exactly, and rejects a @c [[depth]] output when no depth attachment is
-			 * bound. Attachments the clear must preserve are masked off in the pipeline descriptor
-			 * rather than the shader, so a single function serves every write-mask combination at a
-			 * given attachment count.
+			 * A fragment function is generated per color attachment count, with and without depth output, since Metal
+			 * requires the fragment outputs to match the attachments. Attachments that aren't cleared are masked off by the
+			 * pipeline state instead, so the same function serves every write mask.
 			 */
 			String BuildClearShaderSource()
 			{
 				StringStream source;
-				source <<
-					"#include <metal_stdlib>\n"
-					"using namespace metal;\n"
-					"\n"
-					"struct B3DClearParameters\n"
-					"{\n"
-					"\tfloat4 Color[" << B3D_MAXIMUM_RENDER_TARGET_COUNT << "];\n"
-					"\tfloat Depth;\n"
-					"};\n"
-					"\n"
-					"struct B3DClearVertexOutput\n"
-					"{\n"
-					"\tfloat4 Position [[position]];\n"
-					"};\n"
-					"\n"
-					"vertex B3DClearVertexOutput b3dClearVertex(uint vertexId [[vertex_id]])\n"
-					"{\n"
-					"\tfloat2 corners[3] = { float2(-1.0f, -1.0f), float2(3.0f, -1.0f), float2(-1.0f, 3.0f) };\n"
-					"\tB3DClearVertexOutput output;\n"
-					"\toutput.Position = float4(corners[vertexId], 0.0f, 1.0f);\n"
-					"\treturn output;\n"
-					"}\n";
+				source << kClearShaderCommonSource;
 
 				for (u32 colorCount = 0; colorCount <= B3D_MAXIMUM_RENDER_TARGET_COUNT; colorCount++)
 				{
@@ -58,28 +64,31 @@ namespace b3d
 					{
 						const bool writesDepth = depthVariant != 0;
 
-						// Nothing to write: no color outputs and no depth output. Such a clear touches
-						// stencil only, which comes from the depth-stencil state, so the pipeline runs
-						// without a fragment function at all and no variant is needed here.
+						// Stencil-only clears run without a fragment function
 						if (colorCount == 0 && !writesDepth)
 							continue;
 
-						const String suffix = (writesDepth ? String("Depth") : String("")) + ToString(colorCount);
+						const String suffix = GetFragmentFunctionSuffix(colorCount, writesDepth);
 
 						source << "\nstruct B3DClearOutput" << suffix << "\n{\n";
 						for (u32 attachmentIndex = 0; attachmentIndex < colorCount; attachmentIndex++)
 							source << "\tfloat4 Color" << attachmentIndex << " [[color(" << attachmentIndex << ")]];\n";
+
 						if (writesDepth)
 							source << "\tfloat Depth [[depth(any)]];\n";
+
 						source << "};\n";
 
 						source << "\nfragment B3DClearOutput" << suffix << " b3dClearFragment" << suffix
-							<< "(constant B3DClearParameters& parameters [[buffer(" << kMetalClearParametersBufferSlot << ")]])\n{\n"
+							<< "(constant B3DClearParameters& parameters [[buffer(B3D_CLEAR_PARAMETERS_BUFFER_SLOT)]])\n{\n"
 							<< "\tB3DClearOutput" << suffix << " output;\n";
+
 						for (u32 attachmentIndex = 0; attachmentIndex < colorCount; attachmentIndex++)
 							source << "\toutput.Color" << attachmentIndex << " = parameters.Color[" << attachmentIndex << "];\n";
+
 						if (writesDepth)
 							source << "\toutput.Depth = parameters.Depth;\n";
+
 						source << "\treturn output;\n}\n";
 					}
 				}
@@ -87,7 +96,7 @@ namespace b3d
 				return source.str();
 			}
 
-			/** Number of color attachments present in the render pass the key describes. */
+			/** Returns the number of color attachments, up to and including the last one present in @p key. */
 			u32 GetColorAttachmentCount(const MetalClearPipeline::Key& key)
 			{
 				u32 count = 0;
@@ -105,18 +114,16 @@ namespace b3d
 			id<MTLLibrary> Library = nil;
 			id<MTLFunction> VertexFunction = nil;
 
-			// Depth-stencil states indexed by (writeDepth << 1) | writeStencil. Entry 0 writes neither
-			// and is still a valid object: a color-only clear needs a state that leaves depth alone.
+			/** Depth-stencil states indexed by (writeDepth << 1) | writeStencil. Entry 0 is used by color-only clears. */
 			id<MTLDepthStencilState> DepthStencilStates[4] = { nil, nil, nil, nil };
 
-			// Compiled pipelines keyed by attachment layout + write mask. A nil value is a cached
-			// failure, so a pipeline that cannot be built is compiled (and reported) only once.
+			/** Pipeline states created so far. Nil for pipeline states that failed to be created. */
 			UnorderedMap<Key, id<MTLRenderPipelineState>, KeyHash> Pipelines;
 
+			/** Guards every other member. */
 			Mutex CacheMutex;
 
-			// Latched once the library compile has been attempted, so a failure does not re-run the
-			// (expensive) source compile on every subsequent clear.
+			/** True once library compilation was attempted, whether it succeeded or not. */
 			bool LibraryInitialized = false;
 		};
 
@@ -132,8 +139,10 @@ namespace b3d
 #if !__has_feature(objc_arc)
 			for (auto& entry : mImpl->Pipelines)
 				[entry.second release];
+
 			for (id<MTLDepthStencilState>& state : mImpl->DepthStencilStates)
 				[state release];
+
 			[mImpl->VertexFunction release];
 			[mImpl->Library release];
 #endif
@@ -149,27 +158,25 @@ namespace b3d
 
 			id<MTLDevice> device = mGpuDevice.GetMetalDevice();
 			if (device == nil)
-			{
-				// Leave the latch set: without a device there is nothing to compile against, and the
-				// clear path has already reported the wider failure.
 				return false;
-			}
 
 			@autoreleasepool
 			{
 				const String source = BuildClearShaderSource();
 				NSError* error = nil;
 				MTLCompileOptions* options = [[MTLCompileOptions alloc] init];
-				mImpl->Library = [device newLibraryWithSource:[NSString stringWithUTF8String:source.c_str()]
-					options:options
-					error:&error];
+				options.preprocessorMacros = @{
+					@"B3D_MAXIMUM_RENDER_TARGET_COUNT": @(B3D_MAXIMUM_RENDER_TARGET_COUNT),
+					@"B3D_CLEAR_PARAMETERS_BUFFER_SLOT": @(kMetalClearParametersBufferSlot)
+				};
+
+				mImpl->Library = [device newLibraryWithSource:[NSString stringWithUTF8String:source.c_str()] options:options error:&error];
 #if !__has_feature(objc_arc)
 				[options release];
 #endif
 				if (mImpl->Library == nil)
 				{
-					B3D_LOG(Error, LogRenderBackend, "Failed to compile the internal clear shader library: {0}",
-						error ? String([[error localizedDescription] UTF8String]) : String("no error details were provided"));
+					B3D_LOG(Error, LogRenderBackend, "Failed to compile the internal clear shader library: {0}", error ? String([[error localizedDescription] UTF8String]) : String("no error details were provided"));
 					return false;
 				}
 
@@ -205,12 +212,10 @@ namespace b3d
 				descriptor.vertexFunction = mImpl->VertexFunction;
 				descriptor.rasterSampleCount = key.SampleCount;
 
-				// A clear that writes neither color nor depth only needs rasterization to reach the
-				// stencil test, so it runs without a fragment function.
+				// Stencil-only clears run without a fragment function
 				if (colorCount != 0 || key.WritesDepth)
 				{
-					const String suffix = (key.WritesDepth ? String("Depth") : String("")) + ToString(colorCount);
-					const String functionName = "b3dClearFragment" + suffix;
+					const String functionName = "b3dClearFragment" + GetFragmentFunctionSuffix(colorCount, key.WritesDepth);
 					id<MTLFunction> fragmentFunction = [mImpl->Library newFunctionWithName:[NSString stringWithUTF8String:functionName.c_str()]];
 					if (fragmentFunction == nil)
 					{
@@ -231,8 +236,6 @@ namespace b3d
 				{
 					MTLRenderPipelineColorAttachmentDescriptor* attachment = descriptor.colorAttachments[attachmentIndex];
 					attachment.pixelFormat = (MTLPixelFormat)key.ColorFormats[attachmentIndex];
-					// Attachments outside the clear mask keep their contents; masking them off in the
-					// pipeline lets one fragment function serve every mask at this attachment count.
 					attachment.writeMask = (key.ColorWriteMask & (1u << attachmentIndex)) != 0
 						? MTLColorWriteMaskAll
 						: MTLColorWriteMaskNone;
@@ -259,11 +262,11 @@ namespace b3d
 
 		id<MTLDepthStencilState> MetalClearPipeline::GetOrCreateDepthStencilState(bool writeDepth, bool writeStencil)
 		{
-			const u32 index = (writeDepth ? 2u : 0u) | (writeStencil ? 1u : 0u);
+			const u32 stateIndex = (writeDepth ? 2u : 0u) | (writeStencil ? 1u : 0u);
 
 			Lock lock(mImpl->CacheMutex);
-			if (mImpl->DepthStencilStates[index] != nil)
-				return mImpl->DepthStencilStates[index];
+			if (mImpl->DepthStencilStates[stateIndex] != nil)
+				return mImpl->DepthStencilStates[stateIndex];
 
 			id<MTLDevice> device = mGpuDevice.GetMetalDevice();
 			if (device == nil)
@@ -273,14 +276,12 @@ namespace b3d
 			{
 				MTLDepthStencilDescriptor* descriptor = [[MTLDepthStencilDescriptor alloc] init];
 				descriptor.label = @"B3D Clear";
-				// Always-pass so the clear overwrites whatever depth the attachment already holds.
 				descriptor.depthCompareFunction = MTLCompareFunctionAlways;
 				descriptor.depthWriteEnabled = writeDepth ? YES : NO;
 
 				if (writeStencil)
 				{
-					// Metal has no shader-writable stencil, so the clear value is delivered through the
-					// encoder's stencil reference and written by the pass operation.
+					// Fragment shaders cannot write stencil, so the value comes from the encoder's stencil reference
 					MTLStencilDescriptor* stencil = [[MTLStencilDescriptor alloc] init];
 					stencil.stencilCompareFunction = MTLCompareFunctionAlways;
 					stencil.depthStencilPassOperation = MTLStencilOperationReplace;
@@ -295,16 +296,16 @@ namespace b3d
 #endif
 				}
 
-				mImpl->DepthStencilStates[index] = [device newDepthStencilStateWithDescriptor:descriptor];
+				mImpl->DepthStencilStates[stateIndex] = [device newDepthStencilStateWithDescriptor:descriptor];
 #if !__has_feature(objc_arc)
 				[descriptor release];
 #endif
 			}
 
-			if (mImpl->DepthStencilStates[index] == nil)
+			if (mImpl->DepthStencilStates[stateIndex] == nil)
 				B3D_LOG(Error, LogRenderBackend, "Failed to create the internal clear depth-stencil state.");
 
-			return mImpl->DepthStencilStates[index];
+			return mImpl->DepthStencilStates[stateIndex];
 		}
 	} // namespace render
 } // namespace b3d

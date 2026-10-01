@@ -18,19 +18,16 @@ namespace b3d::render
 			id<MTLTexture> colorTexture = GetCurrentColorTexture();
 			if (colorTexture == nil)
 			{
-				// No back buffer to read; signal "no frame produced" by completing with nullptr. Callers
-				// (snapshot tests, capture paths) already treat nullptr as the no-frame code path.
 				op.CompleteOperation(nullptr);
 				return op;
 			}
 
 			if (colorTexture.framebufferOnly == YES)
 			{
-				// Defense in depth: the windowed surface configures its CAMetalLayer with framebufferOnly=NO so
-				// the drawable texture can be used as a blit source. If a future change ever flips this to YES
-				// the blit below silently produces undefined bytes on Apple Silicon and fails Metal API
-				// validation. Surface the error unambiguously instead.
-				B3D_LOG(Error, LogRenderBackend, "ReadAsync requires a blit-sampleable color texture (framebufferOnly must be NO).");
+				// Only development builds configure the CAMetalLayer with framebufferOnly=NO so the drawable
+				// texture can be used as a blit source. Blitting from a framebuffer-only texture silently produces
+				// undefined bytes on Apple Silicon and fails Metal API validation, so surface the error instead.
+				B3D_LOG(Error, LogRenderBackend, "ReadAsync requires a blit-sampleable color texture (framebufferOnly must be NO). Window capture is only available in development builds on Metal.");
 				op.CompleteOperation(nullptr);
 				return op;
 			}
@@ -43,8 +40,6 @@ namespace b3d::render
 				return op;
 			}
 
-			// Derive width/height from the texture itself — it is the authoritative size the blit must use, and
-			// reading it avoids racing the surface's render-thread-owned size fields.
 			const u32 width = (u32)colorTexture.width;
 			const u32 height = (u32)colorTexture.height;
 			const PixelFormat pixelFormat = GetColorPixelFormat();
@@ -55,6 +50,7 @@ namespace b3d::render
 			const NSUInteger bufferSize = (NSUInteger)bytesPerRow * height;
 
 			auto& metalDevice = static_cast<MetalGpuDevice&>(commandBuffer.GetGpuDevice());
+			// TODO - Create a GpuBufferType::StagingRead GpuBuffer instead, so the staging memory comes from the heap allocator (mirrors IVulkanRenderWindowSurface::ReadAsync).
 			id<MTLBuffer> stagingBuffer = [metalDevice.GetMetalDevice() newBufferWithLength:bufferSize options:MTLResourceStorageModeShared];
 			if (stagingBuffer == nil)
 			{
@@ -73,18 +69,6 @@ namespace b3d::render
 				destinationBytesPerRow:bytesPerRow
 				destinationBytesPerImage:bufferSize];
 
-			// Completion hooks through the engine-level command buffer signal rather than Metal's raw
-			// addCompletedHandler:, so the memcpy runs on the pool-owner engine thread the caller expects —
-			// identical to how the Vulkan backend consumes this signal in B3DIVulkanRenderWindowSurface.cpp.
-			// The shared-storage staging buffer is CPU-coherent the moment the GPU blit retires, which is
-			// strictly before OnDidComplete fires, so no explicit synchronize step is required.
-			//
-			// In non-ARC builds stagingBuffer carries the +1 from newBufferWithLength:. Exactly one of the two
-			// handlers below releases it — OnDidComplete after the copy-out, or OnDestroyed when the command
-			// buffer is discarded without ever being submitted (OnDestroyed with isSubmitted=true early-outs,
-			// so a completed-then-destroyed sequence cannot double-release). The encoded blit additionally
-			// retains the buffer for the GPU's lifetime of the command buffer (default retained-references
-			// mode), so releasing on the engine thread is always safe.
 			const u32 resultRowPitch = pixelData->GetRowPitch();
 			const u32 resultHeight = height;
 

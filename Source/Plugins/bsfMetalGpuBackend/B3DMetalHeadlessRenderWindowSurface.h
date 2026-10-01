@@ -61,8 +61,6 @@ namespace b3d::render
 		bool mIsSwapQueued = false;
 		u32 mCurrentImageIndex = 0;
 
-		// Obj-C strong (manually retained) members, +1 owned from newTextureWithDescriptor:. Declared through the
-		// unconditional handle aliases so the class layout is identical in .cpp and .mm translation units.
 		MTLTextureRef mColorTextures[kImageCount] = {};
 		MTLTextureRef mDepthStencilTexture = nullptr;
 	};

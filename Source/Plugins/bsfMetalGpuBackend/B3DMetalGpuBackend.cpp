@@ -21,13 +21,10 @@ namespace b3d
 		device->Initialize();
 		mDevices.Add(device);
 
-		if (device->IsInitialized())
-		{
-			GPUInfo gpuInfo;
-			gpuInfo.NumGpUs = 1;
-			gpuInfo.Names[0] = device->GetCapabilities().DeviceName;
-			PlatformUtility::SetGPUInfo(gpuInfo);
-		}
+		GPUInfo gpuInfo;
+		gpuInfo.NumGpUs = 1;
+		gpuInfo.Names[0] = device->GetCapabilities().DeviceName;
+		PlatformUtility::SetGPUInfo(gpuInfo);
 
 		// Create the texture managers
 		TextureManager::StartUp<MetalTextureManager>();
@@ -45,12 +42,7 @@ namespace b3d
 
 	void MetalGpuBackend::OnShutDown()
 	{
-		// Drain every initialized device before tearing down engine-side managers or dropping the
-		// device TShareds. Without this the Metal queues may still hold scheduled @c MTL4CommandBuffers
-		// that reference resources owned by higher-level managers (textures, render windows) — if we
-		// destroy those managers while the GPU is mid-frame, backing MTLResources get released out
-		// from under in-flight commands and the driver flags a residency hazard at submit time.
-		// Mirrors VulkanGpuBackend::OnShutDown.
+		// Drain every initialized device before tearing down managers
 		for (const auto& device : mDevices)
 		{
 			if (!device->IsInitialized())

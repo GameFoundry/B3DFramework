@@ -5,7 +5,7 @@
 #include "B3DMetalPrerequisites.h"
 #include "B3DMetalGpuDevice.h"
 #include "B3DMetalResource.h"
-#include "GpuBackend/B3DGpuCommandBuffer.h" // GpuImageLayout
+#include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "Image/B3DTexture.h"
 #include "Threading/B3DThreading.h"
 
@@ -100,14 +100,7 @@ namespace b3d
 			mutable Mutex mViewCacheMutex;
 		};
 
-		/**
-		 * Metal implementation of a texture.
-		 *
-		 * High-level proxy over a private-storage MetalImage wrapper. Metal textures are not
-		 * directly mappable, so @c Map returns an invalid @c GpuTextureMappedScope and callers are
-		 * expected to route CPU traffic through @c TextureUtility::Write / @c TextureUtility::Read,
-		 * which drives @c CopyBufferToTexture / @c CopyTextureToBuffer on the command buffer.
-		 */
+		/** Metal implementation of a texture. */
 		class MetalTexture : public Texture
 		{
 		public:

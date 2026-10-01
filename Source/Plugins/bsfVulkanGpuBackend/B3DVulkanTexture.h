@@ -107,11 +107,6 @@ namespace b3d
 			/** Get aspect flags that represent the contents of this image. */
 			VkImageAspectFlags GetAspectFlags() const;
 
-			using IGpuImageResource::GetRange;
-
-			/** Retrieves a subresource range covering the specified sub-resource range of the image. */
-			GpuTextureSubresourceRange GetRange(const TextureSurface& surface) const;
-
 			/** Returns a pointer to persistently mapped memory of the image, or null pointer if the image is not mappable. */
 			void* GetMappedMemory() const { return mMappedMemory; }
 

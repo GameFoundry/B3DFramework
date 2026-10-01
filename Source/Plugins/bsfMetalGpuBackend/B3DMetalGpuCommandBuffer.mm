@@ -14,6 +14,7 @@
 #include "B3DMetalGpuQueryPool.h"
 #include "B3DMetalGpuTimelineFence.h"
 #include "B3DMetalRenderTexture.h"
+#include "B3DMetalFramebuffer.h"
 #include "B3DMetalRenderWindowSurface.h"
 #include "B3DMetalClearPipeline.h"
 #include "B3DMetalShaderABI.h"
@@ -25,11 +26,6 @@
 #include "B3DMetalVertexInputManager.h"
 #include "Image/B3DPixelUtility.h"
 #include "Debug/B3DLog.h"
-#include <atomic>
-
-// TODO(C14): migrate the two warn-once flags below (and the matching site in B3DMetalUtility.mm)
-// to a shared @c LogOnce(Level, Category, ...) helper once its home is decided — see TODO in
-// B3DMetalUtility.mm for context.
 
 namespace b3d
 {
@@ -37,16 +33,12 @@ namespace b3d
 	{
 		struct MetalGpuCommandBuffer::Impl
 		{
-			id<MTLCommandBuffer> CommandBuffer = nil;
-			id<MTLRenderCommandEncoder> RenderEncoder = nil;
-			id<MTLComputeCommandEncoder> ComputeEncoder = nil;
-			id<MTLBlitCommandEncoder> BlitEncoder = nil;
 			struct PendingEventSignal
 			{
 				id<MTLSharedEvent> Event = nil;
 				u64 Value = 0;
 			};
-			Vector<PendingEventSignal> PendingEventSignals;
+
 			struct VertexBufferBinding
 			{
 				id<MTLBuffer> Buffer = nil;
@@ -61,20 +53,35 @@ namespace b3d
 				NSUInteger Offset = 0;
 			};
 
+			id<MTLCommandBuffer> CommandBuffer = nil;
+			id<MTLRenderCommandEncoder> RenderEncoder = nil;
+			id<MTLComputeCommandEncoder> ComputeEncoder = nil;
+			id<MTLBlitCommandEncoder> BlitEncoder = nil;
+
 			MTLRenderPassDescriptor* RestartRenderPassDescriptor = nil;
+
+			Vector<PendingEventSignal> PendingEventSignals;
 			Vector<VertexBufferBinding> VertexBufferBindings;
+
+			/** Scratch list of the resources passed to a single useResources: call, reused to avoid per-draw allocations. */
+			Vector<__unsafe_unretained id<MTLResource>> ResidencyResources;
+
 			/** Argument-table contents of the vertex, fragment and compute stages, relative to kMetalDynamicUniformBufferIndexBase. */
 			Array<ArgumentTableBinding, kMetalDynamicUniformBufferCount> VertexArgumentTable;
 			Array<ArgumentTableBinding, kMetalDynamicUniformBufferCount> FragmentArgumentTable;
 			Array<ArgumentTableBinding, kMetalDynamicUniformBufferCount> ComputeArgumentTable;
+
 			MTLViewport Viewport = {};
-			Area2 NormalizedViewport = Area2(0.0f, 0.0f, 1.0f, 1.0f); /**< Engine-side viewport in normalized [0,1] units; converted to pixels per render pass. */
+			Area2 NormalizedViewport = Area2(0.0f, 0.0f, 1.0f, 1.0f); /**< Viewport in normalized [0, 1] units, converted to pixels per render pass. */
 			MTLScissorRect Scissor = {};
-			MTLVisibilityResultMode VisibilityMode = MTLVisibilityResultModeDisabled;
-			NSUInteger VisibilityOffset = 0;
 			bool HasViewport = false;
 			bool HasScissor = false;
+
+			MTLVisibilityResultMode VisibilityMode = MTLVisibilityResultModeDisabled;
+			NSUInteger VisibilityOffset = 0;
+
 			u32 DebugGroupDepth = 0;
+
 	#if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
 			id<MTLFence> ResourceFence = nil;
 			bool FenceNeedsWait = false;
@@ -84,6 +91,8 @@ namespace b3d
 		namespace
 		{
 #if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
+			// TODO - Every encoder waits on the previous one through a single fence, serializing all encoders regardless of
+			// actual hazards. Refactor to the MTL4CommandQueue stage-to-stage barrier model once macOS 26 can be targeted.
 			void UpdateResourceFence(MetalGpuCommandBuffer::Impl& impl, id<MTLRenderCommandEncoder> encoder)
 			{
 				if (impl.ResourceFence == nil || encoder == nil)
@@ -148,20 +157,18 @@ namespace b3d
 				NSError* error = [commandBuffer error];
 				NSString* label = [commandBuffer label];
 #if B3D_BUILD_TYPE_DEVELOPMENT
-				NSArray<id<MTLCommandBufferEncoderInfo>>* encoderInformation =
-					error ? [[error userInfo] objectForKey:MTLCommandBufferEncoderInfoErrorKey] : nil;
-				for (id<MTLCommandBufferEncoderInfo> encoderInfo in encoderInformation)
+				NSArray<id<MTLCommandBufferEncoderInfo>>* encoderInformationArray = error ? [[error userInfo] objectForKey:MTLCommandBufferEncoderInfoErrorKey] : nil;
+				for (id<MTLCommandBufferEncoderInfo> encoderInformation in encoderInformationArray)
 				{
-					B3D_LOG(Error, LogRenderBackend,
-						"Metal encoder '{0}' failed with execution state {1}.",
-						[encoderInfo label] ? String([[encoderInfo label] UTF8String]) : String("<unnamed>"),
-						(u32)[encoderInfo errorState]);
-					for (NSString* signpost in [encoderInfo debugSignposts])
+					B3D_LOG(Error, LogRenderBackend, "Metal encoder '{0}' failed with execution state {1}.",
+						[encoderInformation label] ? String([[encoderInformation label] UTF8String]) : String("<unnamed>"),
+						(u32)[encoderInformation errorState]);
+
+					for (NSString* signpost in [encoderInformation debugSignposts])
 						B3D_LOG(Error, LogRenderBackend, "  GPU signpost: {0}", String([signpost UTF8String]));
 				}
 #endif
-				B3D_LOG(Fatal, LogRenderBackend,
-					"Metal command buffer '{0}' failed during GPU execution ({1}, code {2}): {3}",
+				B3D_LOG(Fatal, LogRenderBackend, "Metal command buffer '{0}' failed during GPU execution ({1}, code {2}): {3}",
 					label ? String([label UTF8String]) : String("<unnamed>"),
 					error ? String([[error domain] UTF8String]) : String("<unknown domain>"),
 					error ? (i64)[error code] : 0,
@@ -169,278 +176,95 @@ namespace b3d
 			}
 
 			/**
-			 * Attaches a parameter set's argument buffer to a render encoder at the correct set index.
-			 * The layout's cached combined-stage mask lets us skip the per-binding walk the old
-			 * version had to do (B7).
+			 * Registers a parameter set's argument buffer with the command buffer, so a heap-placed buffer the set
+			 * releases (copy-on-write or destruction) is not returned to its allocator while this command buffer still
+			 * reads it. Transient pool slices have no resource and rely on the pool's Reset contract instead.
 			 */
-			void AttachArgumentBufferToRenderEncoder(id<MTLRenderCommandEncoder> encoder, MetalGpuParameters& params)
-				{
-					const MetalGpuPipelineParameterSetLayout* layout = params.GetMetalLayout();
-					id<MTLBuffer> argumentBuffer = params.GetArgumentBuffer();
-					if (!layout || argumentBuffer == nil || params.GetSet() >= kMetalVertexBufferSlotBase)
-						return;
-
-					const u32 stageMask = layout->GetCombinedStageMask();
-					if (stageMask & ((u32)GpuProgramStageBit::Vertex | (u32)GpuProgramStageBit::Hull
-						| (u32)GpuProgramStageBit::Domain))
-						[encoder setVertexBuffer:argumentBuffer offset:(NSUInteger)params.GetArgumentBufferOffset() atIndex:params.GetSet()];
-					if (stageMask & (u32)GpuProgramStageBit::Fragment)
-						[encoder setFragmentBuffer:argumentBuffer offset:(NSUInteger)params.GetArgumentBufferOffset() atIndex:params.GetSet()];
-				}
-
-			/** Compute-encoder counterpart of @c AttachArgumentBufferToRenderEncoder. No stage axis. */
-			void AttachArgumentBufferToComputeEncoder(id<MTLComputeCommandEncoder> encoder, MetalGpuParameters& params)
-				{
-					const MetalGpuPipelineParameterSetLayout* layout = params.GetMetalLayout();
-					id<MTLBuffer> argumentBuffer = params.GetArgumentBuffer();
-					if (!layout || argumentBuffer == nil || params.GetSet() >= kMetalVertexBufferSlotBase
-						|| (layout->GetCombinedStageMask() & (u32)GpuProgramStageBit::Compute) == 0)
-						return;
-
-					[encoder setBuffer:argumentBuffer offset:(NSUInteger)params.GetArgumentBufferOffset() atIndex:params.GetSet()];
-				}
-
-			/**
-			 * Shared core of @c EmitResidencyFor{Render,Compute}Encoder. Iterates over @p buckets,
-			 * gathers the B6-cached @c id<MTLResource> handles per (usage, stages) bucket into a
-			 * stack array (spilling to a heap Vector only on the rare big-set path), and delegates
-			 * the actual @c useResources: emission to @p fnEmit so the render / compute variants
-			 * keep their slightly different Metal call shapes.
-			 *
-			 * B2: bucket iteration collapses what used to be N @c useResource: calls into @<= 4
-			 * plural calls (one per non-empty bucket). The bucket layout is computed once at
-			 * @c MetalGpuPipelineParameterSetLayout construction time (see @c GetRenderBuckets /
-			 * @c GetComputeBuckets) so the draw/dispatch hot path is a pure gather + Obj-C call.
-			 *
-			 * Contract: the caller must have committed pending bindings first (via
-			 * @c MetalGpuParameters::CommitPendingBindings) so the B6 handle cache is populated.
-			 */
-			template <typename BucketContainer, typename FnEmit>
-			void EmitResidencyImpl(MetalGpuParameters& params, const BucketContainer& buckets, FnEmit&& fnEmit)
+			void TrackArgumentBuffer(const MetalGpuParameters& parameters, MetalResourceTracker& resourceTracker)
 			{
-				const MetalGpuPipelineParameterSetLayout* layout = params.GetMetalLayout();
-				if (!layout)
-					return;
-
-				for (const auto& bucket : buckets)
-				{
-					if (bucket.ResourceIndices.Empty())
-						continue;
-
-					// Small-N (typically @<= 8 resources per bucket). Stack array keeps this hot path
-					// allocation-free; the @c kMaxStackResources cap covers the vast majority of
-					// real-world sets. Anything over that (bindless-style huge sets) falls back to a
-					// scratch @c Vector.
-					constexpr u32 kMaxStackResources = 32;
-					__unsafe_unretained id<MTLResource> stack[kMaxStackResources];
-					Vector<__unsafe_unretained id<MTLResource>> spill;
-
-					__unsafe_unretained id<MTLResource>* resources = stack;
-					if (bucket.ResourceIndices.Size() > kMaxStackResources)
-					{
-						spill.resize((size_t)bucket.ResourceIndices.Size());
-						resources = spill.data();
-					}
-
-					u32 resourceCount = 0;
-					for (u32 resourceIndex : bucket.ResourceIndices)
-					{
-						// Read the resolved resource from the parameter set's dense cache.
-						// Cache is populated by @c CommitPendingBindings; slots whose value changed
-						// since the last commit have had their handle refreshed already.
-						id<MTLResource> resource = params.GetCachedResource(resourceIndex);
-						if (resource == nil)
-							continue;
-						resources[resourceCount++] = resource;
-					}
-
-					if (resourceCount > 0)
-						fnEmit(bucket, resources, resourceCount);
-				}
+				if (MetalArgumentBuffer* resource = parameters.GetArgumentBufferResource())
+					resourceTracker.TrackResourceUsage(resource, GpuAccessFlag::Read);
 			}
 
-			/** Emits @c useResources:count:usage:stages: once per precomputed render bucket. */
-			void EmitResidencyForRenderEncoder(id<MTLRenderCommandEncoder> encoder, MetalGpuParameters& params)
-			{
-				const MetalGpuPipelineParameterSetLayout* layout = params.GetMetalLayout();
-				if (!layout)
-					return;
-
-				EmitResidencyImpl(params, layout->GetRenderBuckets(),
-					[encoder](const auto& bucket, __unsafe_unretained id<MTLResource>* resources, u32 resourceCount)
-					{
-						[encoder useResources:resources count:resourceCount usage:bucket.Usage stages:bucket.RenderStages];
-					});
-			}
-
-			/** Compute-encoder counterpart of @c EmitResidencyForRenderEncoder. No stage mask axis. */
-			void EmitResidencyForComputeEncoder(id<MTLComputeCommandEncoder> encoder, MetalGpuParameters& params)
-			{
-				const MetalGpuPipelineParameterSetLayout* layout = params.GetMetalLayout();
-				if (!layout)
-					return;
-
-				EmitResidencyImpl(params, layout->GetComputeBuckets(),
-					[encoder](const auto& bucket, __unsafe_unretained id<MTLResource>* resources, u32 resourceCount)
-					{
-						[encoder useResources:resources count:resourceCount usage:bucket.Usage];
-					});
-			}
-
-			/** Returns the stages that reference the binding of @p type at @p slot, as a mask of GpuProgramStageBit values; zero when the layout has no such binding. */
-			u32 GetBindingStageMask(const MetalGpuPipelineParameterSetLayout& layout, GpuParameterType type, u32 slot)
-			{
-				if (const MetalArgumentBufferBinding* binding = layout.FindBinding(type, slot))
-					return binding->StageMask;
-
-				if (type == GpuParameterType::UniformBuffer)
-				{
-					if (const MetalDynamicUniformBufferBinding* binding = layout.FindDynamicUniformBufferBinding(slot))
-						return binding->StageMask;
-				}
-
-				return 0;
-			}
-
-			GpuResourceUseFlags GetBindingUseFlags(const MetalGpuPipelineParameterSetLayout& layout, GpuParameterType type, u32 slot, bool compute)
-			{
-				const u32 stageMask = GetBindingStageMask(layout, type, slot);
-				if (stageMask == 0)
-					return GpuResourceUseFlag::Undefined;
-
-				GpuResourceUseFlags useFlags = type == GpuParameterType::UniformBuffer
-					? GpuResourceUseFlag::UniformBuffer
-					: GpuResourceUseFlag::ShaderAccess;
-
-				if (compute)
-				{
-					if ((stageMask & (u32)GpuProgramStageBit::Compute) == 0)
-						return GpuResourceUseFlag::Undefined;
-
-					useFlags |= GpuResourceUseFlag::StageComputeShader;
-				}
-				else
-				{
-					if (stageMask & ((u32)GpuProgramStageBit::Vertex | (u32)GpuProgramStageBit::Hull | (u32)GpuProgramStageBit::Domain))
-						useFlags |= GpuResourceUseFlag::StageVertexShader;
-					if (stageMask & (u32)GpuProgramStageBit::Fragment)
-						useFlags |= GpuResourceUseFlag::StageFragmentShader;
-					if (!useFlags.IsSetAny(GpuResourceUseFlag::StageVertexShader | GpuResourceUseFlag::StageFragmentShader))
-						return GpuResourceUseFlag::Undefined;
-				}
-
-				return useFlags;
-			}
-
-			GpuAccessFlags GetStorageBufferAccessFlags(const MetalGpuPipelineParameterSetLayout& layout, u32 slot)
-			{
-				for (const MetalArgumentBufferBinding& binding : layout.GetBindings())
-				{
-					if (binding.Type != GpuParameterType::StorageBuffer || binding.Slot != slot)
-						continue;
-
-					return binding.ObjectType == GPOT_RWSTRUCTURED_BUFFER
-						? (GpuAccessFlag::Read | GpuAccessFlag::Write)
-						: GpuAccessFlag::Read;
-				}
-
-				return GpuAccessFlag::Read;
-			}
-
-			GpuTextureSubresourceRange GetTextureRange(MetalImage& image, const TextureSurface& surface)
-			{
-				const GpuTextureSubresourceRange& fullRange = image.GetRange();
-				GpuTextureSubresourceRange range;
-				range.BaseArrayLayer = Math::Min(surface.Face, fullRange.ArrayLayerCount - 1);
-				range.ArrayLayerCount = Math::Min(surface.FaceCount == 0 ? fullRange.ArrayLayerCount : surface.FaceCount,
-					fullRange.ArrayLayerCount - range.BaseArrayLayer);
-				range.BaseMipLevel = Math::Min(surface.MipLevel, fullRange.MipLevelCount - 1);
-				range.MipLevelCount = Math::Min(surface.MipLevelCount == 0 ? fullRange.MipLevelCount : surface.MipLevelCount,
-					fullRange.MipLevelCount - range.BaseMipLevel);
-				range.AspectMask = fullRange.AspectMask;
-				return range;
-			}
-
-			/**
-			 * Registers every resource bound in @p parameters with the tracker. @p dynamicOffsetOverrides holds the
-			 * command buffer's per-draw offset overrides for the set (indexed by dynamic-offset index, @c ~0u for none),
-			 * so uniform-buffer suballocations are tracked at the offset the draw actually reads.
-			 */
-			bool TrackParameterResources(MetalGpuParameters& parameters, const TInlineArray<u32, 4>& dynamicOffsetOverrides, bool compute, MetalResourceTracker& resourceTracker, MetalBarrierHelper& barrierHelper)
+			/** Binds a parameter set's argument buffer to a render encoder at the buffer index matching its set index. */
+			void AttachArgumentBufferToRenderEncoder(id<MTLRenderCommandEncoder> encoder, const MetalGpuParameters& parameters, MetalResourceTracker& resourceTracker)
 			{
 				const MetalGpuPipelineParameterSetLayout* layout = parameters.GetMetalLayout();
-				if (layout == nullptr)
-					return true;
+				id<MTLBuffer> argumentBuffer = parameters.GetArgumentBuffer();
+				if (!layout || argumentBuffer == nil || parameters.GetSet() >= kMetalVertexBufferSlotBase)
+					return;
 
-				for (const MetalGpuParameters::UniformBufferBinding& binding : parameters.GetUniformBuffers())
-				{
-					auto buffer = std::static_pointer_cast<MetalGpuBuffer>(binding.Buffer);
-					MetalBuffer* resource = buffer ? buffer->GetMetalResource() : nullptr;
-					const GpuResourceUseFlags useFlags = GetBindingUseFlags(*layout, GpuParameterType::UniformBuffer, binding.Slot, compute);
-					if (resource == nullptr || useFlags == GpuResourceUseFlag::Undefined)
-						continue;
+				TrackArgumentBuffer(parameters, resourceTracker);
 
-					u32 offset = binding.Offset;
-					const u32 dynamicOffsetIndex = layout->GetDynamicOffsetIndex(binding.Slot, binding.ArrayIndex);
-					if (dynamicOffsetIndex < (u32)dynamicOffsetOverrides.Size() && dynamicOffsetOverrides[dynamicOffsetIndex] != ~0u)
-						offset = dynamicOffsetOverrides[dynamicOffsetIndex];
+				const GpuProgramStageBits stages = layout->GetCombinedStages();
+				if (stages.IsSetAny(GpuProgramStageBit::Vertex | GpuProgramStageBit::Hull | GpuProgramStageBit::Domain))
+					[encoder setVertexBuffer:argumentBuffer offset:(NSUInteger)parameters.GetArgumentBufferOffset() atIndex:parameters.GetSet()];
 
-					resourceTracker.TrackBufferAccess(resource, GpuBackendUtility::GetStageFlags(useFlags), GpuAccessFlag::Read, barrierHelper, offset);
-				}
-
-				for (const MetalGpuParameters::StorageBufferBinding& binding : parameters.GetStorageBuffers())
-				{
-					auto buffer = std::static_pointer_cast<MetalGpuBuffer>(binding.Buffer);
-					MetalBuffer* resource = buffer ? buffer->GetMetalResource() : nullptr;
-					const GpuResourceUseFlags useFlags = GetBindingUseFlags(*layout, GpuParameterType::StorageBuffer, binding.Slot, compute);
-					if (resource != nullptr && useFlags != GpuResourceUseFlag::Undefined)
-						resourceTracker.TrackBufferAccess(resource, GpuBackendUtility::GetStageFlags(useFlags), GetStorageBufferAccessFlags(*layout, binding.Slot), barrierHelper, binding.View.Offset);
-				}
-
-				auto fnTrackTextures = [layout, compute, &resourceTracker, &barrierHelper](const Vector<MetalGpuParameters::TextureBinding>& bindings, GpuParameterType type, GpuAccessFlags access)
-				{
-					for (const MetalGpuParameters::TextureBinding& binding : bindings)
-					{
-						auto texture = std::static_pointer_cast<MetalTexture>(binding.Texture);
-						MetalImage* resource = texture ? texture->GetMetalResource() : nullptr;
-						const GpuResourceUseFlags useFlags = GetBindingUseFlags(*layout, type, binding.Slot, compute);
-						if (resource == nullptr || useFlags == GpuResourceUseFlag::Undefined)
-							continue;
-
-						GpuTextureSubresourceRange range = GetTextureRange(*resource, binding.Surface);
-						// GetTextureRange() reports resource aspects, while sampling a depth-stencil texture only reads the
-						// depth plane. Keep the tracked range to that plane so a read-only depth attachment can be sampled
-						// while its stencil aspect is still being written.
-						if (type == GpuParameterType::SampledTexture && range.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
-							range.AspectMask = GpuTextureAspectFlag::Depth;
-
-						const GpuImageLayout imageLayout = type == GpuParameterType::StorageTexture ? GpuImageLayout::General : GpuImageLayout::ShaderReadOnly;
-						if(!resourceTracker.TrackImageUsage(resource, range, imageLayout, useFlags, access, barrierHelper))
-							return false;
-					}
-					return true;
-				};
-
-				return fnTrackTextures(parameters.GetSampledTextures(), GpuParameterType::SampledTexture, GpuAccessFlag::Read) && fnTrackTextures(parameters.GetStorageTextures(), GpuParameterType::StorageTexture, GpuAccessFlag::Read | GpuAccessFlag::Write);
+				if (stages.IsSet(GpuProgramStageBit::Fragment))
+					[encoder setFragmentBuffer:argumentBuffer offset:(NSUInteger)parameters.GetArgumentBufferOffset() atIndex:parameters.GetSet()];
 			}
 
-		} // namespace
+			/** Compute-encoder counterpart of AttachArgumentBufferToRenderEncoder. */
+			void AttachArgumentBufferToComputeEncoder(id<MTLComputeCommandEncoder> encoder, const MetalGpuParameters& parameters, MetalResourceTracker& resourceTracker)
+			{
+				const MetalGpuPipelineParameterSetLayout* layout = parameters.GetMetalLayout();
+				id<MTLBuffer> argumentBuffer = parameters.GetArgumentBuffer();
+				if (!layout || argumentBuffer == nil || parameters.GetSet() >= kMetalVertexBufferSlotBase || !layout->GetCombinedStages().IsSet(GpuProgramStageBit::Compute))
+					return;
 
-		MetalGpuCommandBuffer::MetalGpuCommandBuffer(MetalGpuDevice& device, MetalGpuCommandBufferPool& pool, u32 id, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation)
-			: GpuCommandBuffer(device, ownerThread, queueType, createInformation), mGpuDevice(device), mPool(pool), mImpl(B3DMakeUnique<Impl>()), mId(id), mBarrierHelper(&mResourceTracker)
-		{
-		}
+				TrackArgumentBuffer(parameters, resourceTracker);
+				[encoder setBuffer:argumentBuffer offset:(NSUInteger)parameters.GetArgumentBufferOffset() atIndex:parameters.GetSet()];
+			}
 
-		namespace
-		{
 			/**
-			 * Closes every encoder on @p impl that is currently open. Residency-cache invalidation is
-			 * @b not performed here — callers that need it must reset @c mRenderResidencyCaches /
-			 * @c mComputeResidencyCaches (per A'3, one slot per bound parameter set) based on which
-			 * encoder transitions matter for them. Keeping the reset out of this helper avoids
-			 * redundant resets in dtor / @c End / @c EnsureEncoderKind paths where the caller already
-			 * knows what changed.
+			 * Replaces the contents of @p resources with the parameter set's cached resource handles at @p resourceIndices,
+			 * skipping unbound (nil) entries. The caller must have called MetalGpuParameters::PrepareForBind() first.
 			 */
+			void GatherBucketResources(const MetalGpuParameters& parameters, const TArray<u32>& resourceIndices, Vector<__unsafe_unretained id<MTLResource>>& resources)
+			{
+				resources.clear();
+				for (u32 resourceIndex : resourceIndices)
+				{
+					id<MTLResource> resource = parameters.GetCachedResource(resourceIndex);
+					if (resource != nil)
+						resources.push_back(resource);
+				}
+			}
+
+			/**
+			 * Makes the parameter set's resources resident on the render encoder, issuing one useResources: call per
+			 * (usage, stages) bucket precomputed by the parameter set layout.
+			 */
+			void UseResourcesOnRenderEncoder(id<MTLRenderCommandEncoder> encoder, const MetalGpuParameters& parameters, Vector<__unsafe_unretained id<MTLResource>>& resources)
+			{
+				const MetalGpuPipelineParameterSetLayout* layout = parameters.GetMetalLayout();
+				if (!layout)
+					return;
+
+				for (const auto& bucket : layout->GetRenderBuckets())
+				{
+					GatherBucketResources(parameters, bucket.ResourceIndices, resources);
+					if (!resources.empty())
+						[encoder useResources:resources.data() count:(NSUInteger)resources.size() usage:bucket.Usage stages:bucket.RenderStages];
+				}
+			}
+
+			/** Compute-encoder counterpart of UseResourcesOnRenderEncoder. */
+			void UseResourcesOnComputeEncoder(id<MTLComputeCommandEncoder> encoder, const MetalGpuParameters& parameters, Vector<__unsafe_unretained id<MTLResource>>& resources)
+			{
+				const MetalGpuPipelineParameterSetLayout* layout = parameters.GetMetalLayout();
+				if (!layout)
+					return;
+
+				for (const auto& bucket : layout->GetComputeBuckets())
+				{
+					GatherBucketResources(parameters, bucket.ResourceIndices, resources);
+					if (!resources.empty())
+						[encoder useResources:resources.data() count:(NSUInteger)resources.size() usage:bucket.Usage];
+				}
+			}
+
+			/** Ends every open encoder. Does not reset the residency caches, callers do that when it matters to them. */
 			void CloseAllEncoders(MetalGpuCommandBuffer::Impl& impl)
 			{
 				if (impl.RenderEncoder)
@@ -448,11 +272,13 @@ namespace b3d
 					[impl.RenderEncoder endEncoding];
 					impl.RenderEncoder = nil;
 				}
+
 				if (impl.ComputeEncoder)
 				{
 					[impl.ComputeEncoder endEncoding];
 					impl.ComputeEncoder = nil;
 				}
+
 				if (impl.BlitEncoder)
 				{
 					[impl.BlitEncoder endEncoding];
@@ -461,13 +287,17 @@ namespace b3d
 			}
 		} // namespace
 
+		MetalGpuCommandBuffer::MetalGpuCommandBuffer(MetalGpuDevice& device, MetalGpuCommandBufferPool& pool, u32 id, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation)
+			: GpuCommandBuffer(device, ownerThread, queueType, createInformation), mGpuDevice(device), mPool(pool), mImpl(B3DMakeUnique<Impl>()), mId(id), mBarrierHelper(&mResourceTracker)
+		{
+		}
+
 		MetalGpuCommandBuffer::~MetalGpuCommandBuffer()
 		{
 			if (mImpl)
 			{
-				// Close any open encoder. If the command buffer was never committed, Metal will release
-				// it automatically under ARC when the pimpl drops its reference.
 				CloseAllEncoders(*mImpl);
+
 				mImpl->CommandBuffer = nil;
 #if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION && !__has_feature(objc_arc)
 				[mImpl->ResourceFence release];
@@ -486,24 +316,23 @@ namespace b3d
 			if (mImpl->CommandBuffer != nil)
 				return mImpl->CommandBuffer;
 
-			TShared<GpuQueue> queuePtr = mGpuDevice.GetQueue(mQueueType, 0);
-			auto metalQueue = std::static_pointer_cast<MetalGpuQueue>(queuePtr);
+			auto metalQueue = std::static_pointer_cast<MetalGpuQueue>(mGpuDevice.GetQueue(mQueueType, 0));
 			if (!metalQueue)
 				return nil;
 
-			id<MTLCommandQueue> mtlQueue = metalQueue->GetMetalQueue();
-			if (mtlQueue == nil)
+			id<MTLCommandQueue> metalCommandQueue = metalQueue->GetMetalQueue();
+			if (metalCommandQueue == nil)
 				return nil;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			MTLCommandBufferDescriptor* descriptor = [[MTLCommandBufferDescriptor alloc] init];
 			descriptor.errorOptions = MTLCommandBufferErrorOptionEncoderExecutionStatus;
-			mImpl->CommandBuffer = [mtlQueue commandBufferWithDescriptor:descriptor];
+			mImpl->CommandBuffer = [metalCommandQueue commandBufferWithDescriptor:descriptor];
 #if !__has_feature(objc_arc)
 			[descriptor release];
 #endif
 #else
-			mImpl->CommandBuffer = [mtlQueue commandBuffer];
+			mImpl->CommandBuffer = [metalCommandQueue commandBuffer];
 #endif
 			if (mImpl->CommandBuffer == nil)
 				return nil;
@@ -524,15 +353,12 @@ namespace b3d
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			if (!mName.empty())
 			{
-				NSString* nsName = [NSString stringWithUTF8String:mName.c_str()];
-				[mImpl->CommandBuffer setLabel:nsName];
+				NSString* label = [NSString stringWithUTF8String:mName.c_str()];
+				[mImpl->CommandBuffer setLabel:label];
 			}
 #endif
 
-			// First acquisition of the native buffer marks the start of recording. Metal has no
-			// explicit Begin(); the core state machine's Ready -> Recording edge maps onto the lazy
-			// acquire here so external observers (pool Reset/Destroy validation) can distinguish a
-			// pristine buffer from one that has recorded work.
+			// Metal has no explicit Begin(), so the first acquisition marks the start of recording
 			if (mState == GpuCommandBufferState::Ready)
 				mState = GpuCommandBufferState::Recording;
 
@@ -541,12 +367,7 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::EnsureEncoderKind(EncoderKind targetKind)
 		{
-			// Mismatched encoders are closed; a matching encoder is left alone so repeated calls with
-			// the same @p targetKind are no-ops. @c EncoderKind::None means "close everything" (used
-			// at @c BeginRenderPass / @c End). B3 residency caches are reset when the corresponding
-			// encoder is actually closed — @c useResource: marks are scoped to an encoder's lifetime
-			// on Metal, so a closed-and-later-reopened encoder of the same kind is a fresh scope and
-			// the next bind correctly re-emits @c useResources:. Blit has no residency cache.
+			// Metal scopes useResource: to a single encoder, so closing an encoder also resets its residency caches
 			if (targetKind != EncoderKind::Render && mImpl->RenderEncoder != nil)
 			{
 #if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
@@ -554,10 +375,12 @@ namespace b3d
 #endif
 				[mImpl->RenderEncoder endEncoding];
 				mImpl->RenderEncoder = nil;
+
 				ResetRenderResidencyCaches();
 				ResetArgumentTableBindings();
 				EncodePendingEventSignals();
 			}
+
 			if (targetKind != EncoderKind::Compute && mImpl->ComputeEncoder != nil)
 			{
 #if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
@@ -565,9 +388,11 @@ namespace b3d
 #endif
 				[mImpl->ComputeEncoder endEncoding];
 				mImpl->ComputeEncoder = nil;
+
 				ResetComputeResidencyCaches();
 				ResetArgumentTableBindings();
 			}
+
 			if (targetKind != EncoderKind::Blit && mImpl->BlitEncoder != nil)
 			{
 #if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
@@ -585,6 +410,7 @@ namespace b3d
 			{
 				B3D_LOG(Fatal, LogRenderBackend, "Cannot restart the Metal render pass required for explicit resource synchronization.");
 				mRecordingFailed = true;
+
 				EnsureEncoderKind(EncoderKind::None);
 				return false;
 			}
@@ -613,8 +439,10 @@ namespace b3d
 			{
 				B3D_LOG(Fatal, LogRenderBackend, "Failed to resume a Metal render pass after an encoder boundary.");
 				mRecordingFailed = true;
+
 				return false;
 			}
+
 			mGraphicsPushConstantsRequireBind = true;
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			mImpl->RenderEncoder.label = @"Render pass (resumed)";
@@ -625,6 +453,7 @@ namespace b3d
 #endif
 			if (mImpl->HasViewport)
 				[mImpl->RenderEncoder setViewport:mImpl->Viewport];
+
 			if (mImpl->HasScissor)
 				[mImpl->RenderEncoder setScissorRect:mImpl->Scissor];
 
@@ -650,10 +479,8 @@ namespace b3d
 				return false;
 			}
 
-			// visibilityResultBuffer is immutable for the lifetime of a render encoder. Continue the logical
-			// engine render pass in a fresh encoder whose attachments load the results stored by the previous
-			// encoder. The continuation path restores dynamic state and invalidates residency caches, so the
-			// next draw rebinds its pipeline and argument buffers normally.
+			// visibilityResultBuffer cannot change within a render encoder, so continue the render pass in a new encoder
+			// that loads the attachments the previous one stored
 			mImpl->RestartRenderPassDescriptor.visibilityResultBuffer = visibilityBuffer;
 			EnsureEncoderKind(EncoderKind::None);
 			mActiveOcclusionQueryPool.reset();
@@ -706,39 +533,35 @@ namespace b3d
 
 		id<MTLCommandEncoder> MetalGpuCommandBuffer::GetActiveEncoder() const
 		{
-			// The command buffer only ever holds one live encoder at a time (see @c EnsureEncoderKind).
-			// The branch order here matches @c BeginLabel / @c EndLabel / @c InsertLabel — it does not
-			// reflect any priority ordering. Returns @c nil when no encoder is currently open; callers
-			// that want to fall back to the command buffer for label emission must handle that case
-			// explicitly (see @c BeginLabel / @c EndLabel).
+			// At most one encoder is open at a time
 			if (mImpl->RenderEncoder)
 				return mImpl->RenderEncoder;
+
 			if (mImpl->ComputeEncoder)
 				return mImpl->ComputeEncoder;
+
 			if (mImpl->BlitEncoder)
 				return mImpl->BlitEncoder;
+
 			return nil;
 		}
 
 		id<MTLBlitCommandEncoder> MetalGpuCommandBuffer::GetOrOpenBlitEncoder()
 		{
-			// blitCommandEncoder returns an autoreleased @c MTLBlitCommandEncoder. Under the fiber
-			// scheduler the outer runloop may not drain, so we stage allocations inside a local pool;
-			// the encoder itself is retained via mImpl->BlitEncoder before the pool drains.
+			// The encoder is autoreleased and worker threads have no run loop draining a pool. mImpl->BlitEncoder
+			// retains it before this pool drains.
 			@autoreleasepool
 			{
-			// Close any non-blit encoder; residency caches are reset inside the helper. A blit encoder
-			// already open is left alone below.
 			EnsureEncoderKind(EncoderKind::Blit);
 
 			if (mImpl->BlitEncoder != nil)
 				return mImpl->BlitEncoder;
 
-			id<MTLCommandBuffer> cmdBuffer = GetOrAcquireMetalCommandBuffer();
-			if (cmdBuffer == nil)
+			id<MTLCommandBuffer> commandBuffer = GetOrAcquireMetalCommandBuffer();
+			if (commandBuffer == nil)
 				return nil;
 
-			mImpl->BlitEncoder = [cmdBuffer blitCommandEncoder];
+			mImpl->BlitEncoder = [commandBuffer blitCommandEncoder];
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			mImpl->BlitEncoder.label = @"Blit pass";
 #endif
@@ -752,6 +575,7 @@ namespace b3d
 		bool MetalGpuCommandBuffer::EncodeSignalEvent(id<MTLSharedEvent> event, u64 value)
 		{
 			EnsureValidThread();
+
 			if (event == nil || mRecordingFailed)
 				return false;
 
@@ -802,52 +626,58 @@ namespace b3d
 			mName = name;
 			if (mImpl->CommandBuffer)
 			{
-				NSString* nsName = [NSString stringWithUTF8String:mName.c_str()];
-				[mImpl->CommandBuffer setLabel:nsName];
+				NSString* label = [NSString stringWithUTF8String:mName.c_str()];
+				[mImpl->CommandBuffer setLabel:label];
 			}
 		}
 
 		void MetalGpuCommandBuffer::SetGpuParameterSet(const TShared<GpuParameterSet>& parameters)
 		{
-			// B1: the per-parameter-set path below may walk retained Obj-C handles under the hood;
-			// drain transients locally so the fiber scheduler does not accumulate them across frames.
 			@autoreleasepool
 			{
 			EnsureValidThread();
 
-			// A'3: null-in is a no-op (intentional narrowing relative to the old single-slot model).
-			// The engine clears a set by binding the replacement set at the same index, so null
-			// carries no set index we can use to locate the slot to clear. The old code
-			// @c mBoundParameterSet = parameters wiped the single slot, but the multi-slot analog
-			// cannot be expressed unambiguously.
+			// A null set carries no set index, so there is no slot to clear. Sets are replaced by binding another set at the same index.
 			if (!parameters)
 				return;
 
+			if (!BindParameterSet(parameters))
+				return;
+
+			mGraphicsResourcesRequireTracking = true;
+
+			// Pending writes are committed and residency emitted at draw / dispatch, so binding a set several times
+			// before a draw only does that work once
+			} // @autoreleasepool
+		}
+
+		bool MetalGpuCommandBuffer::BindParameterSet(const TShared<GpuParameterSet>& parameters)
+		{
 			const u32 setIndex = parameters->GetSet();
 			if (setIndex >= kMetalVertexBufferSlotBase)
 			{
-				B3D_LOG(Error, LogRenderBackend,
-					"Metal parameter set index {0} collides with reserved vertex-buffer slots.", setIndex);
-				return;
+				B3D_LOG(Error, LogRenderBackend, "Metal parameter set index {0} collides with reserved vertex-buffer slots.", setIndex);
+				return false;
 			}
+
 			if (setIndex >= (u32)mBoundParameterSets.Size())
 			{
 				mBoundParameterSets.Resize(setIndex + 1);
-				// Keep the per-slot residency caches and offset overrides grown in lockstep so @c Draw /
-				// @c DispatchCompute can index them symmetrically with @c mBoundParameterSets.
 				mRenderResidencyCaches.Resize(setIndex + 1);
 				mComputeResidencyCaches.Resize(setIndex + 1);
 				mDynamicOffsetOverridesPerSet.Resize(setIndex + 1);
 			}
+
+			// The caches identify sets by address, and the replaced set may be freed and its address reused by a new set
+			if (mBoundParameterSets[setIndex] != parameters)
+			{
+				mRenderResidencyCaches[setIndex].Reset();
+				mComputeResidencyCaches[setIndex].Reset();
+			}
+
 			mBoundParameterSets[setIndex] = parameters;
 			ResetDynamicOffsetOverrides(setIndex);
-			mGraphicsResourcesRequireTracking = true;
-
-			// B5: only attach the argument buffer to the encoder here. Do NOT commit pending SetX
-			// writes and do NOT emit useResource: — those now live on the draw / dispatch path so a
-			// set is only rewritten once per draw even when the engine issues SetGpuParameterSet
-			// multiple times per draw.
-			} // @autoreleasepool
+			return true;
 		}
 
 		void MetalGpuCommandBuffer::ResetDynamicOffsetOverrides(u32 setIndex)
@@ -926,6 +756,7 @@ namespace b3d
 		void MetalGpuCommandBuffer::SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState)
 		{
 			EnsureValidThread();
+
 			mBoundGraphicsPipeline = std::static_pointer_cast<MetalGpuGraphicsPipelineState>(pipelineState);
 			mGraphicsResourcesRequireTracking = true;
 			mGraphicsPushConstantsRequireBind = true;
@@ -934,6 +765,7 @@ namespace b3d
 		void MetalGpuCommandBuffer::SetGpuComputePipelineState(const TShared<GpuComputePipelineState>& pipelineState)
 		{
 			EnsureValidThread();
+
 			mBoundComputePipeline = pipelineState;
 			mGraphicsResourcesRequireTracking = true;
 			mComputePushConstantsRequireBind = true;
@@ -941,10 +773,10 @@ namespace b3d
 			if (!pipelineState || !mImpl->ComputeEncoder)
 				return;
 
-			auto metalCompute = std::static_pointer_cast<MetalGpuComputePipelineState>(pipelineState);
-			id<MTLComputePipelineState> pso = metalCompute->GetMetalPipeline();
-			if (pso)
-				[mImpl->ComputeEncoder setComputePipelineState:pso];
+			auto metalPipelineState = std::static_pointer_cast<MetalGpuComputePipelineState>(pipelineState);
+			id<MTLComputePipelineState> metalPipeline = metalPipelineState->GetMetalPipeline();
+			if (metalPipeline)
+				[mImpl->ComputeEncoder setComputePipelineState:metalPipeline];
 		}
 
 		void MetalGpuCommandBuffer::BindPushConstants(bool isGraphics)
@@ -962,7 +794,7 @@ namespace b3d
 				return;
 
 			const u32 pushConstantBufferSize = parameterLayout->GetPushConstantBufferSize();
-			const u32 stageMask = parameterLayout->GetPushConstantStageMask();
+			const GpuProgramStageBits stages = parameterLayout->GetPushConstantStages();
 			B3D_ASSERT((pushConstantBufferSize & 3u) == 0);
 			B3D_ASSERT(pushConstantBufferSize <= kMaxPushConstantSizeInBytes);
 
@@ -971,15 +803,15 @@ namespace b3d
 				if(isGraphics)
 				{
 					B3D_ASSERT(mImpl->RenderEncoder != nil);
-					if(stageMask & (u32)GpuProgramStageBit::Vertex)
+					if(stages.IsSet(GpuProgramStageBit::Vertex))
 						[mImpl->RenderEncoder setVertexBytes:mPushConstants.GetData() length:pushConstantBufferSize atIndex:kMetalPushConstantBufferIndex];
-					if(stageMask & (u32)GpuProgramStageBit::Fragment)
+					if(stages.IsSet(GpuProgramStageBit::Fragment))
 						[mImpl->RenderEncoder setFragmentBytes:mPushConstants.GetData() length:pushConstantBufferSize atIndex:kMetalPushConstantBufferIndex];
 				}
 				else
 				{
 					B3D_ASSERT(mImpl->ComputeEncoder != nil);
-					if(stageMask & (u32)GpuProgramStageBit::Compute)
+					if(stages.IsSet(GpuProgramStageBit::Compute))
 						[mImpl->ComputeEncoder setBytes:mPushConstants.GetData() length:pushConstantBufferSize atIndex:kMetalPushConstantBufferIndex];
 				}
 			}
@@ -1052,7 +884,7 @@ namespace b3d
 					bool bufferChanged = false;
 					if (!isGraphics)
 					{
-						if ((binding.StageMask & (u32)GpuProgramStageBit::Compute) && fnNeedsBind(mImpl->ComputeArgumentTable[tableIndex], bufferChanged))
+						if (binding.Stages.IsSet(GpuProgramStageBit::Compute) && fnNeedsBind(mImpl->ComputeArgumentTable[tableIndex], bufferChanged))
 						{
 							if (bufferChanged)
 								[mImpl->ComputeEncoder setBuffer:metalBuffer offset:offset atIndex:bufferIndex];
@@ -1063,8 +895,8 @@ namespace b3d
 						continue;
 					}
 
-					const u32 vertexStages = (u32)GpuProgramStageBit::Vertex | (u32)GpuProgramStageBit::Hull | (u32)GpuProgramStageBit::Domain;
-					if ((binding.StageMask & vertexStages) && fnNeedsBind(mImpl->VertexArgumentTable[tableIndex], bufferChanged))
+					const GpuProgramStageBits vertexStages = GpuProgramStageBit::Vertex | GpuProgramStageBit::Hull | GpuProgramStageBit::Domain;
+					if (binding.Stages.IsSetAny(vertexStages) && fnNeedsBind(mImpl->VertexArgumentTable[tableIndex], bufferChanged))
 					{
 						if (bufferChanged)
 							[mImpl->RenderEncoder setVertexBuffer:metalBuffer offset:offset atIndex:bufferIndex];
@@ -1072,7 +904,7 @@ namespace b3d
 							[mImpl->RenderEncoder setVertexBufferOffset:offset atIndex:bufferIndex];
 					}
 
-					if ((binding.StageMask & (u32)GpuProgramStageBit::Fragment) && fnNeedsBind(mImpl->FragmentArgumentTable[tableIndex], bufferChanged))
+					if (binding.Stages.IsSet(GpuProgramStageBit::Fragment) && fnNeedsBind(mImpl->FragmentArgumentTable[tableIndex], bufferChanged))
 					{
 						if (bufferChanged)
 							[mImpl->RenderEncoder setFragmentBuffer:metalBuffer offset:offset atIndex:bufferIndex];
@@ -1097,8 +929,7 @@ namespace b3d
 		{
 			EnsureValidThread();
 
-			// Only record the engine-level buffers here; the native handles are resolved in
-			// ApplyVertexBuffersToRenderEncoder at draw time. See mBoundVertexBuffers for why.
+			// Native handles are resolved at draw time, see mBoundVertexBuffers
 			const u32 endIndex = index + bufferCount;
 			while ((u32)mBoundVertexBuffers.Size() < endIndex)
 				mBoundVertexBuffers.Add(nullptr);
@@ -1109,20 +940,10 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::ApplyVertexBuffersToRenderEncoder()
 		{
-			// B1: setVertexBuffer:offset:atIndex: retains transient objects inside the encoder state
-			// snapshot; drain them locally so they do not survive past the call under the fiber scheduler.
 			@autoreleasepool
 			{
 			if (mImpl->RenderEncoder == nil)
 				return;
-
-			// Argument buffers for parameter sets occupy low buffer slots; offset the vertex-stream slot
-			// so it matches the slot the pipeline's vertex descriptor expects. The base is the same
-			// device-wide constant for every pipeline, so it must not depend on a pipeline being bound —
-			// the engine legitimately calls SetVertexBuffers before SetGpuGraphicsPipelineState (e.g.
-			// NVGVectorPathRenderable::Render), and a zero fallback used to bind the stream at slot 0
-			// where it collided with parameter-set argument buffers and left slot 16 unbound.
-			const u32 baseIndex = kMetalVertexBufferSlotBase;
 
 			for (u32 streamIndex = 0; streamIndex < (u32)mBoundVertexBuffers.Size(); streamIndex++)
 			{
@@ -1135,13 +956,12 @@ namespace b3d
 				if (resource != nullptr)
 					mResourceTracker.TrackBufferAccess(resource, GpuStageFlag::VertexInputAttributes, GpuAccessFlag::Read, mBarrierHelper);
 
-				const NSUInteger metalIndex = baseIndex + streamIndex;
+				// Vertex streams sit above the argument buffer slots, matching the pipeline's vertex descriptor
+				const NSUInteger metalIndex = kMetalVertexBufferSlotBase + streamIndex;
 
-				auto existing = std::find_if(mImpl->VertexBufferBindings.begin(), mImpl->VertexBufferBindings.end(),
-					[metalIndex](const Impl::VertexBufferBinding& binding) { return binding.Index == metalIndex; });
+				auto existing = std::find_if(mImpl->VertexBufferBindings.begin(), mImpl->VertexBufferBindings.end(), [metalIndex](const Impl::VertexBufferBinding& binding) { return binding.Index == metalIndex; });
 				if (existing != mImpl->VertexBufferBindings.end())
 				{
-					// The encoder already holds this exact allocation; skip the redundant native call.
 					if (existing->Buffer == buffer && existing->Offset == 0)
 						continue;
 
@@ -1183,15 +1003,11 @@ namespace b3d
 		{
 			outSkipDraw = false;
 
-			// Pipelines that declare no vertex inputs (fullscreen passes, vertex-ID-only draws) need no
-			// resolution; the variant key stays at VertexInputId 0.
+			// Pipelines without vertex inputs (e.g. fullscreen passes) keep VertexInputId 0 in the variant key
 			MetalGpuGraphicsPipelineState* pipeline = mBoundGraphicsPipeline.get();
 			if (pipeline == nullptr || pipeline->GetInputDeclaration() == nullptr)
 				return nullptr;
 
-			// The pipeline expects vertex input but the caller never bound a vertex-buffer description.
-			// Skipping the draw (rather than resolving against a null layout) matches the Vulkan backend,
-			// which requires a bound vertex declaration whenever the shader declares inputs.
 			if (!mBoundVertexDescription)
 			{
 				B3D_LOG(Warning, LogRenderBackend, "Skipping draw: graphics pipeline declares vertex inputs but no vertex description is bound.");
@@ -1207,9 +1023,7 @@ namespace b3d
 				return nullptr;
 			}
 
-			// Bind the device's shared zero-filled null vertex buffer at the null stream's slot so shader
-			// inputs with no matching vertex-buffer element fetch a full zeroed element. The slot is
-			// offset by kMetalVertexBufferSlotBase to match the MTLVertexDescriptor the pipeline compiled.
+			// Shader inputs with no matching vertex buffer element read zeroes from the null stream
 			if (vertexInput->HasNullStream() && mImpl->RenderEncoder != nil)
 			{
 				[mImpl->RenderEncoder setVertexBuffer:mGpuDevice.GetNullVertexBuffer()
@@ -1220,23 +1034,21 @@ namespace b3d
 			return vertexInput;
 		}
 
-		static bool BindGraphicsPipelineForDraw(MetalGpuCommandBuffer::Impl& impl, MetalGpuGraphicsPipelineState* pipeline, DrawOperationType drawOp, const MetalPipelineVariantKey& renderPassKey, const TShared<MetalVertexInput>& vertexInput)
+		static bool BindGraphicsPipelineForDraw(MetalGpuCommandBuffer::Impl& impl, MetalGpuGraphicsPipelineState* pipeline, DrawOperationType drawOperation, const MetalPipelineVariantKey& renderPassKey, const TShared<MetalVertexInput>& vertexInput)
 		{
 			if (!pipeline || impl.RenderEncoder == nil)
 				return false;
 
-			// The render pass populates color/depth/stencil formats and sample count at BeginRenderPass
-			// time; the topology class is the one part of the key that varies per draw call. The vertex
-			// input id (0 when the pipeline consumes no vertex input) selects the compiled variant whose
-			// MTLVertexDescriptor matches the resolved vertex-buffer / shader-input pairing.
+			// The render pass supplies the attachment formats and sample count, only topology and vertex input vary per draw
 			MetalPipelineVariantKey key = renderPassKey;
-			key.TopologyClass = (u16)MetalUtility::GetPrimitiveTopologyClass(drawOp);
+			key.TopologyClass = (u16)MetalUtility::GetPrimitiveTopologyClass(drawOperation);
 			key.VertexInputId = vertexInput ? vertexInput->GetId() : 0;
 
-			id<MTLRenderPipelineState> pso = pipeline->GetOrCreateMetalPipeline(key, vertexInput);
-			if (pso == nil)
+			id<MTLRenderPipelineState> metalPipeline = pipeline->GetOrCreateMetalPipeline(key, vertexInput);
+			if (metalPipeline == nil)
 				return false;
-			[impl.RenderEncoder setRenderPipelineState:pso];
+
+			[impl.RenderEncoder setRenderPipelineState:metalPipeline];
 
 			id<MTLDepthStencilState> depthStencil = pipeline->GetMetalDepthStencilState((key.ReadOnlyMask & RT_DEPTH) != 0, (key.ReadOnlyMask & RT_STENCIL) != 0);
 			if (depthStencil)
@@ -1268,7 +1080,7 @@ namespace b3d
 				if(parameters == nullptr)
 					continue;
 
-				if(!TrackParameterResources(static_cast<MetalGpuParameters&>(*parameters), mDynamicOffsetOverridesPerSet[setIndex], compute, mResourceTracker, mBarrierHelper))
+				if(!static_cast<MetalGpuParameters&>(*parameters).TrackResources(mResourceTracker, mBarrierHelper, mDynamicOffsetOverridesPerSet[setIndex], compute))
 					return false;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
@@ -1281,98 +1093,93 @@ namespace b3d
 			return true;
 		}
 
-		void MetalGpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance)
+		void MetalGpuCommandBuffer::AttachParameterSetsToEncoder(bool isGraphics)
 		{
-			EnsureValidThread();
-			if (mImpl->RenderEncoder == nil || vertexCount == 0)
-				return;
-
-			// B1: commit + residency emission + draw encode all produce retained Obj-C transients
-			// (pipeline state lookups, resource-handle temporaries, NSArray wrappers for
-			// useResources:). Drain locally — the fiber scheduler may go many frames without a
-			// runloop tick so accumulation across frames would otherwise be visible.
-			@autoreleasepool
-			{
-			// Resolve vertex-buffer handles now rather than at SetVertexBuffers time - the engine may have
-			// recreated a bound buffer's backing in between. Must precede the barrier flush so the usage it
-			// tracks is included, and so a pass restart replays the refreshed binding list.
-			ApplyVertexBuffersToRenderEncoder();
-
-			if(!TrackShaderResources(false))
-				return;
-
-			if (!ExecutePendingBarriers())
-				return;
-
-			// A'1 + B5: for every bound parameter set, (1) attach the argument buffer on the render
-			// encoder, (2) commit pending Set* writes, (3) emit useResource: for every referenced
-			// resource. @c SetGpuParameterSet can run before the render encoder exists (the engine's
-			// @c BeginRenderPass(target, params) flow), so this path attaches a set the first time it is
-			// used by the current encoder. CommitPendingBindings internally short-circuits when the set
-			// has no dirty entries and returns the residency generation under the same lock.
+			// Sets can be bound before the encoder exists, so they are attached and made resident here. Residency lasts for
+			// the encoder's lifetime, so it is skipped for a set already emitted at the same generation.
+			TInlineArray<ParameterSetResidencyCache, 4>& residencyCaches = isGraphics ? mRenderResidencyCaches : mComputeResidencyCaches;
 			for (u32 slotIndex = 0; slotIndex < (u32)mBoundParameterSets.Size(); slotIndex++)
 			{
 				const TShared<GpuParameterSet>& slotSet = mBoundParameterSets[slotIndex];
 				if (!slotSet)
 					continue;
 
-				auto metalParams = std::static_pointer_cast<MetalGpuParameters>(slotSet);
+				auto& metalParameters = static_cast<MetalGpuParameters&>(*slotSet);
+				ParameterSetResidencyCache& cacheEntry = residencyCaches[slotIndex];
 
-				// B3 / A'3: skip the @c useResources: emission loop when the same parameter set at
-				// the same generation was already marked resident against the currently-open render
-				// encoder. Residency persists for the encoder's lifetime, so re-emitting is pure
-				// overhead. A generation bump (triggered by any Set* that genuinely changed a
-				// binding) forces a re-emit naturally. Cache is keyed per bound slot so multiple
-				// sets on the same encoder don't thrash a single cache entry.
-				ParameterSetResidencyCache& cacheEntry = mRenderResidencyCaches[slotIndex];
-				const bool setChanged = cacheEntry.LastBoundSet != metalParams.get();
-				// Commit before attaching: a copy-on-write commit can move the slice, changing the
-				// attach offset. The generation bump it performs forces the re-attach below.
-				const u64 generation = metalParams->CommitPendingBindings();
-				const bool cacheHit = !setChanged
-					&& cacheEntry.LastBoundGeneration == generation;
-				if (!cacheHit)
+				// Prepare before attaching: a copy-on-write can move the argument buffer, and the generation bump it performs forces the re-attach below
+				const u64 generation = metalParameters.PrepareForBind();
+				if (cacheEntry.LastBoundSet == &metalParameters && cacheEntry.LastBoundGeneration == generation)
+					continue;
+
+				if (isGraphics)
 				{
-					AttachArgumentBufferToRenderEncoder(mImpl->RenderEncoder, *metalParams);
-					EmitResidencyForRenderEncoder(mImpl->RenderEncoder, *metalParams);
-					cacheEntry.LastBoundSet = metalParams.get();
-					cacheEntry.LastBoundGeneration = generation;
+					AttachArgumentBufferToRenderEncoder(mImpl->RenderEncoder, metalParameters, mResourceTracker);
+					UseResourcesOnRenderEncoder(mImpl->RenderEncoder, metalParameters, mImpl->ResidencyResources);
 				}
-			}
+				else
+				{
+					AttachArgumentBufferToComputeEncoder(mImpl->ComputeEncoder, metalParameters, mResourceTracker);
+					UseResourcesOnComputeEncoder(mImpl->ComputeEncoder, metalParameters, mImpl->ResidencyResources);
+				}
 
+				cacheEntry.LastBoundSet = &metalParameters;
+				cacheEntry.LastBoundGeneration = generation;
+			}
+		}
+
+		bool MetalGpuCommandBuffer::PrepareDraw(MetalBuffer* indexBuffer)
+		{
+			// Must precede the barrier flush, so vertex buffer usage is tracked and a pass restart replays the current bindings
+			ApplyVertexBuffersToRenderEncoder();
+
+			if (indexBuffer != nullptr)
+				mResourceTracker.TrackBufferAccess(indexBuffer, GpuStageFlag::VertexInputIndices, GpuAccessFlag::Read, mBarrierHelper);
+
+			if(!TrackShaderResources(false))
+				return false;
+
+			if (!ExecutePendingBarriers())
+				return false;
+
+			AttachParameterSetsToEncoder(true);
 			BindDynamicUniformBuffers(true);
 
-			// Resolve the vertex input (and bind the null stream) against the bound vertex description
-			// before selecting the pipeline variant — its id participates in the PSO variant key.
 			bool skipDraw = false;
 			TShared<MetalVertexInput> vertexInput = ResolveVertexInputForDraw(skipDraw);
 			if (skipDraw)
-				return;
+				return false;
 
 			if (!BindGraphicsPipelineForDraw(*mImpl, mBoundGraphicsPipeline.get(), mDrawOperation, mRenderPassPipelineKey, vertexInput))
-				return;
+				return false;
+
 			BindPushConstants(true);
 			[mImpl->RenderEncoder setStencilReferenceValue:mStencilReference];
 
-			MTLPrimitiveType primitive = MetalUtility::GetPrimitiveType(mDrawOperation);
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			if(!ValidateDrawAccesses())
-				return;
+				return false;
 #endif
 
-			[mImpl->RenderEncoder drawPrimitives:primitive
+			return true;
+		}
+
+		void MetalGpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance)
+		{
+			EnsureValidThread();
+			if (mImpl->RenderEncoder == nil || vertexCount == 0)
+				return;
+
+			@autoreleasepool
+			{
+			if (!PrepareDraw(nullptr))
+				return;
+
+			[mImpl->RenderEncoder drawPrimitives:MetalUtility::GetPrimitiveType(mDrawOperation)
 				vertexStart:vertexOffset
 				vertexCount:vertexCount
 				instanceCount:std::max<u32>(1, instanceCount)
 				baseInstance:firstInstance];
-
-			// The encoded draw reads the argument buffers at GPU execution time — later binding
-			// changes must copy-on-write instead of mutating the consumed slices.
-			for (const TShared<GpuParameterSet>& slotSet : mBoundParameterSets)
-			{
-				if (slotSet)
-					std::static_pointer_cast<MetalGpuParameters>(slotSet)->MarkArgumentBufferConsumed();
-			}
 			} // @autoreleasepool
 		}
 
@@ -1384,80 +1191,21 @@ namespace b3d
 			if (mImpl->RenderEncoder == nil || !mBoundIndexBuffer || indexCount == 0)
 				return;
 
-			// B1: same rationale as @c Draw — drain transient Obj-C objects produced during commit,
-			// residency emission, and the draw encode.
 			@autoreleasepool
 			{
-			// See Draw() - vertex-buffer handles are resolved per draw, ahead of the barrier flush.
-			ApplyVertexBuffersToRenderEncoder();
-
-			auto metalIndex = std::static_pointer_cast<MetalGpuBuffer>(mBoundIndexBuffer);
-			MetalBuffer* indexResource = metalIndex ? metalIndex->GetMetalResource() : nullptr;
-			if (indexResource != nullptr)
-				mResourceTracker.TrackBufferAccess(indexResource, GpuStageFlag::VertexInputIndices, GpuAccessFlag::Read, mBarrierHelper);
-
-			if(!TrackShaderResources(false))
-				return;
-
-			if (!ExecutePendingBarriers())
-				return;
-
-			// A'1 + B5: same rationale as @c Draw — iterate every bound slot, attach + commit +
-			// emit-residency per slot. See @c Draw for the full comment.
-			for (u32 slotIndex = 0; slotIndex < (u32)mBoundParameterSets.Size(); slotIndex++)
-			{
-				const TShared<GpuParameterSet>& slotSet = mBoundParameterSets[slotIndex];
-				if (!slotSet)
-					continue;
-
-				auto metalParams = std::static_pointer_cast<MetalGpuParameters>(slotSet);
-
-				// B3 / A'3: residency-elision cache — see @c Draw. Per-slot keying. Commit before
-				// attach — a copy-on-write commit can move the slice (see @c Draw).
-				ParameterSetResidencyCache& cacheEntry = mRenderResidencyCaches[slotIndex];
-				const bool setChanged = cacheEntry.LastBoundSet != metalParams.get();
-				const u64 generation = metalParams->CommitPendingBindings();
-				const bool cacheHit = !setChanged
-					&& cacheEntry.LastBoundGeneration == generation;
-				if (!cacheHit)
-				{
-					AttachArgumentBufferToRenderEncoder(mImpl->RenderEncoder, *metalParams);
-					EmitResidencyForRenderEncoder(mImpl->RenderEncoder, *metalParams);
-					cacheEntry.LastBoundSet = metalParams.get();
-					cacheEntry.LastBoundGeneration = generation;
-				}
-			}
-
-			BindDynamicUniformBuffers(true);
-
-			// Resolve the vertex input (and bind the null stream) before selecting the pipeline variant
-			// — see Draw() for the full rationale.
-			bool skipDraw = false;
-			TShared<MetalVertexInput> vertexInput = ResolveVertexInputForDraw(skipDraw);
-			if (skipDraw)
-				return;
-
-			if (!BindGraphicsPipelineForDraw(*mImpl, mBoundGraphicsPipeline.get(), mDrawOperation, mRenderPassPipelineKey, vertexInput))
-				return;
-			BindPushConstants(true);
-			[mImpl->RenderEncoder setStencilReferenceValue:mStencilReference];
-
-			id<MTLBuffer> indexBuffer = metalIndex->GetMetalBuffer();
+			auto* metalIndexBuffer = static_cast<MetalGpuBuffer*>(mBoundIndexBuffer.get());
+			id<MTLBuffer> indexBuffer = metalIndexBuffer->GetMetalBuffer();
 			if (indexBuffer == nil)
+				return;
+
+			if (!PrepareDraw(metalIndexBuffer->GetMetalResource()))
 				return;
 
 			const IndexType engineIndexType = mBoundIndexBuffer->GetInformation().Index.Type;
 			const MTLIndexType indexType = (engineIndexType == IT_32BIT) ? MTLIndexTypeUInt32 : MTLIndexTypeUInt16;
 			const u32 indexSize = (engineIndexType == IT_32BIT) ? 4u : 2u;
 
-			MTLPrimitiveType primitive = MetalUtility::GetPrimitiveType(mDrawOperation);
-
-#if B3D_BUILD_TYPE_DEVELOPMENT
-			if(!ValidateDrawAccesses())
-				return;
-#endif
-
-			[mImpl->RenderEncoder drawIndexedPrimitives:primitive
+			[mImpl->RenderEncoder drawIndexedPrimitives:MetalUtility::GetPrimitiveType(mDrawOperation)
 				indexCount:indexCount
 				indexType:indexType
 				indexBuffer:indexBuffer
@@ -1465,13 +1213,6 @@ namespace b3d
 				instanceCount:std::max<u32>(1, instanceCount)
 				baseVertex:vertexOffset
 				baseInstance:firstInstance];
-
-			// See Draw() — consumed slices must copy-on-write on the next binding change.
-			for (const TShared<GpuParameterSet>& slotSet : mBoundParameterSets)
-			{
-				if (slotSet)
-					std::static_pointer_cast<MetalGpuParameters>(slotSet)->MarkArgumentBufferConsumed();
-			}
 			} // @autoreleasepool
 		}
 
@@ -1484,42 +1225,37 @@ namespace b3d
 				return;
 			}
 
-			auto metalCompute = std::static_pointer_cast<MetalGpuComputePipelineState>(mBoundComputePipeline);
-			if (!metalCompute)
+			auto metalPipelineState = std::static_pointer_cast<MetalGpuComputePipelineState>(mBoundComputePipeline);
+			if (!metalPipelineState)
 				return;
 
-			id<MTLComputePipelineState> pso = metalCompute->GetMetalPipeline();
-			if (pso == nil)
+			id<MTLComputePipelineState> metalPipeline = metalPipelineState->GetMetalPipeline();
+			if (metalPipeline == nil)
 				return;
 
-			const u32* workgroup = metalCompute->GetWorkgroupSize();
-			const u64 threadCountPerGroup = (u64)workgroup[0] * workgroup[1] * workgroup[2];
-			if (threadCountPerGroup == 0 || threadCountPerGroup > (u64)pso.maxTotalThreadsPerThreadgroup)
+			const u32* workgroupSize = metalPipelineState->GetWorkgroupSize();
+			const u64 threadCountPerGroup = (u64)workgroupSize[0] * workgroupSize[1] * workgroupSize[2];
+			if (threadCountPerGroup == 0 || threadCountPerGroup > (u64)metalPipeline.maxTotalThreadsPerThreadgroup)
 			{
-				B3D_LOG(Error, LogRenderBackend,
-					"Ignoring call to DispatchCompute(). Pipeline workgroup size ({0}, {1}, {2}) exceeds Metal's {3}-thread limit.",
-					workgroup[0], workgroup[1], workgroup[2], (u32)pso.maxTotalThreadsPerThreadgroup);
+				B3D_LOG(Error, LogRenderBackend, "Ignoring call to DispatchCompute(). Pipeline workgroup size ({0}, {1}, {2}) exceeds Metal's {3}-thread limit.",
+					workgroupSize[0], workgroupSize[1], workgroupSize[2], (u32)metalPipeline.maxTotalThreadsPerThreadgroup);
 				return;
 			}
 
-			// Close any render / blit encoder; leave an already-open compute encoder alone. B3
-			// residency-cache invalidation for closed encoders is handled inside @c EnsureEncoderKind.
 			EnsureEncoderKind(EncoderKind::Compute);
 
-			id<MTLCommandBuffer> cmdBuffer = GetOrAcquireMetalCommandBuffer();
-			if (cmdBuffer == nil)
+			id<MTLCommandBuffer> commandBuffer = GetOrAcquireMetalCommandBuffer();
+			if (commandBuffer == nil)
 				return;
 
-			// B1: drain transients produced by compute-encoder acquisition, commit, residency emission,
-			// and dispatch. Entered after the cmd-buffer acquire early-bail so trivially-empty paths
-			// skip the wrap cost.
 			@autoreleasepool
 			{
 			if (mImpl->ComputeEncoder == nil)
 			{
-				mImpl->ComputeEncoder = [cmdBuffer computeCommandEncoder];
+				mImpl->ComputeEncoder = [commandBuffer computeCommandEncoder];
 				if (mImpl->ComputeEncoder == nil)
 					return;
+
 				mComputePushConstantsRequireBind = true;
 #if B3D_BUILD_TYPE_DEVELOPMENT
 				mImpl->ComputeEncoder.label = @"Compute pass";
@@ -1529,7 +1265,7 @@ namespace b3d
 #endif
 			}
 
-			[mImpl->ComputeEncoder setComputePipelineState:pso];
+			[mImpl->ComputeEncoder setComputePipelineState:metalPipeline];
 
 			if(!TrackShaderResources(true))
 				return;
@@ -1537,195 +1273,84 @@ namespace b3d
 			if (!ExecutePendingBarriers())
 				return;
 
-			// A'3: iterate every bound slot. Re-attach the argument buffer at the correct set
-			// index — if the set was originally bound while a render encoder was open, the compute
-			// encoder hasn't seen it yet. @c AttachArgumentBufferToComputeEncoder is idempotent so
-			// re-attaching when @c SetGpuParameterSet already covered this slot is safe.
-			for (u32 slotIndex = 0; slotIndex < (u32)mBoundParameterSets.Size(); slotIndex++)
-			{
-				const TShared<GpuParameterSet>& slotSet = mBoundParameterSets[slotIndex];
-				if (!slotSet)
-					continue;
-
-				auto metalParams = std::static_pointer_cast<MetalGpuParameters>(slotSet);
-				// B3 / A'3: residency-elision cache — see @c Draw. Keyed per slot against the
-				// compute encoder's lifetime, so a render-then-compute sequence on the same set
-				// correctly re-emits once on the compute side.
-				// Commit before attach — a copy-on-write commit can move the slice (see @c Draw).
-				ParameterSetResidencyCache& cacheEntry = mComputeResidencyCaches[slotIndex];
-				const bool setChanged = cacheEntry.LastBoundSet != metalParams.get();
-				const u64 generation = metalParams->CommitPendingBindings();
-				const bool cacheHit = !setChanged
-					&& cacheEntry.LastBoundGeneration == generation;
-				if (!cacheHit)
-				{
-					AttachArgumentBufferToComputeEncoder(mImpl->ComputeEncoder, *metalParams);
-					EmitResidencyForComputeEncoder(mImpl->ComputeEncoder, *metalParams);
-					cacheEntry.LastBoundSet = metalParams.get();
-					cacheEntry.LastBoundGeneration = generation;
-				}
-			}
-
+			AttachParameterSetsToEncoder(false);
 			BindDynamicUniformBuffers(false);
 			BindPushConstants(false);
-			MTLSize threadsPerGroup = MTLSizeMake(workgroup[0], workgroup[1], workgroup[2]);
+
+			MTLSize threadsPerGroup = MTLSizeMake(workgroupSize[0], workgroupSize[1], workgroupSize[2]);
 			MTLSize groups = MTLSizeMake(groupCountX, groupCountY, groupCountZ);
 			[mImpl->ComputeEncoder dispatchThreadgroups:groups threadsPerThreadgroup:threadsPerGroup];
-
-			// See Draw() — consumed slices must copy-on-write on the next binding change.
-			for (const TShared<GpuParameterSet>& slotSet : mBoundParameterSets)
-			{
-				if (slotSet)
-					std::static_pointer_cast<MetalGpuParameters>(slotSet)->MarkArgumentBufferConsumed();
-			}
-
 			} // @autoreleasepool
 		}
 
 		namespace
 		{
-			/** Returns true if the Metal pixel format carries a depth component. */
-			bool MetalFormatHasDepth(MTLPixelFormat fmt)
-			{
-				switch (fmt)
-				{
-				case MTLPixelFormatDepth16Unorm:
-				case MTLPixelFormatDepth32Float:
-				case MTLPixelFormatDepth24Unorm_Stencil8:
-				case MTLPixelFormatDepth32Float_Stencil8:
-					return true;
-				default:
-					return false;
-				}
-			}
-
-			/** Returns true if the Metal pixel format carries a stencil component. */
-			bool MetalFormatHasStencil(MTLPixelFormat fmt)
-			{
-				switch (fmt)
-				{
-				case MTLPixelFormatStencil8:
-				case MTLPixelFormatDepth24Unorm_Stencil8:
-				case MTLPixelFormatDepth32Float_Stencil8:
-				case MTLPixelFormatX24_Stencil8:
-				case MTLPixelFormatX32_Stencil8:
-					return true;
-				default:
-					return false;
-				}
-			}
-
 			/**
-			 * Fills in load/store actions on a color attachment descriptor from the render-pass load/clear
-			 * masks. A surface that is neither loaded nor cleared is marked DontCare so the driver can
-			 * discard its initial contents.
+			 * Sets the load and store actions of every attachment @p descriptor has a texture for. Attachments neither
+			 * loaded nor cleared use DontCare.
 			 */
-			void ConfigureColorAttachmentActions(MTLRenderPassColorAttachmentDescriptor* color, bool load, bool clear, const Color& clearColor)
+			void ConfigureAttachmentActions(MTLRenderPassDescriptor* descriptor, RenderSurfaceMask loadMask, RenderSurfaceMask clearMask, const RenderTargetClearValues& clearValues)
 			{
-				if (clear)
+				auto fnGetLoadAction = [&loadMask, &clearMask](RenderSurfaceMaskBits surface)
 				{
-					color.loadAction = MTLLoadActionClear;
+					if (clearMask.IsSet(surface))
+						return MTLLoadActionClear;
+
+					return loadMask.IsSet(surface) ? MTLLoadActionLoad : MTLLoadActionDontCare;
+				};
+
+				for (u32 attachmentIndex = 0; attachmentIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; attachmentIndex++)
+				{
+					MTLRenderPassColorAttachmentDescriptor* color = descriptor.colorAttachments[attachmentIndex];
+					if (color.texture == nil)
+						continue;
+
+					const Color& clearColor = clearValues.Colors[attachmentIndex];
+					color.loadAction = fnGetLoadAction((RenderSurfaceMaskBits)(RT_COLOR0 << attachmentIndex));
 					color.clearColor = MTLClearColorMake(clearColor.R, clearColor.G, clearColor.B, clearColor.A);
+					color.storeAction = MTLStoreActionStore;
 				}
-				else
-					color.loadAction = load ? MTLLoadActionLoad : MTLLoadActionDontCare;
 
-				color.storeAction = MTLStoreActionStore;
-			}
-
-			/**
-			 * Sets the per-face/per-slice selector on a color attachment. 3D textures use @c depthPlane;
-			 * 2D arrays and cube maps use @c slice.
-			 */
-			void ConfigureColorAttachmentSubresource(MTLRenderPassColorAttachmentDescriptor* color, const Texture& texture, u32 face, u32 mipLevel)
-			{
-				color.level = mipLevel;
-				if (texture.GetProperties().Type == TEX_TYPE_3D)
+				MTLRenderPassDepthAttachmentDescriptor* depth = descriptor.depthAttachment;
+				if (depth.texture != nil)
 				{
-					color.slice = 0;
-					color.depthPlane = face;
+					depth.loadAction = fnGetLoadAction(RT_DEPTH);
+					depth.clearDepth = clearValues.Depth;
+					depth.storeAction = MTLStoreActionStore;
 				}
-				else
+
+				MTLRenderPassStencilAttachmentDescriptor* stencil = descriptor.stencilAttachment;
+				if (stencil.texture != nil)
 				{
-					color.slice = face;
-					color.depthPlane = 0;
+					stencil.loadAction = fnGetLoadAction(RT_STENCIL);
+					stencil.clearStencil = clearValues.Stencil;
+					stencil.storeAction = MTLStoreActionStore;
 				}
 			}
 
-			/**
-			 * A'4: writes a MTLPixelFormat into the @c u16 slot at @p attachmentIndex of
-			 * @p colorFormats. Previously packed 8 bits into a @c u64 which truncated format values
-			 * > 255 and aliased distinct formats into the same PSO-cache entry. @c MTLPixelFormat
-			 * values fit inside a @c u16 as of the public headers, so assignment is sufficient.
-			 */
-			void PackColorFormat(u16 (&colorFormats)[B3D_MAXIMUM_RENDER_TARGET_COUNT], u32 attachmentIndex, MTLPixelFormat fmt)
+			/** Stores the attachment formats of @p descriptor in the pipeline variant key. Every MTLPixelFormat value fits in 16 bits. */
+			void PackAttachmentFormats(MTLRenderPassDescriptor* descriptor, MetalPipelineVariantKey& key)
 			{
-				colorFormats[attachmentIndex] = (u16)fmt;
+				for (u32 attachmentIndex = 0; attachmentIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; attachmentIndex++)
+				{
+					id<MTLTexture> texture = descriptor.colorAttachments[attachmentIndex].texture;
+					if (texture != nil)
+						key.ColorFormats[attachmentIndex] = (u16)[texture pixelFormat];
+				}
+
+				if (descriptor.depthAttachment.texture != nil)
+					key.DepthFormat = (u32)[descriptor.depthAttachment.texture pixelFormat];
+
+				if (descriptor.stencilAttachment.texture != nil)
+					key.StencilFormat = (u32)[descriptor.stencilAttachment.texture pixelFormat];
 			}
 		} // namespace
 
-		/**
-		 * Mirrors GpuFramebuffer::BuildRenderPassAttachmentUsages for the manually assembled Metal attachment list.
-		 * Metal has no image layouts, so the layout values are bookkeeping for the resource tracker only; what
-		 * matters is that read-only attachments advertise read access and a shader-readable layout so the tracker
-		 * folds in-pass shader reads of the same image into the attachment instead of flagging a hazard.
-		 */
-		static GpuRenderPassAttachmentUsage BuildAttachmentUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& range, RenderSurfaceMaskBits surface, GpuResourceUseFlags useFlags, GpuImageLayout attachmentLayout, GpuImageLayout readOnlyLayout, RenderSurfaceMask readOnlyMask, RenderSurfaceMask loadMask)
-		{
-			const bool readOnly = readOnlyMask.IsSet(surface);
-
-			GpuRenderPassAttachmentUsage usage;
-			usage.Image = image;
-			usage.Range = range;
-			usage.Surface = surface;
-			usage.UseFlags = useFlags;
-
-			if (readOnly)
-			{
-				usage.Access = GpuAccessFlags(GpuAccessFlag::Read);
-				usage.Layout = readOnlyLayout;
-				usage.ShaderReadLayout = readOnlyLayout;
-			}
-			else
-			{
-				usage.Access = loadMask.IsSet(surface) ? (GpuAccessFlag::Read | GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::Write);
-				usage.Layout = attachmentLayout;
-			}
-
-			return usage;
-		}
-
-		/** Picks the depth-stencil layout matching which of the two aspects are read-only. */
-		static GpuImageLayout GetDepthStencilLayout(RenderSurfaceMask readOnlyMask)
-		{
-			const bool depthReadOnly = readOnlyMask.IsSet(RT_DEPTH);
-			const bool stencilReadOnly = readOnlyMask.IsSet(RT_STENCIL);
-
-			if (depthReadOnly && stencilReadOnly)
-				return GpuImageLayout::DepthStencilReadOnly;
-
-			if (depthReadOnly)
-				return GpuImageLayout::DepthReadOnlyStencilAttachment;
-
-			if (stencilReadOnly)
-				return GpuImageLayout::DepthAttachmentStencilReadOnly;
-
-			return GpuImageLayout::DepthStencilAttachment;
-		}
-
 		void MetalGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& createInformation)
 		{
-			// Render-pass descriptor and encoder creation produce several autoreleased Obj-C objects
-			// (descriptor, attachment descriptors, CAMetalDrawable). Drain them locally — the fiber
-			// scheduler may go many frames without a runloop drain. @c mImpl->RenderEncoder retains
-			// the encoder before the pool drains, so it survives.
 			@autoreleasepool
 			{
 			EnsureValidThread();
-			// Close every encoder before opening the new render encoder. B3 residency caches are
-			// reset inside @c EnsureEncoderKind for the render/compute transitions that matter; since
-			// useResource: marks are scoped to an encoder's lifetime, the next bind on the fresh
-			// render encoder will re-emit useResources: regardless.
 			EnsureEncoderKind(EncoderKind::None);
 
 			mRenderPassPipelineKey = MetalPipelineVariantKey{};
@@ -1738,8 +1363,7 @@ namespace b3d
 			mImpl->RestartRenderPassDescriptor = nil;
 			mImpl->VertexBufferBindings.clear();
 			mBoundVertexBuffers.Clear();
-			// The normalized viewport intentionally survives pass boundaries; it is re-applied in
-			// pixel units for the new pass once the encoder is open.
+			// The normalized viewport persists across passes and is converted to pixels once the encoder is open
 			mImpl->HasScissor = false;
 			mImpl->VisibilityMode = MTLVisibilityResultModeDisabled;
 			mImpl->VisibilityOffset = 0;
@@ -1748,29 +1372,27 @@ namespace b3d
 			if (!target)
 				return;
 
-			id<MTLCommandBuffer> cmdBuffer = GetOrAcquireMetalCommandBuffer();
-			if (cmdBuffer == nil)
+			id<MTLCommandBuffer> commandBuffer = GetOrAcquireMetalCommandBuffer();
+			if (commandBuffer == nil)
 				return;
 
-			MTLRenderPassDescriptor* desc = [MTLRenderPassDescriptor renderPassDescriptor];
+			MTLRenderPassDescriptor* descriptor = [MTLRenderPassDescriptor renderPassDescriptor];
 
-			// BeginQuery selects the visibility buffer lazily. Metal requires an encoder boundary when that
-			// pool changes, which is handled entirely inside the backend by ActivateOcclusionQueryPool().
+			// BeginQuery() selects the visibility buffer lazily, see ActivateOcclusionQueryPool()
 			mActiveOcclusionQueryPool.reset();
 
-			const RenderTargetProperties& targetProps = target->GetProperties();
-			mRenderPassWidth = targetProps.Width;
-			mRenderPassHeight = targetProps.Height;
-			mRenderPassPipelineKey.SampleCount = (u16)std::max(1u, targetProps.MultisampleCount);
+			const RenderTargetProperties& targetProperties = target->GetProperties();
+			mRenderPassWidth = targetProperties.Width;
+			mRenderPassHeight = targetProperties.Height;
+			mRenderPassPipelineKey.SampleCount = (u16)std::max(1u, targetProperties.MultisampleCount);
 			mRenderPassClearValues = target->GetClearValues();
 
 			const RenderSurfaceMask clearMask = createInformation.ClearMask;
 			const RenderSurfaceMask loadMask = createInformation.LoadMask;
 			const RenderSurfaceMask readOnlyMask = createInformation.ReadOnlyMask;
-			const GpuImageLayout depthStencilLayout = GetDepthStencilLayout(readOnlyMask);
 			GpuRenderPassAttachmentUsageArray renderPassAttachmentUsages;
 
-			if (targetProps.IsWindow)
+			if (targetProperties.IsWindow)
 			{
 				auto* window = static_cast<RenderWindow*>(target.get());
 				const TShared<IRenderWindowSurface>& windowSurface = window->GetRenderWindowSurface();
@@ -1781,8 +1403,7 @@ namespace b3d
 					return;
 				}
 
-				// Rebuild the swap chain before acquiring if it went invalid (typically a window resize).
-				// RebuildSwapChain() re-creates the drawable source at the window's current size.
+				// The swap chain goes invalid when the window is resized
 				if (!metalSurface->IsSwapChainValid())
 					window->RebuildSwapChain();
 
@@ -1794,169 +1415,31 @@ namespace b3d
 				}
 
 				mAcquiredWindowSurface = metalSurface;
+				descriptor.colorAttachments[0].texture = backBuffer;
 
-				MTLRenderPassColorAttachmentDescriptor* color = desc.colorAttachments[0];
-				color.texture = backBuffer;
-				color.level = 0;
-				color.slice = 0;
-				color.depthPlane = 0;
-				ConfigureColorAttachmentActions(color, loadMask.IsSet(RT_COLOR0), clearMask.IsSet(RT_COLOR0), mRenderPassClearValues.Colors[0]);
-
-				PackColorFormat(mRenderPassPipelineKey.ColorFormats, 0, metalSurface->GetColorFormat());
-
-				// Attach the surface's depth/stencil texture when present, folding its format into the
-				// PSO variant key so the compiled pipeline matches the render pass' attachment layout.
 				id<MTLTexture> depthStencilTexture = metalSurface->GetDepthStencilTexture();
 				if (depthStencilTexture != nil)
 				{
-					const MTLPixelFormat dsFormat = [depthStencilTexture pixelFormat];
+					const MTLPixelFormat depthStencilFormat = [depthStencilTexture pixelFormat];
+					if (MetalUtility::PixelFormatHasDepth(depthStencilFormat))
+						descriptor.depthAttachment.texture = depthStencilTexture;
 
-					if (MetalFormatHasDepth(dsFormat))
-					{
-						MTLRenderPassDepthAttachmentDescriptor* depth = desc.depthAttachment;
-						depth.texture = depthStencilTexture;
-						depth.level = 0;
-						depth.slice = 0;
-						if (clearMask.IsSet(RT_DEPTH))
-						{
-							depth.loadAction = MTLLoadActionClear;
-							depth.clearDepth = mRenderPassClearValues.Depth;
-						}
-						else
-							depth.loadAction = loadMask.IsSet(RT_DEPTH) ? MTLLoadActionLoad : MTLLoadActionDontCare;
-
-						depth.storeAction = MTLStoreActionStore;
-
-						mRenderPassPipelineKey.DepthFormat = (u32)dsFormat;
-					}
-
-					if (MetalFormatHasStencil(dsFormat))
-					{
-						MTLRenderPassStencilAttachmentDescriptor* stencil = desc.stencilAttachment;
-						stencil.texture = depthStencilTexture;
-						stencil.level = 0;
-						stencil.slice = 0;
-						if (clearMask.IsSet(RT_STENCIL))
-						{
-							stencil.loadAction = MTLLoadActionClear;
-							stencil.clearStencil = mRenderPassClearValues.Stencil;
-						}
-						else
-							stencil.loadAction = loadMask.IsSet(RT_STENCIL) ? MTLLoadActionLoad : MTLLoadActionDontCare;
-
-						stencil.storeAction = MTLStoreActionStore;
-
-						mRenderPassPipelineKey.StencilFormat = (u32)dsFormat;
-					}
+					if (MetalUtility::PixelFormatHasStencil(depthStencilFormat))
+						descriptor.stencilAttachment.texture = depthStencilTexture;
 				}
 			}
 			else
 			{
-				auto* renderTexture = static_cast<MetalRenderTexture*>(target.get());
+				MetalFramebuffer* framebuffer = static_cast<MetalRenderTexture*>(target.get())->GetFramebuffer();
+				if (!B3D_ENSURE(framebuffer != nullptr))
+					return;
 
-				for (u32 attachmentIndex = 0; attachmentIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; attachmentIndex++)
-				{
-					const RenderSurfaceInformation& surface = renderTexture->GetColorSurface(attachmentIndex);
-					if (!surface.Texture)
-						continue;
-
-					auto metalTex = std::static_pointer_cast<MetalTexture>(surface.Texture);
-					id<MTLTexture> mtlTex = metalTex ? metalTex->GetMetalTexture() : nil;
-					if (mtlTex == nil)
-						continue;
-
-					MTLRenderPassColorAttachmentDescriptor* color = desc.colorAttachments[attachmentIndex];
-					color.texture = mtlTex;
-					ConfigureColorAttachmentSubresource(color, *metalTex, surface.Face, surface.MipLevel);
-
-					const RenderSurfaceMaskBits bit = (RenderSurfaceMaskBits)(RT_COLOR0 << attachmentIndex);
-					ConfigureColorAttachmentActions(color, loadMask.IsSet(bit), clearMask.IsSet(bit), mRenderPassClearValues.Colors[attachmentIndex]);
-
-					PackColorFormat(mRenderPassPipelineKey.ColorFormats, attachmentIndex, [mtlTex pixelFormat]);
-
-					MetalImage* image = metalTex->GetMetalResource();
-					if (image != nullptr)
-					{
-						GpuTextureSubresourceRange range = image->GetRange();
-						range.BaseArrayLayer = surface.Face;
-						range.ArrayLayerCount = 1;
-						range.BaseMipLevel = surface.MipLevel;
-						range.MipLevelCount = 1;
-
-						renderPassAttachmentUsages.Add(BuildAttachmentUsage(image, range, bit, GpuResourceUseFlag::ColorAttachment, GpuImageLayout::ColorAttachment, GpuImageLayout::General, readOnlyMask, loadMask));
-					}
-				}
-
-				const RenderSurfaceInformation& dsSurface = renderTexture->GetDepthStencilSurface();
-				if (dsSurface.Texture)
-				{
-					auto metalDs = std::static_pointer_cast<MetalTexture>(dsSurface.Texture);
-					id<MTLTexture> mtlDs = metalDs ? metalDs->GetMetalTexture() : nil;
-					if (mtlDs != nil)
-					{
-						const MTLPixelFormat dsFormat = [mtlDs pixelFormat];
-
-						if (MetalFormatHasDepth(dsFormat))
-						{
-							MTLRenderPassDepthAttachmentDescriptor* depth = desc.depthAttachment;
-							depth.texture = mtlDs;
-							depth.level = dsSurface.MipLevel;
-							depth.slice = dsSurface.Face;
-							if (clearMask.IsSet(RT_DEPTH))
-							{
-								depth.loadAction = MTLLoadActionClear;
-								depth.clearDepth = mRenderPassClearValues.Depth;
-							}
-							else
-								depth.loadAction = loadMask.IsSet(RT_DEPTH) ? MTLLoadActionLoad : MTLLoadActionDontCare;
-
-							depth.storeAction = MTLStoreActionStore;
-
-							mRenderPassPipelineKey.DepthFormat = (u32)dsFormat;
-						}
-
-						if (MetalFormatHasStencil(dsFormat))
-						{
-							MTLRenderPassStencilAttachmentDescriptor* stencil = desc.stencilAttachment;
-							stencil.texture = mtlDs;
-							stencil.level = dsSurface.MipLevel;
-							stencil.slice = dsSurface.Face;
-							if (clearMask.IsSet(RT_STENCIL))
-							{
-								stencil.loadAction = MTLLoadActionClear;
-								stencil.clearStencil = mRenderPassClearValues.Stencil;
-							}
-							else
-								stencil.loadAction = loadMask.IsSet(RT_STENCIL) ? MTLLoadActionLoad : MTLLoadActionDontCare;
-
-							stencil.storeAction = MTLStoreActionStore;
-
-							mRenderPassPipelineKey.StencilFormat = (u32)dsFormat;
-						}
-
-						MetalImage* image = metalDs->GetMetalResource();
-						if (image != nullptr)
-						{
-							GpuTextureSubresourceRange range = image->GetRange();
-							range.BaseArrayLayer = dsSurface.Face;
-							range.ArrayLayerCount = 1;
-							range.BaseMipLevel = dsSurface.MipLevel;
-							range.MipLevelCount = 1;
-							if(range.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
-							{
-								range.AspectMask = GpuTextureAspectFlag::Depth;
-								renderPassAttachmentUsages.Add(BuildAttachmentUsage(image, range, RT_DEPTH, GpuResourceUseFlag::DepthStencilAttachment, depthStencilLayout, depthStencilLayout, readOnlyMask, loadMask));
-							}
-
-							if(image->GetRange().AspectMask.IsSet(GpuTextureAspectFlag::Stencil))
-							{
-								range.AspectMask = GpuTextureAspectFlag::Stencil;
-								renderPassAttachmentUsages.Add(BuildAttachmentUsage(image, range, RT_STENCIL, GpuResourceUseFlag::DepthStencilAttachment, depthStencilLayout, depthStencilLayout, readOnlyMask, loadMask));
-							}
-						}
-					}
-				}
+				framebuffer->ApplyAttachments(descriptor);
+				renderPassAttachmentUsages = framebuffer->BuildRenderPassAttachmentUsages(readOnlyMask, loadMask, MetalFramebuffer::GetLayoutPolicy());
 			}
+
+			ConfigureAttachmentActions(descriptor, loadMask, clearMask, mRenderPassClearValues);
+			PackAttachmentFormats(descriptor, mRenderPassPipelineKey);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			mDrawAccessValidator.BeginRenderPass();
@@ -1979,19 +1462,22 @@ namespace b3d
 			if (!ExecutePendingBarriers())
 				return;
 
-			mImpl->RestartRenderPassDescriptor = [desc copy];
+			// Encoders that continue this pass (barriers, occlusion pool changes) load what the previous encoder stored
+			mImpl->RestartRenderPassDescriptor = [descriptor copy];
 			for (u32 attachmentIndex = 0; attachmentIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; attachmentIndex++)
 			{
 				MTLRenderPassColorAttachmentDescriptor* attachment = mImpl->RestartRenderPassDescriptor.colorAttachments[attachmentIndex];
 				if (attachment.texture != nil)
 					attachment.loadAction = MTLLoadActionLoad;
 			}
+
 			if (mImpl->RestartRenderPassDescriptor.depthAttachment.texture != nil)
 				mImpl->RestartRenderPassDescriptor.depthAttachment.loadAction = MTLLoadActionLoad;
+
 			if (mImpl->RestartRenderPassDescriptor.stencilAttachment.texture != nil)
 				mImpl->RestartRenderPassDescriptor.stencilAttachment.loadAction = MTLLoadActionLoad;
 
-			mImpl->RenderEncoder = [cmdBuffer renderCommandEncoderWithDescriptor:desc];
+			mImpl->RenderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:descriptor];
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			mImpl->RenderEncoder.label = @"Render pass";
 #endif
@@ -1999,14 +1485,11 @@ namespace b3d
 			WaitForResourceFence(*mImpl, mImpl->RenderEncoder);
 #endif
 
-			// Guard the "drawable acquired but encoder creation failed" path. Without this, the
-			// back buffer we pulled via @c AcquireColorTexture would remain held until the next
-			// successful @c SwapBuffers, stalling the drawable pool for one or more frames
-			// (typically manifesting as @c nextDrawable returning nil on the next acquire).
+			// Otherwise the acquired drawable stays held until the next present and starves the drawable pool
 			if (mImpl->RenderEncoder == nil && mAcquiredWindowSurface != nullptr)
 			{
-				B3D_LOG(Error, LogRenderBackend,
-					"BeginRenderPass: failed to create MTLRenderCommandEncoder after acquiring a drawable; aborting drawable.");
+				B3D_LOG(Error, LogRenderBackend, "BeginRenderPass: failed to create MTLRenderCommandEncoder after acquiring a drawable; aborting drawable.");
+
 				mAcquiredWindowSurface->AbortCurrentDrawable();
 				mAcquiredWindowSurface = nullptr;
 				return;
@@ -2014,45 +1497,20 @@ namespace b3d
 
 			if (mImpl->RenderEncoder == nil)
 				return;
+
 			mGraphicsPushConstantsRequireBind = true;
 
-			// A'14: tell the window surface that a render encoder has successfully been opened
-			// against its drawable, so @c SwapBuffers can distinguish "drawable acquired but never
-			// rendered into" from the normal present path and avoid presenting garbage / holding a
-			// dangling drawable.
+			// Lets SwapBuffers() tell a rendered drawable apart from one that was acquired but never rendered to
 			if (mAcquiredWindowSurface != nullptr)
 				mAcquiredWindowSurface->MarkDrawableAsRendered();
 
-			// Re-apply the persisted normalized viewport in this pass's pixel dimensions.
 			ApplyViewportToRenderEncoder();
 
-			// A'2: honor @c RenderPassCreateInformation::Parameters — the engine's declared contract
-			// at the base header is that the command buffer pre-registers every set listed here so
-			// the first draw finds the argument buffer already attached. Combined with A'1's
-			// draw-time re-attach this wires the engine's "declare in BeginRenderPass" pattern.
-			// Attach only here: the draw-time path still commits pending writes and emits
-			// useResource:, so nothing from B5's draw-time contract moves earlier.
-			for (const TShared<GpuParameterSet>& paramSet : createInformation.Parameters)
+			// Binds the pass's parameter sets like SetGpuParameterSet() would, they are attached at the first draw
+			for (const TShared<GpuParameterSet>& parameterSet : createInformation.Parameters)
 			{
-				if (!paramSet)
-					continue;
-
-				const u32 setIndex = paramSet->GetSet();
-				if (setIndex >= kMetalVertexBufferSlotBase)
-				{
-					B3D_LOG(Error, LogRenderBackend,
-						"Metal parameter set index {0} collides with reserved vertex-buffer slots.", setIndex);
-					continue;
-				}
-				if (setIndex >= (u32)mBoundParameterSets.Size())
-				{
-					mBoundParameterSets.Resize(setIndex + 1);
-					mRenderResidencyCaches.Resize(setIndex + 1);
-					mComputeResidencyCaches.Resize(setIndex + 1);
-					mDynamicOffsetOverridesPerSet.Resize(setIndex + 1);
-				}
-				mBoundParameterSets[setIndex] = paramSet;
-				ResetDynamicOffsetOverrides(setIndex);
+				if (parameterSet)
+					BindParameterSet(parameterSet);
 			}
 			} // @autoreleasepool
 		}
@@ -2060,11 +1518,7 @@ namespace b3d
 		void MetalGpuCommandBuffer::EndRenderPass()
 		{
 			EnsureValidThread();
-			// Only the render encoder is expected to be open during a render pass (one-encoder
-			// invariant). Close just it here so any stray compute/blit encoder — a bug elsewhere —
-			// would surface later rather than being silently ended by this path. B3 residency-cache
-			// invalidation for the render encoder happens inside @c EnsureEncoderKind when it
-			// transitions away from Render.
+			// Only the render encoder should be open here. Others are left alone so a stray one is not silently ended.
 			if (mImpl->RenderEncoder != nil)
 			{
 #if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
@@ -2076,6 +1530,7 @@ namespace b3d
 				ResetArgumentTableBindings();
 				EncodePendingEventSignals();
 			}
+
 			mAcquiredWindowSurface = nullptr;
 			mRenderPassPipelineKey = MetalPipelineVariantKey{};
 			mRenderPassWidth = 0;
@@ -2087,7 +1542,7 @@ namespace b3d
 			mImpl->RestartRenderPassDescriptor = nil;
 			mImpl->VertexBufferBindings.clear();
 			mBoundVertexBuffers.Clear();
-			// The normalized viewport intentionally survives pass boundaries (see SetViewport).
+			// The normalized viewport persists across passes, see SetViewport()
 			mImpl->HasScissor = false;
 			mImpl->VisibilityMode = MTLVisibilityResultModeDisabled;
 			mImpl->VisibilityOffset = 0;
@@ -2108,10 +1563,7 @@ namespace b3d
 		{
 			EnsureValidThread();
 
-			// The engine passes a normalized [0,1] area while Metal viewports are in pixels, so store
-			// the normalized area and convert against the active render pass dimensions. The area
-			// persists across passes and is re-applied when a new pass opens, matching the Vulkan
-			// backend's deferred viewport bind.
+			// Metal viewports are in pixels, so the normalized area is kept and converted against each render pass's size
 			mImpl->NormalizedViewport = area;
 			mImpl->HasViewport = true;
 
@@ -2123,15 +1575,15 @@ namespace b3d
 			if (mImpl->RenderEncoder == nil || !mImpl->HasViewport || mRenderPassWidth == 0 || mRenderPassHeight == 0)
 				return;
 
-			MTLViewport vp;
-			vp.originX = (double)mImpl->NormalizedViewport.X * mRenderPassWidth;
-			vp.originY = (double)mImpl->NormalizedViewport.Y * mRenderPassHeight;
-			vp.width = (double)mImpl->NormalizedViewport.Width * mRenderPassWidth;
-			vp.height = (double)mImpl->NormalizedViewport.Height * mRenderPassHeight;
-			vp.znear = 0.0;
-			vp.zfar = 1.0;
-			mImpl->Viewport = vp;
-			[mImpl->RenderEncoder setViewport:vp];
+			MTLViewport viewport;
+			viewport.originX = (double)mImpl->NormalizedViewport.X * mRenderPassWidth;
+			viewport.originY = (double)mImpl->NormalizedViewport.Y * mRenderPassHeight;
+			viewport.width = (double)mImpl->NormalizedViewport.Width * mRenderPassWidth;
+			viewport.height = (double)mImpl->NormalizedViewport.Height * mRenderPassHeight;
+			viewport.znear = 0.0;
+			viewport.zfar = 1.0;
+			mImpl->Viewport = viewport;
+			[mImpl->RenderEncoder setViewport:viewport];
 		}
 
 		void MetalGpuCommandBuffer::ClearRenderTarget(RenderSurfaceMask mask)
@@ -2163,6 +1615,7 @@ namespace b3d
 				clearDescriptor.depthAttachment.clearDepth = mRenderPassClearValues.Depth;
 				hasAttachment = true;
 			}
+
 			if (mask.IsSet(RT_STENCIL) && clearDescriptor.stencilAttachment.texture != nil)
 			{
 				clearDescriptor.stencilAttachment.loadAction = MTLLoadActionClear;
@@ -2201,11 +1654,8 @@ namespace b3d
 				return;
 			}
 
-			// Metal's only native clear is the render pass load action, which always covers a whole
-			// attachment, so a sub-rect clear has to be drawn. The clear pipeline rasterizes a single
-			// oversized triangle through the current viewport; color comes from the fragment shader,
-			// depth from its [[depth]] output, and stencil from the depth-stencil state's replace
-			// operation against the reference value set below.
+			// Metal only clears whole attachments (through load actions), so a partial clear draws a triangle covering the
+			// viewport. Stencil is written by the depth-stencil state's replace operation using the reference value.
 			@autoreleasepool
 			{
 			const bool clearsDepth = mask.IsSet(RT_DEPTH) && mRenderPassPipelineKey.DepthFormat != 0;
@@ -2245,8 +1695,7 @@ namespace b3d
 			if (pipelineState == nil || depthStencilState == nil)
 				return;
 
-			// The engine's clear is defined by the viewport alone, so an unrelated scissor left over
-			// from earlier draws must not narrow it. Restore whatever was set once the clear is drawn.
+			// The clear area is defined by the viewport alone, so a scissor left over from earlier draws must not narrow it
 			const MTLScissorRect previousScissor = mImpl->Scissor;
 			const bool hadScissor = mImpl->HasScissor;
 
@@ -2255,23 +1704,18 @@ namespace b3d
 			clearScissor.y = (NSUInteger)mImpl->Viewport.originY;
 			clearScissor.width = (NSUInteger)mImpl->Viewport.width;
 			clearScissor.height = (NSUInteger)mImpl->Viewport.height;
-			[mImpl->RenderEncoder setScissorRect:clearScissor];
 
+			[mImpl->RenderEncoder setScissorRect:clearScissor];
 			[mImpl->RenderEncoder setRenderPipelineState:pipelineState];
 			[mImpl->RenderEncoder setDepthStencilState:depthStencilState];
 			[mImpl->RenderEncoder setCullMode:MTLCullModeNone];
 			[mImpl->RenderEncoder setTriangleFillMode:MTLTriangleFillModeFill];
 			[mImpl->RenderEncoder setDepthBias:0.0f slopeScale:0.0f clamp:0.0f];
 			[mImpl->RenderEncoder setStencilReferenceValue:mRenderPassClearValues.Stencil];
-			[mImpl->RenderEncoder setFragmentBytes:&parameters
-				length:sizeof(parameters)
-				atIndex:kMetalClearParametersBufferSlot];
+			[mImpl->RenderEncoder setFragmentBytes:&parameters length:sizeof(parameters) atIndex:kMetalClearParametersBufferSlot];
 			[mImpl->RenderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
 
-			// Every other piece of state the clear touched (pipeline, depth-stencil state, cull mode,
-			// fill mode, depth bias, stencil reference) is re-applied unconditionally by the next draw,
-			// so only the scissor needs restoring here. With no scissor previously set, widen back to
-			// the whole pass - Metal has no way to disable the test outright.
+			// The next draw rebinds all other state the clear changed, only the scissor needs restoring
 			if (hadScissor)
 				[mImpl->RenderEncoder setScissorRect:previousScissor];
 			else
@@ -2304,8 +1748,7 @@ namespace b3d
 			if (mImpl->RenderEncoder == nil)
 				return;
 
-			// Metal has no "disable scissor" concept; clamp the rectangle to the current render-pass
-			// dimensions so the driver does not reject an out-of-bounds scissor.
+			// Metal cannot disable the scissor test, so cover the whole render pass. A larger rectangle fails validation.
 			MTLScissorRect rect;
 			rect.x = 0;
 			rect.y = 0;
@@ -2345,8 +1788,7 @@ namespace b3d
 				MTLBlitOption Options = MTLBlitOptionNone;
 			};
 
-			bool GetTextureTransferInformation(const Texture& texture, const GpuBuffer& buffer, u32 bufferOffset,
-				u32 mipLevel, u32 arrayLayer, const char* operation, MetalTextureTransferInformation& output)
+			bool GetTextureTransferInformation(const Texture& texture, const GpuBuffer& buffer, u32 bufferOffset, u32 mipLevel, u32 arrayLayer, const char* operation, MetalTextureTransferInformation& output)
 			{
 				const TextureProperties& properties = texture.GetProperties();
 				const u32 faceCount = properties.Type == TEX_TYPE_3D ? 1u : properties.GetFaceCount();
@@ -2364,13 +1806,12 @@ namespace b3d
 
 				if ((bufferOffset % kMetalTextureBufferCopyAlignment) != 0)
 				{
-					B3D_LOG(Error, LogRenderBackend, "{0}: buffer offset {1} must be 16-byte aligned on Apple GPUs.",
-						operation, bufferOffset);
+					B3D_LOG(Error, LogRenderBackend, "{0}: buffer offset {1} must be 16-byte aligned on Apple GPUs.", operation, bufferOffset);
 					return false;
 				}
 
-				PixelUtility::GetSizeForMipLevel(properties.Width, properties.Height, properties.Depth,
-					mipLevel, output.Width, output.Height, output.Depth);
+				PixelUtility::GetSizeForMipLevel(properties.Width, properties.Height, properties.Depth, mipLevel, output.Width, output.Height, output.Depth);
+
 				if (properties.Type == TEX_TYPE_1D)
 				{
 					output.Height = 1;
@@ -2381,8 +1822,7 @@ namespace b3d
 
 				if (properties.Format == PF_D32_S8X24)
 				{
-					// Match Vulkan's aspect selection. The buffer-side contract for this command is packed
-					// Depth32Float values (not interleaved PF_D32_S8X24 texels); Metal requires the option.
+					// Same as Vulkan, only the depth aspect is transferred, as tightly packed 32-bit floats
 					const u64 depthRowPitch = (u64)std::max(1u, output.Width) * sizeof(float);
 					const u64 depthSlicePitch = depthRowPitch * std::max(1u, output.Height);
 					if (depthRowPitch > (u64)~0u || depthSlicePitch > (u64)~0u)
@@ -2397,6 +1837,7 @@ namespace b3d
 					output.RowPitch = MetalUtility::GetTextureRowPitch(properties.Format, output.Width);
 					output.SlicePitch = MetalUtility::GetTextureSlicePitch(properties.Format, output.Width, output.Height);
 				}
+
 				if (output.RowPitch == 0 || output.SlicePitch == 0)
 				{
 					B3D_LOG(Error, LogRenderBackend, "{0}: texture transfer pitch overflowed or is invalid.", operation);
@@ -2406,18 +1847,13 @@ namespace b3d
 				output.RequiredBufferSize = (u64)output.SlicePitch * output.Depth;
 				if (!IsBufferRangeValid(buffer, bufferOffset, output.RequiredBufferSize))
 				{
-					B3D_LOG(Error, LogRenderBackend,
-						"{0}: buffer range [{1}, {2}) exceeds the buffer size ({3}).", operation, bufferOffset,
-						(u64)bufferOffset + output.RequiredBufferSize, buffer.GetTotalSize());
+					B3D_LOG(Error, LogRenderBackend, "{0}: buffer range [{1}, {2}) exceeds the buffer size ({3}).", operation, bufferOffset, (u64)bufferOffset + output.RequiredBufferSize, buffer.GetTotalSize());
 					return false;
 				}
 
-				if (properties.Format == PF_D32_S8X24 &&
-					(u64)buffer.GetTotalSize() - bufferOffset != output.RequiredBufferSize)
+				if (properties.Format == PF_D32_S8X24 && (u64)buffer.GetTotalSize() - bufferOffset != output.RequiredBufferSize)
 				{
-					B3D_LOG(Error, LogRenderBackend,
-						"{0}: combined depth/stencil transfers require an exactly-sized packed Depth32Float buffer. "
-						"Interleaved PF_D32_S8X24 staging data is not a valid Metal depth-plane layout.", operation);
+					B3D_LOG(Error, LogRenderBackend, "{0}: combined depth/stencil transfers require an exactly-sized packed Depth32Float buffer. Interleaved PF_D32_S8X24 staging data is not a valid Metal depth-plane layout.", operation);
 					return false;
 				}
 
@@ -2428,15 +1864,13 @@ namespace b3d
 		void MetalGpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length)
 		{
 			EnsureValidThread();
+
 			if (!source || !destination || length == 0)
 				return;
 
-			if ((sourceOffset % kMetalBufferCopyAlignment) != 0 ||
-				(destinationOffset % kMetalBufferCopyAlignment) != 0 ||
-				(length % kMetalBufferCopyAlignment) != 0)
+			if ((sourceOffset % kMetalBufferCopyAlignment) != 0 || (destinationOffset % kMetalBufferCopyAlignment) != 0 || (length % kMetalBufferCopyAlignment) != 0)
 			{
-				B3D_LOG(Error, LogRenderBackend,
-					"MetalGpuCommandBuffer::CopyBufferToBuffer requires 4-byte-aligned offsets and length on macOS.");
+				B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyBufferToBuffer requires 4-byte-aligned offsets and length on macOS.");
 				return;
 			}
 
@@ -2446,41 +1880,38 @@ namespace b3d
 				return;
 			}
 
-			// Validate native handles before changing encoder kind so a failed copy doesn't split an
-			// otherwise valid render or compute pass.
-			auto srcMetal = std::static_pointer_cast<MetalGpuBuffer>(source);
-			auto dstMetal = std::static_pointer_cast<MetalGpuBuffer>(destination);
-			id<MTLBuffer> src = srcMetal ? srcMetal->GetMetalBuffer() : nil;
-			id<MTLBuffer> dst = dstMetal ? dstMetal->GetMetalBuffer() : nil;
-			if (src == nil || dst == nil)
+			// Validated before switching encoders, so a failed copy does not split the current pass
+			auto metalSource = std::static_pointer_cast<MetalGpuBuffer>(source);
+			auto metalDestination = std::static_pointer_cast<MetalGpuBuffer>(destination);
+			id<MTLBuffer> sourceBuffer = metalSource ? metalSource->GetMetalBuffer() : nil;
+			id<MTLBuffer> destinationBuffer = metalDestination ? metalDestination->GetMetalBuffer() : nil;
+			if (sourceBuffer == nil || destinationBuffer == nil)
 			{
-				// Guard against the race where a copy is queued before GpuObjectCreateFlag::DeferredInitialize
-				// has finished for either endpoint.
-				B3D_LOG(Error, LogRenderBackend,
-					"MetalGpuCommandBuffer::CopyBufferToBuffer: source or destination MTLBuffer is nil (deferred init not complete).");
+				B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyBufferToBuffer: source or destination MTLBuffer is nil (deferred init not complete).");
 				return;
 			}
 
-			if (src == dst)
+			if (sourceBuffer == destinationBuffer)
 			{
 				const u64 sourceEnd = (u64)sourceOffset + length;
 				const u64 destinationEnd = (u64)destinationOffset + length;
 				if ((u64)sourceOffset < destinationEnd && (u64)destinationOffset < sourceEnd)
 				{
-					B3D_LOG(Error, LogRenderBackend,
-						"MetalGpuCommandBuffer::CopyBufferToBuffer does not support overlapping ranges in one buffer.");
+					B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyBufferToBuffer does not support overlapping ranges in one buffer.");
 					return;
 				}
 			}
 
 			EnsureEncoderKind(EncoderKind::Blit);
 
-			MetalBuffer* sourceResource = srcMetal->GetMetalResource();
-			MetalBuffer* destinationResource = dstMetal->GetMetalResource();
+			MetalBuffer* sourceResource = metalSource->GetMetalResource();
+			MetalBuffer* destinationResource = metalDestination->GetMetalResource();
 			if (sourceResource != nullptr)
 				mResourceTracker.TrackBufferAccess(sourceResource, GpuStageFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper, sourceOffset);
+
 			if (destinationResource != nullptr)
 				mResourceTracker.TrackBufferAccess(destinationResource, GpuStageFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper, destinationOffset);
+
 			if (!ExecutePendingBarriers())
 				return;
 
@@ -2488,9 +1919,9 @@ namespace b3d
 			if (blit == nil)
 				return;
 
-			[blit copyFromBuffer:src
+			[blit copyFromBuffer:sourceBuffer
 				sourceOffset:sourceOffset
-				toBuffer:dst
+				toBuffer:destinationBuffer
 				destinationOffset:destinationOffset
 				size:length];
 		}
@@ -2498,29 +1929,28 @@ namespace b3d
 		void MetalGpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer)
 		{
 			EnsureValidThread();
+
 			if (!source || !destination)
 				return;
 
 			MetalTextureTransferInformation transferInformation;
-			if (!GetTextureTransferInformation(*destination, *source, bufferOffset, mipLevel, arrayLayer,
-				"MetalGpuCommandBuffer::CopyBufferToTexture", transferInformation))
+			if (!GetTextureTransferInformation(*destination, *source, bufferOffset, mipLevel, arrayLayer, "MetalGpuCommandBuffer::CopyBufferToTexture", transferInformation))
 				return;
 
-			auto srcBuffer = std::static_pointer_cast<MetalGpuBuffer>(source);
-			auto dstTexture = std::static_pointer_cast<MetalTexture>(destination);
-			id<MTLBuffer> src = srcBuffer ? srcBuffer->GetMetalBuffer() : nil;
-			id<MTLTexture> dst = dstTexture ? dstTexture->GetMetalTexture() : nil;
-			if (src == nil || dst == nil)
+			auto metalSource = std::static_pointer_cast<MetalGpuBuffer>(source);
+			auto metalDestination = std::static_pointer_cast<MetalTexture>(destination);
+			id<MTLBuffer> sourceBuffer = metalSource ? metalSource->GetMetalBuffer() : nil;
+			id<MTLTexture> destinationTexture = metalDestination ? metalDestination->GetMetalTexture() : nil;
+			if (sourceBuffer == nil || destinationTexture == nil)
 			{
-				B3D_LOG(Error, LogRenderBackend,
-					"MetalGpuCommandBuffer::CopyBufferToTexture: source buffer or destination texture is nil (deferred init not complete).");
+				B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyBufferToTexture: source buffer or destination texture is nil (deferred init not complete).");
 				return;
 			}
 
 			EnsureEncoderKind(EncoderKind::Blit);
 
-			MetalBuffer* sourceResource = srcBuffer->GetMetalResource();
-			MetalImage* destinationResource = dstTexture->GetMetalResource();
+			MetalBuffer* sourceResource = metalSource->GetMetalResource();
+			MetalImage* destinationResource = metalDestination->GetMetalResource();
 			GpuTextureSubresourceRange destinationRange = destinationResource != nullptr ? destinationResource->GetRange() : GpuTextureSubresourceRange{};
 			destinationRange.BaseArrayLayer = arrayLayer;
 			destinationRange.ArrayLayerCount = 1;
@@ -2530,8 +1960,10 @@ namespace b3d
 				destinationRange.AspectMask = GpuTextureAspectFlag::Depth;
 			if (sourceResource != nullptr)
 				mResourceTracker.TrackBufferAccess(sourceResource, GpuStageFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper, bufferOffset);
+
 			if (destinationResource != nullptr)
 				mResourceTracker.TrackImageAccess(destinationResource, destinationRange, GpuImageLayout::TransferDestination, GpuStageFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper);
+
 			if (!ExecutePendingBarriers())
 				return;
 
@@ -2539,12 +1971,12 @@ namespace b3d
 			if (blit == nil)
 				return;
 
-			[blit copyFromBuffer:src
+			[blit copyFromBuffer:sourceBuffer
 				sourceOffset:bufferOffset
 				sourceBytesPerRow:transferInformation.RowPitch
 				sourceBytesPerImage:(transferInformation.Depth > 1 ? transferInformation.SlicePitch : 0)
 				sourceSize:MTLSizeMake(transferInformation.Width, transferInformation.Height, transferInformation.Depth)
-				toTexture:dst
+				toTexture:destinationTexture
 				destinationSlice:arrayLayer
 				destinationLevel:mipLevel
 				destinationOrigin:MTLOriginMake(0, 0, 0)
@@ -2558,25 +1990,23 @@ namespace b3d
 				return;
 
 			MetalTextureTransferInformation transferInformation;
-			if (!GetTextureTransferInformation(*source, *destination, bufferOffset, mipLevel, arrayLayer,
-				"MetalGpuCommandBuffer::CopyTextureToBuffer", transferInformation))
+			if (!GetTextureTransferInformation(*source, *destination, bufferOffset, mipLevel, arrayLayer, "MetalGpuCommandBuffer::CopyTextureToBuffer", transferInformation))
 				return;
 
-			auto srcTexture = std::static_pointer_cast<MetalTexture>(source);
-			auto dstBuffer = std::static_pointer_cast<MetalGpuBuffer>(destination);
-			id<MTLTexture> src = srcTexture ? srcTexture->GetMetalTexture() : nil;
-			id<MTLBuffer> dst = dstBuffer ? dstBuffer->GetMetalBuffer() : nil;
-			if (src == nil || dst == nil)
+			auto metalSource = std::static_pointer_cast<MetalTexture>(source);
+			auto metalDestination = std::static_pointer_cast<MetalGpuBuffer>(destination);
+			id<MTLTexture> sourceTexture = metalSource ? metalSource->GetMetalTexture() : nil;
+			id<MTLBuffer> destinationBuffer = metalDestination ? metalDestination->GetMetalBuffer() : nil;
+			if (sourceTexture == nil || destinationBuffer == nil)
 			{
-				B3D_LOG(Error, LogRenderBackend,
-					"MetalGpuCommandBuffer::CopyTextureToBuffer: source texture or destination buffer is nil (deferred init not complete).");
+				B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyTextureToBuffer: source texture or destination buffer is nil (deferred init not complete).");
 				return;
 			}
 
 			EnsureEncoderKind(EncoderKind::Blit);
 
-			MetalImage* sourceResource = srcTexture->GetMetalResource();
-			MetalBuffer* destinationResource = dstBuffer->GetMetalResource();
+			MetalImage* sourceResource = metalSource->GetMetalResource();
+			MetalBuffer* destinationResource = metalDestination->GetMetalResource();
 			GpuTextureSubresourceRange sourceRange = sourceResource != nullptr ? sourceResource->GetRange() : GpuTextureSubresourceRange{};
 			sourceRange.BaseArrayLayer = arrayLayer;
 			sourceRange.ArrayLayerCount = 1;
@@ -2584,10 +2014,13 @@ namespace b3d
 			sourceRange.MipLevelCount = 1;
 			if (source->GetProperties().Format == PF_D32_S8X24)
 				sourceRange.AspectMask = GpuTextureAspectFlag::Depth;
+
 			if (sourceResource != nullptr)
 				mResourceTracker.TrackImageAccess(sourceResource, sourceRange, GpuImageLayout::TransferSource, GpuStageFlag::Transfer, GpuAccessFlag::Read, mBarrierHelper);
+
 			if (destinationResource != nullptr)
 				mResourceTracker.TrackBufferAccess(destinationResource, GpuStageFlag::Transfer, GpuAccessFlag::Write, mBarrierHelper, bufferOffset);
+
 			if (!ExecutePendingBarriers())
 				return;
 
@@ -2595,12 +2028,12 @@ namespace b3d
 			if (blit == nil)
 				return;
 
-			[blit copyFromTexture:src
+			[blit copyFromTexture:sourceTexture
 				sourceSlice:arrayLayer
 				sourceLevel:mipLevel
 				sourceOrigin:MTLOriginMake(0, 0, 0)
 				sourceSize:MTLSizeMake(transferInformation.Width, transferInformation.Height, transferInformation.Depth)
-				toBuffer:dst
+				toBuffer:destinationBuffer
 				destinationOffset:bufferOffset
 				destinationBytesPerRow:transferInformation.RowPitch
 				destinationBytesPerImage:(transferInformation.Depth > 1 ? transferInformation.SlicePitch : 0)
@@ -2618,15 +2051,13 @@ namespace b3d
 			id<MTLTexture> destinationHandle = destinationTexture ? destinationTexture->GetMetalTexture() : nil;
 			if (sourceHandle == nil || destinationHandle == nil)
 			{
-				B3D_LOG(Error, LogRenderBackend,
-					"MetalGpuCommandBuffer::CopyTexture: source or destination texture is nil (deferred init not complete).");
+				B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyTexture: source or destination texture is nil (deferred init not complete).");
 				return false;
 			}
 
 			if (sourceHandle.pixelFormat != destinationHandle.pixelFormat)
 			{
-				B3D_LOG(Error, LogRenderBackend,
-					"MetalGpuCommandBuffer::CopyTexture requires identical native pixel formats (including sRGB state).");
+				B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyTexture requires identical native pixel formats (including sRGB state).");
 				return false;
 			}
 
@@ -2634,19 +2065,12 @@ namespace b3d
 			const TextureProperties& destinationProperties = destination->GetProperties();
 			const bool resolveMultisample = sourceProperties.SampleCount > 1 && destinationProperties.SampleCount == 1;
 			u32 sourceWidth, sourceHeight, sourceDepth;
-			PixelUtility::GetSizeForMipLevel(sourceProperties.Width, sourceProperties.Height, sourceProperties.Depth,
-				copyInformation.SourceMip, sourceWidth, sourceHeight, sourceDepth);
+			PixelUtility::GetSizeForMipLevel(sourceProperties.Width, sourceProperties.Height, sourceProperties.Depth, copyInformation.SourceMip, sourceWidth, sourceHeight, sourceDepth);
 
-			const bool copyEntireSurface = copyInformation.SourceVolume.GetWidth() == 0 ||
-				copyInformation.SourceVolume.GetHeight() == 0 || copyInformation.SourceVolume.GetDepth() == 0;
-			const MTLOrigin sourceOrigin = copyEntireSurface
-				? MTLOriginMake(0, 0, 0)
-				: MTLOriginMake(copyInformation.SourceVolume.Left, copyInformation.SourceVolume.Top, copyInformation.SourceVolume.Front);
-			const MTLSize copySize = copyEntireSurface
-				? MTLSizeMake(sourceWidth, sourceHeight, sourceDepth)
-				: MTLSizeMake(copyInformation.SourceVolume.GetWidth(), copyInformation.SourceVolume.GetHeight(), copyInformation.SourceVolume.GetDepth());
-			const MTLOrigin destinationOrigin = MTLOriginMake(copyInformation.DestinationPosition.X,
-				copyInformation.DestinationPosition.Y, copyInformation.DestinationPosition.Z);
+			const bool copyEntireSurface = copyInformation.SourceVolume.GetWidth() == 0 || copyInformation.SourceVolume.GetHeight() == 0 || copyInformation.SourceVolume.GetDepth() == 0;
+			const MTLOrigin sourceOrigin = copyEntireSurface ? MTLOriginMake(0, 0, 0) : MTLOriginMake(copyInformation.SourceVolume.Left, copyInformation.SourceVolume.Top, copyInformation.SourceVolume.Front);
+			const MTLSize copySize = copyEntireSurface ? MTLSizeMake(sourceWidth, sourceHeight, sourceDepth) : MTLSizeMake(copyInformation.SourceVolume.GetWidth(), copyInformation.SourceVolume.GetHeight(), copyInformation.SourceVolume.GetDepth());
+			const MTLOrigin destinationOrigin = MTLOriginMake(copyInformation.DestinationPosition.X, copyInformation.DestinationPosition.Y, copyInformation.DestinationPosition.Z);
 
 			if (sourceHandle == destinationHandle && copyInformation.SourceMip == copyInformation.DestinationMip)
 			{
@@ -2662,16 +2086,12 @@ namespace b3d
 			if (PixelUtility::IsCompressed(sourceProperties.Format))
 			{
 				const Vector2I blockDimensions = PixelUtility::GetBlockDimensions(sourceProperties.Format);
-				const bool alignedOrigins = (sourceOrigin.x % blockDimensions.X) == 0 && (sourceOrigin.y % blockDimensions.Y) == 0 &&
-					(destinationOrigin.x % blockDimensions.X) == 0 && (destinationOrigin.y % blockDimensions.Y) == 0;
+				const bool alignedOrigins = (sourceOrigin.x % blockDimensions.X) == 0 && (sourceOrigin.y % blockDimensions.Y) == 0 && (destinationOrigin.x % blockDimensions.X) == 0 && (destinationOrigin.y % blockDimensions.Y) == 0;
 				u32 destinationWidth, destinationHeight, destinationDepth;
-				PixelUtility::GetSizeForMipLevel(destinationProperties.Width, destinationProperties.Height, destinationProperties.Depth,
-					copyInformation.DestinationMip, destinationWidth, destinationHeight, destinationDepth);
+				PixelUtility::GetSizeForMipLevel(destinationProperties.Width, destinationProperties.Height, destinationProperties.Depth, copyInformation.DestinationMip, destinationWidth, destinationHeight, destinationDepth);
 				(void)destinationDepth;
-				const bool alignedExtent = ((copySize.width % blockDimensions.X) == 0 ||
-					(sourceOrigin.x + copySize.width == sourceWidth && destinationOrigin.x + copySize.width == destinationWidth)) &&
-					((copySize.height % blockDimensions.Y) == 0 ||
-					(sourceOrigin.y + copySize.height == sourceHeight && destinationOrigin.y + copySize.height == destinationHeight));
+				const bool alignedExtent = ((copySize.width % blockDimensions.X) == 0 || (sourceOrigin.x + copySize.width == sourceWidth && destinationOrigin.x + copySize.width == destinationWidth)) &&
+					((copySize.height % blockDimensions.Y) == 0 || (sourceOrigin.y + copySize.height == sourceHeight && destinationOrigin.y + copySize.height == destinationHeight));
 				if (!alignedOrigins || !alignedExtent)
 				{
 					B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyTexture compressed regions must be aligned to format block boundaries.");
@@ -2698,8 +2118,7 @@ namespace b3d
 			if (resolveMultisample)
 			{
 				u32 destinationWidth, destinationHeight, destinationDepth;
-				PixelUtility::GetSizeForMipLevel(destinationProperties.Width, destinationProperties.Height, destinationProperties.Depth,
-					copyInformation.DestinationMip, destinationWidth, destinationHeight, destinationDepth);
+				PixelUtility::GetSizeForMipLevel(destinationProperties.Width, destinationProperties.Height, destinationProperties.Depth, copyInformation.DestinationMip, destinationWidth, destinationHeight, destinationDepth);
 				const bool fullSurfaceResolve = sourceOrigin.x == 0 && sourceOrigin.y == 0 && sourceOrigin.z == 0 &&
 					destinationOrigin.x == 0 && destinationOrigin.y == 0 && destinationOrigin.z == 0 &&
 					copySize.width == sourceWidth && copySize.height == sourceHeight && copySize.depth == sourceDepth &&
@@ -2715,11 +2134,12 @@ namespace b3d
 			const GpuImageLayout sourceLayout = resolveMultisample ? GpuImageLayout::ResolveSource : GpuImageLayout::TransferSource;
 			const GpuImageLayout destinationLayout = resolveMultisample ? GpuImageLayout::ResolveDestination : GpuImageLayout::TransferDestination;
 
-			// Metal resolves through a render-pass store action. Establish the encoder boundary before
-			// recording the resolve hazard instead of treating it as blit work.
+			// Metal resolves through a render pass store action, not a blit
 			EnsureEncoderKind(resolveMultisample ? EncoderKind::None : EncoderKind::Blit);
+
 			mResourceTracker.TrackImageAccess(sourceResource, sourceRange, sourceLayout, (resolveMultisample ? GpuStageFlag::Resolve : GpuStageFlag::Transfer), GpuAccessFlag::Read, mBarrierHelper);
 			mResourceTracker.TrackImageAccess(destinationResource, destinationRange, destinationLayout, (resolveMultisample ? GpuStageFlag::Resolve : GpuStageFlag::Transfer), GpuAccessFlag::Write, mBarrierHelper);
+
 			if (!ExecutePendingBarriers())
 				return false;
 
@@ -2747,6 +2167,7 @@ namespace b3d
 					mImpl->RenderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:resolveDescriptor];
 					if (mImpl->RenderEncoder == nil)
 						return false;
+
 #if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
 					WaitForResourceFence(*mImpl, mImpl->RenderEncoder);
 #endif
@@ -2768,6 +2189,7 @@ namespace b3d
 				copySize.width == sourceWidth && copySize.height == sourceHeight && copySize.depth == sourceDepth &&
 				sourceWidth == destinationWidth && sourceHeight == destinationHeight && sourceDepth == destinationDepth &&
 				sourceProperties.Type != TEX_TYPE_3D;
+
 			if (copiesFullSubresources)
 			{
 				[blit copyFromTexture:sourceHandle
@@ -2806,15 +2228,15 @@ namespace b3d
 			const TextureProperties& sourceProperties = source->GetProperties();
 			const TextureProperties& destinationProperties = destination->GetProperties();
 			u32 sourceWidth, sourceHeight, sourceDepth;
-			PixelUtility::GetSizeForMipLevel(sourceProperties.Width, sourceProperties.Height, sourceProperties.Depth,
-				blitInformation.SourceMip, sourceWidth, sourceHeight, sourceDepth);
+			PixelUtility::GetSizeForMipLevel(sourceProperties.Width, sourceProperties.Height, sourceProperties.Depth, blitInformation.SourceMip, sourceWidth, sourceHeight, sourceDepth);
+
 			u32 destinationWidth, destinationHeight, destinationDepth;
-			PixelUtility::GetSizeForMipLevel(destinationProperties.Width, destinationProperties.Height, destinationProperties.Depth,
-				blitInformation.DestinationMip, destinationWidth, destinationHeight, destinationDepth);
+			PixelUtility::GetSizeForMipLevel(destinationProperties.Width, destinationProperties.Height, destinationProperties.Depth, blitInformation.DestinationMip, destinationWidth, destinationHeight, destinationDepth);
 
 			PixelVolume sourceVolume = blitInformation.SourceVolume;
 			if (sourceVolume.GetWidth() == 0 || sourceVolume.GetHeight() == 0 || sourceVolume.GetDepth() == 0)
 				sourceVolume = PixelVolume(0, 0, 0, sourceWidth, sourceHeight, sourceDepth);
+
 			PixelVolume destinationVolume = blitInformation.DestinationVolume;
 			if (destinationVolume.GetWidth() == 0 || destinationVolume.GetHeight() == 0 || destinationVolume.GetDepth() == 0)
 				destinationVolume = PixelVolume(0, 0, 0, destinationWidth, destinationHeight, destinationDepth);
@@ -2829,12 +2251,10 @@ namespace b3d
 				return false;
 			}
 
-			const bool matchingExtents = sourceVolume.GetWidth() == destinationVolume.GetWidth() &&
-				sourceVolume.GetHeight() == destinationVolume.GetHeight() && sourceVolume.GetDepth() == destinationVolume.GetDepth();
+			const bool matchingExtents = sourceVolume.GetWidth() == destinationVolume.GetWidth() && sourceVolume.GetHeight() == destinationVolume.GetHeight() && sourceVolume.GetDepth() == destinationVolume.GetDepth();
 			if (!matchingExtents || sourceProperties.Format != destinationProperties.Format || sourceProperties.Type != destinationProperties.Type)
 			{
-				B3D_LOG(Error, LogRenderBackend,
-					"MetalGpuCommandBuffer::BlitTexture scaling and format conversion require the backend's internal shader blit path.");
+				B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::BlitTexture scaling and format conversion require the backend's internal shader blit path.");
 				return false;
 			}
 
@@ -2899,8 +2319,7 @@ namespace b3d
 
 			if (!queryPool || queryPool->GetQueryType() != GpuQueryType::Occlusion || mImpl->RenderEncoder == nil)
 			{
-				B3D_LOG(Error, LogRenderBackend,
-					"BeginQuery requires an active render pass and an occlusion query pool.");
+				B3D_LOG(Error, LogRenderBackend, "BeginQuery requires an active render pass and an occlusion query pool.");
 				return;
 			}
 
@@ -2910,20 +2329,17 @@ namespace b3d
 				B3D_LOG(Error, LogRenderBackend, "BeginQuery received an invalid or unallocated query ID.");
 				return;
 			}
+
 			if (mImpl->VisibilityMode != MTLVisibilityResultModeDisabled)
 			{
 				B3D_LOG(Error, LogRenderBackend, "Metal does not support nested occlusion queries.");
 				return;
 			}
+
 			if (!ActivateOcclusionQueryPool(metalPool))
 				return;
 
-			// Counting mode returns the exact sample count per query; Boolean returns 0 or 1. We use the
-			// precise flag to drive the distinction. ActivateOcclusionQueryPool ensures the pool's visibility
-			// buffer was attached when the current native render encoder was created.
-			const MTLVisibilityResultMode mode = flags.IsSet(GpuQueryFlag::PreciseOcclusion)
-				? MTLVisibilityResultModeCounting
-				: MTLVisibilityResultModeBoolean;
+			const MTLVisibilityResultMode mode = flags.IsSet(GpuQueryFlag::PreciseOcclusion) ? MTLVisibilityResultModeCounting : MTLVisibilityResultModeBoolean;
 			const NSUInteger offset = metalPool->GetQueryOffset(query);
 			mImpl->VisibilityMode = mode;
 			mImpl->VisibilityOffset = offset;
@@ -2959,6 +2375,7 @@ namespace b3d
 
 			if (!queryPool)
 				return;
+
 			if (mImpl->RenderEncoder != nil)
 			{
 				B3D_LOG(Error, LogRenderBackend, "ResetQueries must be called outside a render pass.");
@@ -2993,11 +2410,11 @@ namespace b3d
 			if (commandBuffer == nil)
 				return;
 
-			NSString* nsName = [[NSString alloc] initWithBytes:name.data() length:name.size() encoding:NSUTF8StringEncoding];
-			[commandBuffer pushDebugGroup:nsName];
+			NSString* label = [[NSString alloc] initWithBytes:name.data() length:name.size() encoding:NSUTF8StringEncoding];
+			[commandBuffer pushDebugGroup:label];
 			mImpl->DebugGroupDepth++;
 #if !__has_feature(objc_arc)
-			[nsName release];
+			[label release];
 #endif
 #else
 			(void)name;
@@ -3022,16 +2439,15 @@ namespace b3d
 			if (name.empty())
 				return;
 
-			// Intentionally no command-buffer fallback: @c insertDebugSignpost is an encoder-level
-			// API on Metal, so outside an encoder the signpost has nowhere to attach.
+			// Metal only supports signposts on encoders
 			id<MTLCommandEncoder> encoder = GetActiveEncoder();
 			if (encoder == nil)
 				return;
 
-			NSString* nsName = [[NSString alloc] initWithBytes:name.data() length:name.size() encoding:NSUTF8StringEncoding];
-			[encoder insertDebugSignpost:nsName];
+			NSString* label = [[NSString alloc] initWithBytes:name.data() length:name.size() encoding:NSUTF8StringEncoding];
+			[encoder insertDebugSignpost:label];
 #if !__has_feature(objc_arc)
-			[nsName release];
+			[label release];
 #endif
 #else
 			(void)name;
@@ -3048,21 +2464,7 @@ namespace b3d
 			}
 #endif
 
-			// A'8: the public End() transitions the buffer into @c RecordingDone, *not* @c Done. The
-			// old code flipped straight to @c Done here, which let any external observer of
-			// @c GetState() between End() and @c CommitInternal() see a false "completed on the GPU"
-			// signal. The corrected state machine is:
-			//
-			//   Recording(RenderPass) --End()--> RecordingDone --CommitInternal--> Executing
-			//     --completion handler--> Done
-			//
-			// @c CommitInternal closes any still-open encoder itself (via @c EnsureEncoderKind) and
-			// does *not* route through this public End(); see the comment at the top of
-			// @c CommitInternal.
-			//
-			// B3: every encoder is gone after the call below, so every residency mark is gone with
-			// them. A recycled buffer must start with an empty cache or the next user would observe
-			// stale hits against the prior submission's encoder — handled inside @c EnsureEncoderKind.
+			// Done is only set once the GPU finishes executing the buffer, see ExecuteSubmitOnSubmitThread()
 			EnsureEncoderKind(EncoderKind::None);
 			mState = GpuCommandBufferState::RecordingDone;
 		}
@@ -3073,11 +2475,6 @@ namespace b3d
 			if (mRecordingFailed)
 				return;
 
-			// Translate each engine barrier into tracker-aware helper barriers. Source state is
-			// deduced from this command buffer's tracked state when the caller left SourceUsage
-			// undefined; barriers for resources that were never tracked here are dropped (there is
-			// nothing recorded to synchronize against). Mirrors VulkanGpuCommandBuffer::IssueBarriers
-			// with Metal type substitutions and the Metal-specific encoder-based Execute.
 			for (const GpuBufferBarrier& bufferBarrier : barriers.BufferBarriers)
 			{
 				auto* metalGpuBuffer = static_cast<MetalGpuBuffer*>(bufferBarrier.Object.get());
@@ -3104,9 +2501,7 @@ namespace b3d
 				mResourceTracker.TrackExplicitImageBarrier(resource, textureBarrier.SubresourceRange, GpuBackendUtility::GetStageFlags(textureBarrier.DestinationUsage), textureBarrier.DestinationAccess, textureBarrier.DestinationLayout, mBarrierHelper);
 			}
 
-			// Metal has no framebuffer object to resolve a surface mask against here. In explicit mode
-			// an active render pass therefore uses a pass boundary, which is the only Apple-family-safe
-			// conservative synchronization for an unspecified attachment dependency.
+			// Metal has no framebuffer to resolve the surface mask against, so an active render pass is split instead
 			const bool hasRenderTargetBarriers = !barriers.RenderTargetBarriers.Empty();
 #if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
 			if (hasRenderTargetBarriers && mImpl->RenderEncoder != nil)
@@ -3125,7 +2520,7 @@ namespace b3d
 				return;
 		}
 
-		void MetalGpuCommandBuffer::EncodeQueueWaits(id<MTLCommandBuffer> cmdBuffer, MetalGpuQueue& submitQueue, GpuQueueMask syncMask)
+		void MetalGpuCommandBuffer::EncodeQueueWaits(id<MTLCommandBuffer> commandBuffer, MetalGpuQueue& submitQueue, GpuQueueMask syncMask)
 		{
 			const GpuQueueMask selfMask = GpuQueueId(submitQueue.GetType(), submitQueue.GetIndex());
 			GpuQueueMask waitMask = syncMask & ~selfMask;
@@ -3152,14 +2547,16 @@ namespace b3d
 						continue;
 
 					id<MTLSharedEvent> waitEvent = waitQueue->GetSharedEvent();
+					// Not the reserved value, which may belong to a submission that isn't committed yet and would never signal
 					const u64 waitValue = waitQueue->GetLastCommittedEventValue();
 					if (waitEvent != nil && waitValue != 0)
-						[cmdBuffer encodeWaitForEvent:waitEvent value:waitValue];
+						[commandBuffer encodeWaitForEvent:waitEvent value:waitValue];
 				}
 			}
 		}
 
-		void MetalGpuCommandBuffer::EncodeFrameFenceWaits(id<MTLCommandBuffer> cmdBuffer, MetalGpuQueue& submitQueue, GpuQueueMask syncMask, TArrayView<const u64> frameFenceValues)
+		void MetalGpuCommandBuffer::EncodeFrameFenceWaits(id<MTLCommandBuffer> commandBuffer, MetalGpuQueue& submitQueue, GpuQueueMask syncMask,
+			TArrayView<const u64> frameFenceValues)
 		{
 			if (frameFenceValues.IsEmpty())
 				return;
@@ -3167,7 +2564,7 @@ namespace b3d
 			// Frame fence values are committed event values, so waiting on them cannot deadlock. Waiting on this queue's own
 			// value also orders the frame after its earlier work when resources are untracked.
 			const GpuQueueId submitQueueId = submitQueue.GetId();
-			mGpuDevice.DoForEachQueue([cmdBuffer, submitQueueId, syncMask, frameFenceValues](GpuQueue& queue)
+			mGpuDevice.DoForEachQueue([commandBuffer, submitQueueId, syncMask, frameFenceValues](GpuQueue& queue)
 			{
 				const GpuQueueId queueId = queue.GetId();
 				const u64 waitValue = frameFenceValues[queueId.Id];
@@ -3179,63 +2576,17 @@ namespace b3d
 
 				id<MTLSharedEvent> waitEvent = static_cast<MetalGpuQueue&>(queue).GetSharedEvent();
 				if (waitEvent != nil)
-					[cmdBuffer encodeWaitForEvent:waitEvent value:waitValue];
+					[commandBuffer encodeWaitForEvent:waitEvent value:waitValue];
 			});
 		}
 
-		u64 MetalGpuCommandBuffer::EncodeQueueSyncAndSignal(id<MTLCommandBuffer> cmdBuffer, MetalGpuQueue& submitQueue, GpuQueueMask syncMask)
+		u64 MetalGpuCommandBuffer::EncodeQueueSignal(id<MTLCommandBuffer> commandBuffer, MetalGpuQueue& submitQueue)
 		{
-			// This helper is used with waits only for an otherwise-empty command buffer, where the
-			// wait is naturally before the signal. Recorded work uses a separate wait prologue in
-			// CommitInternal because appending a wait here would place it after that work.
-
-			// Encode cross-queue waits for the empty-command-buffer path.
-			// wait on its shared event at the latest value that queue has *committed* so far. Metal's
-			// unified queue family still lets submissions on different MTLCommandQueues execute in any
-			// order, so this is where the engine's explicit sync crosses into the driver.
-			MetalGpuDevice& device = mGpuDevice;
-			const GpuQueueMask selfMask = GpuQueueId(submitQueue.GetType(), submitQueue.GetIndex());
-			const GpuQueueMask waitMask = syncMask & ~selfMask;
-			if (!waitMask.IsEmpty())
-			{
-				for (u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
-				{
-					const GpuQueueType queueType = (GpuQueueType)queueTypeIndex;
-					const u32 queueCount = device.GetQueueCount(queueType);
-					for (u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
-					{
-						const GpuQueueId waitQueueId(queueType, queueIndex);
-						if (!waitMask.IsSet(waitQueueId))
-							continue;
-
-						TShared<GpuQueue> queuePtr = device.GetQueue(queueType, queueIndex);
-						auto waitQueue = std::static_pointer_cast<MetalGpuQueue>(queuePtr);
-						if (!waitQueue)
-							continue;
-
-						id<MTLSharedEvent> waitEvent = waitQueue->GetSharedEvent();
-						// Wait on the producer queue's *committed* event value (A8). Using the reserved
-						// value here was a race: a concurrent submit on the producer queue could bump
-						// the reservation counter to N+1 before calling @c [cmdBuffer commit], and a
-						// consumer reading that value would wait forever on a value Metal never gets a
-						// chance to signal. The committed value is only ever bumped after
-						// @c [cmdBuffer commit] returns, so it is safe to wait on.
-						const u64 waitValue = waitQueue->GetLastCommittedEventValue();
-						if (waitEvent == nil || waitValue == 0)
-							continue;
-
-						[cmdBuffer encodeWaitForEvent:waitEvent value:waitValue];
-					}
-				}
-			}
-
-			// Reserve the next signal value for this queue and encode the signal on the command buffer.
-			// Completion handlers run after the signal, so any CPU-side waiter blocked on the event
-			// value will unblock before OnDidComplete fires.
+			// Completion handlers run after the signal, so CPU waiters on the event unblock before OnDidComplete fires
 			const u64 signalValue = submitQueue.ReserveNextEventValue();
 			id<MTLSharedEvent> signalEvent = submitQueue.GetSharedEvent();
 			if (signalEvent != nil)
-				[cmdBuffer encodeSignalEvent:signalEvent value:signalValue];
+				[commandBuffer encodeSignalEvent:signalEvent value:signalValue];
 
 			return signalValue;
 		}
@@ -3263,12 +2614,10 @@ namespace b3d
 			};
 
 			/**
-			 * Encodes one encodeSignalEvent:value: per user-supplied timeline fence on @p cmdBuffer.
-			 * Must be called before [cmdBuffer commit]; ordering against the queue's own signal is
-			 * the command buffer's FIFO order, so calling this *after* EncodeQueueSyncAndSignal
-			 * means user fences fire after the queue event, after every preceding command's GPU work.
+			 * Encodes a signal for every user timeline fence. Signals execute in encoding order, so calling this after
+			 * EncodeQueueSignal() makes the fences signal after the queue's own event.
 			 */
-			void EncodeUserFenceSignals(id<MTLCommandBuffer> cmdBuffer, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+			void EncodeUserFenceSignals(id<MTLCommandBuffer> commandBuffer, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 			{
 				for (const GpuTimelineFenceAndValue& entry : signalFences)
 				{
@@ -3278,35 +2627,22 @@ namespace b3d
 					auto* metalFence = static_cast<MetalGpuTimelineFence*>(entry.Fence.get());
 					id<MTLSharedEvent> sharedEvent = metalFence->GetSharedEvent();
 					if (sharedEvent != nil)
-						[cmdBuffer encodeSignalEvent:sharedEvent value:entry.Value];
+						[commandBuffer encodeSignalEvent:sharedEvent value:entry.Value];
 				}
 			}
 		}
 
-		void MetalGpuCommandBuffer::CommitInternal(MetalGpuQueue& submitQueue, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+		void MetalGpuCommandBuffer::ExecuteSubmitOnSubmitThread(MetalGpuQueue& submitQueue, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 		{
-			// Submissions are serialized on the submit thread: GpuSubmitThread::QueueSubmit posts this
-			// call via MetalGpuDevice::ExecuteSubmit. By this point the owner thread has released its
-			// recording state (NotifyWillQueueForSubmit) and transitioned the buffer to Executing
-			// (MetalGpuQueue::SubmitCommandBuffer), so only mImpl, mQueueSyncMask (already folded into
-			// @p syncMask by GpuSubmitThread::QueueSubmit) and mUsedQueryPools are touched here.
+			// The owner thread already released its recording state (NotifyWillQueueForSubmit()), so only mImpl and
+			// mUsedQueryPools may be touched here. mQueueSyncMask is already folded into @p syncMask.
 			AssertIfNotSubmitThread();
 
-			// Record the submission queue now. Resource use is promoted from Bound to Used only after
-			// every native command buffer needed by the submission has been allocated successfully.
 			mSubmittedQueueId = submitQueue.GetId();
 
-			// The commit path creates several autoreleased Obj-C objects (completion-handler block,
-			// NSArray of encoded waits, label strings). Draining locally guarantees they don't
-			// accumulate across the fiber-scheduled frames that never hit a runloop.
 			@autoreleasepool
 			{
-			// A'8: close any still-open encoder without touching @c mState. The submitting queue is
-			// the transition authority for @c Executing (owner thread) and the completion handler
-			// below for @c Done (posted back to the owner thread); this method must not flip states
-			// of its own making. Note that the caller usually has already invoked @c End() on this
-			// path; calling @c EnsureEncoderKind a second time is a cheap no-op when every encoder is
-			// already closed.
+			// Does not change mState: the queue sets Executing and the completion handler sets Done
 			EnsureEncoderKind(EncoderKind::None);
 
 			auto fnPostFailedSubmissionCompletion = [this, &submitQueue]()
@@ -3343,22 +2679,19 @@ namespace b3d
 				return;
 			}
 
-			// A'9: the empty path still has to go through the queue's event so cross-queue waits
-			// the engine accumulated via @c AddQueueSyncMask are honored. Acquire a throwaway
-			// MTLCommandBuffer from the submit queue, encode the waits + signal into it, install
-			// the same completion handler as the real path, and commit. If queue acquisition fails
-			// (queue torn down), fall back to the legacy "post completion via message queue"
-			// behavior so listeners are still released.
+			// Nothing was recorded, but the submission still goes through the queue's event. Otherwise its cross-queue
+			// waits are skipped, and queues waiting for this queue's next value deadlock.
 			if (mImpl->CommandBuffer == nil)
 			{
 				for (const TShared<MetalGpuQueryPool>& pool : mUsedQueryPools)
 					pool->MarkSubmissionFailed();
+
 				mUsedQueryPools.clear();
 				mQueryPoolsQueuedForSubmission = false;
 
-				id<MTLCommandQueue> mtlQueue = submitQueue.GetMetalQueue();
-				id<MTLCommandBuffer> emptyCmdBuffer = mtlQueue ? [mtlQueue commandBuffer] : nil;
-				if (emptyCmdBuffer == nil)
+				id<MTLCommandQueue> metalCommandQueue = submitQueue.GetMetalQueue();
+				id<MTLCommandBuffer> emptyCommandBuffer = metalCommandQueue ? [metalCommandQueue commandBuffer] : nil;
+				if (emptyCommandBuffer == nil)
 				{
 					B3D_LOG(Fatal, LogRenderBackend, "Failed to allocate an empty Metal submission command buffer.");
 					fnPostFailedSubmissionCompletion();
@@ -3374,22 +2707,14 @@ namespace b3d
 				mResourcesSubmitted = true;
 
 				// The resolved transitions rely on the frame fence ordering this submission after all earlier frames
-				EncodeFrameFenceWaits(emptyCmdBuffer, submitQueue, syncMask, submitThread.ConsumeFrameFence(submitQueue));
-
-				// Reuse the shared wait+signal encoder so the empty path observes the exact same
-				// cross-queue sync contract as the real path. Without this, any consumer queue that
-				// waited on this queue's next signaled value would deadlock when the producer's
-				// recording happened to be empty.
-				const u64 signalValue = EncodeQueueSyncAndSignal(emptyCmdBuffer, submitQueue, syncMask);
-
-				// Encode any user-provided timeline fence signals on the same throwaway buffer so the
-				// device-level fence and any caller-supplied fences advance even
-				// when no real work was recorded.
-				EncodeUserFenceSignals(emptyCmdBuffer, signalFences);
+				EncodeQueueWaits(emptyCommandBuffer, submitQueue, syncMask);
+				EncodeFrameFenceWaits(emptyCommandBuffer, submitQueue, syncMask, submitThread.ConsumeFrameFence(submitQueue));
+				const u64 signalValue = EncodeQueueSignal(emptyCommandBuffer, submitQueue);
+				EncodeUserFenceSignals(emptyCommandBuffer, signalFences);
 
 				TShared<GpuCommandBuffer> selfShared = GetShared();
 				TShared<WaitGroup> ownerCompletion = B3DMakeShared<WaitGroup>(1);
-				[emptyCmdBuffer addCompletedHandler:^(id<MTLCommandBuffer> completedBuffer)
+				[emptyCommandBuffer addCompletedHandler:^(id<MTLCommandBuffer> completedBuffer)
 				{
 					LogCommandBufferError(completedBuffer);
 					auto* metalSelf = static_cast<MetalGpuCommandBuffer*>(selfShared.get());
@@ -3399,43 +2724,39 @@ namespace b3d
 						owner->mState = GpuCommandBufferState::Done;
 						owner->mPool.NotifyCommandBufferReady(owner->mId);
 						owner->OnDidComplete();
-						// See the fallback path above — release listeners + cached state on the
-						// owner thread once completion has been observed.
 						owner->ClearRecordingState();
 						ownerCompletion->NotifyDone();
 					}, "MetalGpuCommandBuffer empty completion");
 				}];
 
-				[emptyCmdBuffer commit];
+				[emptyCommandBuffer commit];
 
-				// A8: publish the committed value after commit returns — same ordering rules as the
-				// real path. See comment in the non-empty branch.
-				submitQueue.NotifySubmissionCommitted(signalValue, emptyCmdBuffer, ownerCompletion);
+				// Must follow the commit, see the recorded path below
+				submitQueue.NotifySubmissionCommitted(signalValue, emptyCommandBuffer, ownerCompletion);
 
-				// A6: reset the buffer-level sync mask now that it has been consumed.
 				mQueueSyncMask = GpuQueueMask();
 				return;
 			}
 
-			id<MTLCommandBuffer> cmdBuffer = mImpl->CommandBuffer;
+			id<MTLCommandBuffer> commandBuffer = mImpl->CommandBuffer;
 
-			// Waits appended to an already-recorded command buffer would execute after the work they
-			// are meant to protect. Put them in a prologue committed immediately before the work;
-			// command buffers on one MTLCommandQueue retain FIFO ordering.
+			// Waits appended to recorded work would execute after it, so they go into a prologue command buffer committed
+			// just before. Command buffers on one MTLCommandQueue execute in order.
 			const GpuQueueMask selfMask = GpuQueueId(submitQueue.GetType(), submitQueue.GetIndex());
 			bool needsWaitPrologue = !(syncMask & ~selfMask).IsEmpty();
 #if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
 			needsWaitPrologue |= submitQueue.GetLastCommittedEventValue() != 0;
 #endif
-			// Resolving publishes the resulting hazard and layout state, so provision a possible resource-derived wait prologue first.
+			// Resolving the transitions below publishes their state, so the prologue must be allocated before, in case
+			// they add waits
 			GpuSubmitThread& submitThread = mGpuDevice.GetSubmitThread();
 			const bool mayNeedResourceWait = !mResourceTracker.GetBuffers().empty() || !mResourceTracker.GetImages().empty();
 			const bool needsFrameFenceWait = submitThread.IsFrameFencePending(submitQueue);
 			id<MTLCommandBuffer> waitCommandBuffer = nil;
 			if (needsWaitPrologue || mayNeedResourceWait || needsFrameFenceWait)
 			{
-				id<MTLCommandQueue> mtlQueue = submitQueue.GetMetalQueue();
-				waitCommandBuffer = mtlQueue ? [mtlQueue commandBuffer] : nil;
+				id<MTLCommandQueue> metalCommandQueue = submitQueue.GetMetalQueue();
+				waitCommandBuffer = metalCommandQueue ? [metalCommandQueue commandBuffer] : nil;
 				if (waitCommandBuffer == nil)
 				{
 					B3D_LOG(Fatal, LogRenderBackend, "Failed to allocate Metal cross-queue wait command buffer.");
@@ -3471,20 +2792,14 @@ namespace b3d
 			mResourceTracker.NotifyUsed(mSubmittedQueueId);
 			mResourcesSubmitted = true;
 
-			const u64 signalValue = EncodeQueueSyncAndSignal(cmdBuffer, submitQueue, GpuQueueMask());
+			const u64 signalValue = EncodeQueueSignal(commandBuffer, submitQueue);
 
-			// User-provided timeline fence signals are appended after the queue's own signal so they
-			// fire only once all of this command buffer's GPU work has retired (FIFO on the cmd buffer).
-			EncodeUserFenceSignals(cmdBuffer, signalFences);
+			EncodeUserFenceSignals(commandBuffer, signalFences);
 
-			// The completion handler flips the buffer to Done on GPU finish. It captures a strong
-			// pointer so the command buffer stays alive until completion, and posts the state
-			// transition + OnDidComplete + recording-state clearing back to the pool's owner thread so callers see
-			// these notifications on the same thread they recorded the buffer on. This matches the
-			// bsfVulkanGpuBackend backend's message-queue-back pattern.
+			// Keeps the command buffer alive until the GPU finishes, then reports completion on the owner thread
 			TShared<GpuCommandBuffer> selfShared = GetShared();
 			TShared<WaitGroup> ownerCompletion = B3DMakeShared<WaitGroup>(1);
-			[cmdBuffer addCompletedHandler:^(id<MTLCommandBuffer> completedBuffer)
+			[commandBuffer addCompletedHandler:^(id<MTLCommandBuffer> completedBuffer)
 			{
 				LogCommandBufferError(completedBuffer);
 				auto* metalSelf = static_cast<MetalGpuCommandBuffer*>(selfShared.get());
@@ -3494,38 +2809,21 @@ namespace b3d
 					owner->mState = GpuCommandBufferState::Done;
 					owner->mPool.NotifyCommandBufferReady(owner->mId);
 					owner->OnDidComplete();
-					// Release completion listeners and cached recording state on the owner thread;
-					// listener closures may hold the last references to GPU resources (e.g.
-					// scratch buffers) that must not outlive the submission.
+					// Listener closures may hold the last references to resources used by this submission
 					owner->ClearRecordingState();
 					ownerCompletion->NotifyDone();
 				}, "MetalGpuCommandBuffer completion");
 			}];
 
-			[cmdBuffer commit];
+			[commandBuffer commit];
 			mImpl->CommandBuffer = nil;
 
-			// A8: publish the committed value to the queue so cross-queue waits on this queue observe
-			// a race-free high-water mark. Must happen after @c [cmdBuffer commit] returns — before
-			// that, a reader would see a value that might never actually be signaled if this thread
-			// is preempted between reservation and commit. Uses release-store semantics so subsequent
-			// acquire-loads on other queues see the committed value at the right time.
-			submitQueue.NotifySubmissionCommitted(signalValue, cmdBuffer, ownerCompletion);
+			// Must follow the commit, otherwise other queues could wait on a value that is never signaled
+			submitQueue.NotifySubmissionCommitted(signalValue, commandBuffer, ownerCompletion);
 
-			// A6: reset the buffer-level sync mask now that it has been consumed by this submit.
-			// Matches Vulkan's cleanup pattern (B3DVulkanGpuCommandBuffer.cpp) so subsequent
-			// Add/Submit cycles on a recycled buffer start with a fresh mask.
 			mQueueSyncMask = GpuQueueMask();
 
-			// Notify every query pool that wrote into this command buffer *after* the commit has
-			// happened, not before. Previously MarkSubmitted ran before @c [cmdBuffer commit], which
-			// left a TOCTOU window: if a resolver thread observed the pool's (queue, value) pair
-			// between MarkSubmitted and commit, it might wait on @c [event signaledValue] >= value
-			// where value is a reserved counter the GPU never starts — benign in practice because
-			// @c TryResolve(wait=true) routes through the listener anyway, but visibly wrong for a
-			// wait=false probe. Running MarkSubmitted after commit closes the window cleanly; the
-			// signal was already encoded on the committed buffer so the pair is now genuinely
-			// in-flight from the GPU's perspective.
+			// Also after the commit, so a query resolve never waits on a value from an uncommitted submission
 			for (const TShared<MetalGpuQueryPool>& pool : mUsedQueryPools)
 			{
 				pool->MarkSubmitted(submitQueue, signalValue);
@@ -3538,14 +2836,13 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::AddUniqueUsedQueryPool(const TShared<MetalGpuQueryPool>& pool)
 		{
-			// B10: linear scan. Typical cardinality is <= 4 (one visibility pool plus one or two
-			// timestamp pools), so the scan is cheaper than the hash-set allocation the old path paid
-			// on every BeginQuery / WriteTimestamp.
+			// A command buffer rarely uses more than a few pools, so a linear scan beats a hash set
 			for (const TShared<MetalGpuQueryPool>& existing : mUsedQueryPools)
 			{
 				if (existing.get() == pool.get())
 					return;
 			}
+
 			pool->MarkRecorded();
 			mUsedQueryPools.Add(pool);
 		}
@@ -3554,13 +2851,10 @@ namespace b3d
 		{
 			for (const TShared<MetalGpuQueryPool>& pool : mUsedQueryPools)
 				pool->MarkQueuedForSubmission();
+				
 			mQueryPoolsQueuedForSubmission = !mUsedQueryPools.Empty();
 
-			// Clear everything not allowed to be touched from the submit thread (mirrors
-			// VulkanGpuCommandBuffer::NotifyWillQueueForSubmit). Runs on the owner thread inside
-			// GpuSubmitThread::QueueSubmit, before the submit command is posted. The submit thread
-			// only needs the recorded MTLCommandBuffer (mImpl) and mUsedQueryPools — the latter is
-			// intentionally kept: CommitInternal fans MarkSubmitted out to those pools after commit.
+			// Clears everything the submit thread must not touch. mUsedQueryPools stays, ExecuteSubmitOnSubmitThread() needs it.
 			mBoundGraphicsPipeline = nullptr;
 			mBoundComputePipeline = nullptr;
 			mBoundParameterSets.Clear();
@@ -3576,18 +2870,8 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::ClearRecordingState()
 		{
-			// Clear recording state per the base-class contract (B3DGpuCommandBuffer.h): resource-tracker
-			// notify+clear, queue sync mask reset, event clearing, and cached-state teardown. Runs on
-			// the owner thread — either from the completion handler's message-queue lambda
-			// (CommitInternal) or from pool-level reset / destroy. Clearing OnDidComplete releases
-			// listener closures, which may hold the last references to GPU resources (e.g. scratch
-			// buffers) that must be freed before GpuWorkContext::WaitAndReclaim drains its scratch
-			// allocators.
-			//
-			// Resource tracker: mirror VulkanGpuCommandBuffer::ClearRecordingState — a buffer whose resources were
-			// promoted to submitted use notifies the tracker its work is done on the submitted queue; one
-			// that failed before native submission (or was reset pristine) is notified as unbound. Then
-			// the tracked state is cleared.
+			// Same as VulkanGpuCommandBuffer::ClearRecordingState(). Resources of a buffer that failed before submission
+			// were never marked used, so they are only unbound.
 			if (mResourcesSubmitted)
 				mResourceTracker.NotifyDone(mSubmittedQueueId);
 			else
@@ -3599,12 +2883,13 @@ namespace b3d
 			mBarrierHelper.Clear();
 
 			mQueueSyncMask = GpuQueueMask();
+
+			// Listener closures may hold the last references to transient resources, which must be released before
+			// their allocators are reclaimed
 			OnDidComplete.Clear();
 			OnDestroyed.Clear();
 
-			// Cached recording state. Usually already cleared by NotifyWillQueueForSubmit(); repeated
-			// clears are cheap and keep the pool-reset path (which never goes through a submit)
-			// correct as well.
+			// Usually already cleared by NotifyWillQueueForSubmit(), but a pool reset never goes through a submit
 			mBoundGraphicsPipeline = nullptr;
 			mBoundComputePipeline = nullptr;
 			mBoundParameterSets.Clear();
@@ -3658,11 +2943,8 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::NotifyParentPoolReset()
 		{
-			// Pool-level reset is pure bookkeeping on Metal: the native MTLCommandBuffer is one-shot
-			// and was released at commit time (or never acquired). Only completed (Done) or pristine
-			// (Ready) buffers may be reset — anything else means the caller violated the
-			// GpuCommandBufferPool::Reset contract ("must be called only after all previously
-			// allocated command buffers have completed executing").
+			// The native command buffer is single-use and was already released at commit, so this is bookkeeping only.
+			// GpuCommandBufferPool::Reset() may only be called once all its command buffers have finished executing.
 			if (!B3D_ENSURE(mState == GpuCommandBufferState::Done || mState == GpuCommandBufferState::Ready))
 				return;
 
@@ -3677,15 +2959,11 @@ namespace b3d
 			if (IsDestroyed())
 				return;
 
-			// Drop listeners and cached state first — OnDestroyed is cleared here so the base
-			// destructor's OnDestroyed(...) fire becomes a no-op, matching the explicit-destroy
-			// semantics (the pool has already decided the buffer's fate).
+			// Also clears OnDestroyed, so the base destructor doesn't trigger it
 			ClearRecordingState();
 
 			if (mImpl)
 			{
-				// Close any open encoder and drop the native buffer. If it was never committed, Metal
-				// releases it once the strong reference drops.
 				CloseAllEncoders(*mImpl);
 				mImpl->CommandBuffer = nil;
 			}

@@ -95,8 +95,6 @@ namespace b3d::render
 		 */
 		void RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuImageBarrierFlags barrierFlags);
 
-		// Engine-typed native accumulation (no Metal types here so the header stays includable from
-		// plain C++ TUs). Converted to MTLBarrierScope / MTLRenderStages inside Execute.
 		bool mHasBufferBarriers = false;
 		bool mHasTextureBarriers = false;
 		bool mHasRenderTargetBarriers = false;

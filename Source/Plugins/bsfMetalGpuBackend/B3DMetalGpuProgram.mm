@@ -21,9 +21,7 @@ namespace b3d
 		MetalGpuProgram::MetalGpuProgram(MetalGpuDevice& gpuDevice, const GpuProgramCreateInformation& createInformation)
 			: GpuProgram(createInformation), mGpuDevice(gpuDevice), mImpl(B3DMakeUnique<Impl>())
 		{
-			const Array<u32, 3>& threadGroupSize = createInformation.Bytecode != nullptr
-				? createInformation.Bytecode->ThreadGroupSize
-				: createInformation.GetEntryPointReflection().ThreadGroupSize;
+			const Array<u32, 3>& threadGroupSize = createInformation.Bytecode != nullptr ? createInformation.Bytecode->ThreadGroupSize : createInformation.GetEntryPointReflection().ThreadGroupSize;
 			mWorkgroupSize[0] = threadGroupSize[0];
 			mWorkgroupSize[1] = threadGroupSize[1];
 			mWorkgroupSize[2] = threadGroupSize[2];
@@ -85,6 +83,7 @@ namespace b3d
 			mIsCompiled = mBytecode && mBytecode->Instructions.Data != nullptr
 				&& mBytecode->Instructions.Size > 0 && mBytecode->ParameterDescription != nullptr
 				&& mBytecode->ResourceTableLayout != nullptr;
+
 			if(!mIsCompiled && mCompileMessages.empty())
 				mCompileMessages = "Metal GPU program bytecode is empty or missing native reflection metadata.";
 
@@ -93,9 +92,6 @@ namespace b3d
 
 			if (mIsCompiled)
 			{
-				// The library / function creation below produces autoreleased transients (NSStrings,
-				// NSError); drain them locally — worker fibers may never hit a runloop drain. The
-				// library and function handles are strong refs in mImpl and survive the pool.
 				@autoreleasepool
 				{
 				if (mType == GPT_COMPUTE_PROGRAM)
@@ -110,15 +106,15 @@ namespace b3d
 				{
 					mIsCompiled = false;
 					mCompileMessages = "Metal device unavailable when creating GPU program.";
+
 					B3D_LOG(Error, LogRenderBackend, "{0}", mCompileMessages);
 					GpuProgram::Initialize();
+
 					return;
 				}
 
 				NSError* error = nil;
-				dispatch_data_t libraryData = dispatch_data_create(mBytecode->Instructions.Data,
-					mBytecode->Instructions.Size, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0),
-					DISPATCH_DATA_DESTRUCTOR_DEFAULT);
+				dispatch_data_t libraryData = dispatch_data_create(mBytecode->Instructions.Data, mBytecode->Instructions.Size, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), DISPATCH_DATA_DESTRUCTOR_DEFAULT);
 				if (libraryData != nullptr)
 					mImpl->Library = [device newLibraryWithData:libraryData error:&error];
 
@@ -134,10 +130,13 @@ namespace b3d
 				if (mImpl->Library == nil)
 				{
 					mIsCompiled = false;
+
 					NSString* errorString = error ? [error localizedDescription] : @"unknown error";
 					mCompileMessages = String([errorString UTF8String]);
+
 					B3D_LOG(Error, LogRenderBackend, "Failed to load Metal GPU program '{0}': {1}", mName, mCompileMessages);
 					GpuProgram::Initialize();
+
 					return;
 				}
 
@@ -155,8 +154,10 @@ namespace b3d
 				{
 					mIsCompiled = false;
 					mCompileMessages = String("Metal library does not contain entry point '") + entryPoint + "'.";
+
 					B3D_LOG(Error, LogRenderBackend, "{0}", mCompileMessages);
 					GpuProgram::Initialize();
+
 					return;
 				}
 

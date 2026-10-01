@@ -12,28 +12,18 @@ namespace b3d
 	{
 		struct MetalVertexInput::Impl
 		{
-			// +1 owned reference under MRC (alloc/init), strong reference under ARC. Released in the
-			// destructor. Never mutated after construction — pipeline compiles read it through the
-			// copying MTLRenderPipelineDescriptor.vertexDescriptor property.
 			MTLVertexDescriptor* VertexDescriptor = nil;
 		};
 
 		MetalVertexInput::MetalVertexInput(u32 id, const GpuVertexInputLayout& layout)
 			: mId(id), mStreamCount(layout.StreamCount), mUsedStreamMask(layout.UsedStreamMask), mNullStreamIndex(layout.NullStreamIndex), mImpl(B3DMakeUnique<Impl>())
 		{
-			// Descriptor construction autoreleases Obj-C temporaries; drain locally since fiber-scheduled
-			// callers may never hit a runloop.
 			@autoreleasepool
 			{
 			MTLVertexDescriptor* descriptor = [[MTLVertexDescriptor alloc] init];
 
 			for (const GpuVertexInputAttribute& attribute : layout.Attributes)
 			{
-				// SPIRV-Cross emits [[attribute(N)]] where N is the SPIR-V input location, not the
-				// element's position in the reflected list. For shader-input descriptions produced by
-				// glslang (see B3DGLSLToSPIRV.cpp::ParseVertexAttributes), GetOffset() holds the
-				// layout(location=...) value — sparse locations (0, 2, 5) would be miswired as dense
-				// (0, 1, 2) if we used the element's list position here.
 				const u32 attributeIndex = attribute.ShaderInput->GetOffset();
 
 				if (attribute.BufferElement != nullptr)
@@ -118,16 +108,12 @@ namespace b3d
 
 		MetalVertexInputManager::~MetalVertexInputManager()
 		{
-			// Evict remaining cache entries while the derived class is still alive — required by the
-			// TGpuVertexInputManager contract, as eviction calls back into DestroyVertexInput.
 			ReleaseAll();
 		}
 
 		TShared<MetalVertexInput> MetalVertexInputManager::CreateVertexInput(const GpuVertexInputLayout& layout)
 		{
 			// Validate that the resolved layout is expressible on Metal before allocating anything.
-			// Returning null makes GetVertexInput hand back an empty handle, which the command buffer
-			// treats as "skip this draw" — matching how Vulkan handles an unbuildable vertex input.
 			if (kMetalVertexBufferSlotBase + layout.StreamCount > kMetalVertexBufferSlotEnd)
 			{
 				B3D_LOG(Error, LogRenderBackend, "Vertex input requires {0} streams, exceeding the {1} vertex-stage buffer slots available on Metal.",

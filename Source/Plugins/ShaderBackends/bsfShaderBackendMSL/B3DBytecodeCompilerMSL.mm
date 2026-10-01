@@ -916,8 +916,7 @@ TShared<GpuProgramBytecode> BytecodeCompilerMSL::CompileBytecode(const GpuProgra
 		id<MTLLibrary> library = [device newLibraryWithURL:url error:&error];
 		if(library == nil)
 		{
-			bytecode->Messages += StringUtility::Format("Could not load the compiled Metal library for reflection: {0}.",
-				error != nil ? error.localizedDescription.UTF8String : "unknown error");
+			bytecode->Messages += StringUtility::Format("Could not load the compiled Metal library for reflection: {0}.", error != nil ? error.localizedDescription.UTF8String : "unknown error");
 #if !__has_feature(objc_arc)
 			[device release];
 #endif

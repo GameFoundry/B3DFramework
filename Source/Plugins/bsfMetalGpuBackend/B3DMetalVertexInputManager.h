@@ -48,10 +48,6 @@ namespace b3d
 		 * Contains data describing vertex inputs for a Metal graphics pipeline. Owns the
 		 * MTLVertexDescriptor built by resolving a vertex-buffer layout against the vertex shader's
 		 * declared inputs, with unmatched shader inputs redirected to a zero-filled null stream.
-		 *
-		 * Metal fuses the vertex descriptor into the compiled MTLRenderPipelineState, so the identifier
-		 * returned by GetId() participates in the pipeline-variant cache key (see
-		 * MetalPipelineVariantKey::VertexInputId).
 		 */
 		class MetalVertexInput
 		{
@@ -105,10 +101,7 @@ namespace b3d
 		class MetalVertexInputManager;
 		extern template class TGpuVertexInputManager<MetalVertexInputManager, TShared<MetalVertexInput>>;
 
-		/**
-		 * Maps vertex buffer structure and vertex shader inputs in order to create vertex input
-		 * descriptions usable by Metal.
-		 */
+		/** Maps vertex buffer structure and vertex shader inputs in order to create vertex input descriptions usable by Metal. */
 		class MetalVertexInputManager : public Module<MetalVertexInputManager>, public TGpuVertexInputManager<MetalVertexInputManager, TShared<MetalVertexInput>>
 		{
 		public:

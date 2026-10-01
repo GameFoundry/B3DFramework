@@ -14,10 +14,28 @@ namespace b3d::render
 {
 	class MetalRenderWindowSurface;
 
-	/** Submit-thread presentation bridge for a CAMetalLayer drawable. */
+	/** @addtogroup MetalGpuBackend
+	 *  @{
+	 */
+
+	/**
+	 * Metal swap chain bridging a CAMetalLayer drawable between the render and submit threads.
+	 *
+	 * Unlike the Vulkan and D3D12 swap chains, images are not acquired through GpuSubmitThread::QueueImageAcquire():
+	 * a CAMetalLayer drawable is an opaque object rather than an index into a fixed image set, and its texture must
+	 * be placed in the render pass descriptor when the encoder is created, which happens on the render thread. The
+	 * drawable is therefore acquired on the render thread at BeginRenderPass, i.e. at command recording time, and
+	 * is held from then until the submit thread presents it. AcquireImage() and NotifyWasImageAcquireQueued() are
+	 * consequently never called on this backend and assert if they are.
+	 *
+	 * The drawable is acquired through AcquireDrawable(), and once a render pass has written to it
+	 * SwapBuffers() hands it over for presentation on the submit thread. Only one drawable is held at a time.
+	 */
 	class MetalSwapChain final : public TMetalResource<GpuSwapChain>
 	{
 		using Super = TMetalResource<GpuSwapChain>;
+
+		/** Drawable that has been queued for present, together with the presentation settings captured at that time. */
 		struct PendingDrawable
 		{
 			u32 Index = 0;
@@ -28,6 +46,10 @@ namespace b3d::render
 		};
 
 	public:
+		/**
+		 * Creates a swap chain for the provided surface. The surface must outlive the swap chain, as its presentation
+		 * settings are read whenever a drawable is queued for present.
+		 */
 		MetalSwapChain(MetalResourceManager* owner, MetalRenderWindowSurface& surface);
 		~MetalSwapChain() override;
 
@@ -39,14 +61,40 @@ namespace b3d::render
 		void NotifyWasPresentQueued(u32 imageIndex) override;
 		bool IsRetired() const override { return mIsRetired.load(std::memory_order_acquire); }
 
+		/**
+		 * Acquires the next drawable from @p layer and returns its color texture, or returns the texture of the
+		 * already-held drawable if one was acquired earlier this frame. Returns null if the swap chain is retired or
+		 * the layer has no drawable available.
+		 *
+		 * @note	Render thread only.
+		 */
 		MTLTextureRef AcquireDrawable(CAMetalLayerRef layer);
+
+		/** Returns the color texture of the currently held drawable, or null if no drawable is held. */
 		MTLTextureRef GetCurrentTexture() const;
+
+		/**
+		 * Releases the currently held drawable without presenting it, if any. Used when the render pass that acquired
+		 * it failed to open its encoder, when the surface is invalidated, or when SwapBuffers() finds nothing was
+		 * rendered into the drawable.
+		 */
 		void AbortCurrentDrawable();
+
+		/**
+		 * Records that a render encoder was successfully opened against the currently held drawable. Only such
+		 * drawables are reported by TryGetFirstAcquiredImageIndex() and therefore eligible for present.
+		 */
 		void MarkDrawableAsRendered();
+
+		/**
+		 * Marks the swap chain as retired. Retired swap chain can still present drawables that were already queued,
+		 * but no new drawables can be acquired. Safe to call from any thread.
+		 */
 		void Retire();
 
 	private:
 #ifdef __OBJC__
+		/** Releases the provided drawable reference and resets it to nil. No-op if the reference is already nil. */
 		// __strong: an unqualified id& parameter defaults to __autoreleasing under ARC and cannot bind to strong lvalues
 		void ReleaseDrawable(CAMetalDrawableRef __strong& drawable);
 #endif
@@ -62,18 +110,9 @@ namespace b3d::render
 		std::atomic<bool> mIsRetired{ false };
 	};
 
-	/** @addtogroup MetalGpuBackend
-	 *  @{
-	 */
-
 	/**
 	 * Metal implementation of IMetalRenderWindowSurface for surfaces backed by an OS window.
-	 *
-	 * Resolves the @c CAMetalLayer attached to the engine's Cocoa window. The layer owns the drawable queue;
-	 * @c AcquireColorTexture() acquires late, while @c SwapBuffers() queues the drawable through MetalSwapChain.
-	 *
-	 * Objective-C members use ARC strong ownership in normal builds, with guarded manual retain/release support for
-	 * non-ARC configurations.
+	 * Resolves the @c CAMetalLayer attached to the engine's Cocoa window.
 	 */
 	class MetalRenderWindowSurface final : public IMetalRenderWindowSurface
 	{
@@ -102,6 +141,7 @@ namespace b3d::render
 
 	private:
 		friend class MetalSwapChain;
+
 		/**
 		 * Drains any pending resize/vsync change staged by RebuildSwapChain / MarkSwapChainAsInvalid, re-applying
 		 * the layer's drawableSize and recreating the depth buffer if the size changed. Render thread only.
@@ -116,8 +156,6 @@ namespace b3d::render
 
 		MetalGpuDevice& mGpuDevice;
 
-		// Obj-C strong members, with guarded manual ownership in non-ARC builds. The unconditional handle aliases keep
-		// class layout identical in .cpp and .mm translation units.
 		CAMetalLayerRef mLayer = nullptr;
 		MTLTextureRef mDepthStencilTexture = nullptr;
 		MetalSwapChain* mSwapChain = nullptr;

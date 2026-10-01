@@ -43,7 +43,7 @@ namespace b3d
 			/**
 			 * @param	owner				Manager that takes care of tracking and releasing of this object.
 			 * @param	createInformation	Describes the buffer being wrapped.
-			 * @param	buffer				Native MTLBuffer handle the wrapper takes ownership of (+1 reference under MRC).
+			 * @param	buffer				Native MTLBuffer handle the wrapper takes ownership of.
 			 * @param	allocation			Engine allocator span backing the buffer's memory, or an invalid allocation for
 			 *								direct (non-sub-allocated) device allocations.
 			 * @param	mappedMemory		CPU-visible contents pointer for shared-storage buffers, null otherwise.
@@ -92,18 +92,7 @@ namespace b3d
 			mutable Mutex mViewCacheMutex;
 		};
 
-		/**
-		 * Metal implementation of a GPU buffer.
-		 *
-		 * High-level proxy over a MetalBuffer wrapper. Storage mode follows the engine flags:
-		 * buffers created with @c GpuBufferFlag::StoreOnCPUWithGPUAccess (or typed as
-		 * @c StagingRead / @c StagingWrite) use shared storage so @c Map returns
-		 * @c [buffer contents] directly; all other buffers use private storage, which makes them
-		 * CPU-invisible so @c GpuBufferUtility routes their CPU traffic through a staging buffer +
-		 * @c CopyBufferToBuffer on the transfer queue. Persistent buffers use the device's
-		 * per-memory-type TLSF allocator; work-context scratch buffers use a completion-tracked
-		 * linear allocator (see MetalHeapAllocator).
-		 */
+		/** Metal implementation of a GPU buffer. */
 		class MetalGpuBuffer : public GpuBuffer
 		{
 		public:

@@ -38,6 +38,7 @@ namespace b3d::render
 		Lock lock(mMutex);
 		for (PendingDrawable& pendingDrawable : mPendingDrawables)
 			ReleaseDrawable(pendingDrawable.Drawable);
+
 		mPendingDrawables.clear();
 	}
 
@@ -111,8 +112,7 @@ namespace b3d::render
 		if (mCurrentDrawable == nil || mCurrentDrawableIndex != imageIndex)
 			return;
 
-		mPendingDrawables.push_back({ imageIndex, mCurrentDrawable, mSurface.mVSync,
-			mSurface.mVSyncInterval, mSurface.mRefreshRate });
+		mPendingDrawables.push_back({ imageIndex, mCurrentDrawable, mSurface.mVSync, mSurface.mVSyncInterval, mSurface.mRefreshRate });
 		mCurrentDrawable = nil;
 		mCurrentDrawableWasRenderedInto = false;
 	}
@@ -124,8 +124,7 @@ namespace b3d::render
 		PendingDrawable claimedDrawable;
 		{
 			Lock lock(mMutex);
-			auto iterFind = std::find_if(mPendingDrawables.begin(), mPendingDrawables.end(),
-				[imageIndex](const PendingDrawable& entry) { return entry.Index == imageIndex; });
+			auto iterFind = std::find_if(mPendingDrawables.begin(), mPendingDrawables.end(), [imageIndex](const PendingDrawable& entry) { return entry.Index == imageIndex; });
 			if (iterFind != mPendingDrawables.end())
 			{
 				claimedDrawable = *iterFind;
@@ -197,12 +196,12 @@ namespace b3d::render
 
 	void MetalSwapChain::AcquireImage()
 	{
-		B3D_ASSERT(false && "CAMetalLayer drawables are acquired late by AcquireColorTexture().");
+		B3D_ASSERT(false && "Metal drawables are acquired on the render thread at BeginRenderPass, not through the submit thread. See MetalSwapChain.");
 	}
 
 	void MetalSwapChain::NotifyWasImageAcquireQueued()
 	{
-		B3D_ASSERT(false && "CAMetalLayer drawables do not use queued image acquisition.");
+		B3D_ASSERT(false && "Metal drawables are acquired on the render thread at BeginRenderPass, not through the submit thread. See MetalSwapChain.");
 	}
 
 	void MetalSwapChain::Retire()
@@ -243,17 +242,25 @@ namespace b3d::render
 
 		mLayer.device = device.GetMetalDevice();
 		mLayer.pixelFormat = mHwGamma ? MTLPixelFormatBGRA8Unorm_sRGB : MTLPixelFormatBGRA8Unorm;
-		// framebufferOnly = NO so the drawable texture advertises blit-source usage, which the shared
-		// IMetalRenderWindowSurface::ReadAsync relies on to copy the presented frame into a PixelData staging
-		// buffer. Keeping this disabled has a persistent optimization cost versus framebufferOnly=YES, but the
-		// current RenderWindow API cannot declare capture intent before drawable acquisition. Re-enable the fast path
-		// when that backend-neutral capability is added; silently breaking window screenshots is not acceptable.
+
+		// Development builds need screen capture capability. Ideally we can always keep this to YES and do screen capture without blitting directly from framebuffer.
+#if B3D_BUILD_TYPE_DEVELOPMENT
 		mLayer.framebufferOnly = NO;
+#else
+		mLayer.framebufferOnly = YES;
+#endif
 		mLayer.drawableSize = CGSizeMake(mWidth, mHeight);
 
-		// Pin the drawable pool at 3. CAMetalLayer's default is already 3 on current macOS but was 2 in older
-		// releases, and the explicit value also documents intent: triple-buffering gives the CPU one frame of
-		// slack over the GPU, which the engine's fiber scheduler assumes.
+		// Pin the drawable pool at 3 (CAMetalLayer's default on current macOS, but 2 in older releases). The
+		// Vulkan and D3D12 backends run with 2 images because their acquire returns before the displayed
+		// image is actually free and the wait for it is deferred to the GPU (acquire semaphore / DXGI flip
+		// model), so the render thread is never blocked by the display. nextDrawable has no such deferral:
+		// it blocks the calling render thread until a drawable is fully released. Since drawables are
+		// acquired at command recording time (see MetalSwapChain), the render thread holds one drawable per
+		// frame it is ahead of the display, and with only 2 drawables BeginRenderPass would stall until the
+		// on-screen one retires at vblank. The third drawable lets the render thread run one frame ahead,
+		// the same slack the other backends get from the deferred wait; nextDrawable blocking beyond that
+		// is what paces the render thread against the display on Metal.
 		mLayer.maximumDrawableCount = 3;
 		mLayer.allowsNextDrawableTimeout = YES;
 
@@ -275,8 +282,6 @@ namespace b3d::render
 
 	MetalRenderWindowSurface::~MetalRenderWindowSurface()
 	{
-		// Dtor mirrors @c Destroy() exactly — the Obj-C strongs are released and @c mValid flips false. Delegating
-		// keeps the teardown in one place; calling @c Destroy() on an already-destroyed surface is idempotent.
 		Destroy();
 	}
 
@@ -299,6 +304,7 @@ namespace b3d::render
 		u32 height;
 		bool vsync;
 		u32 vsyncInterval;
+
 		{
 			Lock lock(mPendingStateMutex);
 			width = mPendingWidth;
@@ -327,14 +333,12 @@ namespace b3d::render
 		if (mDepthStencilTexture != nil && (u32)mDepthStencilTexture.width == mWidth && (u32)mDepthStencilTexture.height == mHeight)
 			return;
 
-		// Depth32Float_Stencil8 is the universally supported depth/stencil format on Apple GPUs
-		// (Depth24Unorm_Stencil8 is unavailable on Apple silicon). Private storage rather than memoryless because
-		// the engine's LoadMask can legally request depth contents to be preserved across render passes.
-		MTLTextureDescriptor* descriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float_Stencil8
-			width:mWidth height:mHeight mipmapped:NO];
+		// Depth32Float_Stencil8 is the universally supported depth/stencil format on Apple GPUs (Depth24Unorm_Stencil8 is unavailable on Apple silicon).
+		MTLTextureDescriptor* descriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float_Stencil8 width:mWidth height:mHeight mipmapped:NO];
 		descriptor.usage = MTLTextureUsageRenderTarget;
 		descriptor.storageMode = MTLStorageModePrivate;
 
+		// TODO - Allocate through MetalHeapAllocator::AllocateTexture. Needs a tracked MetalImage so the resize path defers the old texture's release until in-flight command buffers retire.
 		id<MTLTexture> newDepthStencil = [mGpuDevice.GetMetalDevice() newTextureWithDescriptor:descriptor];
 		if (newDepthStencil == nil)
 		{
@@ -344,8 +348,6 @@ namespace b3d::render
 
 		newDepthStencil.label = @"RenderWindowDepthStencil";
 
-		// Any in-flight command buffer that references the old texture retains it (default retained-references
-		// mode), so replacing our strong reference here is safe even while a prior frame is still executing.
 		if (mDepthStencilTexture != nil)
 		{
 #if !__has_feature(objc_arc)
@@ -426,11 +428,6 @@ namespace b3d::render
 
 	void MetalRenderWindowSurface::MarkSwapChainAsInvalid()
 	{
-		// Dropping the drawable here is safe: the caller has guaranteed no render pass is currently writing to it
-		// (the engine calls this on resize *after* the frame boundary). The pending-resize flag is toggled so the
-		// next AcquireColorTexture re-applies the staged width/height to the layer — after a move between displays
-		// the layer's drawableSize may have drifted. Pending values are not touched: they are either from a prior
-		// @c RebuildSwapChain (the intended new size) or seeded from the ctor (the still-current size).
 		ReleaseCurrentDrawable();
 		mNeedsDrawableSizeReapply.store(true, std::memory_order_release);
 	}

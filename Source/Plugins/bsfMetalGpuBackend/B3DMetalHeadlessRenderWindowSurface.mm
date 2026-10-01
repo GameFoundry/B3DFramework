@@ -25,6 +25,7 @@ namespace b3d::render
 			{
 				B3D_LOG(Error, LogRenderBackend, "Headless render window surface created with zero size ({0}x{1}).", mWidth, mHeight);
 				mIsValid = false;
+
 				return;
 			}
 
@@ -34,11 +35,11 @@ namespace b3d::render
 			// rendering produce byte-identical readbacks (GetColorPixelFormat() returns PF_BGRA8 for both).
 			const MTLPixelFormat colorFormat = mUseHardwareSRGB ? MTLPixelFormatBGRA8Unorm_sRGB : MTLPixelFormatBGRA8Unorm;
 
-			MTLTextureDescriptor* colorDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:colorFormat
-				width:mWidth height:mHeight mipmapped:NO];
+			MTLTextureDescriptor* colorDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:colorFormat width:mWidth height:mHeight mipmapped:NO];
 			colorDescriptor.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
 			colorDescriptor.storageMode = MTLStorageModePrivate;
 
+			// TODO - Allocate the color and depth images through MetalHeapAllocator::AllocateTexture, as the Vulkan headless surface does through its allocator. Needs tracked MetalImages so their release is deferred until in-flight command buffers retire.
 			for (u32 imageIndex = 0; imageIndex < kImageCount; imageIndex++)
 			{
 				// Store a strong texture reference until DestroySwapChainImages().
@@ -48,6 +49,7 @@ namespace b3d::render
 					B3D_LOG(Error, LogRenderBackend, "Failed to create headless swap chain color image {0} ({1}x{2}).", imageIndex, mWidth, mHeight);
 					DestroySwapChainImages();
 					mIsValid = false;
+
 					return;
 				}
 
@@ -57,11 +59,7 @@ namespace b3d::render
 
 			if (mCreateDepthBuffer)
 			{
-				// Depth32Float_Stencil8 is the universally supported depth/stencil format on Apple GPUs. Private
-				// rather than memoryless storage because the engine's LoadMask can legally request depth contents
-				// to be preserved across render passes.
-				MTLTextureDescriptor* depthDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float_Stencil8
-					width:mWidth height:mHeight mipmapped:NO];
+				MTLTextureDescriptor* depthDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float_Stencil8 width:mWidth height:mHeight mipmapped:NO];
 				depthDescriptor.usage = MTLTextureUsageRenderTarget;
 				depthDescriptor.storageMode = MTLStorageModePrivate;
 
@@ -71,6 +69,7 @@ namespace b3d::render
 					B3D_LOG(Error, LogRenderBackend, "Failed to create headless swap chain depth image ({0}x{1}).", mWidth, mHeight);
 					DestroySwapChainImages();
 					mIsValid = false;
+
 					return;
 				}
 
@@ -84,8 +83,6 @@ namespace b3d::render
 
 	void MetalHeadlessRenderWindowSurface::DestroySwapChainImages()
 	{
-		// In-flight MTLCommandBuffers retain the textures they reference (default retained-references mode), so
-		// dropping our strong references here is safe even while a prior frame is still executing on the GPU.
 		for (u32 imageIndex = 0; imageIndex < kImageCount; imageIndex++)
 		{
 			if (mColorTextures[imageIndex] != nil)
@@ -129,10 +126,6 @@ namespace b3d::render
 
 	void MetalHeadlessRenderWindowSurface::SwapBuffers(GpuQueue& queue, GpuQueueMask syncMask)
 	{
-		// Headless surfaces have nothing to present and nothing to synchronize against the compositor — a "swap"
-		// just cycles to the next offscreen image, mirroring VulkanHeadlessRenderWindowSurface. The queue and sync
-		// mask are intentionally unused: any producer/consumer hazards on the offscreen images are handled by the
-		// regular per-resource tracking on the command buffers that render to / read from them.
 		if (mIsDestroyed || !mIsValid)
 			return;
 
@@ -143,6 +136,7 @@ namespace b3d::render
 	{
 		if (mIsDestroyed)
 			return;
+
 		if (mIsValid && width == mWidth && height == mHeight && vsync == mVSync)
 			return;
 
@@ -159,9 +153,6 @@ namespace b3d::render
 
 	void MetalHeadlessRenderWindowSurface::MarkSwapChainAsInvalid()
 	{
-		// The owning RenderWindow's properties (size/vsync) changed. Flag the surface so the command buffer's
-		// invalid-swap-chain path triggers RenderWindow::RebuildSwapChain, which recreates the images at the new
-		// size via RebuildSwapChain() above.
 		mIsValid = false;
 	}
 

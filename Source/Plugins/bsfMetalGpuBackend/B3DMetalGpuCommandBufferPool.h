@@ -27,27 +27,20 @@ namespace b3d
 			TShared<GpuCommandBuffer> FindOrCreate(const GpuCommandBufferCreateInformation& createInformation) override;
 
 			void Reset() override;
-
 			void Destroy() override;
 
 			/**
 			 * Notifies the pool that a command buffer has completed on the GPU and is safe to recycle.
 			 *
-			 * Called from the completion-handler lambda in @c MetalGpuCommandBuffer::CommitInternal once
-			 * the state has flipped to @c Done. Appends the id to the recycle free-list so the next
-			 * @c FindOrCreate hand-off is O(1). Must be called on the pool's owner thread (the
-			 * completion path posts back through @c GetMessageQueue() to guarantee this).
+			 * Must be called on the pool's owner thread.
 			 */
-			void NotifyCommandBufferReady(u32 id);
+			void NotifyCommandBufferReady(u32 commandBufferId);
 
 		private:
 			u32 mNextCommandBufferId = 1;
 			UnorderedMap<u32, TShared<GpuCommandBuffer>> mCommandBuffers;
 
-			// Recycle free-list. Populated by NotifyCommandBufferReady from the completion handler
-			// (and rebuilt wholesale by Reset), drained by FindOrCreate. Keeping this as a Vector
-			// (LIFO) means the most recently-finished buffer is re-handed out first, which keeps its
-			// Metal command-buffer / encoder caches warm.
+			/** Ids of command buffers that finished executing and can be reused. */
 			Vector<u32> mReadyIds;
 		};
 

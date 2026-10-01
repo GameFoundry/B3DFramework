@@ -14,9 +14,6 @@ namespace b3d::render
 	/**
 	 * Metal-specific interface for render window surfaces. Used as a common interface for regular Metal surfaces backed
 	 * by a CAMetalLayer attached to an OS window, and faux surfaces for headless (offscreen) rendering scenarios.
-	 *
-	 * All methods are declared unconditionally (using the Obj-C handle aliases from B3DMetalPrerequisites.h) so the
-	 * vtable layout is identical in Objective-C++ and plain C++ translation units.
 	 */
 	class IMetalRenderWindowSurface : public IRenderWindowSurface
 	{
@@ -31,7 +28,7 @@ namespace b3d::render
 
 		/**
 		 * Returns the color texture of the current back buffer without acquiring a new one, or null if none is
-		 * currently held. Used for reading back the rendered frame.
+		 * currently held. 
 		 */
 		virtual MTLTextureRef GetCurrentColorTexture() const = 0;
 
@@ -44,7 +41,7 @@ namespace b3d::render
 		/** Returns the native pixel format (MTLPixelFormat) of the color surface. Used for pipeline state keying. */
 		virtual MTLPixelFormatValue GetColorFormat() const = 0;
 
-		/** Returns the engine pixel format of the color surface. Used for reading back the rendered frame. */
+		/** Returns the engine pixel format of the color surface. */
 		virtual PixelFormat GetColorPixelFormat() const = 0;
 
 		/**

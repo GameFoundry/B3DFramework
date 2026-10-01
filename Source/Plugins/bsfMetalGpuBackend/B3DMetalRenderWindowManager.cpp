@@ -10,9 +10,6 @@ namespace b3d
 {
 	TShared<render::IRenderWindowSurface> MetalRenderWindowManager::CreateRenderWindowSurface(const render::RenderWindowSurfaceCreateInformation& createInformation)
 	{
-		// Metal exposes a single device and every MTLDevice can drive a CAMetalLayer, so device 0 is by
-		// construction the present-capable device. (Vulkan needs a dedicated GetPresentDevice() because present
-		// support is a per-physical-device property there.)
 		auto device = std::static_pointer_cast<render::MetalGpuDevice>(GetMetalGpuBackend().GetDevice(0));
 
 		if (createInformation.Headless)

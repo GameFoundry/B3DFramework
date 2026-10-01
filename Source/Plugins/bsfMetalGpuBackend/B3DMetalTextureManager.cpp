@@ -13,7 +13,7 @@ namespace b3d
 
 		// Preserve depth/stencil semantics when Apple GPUs cannot expose the requested format;
 		// three-component formats expand to a matching four-component representation.
-		if (!render::IsMetalPixelFormatSupported(format, hwGamma))
+		if (!render::MetalUtility::IsPixelFormatSupported(format, hwGamma))
 		{
 			if (usage.IsSet(TextureUsageFlag::DepthStencil))
 				return PF_D32_S8X24;

@@ -21,8 +21,7 @@ namespace b3d
 		 *
 		 * Occlusion pools allocate a shared @c MTLBuffer used as the visibility result buffer; each
 		 * query gets an 8-byte slot. Timestamp pools use an @c MTLCounterSampleBuffer.
-		 * Pipeline-statistics pools are not implemented (Metal does not expose the same granularity as
-		 * Vulkan).
+		 * Pipeline-statistics pools are not implemented (needs a core API change).
 		 */
 		class MetalGpuQueryPool final : public GpuQueryPool
 		{
@@ -46,6 +45,20 @@ namespace b3d
 			u32 GetQueryOffset(GpuQueryId queryId) const { return queryId.Id * sizeof(u64); }
 
 			/**
+			 * Records the first reference from a command buffer that has not entered submission yet.
+			 *
+			 * @note	Called on the thread recording the command buffer.
+			 */
+			void MarkRecorded();
+
+			/**
+			 * Transitions one recorded reference into the asynchronous submit pipeline.
+			 *
+			 * @note	Called on the thread recording the command buffer, before it is handed to the submit thread.
+			 */
+			void MarkQueuedForSubmission();
+
+			/**
 			 * Records that the owning command buffer has been submitted on @p queue, with the shared-event
 			 * value @p eventValue scheduled as the completion marker. @c TryResolve uses this to poll each
 			 * tracked queue's signaled value instead of committing an empty flush.
@@ -54,25 +67,39 @@ namespace b3d
 			 * graphics queue in one frame, then on the compute queue in the next). Event values live in a
 			 * per-queue namespace and cannot be compared across queues, so each (queue, value) pair is
 			 * tracked independently until resolved.
+			 *
+			 * @note	Submit thread only.
 			 */
 			void MarkSubmitted(MetalGpuQueue& queue, u64 eventValue);
 
-			/** Records the first reference from a command buffer that has not entered submission yet. */
-			void MarkRecorded();
-
-			/** Transitions one recorded reference into the asynchronous submit pipeline. */
-			void MarkQueuedForSubmission();
-
-			/** Releases a queued marker when submission fails before a completion event can be encoded. */
+			/**
+			 * Releases a queued marker when submission fails before a completion event can be encoded.
+			 *
+			 * @note	Thread safe. Called on the submit thread when a submission fails, or on the thread recording the
+			 *			command buffer when a queued command buffer is discarded.
+			 */
 			void MarkSubmissionFailed();
 
-			/** Releases a recorded marker when its command buffer is discarded without submission. */
+			/**
+			 * Releases a recorded marker when its command buffer is discarded without submission.
+			 *
+			 * @note	Thread safe. Called on the thread recording the command buffer, or on the submit thread when a
+			 *			submission fails.
+			 */
 			void MarkRecordingAbandoned();
 
-			/** Resets query allocation and invalidates cached results. Matches @c ResetQueries. */
+			/**
+			 * Resets query allocation and invalidates cached results. Matches @c ResetQueries.
+			 *
+			 * @note	Called on the thread recording the command buffer.
+			 */
 			void ResetAllocation();
 
-			/** Returns true when @p queryId belongs to the currently allocated range. */
+			/**
+			 * Returns true when @p queryId belongs to the currently allocated range.
+			 *
+			 * @note	Thread safe.
+			 */
 			bool IsQueryAllocated(GpuQueryId queryId) const;
 
 		private:
@@ -83,6 +110,7 @@ namespace b3d
 			u32 mNextQueryId = 0;
 			u32 mRecordedCommandBuffers = 0;
 			u32 mPendingSubmissions = 0;
+
 			mutable Mutex mStateMutex;
 			ConditionVariable mSubmissionCondition;
 			Vector<u64> mResolvedResults;

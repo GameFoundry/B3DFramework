@@ -466,6 +466,24 @@ namespace b3d
 			return !IsTexture(type) && !IsSampler(type) && type != GPOT_UNKNOWN;
 		}
 
+		/** Returns true if @p type represents a texture that shaders can write to. */
+		static bool IsReadWriteTexture(GpuParameterObjectType type)
+		{
+			switch(type)
+			{
+			case GPOT_RWTEXTURE1D:
+			case GPOT_RWTEXTURE2D:
+			case GPOT_RWTEXTURE3D:
+			case GPOT_RWTEXTURE2DMS:
+			case GPOT_RWTEXTURE1DARRAY:
+			case GPOT_RWTEXTURE2DARRAY:
+			case GPOT_RWTEXTURE2DMSARRAY:
+				return true;
+			default:
+				return false;
+			}
+		}
+
 		/** Returns true if @p type represents a buffer that shaders can write to. */
 		static bool IsReadWriteBuffer(GpuParameterObjectType type)
 		{
