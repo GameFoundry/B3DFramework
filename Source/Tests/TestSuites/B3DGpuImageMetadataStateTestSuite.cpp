@@ -22,6 +22,9 @@ namespace
 	constexpr u32 kNativeTestExpanded = 0;
 	constexpr u32 kNativeTestCompressed = 1;
 
+	/** Frame index of every test submission. Submissions within one frame never clear a submission state. */
+	constexpr u32 kTestFrameIndex = 0;
+
 	/** Two possible native executions used to exercise the core's optional state contract. */
 	class NativeTestState : public GpuImageMetadataState
 	{
@@ -222,7 +225,7 @@ void GpuImageMetadataStateTestSuite::TestSubmissionSelection()
 		subresource.NotifyBound();
 		subresource.NotifyUsed(graphics, GpuAccessFlag::Read);
 		NativeTestVisitor visitor;
-		tracker.ResolveSubmissionTransitions(compute, visitor);
+		tracker.ResolveSubmissionTransitions(compute, kTestFrameIndex, visitor);
 		B3D_TEST_ASSERT(visitor.Writes == (enableRewrite ? 1u : 0u))
 		B3D_TEST_ASSERT(visitor.Waits.IsSet(graphics) == enableRewrite)
 		B3D_TEST_ASSERT(subresource.SubmissionState.HasWriter == enableRewrite)
@@ -563,7 +566,7 @@ void GpuImageMetadataStateTestSuite::TestExplicitBarrierRetention()
 			if(submit)
 			{
 				NativeTestVisitor visitor;
-				tracker.ResolveSubmissionTransitions(graphics, visitor);
+				tracker.ResolveSubmissionTransitions(graphics, kTestFrameIndex, visitor);
 				B3D_TEST_ASSERT(visitor.Writes == (enableRewrite ? 1u : 0u))
 				tracker.NotifyUsed(graphics);
 				B3D_TEST_ASSERT(image.GetBoundCount() == 1)

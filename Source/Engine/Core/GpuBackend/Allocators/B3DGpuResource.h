@@ -556,7 +556,7 @@ namespace b3d
 		 * changes nothing if the image has more than one aspect, if the native states differ, or if the submission states cannot
 		 * be represented by one state (see GpuResourceSubmissionState::TryMerge()). Submit thread only.
 		 */
-		bool TryMergeSubmissionState();
+		bool TryMergeSubmissionState(u32 frameIndex);
 
 		/** Returns queues using any aspect of the specified face and mip level. */
 		GpuQueueMask GetSubresourceUseInfo(u32 face, u32 mipLevel, GpuAccessFlags useFlags) const;

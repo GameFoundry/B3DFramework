@@ -193,6 +193,15 @@ namespace b3d::render
 		 */
 		bool IsFrameFencePending(const GpuQueue& queue) const { return mFrameFencePendingQueues.IsSet(queue.GetId()); }
 
+		/**
+		 * Returns the index of the frame that submissions currently belong to, incremented at every frame end and wrapping on
+		 * overflow. Every submission in a frame, on any queue, is ordered after all work submitted in earlier frames, and that
+		 * work's writes are visible to it (see ConsumeFrameFence()). 
+		 *
+		 * @note	Submit thread only.
+		 */
+		u32 GetFrameIndex() const { return mFrameIndex; }
+
 		/** Returns a pool that may be used for allocating command buffers for the submit thread. */
 		GpuCommandBufferPool& GetCommandBufferPool(GpuQueueType queueType) const { return *mCommandBufferPools[queueType]; }
 
@@ -207,8 +216,8 @@ namespace b3d::render
 		SingleConsumerQueue mCommandQueue;
 		Array<TShared<GpuCommandBufferPool>, GQT_COUNT> mCommandBufferPools;
 
-		/** Current frame index (0 to kFrameCount-1), tracked internally by submit thread. */
-		u32 mCurrentFrameIndex = 0;
+		/** Index of the frame marker (0 to kFrameCount-1) of the frame being recorded. Updated by QueueEndFrameAndWaitForPreviousFrame(). */
+		u32 mCurrentFrameMarkerIndex = 0;
 
 		/** Per-frame completion tracking (per-queue fence value snapshot and completion event). */
 		Array<FrameCompletionMarker, kFrameCount> mFrameMarkers;
@@ -218,6 +227,9 @@ namespace b3d::render
 
 		/** Index of the frame marker that holds the frame fence values. Submit thread only. */
 		u32 mFrameFenceMarkerIndex = 0;
+
+		/** Frame index of submissions, see GetFrameIndex(). Submit thread only. */
+		u32 mFrameIndex = 0;
 	};
 
 	/** Asserts if the current thread isn't the submit thread. */

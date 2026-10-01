@@ -233,6 +233,7 @@ namespace b3d
 			GpuQueueMask ReaderQueues = GpuQueueMask::kNone; /**< Queues with read submissions after the latest write. */
 			GpuStageFlags ReaderStages = GpuStageFlag::None; /**< Conservative stage union for ReaderQueues. */
 			bool HasWriter = false; /**< Whether the current epoch was created by a write. */
+			u32 FrameIndex = 0; /**< Frame (GpuSubmitThread::GetFrameIndex()) of the submission that last committed the state. */
 
 			/** Returns unresolved accesses accumulated by the writer and all parallel readers. */
 			GpuAccessScope GetUnsafeAccessScope() const
@@ -246,8 +247,16 @@ namespace b3d
 			/**
 			 * Widens this state so it requires every wait and barrier that @p other requires. Returns false and leaves this state
 			 * unchanged if one state cannot represent both, which happens when both have a writer on different queues.
+			 * Both states must have the same FrameIndex.
 			 */
 			bool TryMerge(const GpuResourceSubmissionState& other);
+
+			/**
+			 * Resets the state to its default, dropping all hazards. Call when a submission from a later frame than FrameIndex uses
+			 * the state: the frame fence orders every submission in a new frame, on any queue, after all work from earlier frames
+			 * and makes its writes visible, so earlier accesses need no further waits or barriers.
+			 */
+			void Clear();
 		};
 
 		/**
@@ -313,11 +322,15 @@ namespace b3d
 			 * Builds the complete synchronization and post-submission state for one resource on @p destinationQueueId.
 			 *
 			 * @param	sourceState				Submission state left by previously submitted command buffers.
+			 * @param	frameIndex				Frame of the submission (GpuSubmitThread::GetFrameIndex()). If @p sourceState is from
+			 *									an earlier frame its hazards are ignored (see GpuResourceSubmissionState::Clear()).
+			 *									The post-submission state records it. Backends whose submissions don't wait on the
+			 *									frame fence must pass a constant.
 			 * @param	inFlightReadQueues		Queues with in-flight reads of the resource. Readers in @p sourceState that are no longer in flight need no wait.
 			 * @param	destinationQueueId		Queue the command buffer is being submitted on.
 			 * @param	destinationHazardState	Hazards recorded by the command buffer being submitted.
 			 */
-			static GpuSubmissionTransition Build(const GpuResourceSubmissionState& sourceState, GpuQueueMask inFlightReadQueues, GpuQueueId destinationQueueId, const GpuResourceHazardState& destinationHazardState);
+			static GpuSubmissionTransition Build(const GpuResourceSubmissionState& sourceState, u32 frameIndex, GpuQueueMask inFlightReadQueues, GpuQueueId destinationQueueId, const GpuResourceHazardState& destinationHazardState);
 		};
 
 		/** Submission-boundary description for a buffer. */

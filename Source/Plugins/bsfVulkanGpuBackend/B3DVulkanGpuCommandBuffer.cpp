@@ -1502,7 +1502,7 @@ VulkanGpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmit
 	VulkanGpuDevice& device = GetVulkanGpuDevice();
 	const GpuQueueId destinationQueueId(queueType, queueIndex);
 	VulkanSubmissionTransitionVisitor transitionVisitor(device, destinationQueueId, submitInformation);
-	mResourceTracker.ResolveSubmissionTransitions(destinationQueueId, transitionVisitor);
+	mResourceTracker.ResolveSubmissionTransitions(destinationQueueId, device.GetSubmitThread().GetFrameIndex(), transitionVisitor);
 	transitionVisitor.Finalize();
 
 	// Wait on present (i.e. until the back buffer becomes available) for any surfaces

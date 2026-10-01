@@ -216,7 +216,7 @@ namespace b3d
 		mHasUniformSubmissionState = false;
 	}
 
-	bool IGpuImageResource::TryMergeSubmissionState()
+	bool IGpuImageResource::TryMergeSubmissionState(u32 frameIndex)
 	{
 		B3D_ASSERT(!mHasUniformSubmissionState);
 
@@ -224,8 +224,19 @@ namespace b3d
 		if(!mFullRange.HasSingleAspect())
 			return false;
 
-		// Native state has no conservative union, so every subresource must already share it
+		// Clear hazards from an earlier frame, which are no longer relevant
 		const u32 subresourceCount = GetSubresourceCount();
+		for(u32 subresourceIndex = 0; subresourceIndex < subresourceCount; subresourceIndex++)
+		{
+			render::GpuResourceSubmissionState& submissionState = mSubresources[subresourceIndex].SubmissionState;
+			if(submissionState.FrameIndex != frameIndex)
+			{
+				submissionState.Clear();
+				submissionState.FrameIndex = frameIndex;
+			}
+		}
+
+		// Native state has no conservative union, so every subresource must already share it
 		const render::GpuImageNativeState& nativeState = mSubresources[0].NativeState;
 		for(u32 subresourceIndex = 1; subresourceIndex < subresourceCount; subresourceIndex++)
 		{

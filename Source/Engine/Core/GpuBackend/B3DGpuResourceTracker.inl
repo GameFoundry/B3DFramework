@@ -18,7 +18,7 @@ TDerived& TGpuResourceTracker<TDerived, TBarrierHelper>::GetDerived()
 }
 
 template<class TDerived, class TBarrierHelper>
-void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions(GpuQueueId destinationQueueId, GpuSubmissionTransitionVisitor& visitor)
+void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions(GpuQueueId destinationQueueId, u32 frameIndex, GpuSubmissionTransitionVisitor& visitor)
 {
 	for(const auto& entry : mBuffers)
 	{
@@ -27,7 +27,7 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions
 		if(trackingState.HazardState == nullptr || !trackingState.HazardState->HasSubmissionEffect())
 			continue;
 
-		GpuSubmissionBufferTransition transition(*buffer, GpuSubmissionTransition::Build(buffer->GetSubmissionState(), buffer->GetUseInfo(GpuAccessFlag::Read), destinationQueueId, *trackingState.HazardState));
+		GpuSubmissionBufferTransition transition(*buffer, GpuSubmissionTransition::Build(buffer->GetSubmissionState(), frameIndex, buffer->GetUseInfo(GpuAccessFlag::Read), destinationQueueId, *trackingState.HazardState));
 		visitor.VisitBuffer(transition);
 
 		buffer->SetSubmissionState(std::move(transition.PostTransitionSubmissionState));
@@ -58,7 +58,7 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions
 			// Partitions don't overlap, so a partition covering the full range is the only one
 			if(image->IsFullRange(firstEffectiveTrackingState->Range))
 			{
-				ResolveImageSubmissionTransition(image, *firstEffectiveTrackingState, image->GetRange(), fullRangeSubresource, image->GetUseInfo(GpuAccessFlag::Read), destinationQueueId, visitor);
+				ResolveImageSubmissionTransition(image, *firstEffectiveTrackingState, image->GetRange(), fullRangeSubresource, image->GetUseInfo(GpuAccessFlag::Read), destinationQueueId, frameIndex, visitor);
 				continue;
 			}
 
@@ -84,18 +84,18 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions
 
 					// Full-range reads cover every subresource
 					const GpuQueueMask inFlightReadQueues = subresource.GetUseInfo(GpuAccessFlag::Read) | fullRangeReadQueues;
-					ResolveImageSubmissionTransition(image, trackingState, GpuTextureSubresourceRange(mipLevel, 1, face, 1, trackedRange.AspectMask), subresource, inFlightReadQueues, destinationQueueId, visitor);
+					ResolveImageSubmissionTransition(image, trackingState, GpuTextureSubresourceRange(mipLevel, 1, face, 1, trackedRange.AspectMask), subresource, inFlightReadQueues, destinationQueueId, frameIndex, visitor);
 				}
 			}
 		}
 
 		// Return to one state as soon as the subresources share it. Never within a command buffer, and never by adding synchronization.
-		image->TryMergeSubmissionState();
+		image->TryMergeSubmissionState(frameIndex);
 	}
 }
 
 template<class TDerived, class TBarrierHelper>
-void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveImageSubmissionTransition(IGpuImageResource* image, const GpuImageSubresourceTrackingState& trackingState, const GpuTextureSubresourceRange& range, GpuImageSubresource& stateResource, GpuQueueMask inFlightReadQueues, GpuQueueId destinationQueueId, GpuSubmissionTransitionVisitor& visitor)
+void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveImageSubmissionTransition(IGpuImageResource* image, const GpuImageSubresourceTrackingState& trackingState, const GpuTextureSubresourceRange& range, GpuImageSubresource& stateResource, GpuQueueMask inFlightReadQueues, GpuQueueId destinationQueueId, u32 frameIndex, GpuSubmissionTransitionVisitor& visitor)
 {
 	const GpuResourceHazardState& hazards = GetDerived().ResolveImageSubmissionHazards(image, trackingState, stateResource);
 	if(!hazards.HasSubmissionEffect())
@@ -116,7 +116,7 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveImageSubmissionTransi
 	}
 
 	GpuSubmissionImageTransition transition(*image, range, stateResource.NativeState, trackingState.InitialLayout, trackingState.CurrentLayout, trackingState.SubmissionBarrierFlags,
-		GpuSubmissionTransition::Build(stateResource.SubmissionState, inFlightReadQueues, destinationQueueId, hazards));
+		GpuSubmissionTransition::Build(stateResource.SubmissionState, frameIndex, inFlightReadQueues, destinationQueueId, hazards));
 	visitor.VisitImage(transition);
 
 	stateResource.SubmissionState = std::move(transition.PostTransitionSubmissionState);

@@ -200,6 +200,13 @@ namespace b3d
 			/** Encodes queue-event waits at the current position in @p cmdBuffer without reserving a signal. */
 			void EncodeQueueWaits(id<MTLCommandBuffer> cmdBuffer, MetalGpuQueue& submitQueue, GpuQueueMask syncMask);
 
+			/**
+			 * Encodes the waits of the frame fence (see GpuSubmitThread::ConsumeFrameFence()) at the current position in
+			 * @p cmdBuffer: one per queue with a non-zero value in @p frameFenceValues, @p submitQueue included. Skips other
+			 * queues in @p syncMask, which EncodeQueueWaits() already waits on at their latest committed value.
+			 */
+			void EncodeFrameFenceWaits(id<MTLCommandBuffer> cmdBuffer, MetalGpuQueue& submitQueue, GpuQueueMask syncMask, TArrayView<const u64> frameFenceValues);
+
 			/** Resolves pending tracker barriers against the currently active Metal encoder. */
 			bool ExecutePendingBarriers();
 

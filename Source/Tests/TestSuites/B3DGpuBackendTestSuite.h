@@ -52,6 +52,9 @@ namespace b3d
 		/** Verifies conservative merging of submission states. */
 		void TestSubmissionStateMerge();
 
+		/** Verifies submission states from earlier frames are cleared, and that this lets split images merge. */
+		void TestFrameIndexClear();
+
 		/** Verifies framebuffer attachment normalization and render-pass usage construction. */
 		void TestFramebufferAttachmentUsage();
 

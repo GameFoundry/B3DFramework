@@ -225,9 +225,11 @@ namespace b3d
 			 * The visitor must provide VisitBuffer(const GpuSubmissionBufferTransition&) and VisitImage(const GpuSubmissionImageTransition&). The visitor must not store any references to the transition descriptions,
 			 * as they are only valid for the duration of the visitor call.
 			 *
+			 * @p frameIndex is the frame of the submission (see GpuSubmissionTransition::Build()).
+			 *
 			 * Submit thread only.
 			 */
-			void ResolveSubmissionTransitions(GpuQueueId destinationQueueId, GpuSubmissionTransitionVisitor& visitor);
+			void ResolveSubmissionTransitions(GpuQueueId destinationQueueId, u32 frameIndex, GpuSubmissionTransitionVisitor& visitor);
 
 			/**
 			 * Iterates over all subresource tracking states that overlap with the provided subresource range. The provided callback is invoked for each overlapping subresource.
@@ -391,10 +393,11 @@ namespace b3d
 			 * @param	stateResource			Subresource holding the state that the transition starts from, and receiving the new state.
 			 * @param	inFlightReadQueues		Queues with in-flight reads of any subresource in @p range.
 			 * @param	destinationQueueId		Queue the command buffer is being submitted on.
+			 * @param	frameIndex				Frame of the submission (see GpuSubmissionTransition::Build()).
 			 * @param	visitor					Visitor recording the backend synchronization.
 			 */
 			void ResolveImageSubmissionTransition(IGpuImageResource* image, const GpuImageSubresourceTrackingState& trackingState, const GpuTextureSubresourceRange& range,
-				GpuImageSubresource& stateResource, GpuQueueMask inFlightReadQueues, GpuQueueId destinationQueueId, GpuSubmissionTransitionVisitor& visitor);
+				GpuImageSubresource& stateResource, GpuQueueMask inFlightReadQueues, GpuQueueId destinationQueueId, u32 frameIndex, GpuSubmissionTransitionVisitor& visitor);
 
 			/** Selects the accesses executed for one submitted subresource. @p subresource holds the state the submission starts from. */
 			const GpuResourceHazardState& ResolveImageSubmissionHazards(IGpuImageResource* image, const GpuImageSubresourceTrackingState& trackingState, GpuImageSubresource& subresource) { return *trackingState.HazardState; }

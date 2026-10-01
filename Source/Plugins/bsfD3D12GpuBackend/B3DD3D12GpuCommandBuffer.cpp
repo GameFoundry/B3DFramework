@@ -1393,7 +1393,7 @@ D3D12GpuCommandBufferSubmitInformation D3D12GpuCommandBuffer::PrepareForSubmitOn
 	const GpuQueueId destinationQueueId(queueType, queueIndex);
 
 	D3D12SubmissionTransitionVisitor visitor(device, destinationQueueId, submitInformation);
-	mResourceTracker.ResolveSubmissionTransitions(destinationQueueId, visitor);
+	mResourceTracker.ResolveSubmissionTransitions(destinationQueueId, device.GetSubmitThread().GetFrameIndex(), visitor);
 	visitor.Finalize();
 
 	submitInformation.PrimaryCommandBuffer = std::static_pointer_cast<D3D12GpuCommandBuffer>(GetShared());

@@ -144,20 +144,20 @@ void GpuSubmitThread::QueueImageAcquire(GpuSwapChain& swapChain)
 
 void GpuSubmitThread::QueueEndFrameAndWaitForPreviousFrame()
 {
-	const u32 frameIndex = mCurrentFrameIndex;
-	const u32 nextFrameIndex = (frameIndex + 1) % kFrameCount;
+	const u32 markerIndex = mCurrentFrameMarkerIndex;
+	const u32 nextMarkerIndex = (markerIndex + 1) % kFrameCount;
 
-	mCurrentFrameIndex = nextFrameIndex;
+	mCurrentFrameMarkerIndex = nextMarkerIndex;
 
 	// Mark this frame's end processing as pending (will be signalled when submit thread finishes)
-	mFrameMarkers[frameIndex].CompletionEvent.Reset();
+	mFrameMarkers[markerIndex].CompletionEvent.Reset();
 
-	auto fnCommand = [this, frameIndex, nextFrameIndex]
+	auto fnCommand = [this, markerIndex, nextMarkerIndex]
 	{
 		// Snapshot the last fence value on every queue, marking the boundary of work issued during this frame. By the
 		// time this runs all of the frame's submit commands have already executed because the command queue is
 		// processed in order.
-		FrameCompletionMarker& currentMarker = mFrameMarkers[frameIndex];
+		FrameCompletionMarker& currentMarker = mFrameMarkers[markerIndex];
 		mGpuDevice.DoForEachQueue([this, &currentMarker](GpuQueue& queue)
 		{
 			currentMarker.LastFenceValues[queue.GetId().Id] = mBackend.GetLastSubmittedFenceValue(queue);
@@ -165,11 +165,12 @@ void GpuSubmitThread::QueueEndFrameAndWaitForPreviousFrame()
 
 		// Order the next frame's first submission on every queue after all of this frame's work
 		mFrameFencePendingQueues = GpuQueueMask::kAll;
-		mFrameFenceMarkerIndex = frameIndex;
+		mFrameFenceMarkerIndex = markerIndex;
+		mFrameIndex++;
 
 		// Wait for all command buffers from the previous frame, up to the fence value captured at that frame's boundary.
 		// Checking the full range ensures every command buffer pool and its resources are safe to reuse.
-		const FrameCompletionMarker& previousMarker = mFrameMarkers[nextFrameIndex];
+		const FrameCompletionMarker& previousMarker = mFrameMarkers[nextMarkerIndex];
 		mGpuDevice.DoForEachQueue([this, &previousMarker](GpuQueue& queue)
 		{
 			const u64 lastFenceValue = previousMarker.LastFenceValues[queue.GetId().Id];
@@ -178,15 +179,15 @@ void GpuSubmitThread::QueueEndFrameAndWaitForPreviousFrame()
 
 		// TODO: This could be signalled earlier. In case the frame's work finishes earlier the submit thread could set the signal
 		// before this point. This would avoid the render thread blocking if the work is already finished.
-		mFrameMarkers[nextFrameIndex].CompletionEvent.Signal();
+		mFrameMarkers[nextMarkerIndex].CompletionEvent.Signal();
 	};
 
 	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "End frame");
 
-	// We're about to start rendering frame at 'nextFrameIndex', so we must make sure it has completed on the GPU, and we have sent the Reset() calls to their
+	// We're about to start rendering the frame that uses marker 'nextMarkerIndex', so we must make sure it has completed on the GPU, and we have sent the Reset() calls to their
 	// message queues, as we're about to re-use those command buffers.
-	mCurrentFrameIndex = nextFrameIndex;
-	mFrameMarkers[nextFrameIndex].CompletionEvent.Wait();
+	mCurrentFrameMarkerIndex = nextMarkerIndex;
+	mFrameMarkers[nextMarkerIndex].CompletionEvent.Wait();
 }
 
 void GpuSubmitThread::WaitUntilIdle(bool performCleanupForShutdown)

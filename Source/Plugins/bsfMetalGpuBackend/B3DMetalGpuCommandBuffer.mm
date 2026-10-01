@@ -3159,6 +3159,30 @@ namespace b3d
 			}
 		}
 
+		void MetalGpuCommandBuffer::EncodeFrameFenceWaits(id<MTLCommandBuffer> cmdBuffer, MetalGpuQueue& submitQueue, GpuQueueMask syncMask, TArrayView<const u64> frameFenceValues)
+		{
+			if (frameFenceValues.IsEmpty())
+				return;
+
+			// Frame fence values are committed event values, so waiting on them cannot deadlock. Waiting on this queue's own
+			// value also orders the frame after its earlier work when resources are untracked.
+			const GpuQueueId submitQueueId = submitQueue.GetId();
+			mGpuDevice.DoForEachQueue([cmdBuffer, submitQueueId, syncMask, frameFenceValues](GpuQueue& queue)
+			{
+				const GpuQueueId queueId = queue.GetId();
+				const u64 waitValue = frameFenceValues[queueId.Id];
+				if (waitValue == 0)
+					return;
+
+				if (queueId.Id != submitQueueId.Id && syncMask.IsSet(queueId))
+					return;
+
+				id<MTLSharedEvent> waitEvent = static_cast<MetalGpuQueue&>(queue).GetSharedEvent();
+				if (waitEvent != nil)
+					[cmdBuffer encodeWaitForEvent:waitEvent value:waitValue];
+			});
+		}
+
 		u64 MetalGpuCommandBuffer::EncodeQueueSyncAndSignal(id<MTLCommandBuffer> cmdBuffer, MetalGpuQueue& submitQueue, GpuQueueMask syncMask)
 		{
 			// This helper is used with waits only for an otherwise-empty command buffer, where the
@@ -3341,12 +3365,16 @@ namespace b3d
 					return;
 				}
 
+				GpuSubmitThread& submitThread = mGpuDevice.GetSubmitThread();
 				MetalSubmissionTransitionVisitor transitionVisitor;
-				mResourceTracker.ResolveSubmissionTransitions(mSubmittedQueueId, transitionVisitor);
+				mResourceTracker.ResolveSubmissionTransitions(mSubmittedQueueId, submitThread.GetFrameIndex(), transitionVisitor);
 				syncMask |= transitionVisitor.GetRequiredWaitMask();
 
 				mResourceTracker.NotifyUsed(mSubmittedQueueId);
 				mResourcesSubmitted = true;
+
+				// The resolved transitions rely on the frame fence ordering this submission after all earlier frames
+				EncodeFrameFenceWaits(emptyCmdBuffer, submitQueue, syncMask, submitThread.ConsumeFrameFence(submitQueue));
 
 				// Reuse the shared wait+signal encoder so the empty path observes the exact same
 				// cross-queue sync contract as the real path. Without this, any consumer queue that
@@ -3400,9 +3428,11 @@ namespace b3d
 			needsWaitPrologue |= submitQueue.GetLastCommittedEventValue() != 0;
 #endif
 			// Resolving publishes the resulting hazard and layout state, so provision a possible resource-derived wait prologue first.
+			GpuSubmitThread& submitThread = mGpuDevice.GetSubmitThread();
 			const bool mayNeedResourceWait = !mResourceTracker.GetBuffers().empty() || !mResourceTracker.GetImages().empty();
+			const bool needsFrameFenceWait = submitThread.IsFrameFencePending(submitQueue);
 			id<MTLCommandBuffer> waitCommandBuffer = nil;
-			if (needsWaitPrologue || mayNeedResourceWait)
+			if (needsWaitPrologue || mayNeedResourceWait || needsFrameFenceWait)
 			{
 				id<MTLCommandQueue> mtlQueue = submitQueue.GetMetalQueue();
 				waitCommandBuffer = mtlQueue ? [mtlQueue commandBuffer] : nil;
@@ -3415,10 +3445,13 @@ namespace b3d
 			}
 
 			MetalSubmissionTransitionVisitor transitionVisitor;
-			mResourceTracker.ResolveSubmissionTransitions(mSubmittedQueueId, transitionVisitor);
+			mResourceTracker.ResolveSubmissionTransitions(mSubmittedQueueId, submitThread.GetFrameIndex(), transitionVisitor);
 			syncMask |= transitionVisitor.GetRequiredWaitMask();
 
-			needsWaitPrologue = !(syncMask & ~selfMask).IsEmpty();
+			// The resolved transitions rely on the frame fence ordering this submission after all earlier frames
+			const TArrayView<const u64> frameFenceValues = submitThread.ConsumeFrameFence(submitQueue);
+
+			needsWaitPrologue = !(syncMask & ~selfMask).IsEmpty() || !frameFenceValues.IsEmpty();
 #if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
 			needsWaitPrologue |= submitQueue.GetLastCommittedEventValue() != 0;
 #endif
@@ -3427,6 +3460,7 @@ namespace b3d
 			{
 				B3D_ASSERT(waitCommandBuffer != nil);
 				EncodeQueueWaits(waitCommandBuffer, submitQueue, syncMask);
+				EncodeFrameFenceWaits(waitCommandBuffer, submitQueue, syncMask, frameFenceValues);
 				[waitCommandBuffer addCompletedHandler:^(id<MTLCommandBuffer> completedBuffer)
 				{
 					LogCommandBufferError(completedBuffer);
