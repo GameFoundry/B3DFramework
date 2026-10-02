@@ -296,7 +296,8 @@ namespace b3d
 
 		std::pair<Iterator, bool> insert(const std::pair<Key, Value>& pair)
 		{
-			if(empty())
+			// Buckets are only missing if copied or moved from an empty map. Checking empty() instead would leak the existing buckets.
+			if(mBuckets == nullptr)
 				init();
 
 			DensePair* temp;
@@ -336,6 +337,9 @@ namespace b3d
 
 		DensePair& construct(const Key& key)
 		{
+			if(mBuckets == nullptr)
+				init();
+
 			DensePair* temp;
 
 			if(lookup(key, temp))
