@@ -262,6 +262,7 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestMergedStateWaits)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestSubmissionStateMerge)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestFrameIndexClear)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestRestingReaderStages)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestFramebufferAttachmentUsage)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestRenderPassResourceTracking)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantMetadata)
@@ -1602,6 +1603,30 @@ void GpuBackendTestSuite::TestFrameIndexClear()
 		B3D_TEST_ASSERT(mergedState.HasWriter && mergedState.WriterQueueId.Id == graphics.Id)
 		B3D_TEST_ASSERT(mergedState.FrameIndex == 1)
 	}
+}
+
+void GpuBackendTestSuite::TestRestingReaderStages()
+{
+	const GpuQueueId graphics(GQT_GRAPHICS, 0);
+	const GpuQueueId compute(GQT_COMPUTE, 0);
+
+	B3D_TEST_ASSERT(GpuBackendUtility::GetQueueStageFlags(GQT_GRAPHICS) == GpuStageFlag::All)
+	B3D_TEST_ASSERT(GpuBackendUtility::GetQueueStageFlags(GQT_COMPUTE).IsSet(GpuStageFlag::ComputeShaderNonUniform))
+	B3D_TEST_ASSERT(!GpuBackendUtility::GetQueueStageFlags(GQT_COMPUTE).IsSetAny(GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::FragmentShaderNonUniform))
+	B3D_TEST_ASSERT(GpuBackendUtility::GetQueueStageFlags(GQT_TRANSFER) == (GpuStageFlag::Transfer | GpuStageFlag::Host))
+
+	// A write only orders after the reader stages its own queue can execute; readers on other queues are waited on instead
+	GpuResourceSubmissionState sharedState;
+	sharedState.ReaderQueues = GpuQueueMask(graphics) | compute;
+	sharedState.ReaderStages = GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::ComputeShaderNonUniform;
+
+	GpuResourceHazardState writeHazardState;
+	ResolveTestAccess(writeHazardState, GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write);
+
+	const GpuQueueMask inFlightReadQueues = GpuQueueMask(graphics) | compute;
+	const GpuSubmissionTransition computeWrite = GpuSubmissionTransition::Build(sharedState, kTestFrameIndex, inFlightReadQueues, compute, writeHazardState);
+	B3D_TEST_ASSERT(computeWrite.ExecutionBarrier.SourceStages == GpuStageFlag::ComputeShaderNonUniform)
+	B3D_TEST_ASSERT(computeWrite.ExclusiveAccessWaitMask == GpuQueueMask(graphics))
 }
 
 void GpuBackendTestSuite::TestImageAccessEpochTracking()

@@ -477,6 +477,9 @@ namespace b3d
 		/** Returns submission hazards shared by all command buffers using this buffer. Submit thread only. */
 		const render::GpuResourceSubmissionState& GetSubmissionState() const { return mSubmissionState; }
 
+		/** Returns the submission state for an in-place update. Submit thread only. */
+		render::GpuResourceSubmissionState& GetSubmissionState() { return mSubmissionState; }
+
 		/** Commits submission hazards after native boundary synchronization has been constructed. Submit thread only. */
 		void SetSubmissionState(render::GpuResourceSubmissionState&& state) { mSubmissionState = std::move(state); }
 
@@ -515,6 +518,7 @@ namespace b3d
 	 *
 	 * Submission state is either uniform or split. While uniform, the full-range subresource holds the submission and native state
 	 * of every subresource. While split, each subresource holds its own. Only single-aspect images can be uniform.
+	 * Only uniform images rest.
 	 */
 	class B3D_EXPORT IGpuImageResource : public IGpuResource
 	{
@@ -567,6 +571,12 @@ namespace b3d
 		/** Returns the total in-flight use count across every aspect of the specified face and mip level. */
 		u32 GetSubresourceUseCount(u32 face, u32 mipLevel) const;
 
+		/**
+		 * Returns true if the image can ever be transitioned into a 'rest' state. Resting state implies read-only access and does not require hazard tracking.
+		 * It is used primarily as an optimization so we don't need to perform hazard tracking on every single image (large majority of images are read-only sampleable images).
+		 */
+		bool CanRest() const { return mCanRest; }
+
 	protected:
 		/** Constructs an unmanaged image resource (no owner). Reserved for test mocks, see IGpuResource(). */
 		IGpuImageResource(u32 faceCount, u32 mipLevelCount, GpuTextureAspectFlags aspectMask);
@@ -583,6 +593,8 @@ namespace b3d
 		u32 mFaceCount = 0;
 		u32 mMipLevelCount = 0;
 		GpuTextureSubresourceRange mFullRange;
+
+		bool mCanRest = false;
 
 	private:
 		/** Creates the subresources and selects the initial submission state mode. */

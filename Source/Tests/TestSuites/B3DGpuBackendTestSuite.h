@@ -55,6 +55,9 @@ namespace b3d
 		/** Verifies submission states from earlier frames are cleared, and that this lets split images merge. */
 		void TestFrameIndexClear();
 
+		/** Verifies a write orders only after the reader stages of its own queue type. */
+		void TestRestingReaderStages();
+
 		/** Verifies framebuffer attachment normalization and render-pass usage construction. */
 		void TestFramebufferAttachmentUsage();
 

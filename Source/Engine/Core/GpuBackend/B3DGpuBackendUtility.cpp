@@ -169,6 +169,24 @@ GpuStageFlags GpuBackendUtility::GetStageFlags(GpuResourceUseFlags usage)
 	return accessStageFlags;
 }
 
+GpuStageFlags GpuBackendUtility::GetQueueStageFlags(GpuQueueType queueType)
+{
+	switch(queueType)
+	{
+	case GQT_COMPUTE:
+		return GpuStageFlag::ComputeShaderUniform | GpuStageFlag::ComputeShaderNonUniform | GpuStageFlag::DrawIndirect | GpuStageFlag::Transfer | GpuStageFlag::Host;
+	case GQT_TRANSFER:
+		return GpuStageFlag::Transfer | GpuStageFlag::Host;
+	default:
+		return GpuStageFlag::All;
+	}
+}
+
+bool GpuBackendUtility::IsSampleableOnly(TextureUsageFlags usage)
+{
+	return !usage.IsSetAny(TextureUsageFlag::RenderTarget | TextureUsageFlag::DepthStencil | TextureUsageFlag::AllowUnorderedAccessOnTheGPU | TextureUsageFlag::StoreOnCPUWithGPUAccess);
+}
+
 const char* GpuBackendUtility::GetAccessStageName(GpuStageFlag flag)
 {
 	switch(flag)
@@ -271,6 +289,23 @@ bool GpuBackendUtility::RangeEquals(const GpuTextureSubresourceRange& a, const G
 {
 	return a.BaseArrayLayer == b.BaseArrayLayer && a.BaseMipLevel == b.BaseMipLevel &&
 		a.ArrayLayerCount == b.ArrayLayerCount && a.MipLevelCount == b.MipLevelCount && a.AspectMask == b.AspectMask;
+}
+
+GpuTextureSubresourceRange GpuBackendUtility::GetBoundingRange(const GpuTextureSubresourceRange& a, const GpuTextureSubresourceRange& b)
+{
+	const u32 baseMipLevel = std::min(a.BaseMipLevel, b.BaseMipLevel);
+	const u32 mipLevelEnd = std::max(a.BaseMipLevel + a.MipLevelCount, b.BaseMipLevel + b.MipLevelCount);
+	const u32 baseArrayLayer = std::min(a.BaseArrayLayer, b.BaseArrayLayer);
+	const u32 arrayLayerEnd = std::max(a.BaseArrayLayer + a.ArrayLayerCount, b.BaseArrayLayer + b.ArrayLayerCount);
+
+	return GpuTextureSubresourceRange(baseMipLevel, mipLevelEnd - baseMipLevel, baseArrayLayer, arrayLayerEnd - baseArrayLayer, a.AspectMask | b.AspectMask);
+}
+
+bool GpuBackendUtility::RangeContains(const GpuTextureSubresourceRange& outer, const GpuTextureSubresourceRange& inner)
+{
+	return outer.AspectMask.IsSetAll(inner.AspectMask) &&
+		outer.BaseMipLevel <= inner.BaseMipLevel && inner.BaseMipLevel + inner.MipLevelCount <= outer.BaseMipLevel + outer.MipLevelCount &&
+		outer.BaseArrayLayer <= inner.BaseArrayLayer && inner.BaseArrayLayer + inner.ArrayLayerCount <= outer.BaseArrayLayer + outer.ArrayLayerCount;
 }
 
 const char* GpuBackendUtility::GetImageLayoutName(GpuImageLayout layout)

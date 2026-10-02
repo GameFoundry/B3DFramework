@@ -58,6 +58,15 @@ namespace b3d
 		/** Maps resource usage flags to the stages describing on which pipeline stage and how the resource is accessed. */
 		static render::GpuStageFlags GetStageFlags(render::GpuResourceUseFlags usage);
 
+		/** Returns the stages that queues of @p queueType can execute. */
+		static render::GpuStageFlags GetQueueStageFlags(GpuQueueType queueType);
+
+		/**
+		 * Returns true if textures created with @p usage are sampleable only: not render targets, depth-stencil targets, UAVs or
+		 * CPU-writable. Backends share such textures between queues and let them rest (see IGpuImageResource::CanRest()).
+		 */
+		static bool IsSampleableOnly(TextureUsageFlags usage);
+
 		/** Converts a single GpuStageFlag into a readable string representing the access and stage. */
 		static const char* GetAccessStageName(render::GpuStageFlag flag);
 
@@ -69,6 +78,12 @@ namespace b3d
 
 		/** Checks if the two image subresource ranges cover the same aspects, mip levels and array layers. */
 		static bool RangeEquals(const GpuTextureSubresourceRange& a, const GpuTextureSubresourceRange& b);
+
+		/** Returns the smallest range that contains both @p a and @p b, including the aspects of both. */
+		static GpuTextureSubresourceRange GetBoundingRange(const GpuTextureSubresourceRange& a, const GpuTextureSubresourceRange& b);
+
+		/** Returns true if @p outer contains every subresource of @p inner. */
+		static bool RangeContains(const GpuTextureSubresourceRange& outer, const GpuTextureSubresourceRange& inner);
 
 		/**
 		 * Subdivides an image subresource range by cutting it with another range. If the ranges don't overlap, or the

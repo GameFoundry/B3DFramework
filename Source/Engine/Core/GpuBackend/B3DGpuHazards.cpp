@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GpuBackend/B3DGpuHazards.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
+#include "GpuBackend/B3DGpuBackendUtility.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -220,7 +221,7 @@ GpuSubmissionTransition GpuSubmissionTransition::Build(const GpuResourceSubmissi
 	// Full per-stage hazards are only retained for the writer queue. If this queue has outstanding reads and now writes,
 	// patch the same-queue state with the conservative reader-stage union carried by the submission state.
 	if(performsWrites && activeReaderQueues.IsSet(destinationQueueId))
-		sameQueueWriteEpochHazardState.ReaderStages |= currentSourceState.ReaderStages;
+		sameQueueWriteEpochHazardState.ReaderStages |= currentSourceState.ReaderStages & GpuBackendUtility::GetQueueStageFlags(destinationQueueId.GetType());
 
 	const WriteEpochTransition writeEpochTransition = BuildSubmissionBarrierWriteEpochTransition(sameQueueWriteEpochHazardState, destinationHazardState);
 	transition.MemoryBarrier = writeEpochTransition.MemoryBarrier;
