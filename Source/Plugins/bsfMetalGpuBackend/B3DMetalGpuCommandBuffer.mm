@@ -148,6 +148,225 @@ namespace b3d
 						[encoder useResources:resources.data() count:(NSUInteger)resources.size() usage:bucket.Usage];
 				}
 			}
+
+			bool BindGraphicsPipelineForDraw(id<MTLRenderCommandEncoder> renderEncoder, MetalGpuGraphicsPipelineState* pipeline, DrawOperationType drawOperation, const MetalPipelineVariantKey& renderPassKey, const TShared<MetalVertexInput>& vertexInput)
+			{
+				if (!pipeline || renderEncoder == nil)
+					return false;
+
+				// The render pass supplies the attachment formats and sample count, only topology and vertex input vary per draw
+				MetalPipelineVariantKey key = renderPassKey;
+				key.TopologyClass = (u16)MetalUtility::GetPrimitiveTopologyClass(drawOperation);
+				key.VertexInputId = vertexInput ? vertexInput->GetId() : 0;
+
+				id<MTLRenderPipelineState> metalPipeline = pipeline->GetOrCreateMetalPipeline(key, vertexInput);
+				if (metalPipeline == nil)
+					return false;
+
+				[renderEncoder setRenderPipelineState:metalPipeline];
+
+				id<MTLDepthStencilState> depthStencil = pipeline->GetMetalDepthStencilState((key.ReadOnlyMask & RT_DEPTH) != 0, (key.ReadOnlyMask & RT_STENCIL) != 0);
+				if (depthStencil)
+					[renderEncoder setDepthStencilState:depthStencil];
+
+				[renderEncoder setCullMode:(MTLCullMode)pipeline->GetCullMode()];
+				[renderEncoder setFrontFacingWinding:(MTLWinding)pipeline->GetWinding()];
+				[renderEncoder setTriangleFillMode:(MTLTriangleFillMode)pipeline->GetFillMode()];
+
+				[renderEncoder setDepthBias:pipeline->GetDepthBias()
+					slopeScale:pipeline->GetSlopeScaledDepthBias()
+					clamp:pipeline->GetDepthBiasClamp()];
+				return true;
+			}
+
+			/**
+			 * Sets the load and store actions of every attachment @p descriptor has a texture for. Attachments neither
+			 * loaded nor cleared use DontCare.
+			 */
+			void ConfigureAttachmentActions(MTLRenderPassDescriptor* descriptor, RenderSurfaceMask loadMask, RenderSurfaceMask clearMask, const RenderTargetClearValues& clearValues)
+			{
+				auto fnGetLoadAction = [&loadMask, &clearMask](RenderSurfaceMaskBits surface)
+				{
+					if (clearMask.IsSet(surface))
+						return MTLLoadActionClear;
+
+					return loadMask.IsSet(surface) ? MTLLoadActionLoad : MTLLoadActionDontCare;
+				};
+
+				for (u32 attachmentIndex = 0; attachmentIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; attachmentIndex++)
+				{
+					MTLRenderPassColorAttachmentDescriptor* color = descriptor.colorAttachments[attachmentIndex];
+					if (color.texture == nil)
+						continue;
+
+					const Color& clearColor = clearValues.Colors[attachmentIndex];
+					color.loadAction = fnGetLoadAction((RenderSurfaceMaskBits)(RT_COLOR0 << attachmentIndex));
+					color.clearColor = MTLClearColorMake(clearColor.R, clearColor.G, clearColor.B, clearColor.A);
+					color.storeAction = MTLStoreActionStore;
+				}
+
+				MTLRenderPassDepthAttachmentDescriptor* depth = descriptor.depthAttachment;
+				if (depth.texture != nil)
+				{
+					depth.loadAction = fnGetLoadAction(RT_DEPTH);
+					depth.clearDepth = clearValues.Depth;
+					depth.storeAction = MTLStoreActionStore;
+				}
+
+				MTLRenderPassStencilAttachmentDescriptor* stencil = descriptor.stencilAttachment;
+				if (stencil.texture != nil)
+				{
+					stencil.loadAction = fnGetLoadAction(RT_STENCIL);
+					stencil.clearStencil = clearValues.Stencil;
+					stencil.storeAction = MTLStoreActionStore;
+				}
+			}
+
+			/** Stores the attachment formats of @p descriptor in the pipeline variant key. Every MTLPixelFormat value fits in 16 bits. */
+			void PackAttachmentFormats(MTLRenderPassDescriptor* descriptor, MetalPipelineVariantKey& key)
+			{
+				for (u32 attachmentIndex = 0; attachmentIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; attachmentIndex++)
+				{
+					id<MTLTexture> texture = descriptor.colorAttachments[attachmentIndex].texture;
+					if (texture != nil)
+						key.ColorFormats[attachmentIndex] = (u16)[texture pixelFormat];
+				}
+
+				if (descriptor.depthAttachment.texture != nil)
+					key.DepthFormat = (u32)[descriptor.depthAttachment.texture pixelFormat];
+
+				if (descriptor.stencilAttachment.texture != nil)
+					key.StencilFormat = (u32)[descriptor.stencilAttachment.texture pixelFormat];
+			}
+
+			constexpr u32 kMetalBufferCopyAlignment = 4;
+			constexpr u32 kMetalTextureBufferCopyAlignment = 16;
+
+			bool IsBufferRangeValid(const GpuBuffer& buffer, u32 offset, u64 length)
+			{
+				return (u64)offset + length <= (u64)buffer.GetTotalSize();
+			}
+
+			struct MetalTextureTransferInformation
+			{
+				u32 Width = 0;
+				u32 Height = 0;
+				u32 Depth = 0;
+				u32 RowPitch = 0;
+				u32 SlicePitch = 0;
+				u64 RequiredBufferSize = 0;
+				MTLBlitOption Options = MTLBlitOptionNone;
+			};
+
+			bool GetTextureTransferInformation(const Texture& texture, const GpuBuffer& buffer, u32 bufferOffset, u32 mipLevel, u32 arrayLayer, const char* operation, MetalTextureTransferInformation& output)
+			{
+				const TextureProperties& properties = texture.GetProperties();
+				const u32 faceCount = properties.Type == TEX_TYPE_3D ? 1u : properties.GetFaceCount();
+				if (mipLevel > properties.MipMapCount || arrayLayer >= faceCount)
+				{
+					B3D_LOG(Error, LogRenderBackend, "{0}: texture mip level or array layer is out of range.", operation);
+					return false;
+				}
+
+				if (properties.SampleCount > 1)
+				{
+					B3D_LOG(Error, LogRenderBackend, "{0}: buffer transfers do not support multisampled textures.", operation);
+					return false;
+				}
+
+				if ((bufferOffset % kMetalTextureBufferCopyAlignment) != 0)
+				{
+					B3D_LOG(Error, LogRenderBackend, "{0}: buffer offset {1} must be 16-byte aligned on Apple GPUs.", operation, bufferOffset);
+					return false;
+				}
+
+				PixelUtility::GetSizeForMipLevel(properties.Width, properties.Height, properties.Depth, mipLevel, output.Width, output.Height, output.Depth);
+
+				if (properties.Type == TEX_TYPE_1D)
+				{
+					output.Height = 1;
+					output.Depth = 1;
+				}
+				else if (properties.Type != TEX_TYPE_3D)
+					output.Depth = 1;
+
+				if (properties.Format == PF_D32_S8X24)
+				{
+					// Same as Vulkan, only the depth aspect is transferred, as tightly packed 32-bit floats
+					const u64 depthRowPitch = (u64)std::max(1u, output.Width) * sizeof(float);
+					const u64 depthSlicePitch = depthRowPitch * std::max(1u, output.Height);
+					if (depthRowPitch > (u64)~0u || depthSlicePitch > (u64)~0u)
+						return false;
+
+					output.RowPitch = (u32)depthRowPitch;
+					output.SlicePitch = (u32)depthSlicePitch;
+					output.Options = MTLBlitOptionDepthFromDepthStencil;
+				}
+				else
+				{
+					output.RowPitch = MetalUtility::GetTextureRowPitch(properties.Format, output.Width);
+					output.SlicePitch = MetalUtility::GetTextureSlicePitch(properties.Format, output.Width, output.Height);
+				}
+
+				if (output.RowPitch == 0 || output.SlicePitch == 0)
+				{
+					B3D_LOG(Error, LogRenderBackend, "{0}: texture transfer pitch overflowed or is invalid.", operation);
+					return false;
+				}
+
+				output.RequiredBufferSize = (u64)output.SlicePitch * output.Depth;
+				if (!IsBufferRangeValid(buffer, bufferOffset, output.RequiredBufferSize))
+				{
+					B3D_LOG(Error, LogRenderBackend, "{0}: buffer range [{1}, {2}) exceeds the buffer size ({3}).", operation, bufferOffset, (u64)bufferOffset + output.RequiredBufferSize, buffer.GetTotalSize());
+					return false;
+				}
+
+				if (properties.Format == PF_D32_S8X24 && (u64)buffer.GetTotalSize() - bufferOffset != output.RequiredBufferSize)
+				{
+					B3D_LOG(Error, LogRenderBackend, "{0}: combined depth/stencil transfers require an exactly-sized packed Depth32Float buffer. Interleaved PF_D32_S8X24 staging data is not a valid Metal depth-plane layout.", operation);
+					return false;
+				}
+
+				return true;
+			}
+
+			class MetalSubmissionTransitionVisitor : public GpuSubmissionTransitionVisitor
+			{
+			public:
+				void VisitBuffer(const GpuSubmissionBufferTransition& transition) override
+				{
+					mRequiredWaitMask |= transition.ParallelAccessWaitMask;
+				}
+
+				void VisitImage(const GpuSubmissionImageTransition& transition) override
+				{
+					mRequiredWaitMask |= transition.ParallelAccessWaitMask;
+					transition.NativeState->Layout = (u32)transition.FinalLayout;
+				}
+
+				GpuQueueMask GetRequiredWaitMask() const { return mRequiredWaitMask; }
+
+			private:
+				GpuQueueMask mRequiredWaitMask = GpuQueueMask::kNone;
+			};
+
+			/**
+			 * Encodes a signal for every user timeline fence. Signals execute in encoding order, so calling this after
+			 * EncodeQueueSignal() makes the fences signal after the queue's own event.
+			 */
+			void EncodeUserFenceSignals(id<MTLCommandBuffer> commandBuffer, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+			{
+				for (const GpuTimelineFenceAndValue& entry : signalFences)
+				{
+					if (!entry.Fence)
+						continue;
+
+					auto* metalFence = static_cast<MetalGpuTimelineFence*>(entry.Fence.get());
+					id<MTLSharedEvent> sharedEvent = metalFence->GetSharedEvent();
+					if (sharedEvent != nil)
+						[commandBuffer encodeSignalEvent:sharedEvent value:entry.Value];
+				}
+			}
 		} // namespace
 
 		MetalGpuCommandBuffer::MetalGpuCommandBuffer(MetalGpuDevice& device, MetalGpuCommandBufferPool& pool, u32 id, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation)
@@ -959,36 +1178,6 @@ namespace b3d
 			return vertexInput;
 		}
 
-		static bool BindGraphicsPipelineForDraw(id<MTLRenderCommandEncoder> renderEncoder, MetalGpuGraphicsPipelineState* pipeline, DrawOperationType drawOperation, const MetalPipelineVariantKey& renderPassKey, const TShared<MetalVertexInput>& vertexInput)
-		{
-			if (!pipeline || renderEncoder == nil)
-				return false;
-
-			// The render pass supplies the attachment formats and sample count, only topology and vertex input vary per draw
-			MetalPipelineVariantKey key = renderPassKey;
-			key.TopologyClass = (u16)MetalUtility::GetPrimitiveTopologyClass(drawOperation);
-			key.VertexInputId = vertexInput ? vertexInput->GetId() : 0;
-
-			id<MTLRenderPipelineState> metalPipeline = pipeline->GetOrCreateMetalPipeline(key, vertexInput);
-			if (metalPipeline == nil)
-				return false;
-
-			[renderEncoder setRenderPipelineState:metalPipeline];
-
-			id<MTLDepthStencilState> depthStencil = pipeline->GetMetalDepthStencilState((key.ReadOnlyMask & RT_DEPTH) != 0, (key.ReadOnlyMask & RT_STENCIL) != 0);
-			if (depthStencil)
-				[renderEncoder setDepthStencilState:depthStencil];
-
-			[renderEncoder setCullMode:(MTLCullMode)pipeline->GetCullMode()];
-			[renderEncoder setFrontFacingWinding:(MTLWinding)pipeline->GetWinding()];
-			[renderEncoder setTriangleFillMode:(MTLTriangleFillMode)pipeline->GetFillMode()];
-
-			[renderEncoder setDepthBias:pipeline->GetDepthBias()
-				slopeScale:pipeline->GetSlopeScaledDepthBias()
-				clamp:pipeline->GetDepthBiasClamp()];
-			return true;
-		}
-
 		bool MetalGpuCommandBuffer::TrackShaderResources(bool compute)
 		{
 			if(!compute && !mGraphicsResourcesRequireTracking)
@@ -1207,69 +1396,6 @@ namespace b3d
 			[mComputeEncoder dispatchThreadgroups:groups threadsPerThreadgroup:threadsPerGroup];
 			} // @autoreleasepool
 		}
-
-		namespace
-		{
-			/**
-			 * Sets the load and store actions of every attachment @p descriptor has a texture for. Attachments neither
-			 * loaded nor cleared use DontCare.
-			 */
-			void ConfigureAttachmentActions(MTLRenderPassDescriptor* descriptor, RenderSurfaceMask loadMask, RenderSurfaceMask clearMask, const RenderTargetClearValues& clearValues)
-			{
-				auto fnGetLoadAction = [&loadMask, &clearMask](RenderSurfaceMaskBits surface)
-				{
-					if (clearMask.IsSet(surface))
-						return MTLLoadActionClear;
-
-					return loadMask.IsSet(surface) ? MTLLoadActionLoad : MTLLoadActionDontCare;
-				};
-
-				for (u32 attachmentIndex = 0; attachmentIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; attachmentIndex++)
-				{
-					MTLRenderPassColorAttachmentDescriptor* color = descriptor.colorAttachments[attachmentIndex];
-					if (color.texture == nil)
-						continue;
-
-					const Color& clearColor = clearValues.Colors[attachmentIndex];
-					color.loadAction = fnGetLoadAction((RenderSurfaceMaskBits)(RT_COLOR0 << attachmentIndex));
-					color.clearColor = MTLClearColorMake(clearColor.R, clearColor.G, clearColor.B, clearColor.A);
-					color.storeAction = MTLStoreActionStore;
-				}
-
-				MTLRenderPassDepthAttachmentDescriptor* depth = descriptor.depthAttachment;
-				if (depth.texture != nil)
-				{
-					depth.loadAction = fnGetLoadAction(RT_DEPTH);
-					depth.clearDepth = clearValues.Depth;
-					depth.storeAction = MTLStoreActionStore;
-				}
-
-				MTLRenderPassStencilAttachmentDescriptor* stencil = descriptor.stencilAttachment;
-				if (stencil.texture != nil)
-				{
-					stencil.loadAction = fnGetLoadAction(RT_STENCIL);
-					stencil.clearStencil = clearValues.Stencil;
-					stencil.storeAction = MTLStoreActionStore;
-				}
-			}
-
-			/** Stores the attachment formats of @p descriptor in the pipeline variant key. Every MTLPixelFormat value fits in 16 bits. */
-			void PackAttachmentFormats(MTLRenderPassDescriptor* descriptor, MetalPipelineVariantKey& key)
-			{
-				for (u32 attachmentIndex = 0; attachmentIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; attachmentIndex++)
-				{
-					id<MTLTexture> texture = descriptor.colorAttachments[attachmentIndex].texture;
-					if (texture != nil)
-						key.ColorFormats[attachmentIndex] = (u16)[texture pixelFormat];
-				}
-
-				if (descriptor.depthAttachment.texture != nil)
-					key.DepthFormat = (u32)[descriptor.depthAttachment.texture pixelFormat];
-
-				if (descriptor.stencilAttachment.texture != nil)
-					key.StencilFormat = (u32)[descriptor.stencilAttachment.texture pixelFormat];
-			}
-		} // namespace
 
 		void MetalGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& createInformation)
 		{
@@ -1671,100 +1797,6 @@ namespace b3d
 			mStencilReference = value;
 			if (mRenderEncoder)
 				[mRenderEncoder setStencilReferenceValue:value];
-		}
-
-		namespace
-		{
-			constexpr u32 kMetalBufferCopyAlignment = 4;
-			constexpr u32 kMetalTextureBufferCopyAlignment = 16;
-
-			bool IsBufferRangeValid(const GpuBuffer& buffer, u32 offset, u64 length)
-			{
-				return (u64)offset + length <= (u64)buffer.GetTotalSize();
-			}
-
-			struct MetalTextureTransferInformation
-			{
-				u32 Width = 0;
-				u32 Height = 0;
-				u32 Depth = 0;
-				u32 RowPitch = 0;
-				u32 SlicePitch = 0;
-				u64 RequiredBufferSize = 0;
-				MTLBlitOption Options = MTLBlitOptionNone;
-			};
-
-			bool GetTextureTransferInformation(const Texture& texture, const GpuBuffer& buffer, u32 bufferOffset, u32 mipLevel, u32 arrayLayer, const char* operation, MetalTextureTransferInformation& output)
-			{
-				const TextureProperties& properties = texture.GetProperties();
-				const u32 faceCount = properties.Type == TEX_TYPE_3D ? 1u : properties.GetFaceCount();
-				if (mipLevel > properties.MipMapCount || arrayLayer >= faceCount)
-				{
-					B3D_LOG(Error, LogRenderBackend, "{0}: texture mip level or array layer is out of range.", operation);
-					return false;
-				}
-
-				if (properties.SampleCount > 1)
-				{
-					B3D_LOG(Error, LogRenderBackend, "{0}: buffer transfers do not support multisampled textures.", operation);
-					return false;
-				}
-
-				if ((bufferOffset % kMetalTextureBufferCopyAlignment) != 0)
-				{
-					B3D_LOG(Error, LogRenderBackend, "{0}: buffer offset {1} must be 16-byte aligned on Apple GPUs.", operation, bufferOffset);
-					return false;
-				}
-
-				PixelUtility::GetSizeForMipLevel(properties.Width, properties.Height, properties.Depth, mipLevel, output.Width, output.Height, output.Depth);
-
-				if (properties.Type == TEX_TYPE_1D)
-				{
-					output.Height = 1;
-					output.Depth = 1;
-				}
-				else if (properties.Type != TEX_TYPE_3D)
-					output.Depth = 1;
-
-				if (properties.Format == PF_D32_S8X24)
-				{
-					// Same as Vulkan, only the depth aspect is transferred, as tightly packed 32-bit floats
-					const u64 depthRowPitch = (u64)std::max(1u, output.Width) * sizeof(float);
-					const u64 depthSlicePitch = depthRowPitch * std::max(1u, output.Height);
-					if (depthRowPitch > (u64)~0u || depthSlicePitch > (u64)~0u)
-						return false;
-
-					output.RowPitch = (u32)depthRowPitch;
-					output.SlicePitch = (u32)depthSlicePitch;
-					output.Options = MTLBlitOptionDepthFromDepthStencil;
-				}
-				else
-				{
-					output.RowPitch = MetalUtility::GetTextureRowPitch(properties.Format, output.Width);
-					output.SlicePitch = MetalUtility::GetTextureSlicePitch(properties.Format, output.Width, output.Height);
-				}
-
-				if (output.RowPitch == 0 || output.SlicePitch == 0)
-				{
-					B3D_LOG(Error, LogRenderBackend, "{0}: texture transfer pitch overflowed or is invalid.", operation);
-					return false;
-				}
-
-				output.RequiredBufferSize = (u64)output.SlicePitch * output.Depth;
-				if (!IsBufferRangeValid(buffer, bufferOffset, output.RequiredBufferSize))
-				{
-					B3D_LOG(Error, LogRenderBackend, "{0}: buffer range [{1}, {2}) exceeds the buffer size ({3}).", operation, bufferOffset, (u64)bufferOffset + output.RequiredBufferSize, buffer.GetTotalSize());
-					return false;
-				}
-
-				if (properties.Format == PF_D32_S8X24 && (u64)buffer.GetTotalSize() - bufferOffset != output.RequiredBufferSize)
-				{
-					B3D_LOG(Error, LogRenderBackend, "{0}: combined depth/stencil transfers require an exactly-sized packed Depth32Float buffer. Interleaved PF_D32_S8X24 staging data is not a valid Metal depth-plane layout.", operation);
-					return false;
-				}
-
-				return true;
-			}
 		}
 
 		void MetalGpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length)
@@ -2489,47 +2521,6 @@ namespace b3d
 				[commandBuffer encodeSignalEvent:signalEvent value:signalValue];
 
 			return signalValue;
-		}
-
-		namespace
-		{
-			class MetalSubmissionTransitionVisitor : public GpuSubmissionTransitionVisitor
-			{
-			public:
-				void VisitBuffer(const GpuSubmissionBufferTransition& transition) override
-				{
-					mRequiredWaitMask |= transition.ParallelAccessWaitMask;
-				}
-
-				void VisitImage(const GpuSubmissionImageTransition& transition) override
-				{
-					mRequiredWaitMask |= transition.ParallelAccessWaitMask;
-					transition.NativeState->Layout = (u32)transition.FinalLayout;
-				}
-
-				GpuQueueMask GetRequiredWaitMask() const { return mRequiredWaitMask; }
-
-			private:
-				GpuQueueMask mRequiredWaitMask = GpuQueueMask::kNone;
-			};
-
-			/**
-			 * Encodes a signal for every user timeline fence. Signals execute in encoding order, so calling this after
-			 * EncodeQueueSignal() makes the fences signal after the queue's own event.
-			 */
-			void EncodeUserFenceSignals(id<MTLCommandBuffer> commandBuffer, TArrayView<const GpuTimelineFenceAndValue> signalFences)
-			{
-				for (const GpuTimelineFenceAndValue& entry : signalFences)
-				{
-					if (!entry.Fence)
-						continue;
-
-					auto* metalFence = static_cast<MetalGpuTimelineFence*>(entry.Fence.get());
-					id<MTLSharedEvent> sharedEvent = metalFence->GetSharedEvent();
-					if (sharedEvent != nil)
-						[commandBuffer encodeSignalEvent:sharedEvent value:entry.Value];
-				}
-			}
 		}
 
 		void MetalGpuCommandBuffer::ExecuteSubmitOnSubmitThread(MetalGpuQueue& submitQueue, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
