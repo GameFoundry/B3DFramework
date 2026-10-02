@@ -1315,7 +1315,7 @@ namespace
 			auto fnRecordBarriers = [this](GpuQueueId queueId, const D3D12BarrierBatch& barriers, const StringView& name)
 			{
 				GpuCommandBufferPool& commandBufferPool = mDevice.GetSubmitThread().GetCommandBufferPool(queueId.GetType());
-				const TShared<D3D12GpuCommandBuffer> commandBuffer = std::static_pointer_cast<D3D12GpuCommandBuffer>(commandBufferPool.Create(GpuCommandBufferCreateInformation::Create(name)));
+				const TShared<D3D12GpuCommandBuffer> commandBuffer = std::static_pointer_cast<D3D12GpuCommandBuffer>(commandBufferPool.FindOrCreate(GpuCommandBufferCreateInformation::Create(name)));
 
 				barriers.Record(*commandBuffer->GetD3D12Handle());
 				commandBuffer->End();

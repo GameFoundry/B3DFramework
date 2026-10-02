@@ -394,7 +394,7 @@ void RenderBeast::RenderAllOnRenderThread(FrameTimings timings, PerFrameData per
 
 bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInfo)
 {
-	TShared<GpuCommandBuffer> commandBuffer = mCommandBufferPoolRing->GetCurrentPool().Create(GpuCommandBufferCreateInformation::Create("Main"));
+	TShared<GpuCommandBuffer> commandBuffer = mCommandBufferPoolRing->GetCurrentPool().FindOrCreate(GpuCommandBufferCreateInformation::Create("Main"));
 #if B3D_PROFILING_ENABLED
 	commandBuffer->BeginProfiling("RenderScene");
 #endif
@@ -478,7 +478,7 @@ bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInf
 #endif
 			gpuContext.SubmitCommandBuffer(commandBuffer);
 
-			commandBuffer = mCommandBufferPoolRing->GetCurrentPool().Create(GpuCommandBufferCreateInformation::Create("Main"));
+			commandBuffer = mCommandBufferPoolRing->GetCurrentPool().FindOrCreate(GpuCommandBufferCreateInformation::Create("Main"));
 
 #if B3D_PROFILING_ENABLED
 			commandBuffer->BeginProfiling("RenderScene");

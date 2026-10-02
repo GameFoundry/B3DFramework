@@ -278,7 +278,7 @@ void ReflectionProbeUtility::CaptureAndFilter(ecs::Registry& registry, ecs::Enti
 			float probeRadius = proxy.GetType() == ReflectionProbeType::Sphere ? proxy.GetRadius() : proxy.GetExtents().Length();
 			Vector3 probePosition = proxy.GetWorldTransform().GetPosition();
 
-			const TShared<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("RenderAndFilterReflectionProbe"));
+			const TShared<render::GpuCommandBuffer> commandBuffer = commandBufferPool.FindOrCreate(render::GpuCommandBufferCreateInformation::Create("RenderAndFilterReflectionProbe"));
 			TShared<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
 
 			commandBufferProfiler->BeginSample(*commandBuffer, "RenderAndFilterReflectionProbe");
@@ -310,7 +310,7 @@ void ReflectionProbeUtility::CaptureAndFilter(ecs::Registry& registry, ecs::Enti
 		TShared<render::Texture> customTextureRenderProxy = B3DGetRenderProxy(fragment.CustomTexture);
 		auto fnFilterReflectionProbe = [customTextureRenderProxy, textureRenderProxy, renderSceneProxy, probeId](render::GpuCommandBufferPool& commandBufferPool)
 		{
-			const TShared<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("FilterReflectionProbe"));
+			const TShared<render::GpuCommandBuffer> commandBuffer = commandBufferPool.FindOrCreate(render::GpuCommandBufferCreateInformation::Create("FilterReflectionProbe"));
 			TShared<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
 
 			commandBufferProfiler->BeginSample(*commandBuffer, "FilterReflectionProbe");

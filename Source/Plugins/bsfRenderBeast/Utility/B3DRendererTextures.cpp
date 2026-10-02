@@ -197,7 +197,7 @@ TShared<render::Texture> GenerateDefaultIndirect()
 
 	GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
 	GpuCommandBufferPool& commandBufferPool = GetRenderBeast()->GetCurrentCommandBufferPool();
-	TShared<GpuCommandBuffer> commandBuffer = commandBufferPool.Create(GpuCommandBufferCreateInformation::Create("GenerateDefaultIndirect"));
+	TShared<GpuCommandBuffer> commandBuffer = commandBufferPool.FindOrCreate(GpuCommandBufferCreateInformation::Create("GenerateDefaultIndirect"));
 
 	TextureCreateInformation dummySkyDesc;
 	dummySkyDesc.Name = "Dummy Sky";
