@@ -84,26 +84,12 @@ namespace b3d::render
 	void MetalHeadlessRenderWindowSurface::DestroySwapChainImages()
 	{
 		for (u32 imageIndex = 0; imageIndex < kImageCount; imageIndex++)
-		{
-			if (mColorTextures[imageIndex] != nil)
-			{
-#if !__has_feature(objc_arc)
-				[mColorTextures[imageIndex] release];
-#endif
-				mColorTextures[imageIndex] = nil;
-			}
-		}
+			mColorTextures[imageIndex] = nil;
 
-		if (mDepthStencilTexture != nil)
-		{
-#if !__has_feature(objc_arc)
-			[mDepthStencilTexture release];
-#endif
-			mDepthStencilTexture = nil;
-		}
+		mDepthStencilTexture = nil;
 	}
 
-	MTLTextureRef MetalHeadlessRenderWindowSurface::AcquireColorTexture()
+	id<MTLTexture> MetalHeadlessRenderWindowSurface::AcquireColorTexture()
 	{
 		// Even when flagged invalid (pending rebuild) the current image remains usable — rendering at a stale size
 		// is preferable to dropping the frame; the rebuild lands before the next acquire.
@@ -119,7 +105,7 @@ namespace b3d::render
 		return mColorTextures[mCurrentImageIndex];
 	}
 
-	MTLPixelFormatValue MetalHeadlessRenderWindowSurface::GetColorFormat() const
+	MTLPixelFormat MetalHeadlessRenderWindowSurface::GetColorFormat() const
 	{
 		return mUseHardwareSRGB ? MTLPixelFormatBGRA8Unorm_sRGB : MTLPixelFormatBGRA8Unorm;
 	}

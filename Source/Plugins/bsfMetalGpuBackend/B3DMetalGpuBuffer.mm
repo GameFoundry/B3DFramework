@@ -12,8 +12,8 @@ namespace b3d
 {
 	namespace render
 	{
-		MetalBuffer::MetalBuffer(MetalResourceManager* owner, const MetalBufferCreateInformation& createInformation, MetalBufferNativeHandle buffer, const GpuAllocation& allocation, void* mappedMemory)
-			: TMetalResource<IGpuBufferResource>(owner, createInformation.DebugName), mType(createInformation.Type), mFlags(createInformation.Flags), mBuffer(buffer), mAllocation(allocation), mMappedMemory(mappedMemory)
+		MetalBuffer::MetalBuffer(MetalResourceManager* owner, const MetalBufferCreateInformation& createInformation, id<MTLBuffer> buffer, const GpuAllocation& allocation, void* mappedMemory)
+			: TMetalResource<IGpuBufferResource>(owner, createInformation.DebugName), mFlags(createInformation.Flags), mBuffer(buffer), mAllocation(allocation), mMappedMemory(mappedMemory)
 		{ }
 
 		MetalBuffer::~MetalBuffer()
@@ -21,17 +21,9 @@ namespace b3d
 			{
 				Lock lock(mViewCacheMutex);
 
-#if !__has_feature(objc_arc)
-				for (auto& viewEntry : mTextureBufferViews)
-					[viewEntry.View release];
-#endif
-
 				mTextureBufferViews.clear();
 			}
 
-#if !__has_feature(objc_arc)
-			[mBuffer release];
-#endif
 			mBuffer = nullptr;
 			mMappedMemory = nullptr;
 
@@ -74,7 +66,7 @@ namespace b3d
 				size = 64;
 
 			GpuAllocation allocation;
-			MetalBufferNativeHandle handle = mGpuDevice.GetHeapAllocator().AllocateBuffer(size, mMemoryType, mRequestedAllocation, allocation);
+			id<MTLBuffer> handle = mGpuDevice.GetHeapAllocator().AllocateBuffer(size, mMemoryType, mRequestedAllocation, allocation);
 			if (handle == nil)
 			{
 				B3D_LOG(Error, LogRenderBackend, "Failed to create MTLBuffer of {0} bytes.", size);
@@ -82,7 +74,6 @@ namespace b3d
 			}
 
 			MetalBufferCreateInformation createInformation;
-			createInformation.Type = mInformation.Type;
 			createInformation.Flags = mInformation.Flags;
 			createInformation.DebugName = mName;
 

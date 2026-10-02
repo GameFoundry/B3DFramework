@@ -27,25 +27,21 @@ namespace b3d
 		{
 		public:
 			explicit MetalGpuTimelineFence(MetalGpuDevice& device);
-			~MetalGpuTimelineFence() override;
 
 			MetalGpuTimelineFence(const MetalGpuTimelineFence&) = delete;
 			MetalGpuTimelineFence& operator=(const MetalGpuTimelineFence&) = delete;
 
 			u64 GetCompletedValue() const final;
 
-#ifdef __OBJC__
 			/** Returns the underlying shared event used to signal completion, or @c nil if construction failed. */
-			id<MTLSharedEvent> GetSharedEvent() const;
-#endif
+			id<MTLSharedEvent> GetSharedEvent() const { return mEvent; }
 
 		protected:
 			/** Native blocking wait on the fence's MTLSharedEvent via the device's shared event listener and a dispatch semaphore. */
 			void WaitInternal(u64 value) final;
 
 		private:
-			struct Impl;
-			TUnique<Impl> mImpl;
+			id<MTLSharedEvent> mEvent = nil;
 			MetalGpuDevice& mDevice;
 		};
 

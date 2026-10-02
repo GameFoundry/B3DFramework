@@ -45,50 +45,7 @@ namespace b3d
 {
 	namespace render
 	{
-		/** Holds all Metal/Objective-C handles owned by the device. */
-		struct MetalGpuDevice::Impl
-		{
-			id<MTLDevice> Device = nil;
-			id<MTLCommandQueue> CommandQueues[GQT_COUNT] = { nil };
-			id<MTLSharedEvent> QueueEvents[GQT_COUNT] = { nil };
-
-			// Device-wide MTLSharedEventListener and the dispatch queue its notification blocks run on
-			dispatch_queue_t ListenerDispatchQueue = nullptr;
-			MTLSharedEventListener* SharedEventListener = nil;
-
-			id<MTLBuffer> NullVertexBuffer = nil;
-			id<MTLBuffer> DummyArgumentBuffer = nil;
-
-			id<MTLCounterSet> TimestampCounterSet = nil;
-
-			bool SupportsRenderEncoderTimestamps = false;
-			bool SupportsComputeEncoderTimestamps = false;
-			bool SupportsBlitEncoderTimestamps = false;
-
-			// First CPU/GPU timestamp pair captured at device init
-			MTLTimestamp FirstCpuTimestamp = 0;
-			MTLTimestamp FirstGpuTimestamp = 0;
-			bool FirstTimestampPairCaptured = false;
-			std::atomic<bool> TimestampCalibrationDone{ false };
-			Mutex TimestampCalibrationMutex;
-
-			/** Releases the shared event listener and its dispatch queue. Safe to call when neither was created. */
-			void ReleaseSharedEventListener()
-			{
-#if !__has_feature(objc_arc)
-				[SharedEventListener release];
-
-				if (ListenerDispatchQueue != nullptr)
-					dispatch_release(ListenerDispatchQueue);
-#endif
-				SharedEventListener = nil;
-				ListenerDispatchQueue = nullptr;
-			}
-		};
-
-
 		MetalGpuDevice::MetalGpuDevice()
-			: mImpl(B3DMakeUnique<Impl>())
 		{
 			mVideoModeInfo = B3DMakeShared<MacOSVideoModeInfo>();
 		}
@@ -108,84 +65,27 @@ namespace b3d
 			if (MetalVertexInputManager::IsStarted())
 				MetalVertexInputManager::ShutDown();
 
-#if !__has_feature(objc_arc)
-			[mImpl->NullVertexBuffer release];
-			[mImpl->DummyArgumentBuffer release];
-#endif
-			mImpl->NullVertexBuffer = nil;
-			mImpl->DummyArgumentBuffer = nil;
+			mNullVertexBuffer = nil;
+			mDummyArgumentBuffer = nil;
 
 			for (u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
 			{
-#if !__has_feature(objc_arc)
-				[mImpl->QueueEvents[queueTypeIndex] release];
-				[mImpl->CommandQueues[queueTypeIndex] release];
-#endif
-				mImpl->QueueEvents[queueTypeIndex] = nil;
-				mImpl->CommandQueues[queueTypeIndex] = nil;
+				mQueueEvents[queueTypeIndex] = nil;
+				mCommandQueues[queueTypeIndex] = nil;
 			}
 
 			// No blocking wait can still be registered: every fence and query pool is owned by
 			// objects torn down above, and the queues have been drained.
-			mImpl->ReleaseSharedEventListener();
+			mSharedEventListener = nil;
+			mListenerDispatchQueue = nullptr;
 
-#if !__has_feature(objc_arc)
-			[mImpl->TimestampCounterSet release];
-			[mImpl->Device release];
-#endif
-			mImpl->TimestampCounterSet = nil;
-			mImpl->Device = nil;
-		}
-
-		id<MTLDevice> MetalGpuDevice::GetMetalDevice() const
-		{
-			return mImpl->Device;
-		}
-
-		id<MTLCommandQueue> MetalGpuDevice::GetMetalQueue(GpuQueueType type) const
-		{
-			B3D_ASSERT((u32)type < GQT_COUNT);
-			return mImpl->CommandQueues[(u32)type];
-		}
-
-		id<MTLBuffer> MetalGpuDevice::GetNullVertexBuffer() const
-		{
-			return mImpl->NullVertexBuffer;
-		}
-
-		id<MTLBuffer> MetalGpuDevice::GetDummyArgumentBuffer() const
-		{
-			return mImpl->DummyArgumentBuffer;
+			mTimestampCounterSet = nil;
+			mMetalDevice = nil;
 		}
 
 		void MetalGpuDevice::BeginFrame()
 		{
 			ASSERT_IF_NOT_RENDER_THREAD
-		}
-
-		MTLSharedEventListener* MetalGpuDevice::GetSharedEventListener() const
-		{
-			return mImpl->SharedEventListener;
-		}
-
-		id<MTLCounterSet> MetalGpuDevice::GetTimestampCounterSet() const
-		{
-			return mImpl->TimestampCounterSet;
-		}
-
-		bool MetalGpuDevice::SupportsRenderEncoderTimestamps() const
-		{
-			return mImpl->SupportsRenderEncoderTimestamps;
-		}
-
-		bool MetalGpuDevice::SupportsComputeEncoderTimestamps() const
-		{
-			return mImpl->SupportsComputeEncoderTimestamps;
-		}
-
-		bool MetalGpuDevice::SupportsBlitEncoderTimestamps() const
-		{
-			return mImpl->SupportsBlitEncoderTimestamps;
 		}
 
 		bool MetalGpuDevice::Initialize()
@@ -196,34 +96,31 @@ namespace b3d
 			// The engine cannot run without a device, so every failure below is fatal
 
 			// Apple Silicon Macs expose one integrated GPU, so the system default is the only supported adapter.
-			mImpl->Device = MTLCreateSystemDefaultDevice();
-#if !__has_feature(objc_arc)
-			[mImpl->Device retain];
-#endif
-			if (mImpl->Device == nil)
+			mMetalDevice = MTLCreateSystemDefaultDevice();
+			if (mMetalDevice == nil)
 				B3D_LOG(Fatal, LogRenderBackend, "Failed to acquire a default Metal device. The Metal backend requires a Metal-capable GPU.");
 
-			NSString* deviceName = [mImpl->Device name];
+			NSString* deviceName = [mMetalDevice name];
 			const String deviceNameString = deviceName ? String([deviceName UTF8String]) : String("<unknown>");
-			if (![mImpl->Device supportsFamily:MTLGPUFamilyApple7])
+			if (![mMetalDevice supportsFamily:MTLGPUFamilyApple7])
 				B3D_LOG(Fatal, LogRenderBackend, "Metal backend requires an Apple Silicon GPU (Apple family 7 or newer). Reported device '{0}' does not qualify.", deviceNameString);
 
-			if (![mImpl->Device hasUnifiedMemory])
+			if (![mMetalDevice hasUnifiedMemory])
 				B3D_LOG(Fatal, LogRenderBackend, "Metal backend requires Apple Silicon unified memory. Reported device '{0}' does not expose unified memory.", deviceNameString);
 
 			// The parameter-set ABI requires Tier 2 argument buffers. Query the feature directly;
 			// GPU-family inference is not equivalent (Apple family 6 is the first Tier 2 family).
-			if ([mImpl->Device argumentBuffersSupport] != MTLArgumentBuffersTier2)
+			if ([mMetalDevice argumentBuffersSupport] != MTLArgumentBuffersTier2)
 				B3D_LOG(Fatal, LogRenderBackend, "Metal backend requires Tier 2 argument-buffer support. Reported device '{0}' does not qualify.", deviceNameString);
 
 			// One listener serves every blocking CPU wait in the backend (see GetSharedEventListener).
 			// Failure is not fatal: the fence and query-pool wait paths fall back to polling when the
 			// listener is nil.
-			mImpl->ListenerDispatchQueue = dispatch_queue_create("b3d.metal.eventlistener", DISPATCH_QUEUE_CONCURRENT);
-			if (mImpl->ListenerDispatchQueue != nullptr)
-				mImpl->SharedEventListener = [[MTLSharedEventListener alloc] initWithDispatchQueue:mImpl->ListenerDispatchQueue];
+			mListenerDispatchQueue = dispatch_queue_create("b3d.metal.eventlistener", DISPATCH_QUEUE_CONCURRENT);
+			if (mListenerDispatchQueue != nullptr)
+				mSharedEventListener = [[MTLSharedEventListener alloc] initWithDispatchQueue:mListenerDispatchQueue];
 
-			if (mImpl->SharedEventListener == nil)
+			if (mSharedEventListener == nil)
 				B3D_LOG(Warning, LogRenderBackend, "Failed to create the Metal shared event listener; blocking CPU waits will poll instead.");
 
 			// Create one command queue per GpuQueueType. Metal exposes a single unified queue family
@@ -231,18 +128,18 @@ namespace b3d
 			// the engine's abstraction without any real affinity.
 			for (u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
 			{
-				mImpl->CommandQueues[queueTypeIndex] = [mImpl->Device newCommandQueue];
-				if (mImpl->CommandQueues[queueTypeIndex] == nil)
+				mCommandQueues[queueTypeIndex] = [mMetalDevice newCommandQueue];
+				if (mCommandQueues[queueTypeIndex] == nil)
 					B3D_LOG(Fatal, LogRenderBackend, "Failed to create a Metal command queue for queue type {0}.", queueTypeIndex);
 
-				id<MTLSharedEvent> queueEvent = [mImpl->Device newSharedEvent];
+				id<MTLSharedEvent> queueEvent = [mMetalDevice newSharedEvent];
 				if (queueEvent == nil)
 					B3D_LOG(Fatal, LogRenderBackend, "Failed to create a Metal shared event for queue type {0}.", queueTypeIndex);
 
-				mImpl->QueueEvents[queueTypeIndex] = queueEvent;
+				mQueueEvents[queueTypeIndex] = queueEvent;
 
 				mQueueInfos[queueTypeIndex].FamilyIndex = queueTypeIndex;
-				mQueueInfos[queueTypeIndex].Queues.Add(B3DMakeShared<MetalGpuQueue>(*this, (GpuQueueType)queueTypeIndex, 0, mImpl->CommandQueues[queueTypeIndex], queueEvent));
+				mQueueInfos[queueTypeIndex].Queues.Add(B3DMakeShared<MetalGpuQueue>(*this, (GpuQueueType)queueTypeIndex, 0, mCommandQueues[queueTypeIndex], queueEvent));
 			}
 
 			InitializeCapabilities();
@@ -253,16 +150,16 @@ namespace b3d
 			mClearPipeline = B3DMakeUnique<MetalClearPipeline>(*this);
 
 			// TODO - Create this and the dummy argument buffer below as GpuBuffers so they come from the heap allocator (mirrors VulkanBuiltinResources).
-			mImpl->NullVertexBuffer = [mImpl->Device newBufferWithLength:kMetalNullVertexStreamStride options:MTLResourceStorageModeShared];
-			if (mImpl->NullVertexBuffer == nil)
+			mNullVertexBuffer = [mMetalDevice newBufferWithLength:kMetalNullVertexStreamStride options:MTLResourceStorageModeShared];
+			if (mNullVertexBuffer == nil)
 				B3D_LOG(Fatal, LogRenderBackend, "Failed to create the shared null vertex buffer.");
-			std::memset([mImpl->NullVertexBuffer contents], 0, kMetalNullVertexStreamStride);
+			std::memset([mNullVertexBuffer contents], 0, kMetalNullVertexStreamStride);
 
 			constexpr u32 kDummyArgumentBufferSize = 65536;
-			mImpl->DummyArgumentBuffer = [mImpl->Device newBufferWithLength:kDummyArgumentBufferSize options:MTLResourceStorageModeShared];
-			if (mImpl->DummyArgumentBuffer == nil)
+			mDummyArgumentBuffer = [mMetalDevice newBufferWithLength:kDummyArgumentBufferSize options:MTLResourceStorageModeShared];
+			if (mDummyArgumentBuffer == nil)
 				B3D_LOG(Fatal, LogRenderBackend, "Failed to create the shared dummy argument buffer.");
-			std::memset([mImpl->DummyArgumentBuffer contents], 0, kDummyArgumentBufferSize);
+			std::memset([mDummyArgumentBuffer contents], 0, kDummyArgumentBufferSize);
 
 			MetalVertexInputManager::StartUp();
 
@@ -281,12 +178,12 @@ namespace b3d
 			mCapabilities.DriverVersion.Release = 0;
 			mCapabilities.DriverVersion.Build = 0;
 
-			NSString* deviceName = [mImpl->Device name];
+			NSString* deviceName = [mMetalDevice name];
 			mCapabilities.DeviceName = deviceName ? String([deviceName UTF8String]) : String();
 			mCapabilities.DeviceVendor = GPU_APPLE;
 			mCapabilities.BackendName = "Metal";
 
-			B3D_ASSERT([mImpl->Device supportsFamily:MTLGPUFamilyApple7]);
+			B3D_ASSERT([mMetalDevice supportsFamily:MTLGPUFamilyApple7]);
 
 			// Metal has no geometry shaders. Tessellation stays unadvertised so tessellation shaders are rejected by the engine
 			// instead of failing Metal validation at pipeline creation.
@@ -295,7 +192,7 @@ namespace b3d
 			mCapabilities.SetCapability(RSC_LOAD_STORE);
 			mCapabilities.SetCapability(RSC_LOAD_STORE_MSAA);
 
-			if ([mImpl->Device supportsBCTextureCompression])
+			if ([mMetalDevice supportsBCTextureCompression])
 				mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_BC);
 			mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_ETC2);
 			mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_ASTC);
@@ -307,40 +204,37 @@ namespace b3d
 			// Timer queries can be issued inside any encoder, so they are only advertised when the device can sample at draw,
 			// dispatch and blit boundaries. Apple Silicon usually only samples at stage boundaries, which cannot represent
 			// arbitrary markers without splitting passes.
-			mImpl->SupportsRenderEncoderTimestamps =
-				[mImpl->Device supportsCounterSampling:MTLCounterSamplingPointAtDrawBoundary];
-			mImpl->SupportsComputeEncoderTimestamps =
-				[mImpl->Device supportsCounterSampling:MTLCounterSamplingPointAtDispatchBoundary];
-			mImpl->SupportsBlitEncoderTimestamps =
-				[mImpl->Device supportsCounterSampling:MTLCounterSamplingPointAtBlitBoundary];
+			mSupportsRenderEncoderTimestamps =
+				[mMetalDevice supportsCounterSampling:MTLCounterSamplingPointAtDrawBoundary];
+			mSupportsComputeEncoderTimestamps =
+				[mMetalDevice supportsCounterSampling:MTLCounterSamplingPointAtDispatchBoundary];
+			mSupportsBlitEncoderTimestamps =
+				[mMetalDevice supportsCounterSampling:MTLCounterSamplingPointAtBlitBoundary];
 
-			if (mImpl->SupportsRenderEncoderTimestamps && mImpl->SupportsComputeEncoderTimestamps && mImpl->SupportsBlitEncoderTimestamps)
+			if (mSupportsRenderEncoderTimestamps && mSupportsComputeEncoderTimestamps && mSupportsBlitEncoderTimestamps)
 			{
-				for (id<MTLCounterSet> counterSet in [mImpl->Device counterSets])
+				for (id<MTLCounterSet> counterSet in [mMetalDevice counterSets])
 				{
 					if ([[counterSet name] isEqualToString:MTLCommonCounterSetTimestamp])
 					{
-						mImpl->TimestampCounterSet = counterSet;
-#if !__has_feature(objc_arc)
-						[mImpl->TimestampCounterSet retain];
-#endif
+						mTimestampCounterSet = counterSet;
 						break;
 					}
 				}
 
-				if (mImpl->TimestampCounterSet != nil)
+				if (mTimestampCounterSet != nil)
 				{
 					mCapabilities.SetCapability(RSC_TIMER_QUERIES);
 
 					// First half of the GPU tick rate calibration. The second pair is sampled on the first
 					// ConvertTimestampToMilliseconds call, measuring over a long interval without blocking startup.
 					MTLTimestamp cpuTimestamp = 0, gpuTimestamp = 0;
-					[mImpl->Device sampleTimestamps:&cpuTimestamp gpuTimestamp:&gpuTimestamp];
+					[mMetalDevice sampleTimestamps:&cpuTimestamp gpuTimestamp:&gpuTimestamp];
 					mCpuBaseTimestamp = cpuTimestamp;
 					mGpuBaseTimestamp = gpuTimestamp;
-					mImpl->FirstCpuTimestamp = cpuTimestamp;
-					mImpl->FirstGpuTimestamp = gpuTimestamp;
-					mImpl->FirstTimestampPairCaptured = true;
+					mFirstCpuTimestamp = cpuTimestamp;
+					mFirstGpuTimestamp = gpuTimestamp;
+					mFirstTimestampPairCaptured = true;
 				}
 			}
 
@@ -414,9 +308,6 @@ namespace b3d
 				}
 
 				const GpuMemoryRequirements output = mHeapAllocator->GetTextureMemoryRequirements(descriptor);
-#if !__has_feature(objc_arc)
-				[descriptor release];
-#endif
 				return output;
 			}
 		}
@@ -587,25 +478,25 @@ namespace b3d
 		float MetalGpuDevice::ConvertTimestampToMilliseconds(u64 timestamp)
 		{
 			// No first pair means timer queries are unsupported
-			if (!mImpl->FirstTimestampPairCaptured)
+			if (!mFirstTimestampPairCaptured)
 				return 0.0f;
 
 			// Second half of the calibration started in InitializeCapabilities
-			if (!mImpl->TimestampCalibrationDone.load(std::memory_order_acquire))
+			if (!mTimestampCalibrationDone.load(std::memory_order_acquire))
 			{
-				Lock lock(mImpl->TimestampCalibrationMutex);
-				if (!mImpl->TimestampCalibrationDone.load(std::memory_order_relaxed))
+				Lock lock(mTimestampCalibrationMutex);
+				if (!mTimestampCalibrationDone.load(std::memory_order_relaxed))
 				{
 					MTLTimestamp secondCpuTimestamp = 0, secondGpuTimestamp = 0;
-					[mImpl->Device sampleTimestamps:&secondCpuTimestamp gpuTimestamp:&secondGpuTimestamp];
+					[mMetalDevice sampleTimestamps:&secondCpuTimestamp gpuTimestamp:&secondGpuTimestamp];
 
 					mach_timebase_info_data_t timebase = {};
 					mach_timebase_info(&timebase);
 					const double cpuTicksToNanoseconds = (double)timebase.numer / (double)timebase.denom;
-					const double cpuDeltaNanoseconds = (double)(secondCpuTimestamp - mImpl->FirstCpuTimestamp) * cpuTicksToNanoseconds;
-					const double gpuDelta = (double)(secondGpuTimestamp - mImpl->FirstGpuTimestamp);
+					const double cpuDeltaNanoseconds = (double)(secondCpuTimestamp - mFirstCpuTimestamp) * cpuTicksToNanoseconds;
+					const double gpuDelta = (double)(secondGpuTimestamp - mFirstGpuTimestamp);
 					mGpuTicksPerNanosecond = cpuDeltaNanoseconds > 0.0 ? gpuDelta / cpuDeltaNanoseconds : 1.0;
-					mImpl->TimestampCalibrationDone.store(true, std::memory_order_release);
+					mTimestampCalibrationDone.store(true, std::memory_order_release);
 				}
 			}
 

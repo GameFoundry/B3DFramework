@@ -29,25 +29,28 @@ namespace b3d
 			MetalGpuDevice();
 			~MetalGpuDevice();
 
-#ifdef __OBJC__
-			/** Returns the underlying MTLDevice. Only available to Objective-C++ translation units. */
-			id<MTLDevice> GetMetalDevice() const;
+			/** Returns the underlying MTLDevice. */
+			id<MTLDevice> GetMetalDevice() const { return mMetalDevice; }
 
 			/** Returns the Metal command queue used for the given queue type. */
-			id<MTLCommandQueue> GetMetalQueue(GpuQueueType type) const;
+			id<MTLCommandQueue> GetMetalQueue(GpuQueueType type) const
+			{
+				B3D_ASSERT((u32)type < GQT_COUNT);
+				return mCommandQueues[(u32)type];
+			}
 
 			/**
 			 * Returns the persistent zero-filled MTLBuffer bound at a vertex-input null stream's slot for
 			 * shader inputs that have no matching vertex-buffer element. 
 			 */
-			id<MTLBuffer> GetNullVertexBuffer() const;
+			id<MTLBuffer> GetNullVertexBuffer() const { return mNullVertexBuffer; }
 
 			/**
 			 * Returns the persistent zero-filled MTLBuffer whose GPU address pre-fills unbound buffer
 			 * slots in every parameter set's argument buffer, so shaders that read a slot the engine
 			 * never bound load zeroes instead of faulting.
 			 */
-			id<MTLBuffer> GetDummyArgumentBuffer() const;
+			id<MTLBuffer> GetDummyArgumentBuffer() const { return mDummyArgumentBuffer; }
 
 			/**
 			 * Returns the resolved timestamp counter set used by @c MetalGpuQueryPool to allocate
@@ -55,7 +58,7 @@ namespace b3d
 			 * time. A non-null set implies all command-boundary sampling points required by the generic
 			 * timestamp-query contract are also supported.
 			 */
-			id<MTLCounterSet> GetTimestampCounterSet() const;
+			id<MTLCounterSet> GetTimestampCounterSet() const { return mTimestampCounterSet; }
 
 			/**
 			 * Returns the device-wide listener that blocking CPU waits register their notification
@@ -66,8 +69,7 @@ namespace b3d
 			 * main-thread wait cannot deadlock on a notification that could only run on main.
 			 * Created in @c Initialize; nil if creation failed, in which case callers poll instead.
 			 */
-			MTLSharedEventListener* GetSharedEventListener() const;
-#endif
+			MTLSharedEventListener* GetSharedEventListener() const { return mSharedEventListener; }
 
 			/**
 			 * Returns the device-owned heap allocator that sub-allocates @c MTLTexture /
@@ -109,9 +111,9 @@ namespace b3d
 			 * when all three flags are true.
 			 *  @{
 			 */
-			bool SupportsRenderEncoderTimestamps() const;
-			bool SupportsComputeEncoderTimestamps() const;
-			bool SupportsBlitEncoderTimestamps() const;
+			bool SupportsRenderEncoderTimestamps() const { return mSupportsRenderEncoderTimestamps; }
+			bool SupportsComputeEncoderTimestamps() const { return mSupportsComputeEncoderTimestamps; }
+			bool SupportsBlitEncoderTimestamps() const { return mSupportsBlitEncoderTimestamps; }
 			/** @} */
 
 			/**
@@ -185,11 +187,31 @@ namespace b3d
 			/** Initializes capabilities by querying the underlying MTLDevice. */
 			void InitializeCapabilities();
 
-			/** Pimpl that holds Objective-C / Metal handles so they do not leak into plain C++ headers. */
-			struct Impl;
-
 			bool mIsInitialized = false;
-			TUnique<Impl> mImpl;
+			id<MTLDevice> mMetalDevice = nil;
+			id<MTLCommandQueue> mCommandQueues[GQT_COUNT] = { nil };
+			id<MTLSharedEvent> mQueueEvents[GQT_COUNT] = { nil };
+
+			// Device-wide MTLSharedEventListener and the dispatch queue its notification blocks run on
+			dispatch_queue_t mListenerDispatchQueue = nullptr;
+			MTLSharedEventListener* mSharedEventListener = nil;
+
+			id<MTLBuffer> mNullVertexBuffer = nil;
+			id<MTLBuffer> mDummyArgumentBuffer = nil;
+
+			id<MTLCounterSet> mTimestampCounterSet = nil;
+
+			bool mSupportsRenderEncoderTimestamps = false;
+			bool mSupportsComputeEncoderTimestamps = false;
+			bool mSupportsBlitEncoderTimestamps = false;
+
+			// First CPU/GPU timestamp pair captured at device init
+			MTLTimestamp mFirstCpuTimestamp = 0;
+			MTLTimestamp mFirstGpuTimestamp = 0;
+			bool mFirstTimestampPairCaptured = false;
+			std::atomic<bool> mTimestampCalibrationDone{ false };
+			Mutex mTimestampCalibrationMutex;
+
 			TUnique<MetalHeapAllocator> mHeapAllocator;
 
 			TUnique<MetalResourceManager> mResourceManager;

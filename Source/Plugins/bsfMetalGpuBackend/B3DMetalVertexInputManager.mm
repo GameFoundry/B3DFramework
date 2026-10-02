@@ -10,13 +10,8 @@ namespace b3d
 {
 	namespace render
 	{
-		struct MetalVertexInput::Impl
-		{
-			MTLVertexDescriptor* VertexDescriptor = nil;
-		};
-
 		MetalVertexInput::MetalVertexInput(u32 id, const GpuVertexInputLayout& layout)
-			: mId(id), mStreamCount(layout.StreamCount), mUsedStreamMask(layout.UsedStreamMask), mNullStreamIndex(layout.NullStreamIndex), mImpl(B3DMakeUnique<Impl>())
+			: mId(id), mStreamCount(layout.StreamCount), mUsedStreamMask(layout.UsedStreamMask), mNullStreamIndex(layout.NullStreamIndex)
 		{
 			@autoreleasepool
 			{
@@ -86,24 +81,8 @@ namespace b3d
 				descriptor.layouts[layoutIndex].stepRate = 0;
 			}
 
-			mImpl->VertexDescriptor = descriptor;
+			mVertexDescriptor = descriptor;
 			} // @autoreleasepool
-		}
-
-		MetalVertexInput::~MetalVertexInput()
-		{
-			if (mImpl)
-			{
-#if !__has_feature(objc_arc)
-				[mImpl->VertexDescriptor release];
-#endif
-				mImpl->VertexDescriptor = nil;
-			}
-		}
-
-		MTLVertexDescriptor* MetalVertexInput::GetVertexDescriptor() const
-		{
-			return mImpl ? mImpl->VertexDescriptor : nil;
 		}
 
 		MetalVertexInputManager::~MetalVertexInputManager()

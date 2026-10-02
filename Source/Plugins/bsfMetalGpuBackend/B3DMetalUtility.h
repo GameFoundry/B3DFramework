@@ -39,7 +39,6 @@ namespace b3d
 			 */
 			static u32 GetTextureSlicePitch(PixelFormat format, u32 width, u32 height);
 
-#ifdef __OBJC__
 			/**
 			 * Converts a B3D pixel format to the closest matching MTLPixelFormat.
 			 *
@@ -126,7 +125,6 @@ namespace b3d
 			 * @c B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION.
 			 */
 			static MTLResourceOptions GetResourceOptions(MTLStorageMode storageMode);
-#endif // __OBJC__
 		};
 
 		/** @} */

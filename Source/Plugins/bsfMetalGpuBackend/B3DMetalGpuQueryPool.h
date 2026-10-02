@@ -27,19 +27,16 @@ namespace b3d
 		{
 		public:
 			MetalGpuQueryPool(MetalGpuDevice& gpuDevice, const GpuQueryPoolCreateInformation& createInformation);
-			~MetalGpuQueryPool() override;
 
 			GpuQueryId AllocateQuery() override;
 			bool TryResolve(bool wait = false) override;
 			u64 GetQueryResult(GpuQueryId queryId, u32 elementIndex = 0) override;
 
-#ifdef __OBJC__
 			/** Returns the underlying visibility-result buffer for occlusion queries. */
-			id<MTLBuffer> GetVisibilityBuffer() const;
+			id<MTLBuffer> GetVisibilityBuffer() const { return mVisibilityBuffer; }
 
 			/** Returns the underlying counter sample buffer for timestamp queries, or nil if unsupported. */
-			id<MTLCounterSampleBuffer> GetCounterBuffer() const;
-#endif
+			id<MTLCounterSampleBuffer> GetCounterBuffer() const { return mCounterBuffer; }
 
 			/** Returns the byte offset of a query's result slot inside the visibility buffer. */
 			u32 GetQueryOffset(GpuQueryId queryId) const { return queryId.Id * sizeof(u64); }
@@ -103,10 +100,9 @@ namespace b3d
 			bool IsQueryAllocated(GpuQueryId queryId) const;
 
 		private:
-			struct Impl;
-
 			MetalGpuDevice& mGpuDevice;
-			TUnique<Impl> mImpl;
+			id<MTLBuffer> mVisibilityBuffer = nil;
+			id<MTLCounterSampleBuffer> mCounterBuffer = nil;
 			u32 mNextQueryId = 0;
 			u32 mRecordedCommandBuffers = 0;
 			u32 mPendingSubmissions = 0;

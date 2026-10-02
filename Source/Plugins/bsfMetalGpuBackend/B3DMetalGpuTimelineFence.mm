@@ -7,43 +7,27 @@ namespace b3d
 {
 	namespace render
 	{
-		struct MetalGpuTimelineFence::Impl
-		{
-			id<MTLSharedEvent> Event = nil;
-		};
-
 		MetalGpuTimelineFence::MetalGpuTimelineFence(MetalGpuDevice& device)
-			: mImpl(B3DMakeUnique<Impl>()), mDevice(device)
+			: mDevice(device)
 		{
 			id<MTLDevice> mtlDevice = device.GetMetalDevice();
 			if (mtlDevice == nil)
 				return;
 
-			mImpl->Event = [mtlDevice newSharedEvent];
-		}
-
-		MetalGpuTimelineFence::~MetalGpuTimelineFence()
-		{
-			if (mImpl)
-			{
-#if !__has_feature(objc_arc)
-				[mImpl->Event release];
-#endif
-				mImpl->Event = nil;
-			}
+			mEvent = [mtlDevice newSharedEvent];
 		}
 
 		u64 MetalGpuTimelineFence::GetCompletedValue() const
 		{
-			if (mImpl->Event == nil)
+			if (mEvent == nil)
 				return 0;
 
-			return (u64)[mImpl->Event signaledValue];
+			return (u64)[mEvent signaledValue];
 		}
 
 		void MetalGpuTimelineFence::WaitInternal(u64 value)
 		{
-			if (mImpl->Event == nil)
+			if (mEvent == nil)
 				return;
 
 			MTLSharedEventListener* listener = mDevice.GetSharedEventListener();
@@ -53,7 +37,7 @@ namespace b3d
 				return;
 			}
 
-			if ((u64)[mImpl->Event signaledValue] >= value)
+			if ((u64)[mEvent signaledValue] >= value)
 				return;
 
 			// MTLSharedEvent has no native blocking CPU wait; block on a semaphore signaled by the
@@ -67,20 +51,12 @@ namespace b3d
 				return;
 			}
 
-			[mImpl->Event notifyListener:listener atValue:value block:^(id<MTLSharedEvent>, uint64_t)
+			[mEvent notifyListener:listener atValue:value block:^(id<MTLSharedEvent>, uint64_t)
 			{
 				dispatch_semaphore_signal(sem);
 			}];
 			dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
-
-#if !__has_feature(objc_arc)
-			dispatch_release(sem);
-#endif
 		}
 
-		id<MTLSharedEvent> MetalGpuTimelineFence::GetSharedEvent() const
-		{
-			return mImpl->Event;
-		}
 	} // namespace render
 } // namespace b3d

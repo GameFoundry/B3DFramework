@@ -24,22 +24,22 @@ namespace b3d::render
 		 * the current offscreen image. Returns null if no back buffer is available (invalid or destroyed surface, or
 		 * drawable pool exhaustion). Must be called on the render thread, once per render pass that targets the window.
 		 */
-		virtual MTLTextureRef AcquireColorTexture() = 0;
+		virtual id<MTLTexture> AcquireColorTexture() = 0;
 
 		/**
 		 * Returns the color texture of the current back buffer without acquiring a new one, or null if none is
 		 * currently held. 
 		 */
-		virtual MTLTextureRef GetCurrentColorTexture() const = 0;
+		virtual id<MTLTexture> GetCurrentColorTexture() const = 0;
 
 		/**
 		 * Returns the depth/stencil texture associated with the surface, or null if the surface was created without
 		 * a depth buffer.
 		 */
-		virtual MTLTextureRef GetDepthStencilTexture() const = 0;
+		virtual id<MTLTexture> GetDepthStencilTexture() const = 0;
 
 		/** Returns the native pixel format (MTLPixelFormat) of the color surface. Used for pipeline state keying. */
-		virtual MTLPixelFormatValue GetColorFormat() const = 0;
+		virtual MTLPixelFormat GetColorFormat() const = 0;
 
 		/** Returns the engine pixel format of the color surface. */
 		virtual PixelFormat GetColorPixelFormat() const = 0;

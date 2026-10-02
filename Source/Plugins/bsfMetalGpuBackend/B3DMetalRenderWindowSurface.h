@@ -39,7 +39,7 @@ namespace b3d::render
 		struct PendingDrawable
 		{
 			u32 Index = 0;
-			CAMetalDrawableRef Drawable = nullptr;
+			id<CAMetalDrawable> Drawable = nullptr;
 			bool VSync = false;
 			u32 VSyncInterval = 1;
 			float RefreshRate = 60.0f;
@@ -68,10 +68,10 @@ namespace b3d::render
 		 *
 		 * @note	Render thread only.
 		 */
-		MTLTextureRef AcquireDrawable(CAMetalLayerRef layer);
+		id<MTLTexture> AcquireDrawable(CAMetalLayer* layer);
 
 		/** Returns the color texture of the currently held drawable, or null if no drawable is held. */
-		MTLTextureRef GetCurrentTexture() const;
+		id<MTLTexture> GetCurrentTexture() const;
 
 		/**
 		 * Releases the currently held drawable without presenting it, if any. Used when the render pass that acquired
@@ -93,17 +93,11 @@ namespace b3d::render
 		void Retire();
 
 	private:
-#ifdef __OBJC__
-		/** Releases the provided drawable reference and resets it to nil. No-op if the reference is already nil. */
-		// __strong: an unqualified id& parameter defaults to __autoreleasing under ARC and cannot bind to strong lvalues
-		void ReleaseDrawable(CAMetalDrawableRef __strong& drawable);
-#endif
-
 		MetalRenderWindowSurface& mSurface;
 		mutable Mutex mMutex;
 		SingleConsumerQueue mMessageQueue;
 		Vector<PendingDrawable> mPendingDrawables;
-		CAMetalDrawableRef mCurrentDrawable = nullptr;
+		id<CAMetalDrawable> mCurrentDrawable = nullptr;
 		u32 mCurrentDrawableIndex = 0;
 		u32 mNextDrawableIndex = 1;
 		bool mCurrentDrawableWasRenderedInto = false;
@@ -127,10 +121,10 @@ namespace b3d::render
 		void Destroy() override;
 
 		// IMetalRenderWindowSurface
-		MTLTextureRef AcquireColorTexture() override;
-		MTLTextureRef GetCurrentColorTexture() const override;
-		MTLTextureRef GetDepthStencilTexture() const override { return mDepthStencilTexture; }
-		MTLPixelFormatValue GetColorFormat() const override;
+		id<MTLTexture> AcquireColorTexture() override;
+		id<MTLTexture> GetCurrentColorTexture() const override;
+		id<MTLTexture> GetDepthStencilTexture() const override { return mDepthStencilTexture; }
+		MTLPixelFormat GetColorFormat() const override;
 		PixelFormat GetColorPixelFormat() const override { return PF_BGRA8; }
 		bool IsSwapChainValid() const override
 		{
@@ -156,8 +150,8 @@ namespace b3d::render
 
 		MetalGpuDevice& mGpuDevice;
 
-		CAMetalLayerRef mLayer = nullptr;
-		MTLTextureRef mDepthStencilTexture = nullptr;
+		CAMetalLayer* mLayer = nullptr;
+		id<MTLTexture> mDepthStencilTexture = nullptr;
 		MetalSwapChain* mSwapChain = nullptr;
 
 		// These fields are render-thread-only after construction. @c RebuildSwapChain / @c MarkSwapChainAsInvalid

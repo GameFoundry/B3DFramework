@@ -18,41 +18,17 @@ namespace b3d
 {
 	namespace render
 	{
-		MetalArgumentBuffer::MetalArgumentBuffer(MetalResourceManager* owner, MetalBufferNativeHandle buffer, const GpuAllocation& allocation)
+		MetalArgumentBuffer::MetalArgumentBuffer(MetalResourceManager* owner, id<MTLBuffer> buffer, const GpuAllocation& allocation)
 			: MetalResource(owner, StringView()), mBuffer(buffer), mAllocation(allocation)
 		{ }
 
 		MetalArgumentBuffer::~MetalArgumentBuffer()
 		{
-#if !__has_feature(objc_arc)
-			[mBuffer release];
-#endif
 			mBuffer = nullptr;
 
 			if (mAllocation.IsOwned())
 				mAllocation.Allocator->Free(mAllocation);
 		}
-
-		struct MetalGpuParameters::Impl
-		{
-			id<MTLBuffer> ArgumentBuffer = nil;
-
-			/** Owner of ArgumentBuffer for persistent sets. Null when ArgumentBuffer is a transient pool slice. */
-			MetalArgumentBuffer* ArgumentBufferResource = nullptr;
-
-			/**
-			 * Byte offset into @c ArgumentBuffer where this set's slice begins. Always zero for persistent sets.
-			 * Direct writes and command-encoder binds add this to the reflected set-local byte offset.
-			 */
-			u64 ArgumentBufferOffset = 0;
-
-			/**
-			 * Sampler written into sampler entries that have no bound sampler. Plain BSL SamplerState declarations have
-			 * no explicit engine-side binding; matching the Vulkan backend, they get the device's default sampler
-			 * instead of a null resource ID (which samples as point filtering on affected hardware).
-			 */
-			TShared<MetalSamplerState> DefaultSampler;
-		};
 
 		namespace
 		{
@@ -159,15 +135,15 @@ namespace b3d
 		} // namespace
 
 		MetalGpuParameters::MetalGpuParameters(MetalGpuDevice& gpuDevice, const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex, MetalGpuParameterSetPool* pool)
-			: GpuParameterSet(parameterSetLayout, setIndex), mGpuDevice(gpuDevice), mImpl(B3DMakeUnique<Impl>()), mPool(pool)
+			: GpuParameterSet(parameterSetLayout, setIndex), mGpuDevice(gpuDevice), mPool(pool)
 		{
 			mMetalLayout = static_cast<const MetalGpuPipelineParameterSetLayout*>(parameterSetLayout.get());
 		}
 
 		MetalGpuParameters::~MetalGpuParameters()
 		{
-			if (mImpl && mImpl->ArgumentBufferResource != nullptr)
-				mImpl->ArgumentBufferResource->Destroy();
+			if (mArgumentBufferResource != nullptr)
+				mArgumentBufferResource->Destroy();
 		}
 
 		void MetalGpuParameters::Initialize()
@@ -184,44 +160,29 @@ namespace b3d
 					{
 						const u32 alignment = std::max<u32>(1u, mMetalLayout->GetArgumentBufferAlignment());
 						u64 offset = 0;
-						mImpl->ArgumentBuffer = mPool->AcquireArgumentBufferSlice(bufferSize, alignment, offset);
-						mImpl->ArgumentBufferOffset = offset;
+						mArgumentBuffer = mPool->AcquireArgumentBufferSlice(bufferSize, alignment, offset);
+						mArgumentBufferOffset = offset;
 					}
 					else
 					{
-						mImpl->ArgumentBufferResource = CreateArgumentBuffer(mGpuDevice, bufferSize);
-						mImpl->ArgumentBuffer = mImpl->ArgumentBufferResource != nullptr ? mImpl->ArgumentBufferResource->GetMetalBuffer() : nil;
-						mImpl->ArgumentBufferOffset = 0;
+						mArgumentBufferResource = CreateArgumentBuffer(mGpuDevice, bufferSize);
+						mArgumentBuffer = mArgumentBufferResource != nullptr ? mArgumentBufferResource->GetMetalBuffer() : nil;
+						mArgumentBufferOffset = 0;
 					}
 
 					// Zeroed to match the default ArgumentElement::Value, so the first PrepareForBind writes every entry
 					// whose resolved value is non-zero (dummy buffers and default samplers included).
-					if (mImpl->ArgumentBuffer == nil)
+					if (mArgumentBuffer == nil)
 						B3D_LOG(Error, LogRenderBackend, "Failed to allocate a {0}-byte Metal argument buffer for parameter set {1}.", bufferSize, GetSet());
 					else
-						std::memset((u8*)[mImpl->ArgumentBuffer contents] + mImpl->ArgumentBufferOffset, 0, (size_t)bufferSize);
+						std::memset((u8*)[mArgumentBuffer contents] + mArgumentBufferOffset, 0, (size_t)bufferSize);
 				}
 
 				mElements.assign((size_t)mMetalLayout->GetResourceCount(), ArgumentElement());
-				mImpl->DefaultSampler = std::static_pointer_cast<MetalSamplerState>(mGpuDevice.FindOrCreateSamplerState(SamplerStateCreateInformation()));
+				mDefaultSampler = std::static_pointer_cast<MetalSamplerState>(mGpuDevice.FindOrCreateSamplerState(SamplerStateCreateInformation()));
 			}
 
 			GpuParameterSet::Initialize();
-		}
-
-		id<MTLBuffer> MetalGpuParameters::GetArgumentBuffer() const
-		{
-			return mImpl ? mImpl->ArgumentBuffer : nil;
-		}
-
-		MetalArgumentBuffer* MetalGpuParameters::GetArgumentBufferResource() const
-		{
-			return mImpl ? mImpl->ArgumentBufferResource : nullptr;
-		}
-
-		u64 MetalGpuParameters::GetArgumentBufferOffset() const
-		{
-			return mImpl ? mImpl->ArgumentBufferOffset : 0;
 		}
 
 		bool MetalGpuParameters::IsArgumentBufferAllocated() const
@@ -229,7 +190,7 @@ namespace b3d
 			if (mMetalLayout == nullptr || mMetalLayout->GetArgumentBufferSize() == 0)
 				return true;
 
-			if (mImpl == nullptr || mImpl->ArgumentBuffer == nil)
+			if (mArgumentBuffer == nil)
 				return false;
 
 			return true;
@@ -309,7 +270,7 @@ namespace b3d
 
 		u64 MetalGpuParameters::PrepareForBind()
 		{
-			if (mMetalLayout == nullptr || !mImpl || mImpl->ArgumentBuffer == nil)
+			if (mMetalLayout == nullptr || mArgumentBuffer == nil)
 				return mGeneration;
 
 			@autoreleasepool
@@ -330,24 +291,24 @@ namespace b3d
 					{
 						const u32 sequentialResourceIndex = mParameterSetLayout->GetSequentialResourceIndex(binding.Slot, arrayIndex);
 
-						void* nativeHandle = nullptr;
+						__unsafe_unretained id<MTLResource> nativeHandle = nil;
 						switch (binding.Type)
 						{
 						case GpuParameterType::UniformBuffer:
 							if (auto* buffer = static_cast<MetalGpuBuffer*>(mUniformBufferData[sequentialResourceIndex].Buffer.get()))
-								nativeHandle = (__bridge void*)buffer->GetMetalBuffer();
+								nativeHandle = buffer->GetMetalBuffer();
 							break;
 						case GpuParameterType::StorageBuffer:
 							if (auto* buffer = static_cast<MetalGpuBuffer*>(mStorageBufferData[sequentialResourceIndex].Buffer.get()))
-								nativeHandle = (__bridge void*)buffer->GetMetalBuffer();
+								nativeHandle = buffer->GetMetalBuffer();
 							break;
 						case GpuParameterType::SampledTexture:
 							if (auto* texture = static_cast<MetalTexture*>(mSampledTextureData[sequentialResourceIndex].Texture.get()))
-								nativeHandle = (__bridge void*)texture->GetMetalTexture();
+								nativeHandle = texture->GetMetalTexture();
 							break;
 						case GpuParameterType::StorageTexture:
 							if (auto* texture = static_cast<MetalTexture*>(mStorageTextureData[sequentialResourceIndex].Texture.get()))
-								nativeHandle = (__bridge void*)texture->GetMetalTexture();
+								nativeHandle = texture->GetMetalTexture();
 							break;
 						default:
 							break;
@@ -366,16 +327,16 @@ namespace b3d
 			}
 
 			id<MTLBuffer> dummyBuffer = mGpuDevice.GetDummyArgumentBuffer();
-			id<MTLSamplerState> defaultSampler = mImpl->DefaultSampler != nullptr ? mImpl->DefaultSampler->GetMetalSampler() : nil;
+			id<MTLSamplerState> defaultSampler = mDefaultSampler != nullptr ? mDefaultSampler->GetMetalSampler() : nil;
 
 			// Gets writeable argument buffer memory. If the current argument buffer does not exist or is being used, a new buffer is allocated, and buffer generation incremented.
 			const auto fnGetWritableArgumentBytes = [this]() -> u8*
 			{
-				const bool isArgumentBufferBound = mImpl->ArgumentBufferResource != nullptr ? mImpl->ArgumentBufferResource->IsBound() : mPool != nullptr;
+				const bool isArgumentBufferBound = mArgumentBufferResource != nullptr ? mArgumentBufferResource->IsBound() : mPool != nullptr;
 				if (isArgumentBufferBound)
 				{
 					const u64 bufferSize = mMetalLayout->GetArgumentBufferSize();
-					const u8* oldBytes = (const u8*)[mImpl->ArgumentBuffer contents] + mImpl->ArgumentBufferOffset;
+					const u8* oldBytes = (const u8*)[mArgumentBuffer contents] + mArgumentBufferOffset;
 
 					id<MTLBuffer> newBuffer = nil;
 					MetalArgumentBuffer* newResource = nullptr;
@@ -395,12 +356,12 @@ namespace b3d
 					{
 						std::memcpy((u8*)[newBuffer contents] + newOffset, oldBytes, (size_t)bufferSize);
 
-						if (mImpl->ArgumentBufferResource != nullptr)
-							mImpl->ArgumentBufferResource->Destroy();
+						if (mArgumentBufferResource != nullptr)
+							mArgumentBufferResource->Destroy();
 
-						mImpl->ArgumentBuffer = newBuffer;
-						mImpl->ArgumentBufferResource = newResource;
-						mImpl->ArgumentBufferOffset = newOffset;
+						mArgumentBuffer = newBuffer;
+						mArgumentBufferResource = newResource;
+						mArgumentBufferOffset = newOffset;
 						++mGeneration;
 					}
 					else
@@ -412,7 +373,7 @@ namespace b3d
 					}
 				}
 
-				return (u8*)[mImpl->ArgumentBuffer contents] + mImpl->ArgumentBufferOffset;
+				return (u8*)[mArgumentBuffer contents] + mArgumentBufferOffset;
 			};
 
 			u8* argumentBytes = nullptr;
@@ -425,7 +386,7 @@ namespace b3d
 
 					u64 value = 0;
 					id<MTLResource> resolvedResource = nil;
-					void* nativeHandle = nullptr;
+					__unsafe_unretained id<MTLResource> nativeHandle = nil;
 					switch (binding.Type)
 					{
 					case GpuParameterType::UniformBuffer:
@@ -433,7 +394,7 @@ namespace b3d
 						const UniformBufferData& data = mUniformBufferData[sequentialResourceIndex];
 						auto* buffer = static_cast<MetalGpuBuffer*>(data.Buffer.get());
 						id<MTLBuffer> metalBuffer = buffer != nullptr ? buffer->GetMetalBuffer() : nil;
-						nativeHandle = (__bridge void*)metalBuffer;
+						nativeHandle = metalBuffer;
 
 						if (metalBuffer == nil)
 							metalBuffer = dummyBuffer;
@@ -447,7 +408,7 @@ namespace b3d
 						const StorageBufferData& data = mStorageBufferData[sequentialResourceIndex];
 						auto* buffer = static_cast<MetalGpuBuffer*>(data.Buffer.get());
 						id<MTLBuffer> metalBuffer = buffer != nullptr ? buffer->GetMetalBuffer() : nil;
-						nativeHandle = (__bridge void*)metalBuffer;
+						nativeHandle = metalBuffer;
 
 						if (binding.ObjectType == GPOT_BYTE_BUFFER || binding.ObjectType == GPOT_RWBYTE_BUFFER)
 						{
@@ -471,7 +432,7 @@ namespace b3d
 					{
 						const TextureData& data = binding.Type == GpuParameterType::SampledTexture ? mSampledTextureData[sequentialResourceIndex] : mStorageTextureData[sequentialResourceIndex];
 						auto* texture = static_cast<MetalTexture*>(data.Texture.get());
-						nativeHandle = texture != nullptr ? (__bridge void*)texture->GetMetalTexture() : nullptr;
+						nativeHandle = texture != nullptr ? texture->GetMetalTexture() : nil;
 
 						id<MTLTexture> view = texture != nullptr ? texture->GetSubresourceView(data.Surface) : nil;
 						value = view != nil ? ToArgumentValue(view.gpuResourceID) : 0;
@@ -496,10 +457,9 @@ namespace b3d
 					ArgumentElement& element = mElements[binding.FirstResourceIndex + arrayIndex];
 					element.NativeHandle = nativeHandle;
 
-					void* resolvedResourcePointer = (__bridge void*)resolvedResource;
-					if (element.ResolvedResource != resolvedResourcePointer)
+					if (element.ResolvedResource != resolvedResource)
 					{
-						element.ResolvedResource = resolvedResourcePointer;
+						element.ResolvedResource = resolvedResource;
 						resolvedResourcesChanged = true;
 					}
 
@@ -635,7 +595,7 @@ namespace b3d
 			if (resourceIndex >= (u32)mElements.size())
 				return nil;
 
-			return (__bridge id<MTLResource>)mElements[resourceIndex].ResolvedResource;
+			return mElements[resourceIndex].ResolvedResource;
 		}
 	} // namespace render
 } // namespace b3d

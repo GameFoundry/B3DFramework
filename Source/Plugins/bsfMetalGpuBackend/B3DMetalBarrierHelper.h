@@ -50,7 +50,6 @@ namespace b3d::render
 		 */
 		MetalBarrierHelper(MetalResourceTracker* resourceTracker);
 
-#ifdef __OBJC__
 		/**
 		 * Emits the accumulated barriers on the currently open encoder, then runs the post-barrier
 		 * tracker updates (ApplyPostBarrierTracking, CommitPendingAccesses) and clears the
@@ -65,7 +64,6 @@ namespace b3d::render
 		 *							uses the command buffer's MTLFence and queue-event path.
 		 */
 		void Execute(id<MTLRenderCommandEncoder> renderEncoder, id<MTLComputeCommandEncoder> computeEncoder);
-#endif
 
 		/**
 		 * Clears all accumulated barriers without executing them. Useful if you need to reset the

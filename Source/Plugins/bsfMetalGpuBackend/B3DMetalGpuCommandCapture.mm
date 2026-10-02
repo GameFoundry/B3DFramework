@@ -6,36 +6,23 @@
 
 namespace b3d
 {
-	struct MetalGpuCommandCapture::Impl
-	{
-		bool Capturing = false;
-		NSURL* OutputUrl = nil;
-	};
-
 	MetalGpuCommandCapture::MetalGpuCommandCapture(render::MetalGpuDevice& device)
-		: mDevice(device), mImpl(B3DMakeUnique<Impl>())
+		: mDevice(device)
 	{ }
 
 	MetalGpuCommandCapture::~MetalGpuCommandCapture()
 	{
 		Stop();
-#if !__has_feature(objc_arc)
-		[mImpl->OutputUrl release];
-#endif
-		mImpl->OutputUrl = nil;
 	}
 
 	void MetalGpuCommandCapture::Start()
 	{
-		if (mImpl->Capturing)
+		if (mCapturing)
 			return;
 
 		@autoreleasepool
 		{
-#if !__has_feature(objc_arc)
-			[mImpl->OutputUrl release];
-#endif
-			mImpl->OutputUrl = nil;
+			mOutputUrl = nil;
 
 			MTLCaptureManager* captureManager = [MTLCaptureManager sharedCaptureManager];
 			MTLCaptureDescriptor* descriptor = [[MTLCaptureDescriptor alloc] init];
@@ -59,19 +46,11 @@ namespace b3d
 				started = [captureManager startCaptureWithDescriptor:descriptor error:&error];
 				if (started)
 				{
-#if !__has_feature(objc_arc)
-					[mImpl->OutputUrl release];
-					mImpl->OutputUrl = [descriptor.outputURL retain];
-#else
-					mImpl->OutputUrl = descriptor.outputURL;
-#endif
+					mOutputUrl = descriptor.outputURL;
 				}
 			}
 
-#if !__has_feature(objc_arc)
-			[descriptor release];
-#endif
-			mImpl->Capturing = started;
+			mCapturing = started;
 			if (!started)
 			{
 				B3D_LOG(Error, LogRenderBackend, "Failed to start Metal GPU capture: {0}",
@@ -82,19 +61,16 @@ namespace b3d
 
 	void MetalGpuCommandCapture::Stop()
 	{
-		if (!mImpl->Capturing)
+		if (!mCapturing)
 			return;
 
 		@autoreleasepool
 		{
 			[[MTLCaptureManager sharedCaptureManager] stopCapture];
-			mImpl->Capturing = false;
-			if (mImpl->OutputUrl != nil)
-				B3D_LOG(Info, LogRenderBackend, "Metal GPU capture saved to {0}.", String([[mImpl->OutputUrl path] UTF8String]));
-#if !__has_feature(objc_arc)
-			[mImpl->OutputUrl release];
-#endif
-			mImpl->OutputUrl = nil;
+			mCapturing = false;
+			if (mOutputUrl != nil)
+				B3D_LOG(Info, LogRenderBackend, "Metal GPU capture saved to {0}.", String([[mOutputUrl path] UTF8String]));
+			mOutputUrl = nil;
 		}
 	}
 } // namespace b3d

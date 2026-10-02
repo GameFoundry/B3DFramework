@@ -14,69 +14,33 @@ namespace b3d
 {
 	namespace render
 	{
-		struct MetalGpuGraphicsPipelineState::Impl
-		{
-			/** Depth-stencil state variants indexed by (depthReadOnly | stencilReadOnly << 1), created on demand. */
-			id<MTLDepthStencilState> DepthStencilStates[4] = { nil, nil, nil, nil };
-
-			// Per-variant cache entry. Compilation is driven by the async @c completionHandler variant
-			// of @c newRenderPipelineStateWithDescriptor:, so an entry goes through a pending state
-			// (Ready == false, Pipeline == nil) before the completion handler fills in the result and
-			// flips Ready. Concurrent callers that arrive while a compile is in flight find the entry
-			// not-ready, unlock, and wait on @c VariantReadySignal until the handler notifies — no
-			// duplicate compiles for the same key.
-			struct CachedVariant
-			{
-				id<MTLRenderPipelineState> Pipeline = nil;
-				bool Ready = false;
-			};
-
-			Mutex PipelineCacheMutex;
-			ConditionVariable VariantReadySignal;
-			UnorderedMap<MetalPipelineVariantKey, CachedVariant, MetalPipelineVariantKeyHash> Pipelines;
-
-		};
-
 		MetalGpuGraphicsPipelineState::MetalGpuGraphicsPipelineState(MetalGpuDevice& gpuDevice, const GpuGraphicsPipelineStateCreateInformation& createInformation)
-			: GpuGraphicsPipelineState(gpuDevice, createInformation), mGpuDevice(gpuDevice), mImpl(B3DMakeUnique<Impl>())
+			: GpuGraphicsPipelineState(gpuDevice, createInformation), mGpuDevice(gpuDevice)
 		{ }
 
 		MetalGpuGraphicsPipelineState::~MetalGpuGraphicsPipelineState()
 		{
-			if (mImpl)
 			{
+				// Drain any in-flight compiles so completion handlers cannot reference a destroyed pipeline state.
+				Lock lock(mPipelineCacheMutex);
+				mVariantReadySignal.wait(lock, [this]
 				{
-					// Drain any in-flight compiles so completion handlers cannot reference a freed Impl.
-					Lock lock(mImpl->PipelineCacheMutex);
-					mImpl->VariantReadySignal.wait(lock, [this]
+					for (auto& entry : mPipelines)
 					{
-						for (auto& entry : mImpl->Pipelines)
-						{
-							if (!entry.second.Ready)
-								return false;
-						}
-
-						return true;
-					});
-
-					for (auto& entry : mImpl->Pipelines)
-					{
-#if !__has_feature(objc_arc)
-						[entry.second.Pipeline release];
-#endif
-						entry.second.Pipeline = nil;
+						if (!entry.second.Ready)
+							return false;
 					}
 
-					mImpl->Pipelines.clear();
-				}
-				for (u32 variantIndex = 0; variantIndex < 4; variantIndex++)
-				{
-#if !__has_feature(objc_arc)
-					[mImpl->DepthStencilStates[variantIndex] release];
-#endif
-					mImpl->DepthStencilStates[variantIndex] = nil;
-				}
+					return true;
+				});
+
+				for (auto& entry : mPipelines)
+					entry.second.Pipeline = nil;
+
+				mPipelines.clear();
 			}
+			for (u32 variantIndex = 0; variantIndex < 4; variantIndex++)
+				mDepthStencilStates[variantIndex] = nil;
 
 		}
 
@@ -86,11 +50,11 @@ namespace b3d
 		{
 			const u32 variantIndex = (depthReadOnly ? 1u : 0u) | (stencilReadOnly ? 2u : 0u);
 
-			Lock lock(mImpl->PipelineCacheMutex);
-			if (mImpl->DepthStencilStates[variantIndex] == nil)
-				mImpl->DepthStencilStates[variantIndex] = CreateDepthStencilState(mGpuDevice.GetMetalDevice(), mData.DepthStencilState, depthReadOnly, stencilReadOnly);
+			Lock lock(mPipelineCacheMutex);
+			if (mDepthStencilStates[variantIndex] == nil)
+				mDepthStencilStates[variantIndex] = CreateDepthStencilState(mGpuDevice.GetMetalDevice(), mData.DepthStencilState, depthReadOnly, stencilReadOnly);
 
-			return mImpl->DepthStencilStates[variantIndex];
+			return mDepthStencilStates[variantIndex];
 		}
 
 		static void FillStencilDescriptor(MTLStencilDescriptor* descriptor, const DepthStencilStateInformation& state, bool front, u8 readMask, u8 writeMask)
@@ -136,17 +100,9 @@ namespace b3d
 				FillStencilDescriptor(back, depthStencil, false, depthStencil.StencilReadMask, writeMask);
 				descriptor.frontFaceStencil = front;
 				descriptor.backFaceStencil = back;
-
-#if !__has_feature(objc_arc)
-				[front release];
-				[back release];
-#endif
 			}
 
 			id<MTLDepthStencilState> state = [device newDepthStencilStateWithDescriptor:descriptor];
-#if !__has_feature(objc_arc)
-			[descriptor release];
-#endif
 			return state;
 			} // @autoreleasepool
 		}
@@ -179,7 +135,7 @@ namespace b3d
 			mScissorEnabled = rasterizerState.ScissorEnable;
 
 			// Build the fully writable depth-stencil state up front; read-only variants are created on demand.
-			mImpl->DepthStencilStates[0] = CreateDepthStencilState(device, mData.DepthStencilState, false, false);
+			mDepthStencilStates[0] = CreateDepthStencilState(device, mData.DepthStencilState, false, false);
 
 			GpuGraphicsPipelineState::Initialize();
 			} // @autoreleasepool
@@ -191,8 +147,8 @@ namespace b3d
 			{
 			// Fast path: variant already compiled (success or failure) on a prior call, or compile in flight.
 			{
-				Lock lock(mImpl->PipelineCacheMutex);
-				if (mImpl->Pipelines.find(key) != mImpl->Pipelines.end())
+				Lock lock(mPipelineCacheMutex);
+				if (mPipelines.find(key) != mPipelines.end())
 					return false;
 			}
 
@@ -205,11 +161,11 @@ namespace b3d
 
 			{
 				// Re-check under the lock: another thread may have inserted a pending entry between the fast-path find() above and now.
-				Lock lock(mImpl->PipelineCacheMutex);
-				if (mImpl->Pipelines.find(key) != mImpl->Pipelines.end())
+				Lock lock(mPipelineCacheMutex);
+				if (mPipelines.find(key) != mPipelines.end())
 					return false;
 
-				mImpl->Pipelines[key] = Impl::CachedVariant{};
+				mPipelines[key] = CachedVariant{};
 			}
 
 			MTLRenderPipelineDescriptor* descriptor = [[MTLRenderPipelineDescriptor alloc] init];
@@ -277,10 +233,9 @@ namespace b3d
 
 			// TODO - Attach an offline-built MTLBinaryArchive (descriptor.binaryArchives) to render and compute pipelines to skip first-launch compiles.
 
-			Impl* impl = mImpl.get();
 			const MetalPipelineVariantKey keyCopy = key;
 
-			// The destructor drains pending compiles before freeing the raw Impl captured by the handler.
+			// The destructor drains pending compiles, so the handler can safely capture this.
 			[device newRenderPipelineStateWithDescriptor:descriptor completionHandler:^(id<MTLRenderPipelineState> pipeline, NSError* error)
 			{
 				if (pipeline == nil)
@@ -293,22 +248,15 @@ namespace b3d
 
 				// Publish the result and notify every waiter for this variant.
 				{
-					Lock completionLock(impl->PipelineCacheMutex);
-					auto& entry = impl->Pipelines[keyCopy];
-#if !__has_feature(objc_arc)
-					[pipeline retain];
-#endif
+					Lock completionLock(mPipelineCacheMutex);
+					auto& entry = mPipelines[keyCopy];
 					entry.Pipeline = pipeline;
 					entry.Ready = true;
 
-					impl->VariantReadySignal.notify_all();
+					mVariantReadySignal.notify_all();
 				}
 
 			}];
-
-#if !__has_feature(objc_arc)
-			[descriptor release];
-#endif
 
 			return true;
 			} // @autoreleasepool
@@ -318,56 +266,40 @@ namespace b3d
 		{
 			const bool dispatched = StartCompile(key, vertexInput);
 
-			Lock lock(mImpl->PipelineCacheMutex);
-			if (!dispatched && mImpl->Pipelines.find(key) == mImpl->Pipelines.end())
+			Lock lock(mPipelineCacheMutex);
+			if (!dispatched && mPipelines.find(key) == mPipelines.end())
 			{
 				return nil;
 			}
 
-			mImpl->VariantReadySignal.wait(lock, [this, &key]
+			mVariantReadySignal.wait(lock, [this, &key]
 			{
-				auto found = mImpl->Pipelines.find(key);
-				return found != mImpl->Pipelines.end() && found->second.Ready;
+				auto found = mPipelines.find(key);
+				return found != mPipelines.end() && found->second.Ready;
 			});
 
-			return mImpl->Pipelines[key].Pipeline;
+			return mPipelines[key].Pipeline;
 		}
 
-		struct MetalGpuComputePipelineState::Impl
-		{
-			id<MTLComputePipelineState> Pipeline = nil;
-			bool Ready = false;
-			bool InitializeStarted = false;
-			Mutex PipelineMutex;
-			ConditionVariable PipelineReadySignal;
-		};
-
 		MetalGpuComputePipelineState::MetalGpuComputePipelineState(MetalGpuDevice& gpuDevice, const GpuComputePipelineStateCreateInformation& createInformation)
-			: GpuComputePipelineState(gpuDevice, createInformation), mGpuDevice(gpuDevice), mImpl(B3DMakeUnique<Impl>())
+			: GpuComputePipelineState(gpuDevice, createInformation), mGpuDevice(gpuDevice)
 		{ }
 
 		MetalGpuComputePipelineState::~MetalGpuComputePipelineState()
 		{
-			if (mImpl)
-			{
-				Lock lock(mImpl->PipelineMutex);
-				if (mImpl->InitializeStarted)
-					mImpl->PipelineReadySignal.wait(lock, [this]{ return mImpl->Ready; });
+			Lock lock(mPipelineMutex);
+			if (mInitializeStarted)
+				mPipelineReadySignal.wait(lock, [this]{ return mReady; });
 
-#if !__has_feature(objc_arc)
-				[mImpl->Pipeline release];
-#endif
-				mImpl->Pipeline = nil;
-			}
-
+			mPipeline = nil;
 		}
 
 		id<MTLComputePipelineState> MetalGpuComputePipelineState::GetMetalPipeline() const
 		{
-			Lock lock(mImpl->PipelineMutex);
-			mImpl->PipelineReadySignal.wait(lock, [this]{ return mImpl->Ready; });
+			Lock lock(mPipelineMutex);
+			mPipelineReadySignal.wait(lock, [this]{ return mReady; });
 
-			return mImpl->Pipeline;
+			return mPipeline;
 		}
 
 		void MetalGpuComputePipelineState::Initialize()
@@ -378,8 +310,8 @@ namespace b3d
 			@autoreleasepool
 			{
 			{
-				Lock lock(mImpl->PipelineMutex);
-				mImpl->InitializeStarted = true;
+				Lock lock(mPipelineMutex);
+				mInitializeStarted = true;
 			}
 
 			id<MTLDevice> device = mGpuDevice.GetMetalDevice();
@@ -387,9 +319,9 @@ namespace b3d
 			{
 				B3D_LOG(Error, LogRenderBackend, "Cannot initialize Metal compute pipeline: device is null.");
 				{
-					Lock lock(mImpl->PipelineMutex);
-					mImpl->Ready = true;
-					mImpl->PipelineReadySignal.notify_all();
+					Lock lock(mPipelineMutex);
+					mReady = true;
+					mPipelineReadySignal.notify_all();
 				}
 
 				GpuComputePipelineState::Initialize();
@@ -400,9 +332,9 @@ namespace b3d
 			{
 				B3D_LOG(Error, LogRenderBackend, "Cannot initialize Metal compute pipeline: compute program is null.");
 				{
-					Lock lock(mImpl->PipelineMutex);
-					mImpl->Ready = true;
-					mImpl->PipelineReadySignal.notify_all();
+					Lock lock(mPipelineMutex);
+					mReady = true;
+					mPipelineReadySignal.notify_all();
 				}
 
 				GpuComputePipelineState::Initialize();
@@ -415,9 +347,9 @@ namespace b3d
 			{
 				B3D_LOG(Error, LogRenderBackend, "Cannot initialize Metal compute pipeline: program '{0}' has no Metal function. Compiler output: {1}", program->GetName(), program->GetCompileErrorMessage());
 				{
-					Lock lock(mImpl->PipelineMutex);
-					mImpl->Ready = true;
-					mImpl->PipelineReadySignal.notify_all();
+					Lock lock(mPipelineMutex);
+					mReady = true;
+					mPipelineReadySignal.notify_all();
 				}
 
 				GpuComputePipelineState::Initialize();
@@ -439,8 +371,6 @@ namespace b3d
 			const u32 threadCountPerGroup = mWorkgroupSize[0] * mWorkgroupSize[1] * mWorkgroupSize[2];
 			descriptor.threadGroupSizeIsMultipleOfThreadExecutionWidth = (threadCountPerGroup != 0 && threadCountPerGroup % kSimdGroupWidth == 0) ? YES : NO;
 
-			Impl* impl = mImpl.get();
-
 			[device newComputePipelineStateWithDescriptor:descriptor options:MTLPipelineOptionNone completionHandler:^(id<MTLComputePipelineState> pipeline, MTLComputePipelineReflection* /*reflection*/, NSError* error)
 			{
 				if (pipeline == nil)
@@ -451,20 +381,13 @@ namespace b3d
 
 				// Publish the pipeline result and notify all waiters.
 				{
-					Lock completionLock(impl->PipelineMutex);
-#if !__has_feature(objc_arc)
-					[pipeline retain];
-#endif
-					impl->Pipeline = pipeline;
-					impl->Ready = true;
-					impl->PipelineReadySignal.notify_all();
+					Lock completionLock(mPipelineMutex);
+					mPipeline = pipeline;
+					mReady = true;
+					mPipelineReadySignal.notify_all();
 				}
 
 			}];
-
-#if !__has_feature(objc_arc)
-			[descriptor release];
-#endif
 
 			GpuComputePipelineState::Initialize();
 			} // @autoreleasepool

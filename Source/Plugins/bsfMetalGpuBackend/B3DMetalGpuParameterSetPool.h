@@ -52,19 +52,16 @@ namespace b3d
 			TShared<GpuParameterSet> Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
 			void Reset() override;
 
-#ifdef __OBJC__
 			/**
 			 * Sub-allocates @p size bytes (aligned to @p alignment) from a transient pool. Returns the host
-			 * @c MTLBuffer plus the offset into it. The returned @c MTLBuffer is owned by the pool; callers must
-			 * @b not release it.
+			 * @c MTLBuffer plus the offset into it. The returned @c MTLBuffer is owned by the pool.
 			 */
 			id<MTLBuffer> AcquireArgumentBufferSlice(u64 size, u32 alignment, u64& outOffset);
-#endif
 
 		private:
 			struct Block
 			{
-				MetalBufferNativeHandle Buffer = nullptr;
+				id<MTLBuffer> Buffer = nullptr;
 				u64 Size = 0;
 				u64 Cursor = 0;
 			};
@@ -80,7 +77,7 @@ namespace b3d
 			Vector<Block> mBlocks;
 
 			// Dedicated buffers for requests above kLargeSliceThreshold. Released on Reset, like the ring's slices.
-			Vector<MetalBufferNativeHandle> mDirectBuffers;
+			Vector<id<MTLBuffer>> mDirectBuffers;
 		};
 
 		/** @} */

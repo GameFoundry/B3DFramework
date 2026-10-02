@@ -9,14 +9,8 @@ namespace b3d
 {
 	namespace render
 	{
-		struct MetalGpuQueryPool::Impl
-		{
-			id<MTLBuffer> VisibilityBuffer = nil;
-			id<MTLCounterSampleBuffer> CounterBuffer = nil;
-		};
-
 		MetalGpuQueryPool::MetalGpuQueryPool(MetalGpuDevice& gpuDevice, const GpuQueryPoolCreateInformation& createInformation)
-			: GpuQueryPool(createInformation), mGpuDevice(gpuDevice), mImpl(B3DMakeUnique<Impl>())
+			: GpuQueryPool(createInformation), mGpuDevice(gpuDevice)
 		{
 			id<MTLDevice> device = gpuDevice.GetMetalDevice();
 			mResolvedResults.resize(mPoolSize);
@@ -31,10 +25,10 @@ namespace b3d
 				{
 					const NSUInteger byteSize = (NSUInteger)createInformation.PoolSize * sizeof(u64);
 					// TODO - Allocate through MetalHeapAllocator::AllocateBuffer (D3D12 allocates its query readback buffer through its allocator).
-					mImpl->VisibilityBuffer = [device newBufferWithLength:byteSize options:MTLResourceStorageModeShared];
-					mSupported = mImpl->VisibilityBuffer != nil;
+					mVisibilityBuffer = [device newBufferWithLength:byteSize options:MTLResourceStorageModeShared];
+					mSupported = mVisibilityBuffer != nil;
 
-					if (mImpl->VisibilityBuffer == nil)
+					if (mVisibilityBuffer == nil)
 						B3D_LOG(Error, LogRenderBackend, "Failed to allocate a Metal visibility query buffer.");
 				}
 			}
@@ -53,46 +47,19 @@ namespace b3d
 					descriptor.sampleCount = (NSUInteger)createInformation.PoolSize;
 
 					NSError* error = nil;
-					mImpl->CounterBuffer = [device newCounterSampleBufferWithDescriptor:descriptor error:&error];
-					mSupported = mImpl->CounterBuffer != nil;
-					if (mImpl->CounterBuffer == nil)
+					mCounterBuffer = [device newCounterSampleBufferWithDescriptor:descriptor error:&error];
+					mSupported = mCounterBuffer != nil;
+					if (mCounterBuffer == nil)
 					{
 						const char* reason = error ? [[error localizedDescription] UTF8String] : "unknown error";
 						B3D_LOG(Error, LogRenderBackend, "Failed to create MTLCounterSampleBuffer for timestamp pool: {0}", reason);
 					}
-
-#if !__has_feature(objc_arc)
-					[descriptor release];
-#endif
 				}
 				else
 					B3D_LOG(Warning, LogRenderBackend, "Timestamp query pool created on a device without RSC_TIMER_QUERIES; results will remain zero.");
 			}
 			else
 				B3D_LOG(Warning, LogRenderBackend, "Pipeline-statistics query pools are unsupported by the Metal backend.");
-		}
-
-		MetalGpuQueryPool::~MetalGpuQueryPool()
-		{
-			if (mImpl)
-			{
-#if !__has_feature(objc_arc)
-				[mImpl->VisibilityBuffer release];
-				[mImpl->CounterBuffer release];
-#endif
-				mImpl->VisibilityBuffer = nil;
-				mImpl->CounterBuffer = nil;
-			}
-		}
-
-		id<MTLBuffer> MetalGpuQueryPool::GetVisibilityBuffer() const
-		{
-			return mImpl->VisibilityBuffer;
-		}
-
-		id<MTLCounterSampleBuffer> MetalGpuQueryPool::GetCounterBuffer() const
-		{
-			return mImpl->CounterBuffer;
 		}
 
 		GpuQueryId MetalGpuQueryPool::AllocateQuery()
@@ -226,9 +193,6 @@ namespace b3d
 				for (const auto& entry : fallbackSubmissions)
 					entry.first->WaitUntilIdle();
 
-#if !__has_feature(objc_arc)
-				dispatch_release(semaphore);
-#endif
 				stateLock.lock();
 				for (const auto& completed : fallbackSubmissions)
 				{
@@ -265,17 +229,17 @@ namespace b3d
 				return true;
 			}
 
-			if (mQueryType == GpuQueryType::Occlusion && mImpl->VisibilityBuffer != nil)
+			if (mQueryType == GpuQueryType::Occlusion && mVisibilityBuffer != nil)
 			{
-				const u64* contents = (const u64*)[mImpl->VisibilityBuffer contents];
+				const u64* contents = (const u64*)[mVisibilityBuffer contents];
 				if (contents != nullptr)
 					memcpy(mResolvedResults.data(), contents, (size_t)mNextQueryId * sizeof(u64));
 			}
-			else if (mQueryType == GpuQueryType::Timestamp && mImpl->CounterBuffer != nil)
+			else if (mQueryType == GpuQueryType::Timestamp && mCounterBuffer != nil)
 			{
 				@autoreleasepool
 				{
-					NSData* resolved = [mImpl->CounterBuffer resolveCounterRange:NSMakeRange(0, mNextQueryId)];
+					NSData* resolved = [mCounterBuffer resolveCounterRange:NSMakeRange(0, mNextQueryId)];
 					const size_t requiredBytes = (size_t)mNextQueryId * sizeof(MTLCounterResultTimestamp);
 					if (resolved != nil && [resolved length] >= requiredBytes)
 					{

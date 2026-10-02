@@ -35,10 +35,10 @@ namespace b3d::render
 		void Destroy() override;
 
 		// IMetalRenderWindowSurface
-		MTLTextureRef AcquireColorTexture() override;
-		MTLTextureRef GetCurrentColorTexture() const override { return mColorTextures[mCurrentImageIndex]; }
-		MTLTextureRef GetDepthStencilTexture() const override { return mDepthStencilTexture; }
-		MTLPixelFormatValue GetColorFormat() const override;
+		id<MTLTexture> AcquireColorTexture() override;
+		id<MTLTexture> GetCurrentColorTexture() const override { return mColorTextures[mCurrentImageIndex]; }
+		id<MTLTexture> GetDepthStencilTexture() const override { return mDepthStencilTexture; }
+		MTLPixelFormat GetColorFormat() const override;
 		PixelFormat GetColorPixelFormat() const override { return PF_BGRA8; }
 		bool IsSwapChainValid() const override { return mIsValid && mColorTextures[mCurrentImageIndex] != nullptr; }
 
@@ -61,8 +61,8 @@ namespace b3d::render
 		bool mIsSwapQueued = false;
 		u32 mCurrentImageIndex = 0;
 
-		MTLTextureRef mColorTextures[kImageCount] = {};
-		MTLTextureRef mDepthStencilTexture = nullptr;
+		id<MTLTexture> mColorTextures[kImageCount] = {};
+		id<MTLTexture> mDepthStencilTexture = nullptr;
 	};
 
 	/** @} */

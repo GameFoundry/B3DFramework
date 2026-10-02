@@ -20,20 +20,15 @@ namespace b3d
 		{
 		public:
 			MetalSamplerState(MetalGpuDevice& gpuDevice, const SamplerStateCreateInformation& createInformation);
-			~MetalSamplerState();
 
 			void Initialize() override;
 
-#ifdef __OBJC__
 			/** Returns the underlying MTLSamplerState. May be nil before Initialize() has been called. */
-			id<MTLSamplerState> GetMetalSampler() const;
-#endif
+			id<MTLSamplerState> GetMetalSampler() const { return mSampler; }
 
 		private:
-			struct Impl;
-
 			MetalGpuDevice& mGpuDevice;
-			TUnique<Impl> mImpl;
+			id<MTLSamplerState> mSampler = nil;
 		};
 
 		/** @} */

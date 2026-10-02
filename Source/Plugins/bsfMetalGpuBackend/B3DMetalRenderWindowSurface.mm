@@ -36,24 +36,10 @@ namespace b3d::render
 		AbortCurrentDrawable();
 
 		Lock lock(mMutex);
-		for (PendingDrawable& pendingDrawable : mPendingDrawables)
-			ReleaseDrawable(pendingDrawable.Drawable);
-
 		mPendingDrawables.clear();
 	}
 
-	void MetalSwapChain::ReleaseDrawable(CAMetalDrawableRef __strong& drawable)
-	{
-		if (drawable == nil)
-			return;
-
-#if !__has_feature(objc_arc)
-		[drawable release];
-#endif
-		drawable = nil;
-	}
-
-	MTLTextureRef MetalSwapChain::AcquireDrawable(CAMetalLayerRef layer)
+	id<MTLTexture> MetalSwapChain::AcquireDrawable(CAMetalLayer* layer)
 	{
 		@autoreleasepool
 		{
@@ -64,9 +50,6 @@ namespace b3d::render
 			if (mCurrentDrawable == nil)
 			{
 				mCurrentDrawable = [layer nextDrawable];
-#if !__has_feature(objc_arc)
-				[mCurrentDrawable retain];
-#endif
 				mCurrentDrawableIndex = mNextDrawableIndex++;
 				mCurrentDrawableWasRenderedInto = false;
 			}
@@ -75,7 +58,7 @@ namespace b3d::render
 		}
 	}
 
-	MTLTextureRef MetalSwapChain::GetCurrentTexture() const
+	id<MTLTexture> MetalSwapChain::GetCurrentTexture() const
 	{
 		Lock lock(mMutex);
 		return mCurrentDrawable != nil ? mCurrentDrawable.texture : nil;
@@ -84,7 +67,7 @@ namespace b3d::render
 	void MetalSwapChain::AbortCurrentDrawable()
 	{
 		Lock lock(mMutex);
-		ReleaseDrawable(mCurrentDrawable);
+		mCurrentDrawable = nil;
 		mCurrentDrawableWasRenderedInto = false;
 	}
 
@@ -128,12 +111,7 @@ namespace b3d::render
 			if (iterFind != mPendingDrawables.end())
 			{
 				claimedDrawable = *iterFind;
-#if __has_feature(objc_arc)
 				// The local strong keeps the drawable alive after erasing its pending entry.
-#else
-				[claimedDrawable.Drawable retain];
-#endif
-				ReleaseDrawable(iterFind->Drawable);
 				mPendingDrawables.erase(iterFind);
 			}
 		}
@@ -147,7 +125,6 @@ namespace b3d::render
 		if (commandBuffer == nil)
 		{
 			B3D_LOG(Error, LogRenderBackend, "Failed to allocate the Metal presentation command buffer.");
-			ReleaseDrawable(claimedDrawable.Drawable);
 			return;
 		}
 
@@ -191,7 +168,6 @@ namespace b3d::render
 
 		[commandBuffer commit];
 		metalQueue.NotifySubmissionCommitted(signalValue, commandBuffer, ownerCompletion);
-		ReleaseDrawable(claimedDrawable.Drawable);
 	}
 
 	void MetalSwapChain::AcquireImage()
@@ -227,9 +203,6 @@ namespace b3d::render
 		CocoaWindow* window = MacOSPlatform::GetWindow((u32)createInformation.PlatformWindowHandle);
 		if (window != nullptr)
 			mLayer = (__bridge CAMetalLayer*)window->GetLayerInternal();
-#if !__has_feature(objc_arc)
-		[mLayer retain];
-#endif
 		MacOSPlatform::UnlockWindows();
 
 		if (mLayer == nil)
@@ -348,17 +321,10 @@ namespace b3d::render
 
 		newDepthStencil.label = @"RenderWindowDepthStencil";
 
-		if (mDepthStencilTexture != nil)
-		{
-#if !__has_feature(objc_arc)
-			[mDepthStencilTexture release];
-#endif
-		}
-
-		mDepthStencilTexture = newDepthStencil; // Owns the +1 from newTextureWithDescriptor:.
+		mDepthStencilTexture = newDepthStencil;
 	}
 
-	MTLTextureRef MetalRenderWindowSurface::AcquireColorTexture()
+	id<MTLTexture> MetalRenderWindowSurface::AcquireColorTexture()
 	{
 		@autoreleasepool
 		{
@@ -371,7 +337,7 @@ namespace b3d::render
 		}
 	}
 
-	MTLTextureRef MetalRenderWindowSurface::GetCurrentColorTexture() const
+	id<MTLTexture> MetalRenderWindowSurface::GetCurrentColorTexture() const
 	{
 		return mSwapChain != nullptr ? mSwapChain->GetCurrentTexture() : nil;
 	}
@@ -391,7 +357,7 @@ namespace b3d::render
 			mSwapChain->MarkDrawableAsRendered();
 	}
 
-	MTLPixelFormatValue MetalRenderWindowSurface::GetColorFormat() const
+	MTLPixelFormat MetalRenderWindowSurface::GetColorFormat() const
 	{
 		return mLayer != nil ? mLayer.pixelFormat : MTLPixelFormatBGRA8Unorm;
 	}
@@ -449,21 +415,8 @@ namespace b3d::render
 			mSwapChain = nullptr;
 		}
 
-		if (mDepthStencilTexture != nil)
-		{
-#if !__has_feature(objc_arc)
-			[mDepthStencilTexture release];
-#endif
-			mDepthStencilTexture = nil;
-		}
-
-		if (mLayer != nil)
-		{
-#if !__has_feature(objc_arc)
-			[mLayer release];
-#endif
-			mLayer = nil;
-		}
+		mDepthStencilTexture = nil;
+		mLayer = nil;
 
 		mValid = false;
 	}

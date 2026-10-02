@@ -20,14 +20,6 @@ namespace b3d
 		MetalGpuParameterSetPool::~MetalGpuParameterSetPool()
 		{
 			// The owning work context drains its GPU work before tearing down the pool, so nothing can still read these.
-#if !__has_feature(objc_arc)
-			for (Block& block : mBlocks)
-				[block.Buffer release];
-
-			for (id<MTLBuffer> buffer : mDirectBuffers)
-				[buffer release];
-#endif
-
 			mBlocks.clear();
 			mDirectBuffers.clear();
 		}
@@ -80,10 +72,6 @@ namespace b3d
 				block.Cursor = 0;
 
 			// Dedicated buffers are not part of the ring. Reset invalidates every set the pool handed out, so they can go.
-#if !__has_feature(objc_arc)
-			for (id<MTLBuffer> buffer : mDirectBuffers)
-				[buffer release];
-#endif
 			mDirectBuffers.clear();
 		}
 

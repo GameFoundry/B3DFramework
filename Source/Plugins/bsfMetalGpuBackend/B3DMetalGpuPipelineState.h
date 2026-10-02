@@ -96,7 +96,6 @@ namespace b3d
 			/** Returns the vertex input declaration from the vertex GPU program bound on the pipeline. */
 			const TShared<VertexDescription>& GetInputDeclaration() const { return mVertexDescription; }
 
-#ifdef __OBJC__
 			/**
 			 * Returns the depth-stencil state object for the given read-only attachment combination; remains valid
 			 * for the pipeline's lifetime. Read-only depth disables depth writes and read-only stencil masks off
@@ -118,7 +117,6 @@ namespace b3d
 			 * concurrently from another thread), waits on that compile instead of starting a new one.
 			 */
 			id<MTLRenderPipelineState> GetOrCreateMetalPipeline(const MetalPipelineVariantKey& key, const TShared<MetalVertexInput>& vertexInput);
-#endif
 
 			/** Returns the Metal cull mode computed from the engine rasterizer state. */
 			u32 GetCullMode() const { return mCullMode; }
@@ -145,9 +143,6 @@ namespace b3d
 			u32 GetVertexBufferBaseIndex() const { return mVertexBufferBaseIndex; }
 
 		private:
-			struct Impl;
-
-#ifdef __OBJC__
 			/**
 			 * Inserts a pending cache entry for @p key (if one doesn't already exist) and fires the async
 			 * @c newRenderPipelineStateWithDescriptor:completionHandler: call, using @p vertexInput's
@@ -156,10 +151,27 @@ namespace b3d
 			 * @c GetOrCreateMetalPipeline, which then waits for the result.
 			 */
 			bool StartCompile(const MetalPipelineVariantKey& key, const TShared<MetalVertexInput>& vertexInput);
-#endif
 
 			MetalGpuDevice& mGpuDevice;
-			TUnique<Impl> mImpl;
+
+			/** Depth-stencil state variants indexed by (depthReadOnly | stencilReadOnly << 1), created on demand. */
+			id<MTLDepthStencilState> mDepthStencilStates[4] = { nil, nil, nil, nil };
+
+			// Per-variant cache entry. Compilation is driven by the async @c completionHandler variant
+			// of @c newRenderPipelineStateWithDescriptor:, so an entry goes through a pending state
+			// (Ready == false, Pipeline == nil) before the completion handler fills in the result and
+			// flips Ready. Concurrent callers that arrive while a compile is in flight find the entry
+			// not-ready, unlock, and wait on @c mVariantReadySignal until the handler notifies — no
+			// duplicate compiles for the same key.
+			struct CachedVariant
+			{
+				id<MTLRenderPipelineState> Pipeline = nil;
+				bool Ready = false;
+			};
+
+			Mutex mPipelineCacheMutex;
+			ConditionVariable mVariantReadySignal;
+			UnorderedMap<MetalPipelineVariantKey, CachedVariant, MetalPipelineVariantKeyHash> mPipelines;
 
 			// Shader-side vertex input declaration, published in Initialize(). Resolved against the
 			// bound vertex-buffer VertexDescription by the command buffer at bind time via MetalVertexInputManager
@@ -193,19 +205,19 @@ namespace b3d
 			/** Returns the compute workgroup size as reported by the bound GPU program. */
 			const u32* GetWorkgroupSize() const { return mWorkgroupSize; }
 
-#ifdef __OBJC__
 			/**
 			 * Returns the underlying compute pipeline state; may be nil if compilation failed.
 			 * Blocks on the async compile if it has not landed yet.
 			 */
 			id<MTLComputePipelineState> GetMetalPipeline() const;
-#endif
 
 		private:
-			struct Impl;
-
 			MetalGpuDevice& mGpuDevice;
-			TUnique<Impl> mImpl;
+			id<MTLComputePipelineState> mPipeline = nil;
+			bool mReady = false;
+			bool mInitializeStarted = false;
+			mutable Mutex mPipelineMutex;
+			mutable ConditionVariable mPipelineReadySignal;
 			u32 mWorkgroupSize[3] = { 1, 1, 1 };
 		};
 

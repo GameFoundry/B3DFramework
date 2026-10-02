@@ -29,78 +29,29 @@ namespace b3d
 			}
 		} // namespace
 
-		struct MetalGpuQueue::Impl
-		{
-			/** Submission on this queue that has not been retired yet. */
-			struct SubmissionRecord
-			{
-				u64 EventValue = 0; /**< Signaled event value, or the last committed value for a failed submission. */
-				id<MTLCommandBuffer> CommandBuffer = nil; /**< Committed command buffer, or nil for a failed submission. */
-				TShared<WaitGroup> OwnerCompletion; /**< Signaled after the owner-side cleanup runs. */
-			};
-
-			id<MTLCommandQueue> CommandQueue = nil;
-			id<MTLSharedEvent> SharedEvent = nil;
-
-			/** Event value reserved by the most recent submission. The shared event's signaled value tracks completion. */
-			std::atomic<u64> LastReservedEventValue { 0 };
-
-			/** Highest event value whose command buffer has been committed. */
-			std::atomic<u64> LastCommittedEventValue { 0 };
-
-			/** Submissions not yet retired, in ascending event value order. Guarded by SubmissionMutex. */
-			Vector<SubmissionRecord> ActiveSubmissions;
-			Mutex SubmissionMutex;
-		};
-
 		MetalGpuQueue::MetalGpuQueue(GpuDevice& device, GpuQueueType type, u32 index, id<MTLCommandQueue> commandQueue, id<MTLSharedEvent> sharedEvent)
-			: GpuQueue(device, type, index), mImpl(B3DMakeUnique<Impl>())
-		{
-			mImpl->CommandQueue = commandQueue;
-			mImpl->SharedEvent = sharedEvent;
-		}
-
-		MetalGpuQueue::~MetalGpuQueue() = default;
-
-		id<MTLCommandQueue> MetalGpuQueue::GetMetalQueue() const
-		{
-			return mImpl->CommandQueue;
-		}
-
-		id<MTLSharedEvent> MetalGpuQueue::GetSharedEvent() const
-		{
-			return mImpl->SharedEvent;
-		}
-
-		u64 MetalGpuQueue::GetLastCommittedEventValue() const
-		{
-			return mImpl->LastCommittedEventValue.load(std::memory_order_acquire);
-		}
-
-		u64 MetalGpuQueue::ReserveNextEventValue()
-		{
-			return mImpl->LastReservedEventValue.fetch_add(1, std::memory_order_acq_rel) + 1;
-		}
+			: GpuQueue(device, type, index), mCommandQueue(commandQueue), mSharedEvent(sharedEvent)
+		{ }
 
 		void MetalGpuQueue::NotifySubmissionCommitted(u64 eventValue, id<MTLCommandBuffer> commandBuffer, const TShared<WaitGroup>& ownerCompletion)
 		{
-			u64 previousEventValue = mImpl->LastCommittedEventValue.load(std::memory_order_relaxed);
+			u64 previousEventValue = mLastCommittedEventValue.load(std::memory_order_relaxed);
 			while (eventValue > previousEventValue)
 			{
-				if (mImpl->LastCommittedEventValue.compare_exchange_weak(previousEventValue, eventValue, std::memory_order_release, std::memory_order_relaxed))
+				if (mLastCommittedEventValue.compare_exchange_weak(previousEventValue, eventValue, std::memory_order_release, std::memory_order_relaxed))
 				{
 					break;
 				}
 			}
 
-			Lock lock(mImpl->SubmissionMutex);
-			mImpl->ActiveSubmissions.push_back({ eventValue, commandBuffer, ownerCompletion });
+			Lock lock(mSubmissionMutex);
+			mActiveSubmissions.push_back({ eventValue, commandBuffer, ownerCompletion });
 		}
 
 		void MetalGpuQueue::NotifySubmissionFailed(const TShared<WaitGroup>& ownerCompletion)
 		{
-			Lock lock(mImpl->SubmissionMutex);
-			mImpl->ActiveSubmissions.push_back({ GetLastCommittedEventValue(), nil, ownerCompletion });
+			Lock lock(mSubmissionMutex);
+			mActiveSubmissions.push_back({ GetLastCommittedEventValue(), nil, ownerCompletion });
 		}
 
 		void MetalGpuQueue::SubmitCommandBuffer(const GpuSubmissionInformation& information)
@@ -145,7 +96,7 @@ namespace b3d
 
 		void MetalGpuQueue::ExecuteWaitUntilIdle()
 		{
-			if (mImpl->CommandQueue == nil)
+			if (mCommandQueue == nil)
 				return;
 
 			// A failed command buffer may never signal its shared event, so wait on a trailing command buffer instead
@@ -160,8 +111,8 @@ namespace b3d
 			id<MTLCommandBuffer> waitCommandBuffer = nil;
 			TInlineArray<TShared<WaitGroup>, 16> ownerCompletions;
 			{
-				Lock lock(mImpl->SubmissionMutex);
-				for (const Impl::SubmissionRecord& record : mImpl->ActiveSubmissions)
+				Lock lock(mSubmissionMutex);
+				for (const SubmissionRecord& record : mActiveSubmissions)
 				{
 					if (record.EventValue > lastEventValue)
 						break;
@@ -186,12 +137,12 @@ namespace b3d
 			for (const TShared<WaitGroup>& ownerCompletion : ownerCompletions)
 				ownerCompletion->Wait();
 
-			Lock lock(mImpl->SubmissionMutex);
+			Lock lock(mSubmissionMutex);
 			size_t retiredCount = 0;
-			while (retiredCount < mImpl->ActiveSubmissions.size() && mImpl->ActiveSubmissions[retiredCount].EventValue <= lastEventValue)
+			while (retiredCount < mActiveSubmissions.size() && mActiveSubmissions[retiredCount].EventValue <= lastEventValue)
 				retiredCount++;
 
-			mImpl->ActiveSubmissions.erase(mImpl->ActiveSubmissions.begin(), mImpl->ActiveSubmissions.begin() + retiredCount);
+			mActiveSubmissions.erase(mActiveSubmissions.begin(), mActiveSubmissions.begin() + retiredCount);
 		}
 
 		void MetalGpuQueue::FenceCompletionHandlers()
@@ -199,7 +150,7 @@ namespace b3d
 			// Drained locally since the calling thread may have no run loop
 			@autoreleasepool
 			{
-				id<MTLCommandBuffer> fenceCommandBuffer = [mImpl->CommandQueue commandBuffer];
+				id<MTLCommandBuffer> fenceCommandBuffer = [mCommandQueue commandBuffer];
 				if (fenceCommandBuffer == nil)
 					return;
 

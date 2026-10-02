@@ -6,6 +6,7 @@
 #include "B3DMetalGpuPipelineState.h"
 #include "B3DMetalResourceTracker.h"
 #include "B3DMetalBarrierHelper.h"
+#include "B3DMetalShaderABI.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuPushConstants.h"
 #include "GpuBackend/B3DGpuTimelineFence.h"
@@ -38,9 +39,6 @@ namespace b3d
 		class MetalGpuCommandBuffer final : public GpuCommandBuffer
 		{
 		public:
-			/** Holds the Objective-C state. Public so the file-local helpers in the .mm can take it as a parameter. */
-			struct Impl;
-
 			MetalGpuCommandBuffer(MetalGpuDevice& device, MetalGpuCommandBufferPool& pool, u32 id, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
 			~MetalGpuCommandBuffer() override;
 
@@ -59,7 +57,6 @@ namespace b3d
 			 */
 			void NotifyParentPoolReset();
 
-#ifdef __OBJC__
 			/**
 			 * Commits the recorded commands to @p submitQueue. Waits for the other queues in @p syncMask are encoded before
 			 * the recorded work, and the queue's own event and @p signalFences are signaled after it.
@@ -79,7 +76,6 @@ namespace b3d
 
 			/** Encodes an event signal at the current position in the recorded commands. */
 			bool EncodeSignalEvent(id<MTLSharedEvent> event, u64 value);
-#endif
 
 			/**
 			 * @name GpuCommandBuffer Interface
@@ -102,7 +98,7 @@ namespace b3d
 			void DispatchCompute(u32 groupCountX, u32 groupCountY, u32 groupCountZ) override;
 			void BeginRenderPass(const RenderPassCreateInformation& createInformation) override;
 			void EndRenderPass() override;
-			bool IsInRenderPass() const override;
+			bool IsInRenderPass() const override { return mRenderEncoder != nil; }
 			void SetViewport(const Area2& area) override;
 			void ClearRenderTarget(RenderSurfaceMask mask) override;
 			void ClearViewport(RenderSurfaceMask mask) override;
@@ -189,12 +185,26 @@ namespace b3d
 			/** Converts the stored normalized viewport to this pass's pixel units and applies it to the open render encoder. */
 			void ApplyViewportToRenderEncoder();
 
-#ifdef __OBJC__
 			/** Closes the open encoder unless it is of @p targetKind, resetting that encoder's residency caches. */
 			void EnsureEncoderKind(EncoderKind targetKind);
 
 			/** Returns the open encoder of any kind, or nil if none is open. */
 			id<MTLCommandEncoder> GetActiveEncoder() const;
+
+			/** Ends every open encoder. Does not reset the residency caches, callers do that when it matters to them. */
+			void CloseAllEncoders();
+
+#if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
+			/** Signals the resource fence once @p encoder's work completes, so the next encoder can wait on it. */
+			void UpdateResourceFence(id<MTLRenderCommandEncoder> encoder);
+			void UpdateResourceFence(id<MTLComputeCommandEncoder> encoder);
+			void UpdateResourceFence(id<MTLBlitCommandEncoder> encoder);
+
+			/** Makes @p encoder wait on the resource fence if an earlier encoder signaled it. */
+			void WaitForResourceFence(id<MTLRenderCommandEncoder> encoder);
+			void WaitForResourceFence(id<MTLComputeCommandEncoder> encoder);
+			void WaitForResourceFence(id<MTLBlitCommandEncoder> encoder);
+#endif
 
 			/**
 			 * Encodes waits for the last committed submission of every queue in @p syncMask. @p submitQueue itself is only
@@ -274,12 +284,64 @@ namespace b3d
 
 			/** Forgets what the encoders' argument tables hold, forcing a full rebind on the next draw or dispatch. */
 			void ResetArgumentTableBindings();
-#endif
 
 			MetalGpuDevice& mGpuDevice;
 			MetalGpuCommandBufferPool& mPool;
-			TUnique<Impl> mImpl;
 			u32 mId;
+
+			struct PendingEventSignal
+			{
+				id<MTLSharedEvent> Event = nil;
+				u64 Value = 0;
+			};
+
+			struct VertexBufferBinding
+			{
+				id<MTLBuffer> Buffer = nil;
+				NSUInteger Offset = 0;
+				NSUInteger Index = 0;
+			};
+
+			/** Buffer and offset last handed to an encoder's argument table at one dynamic uniform-buffer index. Buffer is compared by address only, never dereferenced. */
+			struct ArgumentTableBinding
+			{
+				__unsafe_unretained id<MTLBuffer> Buffer = nil;
+				NSUInteger Offset = 0;
+			};
+
+			id<MTLCommandBuffer> mCommandBuffer = nil;
+			id<MTLRenderCommandEncoder> mRenderEncoder = nil;
+			id<MTLComputeCommandEncoder> mComputeEncoder = nil;
+			id<MTLBlitCommandEncoder> mBlitEncoder = nil;
+
+			MTLRenderPassDescriptor* mRestartRenderPassDescriptor = nil;
+
+			Vector<PendingEventSignal> mPendingEventSignals;
+			Vector<VertexBufferBinding> mVertexBufferBindings;
+
+			/** Scratch list of the resources passed to a single useResources: call, reused to avoid per-draw allocations. */
+			Vector<__unsafe_unretained id<MTLResource>> mResidencyResources;
+
+			/** Argument-table contents of the vertex, fragment and compute stages, relative to kMetalDynamicUniformBufferIndexBase. */
+			Array<ArgumentTableBinding, kMetalDynamicUniformBufferCount> mVertexArgumentTable;
+			Array<ArgumentTableBinding, kMetalDynamicUniformBufferCount> mFragmentArgumentTable;
+			Array<ArgumentTableBinding, kMetalDynamicUniformBufferCount> mComputeArgumentTable;
+
+			MTLViewport mViewport = {};
+			Area2 mNormalizedViewport = Area2(0.0f, 0.0f, 1.0f, 1.0f); /**< Viewport in normalized [0, 1] units, converted to pixels per render pass. */
+			MTLScissorRect mScissor = {};
+			bool mHasViewport = false;
+			bool mHasScissor = false;
+
+			MTLVisibilityResultMode mVisibilityMode = MTLVisibilityResultModeDisabled;
+			NSUInteger mVisibilityOffset = 0;
+
+			u32 mDebugGroupDepth = 0;
+
+#if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
+			id<MTLFence> mResourceFence = nil;
+			bool mFenceNeedsWait = false;
+#endif
 
 			/** Tracks every resource used by the recorded commands, deducing barriers and resource usage notifications. */
 			MetalResourceTracker mResourceTracker;

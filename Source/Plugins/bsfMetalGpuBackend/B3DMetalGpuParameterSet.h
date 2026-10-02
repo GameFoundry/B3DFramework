@@ -17,6 +17,7 @@ namespace b3d
 		class MetalGpuParameterSetPool;
 		class MetalResourceTracker;
 		class MetalBarrierHelper;
+		class MetalSamplerState;
 
 		/** @addtogroup MetalGpuBackend
 		 *  @{
@@ -32,19 +33,17 @@ namespace b3d
 		public:
 			/**
 			 * @param	owner		Manager responsible for the deferred release.
-			 * @param	buffer		Placed buffer. Takes ownership of the +1 reference.
+			 * @param	buffer		Placed buffer the wrapper takes ownership of.
 			 * @param	allocation	Allocator span backing @p buffer, or an invalid location for a direct device allocation.
 			 */
-			MetalArgumentBuffer(MetalResourceManager* owner, MetalBufferNativeHandle buffer, const GpuAllocation& allocation);
+			MetalArgumentBuffer(MetalResourceManager* owner, id<MTLBuffer> buffer, const GpuAllocation& allocation);
 			~MetalArgumentBuffer();
 
-#ifdef __OBJC__
 			/** Returns the native buffer. */
 			id<MTLBuffer> GetMetalBuffer() const { return mBuffer; }
-#endif
 
 		private:
-			MetalBufferNativeHandle mBuffer = nullptr;
+			id<MTLBuffer> mBuffer = nullptr;
 			GpuAllocation mAllocation;
 		};
 
@@ -121,11 +120,10 @@ namespace b3d
 			 * pool block (whose lifetime the pool's Reset contract covers instead). Command buffers that encode the
 			 * argument buffer must track this resource so its release is deferred until they retire.
 			 */
-			MetalArgumentBuffer* GetArgumentBufferResource() const;
+			MetalArgumentBuffer* GetArgumentBufferResource() const { return mArgumentBufferResource; }
 
-#ifdef __OBJC__
 			/** Returns the argument buffer backing this set. May be nil if Initialize() has not been called. */
-			id<MTLBuffer> GetArgumentBuffer() const;
+			id<MTLBuffer> GetArgumentBuffer() const { return mArgumentBuffer; }
 
 			/**
 			 * Returns the byte offset into @c GetArgumentBuffer() at which this set's slice begins.
@@ -134,7 +132,7 @@ namespace b3d
 			 * the argument buffer must pass this value — passing zero overlaps with a neighbouring
 			 * set's slice and silently corrupts bindings.
 			 */
-			u64 GetArgumentBufferOffset() const;
+			u64 GetArgumentBufferOffset() const { return mArgumentBufferOffset; }
 
 			/**
 			 * Returns the Metal resource resolved for the layout's dense @p resourceIndex, or @c nil when the binding has
@@ -142,7 +140,6 @@ namespace b3d
 			 * @c useResource: emission avoids re-resolving the underlying @c id<MTLResource> per bind.
 			 */
 			id<MTLResource> GetCachedResource(u32 resourceIndex) const;
-#endif
 
 			/** Returns the typed layout used to build the argument buffer. */
 			const MetalGpuPipelineParameterSetLayout* GetMetalLayout() const { return mMetalLayout; }
@@ -151,8 +148,6 @@ namespace b3d
 			bool IsArgumentBufferAllocated() const;
 
 		private:
-			struct Impl;
-
 			/** State of a single argument-buffer element (one array entry of one binding). */
 			struct ArgumentElement
 			{
@@ -161,21 +156,36 @@ namespace b3d
 
 				/**
 				 * Resource the element resolved to, for residency: the buffer, texture view or texture-buffer view.
-				 * Null for samplers, which need no residency. Stored as @c void* so this header compiles in plain C++
-				 * translation units; the casts live in the .mm.
+				 * Null for samplers, which need no residency. Not retained.
 				 */
-				void* ResolvedResource = nullptr;
+				__unsafe_unretained id<MTLResource> ResolvedResource = nil;
 
 				/**
 				 * Backing @c id<MTLBuffer> / @c id<MTLTexture> of the bound engine resource when it was last resolved.
 				 * Buffers and textures can swap it on a discard write without any @c Set* call, so PrepareForBind
 				 * compares against it to catch that. Compared, never dereferenced.
 				 */
-				void* NativeHandle = nullptr;
+				__unsafe_unretained id<MTLResource> NativeHandle = nil;
 			};
 
 			MetalGpuDevice& mGpuDevice;
-			TUnique<Impl> mImpl;
+			id<MTLBuffer> mArgumentBuffer = nil;
+
+			/** Owner of mArgumentBuffer for persistent sets. Null when mArgumentBuffer is a transient pool slice. */
+			MetalArgumentBuffer* mArgumentBufferResource = nullptr;
+
+			/**
+			 * Byte offset into @c mArgumentBuffer where this set's slice begins. Always zero for persistent sets.
+			 * Direct writes and command-encoder binds add this to the reflected set-local byte offset.
+			 */
+			u64 mArgumentBufferOffset = 0;
+
+			/**
+			 * Sampler written into sampler entries that have no bound sampler. Plain BSL SamplerState declarations have
+			 * no explicit engine-side binding; matching the Vulkan backend, they get the device's default sampler
+			 * instead of a null resource ID (which samples as point filtering on affected hardware).
+			 */
+			TShared<MetalSamplerState> mDefaultSampler;
 			const MetalGpuPipelineParameterSetLayout* mMetalLayout = nullptr;
 
 			MetalGpuParameterSetPool* mPool = nullptr;

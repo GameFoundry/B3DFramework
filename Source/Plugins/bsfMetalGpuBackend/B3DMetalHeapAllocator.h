@@ -21,17 +21,10 @@ namespace b3d
 		 *  @{
 		 */
 
-#ifdef __OBJC__
-		/** Native Metal heap handle. Plain C++ translation units see it as void*, which has the same layout. */
-		using MetalHeapNativeHandle = id<MTLHeap>;
-#else
-		using MetalHeapNativeHandle = void*;
-#endif
-
 		/** References a Metal memory heap, as returned by MetalHeapBackend. */
 		struct MetalGpuHeap : IGpuHeap
 		{
-			MetalHeapNativeHandle Heap = nullptr; /**< Backing placement heap. Resources are placed at allocator-supplied offsets. */
+			id<MTLHeap> Heap = nullptr; /**< Backing placement heap. Resources are placed at allocator-supplied offsets. */
 			u64 Size = 0; /**< Total heap size in bytes. */
 			u32 MemoryType = 0; /**< One of the MetalHeapAllocator::kMemoryType* values. */
 		};
@@ -134,7 +127,6 @@ namespace b3d
 			 */
 			TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker);
 
-#ifdef __OBJC__
 			/**
 			 * Returns the memory requirements of a buffer of @p length bytes, allocated from @p memoryType. Memory type is
 			 * GpuMemoryRequirements::kUnsupportedMemoryType if the buffer cannot be placed in a heap.
@@ -162,7 +154,6 @@ namespace b3d
 			 * the heap's.
 			 */
 			id<MTLTexture> AllocateTexture(MTLTextureDescriptor* descriptor, const GpuAllocation& requestedAllocation, GpuAllocation& outAllocation);
-#endif
 
 		private:
 			using MemoryAllocator = TGpuTlsfAllocator<MetalHeapBackend>;

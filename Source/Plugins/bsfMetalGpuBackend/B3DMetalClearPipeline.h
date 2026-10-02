@@ -87,9 +87,7 @@ namespace b3d
 			};
 
 			explicit MetalClearPipeline(MetalGpuDevice& gpuDevice);
-			~MetalClearPipeline();
 
-#ifdef __OBJC__
 			/**
 			 * Returns the pipeline state for @p key, creating it on first use. Returns nil if the pipeline state could not be
 			 * created, and does not retry for the same key.
@@ -101,19 +99,26 @@ namespace b3d
 			 * Stencil is written from the encoder's stencil reference value, which the caller must set to the clear value.
 			 */
 			id<MTLDepthStencilState> GetOrCreateDepthStencilState(bool writeDepth, bool writeStencil);
-#endif
 
 		private:
-			/** Holds the Objective-C state, so plain C++ translation units can include this header. */
-			struct Impl;
-
-#ifdef __OBJC__
 			/** Compiles the clear shader library on first use. Returns false if compilation failed, and does not retry. */
 			bool EnsureLibrary();
-#endif
 
 			MetalGpuDevice& mGpuDevice;
-			TUnique<Impl> mImpl;
+			id<MTLLibrary> mLibrary = nil;
+			id<MTLFunction> mVertexFunction = nil;
+
+			/** Depth-stencil states indexed by (writeDepth << 1) | writeStencil. Entry 0 is used by color-only clears. */
+			id<MTLDepthStencilState> mDepthStencilStates[4] = { nil, nil, nil, nil };
+
+			/** Pipeline states created so far. Nil for pipeline states that failed to be created. */
+			UnorderedMap<Key, id<MTLRenderPipelineState>, KeyHash> mPipelines;
+
+			/** Guards every other member. */
+			Mutex mCacheMutex;
+
+			/** True once library compilation was attempted, whether it succeeded or not. */
+			bool mLibraryInitialized = false;
 		};
 
 		/** @} */

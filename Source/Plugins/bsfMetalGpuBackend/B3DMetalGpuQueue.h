@@ -26,23 +26,19 @@ namespace b3d
 		class MetalGpuQueue : public GpuQueue
 		{
 		public:
-#ifdef __OBJC__
 			MetalGpuQueue(GpuDevice& device, GpuQueueType type, u32 index, id<MTLCommandQueue> commandQueue, id<MTLSharedEvent> sharedEvent);
-#endif
-			~MetalGpuQueue() override;
 
-#ifdef __OBJC__
 			/** Returns the underlying MTLCommandQueue. */
-			id<MTLCommandQueue> GetMetalQueue() const;
+			id<MTLCommandQueue> GetMetalQueue() const { return mCommandQueue; }
 
 			/** Returns the shared event signaled by submissions on this queue. */
-			id<MTLSharedEvent> GetSharedEvent() const;
+			id<MTLSharedEvent> GetSharedEvent() const { return mSharedEvent; }
 
 			/** Returns the highest event value whose command buffer has been committed on this queue. */
-			u64 GetLastCommittedEventValue() const;
+			u64 GetLastCommittedEventValue() const { return mLastCommittedEventValue.load(std::memory_order_acquire); }
 
 			/** Reserves and returns the event value the next submission on this queue will signal. */
-			u64 ReserveNextEventValue();
+			u64 ReserveNextEventValue() { return mLastReservedEventValue.fetch_add(1, std::memory_order_acq_rel) + 1; }
 
 			/**
 			 * Records that the command buffer signaling @p eventValue has been committed. Submissions may commit out of
@@ -59,7 +55,6 @@ namespace b3d
 			 * retires together with the previously committed submission.
 			 */
 			void NotifySubmissionFailed(const TShared<WaitGroup>& ownerCompletion);
-#endif
 
 			/** @name Submit thread
 			 *  Native halves of the device's IGpuSubmitThreadBackend implementation.
@@ -93,8 +88,6 @@ namespace b3d
 			void PresentRenderWindow(const TShared<RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) override;
 
 		private:
-			struct Impl;
-
 			/**
 			 * Commits an empty command buffer and blocks until it completes. Completion handlers run in submission order, so
 			 * once this returns the handlers of every earlier submission have run. Waiting on the shared event is not enough,
@@ -102,7 +95,26 @@ namespace b3d
 			 */
 			void FenceCompletionHandlers();
 
-			TUnique<Impl> mImpl;
+			/** Submission on this queue that has not been retired yet. */
+			struct SubmissionRecord
+			{
+				u64 EventValue = 0; /**< Signaled event value, or the last committed value for a failed submission. */
+				id<MTLCommandBuffer> CommandBuffer = nil; /**< Committed command buffer, or nil for a failed submission. */
+				TShared<WaitGroup> OwnerCompletion; /**< Signaled after the owner-side cleanup runs. */
+			};
+
+			id<MTLCommandQueue> mCommandQueue = nil;
+			id<MTLSharedEvent> mSharedEvent = nil;
+
+			/** Event value reserved by the most recent submission. The shared event's signaled value tracks completion. */
+			std::atomic<u64> mLastReservedEventValue { 0 };
+
+			/** Highest event value whose command buffer has been committed. */
+			std::atomic<u64> mLastCommittedEventValue { 0 };
+
+			/** Submissions not yet retired, in ascending event value order. Guarded by mSubmissionMutex. */
+			Vector<SubmissionRecord> mActiveSubmissions;
+			Mutex mSubmissionMutex;
 		};
 
 		/** @} */

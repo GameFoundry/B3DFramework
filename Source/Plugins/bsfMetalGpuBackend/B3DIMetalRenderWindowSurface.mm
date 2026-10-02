@@ -87,20 +87,14 @@ namespace b3d::render
 					}
 				}
 
-#if !__has_feature(objc_arc)
-				[stagingBuffer release];
-#endif
 				op.CompleteOperation(pixelData);
 			};
 
-			auto fnOnCommandBufferDestroyed = [stagingBuffer, op](bool isSubmitted) mutable
+			auto fnOnCommandBufferDestroyed = [op](bool isSubmitted) mutable
 			{
 				if (isSubmitted)
 					return;
 
-#if !__has_feature(objc_arc)
-				[stagingBuffer release];
-#endif
 				op.CompleteOperation(nullptr);
 			};
 

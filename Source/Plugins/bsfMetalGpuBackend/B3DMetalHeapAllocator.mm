@@ -73,9 +73,6 @@ namespace b3d
 #endif
 
 				id<MTLHeap> heap = [device newHeapWithDescriptor:heapDescriptor];
-#if !__has_feature(objc_arc)
-				[heapDescriptor release];
-#endif
 
 				if (heap == nil)
 				{
@@ -108,9 +105,6 @@ namespace b3d
 
 			MetalGpuHeap& heap = ToMetalGpuHeap(handle);
 
-#if !__has_feature(objc_arc)
-			[heap.Heap release];
-#endif
 			heap.Heap = nullptr;
 			heap.Size = 0;
 			heap.MemoryType = 0;

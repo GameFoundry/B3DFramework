@@ -12,14 +12,8 @@ namespace b3d
 {
 	namespace render
 	{
-		struct MetalGpuProgram::Impl
-		{
-			id<MTLLibrary> Library = nil;
-			id<MTLFunction> Function = nil;
-		};
-
 		MetalGpuProgram::MetalGpuProgram(MetalGpuDevice& gpuDevice, const GpuProgramCreateInformation& createInformation)
-			: GpuProgram(createInformation), mGpuDevice(gpuDevice), mImpl(B3DMakeUnique<Impl>())
+			: GpuProgram(createInformation), mGpuDevice(gpuDevice)
 		{
 			const Array<u32, 3>& threadGroupSize = createInformation.Bytecode != nullptr ? createInformation.Bytecode->ThreadGroupSize : createInformation.GetEntryPointReflection().ThreadGroupSize;
 			mWorkgroupSize[0] = threadGroupSize[0];
@@ -29,27 +23,7 @@ namespace b3d
 
 		MetalGpuProgram::~MetalGpuProgram()
 		{
-			if (mImpl)
-			{
-#if !__has_feature(objc_arc)
-				[mImpl->Function release];
-				[mImpl->Library release];
-#endif
-				mImpl->Function = nil;
-				mImpl->Library = nil;
-			}
-
 			B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_GpuProgram);
-		}
-
-		id<MTLFunction> MetalGpuProgram::GetMetalFunction() const
-		{
-			return mImpl->Function;
-		}
-
-		id<MTLLibrary> MetalGpuProgram::GetMetalLibrary() const
-		{
-			return mImpl->Library;
 		}
 
 		void MetalGpuProgram::Initialize()
@@ -116,18 +90,9 @@ namespace b3d
 				NSError* error = nil;
 				dispatch_data_t libraryData = dispatch_data_create(mBytecode->Instructions.Data, mBytecode->Instructions.Size, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), DISPATCH_DATA_DESTRUCTOR_DEFAULT);
 				if (libraryData != nullptr)
-					mImpl->Library = [device newLibraryWithData:libraryData error:&error];
+					mLibrary = [device newLibraryWithData:libraryData error:&error];
 
-#if OS_OBJECT_USE_OBJC
-#if !__has_feature(objc_arc)
-				[(id)libraryData release];
-#endif
-#else
-				if (libraryData != nullptr)
-					dispatch_release(libraryData);
-#endif
-
-				if (mImpl->Library == nil)
+				if (mLibrary == nil)
 				{
 					mIsCompiled = false;
 
@@ -143,14 +108,14 @@ namespace b3d
 				if (!mName.empty())
 				{
 					NSString* nsName = [NSString stringWithUTF8String:mName.c_str()];
-					[mImpl->Library setLabel:nsName];
+					[mLibrary setLabel:nsName];
 				}
 
 				const String& entryPoint = mEntryPoint;
 				NSString* entryPointName = [NSString stringWithUTF8String:entryPoint.c_str()];
-				mImpl->Function = [mImpl->Library newFunctionWithName:entryPointName];
+				mFunction = [mLibrary newFunctionWithName:entryPointName];
 
-				if (mImpl->Function == nil)
+				if (mFunction == nil)
 				{
 					mIsCompiled = false;
 					mCompileMessages = String("Metal library does not contain entry point '") + entryPoint + "'.";

@@ -9,11 +9,6 @@ namespace b3d
 {
 	namespace render
 	{
-		struct MetalSamplerState::Impl
-		{
-			id<MTLSamplerState> Sampler = nil;
-		};
-
 		namespace
 		{
 			/**
@@ -48,24 +43,8 @@ namespace b3d
 		} // namespace
 
 		MetalSamplerState::MetalSamplerState(MetalGpuDevice& gpuDevice, const SamplerStateCreateInformation& createInformation)
-			: SamplerState(createInformation), mGpuDevice(gpuDevice), mImpl(B3DMakeUnique<Impl>())
+			: SamplerState(createInformation), mGpuDevice(gpuDevice)
 		{
-		}
-
-		MetalSamplerState::~MetalSamplerState()
-		{
-			if (mImpl)
-			{
-#if !__has_feature(objc_arc)
-				[mImpl->Sampler release];
-#endif
-				mImpl->Sampler = nil;
-			}
-		}
-
-		id<MTLSamplerState> MetalSamplerState::GetMetalSampler() const
-		{
-			return mImpl->Sampler;
 		}
 
 		void MetalSamplerState::Initialize()
@@ -109,11 +88,8 @@ namespace b3d
 			descriptor.borderColor = PickBorderColor(mInformation.BorderColor, usesBorderAddressing);
 			descriptor.supportArgumentBuffers = YES;
 
-			mImpl->Sampler = [device newSamplerStateWithDescriptor:descriptor];
-#if !__has_feature(objc_arc)
-			[descriptor release];
-#endif
-			if (mImpl->Sampler == nil)
+			mSampler = [device newSamplerStateWithDescriptor:descriptor];
+			if (mSampler == nil)
 				B3D_LOG(Error, LogRenderBackend, "Failed to create Metal sampler state.");
 
 			SamplerState::Initialize();

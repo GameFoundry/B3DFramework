@@ -31,7 +31,7 @@ namespace b3d
 			}
 		}
 
-		MetalImage::MetalImage(MetalResourceManager* owner, const MetalImageCreateInformation& createInformation, MetalTextureNativeHandle texture, const GpuAllocation& allocation)
+		MetalImage::MetalImage(MetalResourceManager* owner, const MetalImageCreateInformation& createInformation, id<MTLTexture> texture, const GpuAllocation& allocation)
 			: TMetalResource<IGpuImageResource>(owner, createInformation.DebugName, createInformation.FaceCount, createInformation.MipLevelCount, GetFullAspectFlags(createInformation.Usage, createInformation.Format)), mTexture(texture), mAllocation(allocation)
 		{
 			// Metal has no image layouts, so the native state only holds the tracked layout. New image contents are undefined.
@@ -44,19 +44,10 @@ namespace b3d
 		{
 			{
 				Lock lock(mViewCacheMutex);
-#if !__has_feature(objc_arc)
-				for (auto& viewEntry : mShaderReadViews)
-					[viewEntry.second release];
-				for (auto& viewEntry : mSubresourceViews)
-					[viewEntry.second release];
-#endif
 				mShaderReadViews.clear();
 				mSubresourceViews.clear();
 			}
 
-#if !__has_feature(objc_arc)
-			[mTexture release];
-#endif
 			mTexture = nullptr;
 
 			if (mAllocation.IsOwned())
@@ -375,10 +366,7 @@ namespace b3d
 				return nullptr;
 
 			GpuAllocation allocation;
-			MetalTextureNativeHandle handle = mGpuDevice.GetHeapAllocator().AllocateTexture(descriptor, mRequestedAllocation, allocation);
-#if !__has_feature(objc_arc)
-			[descriptor release];
-#endif
+			id<MTLTexture> handle = mGpuDevice.GetHeapAllocator().AllocateTexture(descriptor, mRequestedAllocation, allocation);
 
 			if (handle == nil)
 			{

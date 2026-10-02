@@ -98,13 +98,8 @@ namespace b3d
 			 */
 			struct ArgumentBindingBucket
 			{
-#ifdef __OBJC__
 				MTLResourceUsage Usage = MTLResourceUsageRead;
 				MTLRenderStages RenderStages = (MTLRenderStages)0;
-#else
-				u64 Usage = 0;
-				u64 RenderStages = 0;
-#endif
 				/** Dense resolved-resource indices in this bucket. Samplers are pre-filtered out. */
 				TArray<u32> ResourceIndices;
 			};

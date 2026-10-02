@@ -109,52 +109,16 @@ vertex B3DClearVertexOutput b3dClearVertex(uint vertexId [[vertex_id]])
 			}
 		} // namespace
 
-		struct MetalClearPipeline::Impl
-		{
-			id<MTLLibrary> Library = nil;
-			id<MTLFunction> VertexFunction = nil;
-
-			/** Depth-stencil states indexed by (writeDepth << 1) | writeStencil. Entry 0 is used by color-only clears. */
-			id<MTLDepthStencilState> DepthStencilStates[4] = { nil, nil, nil, nil };
-
-			/** Pipeline states created so far. Nil for pipeline states that failed to be created. */
-			UnorderedMap<Key, id<MTLRenderPipelineState>, KeyHash> Pipelines;
-
-			/** Guards every other member. */
-			Mutex CacheMutex;
-
-			/** True once library compilation was attempted, whether it succeeded or not. */
-			bool LibraryInitialized = false;
-		};
-
 		MetalClearPipeline::MetalClearPipeline(MetalGpuDevice& gpuDevice)
-			: mGpuDevice(gpuDevice), mImpl(B3DMakeUnique<Impl>())
+			: mGpuDevice(gpuDevice)
 		{ }
-
-		MetalClearPipeline::~MetalClearPipeline()
-		{
-			if (!mImpl)
-				return;
-
-#if !__has_feature(objc_arc)
-			for (auto& entry : mImpl->Pipelines)
-				[entry.second release];
-
-			for (id<MTLDepthStencilState>& state : mImpl->DepthStencilStates)
-				[state release];
-
-			[mImpl->VertexFunction release];
-			[mImpl->Library release];
-#endif
-			mImpl->Pipelines.clear();
-		}
 
 		bool MetalClearPipeline::EnsureLibrary()
 		{
-			if (mImpl->LibraryInitialized)
-				return mImpl->Library != nil && mImpl->VertexFunction != nil;
+			if (mLibraryInitialized)
+				return mLibrary != nil && mVertexFunction != nil;
 
-			mImpl->LibraryInitialized = true;
+			mLibraryInitialized = true;
 
 			id<MTLDevice> device = mGpuDevice.GetMetalDevice();
 			if (device == nil)
@@ -170,18 +134,15 @@ vertex B3DClearVertexOutput b3dClearVertex(uint vertexId [[vertex_id]])
 					@"B3D_CLEAR_PARAMETERS_BUFFER_SLOT": @(kMetalClearParametersBufferSlot)
 				};
 
-				mImpl->Library = [device newLibraryWithSource:[NSString stringWithUTF8String:source.c_str()] options:options error:&error];
-#if !__has_feature(objc_arc)
-				[options release];
-#endif
-				if (mImpl->Library == nil)
+				mLibrary = [device newLibraryWithSource:[NSString stringWithUTF8String:source.c_str()] options:options error:&error];
+				if (mLibrary == nil)
 				{
 					B3D_LOG(Error, LogRenderBackend, "Failed to compile the internal clear shader library: {0}", error ? String([[error localizedDescription] UTF8String]) : String("no error details were provided"));
 					return false;
 				}
 
-				mImpl->VertexFunction = [mImpl->Library newFunctionWithName:@"b3dClearVertex"];
-				if (mImpl->VertexFunction == nil)
+				mVertexFunction = [mLibrary newFunctionWithName:@"b3dClearVertex"];
+				if (mVertexFunction == nil)
 				{
 					B3D_LOG(Error, LogRenderBackend, "The internal clear shader library is missing its vertex function.");
 					return false;
@@ -193,10 +154,10 @@ vertex B3DClearVertexOutput b3dClearVertex(uint vertexId [[vertex_id]])
 
 		id<MTLRenderPipelineState> MetalClearPipeline::GetOrCreatePipelineState(const Key& key)
 		{
-			Lock lock(mImpl->CacheMutex);
+			Lock lock(mCacheMutex);
 
-			auto found = mImpl->Pipelines.find(key);
-			if (found != mImpl->Pipelines.end())
+			auto found = mPipelines.find(key);
+			if (found != mPipelines.end())
 				return found->second;
 
 			if (!EnsureLibrary())
@@ -209,27 +170,21 @@ vertex B3DClearVertexOutput b3dClearVertex(uint vertexId [[vertex_id]])
 
 				MTLRenderPipelineDescriptor* descriptor = [[MTLRenderPipelineDescriptor alloc] init];
 				descriptor.label = @"B3D Clear";
-				descriptor.vertexFunction = mImpl->VertexFunction;
+				descriptor.vertexFunction = mVertexFunction;
 				descriptor.rasterSampleCount = key.SampleCount;
 
 				// Stencil-only clears run without a fragment function
 				if (colorCount != 0 || key.WritesDepth)
 				{
 					const String functionName = "b3dClearFragment" + GetFragmentFunctionSuffix(colorCount, key.WritesDepth);
-					id<MTLFunction> fragmentFunction = [mImpl->Library newFunctionWithName:[NSString stringWithUTF8String:functionName.c_str()]];
+					id<MTLFunction> fragmentFunction = [mLibrary newFunctionWithName:[NSString stringWithUTF8String:functionName.c_str()]];
 					if (fragmentFunction == nil)
 					{
 						B3D_LOG(Error, LogRenderBackend, "The internal clear shader library is missing fragment function '{0}'.", functionName);
-#if !__has_feature(objc_arc)
-						[descriptor release];
-#endif
-						mImpl->Pipelines[key] = nil;
+						mPipelines[key] = nil;
 						return nil;
 					}
 					descriptor.fragmentFunction = fragmentFunction;
-#if !__has_feature(objc_arc)
-					[fragmentFunction release];
-#endif
 				}
 
 				for (u32 attachmentIndex = 0; attachmentIndex < colorCount; attachmentIndex++)
@@ -246,9 +201,6 @@ vertex B3DClearVertexOutput b3dClearVertex(uint vertexId [[vertex_id]])
 
 				NSError* error = nil;
 				pipeline = [mGpuDevice.GetMetalDevice() newRenderPipelineStateWithDescriptor:descriptor error:&error];
-#if !__has_feature(objc_arc)
-				[descriptor release];
-#endif
 				if (pipeline == nil)
 				{
 					B3D_LOG(Error, LogRenderBackend, "Failed to create the internal clear pipeline state: {0}",
@@ -256,7 +208,7 @@ vertex B3DClearVertexOutput b3dClearVertex(uint vertexId [[vertex_id]])
 				}
 			}
 
-			mImpl->Pipelines[key] = pipeline;
+			mPipelines[key] = pipeline;
 			return pipeline;
 		}
 
@@ -264,9 +216,9 @@ vertex B3DClearVertexOutput b3dClearVertex(uint vertexId [[vertex_id]])
 		{
 			const u32 stateIndex = (writeDepth ? 2u : 0u) | (writeStencil ? 1u : 0u);
 
-			Lock lock(mImpl->CacheMutex);
-			if (mImpl->DepthStencilStates[stateIndex] != nil)
-				return mImpl->DepthStencilStates[stateIndex];
+			Lock lock(mCacheMutex);
+			if (mDepthStencilStates[stateIndex] != nil)
+				return mDepthStencilStates[stateIndex];
 
 			id<MTLDevice> device = mGpuDevice.GetMetalDevice();
 			if (device == nil)
@@ -291,21 +243,15 @@ vertex B3DClearVertexOutput b3dClearVertex(uint vertexId [[vertex_id]])
 					stencil.writeMask = 0xFF;
 					descriptor.frontFaceStencil = stencil;
 					descriptor.backFaceStencil = stencil;
-#if !__has_feature(objc_arc)
-					[stencil release];
-#endif
 				}
 
-				mImpl->DepthStencilStates[stateIndex] = [device newDepthStencilStateWithDescriptor:descriptor];
-#if !__has_feature(objc_arc)
-				[descriptor release];
-#endif
+				mDepthStencilStates[stateIndex] = [device newDepthStencilStateWithDescriptor:descriptor];
 			}
 
-			if (mImpl->DepthStencilStates[stateIndex] == nil)
+			if (mDepthStencilStates[stateIndex] == nil)
 				B3D_LOG(Error, LogRenderBackend, "Failed to create the internal clear depth-stencil state.");
 
-			return mImpl->DepthStencilStates[stateIndex];
+			return mDepthStencilStates[stateIndex];
 		}
 	} // namespace render
 } // namespace b3d
