@@ -49,8 +49,6 @@ namespace b3d
 
 		void MetalSamplerState::Initialize()
 		{
-			@autoreleasepool
-			{
 			id<MTLDevice> device = mGpuDevice.GetMetalDevice();
 			if (device == nil)
 			{
@@ -93,7 +91,6 @@ namespace b3d
 				B3D_LOG(Error, LogRenderBackend, "Failed to create Metal sampler state.");
 
 			SamplerState::Initialize();
-			} // @autoreleasepool
 		}
 	} // namespace render
 } // namespace b3d

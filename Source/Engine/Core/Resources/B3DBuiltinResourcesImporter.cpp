@@ -38,6 +38,9 @@ int main(int argc, char* argv[])
 {
 	using namespace b3d;
 
+	// Catches anything autoreleased on the main thread outside of the narrower pools set up by Application and the importer
+	AutoreleasePoolScope autoreleasePool;
+
 	CommandLine::Initialize(argc, argv);
 
 #if B3D_IMPORT_TOOL_WAIT_FOR_DEBUGGER

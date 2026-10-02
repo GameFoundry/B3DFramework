@@ -297,19 +297,16 @@ namespace b3d
 
 		GpuMemoryRequirements MetalGpuDevice::GetMemoryRequirements(const TextureCreateInformation& createInformation) const
 		{
-			@autoreleasepool
+			MTLTextureDescriptor* descriptor = MetalTexture::CreateDescriptor(GetMetalDevice(), TextureProperties(createInformation));
+			if (descriptor == nil)
 			{
-				MTLTextureDescriptor* descriptor = MetalTexture::CreateDescriptor(GetMetalDevice(), TextureProperties(createInformation));
-				if (descriptor == nil)
-				{
-					GpuMemoryRequirements output;
-					output.MemoryType = GpuMemoryRequirements::kUnsupportedMemoryType;
-					return output;
-				}
-
-				const GpuMemoryRequirements output = mHeapAllocator->GetTextureMemoryRequirements(descriptor);
+				GpuMemoryRequirements output;
+				output.MemoryType = GpuMemoryRequirements::kUnsupportedMemoryType;
 				return output;
 			}
+
+			const GpuMemoryRequirements output = mHeapAllocator->GetTextureMemoryRequirements(descriptor);
+			return output;
 		}
 
 		GpuMemoryRequirements MetalGpuDevice::GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const
@@ -319,10 +316,7 @@ namespace b3d
 			if (size == 0)
 				size = 64;
 
-			@autoreleasepool
-			{
-				return mHeapAllocator->GetBufferMemoryRequirements(size, MetalHeapAllocator::GetBufferMemoryType(createInformation));
-			}
+			return mHeapAllocator->GetBufferMemoryRequirements(size, MetalHeapAllocator::GetBufferMemoryType(createInformation));
 		}
 
 		IGpuAllocator& MetalGpuDevice::GetPersistentAllocator(u32 memoryType)

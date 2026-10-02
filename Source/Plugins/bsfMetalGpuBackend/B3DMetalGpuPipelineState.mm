@@ -84,8 +84,6 @@ namespace b3d
 			if (device == nil)
 				return nil;
 
-			@autoreleasepool
-			{
 			MTLDepthStencilDescriptor* descriptor = [[MTLDepthStencilDescriptor alloc] init];
 			descriptor.depthCompareFunction = depthStencil.DepthReadEnable ? MetalUtility::GetCompareFunction(depthStencil.DepthComparisonFunc) : MTLCompareFunctionAlways;
 			descriptor.depthWriteEnabled = (depthStencil.DepthWriteEnable && !depthReadOnly) ? YES : NO;
@@ -104,13 +102,10 @@ namespace b3d
 
 			id<MTLDepthStencilState> state = [device newDepthStencilStateWithDescriptor:descriptor];
 			return state;
-			} // @autoreleasepool
 		}
 
 		void MetalGpuGraphicsPipelineState::Initialize()
 		{
-			@autoreleasepool
-			{
 			mVertexBufferBaseIndex = kMetalVertexBufferSlotBase;
 
 			if (mData.VertexProgram != nullptr)
@@ -138,13 +133,10 @@ namespace b3d
 			mDepthStencilStates[0] = CreateDepthStencilState(device, mData.DepthStencilState, false, false);
 
 			GpuGraphicsPipelineState::Initialize();
-			} // @autoreleasepool
 		}
 
 		bool MetalGpuGraphicsPipelineState::StartCompile(const MetalPipelineVariantKey& key, const TShared<MetalVertexInput>& vertexInput)
 		{
-			@autoreleasepool
-			{
 			// Fast path: variant already compiled (success or failure) on a prior call, or compile in flight.
 			{
 				Lock lock(mPipelineCacheMutex);
@@ -259,7 +251,6 @@ namespace b3d
 			}];
 
 			return true;
-			} // @autoreleasepool
 		}
 
 		id<MTLRenderPipelineState> MetalGpuGraphicsPipelineState::GetOrCreateMetalPipeline(const MetalPipelineVariantKey& key, const TShared<MetalVertexInput>& vertexInput)
@@ -304,11 +295,6 @@ namespace b3d
 
 		void MetalGpuComputePipelineState::Initialize()
 		{
-			// Pipeline state creation allocates autoreleased NSError instances (and potentially
-			// localizedDescription strings on failure). Drain them locally — fiber-scheduled frames
-			// may never hit a runloop.
-			@autoreleasepool
-			{
 			{
 				Lock lock(mPipelineMutex);
 				mInitializeStarted = true;
@@ -390,7 +376,6 @@ namespace b3d
 			}];
 
 			GpuComputePipelineState::Initialize();
-			} // @autoreleasepool
 		}
 	} // namespace render
 } // namespace b3d

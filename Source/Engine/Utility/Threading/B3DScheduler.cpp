@@ -239,10 +239,14 @@ void SchedulerThread::Stop()
 
 bool SchedulerThread::Wait(const TimePoint* timeout)
 {
+	const bool wasAutoreleasePoolSuspended = SuspendAutoreleasePool();
+
 	{
 		Lock lock(mMutex);
 		WaitWithoutLocking(timeout);
 	}
+
+	ResumeAutoreleasePool(wasAutoreleasePoolSuspended);
 
 	return timeout == nullptr || std::chrono::system_clock::now() < *timeout;
 }
@@ -251,6 +255,8 @@ bool SchedulerThread::Wait(Lock& waitLock, const TimePoint* timeout, const Funct
 {
 	while (!predicate())
 	{
+		const bool wasAutoreleasePoolSuspended = SuspendAutoreleasePool();
+
 		mMutex.lock();
 
 		// Must be called after mMutex is locked to ensure the fiber is not enqueued after this has been unlocked, as that could result in fiber never being woken up
@@ -260,6 +266,8 @@ bool SchedulerThread::Wait(Lock& waitLock, const TimePoint* timeout, const Funct
 		WaitWithoutLocking(timeout);
 
 		mMutex.unlock();
+
+		ResumeAutoreleasePool(wasAutoreleasePoolSuspended);
 
 		// Re-lock the lock provided to us by the user
 		waitLock.lock();
@@ -420,6 +428,34 @@ void SchedulerThread::WaitOnAddedSignal(const Function<bool()>& predicate)
 	mTriggerNotifyOnAdd = false;
 }
 
+void SchedulerThread::DrainAutoreleasePool()
+{
+	B3D_ASSERT(this == Current.get() && "SchedulerThread::DrainAutoreleasePool() must only be called on the thread it represents.");
+	if (mAutoreleasePool == nullptr)
+		return;
+
+	PlatformUtility::PopAutoreleasePool(std::exchange(mAutoreleasePool, nullptr));
+	mAutoreleasePool = PlatformUtility::PushAutoreleasePool();
+}
+
+bool SchedulerThread::SuspendAutoreleasePool()
+{
+	if (mAutoreleasePool == nullptr)
+		return false;
+
+	PlatformUtility::PopAutoreleasePool(std::exchange(mAutoreleasePool, nullptr));
+	return true;
+}
+
+void SchedulerThread::ResumeAutoreleasePool(bool wasSuspended)
+{
+	// Any fiber switching back to this one must have suspended its own pool first
+	B3D_ASSERT(mAutoreleasePool == nullptr);
+
+	if (wasSuspended)
+		mAutoreleasePool = PlatformUtility::PushAutoreleasePool();
+}
+
 void SchedulerThread::Run()
 {
 	if (mMode == Mode::Internal)
@@ -553,11 +589,17 @@ void SchedulerThread::RunUntilIdle()
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			mCurrentFiber->mActiveTaskName = task.GetName();
 #endif
+			B3D_ASSERT(mAutoreleasePool == nullptr);
+			mAutoreleasePool = PlatformUtility::PushAutoreleasePool();
+
 			task();
 
 			// std::function<> can carry arguments with complex destructors.
 			// Ensure these are destructed outside of the lock.
 			task = SchedulerTask();
+
+			// If the task yielded this is no longer the pool it started with, see SuspendAutoreleasePool()
+			PlatformUtility::PopAutoreleasePool(std::exchange(mAutoreleasePool, nullptr));
 
 			mMutex.lock();
 		}

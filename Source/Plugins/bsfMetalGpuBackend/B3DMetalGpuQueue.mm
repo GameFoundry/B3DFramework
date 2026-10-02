@@ -147,20 +147,16 @@ namespace b3d
 
 		void MetalGpuQueue::FenceCompletionHandlers()
 		{
-			// Drained locally since the calling thread may have no run loop
-			@autoreleasepool
-			{
-				id<MTLCommandBuffer> fenceCommandBuffer = [mCommandQueue commandBuffer];
-				if (fenceCommandBuffer == nil)
-					return;
+			id<MTLCommandBuffer> fenceCommandBuffer = [mCommandQueue commandBuffer];
+			if (fenceCommandBuffer == nil)
+				return;
 
-				[fenceCommandBuffer addCompletedHandler:^(id<MTLCommandBuffer> completedCommandBuffer)
-				{
-					LogCommandBufferError(completedCommandBuffer);
-				}];
-				[fenceCommandBuffer commit];
-				[fenceCommandBuffer waitUntilCompleted];
-			}
+			[fenceCommandBuffer addCompletedHandler:^(id<MTLCommandBuffer> completedCommandBuffer)
+			{
+				LogCommandBufferError(completedCommandBuffer);
+			}];
+			[fenceCommandBuffer commit];
+			[fenceCommandBuffer waitUntilCompleted];
 		}
 
 		void MetalGpuQueue::PresentRenderWindow(const TShared<RenderWindow>& renderWindow, GpuQueueMask syncMask)

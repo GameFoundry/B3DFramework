@@ -273,8 +273,6 @@ namespace b3d
 			if (mMetalLayout == nullptr || mArgumentBuffer == nil)
 				return mGeneration;
 
-			@autoreleasepool
-			{
 			const TArray<MetalArgumentBufferBinding>& bindings = mMetalLayout->GetBindings();
 
 			// Buffers and textures can swap their backing Metal resource under a stable engine-side wrapper
@@ -486,7 +484,6 @@ namespace b3d
 				++mGeneration;
 
 			mBindingsDirty = false;
-			} // @autoreleasepool
 
 			return mGeneration;
 		}

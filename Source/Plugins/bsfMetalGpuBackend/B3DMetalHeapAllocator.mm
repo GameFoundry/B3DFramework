@@ -46,56 +46,52 @@ namespace b3d
 
 		MetalHeapBackend::HeapHandle MetalHeapBackend::CreateHeap(u64 sizeInBytes, const HeapCreateInformation& createInformation)
 		{
-			// Drained locally since the calling thread may have no run loop
-			@autoreleasepool
+			id<MTLDevice> device = mDevice.GetMetalDevice();
+			if (device == nil)
+				return nullptr;
+
+			if (createInformation.MemoryType >= MetalHeapAllocator::kMemoryTypeCount)
 			{
-				id<MTLDevice> device = mDevice.GetMetalDevice();
-				if (device == nil)
-					return nullptr;
+				B3D_LOG(Error, LogRenderBackend, "MetalHeapBackend: invalid memory type {0}.", createInformation.MemoryType);
+				return nullptr;
+			}
 
-				if (createInformation.MemoryType >= MetalHeapAllocator::kMemoryTypeCount)
-				{
-					B3D_LOG(Error, LogRenderBackend, "MetalHeapBackend: invalid memory type {0}.", createInformation.MemoryType);
-					return nullptr;
-				}
+			MTLHeapDescriptor* heapDescriptor = [[MTLHeapDescriptor alloc] init];
+			heapDescriptor.size = sizeInBytes;
+			heapDescriptor.storageMode = GetMemoryTypeStorageMode(createInformation.MemoryType);
+			heapDescriptor.cpuCacheMode = MTLCPUCacheModeDefaultCache;
+			heapDescriptor.type = MTLHeapTypePlacement;
 
-				MTLHeapDescriptor* heapDescriptor = [[MTLHeapDescriptor alloc] init];
-				heapDescriptor.size = sizeInBytes;
-				heapDescriptor.storageMode = GetMemoryTypeStorageMode(createInformation.MemoryType);
-				heapDescriptor.cpuCacheMode = MTLCPUCacheModeDefaultCache;
-				heapDescriptor.type = MTLHeapTypePlacement;
-
-				// Must match the hazard tracking mode MetalUtility assigns to resources placed in the heap
+			// Must match the hazard tracking mode MetalUtility assigns to resources placed in the heap
 #if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
-				heapDescriptor.hazardTrackingMode = MTLHazardTrackingModeUntracked;
+			heapDescriptor.hazardTrackingMode = MTLHazardTrackingModeUntracked;
 #else
-				heapDescriptor.hazardTrackingMode = MTLHazardTrackingModeTracked;
+			heapDescriptor.hazardTrackingMode = MTLHazardTrackingModeTracked;
 #endif
 
-				id<MTLHeap> heap = [device newHeapWithDescriptor:heapDescriptor];
+			id<MTLHeap> heap = [device newHeapWithDescriptor:heapDescriptor];
 
-				if (heap == nil)
-				{
-					B3D_LOG(Error, LogRenderBackend, "MetalHeapBackend: newHeapWithDescriptor failed for {0} bytes, memory type {1}.", sizeInBytes, createInformation.MemoryType);
-					return nullptr;
-				}
-
-				heap.label = createInformation.MemoryType == MetalHeapAllocator::kMemoryTypeShared
-					? @"Banshee shared placement heap"
-					: @"Banshee private placement heap";
-
-				MetalGpuHeap* heapWrapper = nullptr;
-				{
-					Lock lock(mHeapPoolMutex);
-					heapWrapper = mHeapPool.Allocate();
-				}
-
-				heapWrapper->Heap = heap;
-				heapWrapper->Size = sizeInBytes;
-				heapWrapper->MemoryType = createInformation.MemoryType;
-
-				return heapWrapper;
+			if (heap == nil)
+			{
+				B3D_LOG(Error, LogRenderBackend, "MetalHeapBackend: newHeapWithDescriptor failed for {0} bytes, memory type {1}.", sizeInBytes, createInformation.MemoryType);
+				return nullptr;
 			}
+
+			heap.label = createInformation.MemoryType == MetalHeapAllocator::kMemoryTypeShared
+				? @"Banshee shared placement heap"
+				: @"Banshee private placement heap";
+
+			MetalGpuHeap* heapWrapper = nullptr;
+			{
+				Lock lock(mHeapPoolMutex);
+				heapWrapper = mHeapPool.Allocate();
+			}
+
+			heapWrapper->Heap = heap;
+			heapWrapper->Size = sizeInBytes;
+			heapWrapper->MemoryType = createInformation.MemoryType;
+
+			return heapWrapper;
 		}
 
 		void MetalHeapBackend::DestroyHeap(HeapHandle handle)
@@ -257,49 +253,46 @@ namespace b3d
 
 			const MTLResourceOptions options = MetalUtility::GetResourceOptions(GetMemoryTypeStorageMode(memoryType));
 
-			@autoreleasepool
+			if (requestedAllocation.HasMemory())
 			{
-				if (requestedAllocation.HasMemory())
-				{
-					MetalGpuHeap& heap = ToMetalGpuHeap(requestedAllocation.Heap);
-					B3D_ASSERT(heap.MemoryType == memoryType && "Allocation's memory type cannot back the buffer.");
+				MetalGpuHeap& heap = ToMetalGpuHeap(requestedAllocation.Heap);
+				B3D_ASSERT(heap.MemoryType == memoryType && "Allocation's memory type cannot back the buffer.");
 
-					id<MTLBuffer> buffer = [heap.Heap newBufferWithLength:length options:options offset:requestedAllocation.Offset];
-					if (buffer != nil)
-						outAllocation = requestedAllocation;
+				id<MTLBuffer> buffer = [heap.Heap newBufferWithLength:length options:options offset:requestedAllocation.Offset];
+				if (buffer != nil)
+					outAllocation = requestedAllocation;
 
-					return buffer;
-				}
-
-				IGpuAllocator& allocator = *requestedAllocation.Allocator;
-				const MTLSizeAndAlign sizeAndAlign = [device heapBufferSizeAndAlignWithLength:length options:options];
-
-				GpuAllocation allocation;
-				if (allocator.TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align, GpuResourceKind::Linear, nullptr, allocation))
-				{
-					MetalGpuHeap& heap = ToMetalGpuHeap(allocation.Heap);
-					if (heap.MemoryType == memoryType)
-					{
-						id<MTLBuffer> buffer = [heap.Heap newBufferWithLength:length options:options offset:allocation.Offset];
-						if (buffer != nil)
-						{
-							outAllocation = allocation;
-							return buffer;
-						}
-					}
-					else
-					{
-						B3D_LOG(Error, LogRenderBackend, "Metal buffer allocator returned memory type {0}, expected {1}.", heap.MemoryType, memoryType);
-					}
-
-					allocator.FreeAndReclaim(allocation);
-				}
-
-				if (&allocator != mAllocators[memoryType].get())
-					return nil;
-
-				return [device newBufferWithLength:length options:options];
+				return buffer;
 			}
+
+			IGpuAllocator& allocator = *requestedAllocation.Allocator;
+			const MTLSizeAndAlign sizeAndAlign = [device heapBufferSizeAndAlignWithLength:length options:options];
+
+			GpuAllocation allocation;
+			if (allocator.TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align, GpuResourceKind::Linear, nullptr, allocation))
+			{
+				MetalGpuHeap& heap = ToMetalGpuHeap(allocation.Heap);
+				if (heap.MemoryType == memoryType)
+				{
+					id<MTLBuffer> buffer = [heap.Heap newBufferWithLength:length options:options offset:allocation.Offset];
+					if (buffer != nil)
+					{
+						outAllocation = allocation;
+						return buffer;
+					}
+				}
+				else
+				{
+					B3D_LOG(Error, LogRenderBackend, "Metal buffer allocator returned memory type {0}, expected {1}.", heap.MemoryType, memoryType);
+				}
+
+				allocator.FreeAndReclaim(allocation);
+			}
+
+			if (&allocator != mAllocators[memoryType].get())
+				return nil;
+
+			return [device newBufferWithLength:length options:options];
 		}
 
 		id<MTLTexture> MetalHeapAllocator::AllocateTexture(MTLTextureDescriptor* descriptor, const GpuAllocation& requestedAllocation, GpuAllocation& outAllocation)
@@ -315,45 +308,42 @@ namespace b3d
 
 			const u32 memoryType = GetStorageModeMemoryType(descriptor.storageMode);
 
-			@autoreleasepool
+			if (requestedAllocation.HasMemory())
 			{
-				if (requestedAllocation.HasMemory())
+				MetalGpuHeap& heap = ToMetalGpuHeap(requestedAllocation.Heap);
+				B3D_ASSERT(heap.MemoryType == memoryType && "Allocation's memory type cannot back the texture.");
+
+				id<MTLTexture> texture = [heap.Heap newTextureWithDescriptor:descriptor offset:requestedAllocation.Offset];
+				if (texture != nil)
+					outAllocation = requestedAllocation;
+
+				return texture;
+			}
+
+			if (memoryType >= kMemoryTypeCount)
+				return [device newTextureWithDescriptor:descriptor];
+
+			IGpuAllocator& allocator = *requestedAllocation.Allocator;
+			const MTLSizeAndAlign sizeAndAlign = [device heapTextureSizeAndAlignWithDescriptor:descriptor];
+
+			GpuAllocation allocation;
+			if (allocator.TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align, GpuResourceKind::NonLinear, nullptr, allocation))
+			{
+				MetalGpuHeap& heap = ToMetalGpuHeap(allocation.Heap);
+				id<MTLTexture> texture = [heap.Heap newTextureWithDescriptor:descriptor offset:allocation.Offset];
+				if (texture != nil)
 				{
-					MetalGpuHeap& heap = ToMetalGpuHeap(requestedAllocation.Heap);
-					B3D_ASSERT(heap.MemoryType == memoryType && "Allocation's memory type cannot back the texture.");
-
-					id<MTLTexture> texture = [heap.Heap newTextureWithDescriptor:descriptor offset:requestedAllocation.Offset];
-					if (texture != nil)
-						outAllocation = requestedAllocation;
-
+					outAllocation = allocation;
 					return texture;
 				}
 
-				if (memoryType >= kMemoryTypeCount)
-					return [device newTextureWithDescriptor:descriptor];
-
-				IGpuAllocator& allocator = *requestedAllocation.Allocator;
-				const MTLSizeAndAlign sizeAndAlign = [device heapTextureSizeAndAlignWithDescriptor:descriptor];
-
-				GpuAllocation allocation;
-				if (allocator.TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align, GpuResourceKind::NonLinear, nullptr, allocation))
-				{
-					MetalGpuHeap& heap = ToMetalGpuHeap(allocation.Heap);
-					id<MTLTexture> texture = [heap.Heap newTextureWithDescriptor:descriptor offset:allocation.Offset];
-					if (texture != nil)
-					{
-						outAllocation = allocation;
-						return texture;
-					}
-
-					allocator.FreeAndReclaim(allocation);
-				}
-
-				if (&allocator != mAllocators[memoryType].get())
-					return nil;
-
-				return [device newTextureWithDescriptor:descriptor];
+				allocator.FreeAndReclaim(allocation);
 			}
+
+			if (&allocator != mAllocators[memoryType].get())
+				return nil;
+
+			return [device newTextureWithDescriptor:descriptor];
 		}
 	} // namespace render
 } // namespace b3d

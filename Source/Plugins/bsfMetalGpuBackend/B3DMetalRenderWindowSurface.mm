@@ -41,21 +41,18 @@ namespace b3d::render
 
 	id<MTLTexture> MetalSwapChain::AcquireDrawable(CAMetalLayer* layer)
 	{
-		@autoreleasepool
+		Lock lock(mMutex);
+		if (mIsRetired || layer == nil)
+			return nil;
+
+		if (mCurrentDrawable == nil)
 		{
-			Lock lock(mMutex);
-			if (mIsRetired || layer == nil)
-				return nil;
-
-			if (mCurrentDrawable == nil)
-			{
-				mCurrentDrawable = [layer nextDrawable];
-				mCurrentDrawableIndex = mNextDrawableIndex++;
-				mCurrentDrawableWasRenderedInto = false;
-			}
-
-			return mCurrentDrawable != nil ? mCurrentDrawable.texture : nil;
+			mCurrentDrawable = [layer nextDrawable];
+			mCurrentDrawableIndex = mNextDrawableIndex++;
+			mCurrentDrawableWasRenderedInto = false;
 		}
+
+		return mCurrentDrawable != nil ? mCurrentDrawable.texture : nil;
 	}
 
 	id<MTLTexture> MetalSwapChain::GetCurrentTexture() const
@@ -188,8 +185,6 @@ namespace b3d::render
 	MetalRenderWindowSurface::MetalRenderWindowSurface(MetalGpuDevice& device, const RenderWindowSurfaceCreateInformation& createInformation)
 		: mGpuDevice(device), mWidth(createInformation.Width), mHeight(createInformation.Height), mVSync(createInformation.VSync), mVSyncInterval(createInformation.VsyncInterval == 0 ? 1 : createInformation.VsyncInterval), mRefreshRate(createInformation.RefreshRate), mHwGamma(createInformation.UseHardwareSRGB), mCreateDepthBuffer(createInformation.CreateDepthBuffer), mPendingWidth(createInformation.Width), mPendingHeight(createInformation.Height), mPendingVSync(createInformation.VSync), mPendingVSyncInterval(createInformation.VsyncInterval == 0 ? 1 : createInformation.VsyncInterval)
 	{
-		@autoreleasepool
-		{
 		if (createInformation.Headless)
 		{
 			// Headless surfaces are handled by MetalHeadlessRenderWindowSurface; the manager should never route
@@ -250,7 +245,6 @@ namespace b3d::render
 
 		mSwapChain = device.GetResourceManager().Create<MetalSwapChain>(*this);
 		RecreateDepthStencilTextureIfNeeded();
-		}
 	}
 
 	MetalRenderWindowSurface::~MetalRenderWindowSurface()
@@ -326,15 +320,12 @@ namespace b3d::render
 
 	id<MTLTexture> MetalRenderWindowSurface::AcquireColorTexture()
 	{
-		@autoreleasepool
-		{
-			if (!mValid || mLayer == nil)
-				return nil;
+		if (!mValid || mLayer == nil)
+			return nil;
 
-			ApplyPendingStateIfNeeded();
+		ApplyPendingStateIfNeeded();
 
-			return mSwapChain != nullptr ? mSwapChain->AcquireDrawable(mLayer) : nil;
-		}
+		return mSwapChain != nullptr ? mSwapChain->AcquireDrawable(mLayer) : nil;
 	}
 
 	id<MTLTexture> MetalRenderWindowSurface::GetCurrentColorTexture() const

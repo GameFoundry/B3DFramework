@@ -116,7 +116,12 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 			continue;
 		}
 
-		importResource(entry);
+		{
+			// Release any objects the import autoreleased before moving onto the next one
+			AutoreleasePoolScope autoreleasePool;
+			importResource(entry);
+		}
+
 		idx++;
 	}
 

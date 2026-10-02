@@ -237,30 +237,27 @@ namespace b3d
 			}
 			else if (mQueryType == GpuQueryType::Timestamp && mCounterBuffer != nil)
 			{
-				@autoreleasepool
+				NSData* resolved = [mCounterBuffer resolveCounterRange:NSMakeRange(0, mNextQueryId)];
+				const size_t requiredBytes = (size_t)mNextQueryId * sizeof(MTLCounterResultTimestamp);
+				if (resolved != nil && [resolved length] >= requiredBytes)
 				{
-					NSData* resolved = [mCounterBuffer resolveCounterRange:NSMakeRange(0, mNextQueryId)];
-					const size_t requiredBytes = (size_t)mNextQueryId * sizeof(MTLCounterResultTimestamp);
-					if (resolved != nil && [resolved length] >= requiredBytes)
+					const MTLCounterResultTimestamp* timestamps = (const MTLCounterResultTimestamp*)[resolved bytes];
+					bool invalidSampleFound = false;
+					for (u32 queryIndex = 0; queryIndex < mNextQueryId; queryIndex++)
 					{
-						const MTLCounterResultTimestamp* timestamps = (const MTLCounterResultTimestamp*)[resolved bytes];
-						bool invalidSampleFound = false;
-						for (u32 queryIndex = 0; queryIndex < mNextQueryId; queryIndex++)
+						if (timestamps[queryIndex].timestamp == MTLCounterErrorValue)
 						{
-							if (timestamps[queryIndex].timestamp == MTLCounterErrorValue)
-							{
-								invalidSampleFound = true;
-								continue;
-							}
-
-							mResolvedResults[queryIndex] = timestamps[queryIndex].timestamp;
+							invalidSampleFound = true;
+							continue;
 						}
 
-						if (invalidSampleFound)
-						{
-							std::fill(mResolvedResults.begin(), mResolvedResults.end(), 0);
-							B3D_LOG(Warning, LogRenderBackend, "Metal returned an invalid timestamp counter sample.");
-						}
+						mResolvedResults[queryIndex] = timestamps[queryIndex].timestamp;
+					}
+
+					if (invalidSampleFound)
+					{
+						std::fill(mResolvedResults.begin(), mResolvedResults.end(), 0);
+						B3D_LOG(Warning, LogRenderBackend, "Metal returned an invalid timestamp counter sample.");
 					}
 				}
 			}

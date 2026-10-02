@@ -36,11 +36,8 @@ namespace b3d
 			if (mBuffer == nullptr)
 				return;
 
-			@autoreleasepool
-			{
-				const String nameCopy(name.data(), name.size());
-				[mBuffer setLabel:[NSString stringWithUTF8String:nameCopy.c_str()]];
-			}
+			const String nameCopy(name.data(), name.size());
+			[mBuffer setLabel:[NSString stringWithUTF8String:nameCopy.c_str()]];
 		}
 
 		MetalGpuBuffer::MetalGpuBuffer(MetalGpuDevice& device, const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation)
@@ -189,17 +186,14 @@ namespace b3d
 			}
 
 			id<MTLTexture> view = nil;
-			@autoreleasepool
-			{
-				MTLTextureDescriptor* descriptor = [MTLTextureDescriptor
-					textureBufferDescriptorWithPixelFormat:pixelFormat
-													 width:(NSUInteger)elementCount
-										   resourceOptions:MetalUtility::GetResourceOptions([mBuffer storageMode])
-													 usage:writable ? (MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite) : MTLTextureUsageShaderRead];
-				view = [mBuffer newTextureWithDescriptor:descriptor
-												  offset:offset
-											 bytesPerRow:(NSUInteger)(elementCount * elementSize)];
-			}
+			MTLTextureDescriptor* descriptor = [MTLTextureDescriptor
+				textureBufferDescriptorWithPixelFormat:pixelFormat
+												 width:(NSUInteger)elementCount
+									   resourceOptions:MetalUtility::GetResourceOptions([mBuffer storageMode])
+												 usage:writable ? (MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite) : MTLTextureUsageShaderRead];
+			view = [mBuffer newTextureWithDescriptor:descriptor
+											  offset:offset
+										 bytesPerRow:(NSUInteger)(elementCount * elementSize)];
 			if (view == nil)
 			{
 				B3D_LOG(Error, LogRenderBackend, "Failed to create a Metal texture-buffer view. Format: {0}, elements: {1}.", (u32)format, elementCount);

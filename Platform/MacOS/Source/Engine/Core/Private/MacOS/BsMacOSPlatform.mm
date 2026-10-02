@@ -514,15 +514,15 @@ namespace b3d
 }
 
 - (void) setClipboardText:(NSString*) text
-{ @autoreleasepool {
+{
 	NSPasteboard* pasteboard = [NSPasteboard generalPasteboard];
 	[pasteboard clearContents];
 	NSArray* objects = [NSArray arrayWithObject:text];
 	[pasteboard writeObjects:objects];
-}}
+}
 
 - (NSString*) getClipboardText
-{ @autoreleasepool {
+{
 	NSPasteboard* pasteboard = [NSPasteboard generalPasteboard];
 	NSArray* classes = [NSArray arrayWithObjects:[NSString class], nil];
 	NSDictionary* options = [NSDictionary dictionary];
@@ -532,7 +532,7 @@ namespace b3d
 		return nil;
 
 	return (NSString*) items[0];
-}}
+}
 
 - (b3d::i32)getClipboardChangeCount
 {
@@ -725,7 +725,7 @@ namespace b3d
 
 	/** Creates the default menu for the application menu bar. */
 	static void CreateApplicationMenu()
-	{ @autoreleasepool {
+	{
 		NSMenu* mainMenu = [[NSMenu alloc] init];
 		[NSApp setMainMenu:mainMenu];
 
@@ -759,7 +759,7 @@ namespace b3d
 		NSMenuItem* appleMenuItem = [[NSMenuItem alloc] initWithTitle:@"" action:nil keyEquivalent:@""];
 		[appleMenuItem setSubmenu:appleMenu];
 		[[NSApp mainMenu] addItem:appleMenuItem];
-	}}
+	}
 
 	Event<void(const Vector2I&, const OSPointerButtonStates&)> Platform::OnPointerMoved;
 	Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> Platform::OnPointerButtonPressed;
@@ -922,7 +922,7 @@ namespace b3d
 	}
 
 	void Platform::SetCursor(PixelData& pixelData, const Vector2I& hotSpot)
-	{ @autoreleasepool {
+	{
 		NSImage* image = MacOSPlatform::CreateNSImage(pixelData);
 		NSPoint point = NSMakePoint(hotSpot.X, hotSpot.Y);
 
@@ -931,17 +931,17 @@ namespace b3d
 
 		[mData->CursorManager
 			performSelectorOnMainThread:@selector(setCursor:) withObject:params waitUntilDone:NO];
-	}}
+	}
 
 	void Platform::SetIcon(const PixelData& pixelData)
-	{ @autoreleasepool {
+	{
 		NSImage* image = MacOSPlatform::CreateNSImage(pixelData);
 
 		[NSApp performSelectorOnMainThread:@selector(setApplicationIconImage:) withObject:image waitUntilDone:NO];
-	}}
+	}
 
 	void Platform::SetCaptionNonClientAreas(const RenderWindow& window, const Vector<Area2I>& nonClientAreas)
-	{ @autoreleasepool {
+	{
 		NSMutableArray* params = [[NSMutableArray alloc] init];
 
 		u32 windowId = (u32)window.GetPlatformWindowHandle();
@@ -955,7 +955,7 @@ namespace b3d
 			performSelectorOnMainThread:@selector(setCaptionNonClientAreas:)
 			withObject:params
 			waitUntilDone:NO];
-	}}
+	}
 
 	void Platform::SetResizeNonClientAreas(const RenderWindow& window, const Vector<NonClientResizeArea>& nonClientAreas)
 	{
@@ -979,12 +979,12 @@ namespace b3d
 	}
 
 	void Platform::CopyToClipboard(const String& string)
-	{ @autoreleasepool {
+	{
 		NSString* text = [NSString stringWithUTF8String:string.c_str()];
 		[mData->PlatformManager performSelectorOnMainThread:@selector(setClipboardText:)
 			withObject:text
 			waitUntilDone:NO];
-	}}
+	}
 
 	String Platform::CopyFromClipboard()
 	{
@@ -1104,7 +1104,7 @@ namespace b3d
 	}
 
 	void Platform::MessagePump()
-	{ @autoreleasepool {
+	{
 		while(true)
 		{
 			if(!mData->ModalWindows.empty())
@@ -1127,7 +1127,7 @@ namespace b3d
 				[NSApp sendEvent:event];
 			}
 		}
-	}}
+	}
 
 	void MacOSPlatform::RegisterWindow(CocoaWindow* window)
 	{
@@ -1208,29 +1208,26 @@ namespace b3d
 		// Convert to RGBA
 		TShared<PixelData> rgbaData = PixelData::Create(data.GetWidth(), data.GetHeight(), 1, PF_RGBA8);
 		rgbaData->SetColors(colors);
-		@autoreleasepool
-		{
-			i32 pitch = data.GetWidth() * sizeof(u32);
-			NSBitmapImageRep* imageRep = [[NSBitmapImageRep alloc]
-										  initWithBitmapDataPlanes:nullptr
-										  pixelsWide:data.GetWidth()
-										  pixelsHigh:data.GetHeight()
-										  bitsPerSample:8
-										  samplesPerPixel:4
-										  hasAlpha:YES
-										  isPlanar:NO
-										  colorSpaceName:NSDeviceRGBColorSpace
-										  bytesPerRow:pitch
-										  bitsPerPixel:32];
+		i32 pitch = data.GetWidth() * sizeof(u32);
+		NSBitmapImageRep* imageRep = [[NSBitmapImageRep alloc]
+									  initWithBitmapDataPlanes:nullptr
+									  pixelsWide:data.GetWidth()
+									  pixelsHigh:data.GetHeight()
+									  bitsPerSample:8
+									  samplesPerPixel:4
+									  hasAlpha:YES
+									  isPlanar:NO
+									  colorSpaceName:NSDeviceRGBColorSpace
+									  bytesPerRow:pitch
+									  bitsPerPixel:32];
 
-			unsigned char* pixels = [imageRep bitmapData];
-			memcpy(pixels, rgbaData->GetData(), data.GetHeight() * pitch);
+		unsigned char* pixels = [imageRep bitmapData];
+		memcpy(pixels, rgbaData->GetData(), data.GetHeight() * pitch);
 
-			NSImage* image = [[NSImage alloc] initWithSize:NSMakeSize(data.GetWidth(), data.GetHeight())];
-			[image addRepresentation:imageRep];
+		NSImage* image = [[NSImage alloc] initWithSize:NSMakeSize(data.GetWidth(), data.GetHeight())];
+		[image addRepresentation:imageRep];
 
-			return image;
-		}
+		return image;
 	}
 
 	void MacOSPlatform::SendInputCommandEvent(InputCommandType inputCommand)

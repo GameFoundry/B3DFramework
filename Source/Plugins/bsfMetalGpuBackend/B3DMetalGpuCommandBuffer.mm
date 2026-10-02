@@ -700,10 +700,6 @@ namespace b3d
 
 		id<MTLBlitCommandEncoder> MetalGpuCommandBuffer::GetOrOpenBlitEncoder()
 		{
-			// The encoder is autoreleased and worker threads have no run loop draining a pool. mBlitEncoder
-			// retains it before this pool drains.
-			@autoreleasepool
-			{
 			EnsureEncoderKind(EncoderKind::Blit);
 
 			if (mBlitEncoder != nil)
@@ -721,7 +717,6 @@ namespace b3d
 			WaitForResourceFence(mBlitEncoder);
 #endif
 			return mBlitEncoder;
-			} // @autoreleasepool
 		}
 
 		bool MetalGpuCommandBuffer::EncodeSignalEvent(id<MTLSharedEvent> event, u64 value)
@@ -777,8 +772,6 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::SetGpuParameterSet(const TShared<GpuParameterSet>& parameters)
 		{
-			@autoreleasepool
-			{
 			EnsureValidThread();
 
 			// A null set carries no set index, so there is no slot to clear. Sets are replaced by binding another set at the same index.
@@ -792,7 +785,6 @@ namespace b3d
 
 			// Pending writes are committed and residency emitted at draw / dispatch, so binding a set several times
 			// before a draw only does that work once
-			} // @autoreleasepool
 		}
 
 		bool MetalGpuCommandBuffer::BindParameterSet(const TShared<GpuParameterSet>& parameters)
@@ -1084,8 +1076,6 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::ApplyVertexBuffersToRenderEncoder()
 		{
-			@autoreleasepool
-			{
 			if (mRenderEncoder == nil)
 				return;
 
@@ -1122,7 +1112,6 @@ namespace b3d
 
 				[mRenderEncoder setVertexBuffer:buffer offset:0 atIndex:metalIndex];
 			}
-			} // @autoreleasepool
 		}
 
 		void MetalGpuCommandBuffer::SetIndexBuffer(const TShared<GpuBuffer>& buffer)
@@ -1284,8 +1273,6 @@ namespace b3d
 			if (mRenderEncoder == nil || vertexCount == 0)
 				return;
 
-			@autoreleasepool
-			{
 			if (!PrepareDraw(nullptr))
 				return;
 
@@ -1294,7 +1281,6 @@ namespace b3d
 				vertexCount:vertexCount
 				instanceCount:std::max<u32>(1, instanceCount)
 				baseInstance:firstInstance];
-			} // @autoreleasepool
 		}
 
 		void MetalGpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance)
@@ -1305,8 +1291,6 @@ namespace b3d
 			if (mRenderEncoder == nil || !mBoundIndexBuffer || indexCount == 0)
 				return;
 
-			@autoreleasepool
-			{
 			auto* metalIndexBuffer = static_cast<MetalGpuBuffer*>(mBoundIndexBuffer.get());
 			id<MTLBuffer> indexBuffer = metalIndexBuffer->GetMetalBuffer();
 			if (indexBuffer == nil)
@@ -1327,7 +1311,6 @@ namespace b3d
 				instanceCount:std::max<u32>(1, instanceCount)
 				baseVertex:vertexOffset
 				baseInstance:firstInstance];
-			} // @autoreleasepool
 		}
 
 		void MetalGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u32 groupCountZ)
@@ -1362,8 +1345,6 @@ namespace b3d
 			if (commandBuffer == nil)
 				return;
 
-			@autoreleasepool
-			{
 			if (mComputeEncoder == nil)
 			{
 				mComputeEncoder = [commandBuffer computeCommandEncoder];
@@ -1394,13 +1375,10 @@ namespace b3d
 			MTLSize threadsPerGroup = MTLSizeMake(workgroupSize[0], workgroupSize[1], workgroupSize[2]);
 			MTLSize groups = MTLSizeMake(groupCountX, groupCountY, groupCountZ);
 			[mComputeEncoder dispatchThreadgroups:groups threadsPerThreadgroup:threadsPerGroup];
-			} // @autoreleasepool
 		}
 
 		void MetalGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& createInformation)
 		{
-			@autoreleasepool
-			{
 			EnsureValidThread();
 			EnsureEncoderKind(EncoderKind::None);
 
@@ -1560,7 +1538,6 @@ namespace b3d
 				if (parameterSet)
 					BindParameterSet(parameterSet);
 			}
-			} // @autoreleasepool
 		}
 
 		void MetalGpuCommandBuffer::EndRenderPass()
@@ -1632,8 +1609,6 @@ namespace b3d
 			if (mask == RT_NONE || mRenderEncoder == nil || mRestartRenderPassDescriptor == nil)
 				return;
 
-			@autoreleasepool
-			{
 			MTLRenderPassDescriptor* clearDescriptor = [mRestartRenderPassDescriptor copy];
 			bool hasAttachment = false;
 			for (u32 attachmentIndex = 0; attachmentIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; attachmentIndex++)
@@ -1668,7 +1643,6 @@ namespace b3d
 
 			EnsureEncoderKind(EncoderKind::None);
 			ResumeRenderPass(clearDescriptor);
-			} // @autoreleasepool
 		}
 
 		void MetalGpuCommandBuffer::ClearViewport(RenderSurfaceMask mask)
@@ -1688,8 +1662,6 @@ namespace b3d
 
 			// Metal only clears whole attachments (through load actions), so a partial clear draws a triangle covering the
 			// viewport. Stencil is written by the depth-stencil state's replace operation using the reference value.
-			@autoreleasepool
-			{
 			const bool clearsDepth = mask.IsSet(RT_DEPTH) && mRenderPassPipelineKey.DepthFormat != 0;
 			const bool clearsStencil = mask.IsSet(RT_STENCIL) && mRenderPassPipelineKey.StencilFormat != 0;
 
@@ -1755,7 +1727,6 @@ namespace b3d
 				DisableScissorTest();
 				mHasScissor = false;
 			}
-			} // @autoreleasepool
 		}
 
 		void MetalGpuCommandBuffer::EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom)
@@ -2089,8 +2060,6 @@ namespace b3d
 
 				for (u32 faceOffset = 0; faceOffset < copyInformation.FaceCount; faceOffset++)
 				{
-					@autoreleasepool
-					{
 					MTLRenderPassDescriptor* resolveDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
 					MTLRenderPassColorAttachmentDescriptor* attachment = resolveDescriptor.colorAttachments[0];
 					attachment.texture = sourceHandle;
@@ -2110,7 +2079,6 @@ namespace b3d
 					WaitForResourceFence(mRenderEncoder);
 #endif
 					EnsureEncoderKind(EncoderKind::None);
-					} // @autoreleasepool
 				}
 				return true;
 			}
@@ -2531,8 +2499,6 @@ namespace b3d
 
 			mSubmittedQueueId = submitQueue.GetId();
 
-			@autoreleasepool
-			{
 			// Does not change mState: the queue sets Executing and the completion handler sets Done
 			EnsureEncoderKind(EncoderKind::None);
 
@@ -2722,7 +2688,6 @@ namespace b3d
 			}
 			mUsedQueryPools.clear();
 			mQueryPoolsQueuedForSubmission = false;
-			} // @autoreleasepool
 		}
 
 		void MetalGpuCommandBuffer::AddUniqueUsedQueryPool(const TShared<MetalGpuQueryPool>& pool)

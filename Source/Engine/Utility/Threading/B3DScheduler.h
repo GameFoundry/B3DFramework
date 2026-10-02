@@ -279,6 +279,13 @@ namespace b3d
 		/** Returns the fiber currently being executed. */
 		Fiber* GetCurrentFiber() const { return mCurrentFiber; }
 
+		/**
+		 * Releases all objects autoreleased so far by the task executing on this thread, by replacing the task's autorelease
+		 * pool with a new one. Intended for long running tasks that process many units of work.
+		 * Does nothing if called outside of a task, or on platforms without autorelease pools.
+		 */
+		B3D_EXPORT void DrainAutoreleasePool();
+
 		const u32 Id; /**< Unique identifier of the scheduler thread. */
 
 		/** Returns the scheduler thread bound to the current thread. */
@@ -345,6 +352,19 @@ namespace b3d
 		/** Waits until the mAddedSignal is notified and predicate returns true. */
 		void WaitOnAddedSignal(const Function<bool()>& predicate);
 
+		/**
+		 * Pops the autorelease pool of the task executing on this thread, if any, before the task yields. Autorelease pools form
+		 * a per-thread stack, so a pool kept alive while its fiber is suspended could get popped out of order by another fiber.
+		 * Must be called with mMutex unlocked, as releasing objects may post new tasks to this thread.
+		 *
+		 * @return	True if a pool was popped, in which case the same value must be passed to ResumeAutoreleasePool() once the
+		 *			task resumes.
+		 */
+		bool SuspendAutoreleasePool();
+
+		/** Pushes a new autorelease pool for a task resuming after a yield, if SuspendAutoreleasePool() popped one. */
+		void ResumeAutoreleasePool(bool wasSuspended);
+
 		B3D_HIDDEN static thread_local TShared<SchedulerThread> Current;
 
 		const Mode mMode;
@@ -370,6 +390,8 @@ namespace b3d
 		UnorderedSet<Fiber*> mFreeFibers;
 		TInlineArray<TUnique<Fiber>, 16> mAllFibers;
 		bool mIsShutdownRequested = false;
+
+		void* mAutoreleasePool = nullptr; /**< Autorelease pool of the task executing on the current fiber, or null if none. */
 	};
 	
 	template <typename Clock, typename Duration>

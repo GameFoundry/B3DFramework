@@ -232,6 +232,9 @@ bool ShaderCooker::Cook(const Vector<ShaderCookItem>& items, const CookOptions& 
 
 	for(const ShaderCookItem& item : items)
 	{
+		// Bytecode compilers may autorelease objects (e.g. Metal libraries), release them after each shader
+		AutoreleasePoolScope autoreleasePool;
+
 		switch(CookItem(item, options.Language, *package, cookedVariationCount, skippedVariationCount))
 		{
 		case CookItemResult::Cooked:

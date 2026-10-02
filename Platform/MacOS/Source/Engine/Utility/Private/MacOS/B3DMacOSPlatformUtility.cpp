@@ -7,6 +7,10 @@
 #include <unistd.h>
 #include <CoreFoundation/CoreFoundation.h>
 
+// Objective-C runtime entry points that @autoreleasepool blocks compile down to. Not exposed through public runtime headers.
+extern "C" void* objc_autoreleasePoolPush();
+extern "C" void objc_autoreleasePoolPop(void* pool);
+
 using namespace b3d;
 
 GPUInfo PlatformUtility::sGPUInfo;
@@ -34,6 +38,16 @@ void PlatformUtility::Terminate(bool force)
 void PlatformUtility::DisableInteractiveErrorDialogs()
 {
 	// No interactive error dialogs on macOS - asserts and aborts already go to stderr
+}
+
+void* PlatformUtility::PushAutoreleasePool()
+{
+	return objc_autoreleasePoolPush();
+}
+
+void PlatformUtility::PopAutoreleasePool(void* pool)
+{
+	objc_autoreleasePoolPop(pool);
 }
 
 SystemInfo PlatformUtility::GetSystemInfo()

@@ -13,8 +13,6 @@ namespace b3d
 		MetalVertexInput::MetalVertexInput(u32 id, const GpuVertexInputLayout& layout)
 			: mId(id), mStreamCount(layout.StreamCount), mUsedStreamMask(layout.UsedStreamMask), mNullStreamIndex(layout.NullStreamIndex)
 		{
-			@autoreleasepool
-			{
 			MTLVertexDescriptor* descriptor = [[MTLVertexDescriptor alloc] init];
 
 			for (const GpuVertexInputAttribute& attribute : layout.Attributes)
@@ -82,7 +80,6 @@ namespace b3d
 			}
 
 			mVertexDescriptor = descriptor;
-			} // @autoreleasepool
 		}
 
 		MetalVertexInputManager::~MetalVertexInputManager()

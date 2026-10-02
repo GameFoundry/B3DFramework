@@ -132,6 +132,8 @@ Application::Application(VideoMode videoMode, const String& title, bool fullscre
 
 Application::~Application()
 {
+	AutoreleasePoolScope autoreleasePool;
+
 #if B3D_BUILD_TESTS
 	// Must destroy before renderer library is unloaded
 	mSnapshotTestRunner.reset();
@@ -221,6 +223,8 @@ Application::~Application()
 
 void Application::OnStartUp()
 {
+	AutoreleasePoolScope autoreleasePool;
+
 	FileSystem::StartUp();
 	Platform::StartUp();
 	ThreadPool::StartUp<TThreadPool<>>((Thread::GetLogicalCoreCount()));
@@ -340,6 +344,8 @@ void Application::OnStartUp()
 
 void Application::OnShutDown()
 {
+	AutoreleasePoolScope autoreleasePool;
+
 	// Need to clear all objects before I unload any plugins, as they
 	// could have allocated parts or all of those objects.
 	const UnorderedMap<SceneInstance*, WeakSPtr<SceneInstance>> allScenes = GetSceneManager().GetAllScenes();
@@ -403,6 +409,7 @@ void Application::RunMainLoop()
 			mLastFrameTime = currentTime;
 		}
 
+		AutoreleasePoolScope autoreleasePool;
 		RunMainLoopFrame();
 	}
 

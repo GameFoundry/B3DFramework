@@ -66,8 +66,6 @@ namespace b3d
 
 			if (mIsCompiled)
 			{
-				@autoreleasepool
-				{
 				if (mType == GPT_COMPUTE_PROGRAM)
 				{
 					mWorkgroupSize[0] = mBytecode->ThreadGroupSize[0];
@@ -130,7 +128,6 @@ namespace b3d
 
 				if (mType == GPT_VERTEX_PROGRAM)
 					mVertexInputDescription = B3DMakeShared<VertexDescription>(mBytecode->VertexInput, false);
-				} // @autoreleasepool
 			}
 
 			B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_GpuProgram);

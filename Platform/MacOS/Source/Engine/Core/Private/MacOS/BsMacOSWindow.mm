@@ -129,7 +129,7 @@ static bool keyCodeToInputCommand(uint32_t keyCode, bool shift, b3d::InputComman
 }
 
 -(void)setBackgroundImage:(NSImage*)image
-{ @autoreleasepool {
+{
 	if(image)
 	{
 		NSRect frame = [self frame];
@@ -144,7 +144,7 @@ static bool keyCodeToInputCommand(uint32_t keyCode, bool shift, b3d::InputComman
 	}
 	else
 		self.subviews = @[];
-}}
+}
 @end
 
 @class BSWindow;
@@ -585,7 +585,7 @@ namespace b3d
 	std::atomic<u32> gNextWindowId(1);
 
 	CocoaWindow::CocoaWindow(const WindowCreateInformation& createInformation)
-	{ @autoreleasepool {
+	{
 		m = B3DNew<Pimpl>();
 
 		BSWindow* window = [BSWindow alloc];
@@ -695,7 +695,7 @@ namespace b3d
 			m->ModalSession = [NSApp beginModalSessionForWindow:m->Window];
 
 		MacOSPlatform::RegisterWindow(this);
-	}}
+	}
 
 	CocoaWindow::~CocoaWindow()
 	{
@@ -712,52 +712,43 @@ namespace b3d
 
 	void CocoaWindow::Move(i32 left, i32 top)
 	{
-		@autoreleasepool
-		{
-			NSPoint point;
-			point.x = left;
-			point.y = top;
+		NSPoint point;
+		point.x = left;
+		point.y = top;
 
-			flipY(m->Window.screen, point);
-			[m->Window setFrameTopLeftPoint:point];
-		}
+		flipY(m->Window.screen, point);
+		[m->Window setFrameTopLeftPoint:point];
 	}
 
 	void CocoaWindow::Resize(u32 width, u32 height)
 	{
-		@autoreleasepool
-		{
-			NSSize backingSize;
-			backingSize.width = width;
-			backingSize.height = height;
-			const NSSize size = [m->View convertSizeFromBacking:backingSize];
+		NSSize backingSize;
+		backingSize.width = width;
+		backingSize.height = height;
+		const NSSize size = [m->View convertSizeFromBacking:backingSize];
 
-			NSRect frameRect = m->Window.frame;
-			NSRect contentRect = [m->Window contentRectForFrameRect:frameRect];
+		NSRect frameRect = m->Window.frame;
+		NSRect contentRect = [m->Window contentRectForFrameRect:frameRect];
 
-			contentRect.origin.y += contentRect.size.height - size.height;
-			contentRect.size.width = size.width;
-			contentRect.size.height = size.height;
+		contentRect.origin.y += contentRect.size.height - size.height;
+		contentRect.size.width = size.width;
+		contentRect.size.height = size.height;
 
-			[m->Window setFrame:[m->Window frameRectForContentRect:contentRect] display:YES];
-		}
+		[m->Window setFrame:[m->Window frameRectForContentRect:contentRect] display:YES];
 	}
 
 	Area2I CocoaWindow::GetArea() const
 	{
-		@autoreleasepool
-		{
-			NSRect frameRect = [m->Window frame];
-			NSRect contentRect = [m->Window contentRectForFrameRect:frameRect];
+		NSRect frameRect = [m->Window frame];
+		NSRect contentRect = [m->Window contentRectForFrameRect:frameRect];
 
-			flipY([m->Window screen], contentRect);
+		flipY([m->Window screen], contentRect);
 
-			return Area2I(
-					(i32)contentRect.origin.x,
-					(i32)contentRect.origin.y,
-					(u32)contentRect.size.width,
-					(u32)contentRect.size.height);
-		}
+		return Area2I(
+				(i32)contentRect.origin.x,
+				(i32)contentRect.origin.y,
+				(u32)contentRect.size.width,
+				(u32)contentRect.size.height);
 	}
 
 	i32 CocoaWindow::GetLeft() const
@@ -782,73 +773,55 @@ namespace b3d
 
 	void CocoaWindow::SetHidden(bool hidden)
 	{
-		@autoreleasepool
-		{
-			if(hidden)
-				[m->Window orderOut:nil];
-			else
-				[m->Window makeKeyAndOrderFront:nil];
-		}
+		if(hidden)
+			[m->Window orderOut:nil];
+		else
+			[m->Window makeKeyAndOrderFront:nil];
 	}
 
 	void CocoaWindow::Maximize()
 	{
-		@autoreleasepool
-		{
-			if(![m->Window isZoomed])
-				[m->Window zoom:nil];
-		}
+		if(![m->Window isZoomed])
+			[m->Window zoom:nil];
 	}
 
 	void CocoaWindow::Minimize()
 	{
-		@autoreleasepool
-		{
-			[m->Window miniaturize:nil];
-		}
+		[m->Window miniaturize:nil];
 	}
 
 	void CocoaWindow::Restore()
 	{
-		@autoreleasepool
-		{
-			if([m->Window isMiniaturized])
-				[m->Window deminiaturize:nil];
-			else if([m->Window isZoomed])
-				[m->Window zoom:nil];
-		}
+		if([m->Window isMiniaturized])
+			[m->Window deminiaturize:nil];
+		else if([m->Window isZoomed])
+			[m->Window zoom:nil];
 	}
 
 	void CocoaWindow::SetWindowed()
 	{
-		@autoreleasepool
+		if(m->IsFullscreen)
 		{
-			if(m->IsFullscreen)
-			{
-				[m->Window setStyleMask:(NSWindowStyleMask)m->Style];
-				[m->Window setFrame:m->WindowedRect display:NO];
-				[m->Window setLevel:NSNormalWindowLevel];
+			[m->Window setStyleMask:(NSWindowStyleMask)m->Style];
+			[m->Window setFrame:m->WindowedRect display:NO];
+			[m->Window setLevel:NSNormalWindowLevel];
 
-				m->IsFullscreen = false;
-			}
+			m->IsFullscreen = false;
 		}
 	}
 
 	void CocoaWindow::SetFullscreen()
 	{
-		@autoreleasepool
-		{
-			if(!m->IsFullscreen)
-				m->WindowedRect = [m->Window frame];
+		if(!m->IsFullscreen)
+			m->WindowedRect = [m->Window frame];
 
-			NSRect frame = [[m->Window screen] frame];
-			[m->Window setStyleMask:NSWindowStyleMaskBorderless];
-			[m->Window setFrame:frame display:NO];
-			[m->Window setLevel:NSMainMenuWindowLevel+1];
-			[m->Window makeKeyAndOrderFront:nil];
+		NSRect frame = [[m->Window screen] frame];
+		[m->Window setStyleMask:NSWindowStyleMaskBorderless];
+		[m->Window setFrame:frame display:NO];
+		[m->Window setLevel:NSMainMenuWindowLevel+1];
+		[m->Window makeKeyAndOrderFront:nil];
 
-			m->IsFullscreen = true;
-		}
+		m->IsFullscreen = true;
 	}
 
 	Vector2I CocoaWindow::WindowToScreenPos(const Vector2I& windowPos) const
@@ -900,15 +873,12 @@ namespace b3d
 
 	void CocoaWindow::SetDragZonesInternal(const Vector<Area2I>& areas)
 	{
-		@autoreleasepool
-		{
-			NSMutableArray* array = [[NSMutableArray alloc] init];
+		NSMutableArray* array = [[NSMutableArray alloc] init];
 
-			for(auto& entry : areas)
-				[array addObject:[NSValue valueWithBytes:&entry objCType:@encode(Area2I)]];
+		for(auto& entry : areas)
+			[array addObject:[NSValue valueWithBytes:&entry objCType:@encode(Area2I)]];
 
-			[m->Responder setDragAreas:array];
-		}
+		[m->Responder setDragAreas:array];
 	}
 
 	void CocoaWindow::SetUserDataInternal(void* data)

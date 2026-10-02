@@ -57,8 +57,11 @@ void TestSuite::Run(TestOutput& output)
 		// Start timing this test
 		Timer testTimer;
 
-		// Execute test
-		(this->*(testEntry.Test))();
+		// Execute test, releasing any objects it autoreleased once done
+		{
+			AutoreleasePoolScope autoreleasePool;
+			(this->*(testEntry.Test))();
+		}
 
 		// Verify any remaining unhandled logs (if in Strict mode)
 		if(logMode == LogMode::Strict)

@@ -59,11 +59,8 @@ namespace b3d
 			if (mTexture == nullptr)
 				return;
 
-			@autoreleasepool
-			{
-				const String nameCopy(name.data(), name.size());
-				[mTexture setLabel:[NSString stringWithUTF8String:nameCopy.c_str()]];
-			}
+			const String nameCopy(name.data(), name.size());
+			[mTexture setLabel:[NSString stringWithUTF8String:nameCopy.c_str()]];
 		}
 
 		id<MTLTexture> MetalImage::GetShaderReadView(MTLPixelFormat viewFormat)
@@ -355,8 +352,6 @@ namespace b3d
 
 		MetalImage* MetalTexture::CreateImage()
 		{
-			@autoreleasepool
-			{
 			id<MTLDevice> device = mGpuDevice.GetMetalDevice();
 			if (device == nil)
 				return nullptr;
@@ -392,7 +387,6 @@ namespace b3d
 				image->SetName(GetName());
 
 			return image;
-			} // @autoreleasepool
 		}
 
 		GpuQueueMask MetalTexture::GetUseMask(u32 mipLevel, u32 arrayLayer, GpuAccessFlags accessFlags) const
