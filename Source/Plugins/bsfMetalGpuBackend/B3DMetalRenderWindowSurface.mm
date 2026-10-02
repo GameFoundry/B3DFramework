@@ -5,6 +5,7 @@
 #include "B3DMetalGpuQueue.h"
 #include "B3DMetalResourceManager.h"
 #include "Debug/B3DLog.h"
+#include "Threading/B3DScheduler.h"
 #define BS_COCOA_INTERNALS 1
 #include "Private/MacOS/B3DMacOSPlatform.h"
 #include "Private/MacOS/B3DMacOSWindow.h"
@@ -28,11 +29,17 @@ namespace b3d::render
 
 	MetalSwapChain::MetalSwapChain(MetalResourceManager* owner, MetalRenderWindowSurface& surface)
 		: Super(owner, "Metal render-window swap chain"), mSurface(surface)
-	{ }
+	{
+		// Present-completion notifies (swap chain NotifyUnbound) are posted back to this queue and processed on the thread
+		// responsible for the swap chain (the render thread).
+		Scheduler* const scheduler = Scheduler::Get();
+		if (B3D_ENSURE(scheduler))
+			mMessageQueue.ScheduleRunUntilShutdown(*scheduler, true);
+	}
 
 	MetalSwapChain::~MetalSwapChain()
 	{
-		mMessageQueue.RunUntilIdle();
+		mMessageQueue.PostRequestShutdownCommand(true);
 		AbortCurrentDrawable();
 
 		Lock lock(mMutex);
@@ -175,6 +182,15 @@ namespace b3d::render
 	void MetalSwapChain::NotifyWasImageAcquireQueued()
 	{
 		B3D_ASSERT(false && "Metal drawables are acquired on the render thread at BeginRenderPass, not through the submit thread. See MetalSwapChain.");
+	}
+
+	void MetalSwapChain::Destroy()
+	{
+		// Process pending queued-operation unbind notifications so the resource can be destroyed immediately when its
+		// bound count reaches zero (important for shutdown).
+		mMessageQueue.RunUntilIdle();
+
+		Super::Destroy();
 	}
 
 	void MetalSwapChain::Retire()
@@ -401,7 +417,6 @@ namespace b3d::render
 			if (mGpuDevice.HasSubmitThread())
 				mGpuDevice.GetSubmitThread().WaitUntilIdle();
 
-			mSwapChain->GetMessageQueue().RunUntilIdle();
 			mSwapChain->Destroy();
 			mSwapChain = nullptr;
 		}

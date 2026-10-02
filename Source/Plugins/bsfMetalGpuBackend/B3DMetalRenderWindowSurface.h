@@ -54,6 +54,7 @@ namespace b3d::render
 		~MetalSwapChain() override;
 
 		SingleConsumerQueue& GetMessageQueue() override { return mMessageQueue; }
+		void Destroy() override;
 		void AcquireImage() override;
 		void Present(u32 imageIndex, GpuQueue& queue, GpuQueueMask syncMask) override;
 		bool TryGetFirstAcquiredImageIndex(u32& outImageIndex) const override;
