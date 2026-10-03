@@ -20,14 +20,46 @@ TDerived& TGpuResourceTracker<TDerived, TBarrierHelper>::GetDerived()
 template<class TDerived, class TBarrierHelper>
 void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions(GpuQueueId destinationQueueId, u32 frameIndex, GpuSubmissionTransitionVisitor& visitor)
 {
+	// Tracks resting reads in the submission state if the resource is at rest, so they need no transition. Returns false if the reads need a GpuSubmissionTransition::Build().
+	auto fnTryTrackRestingRead = [destinationQueueId, frameIndex](GpuResourceSubmissionState& state, GpuStageFlags readStages)
+	{
+		// Clear state from last frame
+		if(state.FrameIndex != frameIndex)
+		{
+			state.Clear();
+			state.FrameIndex = frameIndex;
+		}
+
+		if(state.HasWriter)
+			return false;
+
+		// The read needs no synchronization. Track it, so later writes in this frame order after it.
+		state.ReaderQueues |= destinationQueueId;
+		state.ReaderStages |= readStages;
+		return true;
+	};
+
 	for(const auto& entry : mBuffers)
 	{
 		IGpuBufferResource* const buffer = entry.first;
 		const GpuBufferTrackingState& trackingState = entry.second;
-		if(trackingState.HazardState == nullptr || !trackingState.HazardState->HasSubmissionEffect())
+
+		const GpuResourceHazardState* hazards = trackingState.HazardState;
+		GpuResourceHazardState restingRead;
+		if(trackingState.HasOnlyRestingReads())
+		{
+			// At rest, the reads need no transition
+			if(fnTryTrackRestingRead(buffer->GetSubmissionState(), trackingState.UseHandle.Stages))
+				continue;
+
+			// Resting -> tracked
+			restingRead.RecordAccess(trackingState.UseHandle.Stages, GpuAccessFlag::Read);
+			hazards = &restingRead;
+		}
+		else if(hazards == nullptr || !hazards->HasSubmissionEffect())
 			continue;
 
-		GpuSubmissionBufferTransition transition(*buffer, GpuSubmissionTransition::Build(buffer->GetSubmissionState(), frameIndex, buffer->GetUseInfo(GpuAccessFlag::Read), destinationQueueId, *trackingState.HazardState));
+		GpuSubmissionBufferTransition transition(*buffer, GpuSubmissionTransition::Build(buffer->GetSubmissionState(), frameIndex, buffer->GetUseInfo(GpuAccessFlag::Read), destinationQueueId, *hazards));
 		visitor.VisitBuffer(transition);
 
 		buffer->SetSubmissionState(std::move(transition.PostTransitionSubmissionState));
@@ -36,6 +68,68 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions
 	for(const auto& entry : mImages)
 	{
 		IGpuImageResource* const image = entry.first;
+		const GpuImageTrackingState& imageTrackingState = mImageTrackingState[entry.second];
+		if(imageTrackingState.HasOnlyRestingReads())
+		{
+			const GpuTextureSubresourceRange& range = imageTrackingState.Range;
+			const GpuStageFlags readStages = imageTrackingState.UseHandle.Stages;
+
+			GpuImageSubresource& fullRangeSubresource = *image->GetFullRangeSubresource();
+			if(image->HasUniformSubmissionState())
+			{
+				// Outside the resting layout, the reads need a transition
+				if(fullRangeSubresource.NativeState.Layout == TDerived::kRestingNativeLayout && fnTryTrackRestingRead(fullRangeSubresource.SubmissionState, readStages))
+					continue;
+			}
+
+			// Convert resting -> tracked state
+			GpuResourceHazardState restingRead;
+			restingRead.RecordAccess(readStages, GpuAccessFlag::Read);
+
+			// Transitions below bypass ResolveImageSubmissionHazards(): images that can rest have no meta-data to resolve
+
+			// In the uniform case, avoid splitting if the range covers the full image.
+			if(image->HasUniformSubmissionState())
+			{
+				if(image->IsFullRange(range))
+				{
+					GpuSubmissionImageTransition transition(*image, image->GetRange(), fullRangeSubresource.NativeState, GpuImageLayout::ShaderReadOnly, GpuImageLayout::ShaderReadOnly, GpuImageBarrierFlag::None,
+						GpuSubmissionTransition::Build(fullRangeSubresource.SubmissionState, frameIndex, image->GetUseInfo(GpuAccessFlag::Read), destinationQueueId, restingRead));
+					visitor.VisitImage(transition);
+
+					fullRangeSubresource.SubmissionState = std::move(transition.PostTransitionSubmissionState);
+					continue;
+				}
+
+				// Split submission state as we'll need to track subresources individually
+				image->SplitSubmissionState();
+			}
+
+			// A split image does not rest. Synchronize the surfaces that were read, then return to one state if they now share it.
+			B3D_ASSERT(range.HasSingleAspect());
+
+			const GpuQueueMask fullRangeReadQueues = fullRangeSubresource.GetUseInfo(GpuAccessFlag::Read);
+			const u32 mipEnd = range.BaseMipLevel + range.MipLevelCount;
+			const u32 faceEnd = range.BaseArrayLayer + range.ArrayLayerCount;
+			for(u32 mipLevel = range.BaseMipLevel; mipLevel < mipEnd; ++mipLevel)
+			{
+				for(u32 face = range.BaseArrayLayer; face < faceEnd; ++face)
+				{
+					GpuImageSubresource& subresource = *image->GetSubresource(face, mipLevel, (GpuTextureAspectFlag)(u32)range.AspectMask);
+
+					const GpuQueueMask inFlightReadQueues = subresource.GetUseInfo(GpuAccessFlag::Read) | fullRangeReadQueues;
+					GpuSubmissionImageTransition transition(*image, GpuTextureSubresourceRange(mipLevel, 1, face, 1, range.AspectMask), subresource.NativeState, GpuImageLayout::ShaderReadOnly, GpuImageLayout::ShaderReadOnly,
+						GpuImageBarrierFlag::None, GpuSubmissionTransition::Build(subresource.SubmissionState, frameIndex, inFlightReadQueues, destinationQueueId, restingRead));
+					visitor.VisitImage(transition);
+
+					subresource.SubmissionState = std::move(transition.PostTransitionSubmissionState);
+				}
+			}
+
+			image->TryMergeSubmissionState(frameIndex);
+			continue;
+		}
+
 		const TArrayView<const GpuImageSubresourceTrackingState> trackingStates = GetSubresourceTrackingStatesForImage(image);
 
 		const GpuImageSubresourceTrackingState* firstEffectiveTrackingState = nullptr;
@@ -132,7 +226,7 @@ GpuBufferTrackingState& TGpuResourceTracker<TDerived, TBarrierHelper>::GetOrCrea
 
 		bufferTrackingState.UseHandle.Used = false;
 		bufferTrackingState.UseHandle.Flags = GpuAccessFlag::None;
-		bufferTrackingState.HazardState = mHazardStatePool.Construct<GpuResourceHazardState>();
+		bufferTrackingState.UseHandle.Stages = GpuStageFlag::None;
 
 		buffer->NotifyBound();
 
@@ -143,6 +237,21 @@ GpuBufferTrackingState& TGpuResourceTracker<TDerived, TBarrierHelper>::GetOrCrea
 		GpuBufferTrackingState& bufferTrackingState = insertResult.first->second;
 		return bufferTrackingState;
 	}
+}
+
+template<class TDerived, class TBarrierHelper>
+GpuResourceHazardState& TGpuResourceTracker<TDerived, TBarrierHelper>::GetOrCreateHazardState(GpuBufferTrackingState& bufferTrackingState)
+{
+	if(bufferTrackingState.HazardState != nullptr)
+		return *bufferTrackingState.HazardState;
+
+	bufferTrackingState.HazardState = mHazardStatePool.Construct<GpuResourceHazardState>();
+
+	// Every access recorded so far was a resting read. They precede every access still pending registration, so they are recorded directly.
+	if(bufferTrackingState.UseHandle.Stages != GpuStageFlag::None)
+		bufferTrackingState.HazardState->RecordAccess(bufferTrackingState.UseHandle.Stages, GpuAccessFlag::Read);
+
+	return *bufferTrackingState.HazardState;
 }
 
 template<class TDerived, class TBarrierHelper>
@@ -163,9 +272,10 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitBufferBarrier(I
 		return;
 
 	GpuBufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
-	if(!bufferTrackingState.HazardState->HasAccess())
+	GpuResourceHazardState& hazardState = GetOrCreateHazardState(bufferTrackingState);
+	if(!hazardState.HasAccess())
 	{
-		bufferTrackingState.HazardState->HasLeadingBarrier = true;
+		hazardState.HasLeadingBarrier = true;
 		return;
 	}
 
@@ -177,9 +287,9 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackBufferAccess(IGpuBuffer
 {
 	B3D_ASSERT(!bufferTrackingState.UseHandle.Used);
 
+	// Turns earlier resting reads into tracked reads, before the barrier is resolved against them
+	GpuResourceHazardState* const hazardState = &GetOrCreateHazardState(bufferTrackingState);
 	QueueRequiredBufferBarrier(buffer, bufferTrackingState, stages, access, barrierHelper);
-
-	GpuResourceHazardState* const hazardState = bufferTrackingState.HazardState;
 
 	// Defer registering hazards until after the barrier is issued, as the barrier helper clears any hazards that have been set
 	if(access.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
@@ -193,6 +303,7 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackBufferAccess(IGpuBuffer
 	}
 
 	bufferTrackingState.UseHandle.Flags |= access;
+	bufferTrackingState.UseHandle.Stages |= stages;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	TrackBufferSuballocation(buffer, dynamicOffset);
@@ -229,6 +340,21 @@ template<class TDerived, class TBarrierHelper>
 void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackBufferAccess(IGpuBufferResource* buffer, GpuStageFlags stages, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, u32 dynamicOffset)
 {
 	GpuBufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
+
+	// Resting read optimization
+	if(bufferTrackingState.HazardState == nullptr && accessFlags == GpuAccessFlag::Read && stages != GpuStageFlag::None)
+	{
+		B3D_ASSERT(!bufferTrackingState.UseHandle.Used);
+
+		bufferTrackingState.UseHandle.Stages |= stages;
+		bufferTrackingState.UseHandle.Flags |= GpuAccessFlag::Read;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		TrackBufferSuballocation(buffer, dynamicOffset);
+#endif
+		return;
+	}
+
 	TrackBufferAccess(buffer, bufferTrackingState, stages, accessFlags, barrierHelper, dynamicOffset);
 }
 
@@ -400,7 +526,7 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackRenderPassAttachmentAcc
 }
 
 template<class TDerived, class TBarrierHelper>
-bool TGpuResourceTracker<TDerived, TBarrierHelper>::TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper)
+bool TGpuResourceTracker<TDerived, TBarrierHelper>::TrackShaderImageAccess(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper)
 {
 	if(image == nullptr)
 		return true;
@@ -410,6 +536,10 @@ bool TGpuResourceTracker<TDerived, TBarrierHelper>::TrackImageUsage(IGpuImageRes
 		TrackImageAccess(image, subresourceRange, layout, GpuBackendUtility::GetStageFlags(useFlags), accessFlags, barrierHelper);
 		return true;
 	}
+
+	const GpuStageFlags stages = GpuBackendUtility::GetStageFlags(useFlags);
+	if(TryTrackRestingImageRead(image, subresourceRange, layout, stages, accessFlags))
+		return true;
 
 	struct CallbackParameters
 	{
@@ -490,7 +620,7 @@ bool TGpuResourceTracker<TDerived, TBarrierHelper>::TrackImageUsage(IGpuImageRes
 	}, &callbackParameters);
 
 	if(callbackParameters.Valid)
-		RegisterImageSubresources(image, subresourceRange, accessFlags);
+		RegisterImageSubresources(image, subresourceRange, accessFlags, stages);
 
 	return callbackParameters.Valid;
 }
@@ -499,6 +629,9 @@ template<class TDerived, class TBarrierHelper>
 void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackImageAccess(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags, GpuImageTrackingFlags trackingFlags)
 {
 	if(image == nullptr)
+		return;
+
+	if(barrierFlags == GpuImageBarrierFlag::None && trackingFlags == GpuImageTrackingFlag::None && TryTrackRestingImageRead(image, subresourceRange, layout, stages, accessFlags))
 		return;
 
 	struct CallbackParameters
@@ -536,15 +669,47 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackImageAccess(IGpuImageRe
 
 	// For meta-data operations ignore access for now, just make sure the resource is registered. Since meta-data ops are conditional we patch the access during submission
 	// (access for hazard tracking is updated right away though, conservatively)
-	RegisterImageSubresources(image, subresourceRange, trackingFlags.IsSet(GpuImageTrackingFlag::MetadataOperation) ? GpuAccessFlags(GpuAccessFlag::Read) : accessFlags);
+	RegisterImageSubresources(image, subresourceRange, trackingFlags.IsSet(GpuImageTrackingFlag::MetadataOperation) ? GpuAccessFlags(GpuAccessFlag::Read) : accessFlags, stages);
 }
 
 template<class TDerived, class TBarrierHelper>
-void TGpuResourceTracker<TDerived, TBarrierHelper>::RegisterImageSubresources(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuAccessFlags accessFlags)
+bool TGpuResourceTracker<TDerived, TBarrierHelper>::TryTrackRestingImageRead(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags accessFlags)
+{
+	if(accessFlags != GpuAccessFlag::Read || stages == GpuStageFlag::None || !image->CanRest() || layout != GpuImageLayout::ShaderReadOnly)
+		return false;
+
+	// Only uniform images rest, and only single-aspect images can be uniform
+	B3D_ASSERT(image->GetRange().HasSingleAspect());
+
+	const GpuTextureSubresourceRange range = GpuBackendUtility::ClampRange(subresourceRange, image->GetRange());
+	if(!range.AspectMask)
+		return false;
+
+	GpuImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
+	if(imageTrackingState.SubresourceInfoCount != 0)
+		return false;
+
+	// Submission synchronizes the bounding range of the resting reads, so that is the range registered with the command buffer
+	const bool isFirstAccess = imageTrackingState.UseHandle.Stages == GpuStageFlag::None;
+	const GpuTextureSubresourceRange newRange = isFirstAccess ? range : GpuBackendUtility::GetBoundingRange(imageTrackingState.Range, range);
+	if(isFirstAccess || !GpuBackendUtility::RangeContains(imageTrackingState.Range, newRange))
+	{
+		imageTrackingState.Range = newRange;
+		RegisterImageSubresources(image, newRange, GpuAccessFlag::Read, stages);
+	}
+	else
+		imageTrackingState.UseHandle.Stages |= stages;
+
+	return true;
+}
+
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::RegisterImageSubresources(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuAccessFlags accessFlags, GpuStageFlags stages)
 {
 	GpuImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
 	B3D_ASSERT(!imageTrackingState.UseHandle.Used);
 	imageTrackingState.UseHandle.Flags |= accessFlags;
+	imageTrackingState.UseHandle.Stages |= stages;
 
 	// Register any sub-resources
 	B3D_ASSERT(subresourceRange.ArrayLayerCount != ~0u);
@@ -609,7 +774,7 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitImageBarrier(IG
 			}
 		}
 
-		callbackParameters->Tracker->RegisterImageSubresources(callbackParameters->Image, subresourceTrackingState.Range, GpuAccessFlag::None);
+		callbackParameters->Tracker->RegisterImageSubresources(callbackParameters->Image, subresourceTrackingState.Range, GpuAccessFlag::None, GpuStageFlag::None);
 		callbackParameters->Tracker->GetDerived().QueueRequiredImageBarrier(callbackParameters->Image, subresourceTrackingState, callbackParameters->DestinationStages, callbackParameters->DestinationAccess, callbackParameters->DestinationLayout, *callbackParameters->BarrierHelper);
 	}, &callbackParameters);
 }
@@ -757,6 +922,7 @@ GpuImageTrackingState& TGpuResourceTracker<TDerived, TBarrierHelper>::GetOrCreat
 
 		imageTrackingState.UseHandle.Used = false;
 		imageTrackingState.UseHandle.Flags = GpuAccessFlag::None;
+		imageTrackingState.UseHandle.Stages = GpuStageFlag::None;
 
 		image->NotifyBound();
 		return imageTrackingState;
@@ -852,6 +1018,10 @@ const GpuImageSubresourceTrackingState* TGpuResourceTracker<TDerived, TBarrierHe
 	const u32 imageTrackingIndex = mImages.find(image)->second;
 	const GpuImageTrackingState& imageTrackingState = mImageTrackingState[imageTrackingIndex];
 
+	// An image with only resting reads has no subresource tracking states
+	if(imageTrackingState.SubresourceInfoCount == 0)
+		return nullptr;
+
 	const GpuImageSubresourceTrackingState* const subresourceTrackingStates = &mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex];
 	for(u32 localSubresourceIndex = 0; localSubresourceIndex < imageTrackingState.SubresourceInfoCount; localSubresourceIndex++)
 	{
@@ -889,14 +1059,41 @@ template<class TDerived, class TBarrierHelper>
 void TGpuResourceTracker<TDerived, TBarrierHelper>::IterateAndCreateOverlappingImageSubresourceTrackingState(IGpuImageResource* image, GpuTextureSubresourceRange subresourceRange, void (*fnDoOnOverlappingSubresource)(u32 globalSubresourceIndex, void* userData), void* userData)
 {
 	GpuImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
+
+	// Convert resting to tracked reads first if needed
+	if(imageTrackingState.HasOnlyRestingReads())
+	{
+		const u32 firstSubresourceIndex = (u32)mSubresourceTrackingState.size();
+		u32 subresourceCount = 0;
+		for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
+		{
+			if(!imageTrackingState.Range.AspectMask.IsSet(aspect))
+				continue;
+
+			GpuTextureSubresourceRange aspectRange = imageTrackingState.Range;
+			aspectRange.AspectMask = aspect;
+
+			const u32 subresourceIndex = AddSubresourceTrackingState(image, aspectRange);
+			GpuImageSubresourceTrackingState& subresourceTrackingState = mSubresourceTrackingState[subresourceIndex];
+
+			subresourceTrackingState.InitialLayout = GpuImageLayout::ShaderReadOnly;
+			subresourceTrackingState.CurrentLayout = GpuImageLayout::ShaderReadOnly;
+			subresourceTrackingState.RequiredLayout = GpuImageLayout::ShaderReadOnly;
+			subresourceTrackingState.Access = GpuAccessFlag::Read;
+			subresourceTrackingState.AccessEpoch = mEpoch;
+
+			// Resting reads precede every access still pending registration, so they are recorded directly
+			subresourceTrackingState.HazardState->RecordAccess(imageTrackingState.UseHandle.Stages, GpuAccessFlag::Read);
+			subresourceCount++;
+		}
+
+		// The range was registered when the resting reads were recorded
+		imageTrackingState.FirstSubresourceInfoIndex = firstSubresourceIndex;
+		imageTrackingState.SubresourceInfoCount = subresourceCount;
+	}
+
 	// Provide exact size as code below doesn't handle the "remaining" sentinel
-	if(subresourceRange.ArrayLayerCount == ~0u)
-		subresourceRange.ArrayLayerCount = image->GetRange().ArrayLayerCount;
-
-	if(subresourceRange.MipLevelCount == ~0u)
-		subresourceRange.MipLevelCount = image->GetRange().MipLevelCount;
-
-	subresourceRange.AspectMask &= image->GetRange().AspectMask;
+	subresourceRange = GpuBackendUtility::ClampRange(subresourceRange, image->GetRange());
 	B3D_ASSERT(subresourceRange.AspectMask);
 
 	auto fnProcessAspectSubresourceRange = [this, image, &imageTrackingState, fnDoOnOverlappingSubresource, userData](const GpuTextureSubresourceRange& aspectSubresourceRange)
@@ -1127,9 +1324,7 @@ template<class TDerived, class TBarrierHelper>
 void TGpuResourceTracker<TDerived, TBarrierHelper>::UpdateHazardStateAfterBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
 {
 	GpuBufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
-	GpuResourceHazardState* const hazardState = bufferTrackingState.HazardState;
-
-	hazardState->RecordBarrier(barrier);
+	GetOrCreateHazardState(bufferTrackingState).RecordBarrier(barrier);
 }
 
 template<class TDerived, class TBarrierHelper>

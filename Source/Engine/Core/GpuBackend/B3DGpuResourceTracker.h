@@ -42,6 +42,9 @@ namespace b3d
 			 * layout tracking without registering a read or write access.
 			 */
 			GpuAccessFlags Flags;
+
+			/** Stages of every access recorded for the resource in this command buffer. */
+			GpuStageFlags Stages;
 		};
 
 		/** Contains information about a single GPU buffer resource bound/used on a command buffer. */
@@ -50,13 +53,22 @@ namespace b3d
 			/** Information about resource usage and submission state. */
 			GpuResourceUseHandle UseHandle;
 
-			/** State used to resolve read-after-write, write-after-write and write-after-read hazards. */
+			/**
+			 * State used to resolve read-after-write, write-after-write and write-after-read hazards.
+			 * Null while every access recorded for the buffer is a resting read.
+			 */
 			GpuResourceHazardState* HazardState = nullptr;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			/** Suballocation indices that are bound in this tracking state. Typically 1-2. */
 			TInlineArray<u32, 2> BoundSuballocationIndices;
 #endif
+
+			/**
+			 * Returns true if every access recorded for the buffer is a resting read.
+			 * Resting read resources have no hazard state tracking. This is the common state for read-only resources.
+			 */
+			bool HasOnlyRestingReads() const { return HazardState == nullptr && UseHandle.Stages != GpuStageFlag::None; }
 		};
 
 		/** Contains information about a single GPU image resource bound/used on a command buffer. */
@@ -70,6 +82,18 @@ namespace b3d
 
 			/** Number of consecutive subresource tracking states belonging to this image. */
 			u32 SubresourceInfoCount;
+
+			/**
+			 * Bounding range of the accesses recorded for the image, registered with the command buffer. Only valid while the image has no
+			 * subresource tracking states (SubresourceInfoCount == 0). Once they exist it is stale, and they describe the accessed ranges instead.
+			 */
+			GpuTextureSubresourceRange Range;
+
+			/**
+			 * Returns true if every access recorded for the image is a resting read. Such an image has no subresource tracking states.
+			 * This is the common state for read-only resources.
+			 */
+			bool HasOnlyRestingReads() const { return SubresourceInfoCount == 0 && UseHandle.Stages != GpuStageFlag::None; }
 		};
 
 		/** Contains information about a range of GPU image sub-resources bound/used on a command buffer. */
@@ -111,12 +135,18 @@ namespace b3d
 			 * Equal to CurrentLayout if no transition is needed. Updated after every render pass or dispatch call.
 			 */
 			GpuImageLayout RequiredLayout;
-
 		};
 
 		/**
-		 * Tracker for all resources used on a single command buffer. Keeps bound resources alive while they are bound on the 
+		 * Tracker for all resources used on a single command buffer. Keeps bound resources alive while they are bound on the
 		 * command buffer, keeps track of necessary barriers and layout transitions that need to be issued.
+		 *
+		 * Each resource can be in two states: Tracked & Resting
+		 *  - Tracked resources - Resources have a hazard state object associated and full hazard tracking is being performed. Any resources being written is in this state.
+		 *  - Resting resources - This is an optimization for the common case (most resources are read-only, such as sampleable textures or uniform buffers). Such resources
+		 *						  are kept in a resting read state that is cheaper to track, and does not require a hazard state object. If a resting resource is written to, 
+		 *						  it is promoted to tracked state. All buffers can always be in resting state, while for textures it depends (see Texture::CanRest() - 
+		 *						  generally render targets or UAV textures never rest).
 		 *
 		 * @tparam	TDerived		Concrete backend resource tracker (CRTP self-type).
 		 * @tparam	TBarrierHelper	Backend-specific barrier helper used to queue resolved native barriers.
@@ -181,8 +211,11 @@ namespace b3d
 			 */
 			void TrackImageAccess(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags = GpuImageBarrierFlag::None, GpuImageTrackingFlags trackingFlags = GpuImageTrackingFlag::None);
 
-			/** Tracks image usage, validating shader/attachment overlap and combining layouts within the pending access batch. Returns false for unsupported overlap. */
-			bool TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper);
+			/**
+			 * Tracks an image access made by a shader binding of a draw or dispatch, validating shader/attachment overlap and combining layouts within the pending access batch.
+			 * Returns false for unsupported overlap. Use this instead of the generic TrackImageAccess if image is used within a shader of a draw or dispatch call.
+			*/
+			bool TrackShaderImageAccess(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper);
 
 			/** Re-tracks render pass attachment accesses that were invalidated via InvalidateRenderPassAttachmentAccess. */
 			void TrackRenderPassAttachmentAccesses(TBarrierHelper& barrierHelper);
@@ -348,6 +381,9 @@ namespace b3d
 			/** Finds the tracking state index for the specified image, or returns ~0u if not found. */
 			u32 FindImageTrackingStateIndex(IGpuImageResource* image) const;
 
+			/** Returns the buffer's hazard state, creating it on first use. Resting reads recorded so far become tracked reads. */
+			GpuResourceHazardState& GetOrCreateHazardState(GpuBufferTrackingState& bufferTrackingState);
+
 			/** Finds the render-pass attachment overlapping @p range, or returns null. */
 			const GpuResolvedRenderPassAttachmentUsage* FindRenderPassAttachment(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const;
 
@@ -367,6 +403,9 @@ namespace b3d
 			// TODO - Refactor this signature, try to clean it up once we have explicit layout transitions
 			void TrackSubresourceUsage(IGpuImageResource* image, u32 globalSubresourceIndex, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags, GpuImageTrackingFlags trackingFlags = GpuImageTrackingFlag::None);
 
+			/** Records a resting read of @p image if the image has no subresource tracking states. Returns false if the access must be tracked instead. */
+			bool TryTrackRestingImageRead(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags accessFlags);
+
 			/** Registers a new resource range using the provided parameters to initialize it. */
 			u32 AddSubresourceTrackingState(IGpuImageResource* image, const GpuTextureSubresourceRange& range);
 
@@ -380,8 +419,11 @@ namespace b3d
 			u32 CopySubresourceTrackingStateWithNewRange(u32 copyFromIndex, const GpuTextureSubresourceRange& newRange);
 
 		protected:
-			/** Retains the image and its affected subresources. Use GpuAccessFlag::None to retain them without declaring a read or write. */
-			void RegisterImageSubresources(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuAccessFlags accessFlags);
+			/**
+			 * Retains the image and its affected subresources. Use GpuAccessFlag::None to retain them without declaring a read or write.
+			 * @p stages declare on which stages is the image being accessed.
+			 */
+			void RegisterImageSubresources(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuAccessFlags accessFlags, GpuStageFlags stages);
 
 			/**
 			 * Builds, visits and commits the submission transition of @p range of an image, whose submission and native state are held by

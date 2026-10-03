@@ -415,7 +415,7 @@ namespace b3d
 							range.AspectMask = GpuTextureAspectFlag::Depth;
 
 						const GpuImageLayout imageLayout = type == GpuParameterType::StorageTexture ? GpuImageLayout::General : GpuImageLayout::ShaderReadOnly;
-						if(!resourceTracker.TrackImageUsage(resource, range, imageLayout, useFlags, access, barrierHelper))
+						if(!resourceTracker.TrackShaderImageAccess(resource, range, imageLayout, useFlags, access, barrierHelper))
 							return false;
 					}
 					return true;

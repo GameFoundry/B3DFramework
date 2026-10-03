@@ -308,6 +308,18 @@ bool GpuBackendUtility::RangeContains(const GpuTextureSubresourceRange& outer, c
 		outer.BaseArrayLayer <= inner.BaseArrayLayer && inner.BaseArrayLayer + inner.ArrayLayerCount <= outer.BaseArrayLayer + outer.ArrayLayerCount;
 }
 
+GpuTextureSubresourceRange GpuBackendUtility::ClampRange(GpuTextureSubresourceRange range, const GpuTextureSubresourceRange& imageRange)
+{
+	if(range.ArrayLayerCount == ~0u)
+		range.ArrayLayerCount = imageRange.ArrayLayerCount;
+
+	if(range.MipLevelCount == ~0u)
+		range.MipLevelCount = imageRange.MipLevelCount;
+
+	range.AspectMask &= imageRange.AspectMask;
+	return range;
+}
+
 const char* GpuBackendUtility::GetImageLayoutName(GpuImageLayout layout)
 {
 	switch(layout)

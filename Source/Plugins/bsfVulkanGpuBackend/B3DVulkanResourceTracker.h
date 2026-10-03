@@ -20,7 +20,11 @@ namespace b3d::render
 
 	/** Vulkan-specific resource tracker. Inherits the backend-agnostic tracking machinery from TGpuResourceTracker. */
 	class VulkanResourceTracker : public TGpuResourceTracker<VulkanResourceTracker, VulkanBarrierHelper>
-	{ };
+	{
+	public:
+		/** Encoding of GpuImageLayout::ShaderReadOnly in GpuImageNativeState::Layout, for images that can rest (see TGpuResourceTracker). */
+		static constexpr u32 kRestingNativeLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	};
 
 	/** @} */
 } // namespace b3d::render

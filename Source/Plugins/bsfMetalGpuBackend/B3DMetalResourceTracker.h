@@ -19,7 +19,14 @@ namespace b3d::render
 
 	/** Metal-specific resource tracker. Inherits the backend-agnostic tracking machinery from TGpuResourceTracker. */
 	class MetalResourceTracker : public TGpuResourceTracker<MetalResourceTracker, MetalBarrierHelper>
-	{ };
+	{
+	public:
+		/**
+		 * Encoding of GpuImageLayout::ShaderReadOnly in GpuImageNativeState::Layout, for images that can rest (see TGpuResourceTracker).
+		 * Metal has no layouts, so the native layout keeps its initial value.
+		 */
+		static constexpr u32 kRestingNativeLayout = (u32)GpuImageLayout::Undefined;
+	};
 
 	/** @} */
 } // namespace b3d::render

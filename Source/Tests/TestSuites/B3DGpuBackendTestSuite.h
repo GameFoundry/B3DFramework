@@ -58,6 +58,15 @@ namespace b3d
 		/** Verifies a write orders only after the reader stages of its own queue type. */
 		void TestRestingReaderStages();
 
+		/** Verifies resting reads keep only lifetime tracking and register their bounding range, and which accesses are tracked instead. */
+		void TestRestingReadRecording();
+
+		/** Verifies the first tracked access of a resource turns its resting reads into ordinary tracked reads. */
+		void TestRestingReadMaterialization();
+
+		/** Verifies reads at rest are recorded without a transition, and that later writes order after them. */
+		void TestRestingSubmission();
+
 		/** Verifies framebuffer attachment normalization and render-pass usage construction. */
 		void TestFramebufferAttachmentUsage();
 

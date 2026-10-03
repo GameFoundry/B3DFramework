@@ -85,6 +85,9 @@ namespace b3d
 		/** Returns true if @p outer contains every subresource of @p inner. */
 		static bool RangeContains(const GpuTextureSubresourceRange& outer, const GpuTextureSubresourceRange& inner);
 
+		/** Returns @p range with "remaining" counts resolved and aspects limited to those of @p imageRange, the full range of the image. */
+		static GpuTextureSubresourceRange ClampRange(GpuTextureSubresourceRange range, const GpuTextureSubresourceRange& imageRange);
+
 		/**
 		 * Subdivides an image subresource range by cutting it with another range. If the ranges don't overlap, or the
 		 * @p cutWith range completely covers the @p toCut range, the original @p toCut range is output.

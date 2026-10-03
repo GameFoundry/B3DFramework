@@ -908,7 +908,7 @@ bool VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracke
 			const GpuResourceUseFlags useFlags = VulkanUtility::ShaderToResourceUseFlags(perSetBindings[usedBindingSequentialIndex].stageFlags) | GpuResourceUseFlag::ShaderAccess;
 			const GpuTextureSubresourceRange range = vulkanImage->GetRange(surface);
 
-			if(!resourceTracker.TrackImageUsage(vulkanImage, range, GpuImageLayout::General, useFlags, GpuAccessFlag::Read | GpuAccessFlag::Write, barrierHelper))
+			if(!resourceTracker.TrackShaderImageAccess(vulkanImage, range, GpuImageLayout::General, useFlags, GpuAccessFlag::Read | GpuAccessFlag::Write, barrierHelper))
 				return false;
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
@@ -987,7 +987,7 @@ bool VulkanGpuParameterSet::PrepareForBind(VulkanResourceTracker& resourceTracke
 
 			const GpuResourceUseFlags useFlags = VulkanUtility::ShaderToResourceUseFlags(perSetBindings[usedBindingSequentialIndex].stageFlags) | GpuResourceUseFlag::ShaderAccess;
 			const GpuImageLayout resolvedLayout = resourceTracker.ResolveShaderImageLayout(vulkanImage, range, gpuLayout);
-			if(!resourceTracker.TrackImageUsage(vulkanImage, range, resolvedLayout, useFlags, GpuAccessFlag::Read, barrierHelper))
+			if(!resourceTracker.TrackShaderImageAccess(vulkanImage, range, resolvedLayout, useFlags, GpuAccessFlag::Read, barrierHelper))
 				return false;
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
