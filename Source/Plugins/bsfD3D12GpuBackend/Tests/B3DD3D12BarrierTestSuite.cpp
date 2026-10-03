@@ -614,16 +614,17 @@ void D3D12BarrierTestSuite::TestQueueSharing()
 		PixelFormat Format;
 		TextureUsageFlags Usage;
 		bool IsShared;
+		bool CanRest;
 	};
 
 	const TextureCase textureCases[] =
 	{
-		{ "D3D12 sampleable texture", PF_RGBA8, TextureUsageFlag::StoreOnGPU, true },
-		{ "D3D12 concurrent-read render target", PF_RGBA8, TextureUsageFlag::RenderTarget | TextureUsageFlag::AllowConcurrentQueueReads, true },
-		{ "D3D12 render target", PF_RGBA8, TextureUsageFlag::RenderTarget, false },
-		{ "D3D12 depth-stencil target", PF_D32, TextureUsageFlag::DepthStencil, false },
-		{ "D3D12 UAV texture", PF_RGBA8, TextureUsageFlag::AllowUnorderedAccessOnTheGPU, false },
-		{ "D3D12 CPU-writable texture", PF_RGBA8, TextureUsageFlag::StoreOnCPUWithGPUAccess, false },
+		{ "D3D12 sampleable texture", PF_RGBA8, TextureUsageFlag::StoreOnGPU, true, true },
+		{ "D3D12 concurrent-read render target", PF_RGBA8, TextureUsageFlag::RenderTarget | TextureUsageFlag::AllowConcurrentQueueReads, true, false },
+		{ "D3D12 render target", PF_RGBA8, TextureUsageFlag::RenderTarget, false, false },
+		{ "D3D12 depth-stencil target", PF_D32, TextureUsageFlag::DepthStencil, false, false },
+		{ "D3D12 UAV texture", PF_RGBA8, TextureUsageFlag::AllowUnorderedAccessOnTheGPU, false, false },
+		{ "D3D12 CPU-writable texture", PF_RGBA8, TextureUsageFlag::StoreOnCPUWithGPUAccess, false, false },
 	};
 
 	const GpuTextureAspectFlags colorAspect = GpuTextureAspectFlag::Color;
@@ -649,6 +650,7 @@ void D3D12BarrierTestSuite::TestQueueSharing()
 		// Shared textures use queue-independent layouts, not simultaneous access
 		B3D_TEST_ASSERT((image->GetD3D12Resource()->GetDesc().Flags & D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS) == 0)
 		B3D_TEST_ASSERT(image->AllowsConcurrentQueueReads() == textureCase.IsShared)
+		B3D_TEST_ASSERT(image->CanRest() == textureCase.CanRest)
 		if(!textureCase.IsShared)
 			continue;
 

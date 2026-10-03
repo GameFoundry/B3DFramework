@@ -6,6 +6,7 @@
 #include "B3DMetalResourceManager.h"
 #include "B3DMetalUtility.h"
 #include "Image/B3DPixelUtility.h"
+#include "GpuBackend/B3DGpuBackendUtility.h"
 #include "Debug/B3DLog.h"
 #include "Math/B3DMath.h"
 
@@ -38,6 +39,8 @@ namespace b3d
 			GpuImageNativeState initialNativeState;
 			initialNativeState.Layout = (u32)GpuImageLayout::Undefined;
 			InitializeNativeState(mFullRange.AspectMask, initialNativeState);
+
+			mCanRest = GpuBackendUtility::IsSampleableOnly(createInformation.Usage);
 		}
 
 		MetalImage::~MetalImage()

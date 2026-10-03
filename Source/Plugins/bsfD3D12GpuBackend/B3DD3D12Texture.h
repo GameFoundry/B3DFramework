@@ -27,6 +27,7 @@ namespace b3d
 			u32 MipLevelCount = 1; /**< Number of mip levels in the image. */
 			GpuTextureAspectFlags Aspect = GpuTextureAspectFlag::Color; /**< Which aspects (color/depth/stencil) the image format contains. */
 			bool AllowConcurrentQueueReads = false; /**< Whether shader reads may overlap on multiple GPU queues. */
+			bool CanRest = false; /**< Whether shader reads of the image rest (see IGpuImageResource::CanRest()). Requires AllowConcurrentQueueReads. */
 			bool IsPresentable = false; /**< Whether the image is a swap-chain buffer that must remain compatible with presentation. */
 			String Name; /**< Optional debug name. */
 		};

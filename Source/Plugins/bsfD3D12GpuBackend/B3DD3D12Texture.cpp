@@ -28,6 +28,10 @@ namespace b3d
 				initialNativeState.Layout = (u32)createInformation.InitialLayout.GetLayout(aspect);
 				InitializeNativeState(aspect, initialNativeState);
 			}
+
+			// Resting relies on GpuImageLayout::ShaderReadOnly translating to the same native layout on every queue, which is only true for texture with concurrent reads
+			B3D_ASSERT(!createInformation.CanRest || mAllowConcurrentQueueReads);
+			mCanRest = createInformation.CanRest;
 		}
 
 		D3D12Image::~D3D12Image()
@@ -212,6 +216,7 @@ namespace b3d
 			imageCreateInformation.MipLevelCount = properties.MipMapCount + 1;
 			imageCreateInformation.Aspect = aspect;
 			imageCreateInformation.AllowConcurrentQueueReads = properties.Usage.IsSet(TextureUsageFlag::AllowConcurrentQueueReads) || GpuBackendUtility::IsSampleableOnly(properties.Usage);
+			imageCreateInformation.CanRest = GpuBackendUtility::IsSampleableOnly(properties.Usage);
 			imageCreateInformation.Name = properties.Name;
 
 			mImage = device.GetResourceManager().Create<D3D12Image>(imageCreateInformation);
