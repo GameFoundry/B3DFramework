@@ -67,6 +67,9 @@ namespace b3d
 		/** Verifies reads at rest are recorded without a transition, and that later writes order after them. */
 		void TestRestingSubmission();
 
+		/** Verifies layout transitions, at submission and inside the command buffer, are synchronized like writes. */
+		void TestLayoutTransitionWrites();
+
 		/** Verifies framebuffer attachment normalization and render-pass usage construction. */
 		void TestFramebufferAttachmentUsage();
 

@@ -329,8 +329,11 @@ namespace b3d
 			 * @param	inFlightReadQueues		Queues with in-flight reads of the resource. Readers in @p sourceState that are no longer in flight need no wait.
 			 * @param	destinationQueueId		Queue the command buffer is being submitted on.
 			 * @param	destinationHazardState	Hazards recorded by the command buffer being submitted.
+			 * @param	transitionsLayout		True if the command buffer transitions the image layout after its first access. A layout
+			 *									transition can rewrite the resource, so it is synchronized like a write. Its stages are not
+			 *									tracked, so the next access on @p destinationQueueId waits on every stage of the queue.
 			 */
-			static GpuSubmissionTransition Build(const GpuResourceSubmissionState& sourceState, u32 frameIndex, GpuQueueMask inFlightReadQueues, GpuQueueId destinationQueueId, const GpuResourceHazardState& destinationHazardState);
+			static GpuSubmissionTransition Build(const GpuResourceSubmissionState& sourceState, u32 frameIndex, GpuQueueMask inFlightReadQueues, GpuQueueId destinationQueueId, const GpuResourceHazardState& destinationHazardState, bool transitionsLayout = false);
 		};
 
 		/** Submission-boundary description for a buffer. */

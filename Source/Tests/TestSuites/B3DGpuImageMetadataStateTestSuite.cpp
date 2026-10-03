@@ -74,6 +74,9 @@ namespace
 		/** Test images encode native layouts as GpuImageLayout values. */
 		static constexpr u32 kRestingNativeLayout = (u32)GpuImageLayout::ShaderReadOnly;
 
+		/** Models PS5, where meta-data operations are the only native writes. */
+		static constexpr bool kLayoutTransitionsAreWrites = false;
+
 		NativeTestTracker() = default;
 		using Base = TGpuResourceTracker<NativeTestTracker, NativeTestBarrierHelper>;
 		using Base::GetSubresourceTrackingState;

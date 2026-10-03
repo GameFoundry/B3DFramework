@@ -24,6 +24,9 @@ namespace b3d::render
 	public:
 		/** Encoding of GpuImageLayout::ShaderReadOnly in GpuImageNativeState::Layout, for images that can rest (see TGpuResourceTracker). */
 		static constexpr u32 kRestingNativeLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+		/** Layout transitions can rewrite image memory, so submission synchronizes them like writes (see GpuSubmissionTransition::Build()). */
+		static constexpr bool kLayoutTransitionsAreWrites = true;
 	};
 
 	/** @} */

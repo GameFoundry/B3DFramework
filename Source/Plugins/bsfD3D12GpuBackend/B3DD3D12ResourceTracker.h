@@ -27,6 +27,9 @@ namespace b3d::render
 		 */
 		static constexpr u32 kRestingNativeLayout = D3D12_BARRIER_LAYOUT_SHADER_RESOURCE;
 
+		/** Layout transitions can rewrite texture memory, so submission synchronizes them like writes (see GpuSubmissionTransition::Build()). */
+		static constexpr bool kLayoutTransitionsAreWrites = true;
+
 		/** Tracks a logical buffer use and write serialization for its shared physical page. */
 		void TrackBufferAccess(IGpuBufferResource* buffer, GpuStageFlags stages, GpuAccessFlags accessFlags, D3D12BarrierHelper& barrierHelper, u32 dynamicOffset = 0);
 	};

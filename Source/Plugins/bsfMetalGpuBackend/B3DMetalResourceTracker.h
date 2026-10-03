@@ -26,6 +26,9 @@ namespace b3d::render
 		 * Metal has no layouts, so the native layout keeps its initial value.
 		 */
 		static constexpr u32 kRestingNativeLayout = (u32)GpuImageLayout::Undefined;
+
+		/** Metal has no layouts, so layout transitions never touch the image (see GpuSubmissionTransition::Build()). */
+		static constexpr bool kLayoutTransitionsAreWrites = false;
 	};
 
 	/** @} */

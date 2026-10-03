@@ -16,7 +16,7 @@ namespace
 		GpuResourceWriteEpochHazardState RemainingWriteEpochHazardState;
 	};
 
-	WriteEpochTransition BuildSubmissionBarrierWriteEpochTransition(const GpuResourceWriteEpochHazardState& sourceWriteEpochHazardState, const GpuResourceHazardState& destinationHazardState)
+	WriteEpochTransition BuildSubmissionBarrierWriteEpochTransition(const GpuResourceWriteEpochHazardState& sourceWriteEpochHazardState, const GpuResourceHazardState& destinationHazardState, bool transitionsLayout)
 	{
 		WriteEpochTransition result;
 
@@ -27,7 +27,9 @@ namespace
 		if(submissionBarrierAccessScope.ReadStages != GpuStageFlag::None) // RAW
 			result.MemoryBarrier = sourceWriteEpochHazardState.GetRequiredBarrier(submissionBarrierAccessScope.ReadStages, GpuAccessFlag::Read);
 
-		if(destinationHazardState.HasWrite())
+		// A layout transition writes like any write.
+		const bool performsWrites = destinationHazardState.HasWrite();
+		if(performsWrites || (transitionsLayout && submissionBarrierStages != GpuStageFlag::None))
 		{
 			B3D_ASSERT(submissionBarrierStages != GpuStageFlag::None);
 
@@ -52,7 +54,7 @@ namespace
 
 		remainingWriteEpochHazardState.RecordBarrier(result.MemoryBarrier);
 
-		if(destinationHazardState.HasWrite())
+		if(performsWrites)
 			result.RemainingWriteEpochHazardState = destinationHazardState.LastWriteEpochHazardState;
 		else
 		{
@@ -188,7 +190,7 @@ GpuSubmissionTransition::GpuSubmissionTransition(const GpuAccessScope& submissio
 	: SubmissionBarrierAccessScope(submissionBarrierAccessScope), DestinationAllAccessScope(destinationAllAccessScope)
 { }
 
-GpuSubmissionTransition GpuSubmissionTransition::Build(const GpuResourceSubmissionState& sourceState, u32 frameIndex, GpuQueueMask inFlightReadQueues, GpuQueueId destinationQueueId, const GpuResourceHazardState& destinationHazardState)
+GpuSubmissionTransition GpuSubmissionTransition::Build(const GpuResourceSubmissionState& sourceState, u32 frameIndex, GpuQueueMask inFlightReadQueues, GpuQueueId destinationQueueId, const GpuResourceHazardState& destinationHazardState, bool transitionsLayout)
 {
 	// The frame fence guarantees no writes from prior frames can cause a hazard to start from a clear slate on a new frame.
 	// Compared for equality because the index wraps: a state exactly 2^32 frames old keeps its hazards, which only costs redundant waits.
@@ -202,6 +204,7 @@ GpuSubmissionTransition GpuSubmissionTransition::Build(const GpuResourceSubmissi
 	const GpuAccessScope& destinationAllAccessScope = destinationHazardState.AllAccessScope;
 	const bool performsReads = destinationAllAccessScope.ReadStages != GpuStageFlag::None;
 	const bool performsWrites = destinationAllAccessScope.WriteStages != GpuStageFlag::None;
+	const bool synchronizesAsWrite = performsWrites || transitionsLayout;
 	const GpuQueueMask destinationQueueMask(destinationQueueId);
 
 	// Backends must preserve a waitable progress point for the latest submission on every queue. Cross-queue dependencies remain
@@ -220,10 +223,10 @@ GpuSubmissionTransition GpuSubmissionTransition::Build(const GpuResourceSubmissi
 
 	// Full per-stage hazards are only retained for the writer queue. If this queue has outstanding reads and now writes,
 	// patch the same-queue state with the conservative reader-stage union carried by the submission state.
-	if(performsWrites && activeReaderQueues.IsSet(destinationQueueId))
+	if(synchronizesAsWrite && activeReaderQueues.IsSet(destinationQueueId))
 		sameQueueWriteEpochHazardState.ReaderStages |= currentSourceState.ReaderStages & GpuBackendUtility::GetQueueStageFlags(destinationQueueId.GetType());
 
-	const WriteEpochTransition writeEpochTransition = BuildSubmissionBarrierWriteEpochTransition(sameQueueWriteEpochHazardState, destinationHazardState);
+	const WriteEpochTransition writeEpochTransition = BuildSubmissionBarrierWriteEpochTransition(sameQueueWriteEpochHazardState, destinationHazardState, transitionsLayout);
 	transition.MemoryBarrier = writeEpochTransition.MemoryBarrier;
 	transition.ExecutionBarrier = writeEpochTransition.ExecutionBarrier;
 
@@ -240,17 +243,26 @@ GpuSubmissionTransition GpuSubmissionTransition::Build(const GpuResourceSubmissi
 		transition.ExclusiveAccessWaitMask |= currentSourceState.WriterQueueId;
 
 	// Ordinary access: If destination is writer we need to wait on all readers, if destination is reader we need to wait on the writer.
-	if(performsWrites)
+	if(synchronizesAsWrite)
 		transition.ParallelAccessWaitMask = transition.ExclusiveAccessWaitMask;
 	else if(performsReads && currentSourceState.HasWriter && currentSourceState.WriterQueueId.Id != destinationQueueId.Id && !currentSourceState.AcquiredQueues.IsSet(destinationQueueId))
 	{
 		transition.ParallelAccessWaitMask |= currentSourceState.WriterQueueId;
 	}
 
-	if(performsWrites)
+	if(synchronizesAsWrite)
 	{
 		transition.PostTransitionSubmissionState = GpuResourceSubmissionState();
 		transition.PostTransitionSubmissionState.WriterHazards = destinationHazardState.LastWriteEpochHazardState;
+
+		// Submission does not track the stages of a layout transition, so it is a write from every stage of the queue, visible nowhere yet.
+		// The transition can follow the last write, so it overrides the write's stages.
+		if(transitionsLayout)
+		{
+			transition.PostTransitionSubmissionState.WriterHazards.WriteStages = GpuStageFlags(GpuStageFlag::All) & GpuBackendUtility::GetQueueStageFlags(destinationQueueId.GetType());
+			transition.PostTransitionSubmissionState.WriterHazards.VisibleStages = GpuStageFlag::None;
+		}
+
 		transition.PostTransitionSubmissionState.WriterQueueId = destinationQueueId;
 		transition.PostTransitionSubmissionState.AcquiredQueues = destinationQueueId;
 		transition.PostTransitionSubmissionState.HasWriter = true;

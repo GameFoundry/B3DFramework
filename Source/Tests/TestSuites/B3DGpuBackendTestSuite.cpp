@@ -99,6 +99,14 @@ namespace
 		SubmissionTestImage(u32 faceCount, u32 mipLevelCount, GpuTextureAspectFlags aspects)
 			: IGpuImageResource(faceCount, mipLevelCount, aspects)
 		{ }
+
+		/** Commits @p layout as the native layout of every subresource, so an access in it needs no transition. */
+		void SetNativeLayout(GpuImageLayout layout)
+		{
+			GpuImageNativeState nativeState;
+			nativeState.Layout = (u32)layout;
+			InitializeNativeState(mFullRange.AspectMask, nativeState);
+		}
 	};
 
 	/** Color image whose shader reads in GpuImageLayout::ShaderReadOnly rest. */
@@ -176,6 +184,9 @@ namespace
 	public:
 		/** Test images encode native layouts as GpuImageLayout values. */
 		static constexpr u32 kRestingNativeLayout = (u32)GpuImageLayout::ShaderReadOnly;
+
+		/** Synchronizes layout transitions like Vulkan and D3D12. */
+		static constexpr bool kLayoutTransitionsAreWrites = true;
 
 		using TGpuResourceTracker::GetSubresourceTrackingState;
 	};
@@ -377,6 +388,7 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestRestingReadRecording)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestRestingReadMaterialization)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestRestingSubmission)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestLayoutTransitionWrites)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestFramebufferAttachmentUsage)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestRenderPassResourceTracking)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantMetadata)
@@ -1396,9 +1408,10 @@ void GpuBackendTestSuite::TestImageSplit()
 	B3D_TEST_ASSERT(untouched.SubmissionState.ReaderQueues.IsEmpty())
 	B3D_TEST_ASSERT(untouched.NativeState.Layout == (u32)GpuImageLayout::TransferDestination)
 
+	// The read's submission transitions mip 2 to a new layout, which counts as a write on its queue
 	const GpuImageSubresource& touched = image.GetSubmissionStateResource(0, 2, GpuTextureAspectFlag::Color);
-	B3D_TEST_ASSERT(touched.SubmissionState.HasWriter)
-	B3D_TEST_ASSERT(touched.SubmissionState.ReaderQueues.IsSet(graphics))
+	B3D_TEST_ASSERT(touched.SubmissionState.HasWriter && touched.SubmissionState.WriterQueueId.Id == graphics.Id)
+	B3D_TEST_ASSERT(touched.SubmissionState.ReaderQueues.IsEmpty())
 	B3D_TEST_ASSERT(touched.NativeState.Layout == (u32)GpuImageLayout::ShaderReadOnly)
 }
 
@@ -1464,18 +1477,23 @@ void GpuBackendTestSuite::TestMergedStateWaits()
 	const GpuQueueId graphics(GQT_GRAPHICS, 0);
 	const GpuQueueId compute(GQT_COMPUTE, 0);
 	const GpuQueueId transfer(GQT_TRANSFER, 0);
+
+	// Every access uses the committed layout, so no submission transitions the layout (a transition counts as a write)
 	SubmissionTestImage image(1, 2, GpuTextureAspectFlag::Color);
+	image.SetNativeLayout(GpuImageLayout::General);
 
 	// A partial read stays in flight across the merge
 	SubmissionTestTracker partialReader;
 	SubmissionImageRecordingVisitor partialVisitor;
-	SubmitTestImageAccess(partialReader, partialVisitor, image, GpuTextureSubresourceRange(0, 1, 0, 1, GpuTextureAspectFlag::Color), GpuImageLayout::ShaderReadOnly, GpuAccessFlag::Read, compute);
-	B3D_TEST_ASSERT(!image.HasUniformSubmissionState())
+	SubmitTestImageAccess(partialReader, partialVisitor, image, GpuTextureSubresourceRange(0, 1, 0, 1, GpuTextureAspectFlag::Color), GpuImageLayout::General, GpuAccessFlag::Read, compute);
+
+	// The read leaves every subresource in one native state, so the image merges right away. The read stays registered on its own subresource.
+	B3D_TEST_ASSERT(image.HasUniformSubmissionState())
 
 	// A full-range read leaves every subresource in the same layout, and stays in flight as well
 	SubmissionTestTracker fullRangeReader;
 	SubmissionImageRecordingVisitor fullRangeVisitor;
-	SubmitTestImageAccess(fullRangeReader, fullRangeVisitor, image, image.GetRange(), GpuImageLayout::ShaderReadOnly, GpuAccessFlag::Read, transfer);
+	SubmitTestImageAccess(fullRangeReader, fullRangeVisitor, image, image.GetRange(), GpuImageLayout::General, GpuAccessFlag::Read, transfer);
 	B3D_TEST_ASSERT(image.HasUniformSubmissionState())
 
 	const GpuResourceSubmissionState& mergedState = image.GetFullRangeSubresource()->SubmissionState;
@@ -1484,7 +1502,7 @@ void GpuBackendTestSuite::TestMergedStateWaits()
 	// A write must wait for both the merged full-range reader and the partial reader from before the merge
 	SubmissionTestTracker writer;
 	SubmissionImageRecordingVisitor writeVisitor;
-	SubmitTestImageAccess(writer, writeVisitor, image, image.GetRange(), GpuImageLayout::TransferDestination, GpuAccessFlag::Write, graphics);
+	SubmitTestImageAccess(writer, writeVisitor, image, image.GetRange(), GpuImageLayout::General, GpuAccessFlag::Write, graphics);
 	B3D_TEST_ASSERT(writeVisitor.Ranges.Size() == 1)
 	B3D_TEST_ASSERT(writeVisitor.ParallelAccessWaitMask.IsSet(compute))
 	B3D_TEST_ASSERT(writeVisitor.ParallelAccessWaitMask.IsSet(transfer))
@@ -1496,9 +1514,9 @@ void GpuBackendTestSuite::TestMergedStateWaits()
 	}
 
 	// Completed readers need no wait
-	const SubmissionImageRecordingVisitor readVisitor = ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::ShaderReadOnly, GpuAccessFlag::Read, compute);
+	const SubmissionImageRecordingVisitor readVisitor = ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::General, GpuAccessFlag::Read, compute);
 	B3D_TEST_ASSERT(readVisitor.ParallelAccessWaitMask.IsSet(graphics))
-	const SubmissionImageRecordingVisitor rewriteVisitor = ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::TransferDestination, GpuAccessFlag::Write, graphics);
+	const SubmissionImageRecordingVisitor rewriteVisitor = ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::General, GpuAccessFlag::Write, graphics);
 	B3D_TEST_ASSERT(rewriteVisitor.ParallelAccessWaitMask.IsEmpty())
 }
 
@@ -1671,26 +1689,28 @@ void GpuBackendTestSuite::TestFrameIndexClear()
 		EndTestRead(buffer, graphics);
 	}
 
-	// Subresources written on different queues merge in a later frame
+	// Subresources written on different queues merge in a later frame. Every access uses the committed layout, so no read transitions the layout.
 	{
 		SubmissionTestImage image(1, 2, GpuTextureAspectFlag::Color);
+		image.SetNativeLayout(GpuImageLayout::General);
+
 		const GpuTextureSubresourceRange mip0(0, 1, 0, 1, GpuTextureAspectFlag::Color);
 		const GpuTextureSubresourceRange mip1(1, 1, 0, 1, GpuTextureAspectFlag::Color);
-		ExecuteTestImageAccess(image, mip0, GpuImageLayout::TransferDestination, GpuAccessFlag::Write, compute, 0);
-		ExecuteTestImageAccess(image, mip1, GpuImageLayout::TransferDestination, GpuAccessFlag::Write, graphics, 0);
+		ExecuteTestImageAccess(image, mip0, GpuImageLayout::General, GpuAccessFlag::Write, compute, 0);
+		ExecuteTestImageAccess(image, mip1, GpuImageLayout::General, GpuAccessFlag::Write, graphics, 0);
 
-		const SubmissionImageRecordingVisitor sameFrameRead = ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::ShaderReadOnly, GpuAccessFlag::Read, graphics, 0);
+		const SubmissionImageRecordingVisitor sameFrameRead = ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::General, GpuAccessFlag::Read, graphics, 0);
 		B3D_TEST_ASSERT(sameFrameRead.Ranges.Size() == 2)
 		B3D_TEST_ASSERT(sameFrameRead.ParallelAccessWaitMask == GpuQueueMask(compute))
 		B3D_TEST_ASSERT(!image.HasUniformSubmissionState())
 
-		const SubmissionImageRecordingVisitor nextFrameRead = ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::ShaderReadOnly, GpuAccessFlag::Read, graphics, 1);
+		const SubmissionImageRecordingVisitor nextFrameRead = ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::General, GpuAccessFlag::Read, graphics, 1);
 		B3D_TEST_ASSERT(nextFrameRead.Ranges.Size() == 2)
 		B3D_TEST_ASSERT(nextFrameRead.ParallelAccessWaitMask.IsEmpty())
 		B3D_TEST_ASSERT(image.HasUniformSubmissionState())
 		B3D_TEST_ASSERT(!image.GetFullRangeSubresource()->SubmissionState.HasWriter)
 
-		const SubmissionImageRecordingVisitor uniformRead = ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::ShaderReadOnly, GpuAccessFlag::Read, graphics, 1);
+		const SubmissionImageRecordingVisitor uniformRead = ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::General, GpuAccessFlag::Read, graphics, 1);
 		B3D_TEST_ASSERT(uniformRead.Ranges.Size() == 1)
 		B3D_TEST_ASSERT(image.IsFullRange(uniformRead.Ranges[0]))
 	}
@@ -2047,12 +2067,13 @@ void GpuBackendTestSuite::TestRestingSubmission()
 		B3D_TEST_ASSERT(state.ReaderQueues == (GpuQueueMask(graphics) | compute))
 		B3D_TEST_ASSERT(state.ReaderStages == (readStages | GpuStageFlag::ComputeShaderNonUniform))
 
-		// Leaving the resting layout: the next resting read transitions back, and the one after it rests again
+		// Leaving the resting layout: the next resting read transitions back. Both transitions write, so reads rest again only in the next frame.
 		fnExecuteImageAccess(image, image.GetRange(), GpuImageLayout::TransferSource, GpuStageFlag::Transfer, GpuAccessFlag::Read, graphics, 1);
 		const Vector<RecordedSubmissionTransition> returnRead = fnExecuteImageAccess(image, image.GetRange(), GpuImageLayout::ShaderReadOnly, readStages, GpuAccessFlag::Read, graphics, 1);
 		B3D_TEST_ASSERT(returnRead.size() == 1)
 		B3D_TEST_ASSERT(returnRead[0].InitialLayout == GpuImageLayout::ShaderReadOnly)
-		B3D_TEST_ASSERT(fnExecuteImageAccess(image, image.GetRange(), GpuImageLayout::ShaderReadOnly, readStages, GpuAccessFlag::Read, graphics, 1).empty())
+		B3D_TEST_ASSERT(fnExecuteImageAccess(image, image.GetRange(), GpuImageLayout::ShaderReadOnly, readStages, GpuAccessFlag::Read, graphics, 1).size() == 1)
+		B3D_TEST_ASSERT(fnExecuteImageAccess(image, image.GetRange(), GpuImageLayout::ShaderReadOnly, readStages, GpuAccessFlag::Read, graphics, 2).empty())
 	}
 
 	// Partial read, not at rest: like any partial access it splits the image, and only the surfaces read are synchronized
@@ -2108,11 +2129,11 @@ void GpuBackendTestSuite::TestRestingSubmission()
 
 		CompleteTestTracker(computeWriteTracker, compute);
 
-		// Mip 0's writer settles away, and every surface ends in the resting layout
+		// Mip 0's writer settles away, and every surface ends in the resting layout. Mip 0's transition writes, so the image rests in the next frame.
 		const Vector<RecordedSubmissionTransition> fullRead = fnExecuteImageAccess(image, image.GetRange(), GpuImageLayout::ShaderReadOnly, readStages, GpuAccessFlag::Read, graphics, 1);
 		B3D_TEST_ASSERT(fullRead.size() == 3)
 		B3D_TEST_ASSERT(image.HasUniformSubmissionState())
-		B3D_TEST_ASSERT(fnExecuteImageAccess(image, image.GetRange(), GpuImageLayout::ShaderReadOnly, readStages, GpuAccessFlag::Read, graphics, 1).empty())
+		B3D_TEST_ASSERT(fnExecuteImageAccess(image, image.GetRange(), GpuImageLayout::ShaderReadOnly, readStages, GpuAccessFlag::Read, graphics, 2).empty())
 	}
 
 	// Full-range in-flight readers count as readers of every surface
@@ -2147,6 +2168,126 @@ void GpuBackendTestSuite::TestImageAccessEpochTracking()
 	tracker.CommitPendingAccesses();
 	tracker.NotifyUnbound();
 	tracker.Clear();
+}
+
+void GpuBackendTestSuite::TestLayoutTransitionWrites()
+{
+	const GpuQueueId graphics(GQT_GRAPHICS, 0);
+	const GpuQueueId compute(GQT_COMPUTE, 0);
+	const GpuStageFlags readStages = GpuStageFlag::FragmentShaderNonUniform;
+
+	// Records a read in ShaderReadOnly followed by a copy from the image, which transitions it inside the command buffer
+	auto fnTrackReadThenCopy = [readStages](SubmissionTestTracker& tracker, IGpuImageResource& image)
+	{
+		SubmissionTestBarrierHelper barrierHelper;
+		tracker.TrackImageAccess(&image, image.GetRange(), GpuImageLayout::ShaderReadOnly, readStages, GpuAccessFlag::Read, barrierHelper);
+		tracker.CommitPendingAccesses();
+		tracker.TrackImageAccess(&image, image.GetRange(), GpuImageLayout::TransferSource, GpuStageFlag::Transfer, GpuAccessFlag::Read, barrierHelper);
+		tracker.CommitPendingAccesses();
+	};
+
+	// A submission transition orders later reads on other queues and on its own queue after it, and stops the image from resting
+	{
+		RestingTestImage image(1, 1);
+		image.SetNativeLayout(GpuImageLayout::ShaderReadOnly);
+
+		SubmissionTestTracker graphicsCopyTracker;
+		SubmitRecordedImageAccess(graphicsCopyTracker, image, image.GetRange(), GpuImageLayout::TransferSource, GpuStageFlag::Transfer, GpuAccessFlag::Read, graphics, 0);
+
+		const GpuResourceSubmissionState& state = image.GetFullRangeSubresource()->SubmissionState;
+		B3D_TEST_ASSERT(state.HasWriter && state.WriterQueueId.Id == graphics.Id)
+
+		SubmissionTestTracker computeReadTracker;
+		const Vector<RecordedSubmissionTransition> computeRead = SubmitRecordedImageAccess(computeReadTracker, image, image.GetRange(), GpuImageLayout::ShaderReadOnly,
+			GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Read, compute, 0);
+		B3D_TEST_ASSERT(computeRead.size() == 1)
+		B3D_TEST_ASSERT(computeRead[0].ExclusiveAccessWaitMask.IsSet(graphics))
+		B3D_TEST_ASSERT(state.HasWriter && state.WriterQueueId.Id == compute.Id)
+
+		// The layout matches and the image could rest, but the read must still wait for compute's transition
+		SubmissionTestTracker graphicsReadTracker;
+		const Vector<RecordedSubmissionTransition> graphicsRead = SubmitRecordedImageAccess(graphicsReadTracker, image, image.GetRange(), GpuImageLayout::ShaderReadOnly, readStages,
+			GpuAccessFlag::Read, graphics, 0);
+		B3D_TEST_ASSERT(graphicsRead.size() == 1)
+		B3D_TEST_ASSERT(graphicsRead[0].ParallelAccessWaitMask.IsSet(compute))
+
+		// Reads that don't transition add a reader and keep the writer
+		B3D_TEST_ASSERT(state.HasWriter && state.WriterQueueId.Id == compute.Id)
+		B3D_TEST_ASSERT(state.ReaderQueues.IsSet(graphics))
+
+		CompleteTestTracker(graphicsCopyTracker, graphics);
+		CompleteTestTracker(computeReadTracker, compute);
+		CompleteTestTracker(graphicsReadTracker, graphics);
+
+		// The transition writer settles away in the next frame, and reads rest again
+		SubmissionTestTracker nextFrameTracker;
+		B3D_TEST_ASSERT(SubmitRecordedImageAccess(nextFrameTracker, image, image.GetRange(), GpuImageLayout::ShaderReadOnly, readStages, GpuAccessFlag::Read, graphics, 1).empty())
+		B3D_TEST_ASSERT(!state.HasWriter)
+		CompleteTestTracker(nextFrameTracker, graphics);
+	}
+
+	// A transition inside the command buffer waits for every in-flight reader, and is published as a write
+	{
+		SubmissionTestImage image(1, 1, GpuTextureAspectFlag::Color);
+		image.SetNativeLayout(GpuImageLayout::ShaderReadOnly);
+
+		SubmissionTestTracker computeReadTracker;
+		SubmitRecordedImageAccess(computeReadTracker, image, image.GetRange(), GpuImageLayout::ShaderReadOnly, GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Read, compute, 0);
+
+		SubmissionTestTracker copyTracker;
+		fnTrackReadThenCopy(copyTracker, image);
+
+		SubmissionRecordingVisitor visitor;
+		SubmitTestTracker(copyTracker, graphics, 0, visitor);
+		B3D_TEST_ASSERT(visitor.Transitions.size() == 1)
+		B3D_TEST_ASSERT(visitor.Transitions[0].InitialLayout == GpuImageLayout::ShaderReadOnly)
+		B3D_TEST_ASSERT(visitor.Transitions[0].ParallelAccessWaitMask.IsSet(compute))
+
+		const GpuResourceSubmissionState& state = image.GetFullRangeSubresource()->SubmissionState;
+		B3D_TEST_ASSERT(state.HasWriter && state.WriterQueueId.Id == graphics.Id)
+		B3D_TEST_ASSERT(state.ReaderQueues.IsEmpty())
+
+		// The transition's stages are not tracked, so the next access on the same queue orders after every stage
+		B3D_TEST_ASSERT(state.WriterHazards.WriteStages == (GpuStageFlags(GpuStageFlag::All) & GpuBackendUtility::GetQueueStageFlags(GQT_GRAPHICS)))
+		B3D_TEST_ASSERT(state.WriterHazards.VisibleStages == GpuStageFlag::None)
+
+		CompleteTestTracker(computeReadTracker, compute);
+		CompleteTestTracker(copyTracker, graphics);
+	}
+
+	// A transition inside the command buffer orders after earlier reads on its own queue
+	{
+		SubmissionTestImage image(1, 1, GpuTextureAspectFlag::Color);
+		image.SetNativeLayout(GpuImageLayout::ShaderReadOnly);
+
+		SubmissionTestTracker earlierReadTracker;
+		SubmitRecordedImageAccess(earlierReadTracker, image, image.GetRange(), GpuImageLayout::ShaderReadOnly, GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Read, graphics, 0);
+
+		SubmissionTestTracker copyTracker;
+		fnTrackReadThenCopy(copyTracker, image);
+
+		SubmissionRecordingVisitor visitor;
+		SubmitTestTracker(copyTracker, graphics, 0, visitor);
+		B3D_TEST_ASSERT(visitor.Transitions.size() == 1)
+		B3D_TEST_ASSERT(visitor.Transitions[0].ExecutionBarrier.SourceStages.IsSet(GpuStageFlag::ComputeShaderNonUniform))
+		B3D_TEST_ASSERT(visitor.Transitions[0].ExecutionBarrier.DestinationStages.IsSet(GpuStageFlag::FragmentShaderNonUniform))
+
+		CompleteTestTracker(earlierReadTracker, graphics);
+		CompleteTestTracker(copyTracker, graphics);
+	}
+
+	// A read in the committed layout transitions nothing and leaves no writer
+	{
+		SubmissionTestImage image(1, 1, GpuTextureAspectFlag::Color);
+		image.SetNativeLayout(GpuImageLayout::ShaderReadOnly);
+
+		const SubmissionImageRecordingVisitor visitor = ExecuteTestImageAccess(image, image.GetRange(), GpuImageLayout::ShaderReadOnly, GpuAccessFlag::Read, graphics);
+		B3D_TEST_ASSERT(visitor.Ranges.Size() == 1)
+
+		const GpuResourceSubmissionState& state = image.GetFullRangeSubresource()->SubmissionState;
+		B3D_TEST_ASSERT(!state.HasWriter)
+		B3D_TEST_ASSERT(state.ReaderQueues == GpuQueueMask(graphics))
+	}
 }
 
 void GpuBackendTestSuite::TestFramebufferAttachmentUsage()
