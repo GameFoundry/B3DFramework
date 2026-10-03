@@ -38,8 +38,11 @@ namespace b3d
 		/** Checks that transfer layouts remain COMMON on copy queues. */
 		void TestCopyQueueLayoutMappings();
 
-		/** Checks concurrent-read creation metadata across graphics, compute and copy queue use. */
-		void TestConcurrentQueueReadTexture();
+		/**
+		 * Checks that sampleable and concurrent-read textures use queue-independent shader-read layouts, and that other textures
+		 * use queue-specific ones.
+		 */
+		void TestQueueSharing();
 
 		/** Copies texture data between graphics, copy and compute queues under D3D12 validation. */
 		void TestCrossQueueTextureHandoffs();

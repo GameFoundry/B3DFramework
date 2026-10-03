@@ -6,6 +6,7 @@
 #include "B3DD3D12ResourceManager.h"
 #include "B3DD3D12Utility.h"
 #include "Managers/B3DD3D12DescriptorManager.h"
+#include "GpuBackend/B3DGpuBackendUtility.h"
 #include "Profiling/B3DRenderStats.h"
 #include "Image/B3DPixelUtility.h"
 #include <algorithm>
@@ -224,7 +225,7 @@ namespace b3d
 			imageCreateInformation.FaceCount = faceCount;
 			imageCreateInformation.MipLevelCount = properties.MipMapCount + 1;
 			imageCreateInformation.Aspect = aspect;
-			imageCreateInformation.AllowConcurrentQueueReads = properties.Usage.IsSet(TextureUsageFlag::AllowConcurrentQueueReads);
+			imageCreateInformation.AllowConcurrentQueueReads = properties.Usage.IsSet(TextureUsageFlag::AllowConcurrentQueueReads) || GpuBackendUtility::IsSampleableOnly(properties.Usage);
 			imageCreateInformation.Name = properties.Name;
 
 			mImage = device.GetResourceManager().Create<D3D12Image>(imageCreateInformation);

@@ -114,6 +114,9 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 
 		mQueueInfos[type].FamilyIndex = familyIdx;
 		mQueueInfos[type].Queues.resize(createInfo.queueCount, nullptr);
+
+		// Queue types never share a family (see fnFindQueueWithMinimalMatchingSubset)
+		mQueueFamilies.Add(familyIdx);
 	};
 
 	auto fnFindQueueWithMinimalMatchingSubset = [this, &queueFamilyProperties](VkQueueFlags requiredFlags)
@@ -861,12 +864,9 @@ GpuMemoryRequirements VulkanGpuDevice::GetMemoryRequirements(const TextureCreate
 	VulkanTextureDescription description;
 	VulkanTexture::BuildDescription(*this, TextureProperties(createInformation), description);
 
-	VkImageCreateInfo imageInfo = description.CreateInfo;
-	imageInfo.pQueueFamilyIndices = description.QueueFamilies.data();
-
 	VkDeviceImageMemoryRequirementsKHR query{};
 	query.sType = VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS_KHR;
-	query.pCreateInfo = &imageInfo;
+	query.pCreateInfo = &description.CreateInfo;
 
 	VkMemoryRequirements2 requirements{};
 	requirements.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2;
@@ -899,7 +899,12 @@ GpuMemoryRequirements VulkanGpuDevice::GetMemoryRequirements(const GpuBufferCrea
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	bufferInfo.size = size != 0 ? size : 64;
 	bufferInfo.usage = VulkanGpuBuffer::GetVkBufferUsageFlags(createInformation);
-	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	// Match the sharing mode of VulkanGpuBuffer::CreateBuffer()
+	const bool usesConcurrentSharing = mQueueFamilies.Size() > 1;
+	bufferInfo.sharingMode = usesConcurrentSharing ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
+	bufferInfo.queueFamilyIndexCount = usesConcurrentSharing ? (u32)mQueueFamilies.Size() : 0;
+	bufferInfo.pQueueFamilyIndices = usesConcurrentSharing ? mQueueFamilies.data() : nullptr;
 
 	VkDeviceBufferMemoryRequirementsKHR query{};
 	query.sType = VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS_KHR;

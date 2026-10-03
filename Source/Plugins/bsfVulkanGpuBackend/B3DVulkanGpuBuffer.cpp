@@ -12,7 +12,7 @@ using namespace b3d;
 using namespace b3d::render;
 
 VulkanBuffer::VulkanBuffer(VulkanResourceManager* owner, const VulkanBufferCreateInformation& createInformation, VkBuffer buffer, VulkanAllocationResult allocation, VulkanGpuBuffer* parent)
-	: TVulkanResource<IGpuBufferResource>(owner, false, createInformation.DebugName), mFlags(createInformation.Flags), mBuffer(buffer), mAllocation(allocation), mParent(parent), mMappedMemory(allocation.MappedMemory)
+	: TVulkanResource<IGpuBufferResource>(owner, createInformation.VkCreateInfo.sharingMode == VK_SHARING_MODE_CONCURRENT, createInformation.DebugName), mFlags(createInformation.Flags), mBuffer(buffer), mAllocation(allocation), mParent(parent), mMappedMemory(allocation.MappedMemory)
 {
 }
 
@@ -230,14 +230,18 @@ VulkanBuffer* VulkanGpuBuffer::CreateBuffer(VulkanGpuDevice& device, u32 size, b
 	// flags) was already resolved when the allocation was picked at proxy creation.
 	VkBufferUsageFlags usageFlags = GetVkBufferUsageFlags(mInformation);
 
+	// Buffers are shared so that accesses on any queue need no ownership transfer, which lets them rest
+	const TInlineArray<u32, GQT_COUNT>& queueFamilies = device.GetQueueFamilies();
+	const bool usesConcurrentSharing = queueFamilies.Size() > 1;
+
 	VulkanBufferCreateInformation info;
 	info.VkCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	info.VkCreateInfo.pNext = nullptr;
 	info.VkCreateInfo.flags = 0;
-	info.VkCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	info.VkCreateInfo.sharingMode = usesConcurrentSharing ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
 	info.VkCreateInfo.usage = usageFlags;
-	info.VkCreateInfo.queueFamilyIndexCount = 0;
-	info.VkCreateInfo.pQueueFamilyIndices = nullptr;
+	info.VkCreateInfo.queueFamilyIndexCount = usesConcurrentSharing ? (u32)queueFamilies.Size() : 0;
+	info.VkCreateInfo.pQueueFamilyIndices = usesConcurrentSharing ? queueFamilies.data() : nullptr;
 	info.Type = newBufferType;
 	info.Flags = newBufferFlags;
 	info.DebugName = debugName;

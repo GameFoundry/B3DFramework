@@ -10,6 +10,7 @@
 #include "CoreObject/B3DRenderThread.h"
 #include "Profiling/B3DRenderStats.h"
 #include "Math/B3DMath.h"
+#include "GpuBackend/B3DGpuBackendUtility.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -510,26 +511,13 @@ void VulkanTexture::BuildDescription(const VulkanGpuDevice& device, const Textur
 	createInfo.tiling = tiling;
 	createInfo.initialLayout = layout;
 
-	TInlineArray<u32, GQT_COUNT>& queueFamilies = outDescription.QueueFamilies;
-	queueFamilies.Clear();
-	if(usage.IsSet(TextureUsageFlag::AllowConcurrentQueueReads))
-	{
-		for(u32 queueType = 0; queueType < GQT_COUNT; queueType++)
-		{
-			const GpuQueueType type = (GpuQueueType)queueType;
-			if(device.GetQueueCount(type) == 0)
-				continue;
-
-			const u32 family = device.GetQueueFamily(type);
-			if(std::find(queueFamilies.begin(), queueFamilies.end(), family) == queueFamilies.end())
-				queueFamilies.Add(family);
-		}
-	}
-
-	const bool usesConcurrentSharing = queueFamilies.Size() > 1;
+	// Sampleable-only textures are shared so that reads on any queue need no ownership transfer
+	const TInlineArray<u32, GQT_COUNT>& queueFamilies = device.GetQueueFamilies();
+	const bool isShared = usage.IsSet(TextureUsageFlag::AllowConcurrentQueueReads) || GpuBackendUtility::IsSampleableOnly(usage);
+	const bool usesConcurrentSharing = isShared && queueFamilies.Size() > 1;
 	createInfo.sharingMode = usesConcurrentSharing ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
 	createInfo.queueFamilyIndexCount = usesConcurrentSharing ? (u32)queueFamilies.Size() : 0;
-	createInfo.pQueueFamilyIndices = nullptr;
+	createInfo.pQueueFamilyIndices = usesConcurrentSharing ? queueFamilies.data() : nullptr;
 
 	bool optimalTiling = tiling == VK_IMAGE_TILING_OPTIMAL;
 
@@ -559,9 +547,7 @@ void VulkanTexture::Initialize()
 	VulkanTextureDescription description;
 	BuildDescription(mGpuDevice, mProperties, description);
 
-	mQueueFamilies = description.QueueFamilies;
 	mImageCreateInformation = description.CreateInfo;
-	mImageCreateInformation.pQueueFamilyIndices = mImageCreateInformation.queueFamilyIndexCount > 0 ? mQueueFamilies.data() : nullptr;
 	mInternalFormat = description.InternalFormat;
 	mKind = description.Kind;
 	mDirectlyMappable = description.DirectlyMappable;

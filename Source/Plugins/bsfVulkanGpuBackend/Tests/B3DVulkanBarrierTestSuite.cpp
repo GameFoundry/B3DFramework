@@ -4,6 +4,7 @@
 #include "B3DVulkanGpuBackend.h"
 #include "B3DVulkanGpuDevice.h"
 #include "B3DVulkanTexture.h"
+#include "B3DVulkanGpuBuffer.h"
 #include "B3DIVulkanRenderWindowSurface.h"
 #include "B3DApplication.h"
 #include "Image/B3DPixelData.h"
@@ -114,7 +115,7 @@ VulkanBarrierTestSuite::VulkanBarrierTestSuite()
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestCompletedGraphicsToComputeBufferHandoff)
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestCompletedQueueProgressFanOut)
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestSameQueueBufferBoundary)
-	B3D_ADD_TEST(VulkanBarrierTestSuite::TestConcurrentQueueReadTexture)
+	B3D_ADD_TEST(VulkanBarrierTestSuite::TestQueueSharing)
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestRenderPassAttachmentTransitions)
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestSwapChainTransitions)
 	B3D_ADD_TEST(VulkanBarrierTestSuite::TestMultisampleResolve)
@@ -173,46 +174,68 @@ void VulkanBarrierTestSuite::TestSameQueueBufferBoundary()
 	RunBufferHandoff(*this, GQT_GRAPHICS, GQT_GRAPHICS);
 }
 
-void VulkanBarrierTestSuite::TestConcurrentQueueReadTexture()
+void VulkanBarrierTestSuite::TestQueueSharing()
 {
 	VulkanGpuDevice* const device = GetActiveVulkanDevice();
 	if(device == nullptr)
 		return;
 
-	TInlineArray<u32, GQT_COUNT> queueFamilies;
-	for(u32 queueType = 0; queueType < GQT_COUNT; queueType++)
+	struct TextureCase
 	{
-		const GpuQueueType type = (GpuQueueType)queueType;
-		if(device->GetQueueCount(type) == 0)
-			continue;
+		const char* Name;
+		PixelFormat Format;
+		TextureUsageFlags Usage;
+		bool IsShared;
+	};
 
-		const u32 family = device->GetQueueFamily(type);
-		if(std::find(queueFamilies.begin(), queueFamilies.end(), family) == queueFamilies.end())
-			queueFamilies.Add(family);
+	const TextureCase textureCases[] =
+	{
+		{ "Vulkan sampleable texture", PF_RGBA8, TextureUsageFlag::StoreOnGPU, true },
+		{ "Vulkan concurrent-read render target", PF_RGBA8, TextureUsageFlag::RenderTarget | TextureUsageFlag::AllowConcurrentQueueReads, true },
+		{ "Vulkan render target", PF_RGBA8, TextureUsageFlag::RenderTarget, false },
+		{ "Vulkan depth-stencil target", PF_D32, TextureUsageFlag::DepthStencil, false },
+		{ "Vulkan UAV texture", PF_RGBA8, TextureUsageFlag::AllowUnorderedAccessOnTheGPU, false },
+		{ "Vulkan CPU-writable texture", PF_RGBA8, TextureUsageFlag::StoreOnCPUWithGPUAccess, false },
+	};
+
+	static constexpr u32 kTextureCaseCount = sizeof(textureCases) / sizeof(textureCases[0]);
+	bool texturesCreated[kTextureCaseCount] = {};
+	bool texturesExclusive[kTextureCaseCount] = {};
+	bool bufferCreated = false;
+	bool bufferExclusive = false;
+	GetRenderThread().PostCommand([device, &textureCases, &texturesCreated, &texturesExclusive, &bufferCreated, &bufferExclusive]()
+	{
+		for(u32 caseIndex = 0; caseIndex < kTextureCaseCount; ++caseIndex)
+		{
+			TextureCreateInformation createInformation;
+			createInformation.Name = textureCases[caseIndex].Name;
+			createInformation.Format = textureCases[caseIndex].Format;
+			createInformation.Width = 8;
+			createInformation.Height = 8;
+			createInformation.Usage = textureCases[caseIndex].Usage;
+
+			const TShared<render::Texture> texture = device->CreateTexture(createInformation);
+			texturesCreated[caseIndex] = texture != nullptr;
+			if(texture != nullptr)
+				texturesExclusive[caseIndex] = std::static_pointer_cast<VulkanTexture>(texture)->GetVulkanResource()->IsExclusive();
+		}
+
+		const TShared<render::GpuBuffer> buffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(1, 256));
+		bufferCreated = buffer != nullptr;
+		if(buffer != nullptr)
+			bufferExclusive = std::static_pointer_cast<VulkanGpuBuffer>(buffer)->GetVulkanResource()->IsExclusive();
+	}, "VulkanBarrierTestSuite::TestQueueSharing", true);
+
+	// With a single queue family there is nothing to share between, so every resource is exclusive
+	const bool hasMultipleFamilies = device->GetQueueFamilies().Size() > 1;
+	for(u32 caseIndex = 0; caseIndex < kTextureCaseCount; ++caseIndex)
+	{
+		B3D_TEST_ASSERT(texturesCreated[caseIndex])
+		B3D_TEST_ASSERT(texturesExclusive[caseIndex] == !(textureCases[caseIndex].IsShared && hasMultipleFamilies))
 	}
 
-	TextureCreateInformation createInformation;
-	createInformation.Name = "Vulkan concurrent-read texture";
-	createInformation.Format = PF_RGBA8;
-	createInformation.Width = 8;
-	createInformation.Height = 8;
-	createInformation.Usage |= TextureUsageFlag::AllowConcurrentQueueReads;
-
-	bool textureCreated = false;
-	bool exclusive = true;
-	GetRenderThread().PostCommand([device, createInformation, &textureCreated, &exclusive]()
-	{
-		const TShared<render::Texture> texture = device->CreateTexture(createInformation);
-		textureCreated = texture != nullptr;
-		if(!textureCreated)
-			return;
-
-		const TShared<VulkanTexture> vulkanTexture = std::static_pointer_cast<VulkanTexture>(texture);
-		exclusive = vulkanTexture->GetVulkanResource()->IsExclusive();
-	}, "VulkanBarrierTestSuite::TestConcurrentQueueReadTexture", true);
-
-	B3D_TEST_ASSERT(textureCreated)
-	B3D_TEST_ASSERT(exclusive == (queueFamilies.Size() <= 1))
+	B3D_TEST_ASSERT(bufferCreated)
+	B3D_TEST_ASSERT(bufferExclusive == !hasMultipleFamilies)
 }
 
 void VulkanBarrierTestSuite::TestMultisampleResolve()

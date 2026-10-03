@@ -127,6 +127,12 @@ namespace b3d
 			 */
 			u32 GetQueueFamily(GpuQueueType type) const { return mQueueInfos[(int)type].FamilyIndex; }
 
+			/**
+			 * Returns the distinct queue families of every queue type the device has. Resources shared between queues use
+			 * concurrent sharing with these families, if there is more than one.
+			 */
+			const TInlineArray<u32, GQT_COUNT>& GetQueueFamilies() const { return mQueueFamilies; }
+
 			/** Returns the best matching surface format according to the provided parameters. */
 			SurfaceFormat GetSurfaceFormat(const VkSurfaceKHR& surface, bool useHardwareSRGB) const;
 
@@ -319,6 +325,7 @@ namespace b3d
 			};
 
 			QueueInfo mQueueInfos[GQT_COUNT];
+			TInlineArray<u32, GQT_COUNT> mQueueFamilies;
 			GpuDeviceCapabilities mCapabilities;
 			TShared<VideoModeInfo> mVideoModeInfo;
 

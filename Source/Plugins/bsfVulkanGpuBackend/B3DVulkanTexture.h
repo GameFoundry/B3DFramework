@@ -204,12 +204,11 @@ namespace b3d
 		struct VulkanTextureDescription
 		{
 			/**
-			 * Image create information, with the format resolved from InternalFormat. pQueueFamilyIndices is left null, point
-			 * it to QueueFamilies before use.
+			 * Image create information, with the format resolved from InternalFormat. pQueueFamilyIndices points to the device's
+			 * queue family list (VulkanGpuDevice::GetQueueFamilies()), if concurrent sharing is used.
 			 */
 			VkImageCreateInfo CreateInfo{};
 
-			TInlineArray<u32, GQT_COUNT> QueueFamilies; /**< Queue families sharing the image, if concurrent sharing is used. */
 			PixelFormat InternalFormat = PF_UNKNOWN; /**< Closest pixel format supported by the device. */
 			VkMemoryPropertyFlags RequiredMemoryFlags = 0; /**< Memory properties the image memory must have. */
 			VkMemoryPropertyFlags PreferredMemoryFlags = 0; /**< Memory properties preferred for the image memory. */
@@ -285,7 +284,6 @@ namespace b3d
 			PixelFormat mInternalFormat = PF_UNKNOWN;
 
 			VkImageCreateInfo mImageCreateInformation;
-			TInlineArray<u32, GQT_COUNT> mQueueFamilies;
 			GpuResourceKind mKind = GpuResourceKind::NonLinear;
 			bool mDirectlyMappable : 1;
 			bool mSupportsGPUWrites : 1;

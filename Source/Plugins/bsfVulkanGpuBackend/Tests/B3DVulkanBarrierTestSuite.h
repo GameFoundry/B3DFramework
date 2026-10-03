@@ -28,8 +28,11 @@ namespace b3d
 		/** Copies data through a GPU-local buffer in consecutive graphics command buffers. */
 		void TestSameQueueBufferBoundary();
 
-		/** Checks that the concurrent-read texture hint enables concurrent Vulkan queue-family sharing when needed. */
-		void TestConcurrentQueueReadTexture();
+		/**
+		 * Checks that buffers, sampleable textures and concurrent-read textures use concurrent queue-family sharing when there is
+		 * more than one family, and that other textures stay exclusive.
+		 */
+		void TestQueueSharing();
 
 		/** Clears, loads and reads back color and depth/stencil attachments across render-pass layout transitions. */
 		void TestRenderPassAttachmentTransitions();

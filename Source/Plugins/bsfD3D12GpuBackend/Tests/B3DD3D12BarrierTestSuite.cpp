@@ -66,7 +66,7 @@ D3D12BarrierTestSuite::D3D12BarrierTestSuite() : TestSuite("D3D12BarrierTestSuit
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestResolveBarrierMappings)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestTextureLayoutMappings)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestCopyQueueLayoutMappings)
-	B3D_ADD_TEST(D3D12BarrierTestSuite::TestConcurrentQueueReadTexture)
+	B3D_ADD_TEST(D3D12BarrierTestSuite::TestQueueSharing)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestCrossQueueTextureHandoffs)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestCrossQueueBufferHandoffs)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestSubmissionBarrierChaining)
@@ -602,32 +602,65 @@ void D3D12BarrierTestSuite::TestCopyQueueLayoutMappings()
 	B3D_TEST_ASSERT(!D3D12BarrierUtility::IsTextureLayoutSupportedOnQueue(D3D12TextureLayout::Undefined(), colorAspect, GQT_TRANSFER))
 }
 
-void D3D12BarrierTestSuite::TestConcurrentQueueReadTexture()
+void D3D12BarrierTestSuite::TestQueueSharing()
 {
 	GpuDevice* const device = GetActiveD3D12Device();
 	if(device == nullptr)
 		return;
 
-	TextureCreateInformation createInformation;
-	createInformation.Name = "D3D12 concurrent-read texture";
-	createInformation.Format = PF_RGBA8;
-	createInformation.Width = 8;
-	createInformation.Height = 8;
-	createInformation.Usage |= TextureUsageFlag::AllowConcurrentQueueReads;
+	struct TextureCase
+	{
+		const char* Name;
+		PixelFormat Format;
+		TextureUsageFlags Usage;
+		bool IsShared;
+	};
 
-	const TShared<render::Texture> texture = device->CreateTexture(createInformation);
-	B3D_TEST_ASSERT(texture != nullptr)
-	if(texture == nullptr)
-		return;
+	const TextureCase textureCases[] =
+	{
+		{ "D3D12 sampleable texture", PF_RGBA8, TextureUsageFlag::StoreOnGPU, true },
+		{ "D3D12 concurrent-read render target", PF_RGBA8, TextureUsageFlag::RenderTarget | TextureUsageFlag::AllowConcurrentQueueReads, true },
+		{ "D3D12 render target", PF_RGBA8, TextureUsageFlag::RenderTarget, false },
+		{ "D3D12 depth-stencil target", PF_D32, TextureUsageFlag::DepthStencil, false },
+		{ "D3D12 UAV texture", PF_RGBA8, TextureUsageFlag::AllowUnorderedAccessOnTheGPU, false },
+		{ "D3D12 CPU-writable texture", PF_RGBA8, TextureUsageFlag::StoreOnCPUWithGPUAccess, false },
+	};
 
-	const TShared<D3D12Texture> d3d12Texture = std::static_pointer_cast<D3D12Texture>(texture);
-	D3D12Image* const image = d3d12Texture->GetD3D12Image();
-	B3D_TEST_ASSERT(image != nullptr)
-	if(image == nullptr)
-		return;
+	const GpuTextureAspectFlags colorAspect = GpuTextureAspectFlag::Color;
+	for(const TextureCase& textureCase : textureCases)
+	{
+		TextureCreateInformation createInformation;
+		createInformation.Name = textureCase.Name;
+		createInformation.Format = textureCase.Format;
+		createInformation.Width = 8;
+		createInformation.Height = 8;
+		createInformation.Usage = textureCase.Usage;
 
-	B3D_TEST_ASSERT((image->GetD3D12Resource()->GetDesc().Flags & D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS) == 0)
-	B3D_TEST_ASSERT(image->AllowsConcurrentQueueReads())
+		const TShared<render::Texture> texture = device->CreateTexture(createInformation);
+		B3D_TEST_ASSERT(texture != nullptr)
+		if(texture == nullptr)
+			continue;
+
+		D3D12Image* const image = std::static_pointer_cast<D3D12Texture>(texture)->GetD3D12Image();
+		B3D_TEST_ASSERT(image != nullptr)
+		if(image == nullptr)
+			continue;
+
+		// Shared textures use queue-independent layouts, not simultaneous access
+		B3D_TEST_ASSERT((image->GetD3D12Resource()->GetDesc().Flags & D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS) == 0)
+		B3D_TEST_ASSERT(image->AllowsConcurrentQueueReads() == textureCase.IsShared)
+		if(!textureCase.IsShared)
+			continue;
+
+		D3D12TextureLayoutOptions options;
+		options.AllowConcurrentQueueReads = image->AllowsConcurrentQueueReads();
+		options.IsPresentable = image->IsPresentable();
+
+		const D3D12TextureLayout graphicsRead = D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout::ShaderReadOnly, GQT_GRAPHICS, options);
+		const D3D12TextureLayout computeRead = D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout::ShaderReadOnly, GQT_COMPUTE, options);
+		B3D_TEST_ASSERT(graphicsRead.GetLayout(colorAspect) == D3D12_BARRIER_LAYOUT_SHADER_RESOURCE)
+		B3D_TEST_ASSERT(computeRead.GetLayout(colorAspect) == D3D12_BARRIER_LAYOUT_SHADER_RESOURCE)
+	}
 }
 
 void D3D12BarrierTestSuite::TestCrossQueueTextureHandoffs()
