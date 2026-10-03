@@ -183,6 +183,10 @@ bool SingleConsumerQueue::RunUntilIdle(TimePoint startTime, Milliseconds timeout
 
 		commandsToProcess->pop();
 
+		// The queue usually runs as a single long running task, so drain per command rather than relying on the task's pool
+		if (mSchedulerThread != nullptr)
+			mSchedulerThread->DrainAutoreleasePool();
+
 		TimePoint currentTime = Clock::now();
 		if(timeout != 0ms && (currentTime - startTime) > timeout)
 		{

@@ -48,10 +48,6 @@ namespace b3d
 		 * Contains data describing vertex inputs for a Metal graphics pipeline. Owns the
 		 * MTLVertexDescriptor built by resolving a vertex-buffer layout against the vertex shader's
 		 * declared inputs, with unmatched shader inputs redirected to a zero-filled null stream.
-		 *
-		 * Metal fuses the vertex descriptor into the compiled MTLRenderPipelineState, so the identifier
-		 * returned by GetId() participates in the pipeline-variant cache key (see
-		 * MetalPipelineVariantKey::VertexInputId).
 		 */
 		class MetalVertexInput
 		{
@@ -61,7 +57,6 @@ namespace b3d
 			 * @param	layout		Vertex buffer layout resolved against the vertex shader inputs.
 			 */
 			MetalVertexInput(u32 id, const GpuVertexInputLayout& layout);
-			~MetalVertexInput();
 
 			/** Returns an identifier which uniquely represents this vertex input configuration. */
 			u32 GetId() const { return mId; }
@@ -83,32 +78,25 @@ namespace b3d
 			/** Returns true when the layout reserves a null stream for unmatched shader inputs. */
 			bool HasNullStream() const { return mNullStreamIndex != GpuVertexInputLayout::kNoNullStream; }
 
-#ifdef __OBJC__
 			/**
 			 * Returns the vertex descriptor for this input configuration. Remains valid for the lifetime
 			 * of this object. Callers assign it to MTLRenderPipelineDescriptor.vertexDescriptor, which is
 			 * a copying property, so the descriptor owned here is never mutated after construction.
 			 */
-			MTLVertexDescriptor* GetVertexDescriptor() const;
-#endif
+			MTLVertexDescriptor* GetVertexDescriptor() const { return mVertexDescriptor; }
 
 		private:
-			struct Impl;
-
 			u32 mId;
 			u32 mStreamCount = 0;
 			u32 mUsedStreamMask = 0;
 			u32 mNullStreamIndex = GpuVertexInputLayout::kNoNullStream;
-			TUnique<Impl> mImpl;
+			MTLVertexDescriptor* mVertexDescriptor = nil;
 		};
 
 		class MetalVertexInputManager;
 		extern template class TGpuVertexInputManager<MetalVertexInputManager, TShared<MetalVertexInput>>;
 
-		/**
-		 * Maps vertex buffer structure and vertex shader inputs in order to create vertex input
-		 * descriptions usable by Metal.
-		 */
+		/** Maps vertex buffer structure and vertex shader inputs in order to create vertex input descriptions usable by Metal. */
 		class MetalVertexInputManager : public Module<MetalVertexInputManager>, public TGpuVertexInputManager<MetalVertexInputManager, TShared<MetalVertexInput>>
 		{
 		public:

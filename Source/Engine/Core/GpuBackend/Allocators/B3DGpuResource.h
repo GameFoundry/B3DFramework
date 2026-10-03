@@ -531,6 +531,13 @@ namespace b3d
 		/** Retrieves a subresource range covering all the sub-resources of the image. */
 		const GpuTextureSubresourceRange& GetRange() const { return mFullRange; }
 
+		/**
+		 * Retrieves a subresource range covering the faces and mip levels described by @p surface, over every aspect of
+		 * the image. A zero face or mip count covers everything from the first face or mip onward, and explicit counts
+		 * are clamped to the subresources that remain.
+		 */
+		GpuTextureSubresourceRange GetRange(const TextureSurface& surface) const;
+
 		/** Returns true if @p range covers every subresource of the image. */
 		bool IsFullRange(const GpuTextureSubresourceRange& range) const;
 

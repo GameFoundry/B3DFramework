@@ -23,8 +23,8 @@ namespace b3d
 		void Stop() override;
 
 	private:
-		struct Impl;
 		render::MetalGpuDevice& mDevice;
-		TUnique<Impl> mImpl;
+		bool mCapturing = false;
+		NSURL* mOutputUrl = nil;
 	};
 } // namespace b3d

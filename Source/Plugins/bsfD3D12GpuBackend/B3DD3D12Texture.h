@@ -57,11 +57,6 @@ namespace b3d
 			/** Returns the native layout for @p layout, including resource-specific presentation constraints. */
 			D3D12TextureLayout GetTextureLayout(GpuImageLayout layout, GpuQueueType queueType) const;
 
-			using IGpuImageResource::GetRange;
-
-			/** Builds the subresource range selected by @p surface (its face/mip window), clamped to the image. */
-			GpuTextureSubresourceRange GetRange(const TextureSurface& surface) const;
-
 			/** Returns the D3D12 subresource index (mip-major, as used by native transition barriers) for a face/mip pair. */
 			u32 GetNativeSubresourceIndex(u32 face, u32 mipLevel) const { return face * mMipLevelCount + mipLevel; }
 

@@ -139,7 +139,7 @@ void Renderer::ResolveOutstandingScreenCaptures()
 	while(!mScreenCaptureRequests.Empty())
 	{
 		const TShared<RenderWindow> window = mScreenCaptureRequests.Front().Window;
-		TShared<GpuCommandBuffer> commandBuffer = mCommandBufferPoolRing->GetCurrentPool().Create(GpuCommandBufferCreateInformation::Create("Screen capture"));
+		TShared<GpuCommandBuffer> commandBuffer = mCommandBufferPoolRing->GetCurrentPool().FindOrCreate(GpuCommandBufferCreateInformation::Create("Screen capture"));
 
 		if(ResolveScreenCaptures(*commandBuffer, window))
 			GetGpuContext().SubmitCommandBuffer(commandBuffer);

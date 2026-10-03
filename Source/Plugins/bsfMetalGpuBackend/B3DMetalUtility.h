@@ -13,34 +13,32 @@ namespace b3d
 
 	namespace render
 	{
-		/**
-		 * Returns true when the provided engine pixel format has a Metal pixel-format mapping (in
-		 * the requested gamma variant). Unlike MetalUtility::GetPixelFormat this is callable from
-		 * plain C++ translation units (e.g. the sim-side texture manager), where Metal types are
-		 * unavailable.
-		 */
-		bool IsMetalPixelFormatSupported(PixelFormat format, bool gamma);
-	} // namespace render
-} // namespace b3d
-
-#ifdef __OBJC__
-
-namespace b3d
-{
-	namespace render
-	{
 		/** @addtogroup MetalGpuBackend
 		 *  @{
 		 */
 
-		/**
-		 * Utility helpers for converting engine types to their Metal equivalents.
-		 *
-		 * Only visible from Objective-C++ translation units.
-		 */
+		/** Utility helpers for converting engine types to their Metal equivalents. */
 		class MetalUtility
 		{
 		public:
+			/**
+			 * Returns true when the provided engine pixel format has a Metal pixel-format mapping (in the
+			 * requested gamma variant). Equivalent to GetPixelFormat() != MTLPixelFormatInvalid.
+			 */
+			static bool IsPixelFormatSupported(PixelFormat format, bool gamma);
+
+			/**
+			 * Returns the number of bytes per row for a single slice of a texture subresource with the
+			 * given format and width. Accounts for block-compressed formats.
+			 */
+			static u32 GetTextureRowPitch(PixelFormat format, u32 width);
+
+			/**
+			 * Returns the number of bytes occupied by a full 2D slice of a texture with the given
+			 * format and dimensions. For block-compressed formats the height is rounded up to a block.
+			 */
+			static u32 GetTextureSlicePitch(PixelFormat format, u32 width, u32 height);
+
 			/**
 			 * Converts a B3D pixel format to the closest matching MTLPixelFormat.
 			 *
@@ -51,8 +49,22 @@ namespace b3d
 			 */
 			static MTLPixelFormat GetPixelFormat(PixelFormat format, bool gamma);
 
+			/** Returns true if the Metal pixel format has a depth component. */
+			static bool PixelFormatHasDepth(MTLPixelFormat format);
+
+			/** Returns true if the Metal pixel format has a stencil component. */
+			static bool PixelFormatHasStencil(MTLPixelFormat format);
+
 			/** Converts an engine texture type to the Metal texture-target enum. */
 			static MTLTextureType GetTextureType(TextureType type, u32 sampleCount, u32 arraySliceCount);
+
+			/**
+			 * Converts engine shader stages to the Metal render-encoder stages that consume them.
+			 *
+			 * @param	stages	Engine shader stages referencing the resource.
+			 * @return	Matching MTLRenderStages mask, or zero when no raster stage consumes the resource.
+			 */
+			static MTLRenderStages GetRenderStages(GpuProgramStageBits stages);
 
 			/** Converts an engine filter + address mode bundle to a freshly configured MTLSamplerDescriptor. */
 			static MTLSamplerMinMagFilter GetMinMagFilter(FilterOptions filter);
@@ -100,18 +112,6 @@ namespace b3d
 			static MTLPixelFormat GetBufferFormat(GpuBufferFormat format);
 
 			/**
-			 * Returns the number of bytes per row for a single slice of a texture subresource with the
-			 * given format and width. Accounts for block-compressed formats.
-			 */
-			static u32 GetTextureRowPitch(PixelFormat format, u32 width);
-
-			/**
-			 * Returns the number of bytes occupied by a full 2D slice of a texture with the given
-			 * format and dimensions. For block-compressed formats the height is rounded up to a block.
-			 */
-			static u32 GetTextureSlicePitch(PixelFormat format, u32 width, u32 height);
-
-			/**
 			 * Maps a buffer's engine usage (type + flags) to the MTLStorageMode of its backing
 			 * memory. Buffers created with @c GpuBufferFlag::StoreOnCPUWithGPUAccess, or typed as
 			 * @c StagingRead / @c StagingWrite, are CPU-visible and use shared storage; everything
@@ -130,5 +130,3 @@ namespace b3d
 		/** @} */
 	} // namespace render
 } // namespace b3d
-
-#endif // __OBJC__

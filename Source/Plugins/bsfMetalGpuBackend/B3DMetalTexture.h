@@ -5,7 +5,7 @@
 #include "B3DMetalPrerequisites.h"
 #include "B3DMetalGpuDevice.h"
 #include "B3DMetalResource.h"
-#include "GpuBackend/B3DGpuCommandBuffer.h" // GpuImageLayout
+#include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "Image/B3DTexture.h"
 #include "Threading/B3DThreading.h"
 
@@ -16,13 +16,6 @@ namespace b3d
 		/** @addtogroup MetalGpuBackend
 		 *  @{
 		 */
-
-#ifdef __OBJC__
-		/** Native Metal texture handle. Aliased to void* in plain C++ TUs so class layouts stay identical (id is a pointer). */
-		using MetalTextureNativeHandle = id<MTLTexture>;
-#else
-		using MetalTextureNativeHandle = void*;
-#endif
 
 		class MetalTexture;
 
@@ -44,17 +37,16 @@ namespace b3d
 			/**
 			 * @param	owner				Resource manager that keeps track of lifetime of this resource.
 			 * @param	createInformation	Describes the image being wrapped.
-			 * @param	texture				Native MTLTexture handle the wrapper takes ownership of (+1 reference under MRC).
+			 * @param	texture				Native MTLTexture handle the wrapper takes ownership of.
 			 * @param	allocation			Engine allocator span backing the image's memory, or an invalid allocation for
 			 *								direct (non-sub-allocated) device allocations.
 			 */
-			MetalImage(MetalResourceManager* owner, const MetalImageCreateInformation& createInformation, MetalTextureNativeHandle texture, const GpuAllocation& allocation);
+			MetalImage(MetalResourceManager* owner, const MetalImageCreateInformation& createInformation, id<MTLTexture> texture, const GpuAllocation& allocation);
 			~MetalImage();
 
 			/** Assigns a name to the image, primarily used for easier debugging. */
 			void SetName(const StringView& name);
 
-#ifdef __OBJC__
 			/** Returns the internal handle to the Metal object. */
 			id<MTLTexture> GetMetalHandle() const { return mTexture; }
 
@@ -73,23 +65,16 @@ namespace b3d
 			 * resource. Views are cached for the lifetime of the image and retire with it.
 			 */
 			id<MTLTexture> GetSubresourceView(const TextureSurface& surface);
-#endif
 
 		private:
-			MetalTextureNativeHandle mTexture = nullptr;
+			id<MTLTexture> mTexture = nullptr;
 			GpuAllocation mAllocation;
 
-			/**
-			 * Lazily-created MTLPixelFormat -> view cache, used for depth-stencil / sRGB shader-read
-			 * views. Values are +1 retained references (MRC), released in the destructor.
-			 */
-			UnorderedMap<u32, MetalTextureNativeHandle> mShaderReadViews;
+			/** Lazily-created MTLPixelFormat -> view cache, used for depth-stencil / sRGB shader-read views. */
+			UnorderedMap<u32, id<MTLTexture>> mShaderReadViews;
 
-			/**
-			 * Lazily-created subresource-range view cache, keyed by the packed explicit surface.
-			 * Values are +1 retained references (MRC), released in the destructor.
-			 */
-			UnorderedMap<u64, MetalTextureNativeHandle> mSubresourceViews;
+			/** Lazily-created subresource-range view cache, keyed by the packed explicit surface. */
+			UnorderedMap<u64, id<MTLTexture>> mSubresourceViews;
 
 			/**
 			 * Guards concurrent GetShaderReadView calls from multiple worker fibers populating the
@@ -100,14 +85,7 @@ namespace b3d
 			mutable Mutex mViewCacheMutex;
 		};
 
-		/**
-		 * Metal implementation of a texture.
-		 *
-		 * High-level proxy over a private-storage MetalImage wrapper. Metal textures are not
-		 * directly mappable, so @c Map returns an invalid @c GpuTextureMappedScope and callers are
-		 * expected to route CPU traffic through @c TextureUtility::Write / @c TextureUtility::Read,
-		 * which drives @c CopyBufferToTexture / @c CopyTextureToBuffer on the command buffer.
-		 */
+		/** Metal implementation of a texture. */
 		class MetalTexture : public Texture
 		{
 		public:
@@ -126,7 +104,6 @@ namespace b3d
 			/** Gets the resource wrapping the Metal texture object. */
 			MetalImage* GetMetalResource() const { return mImage; }
 
-#ifdef __OBJC__
 			/** Returns the underlying MTLTexture. May be nil if Initialize() failed or has not been called yet. */
 			id<MTLTexture> GetMetalTexture() const;
 
@@ -138,10 +115,9 @@ namespace b3d
 
 			/**
 			 * Creates the descriptor of a native texture with @p properties on @p device. Logs an error and returns nil if the
-			 * texture cannot be represented. The caller owns the returned descriptor.
+			 * texture cannot be represented.
 			 */
 			static MTLTextureDescriptor* CreateDescriptor(id<MTLDevice> device, const TextureProperties& properties);
-#endif
 
 		protected:
 			friend class MetalGpuDevice;

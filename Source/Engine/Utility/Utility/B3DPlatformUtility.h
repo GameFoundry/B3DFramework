@@ -57,6 +57,18 @@ namespace b3d
 		 */
 		static void DisableInteractiveErrorDialogs();
 
+		/**
+		 * Pushes a new autorelease pool on the calling thread's pool stack and returns its handle. Objects autoreleased by
+		 * Objective-C code are released once the pool is popped via PopAutoreleasePool(). Returns null on platforms without
+		 * autorelease pools.
+		 *
+		 * Prefer AutoreleasePoolScope over calling this directly, and see its documentation for restrictions regarding fibers.
+		 */
+		static void* PushAutoreleasePool();
+
+		/** Pops the autorelease pool returned by PushAutoreleasePool(), along with any pools pushed after it. */
+		static void PopAutoreleasePool(void* pool);
+
 		/** Returns information about the underlying hardware. */
 		static SystemInfo GetSystemInfo();
 
@@ -86,6 +98,33 @@ namespace b3d
 
 	private:
 		static GPUInfo sGPUInfo;
+	};
+
+#if !B3D_PLATFORM_MACOS
+	inline void* PlatformUtility::PushAutoreleasePool() { return nullptr; }
+	inline void PlatformUtility::PopAutoreleasePool(void*) { }
+#endif
+
+	/**
+	 * Pushes an autorelease pool when constructed and pops it when destroyed. Does nothing on platforms without autorelease
+	 * pools.
+	 *
+	 * Autorelease pools form a per-thread stack, while fibers interleave their execution on the same thread. Therefore a scope
+	 * must never be created within a scheduler task (Scheduler, SingleConsumerQueue) if the task can yield (e.g. Signal::Wait())
+	 * while the scope is alive. Tasks receive their pools from the scheduler instead. Scopes created outside of tasks, on the
+	 * thread's own stack, are free to stay alive across yields.
+	 */
+	class AutoreleasePoolScope
+	{
+	public:
+		AutoreleasePoolScope() : mPool(PlatformUtility::PushAutoreleasePool()) { }
+		~AutoreleasePoolScope() { PlatformUtility::PopAutoreleasePool(mPool); }
+
+		AutoreleasePoolScope(const AutoreleasePoolScope&) = delete;
+		AutoreleasePoolScope& operator=(const AutoreleasePoolScope&) = delete;
+
+	private:
+		void* mPool;
 	};
 
 	/** @} */

@@ -6,23 +6,12 @@
 #include "B3DMetalGpuPipelineParameterLayout.h"
 #include "B3DMetalShaderABI.h"
 #include "Debug/B3DLog.h"
+#include "Utility/B3DBitwise.h"
 
 namespace b3d
 {
 	namespace render
 	{
-		namespace
-		{
-			/** Rounds @p value up to the next multiple of @p alignment. */
-			u64 AlignUp(u64 value, u32 alignment)
-			{
-				if (alignment <= 1)
-					return value;
-				const u64 mask = (u64)(alignment - 1);
-				return (value + mask) & ~mask;
-			}
-		} // namespace
-
 		MetalGpuParameterSetPool::MetalGpuParameterSetPool(MetalGpuDevice& device, const GpuParameterSetPoolCreateInformation& createInformation)
 			: GpuParameterSetPool(createInformation), mDevice(device)
 		{
@@ -30,22 +19,7 @@ namespace b3d
 
 		MetalGpuParameterSetPool::~MetalGpuParameterSetPool()
 		{
-			// Under MRC CreateHeap-equivalent path returns +1 retained buffers; drop our refs so the
-			// driver reclaims them. Under ARC this is a no-op (the Vector drops its strong refs). No
-			// device-level teardown needed: MTLBuffer is CPU/GPU-auto-released once refcount hits zero.
-#if !__has_feature(objc_arc)
-			for (Block& block : mBlocks)
-			{
-				if (block.Buffer != nil)
-					[block.Buffer release];
-				block.Buffer = nil;
-			}
-			for (id<MTLBuffer> buffer : mDirectBuffers)
-			{
-				if (buffer != nil)
-					[buffer release];
-			}
-#endif
+			// The owning work context drains its GPU work before tearing down the pool, so nothing can still read these.
 			mBlocks.clear();
 			mDirectBuffers.clear();
 		}
@@ -54,53 +28,32 @@ namespace b3d
 		{
 			if (setIndex > kMetalMaximumParameterSetIndex)
 			{
-				B3D_LOG(Error, LogRenderBackend,
-					"Metal parameter set index {0} exceeds the supported maximum of {1}.",
-					setIndex, kMetalMaximumParameterSetIndex);
+				B3D_LOG(Error, LogRenderBackend, "Metal parameter set index {0} exceeds the supported maximum of {1}.", setIndex, kMetalMaximumParameterSetIndex);
 				return nullptr;
 			}
 
-			// A'6: worker fibers may call Create concurrently. The quota check and the counter
-			// increment must be a single atomic step under mPoolMutex, otherwise two fibers can both
-			// pass the gate at mAllocatedSetCount == MaxSets - 1 and overshoot the cap. We reserve
-			// the slot here, then release the lock before the heavy work below — crucial because
-			// MetalGpuParameters::Initialize() reenters this pool via AcquireArgumentBufferSlice,
-			// which re-locks mPoolMutex; Banshee's Mutex is non-recursive, so holding it across
-			// Initialize() would self-deadlock. The engine's Metal Initialize() path handles
-			// sub-allocation failure by logging + returning a nil argument buffer rather than
-			// throwing, so a no-rollback increment is safe: a set that fails to acquire its slice
-			// will still consume one quota entry but never produces a phantom successful allocation.
-			if (mInformation.Mode == GpuParameterSetPoolMode::Transient)
+			const bool isTransient = mInformation.Mode == GpuParameterSetPoolMode::Transient;
+			if (isTransient)
 			{
-				Lock lock(mPoolMutex);
 				if (mAllocatedSetCount >= mInformation.MaxSets)
 					return nullptr;
 
 				mAllocatedSetCount++;
 			}
 
-			// B9: hand ourselves to the set so Initialize sub-allocates the argument buffer out of
-			// our ring instead of minting a fresh MTLBuffer. The pool outlives every set it creates —
-			// a set released after Reset must observe its argument buffer as potentially reused, but
-			// the engine's contract is to drop all sets *before* Reset, so holding a raw pool pointer
-			// here is safe.
-			MetalGpuParameters* rawParamSet = new(B3DAllocate<MetalGpuParameters>()) MetalGpuParameters(mDevice, layout, setIndex,
-				mInformation.Mode == GpuParameterSetPoolMode::Transient ? this : nullptr);
+			MetalGpuParameters* rawParameterSet = new(B3DAllocate<MetalGpuParameters>()) MetalGpuParameters(mDevice, layout, setIndex, isTransient ? this : nullptr);
 
-			TShared<MetalGpuParameters> paramSet = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
-				? B3DMakeSharedFromExisting(rawParamSet)
-				: GpuDevice::MakeSharedStandalone(rawParamSet);
-
-			paramSet->SetShared(paramSet);
+			TShared<MetalGpuParameters> parameterSet = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy) ? B3DMakeSharedFromExisting(rawParameterSet) : GpuDevice::MakeSharedStandalone(rawParameterSet);
+			parameterSet->SetShared(parameterSet);
 
 			if (!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
 			{
-				paramSet->Initialize();
-				if (!paramSet->IsMetalBindingReady())
+				parameterSet->Initialize();
+				if (!parameterSet->IsArgumentBufferAllocated())
 					return nullptr;
 			}
 
-			return paramSet;
+			return parameterSet;
 		}
 
 		void MetalGpuParameterSetPool::Reset()
@@ -111,29 +64,15 @@ namespace b3d
 				return;
 			}
 
-			@autoreleasepool
-			{
-			Lock lock(mPoolMutex);
 			mAllocatedSetCount = 0;
 
-			// B9: rewind every block's cursor. Crucially, do NOT release the MTLBuffers — subsequent
-			// frames reuse them. Callers have guaranteed no in-flight command buffer references any
-			// set that owned a slice in these blocks.
+			// Rewind the ring but keep its blocks, so subsequent frames reuse them. The caller guarantees no in-flight
+			// command buffer references any set that owned a slice.
 			for (Block& block : mBlocks)
 				block.Cursor = 0;
 
-			// Direct-allocated buffers from the persistent / large-request paths are released here
-			// because they are not part of the ring. Caller contract says Reset invalidates every set
-			// the pool has handed out, so the buffers backing them can drop too.
-#if !__has_feature(objc_arc)
-			for (id<MTLBuffer> buffer : mDirectBuffers)
-			{
-				if (buffer != nil)
-					[buffer release];
-			}
-#endif
+			// Dedicated buffers are not part of the ring. Reset invalidates every set the pool handed out, so they can go.
 			mDirectBuffers.clear();
-			} // @autoreleasepool
 		}
 
 		id<MTLBuffer> MetalGpuParameterSetPool::AcquireArgumentBufferSlice(u64 size, u32 alignment, u64& outOffset)
@@ -146,40 +85,26 @@ namespace b3d
 			if (device == nil)
 				return nil;
 
-			// Persistent pools and oversized requests go through a dedicated MTLBuffer so their
-			// lifetime is independent of the ring's Reset cycle. This mirrors MetalHeapAllocator's
-			// large-resource fallback reasoning — we do not want a single multi-hundred-KB argument
-			// buffer to pin an entire block, nor do we want a persistent set to keep a block alive
-			// past its ring reset point.
-			const bool useDirectPath = size > kLargeSliceThreshold;
-			if (useDirectPath)
+			// TODO - Allocate ring blocks (GrowByBlock) and the dedicated buffers below through MetalHeapAllocator::AllocateBuffer.
+			// Oversized requests get a dedicated buffer rather than pinning most of a block.
+			if (size > kLargeSliceThreshold)
 			{
-				id<MTLBuffer> direct = [device newBufferWithLength:(NSUInteger)size
-															options:MTLResourceStorageModeShared];
+				id<MTLBuffer> direct = [device newBufferWithLength:(NSUInteger)size options:MTLResourceStorageModeShared];
 				if (direct == nil)
 				{
-					B3D_LOG(Error, LogRenderBackend,
-						"MetalGpuParameterSetPool: direct-path argument buffer allocation failed for {0} bytes.",
-						size);
+					B3D_LOG(Error, LogRenderBackend, "MetalGpuParameterSetPool: direct-path argument buffer allocation failed for {0} bytes.", size);
 					return nil;
 				}
 
-				{
-					Lock lock(mPoolMutex);
-					mDirectBuffers.push_back(direct);
-				}
-				outOffset = 0;
+				mDirectBuffers.push_back(direct);
 				return direct;
 			}
 
-			Lock lock(mPoolMutex);
-
-			// Fast path: try to satisfy the request out of an existing block. Blocks are indexed in
-			// insertion order; we scan from oldest to newest so the hottest allocations cluster in the
-			// first block and later blocks only light up under pressure.
+			// Scan from oldest to newest so allocations cluster in the first block and later blocks only light up
+			// under pressure.
 			for (Block& block : mBlocks)
 			{
-				const u64 alignedCursor = AlignUp(block.Cursor, alignment);
+				const u64 alignedCursor = Bitwise::AlignUp<u64>(block.Cursor, alignment);
 				if (alignedCursor + size <= block.Size)
 				{
 					block.Cursor = alignedCursor + size;
@@ -188,26 +113,13 @@ namespace b3d
 				}
 			}
 
-			// No existing block has room — grow. Block size is the max of kDefaultBlockSize and the
-			// actual request so even a pathologically large (but-still-under-threshold) request always
-			// fits.
-			const u64 growSize = std::max<u64>(kDefaultBlockSize, size);
-			Block* grown = GrowByBlock(growSize);
+			// No existing block has room. A fresh block starts at offset zero, which satisfies any alignment, and is at
+			// least as large as the request.
+			Block* grown = GrowByBlock(std::max<u64>(kDefaultBlockSize, size));
 			if (grown == nullptr)
 				return nil;
 
-			const u64 alignedCursor = AlignUp(grown->Cursor, alignment);
-			if (alignedCursor + size > grown->Size)
-			{
-				// Shouldn't happen — growSize was chosen to fit. Defensive guard so we never return a
-				// slice that overlaps past the block boundary.
-				B3D_LOG(Error, LogRenderBackend,
-					"MetalGpuParameterSetPool: grown block of {0} bytes could not fit a {1}-byte request.",
-					grown->Size, size);
-				return nil;
-			}
-			grown->Cursor = alignedCursor + size;
-			outOffset = alignedCursor;
+			grown->Cursor = size;
 			return grown->Buffer;
 		}
 
@@ -217,13 +129,10 @@ namespace b3d
 			if (device == nil)
 				return nullptr;
 
-			id<MTLBuffer> buffer = [device newBufferWithLength:(NSUInteger)minimumSize
-														options:MTLResourceStorageModeShared];
+			id<MTLBuffer> buffer = [device newBufferWithLength:(NSUInteger)minimumSize options:MTLResourceStorageModeShared];
 			if (buffer == nil)
 			{
-				B3D_LOG(Error, LogRenderBackend,
-					"MetalGpuParameterSetPool: failed to grow ring by a {0}-byte block.",
-					minimumSize);
+				B3D_LOG(Error, LogRenderBackend, "MetalGpuParameterSetPool: failed to grow ring by a {0}-byte block.", minimumSize);
 				return nullptr;
 			}
 
@@ -232,6 +141,7 @@ namespace b3d
 			block.Size = minimumSize;
 			block.Cursor = 0;
 			mBlocks.push_back(block);
+
 			return &mBlocks.back();
 		}
 	} // namespace render

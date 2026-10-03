@@ -14,8 +14,7 @@ namespace b3d
 	/**
 	 * Handles initialization and shutdown of Metal GPU backend, and provides access to GPU device objects.
 	 *
-	 * Implements Metal for Apple Silicon macOS. Exposes the single integrated GPU selected by
-	 * @c MTLCreateSystemDefaultDevice.
+	 * Implements Metal for Apple Silicon macOS. Exposes the single integrated GPU selected by @c MTLCreateSystemDefaultDevice.
 	 */
 	class MetalGpuBackend : public GpuBackend
 	{

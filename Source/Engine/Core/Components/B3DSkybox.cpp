@@ -142,7 +142,7 @@ void Skybox::FilterTexture()
 
 	auto fnFilterSkybox = [filteredRadianceRenderProxy, irradianceRenderProxy, skyboxRenderProxy](render::GpuCommandBufferPool& commandBufferPool)
 	{
-		const TShared<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("FilterSkybox"));
+		const TShared<render::GpuCommandBuffer> commandBuffer = commandBufferPool.FindOrCreate(render::GpuCommandBufferCreateInformation::Create("FilterSkybox"));
 		TShared<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
 
 		commandBufferProfiler->BeginSample(*commandBuffer, "FilterSkybox");

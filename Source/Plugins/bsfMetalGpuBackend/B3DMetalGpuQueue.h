@@ -17,100 +17,44 @@ namespace b3d
 		 */
 
 		/**
-		 * Metal implementation of a GPU queue.
+		 * Metal implementation of a GPU queue, wrapping an @c MTLCommandQueue. Metal queues accept every encoder type, so
+		 * queue types only exist to match the engine's abstraction.
 		 *
-		 * Wraps a @c MTLCommandQueue. One queue is created per GpuQueueType by the device. Metal queues
-		 * accept any kind of encoder (graphics, compute, or blit); the type-based split exists purely to
-		 * mirror the engine's abstraction and to allow future per-type submission ordering.
-		 *
-		 * Command buffer submission is routed through the device's GpuSubmitThread:
-		 * SubmitCommandBuffer() validates and hands off to GpuSubmitThread::QueueSubmit, which calls back
-		 * into MetalGpuDevice::ExecuteSubmit -> MetalGpuCommandBuffer::CommitInternal on the submit
-		 * thread. The submit-thread-facing half of the queue (ExecuteWaitUntilIdle,
-		 * RefreshCompletionState, GetLastCommittedEventValue) backs the device's IGpuSubmitThreadBackend
-		 * implementation.
-		 *
-		 * The queue owns a single @c MTLSharedEvent that is signaled on every committed command buffer.
-		 * Cross-queue dependencies expressed via @c GpuQueueMask are encoded at submit time by making the
-		 * submitted command buffer wait on the target queue's last-committed event value (race-free — see
-		 * @c GetLastCommittedEventValue), and every submission increments this queue's own event value
-		 * once the command buffer finishes its work.
+		 * Every committed submission signals the queue's @c MTLSharedEvent with a new value. Cross-queue dependencies wait on
+		 * the other queue's last committed value.
 		 */
 		class MetalGpuQueue : public GpuQueue
 		{
 		public:
-#ifdef __OBJC__
 			MetalGpuQueue(GpuDevice& device, GpuQueueType type, u32 index, id<MTLCommandQueue> commandQueue, id<MTLSharedEvent> sharedEvent);
 
 			/** Returns the underlying MTLCommandQueue. */
-			id<MTLCommandQueue> GetMetalQueue() const;
+			id<MTLCommandQueue> GetMetalQueue() const { return mCommandQueue; }
 
-			/** Returns the shared event used to signal submissions on this queue. */
-			id<MTLSharedEvent> GetSharedEvent() const;
+			/** Returns the shared event signaled by submissions on this queue. */
+			id<MTLSharedEvent> GetSharedEvent() const { return mSharedEvent; }
 
-			/**
-			 * Returns the event value reserved for the most recent submission on this queue — i.e. the
-			 * value the upcoming @c encodeSignalEvent:value: has latched. This is a CPU-side reservation
-			 * counter bumped synchronously inside @c ReserveNextEventValue; the GPU has not necessarily
-			 * committed or begun work for this value when the accessor returns. Used by the producer
-			 * side to encode its own signal value inside @c CommitInternal. Cross-queue waits must use
-			 * @c GetLastCommittedEventValue instead — waiting on the reserved value can deadlock if a
-			 * concurrent submission reserved N+1 but has not yet reached @c [cmdBuffer commit].
-			 */
-			u64 GetLastReservedEventValue() const;
+			/** Returns the highest event value whose command buffer has been committed on this queue. */
+			u64 GetLastCommittedEventValue() const { return mLastCommittedEventValue.load(std::memory_order_acquire); }
+
+			/** Reserves and returns the event value the next submission on this queue will signal. */
+			u64 ReserveNextEventValue() { return mLastReservedEventValue.fetch_add(1, std::memory_order_acq_rel) + 1; }
 
 			/**
-			 * Returns the largest event value that has been reserved *and* committed to the GPU on this
-			 * queue (i.e. @c [cmdBuffer commit] has returned for that submission). Used by cross-queue
-			 * waits: encoding @c encodeWaitForEvent:value: with the producer queue's committed value
-			 * ensures the waiter never blocks on a value that has been reserved by a concurrent submit
-			 * but not yet handed to the Metal driver.
-			 */
-			u64 GetLastCommittedEventValue() const;
-
-			/**
-			 * Returns the event value most recently signaled on the GPU side of this queue (i.e. the
-			 * completion frontier). Reads from @c [SharedEvent signaledValue], so the value changes
-			 * asynchronously as the GPU retires submissions. Used by @c MetalGpuQueryPool to decide
-			 * whether a submitted query's event value has been reached without blocking.
-			 */
-			u64 GetLastSignaledEventValue() const;
-
-			/** Returns the next event value that will be signaled by the upcoming submission on this queue. */
-			u64 ReserveNextEventValue();
-
-			/**
-			 * Records that a submission on this queue with @p value has reached @c [cmdBuffer commit].
-			 * Performs a monotonic update of the committed high-water mark — if @p value is older than
-			 * the current committed value (rare, but possible if two threads commit on this queue in
-			 * reverse reservation order), the stored mark is left unchanged. Release-store pairs with
-			 * acquire-loads inside @c GetLastCommittedEventValue and the cross-queue wait encoders.
+			 * Records that the command buffer signaling @p eventValue has been committed. Submissions may commit out of
+			 * reservation order, so the last committed event value only ever increases.
 			 *
-			 * Additionally records the submission for RefreshCompletionState (frame pacing via
-			 * GpuSubmitThread).
+			 * @param	eventValue			Event value reserved through ReserveNextEventValue().
+			 * @param	commandBuffer		Committed command buffer, waited on by RefreshCompletionState().
+			 * @param	ownerCompletion		Optional wait group signaled once the owner-side cleanup for the submission has run.
 			 */
-			void NotifySubmissionCommitted(u64 value, id<MTLCommandBuffer> commandBuffer,
-				const TShared<WaitGroup>& ownerCompletion = nullptr);
+			void NotifySubmissionCommitted(u64 eventValue, id<MTLCommandBuffer> commandBuffer, const TShared<WaitGroup>& ownerCompletion = nullptr);
 
 			/**
-			 * Records owner-side completion for a submission that failed before any native command buffer
-			 * was committed. No shared-event value is published; the record carries the last committed value
-			 * so it retires together with the preceding work.
+			 * Records a submission that failed before its command buffer was committed. It signals no event value, and
+			 * retires together with the previously committed submission.
 			 */
 			void NotifySubmissionFailed(const TShared<WaitGroup>& ownerCompletion);
-
-			/**
-			 * Returns the shared event listener cached on this queue. Used by callers that need to block
-			 * on the queue's event — notably @c MetalGpuQueryPool::TryResolve — without allocating a
-			 * fresh listener on every wait.
-			 */
-			MTLSharedEventListener* GetSharedEventListener() const;
-#endif
-			~MetalGpuQueue();
-
-			void SubmitCommandBuffer(const GpuSubmissionInformation& information) override;
-			void WaitUntilIdle() override;
-			void PresentRenderWindow(const TShared<RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) override;
 
 			/** @name Submit thread
 			 *  Native halves of the device's IGpuSubmitThreadBackend implementation.
@@ -118,23 +62,18 @@ namespace b3d
 			 */
 
 			/**
-			 * Blocks until every submission committed on this queue has finished executing on the GPU,
-			 * using a trailing native command buffer that also fences completion-handler execution so all
-			 * command-buffer completion callbacks have been posted to their pools' message queues
-			 * before returning. Backs MetalGpuDevice::ExecuteWaitUntilIdle. Unlike WaitUntilIdle()
-			 * this never routes through the submit thread, so it is also the device-teardown fallback.
+			 * Blocks until every submission committed on this queue has finished executing, and their completion handlers
+			 * have run. Unlike WaitUntilIdle() this never goes through the submit thread, so it can also be used during device
+			 * teardown.
 			 */
 			void ExecuteWaitUntilIdle();
 
 			/**
-			 * Checks which submissions on this queue have finished executing and prunes the internal
-			 * submission records accordingly. A forced frame-boundary wait blocks directly on the native
-			 * command buffer associated with @p lastEventValue, avoiding an extra empty submission and
-			 * guaranteeing that command buffer's completion handler has returned.
+			 * Checks which submissions on this queue have finished executing and retires them.
 			 *
-			 * @param	forceWait		If true, blocks until every submission up to @p lastEventValue has
-			 *							finished executing, and waits until the finished buffers' owner-side
-			 *							completion and cleanup callbacks have executed.
+			 * @param	forceWait		If true, blocks until every submission up to @p lastEventValue has finished
+			 *							executing, and their owner-side cleanup has run. Submissions are only retired
+			 *							by forced waits.
 			 * @param	lastEventValue	Committed event value of the last submission to check, as returned by
 			 *							GetLastCommittedEventValue(). If ~0, all submissions are checked.
 			 *
@@ -144,19 +83,38 @@ namespace b3d
 
 			/** @} */
 
+			void SubmitCommandBuffer(const GpuSubmissionInformation& information) override;
+			void WaitUntilIdle() override;
+			void PresentRenderWindow(const TShared<RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) override;
+
 		private:
 			/**
-			 * Commits an empty MTLCommandBuffer and blocks until it completes. Completion handlers on a
-			 * queue execute in submission order, so once this returns every earlier submission's
-			 * addCompletedHandler block has run — i.e. all completion messages have been posted to their
-			 * pools' message queues. Used by ExecuteWaitUntilIdle and RefreshCompletionState(forceWait)
-			 * because the shared-event signal is encoded *inside* the command buffer and can be observed
-			 * slightly before the buffer's completion handler executes.
+			 * Commits an empty command buffer and blocks until it completes. Completion handlers run in submission order, so
+			 * once this returns the handlers of every earlier submission have run. Waiting on the shared event is not enough,
+			 * since it is signaled from within the command buffer, before its completion handler runs.
 			 */
 			void FenceCompletionHandlers();
 
-			struct Impl;
-			TUnique<Impl> mImpl;
+			/** Submission on this queue that has not been retired yet. */
+			struct SubmissionRecord
+			{
+				u64 EventValue = 0; /**< Signaled event value, or the last committed value for a failed submission. */
+				id<MTLCommandBuffer> CommandBuffer = nil; /**< Committed command buffer, or nil for a failed submission. */
+				TShared<WaitGroup> OwnerCompletion; /**< Signaled after the owner-side cleanup runs. */
+			};
+
+			id<MTLCommandQueue> mCommandQueue = nil;
+			id<MTLSharedEvent> mSharedEvent = nil;
+
+			/** Event value reserved by the most recent submission. The shared event's signaled value tracks completion. */
+			std::atomic<u64> mLastReservedEventValue { 0 };
+
+			/** Highest event value whose command buffer has been committed. */
+			std::atomic<u64> mLastCommittedEventValue { 0 };
+
+			/** Submissions not yet retired, in ascending event value order. Guarded by mSubmissionMutex. */
+			Vector<SubmissionRecord> mActiveSubmissions;
+			Mutex mSubmissionMutex;
 		};
 
 		/** @} */

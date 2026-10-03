@@ -12,7 +12,7 @@ namespace b3d
 	{
 		namespace
 		{
-			/** Returns the MTLStorageMode backing the provided memory type. */
+			/** Returns the storage mode backing @p memoryType. */
 			MTLStorageMode GetMemoryTypeStorageMode(u32 memoryType)
 			{
 				switch (memoryType)
@@ -24,19 +24,29 @@ namespace b3d
 					return MTLStorageModePrivate;
 				}
 			}
-		}
+
+			/** Returns the memory type backing @p storageMode, or MetalHeapAllocator::kMemoryTypeCount if heaps cannot back it. */
+			u32 GetStorageModeMemoryType(MTLStorageMode storageMode)
+			{
+				switch (storageMode)
+				{
+				case MTLStorageModePrivate:
+					return MetalHeapAllocator::kMemoryTypePrivate;
+				case MTLStorageModeShared:
+					return MetalHeapAllocator::kMemoryTypeShared;
+				default:
+					return MetalHeapAllocator::kMemoryTypeCount;
+				}
+			}
+		} // namespace
 
 		MetalHeapBackend::MetalHeapBackend(MetalGpuDevice& device)
-			: mDevice(&device)
+			: mDevice(device)
 		{ }
 
 		MetalHeapBackend::HeapHandle MetalHeapBackend::CreateHeap(u64 sizeInBytes, const HeapCreateInformation& createInformation)
 		{
-			// Descriptor allocations below are autoreleased internally; drain locally rather than
-			// relying on a runloop — there may be none under the engine's fiber scheduler.
-			@autoreleasepool
-			{
-			id<MTLDevice> device = mDevice->GetMetalDevice();
+			id<MTLDevice> device = mDevice.GetMetalDevice();
 			if (device == nil)
 				return nullptr;
 
@@ -50,15 +60,9 @@ namespace b3d
 			heapDescriptor.size = sizeInBytes;
 			heapDescriptor.storageMode = GetMemoryTypeStorageMode(createInformation.MemoryType);
 			heapDescriptor.cpuCacheMode = MTLCPUCacheModeDefaultCache;
-
-			// Placement heaps: the engine-side TLSF/linear allocators own offsets, so resources
-			// are created at explicit allocator-chosen offsets (mirroring Vulkan's
-			// bind-at-offset model). Automatic heaps cannot honor GpuAllocation offsets.
 			heapDescriptor.type = MTLHeapTypePlacement;
 
-			// Tracked mode delegates hazards to Metal. Explicit mode uses untracked heaps and
-			// relies on the command buffer's barriers, encoder fences, and queue events. Child
-			// resource descriptors use the matching policy through MetalUtility.
+			// Must match the hazard tracking mode MetalUtility assigns to resources placed in the heap
 #if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
 			heapDescriptor.hazardTrackingMode = MTLHazardTrackingModeUntracked;
 #else
@@ -66,15 +70,10 @@ namespace b3d
 #endif
 
 			id<MTLHeap> heap = [device newHeapWithDescriptor:heapDescriptor];
-#if !__has_feature(objc_arc)
-			[heapDescriptor release];
-#endif
 
 			if (heap == nil)
 			{
-				B3D_LOG(Error, LogRenderBackend,
-					"MetalHeapBackend: newHeapWithDescriptor failed for {0} bytes, memory type {1}.",
-					sizeInBytes, createInformation.MemoryType);
+				B3D_LOG(Error, LogRenderBackend, "MetalHeapBackend: newHeapWithDescriptor failed for {0} bytes, memory type {1}.", sizeInBytes, createInformation.MemoryType);
 				return nullptr;
 			}
 
@@ -93,7 +92,6 @@ namespace b3d
 			heapWrapper->MemoryType = createInformation.MemoryType;
 
 			return heapWrapper;
-			} // @autoreleasepool
 		}
 
 		void MetalHeapBackend::DestroyHeap(HeapHandle handle)
@@ -103,11 +101,6 @@ namespace b3d
 
 			MetalGpuHeap& heap = ToMetalGpuHeap(handle);
 
-			// Under MRC the heap was returned with +1 from newHeapWithDescriptor; release it
-			// explicitly. Under ARC the nil assignment below drops the strong reference.
-#if !__has_feature(objc_arc)
-			[heap.Heap release];
-#endif
 			heap.Heap = nullptr;
 			heap.Size = 0;
 			heap.MemoryType = 0;
@@ -123,19 +116,13 @@ namespace b3d
 			{
 				MemoryAllocator::Configuration configuration;
 
-				// Wrappers fully implement the IGpuResource lifecycle (Part A's tracker drives
-				// Notify*), and they free their span from the destructor which only runs once
-				// the resource has retired — so Free may reclaim immediately, and no
-				// completion tracker is required.
+				// Resources free their memory only once they retire, so it can be reclaimed immediately
 				configuration.DeferralMode = GpuAllocatorFreeDeferralMode::ResourceLifecycle;
 
-				// Metal placement heaps have no buffer-image granularity constraint analogous
-				// to Vulkan's; per-request alignment comes from heap*SizeAndAlign* queries.
+				// Placement heaps have no buffer-image granularity, alignment comes from the per-resource size queries
 				configuration.Granularity = 1;
 
-				// Private resources dominate long-lived scene memory and benefit from larger heaps.
-				// Shared resources are generally staging/uniform data; starting those at 16 MiB avoids
-				// reserving a 64 MiB heap for the first small CPU-visible buffer.
+				// Shared memory mostly holds small staging and uniform data, so it starts with smaller heaps
 				if (memoryType == kMemoryTypeShared)
 				{
 					configuration.InitialHeapSize = 16ull * 1024 * 1024;
@@ -146,9 +133,9 @@ namespace b3d
 					configuration.InitialHeapSize = 64ull * 1024 * 1024;
 					configuration.MaxHeapSize = 256ull * 1024 * 1024;
 				}
+
 				configuration.GrowthFactor = 2;
 				configuration.MaxEmptyHeapCount = 1;
-
 				configuration.HeapCreateInfo.MemoryType = memoryType;
 
 				mAllocators[memoryType] = B3DMakeUnique<MemoryAllocator>(&mBackend, nullptr, configuration);
@@ -157,10 +144,6 @@ namespace b3d
 
 		MetalHeapAllocator::~MetalHeapAllocator()
 		{
-			// Persistent allocator teardown returns every remaining heap through
-			// MetalHeapBackend::DestroyHeap. All resources sub-allocated from these heaps must have
-			// been destroyed by this point — the resource manager's debug leak tracking and the
-			// allocators' outstanding-allocation counters back that invariant.
 			for (u32 memoryType = 0; memoryType < kMemoryTypeCount; memoryType++)
 				mAllocators[memoryType].reset();
 
@@ -188,32 +171,31 @@ namespace b3d
 			B3D_ASSERT(memoryType < kMemoryTypeCount);
 
 			Lock lock(mLinearPagePoolMutex);
-			TUnique<LinearPagePool>& slot = mLinearPagePools[memoryType];
-			if (slot != nullptr)
-				return *slot;
+			TUnique<LinearPagePool>& pagePool = mLinearPagePools[memoryType];
+			if (pagePool != nullptr)
+				return *pagePool;
 
 			LinearPagePool::Configuration configuration;
 			configuration.PageSize = 8ull * 1024 * 1024;
 			configuration.MaxRetainedPages = 4;
 			configuration.HeapCreateInfo.MemoryType = memoryType;
 
-			slot = B3DMakeUnique<LinearPagePool>(&mBackend, configuration);
-			return *slot;
+			pagePool = B3DMakeUnique<LinearPagePool>(&mBackend, configuration);
+			return *pagePool;
 		}
 
-		TUnique<IGpuAllocator> MetalHeapAllocator::CreateScratchAllocator(u32 memoryType,
-			IGpuCompletionTracker& completionTracker)
+		TUnique<IGpuAllocator> MetalHeapAllocator::CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker)
 		{
 			if (memoryType >= kMemoryTypeCount)
 				return nullptr;
 
-			LinearPagePool& pool = GetOrCreateLinearPagePool(memoryType);
+			LinearPagePool& pagePool = GetOrCreateLinearPagePool(memoryType);
 
 			ScratchAllocator::Configuration configuration;
-			configuration.PageSize = pool.GetPageSize();
+			configuration.PageSize = pagePool.GetPageSize();
 			configuration.HeapCreateInfo.MemoryType = memoryType;
 
-			return B3DMakeUnique<ScratchAllocator>(&mBackend, &completionTracker, configuration, &pool);
+			return B3DMakeUnique<ScratchAllocator>(&mBackend, &completionTracker, configuration, &pagePool);
 		}
 
 		GpuMemoryRequirements MetalHeapAllocator::GetBufferMemoryRequirements(u64 length, u32 memoryType) const
@@ -231,7 +213,6 @@ namespace b3d
 
 			const MTLResourceOptions options = MetalUtility::GetResourceOptions(GetMemoryTypeStorageMode(memoryType));
 			const MTLSizeAndAlign sizeAndAlign = [device heapBufferSizeAndAlignWithLength:length options:options];
-
 			output.Size = sizeAndAlign.size;
 			output.Alignment = sizeAndAlign.align;
 
@@ -244,32 +225,22 @@ namespace b3d
 			output.Kind = GpuResourceKind::NonLinear;
 
 			id<MTLDevice> device = mDevice.GetMetalDevice();
-			if (device == nil || descriptor == nil)
-			{
-				output.MemoryType = GpuMemoryRequirements::kUnsupportedMemoryType;
-				return output;
-			}
-
-			const MTLStorageMode storageMode = descriptor.storageMode;
-			if (storageMode == MTLStorageModePrivate)
-				output.MemoryType = kMemoryTypePrivate;
-			else if (storageMode == MTLStorageModeShared)
-				output.MemoryType = kMemoryTypeShared;
-			else
+			const u32 memoryType = descriptor != nil ? GetStorageModeMemoryType(descriptor.storageMode) : kMemoryTypeCount;
+			if (device == nil || memoryType >= kMemoryTypeCount)
 			{
 				output.MemoryType = GpuMemoryRequirements::kUnsupportedMemoryType;
 				return output;
 			}
 
 			const MTLSizeAndAlign sizeAndAlign = [device heapTextureSizeAndAlignWithDescriptor:descriptor];
+			output.MemoryType = memoryType;
 			output.Size = sizeAndAlign.size;
 			output.Alignment = sizeAndAlign.align;
 
 			return output;
 		}
 
-		id<MTLBuffer> MetalHeapAllocator::AllocateBuffer(u64 length, u32 memoryType, const GpuAllocation& requestedAllocation,
-			GpuAllocation& outAllocation)
+		id<MTLBuffer> MetalHeapAllocator::AllocateBuffer(u64 length, u32 memoryType, const GpuAllocation& requestedAllocation, GpuAllocation& outAllocation)
 		{
 			outAllocation.Reset();
 
@@ -282,60 +253,46 @@ namespace b3d
 
 			const MTLResourceOptions options = MetalUtility::GetResourceOptions(GetMemoryTypeStorageMode(memoryType));
 
-			@autoreleasepool
+			if (requestedAllocation.HasMemory())
 			{
-				// Memory at a fixed location is placed as is. Only the device's persistent allocator falls back to
-				// a direct device allocation when it cannot satisfy the request.
-				if (requestedAllocation.HasMemory())
-				{
-					MetalGpuHeap& heap = ToMetalGpuHeap(requestedAllocation.Heap);
-					B3D_ASSERT(heap.MemoryType == memoryType && "Allocation's memory type cannot back the buffer.");
+				MetalGpuHeap& heap = ToMetalGpuHeap(requestedAllocation.Heap);
+				B3D_ASSERT(heap.MemoryType == memoryType && "Allocation's memory type cannot back the buffer.");
 
-					id<MTLBuffer> buffer = [heap.Heap newBufferWithLength:length options:options offset:requestedAllocation.Offset];
+				id<MTLBuffer> buffer = [heap.Heap newBufferWithLength:length options:options offset:requestedAllocation.Offset];
+				if (buffer != nil)
+					outAllocation = requestedAllocation;
+
+				return buffer;
+			}
+
+			IGpuAllocator& allocator = *requestedAllocation.Allocator;
+			const MTLSizeAndAlign sizeAndAlign = [device heapBufferSizeAndAlignWithLength:length options:options];
+
+			GpuAllocation allocation;
+			if (allocator.TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align, GpuResourceKind::Linear, nullptr, allocation))
+			{
+				MetalGpuHeap& heap = ToMetalGpuHeap(allocation.Heap);
+				if (heap.MemoryType == memoryType)
+				{
+					id<MTLBuffer> buffer = [heap.Heap newBufferWithLength:length options:options offset:allocation.Offset];
 					if (buffer != nil)
-						outAllocation = requestedAllocation;
-
-					return buffer;
+					{
+						outAllocation = allocation;
+						return buffer;
+					}
 				}
-
-				IGpuAllocator& allocator = *requestedAllocation.Allocator;
-				const bool allowDirectFallback = &allocator == mAllocators[memoryType].get();
-
-				const MTLSizeAndAlign sizeAndAlign = [device heapBufferSizeAndAlignWithLength:length options:options];
-
-				GpuAllocation allocation;
-				if (allocator.TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align,
-					GpuResourceKind::Linear, nullptr, allocation))
+				else
 				{
-					MetalGpuHeap& heap = ToMetalGpuHeap(allocation.Heap);
-					if (heap.MemoryType == memoryType)
-					{
-						id<MTLBuffer> buffer = [heap.Heap newBufferWithLength:length options:options offset:allocation.Offset];
-						if (buffer != nil)
-						{
-							outAllocation = allocation;
-
-							return buffer;
-						}
-					}
-					else
-					{
-						B3D_LOG(Error, LogRenderBackend,
-							"Metal buffer allocator returned memory type {0}, expected {1}.",
-							heap.MemoryType, memoryType);
-					}
-
-					allocator.FreeAndReclaim(allocation);
+					B3D_LOG(Error, LogRenderBackend, "Metal buffer allocator returned memory type {0}, expected {1}.", heap.MemoryType, memoryType);
 				}
 
-				if (!allowDirectFallback)
-					return nil;
+				allocator.FreeAndReclaim(allocation);
+			}
 
-				// Heap-path miss (allocator out of device memory, or a placed create failed) — fall
-				// back to a direct device allocation so the caller still gets a usable buffer. The
-				// options mask preserves the configured hazard policy.
-				return [device newBufferWithLength:length options:options];
-			} // @autoreleasepool
+			if (&allocator != mAllocators[memoryType].get())
+				return nil;
+
+			return [device newBufferWithLength:length options:options];
 		}
 
 		id<MTLTexture> MetalHeapAllocator::AllocateTexture(MTLTextureDescriptor* descriptor, const GpuAllocation& requestedAllocation, GpuAllocation& outAllocation)
@@ -349,18 +306,8 @@ namespace b3d
 			if (device == nil)
 				return nil;
 
-			// Derive the memory type from the descriptor's storage mode. Anything other than
-			// private/shared (managed, memoryless) is not pooled and goes straight to the device.
-			const MTLStorageMode storageMode = descriptor.storageMode;
-			u32 memoryType = kMemoryTypeCount;
-			if (storageMode == MTLStorageModePrivate)
-				memoryType = kMemoryTypePrivate;
-			else if (storageMode == MTLStorageModeShared)
-				memoryType = kMemoryTypeShared;
+			const u32 memoryType = GetStorageModeMemoryType(descriptor.storageMode);
 
-			@autoreleasepool
-			{
-			// Memory at a fixed location is placed as is
 			if (requestedAllocation.HasMemory())
 			{
 				MetalGpuHeap& heap = ToMetalGpuHeap(requestedAllocation.Heap);
@@ -373,33 +320,30 @@ namespace b3d
 				return texture;
 			}
 
-			if (memoryType < kMemoryTypeCount)
+			if (memoryType >= kMemoryTypeCount)
+				return [device newTextureWithDescriptor:descriptor];
+
+			IGpuAllocator& allocator = *requestedAllocation.Allocator;
+			const MTLSizeAndAlign sizeAndAlign = [device heapTextureSizeAndAlignWithDescriptor:descriptor];
+
+			GpuAllocation allocation;
+			if (allocator.TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align, GpuResourceKind::NonLinear, nullptr, allocation))
 			{
-				// Free layout query, mirrors the buffer path above.
-				const MTLSizeAndAlign sizeAndAlign = [device heapTextureSizeAndAlignWithDescriptor:descriptor];
-
-				GpuAllocation allocation;
-				if (requestedAllocation.Allocator->TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align, GpuResourceKind::NonLinear, nullptr, allocation))
+				MetalGpuHeap& heap = ToMetalGpuHeap(allocation.Heap);
+				id<MTLTexture> texture = [heap.Heap newTextureWithDescriptor:descriptor offset:allocation.Offset];
+				if (texture != nil)
 				{
-					MetalGpuHeap& heap = ToMetalGpuHeap(allocation.Heap);
-					id<MTLTexture> texture = [heap.Heap newTextureWithDescriptor:descriptor offset:allocation.Offset];
-					if (texture != nil)
-					{
-						outAllocation = allocation;
-						return texture;
-					}
-
-					requestedAllocation.Allocator->FreeAndReclaim(allocation);
+					outAllocation = allocation;
+					return texture;
 				}
+
+				allocator.FreeAndReclaim(allocation);
 			}
 
-			// Only the device's persistent allocators fall back to a direct device allocation
-			if (memoryType < kMemoryTypeCount && requestedAllocation.Allocator != mAllocators[memoryType].get())
+			if (&allocator != mAllocators[memoryType].get())
 				return nil;
 
 			return [device newTextureWithDescriptor:descriptor];
-			} // @autoreleasepool
 		}
-
 	} // namespace render
 } // namespace b3d

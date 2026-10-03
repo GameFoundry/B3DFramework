@@ -33,10 +33,7 @@ namespace b3d
 			bool IsReady() const override;
 
 		private:
-			struct Impl;
-
-			MetalGpuDevice& mGpuDevice;
-			TUnique<Impl> mImpl;
+			id<MTLSharedEvent> mEvent = nil;
 			std::atomic<u64> mExpectedValue{ 0 };
 		};
 

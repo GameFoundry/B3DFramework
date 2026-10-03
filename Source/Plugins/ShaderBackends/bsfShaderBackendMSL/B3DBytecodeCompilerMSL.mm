@@ -902,42 +902,38 @@ TShared<GpuProgramBytecode> BytecodeCompilerMSL::CompileBytecode(const GpuProgra
 		}
 	}
 
-	@autoreleasepool
+	id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+	if(device == nil)
 	{
-		id<MTLDevice> device = MTLCreateSystemDefaultDevice();
-		if(device == nil)
-		{
-			bytecode->Messages += "Metal reflection requires a Metal-capable Apple Silicon device.";
-			return bytecode;
-		}
+		bytecode->Messages += "Metal reflection requires a Metal-capable Apple Silicon device.";
+		return bytecode;
+	}
 
-		NSError* error = nil;
-		NSURL* url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:libraryPathString.c_str()]];
-		id<MTLLibrary> library = [device newLibraryWithURL:url error:&error];
-		if(library == nil)
-		{
-			bytecode->Messages += StringUtility::Format("Could not load the compiled Metal library for reflection: {0}.",
-				error != nil ? error.localizedDescription.UTF8String : "unknown error");
+	NSError* error = nil;
+	NSURL* url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:libraryPathString.c_str()]];
+	id<MTLLibrary> library = [device newLibraryWithURL:url error:&error];
+	if(library == nil)
+	{
+		bytecode->Messages += StringUtility::Format("Could not load the compiled Metal library for reflection: {0}.", error != nil ? error.localizedDescription.UTF8String : "unknown error");
 #if !__has_feature(objc_arc)
-			[device release];
-#endif
-			return bytecode;
-		}
-
-		NSString* entryPointName = [NSString stringWithUTF8String:entryPoint.c_str()];
-		id<MTLFunction> function = nil;
-		const bool reflectionSucceeded = ReflectLibrary(library, entryPointName, createInformation.Type, pushConstantBufferSize, *bytecode, function);
-#if !__has_feature(objc_arc)
-		[function release];
-		[library release];
 		[device release];
 #endif
-
-		if(!reflectionSucceeded)
-			return bytecode;
-
-		RestoreDeclaredMemberTypes(createInformation.ShaderReflection.get(), *bytecode->ParameterDescription);
+		return bytecode;
 	}
+
+	NSString* entryPointName = [NSString stringWithUTF8String:entryPoint.c_str()];
+	id<MTLFunction> function = nil;
+	const bool reflectionSucceeded = ReflectLibrary(library, entryPointName, createInformation.Type, pushConstantBufferSize, *bytecode, function);
+#if !__has_feature(objc_arc)
+	[function release];
+	[library release];
+	[device release];
+#endif
+
+	if(!reflectionSucceeded)
+		return bytecode;
+
+	RestoreDeclaredMemberTypes(createInformation.ShaderReflection.get(), *bytecode->ParameterDescription);
 
 	bytecode->Instructions.Size = (u32)libraryData.size();
 	bytecode->Instructions.Data = (u8*)B3DAllocate(bytecode->Instructions.Size);

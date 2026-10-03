@@ -19,7 +19,6 @@ namespace b3d
 		 * Metal implementation of a GPU program.
 		 *
 		 * Loads an offline-compiled @c metallib and resolves the requested entry point as an @c MTLFunction.
-		 * Both handles are held in an ObjC++-only pimpl.
 		 */
 		class MetalGpuProgram : public GpuProgram
 		{
@@ -32,19 +31,16 @@ namespace b3d
 			/** Returns the compute workgroup size recorded by the high-level shader compiler. */
 			const u32* GetWorkgroupSize() const { return mWorkgroupSize; }
 
-#ifdef __OBJC__
 			/** Returns the underlying MTLFunction. May be nil if Initialize() failed or has not been called yet. */
-			id<MTLFunction> GetMetalFunction() const;
+			id<MTLFunction> GetMetalFunction() const { return mFunction; }
 
 			/** Returns the underlying MTLLibrary that owns the function. */
-			id<MTLLibrary> GetMetalLibrary() const;
-#endif
+			id<MTLLibrary> GetMetalLibrary() const { return mLibrary; }
 
 		private:
-			struct Impl;
-
 			MetalGpuDevice& mGpuDevice;
-			TUnique<Impl> mImpl;
+			id<MTLLibrary> mLibrary = nil;
+			id<MTLFunction> mFunction = nil;
 			u32 mWorkgroupSize[3] = { 1, 1, 1 };
 		};
 

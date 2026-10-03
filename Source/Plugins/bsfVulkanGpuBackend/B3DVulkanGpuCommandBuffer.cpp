@@ -1433,7 +1433,7 @@ namespace b3d
 			for(SourceQueueTransitionInformation& sourceQueueTransitionInformation : mSourceQueueTransitions)
 			{
 				GpuCommandBufferPool& sourceCommandBufferPool = mDevice.GetSubmitThread().GetCommandBufferPool(sourceQueueTransitionInformation.QueueId.GetType());
-				const TShared<VulkanGpuCommandBuffer> sourceCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(sourceCommandBufferPool.Create(GpuCommandBufferCreateInformation::Create("Source queue transition")));
+				const TShared<VulkanGpuCommandBuffer> sourceCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(sourceCommandBufferPool.FindOrCreate(GpuCommandBufferCreateInformation::Create("Source queue transition")));
 				sourceQueueTransitionInformation.Barriers.Execute(sourceCommandBuffer->GetVulkanHandle());
 				sourceCommandBuffer->End();
 
@@ -1449,7 +1449,7 @@ namespace b3d
 			else if(mDestinationQueueBarriers.HasBarriers())
 			{
 				GpuCommandBufferPool& destinationCommandBufferPool = mDevice.GetSubmitThread().GetCommandBufferPool(mDestinationQueueId.GetType());
-				TShared<VulkanGpuCommandBuffer> transitionCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(destinationCommandBufferPool.Create(GpuCommandBufferCreateInformation::Create("Queue and layout transitions")));
+				TShared<VulkanGpuCommandBuffer> transitionCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(destinationCommandBufferPool.FindOrCreate(GpuCommandBufferCreateInformation::Create("Queue and layout transitions")));
 				mDestinationQueueBarriers.Execute(transitionCommandBuffer->GetVulkanHandle());
 				transitionCommandBuffer->End();
 				mSubmitInformation.DestinationQueueTransitionCommandBuffer = transitionCommandBuffer;

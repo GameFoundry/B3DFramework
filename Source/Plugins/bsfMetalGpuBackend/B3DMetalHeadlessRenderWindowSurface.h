@@ -35,10 +35,10 @@ namespace b3d::render
 		void Destroy() override;
 
 		// IMetalRenderWindowSurface
-		MTLTextureRef AcquireColorTexture() override;
-		MTLTextureRef GetCurrentColorTexture() const override { return mColorTextures[mCurrentImageIndex]; }
-		MTLTextureRef GetDepthStencilTexture() const override { return mDepthStencilTexture; }
-		MTLPixelFormatValue GetColorFormat() const override;
+		id<MTLTexture> AcquireColorTexture() override;
+		id<MTLTexture> GetCurrentColorTexture() const override { return mColorTextures[mCurrentImageIndex]; }
+		id<MTLTexture> GetDepthStencilTexture() const override { return mDepthStencilTexture; }
+		MTLPixelFormat GetColorFormat() const override;
 		PixelFormat GetColorPixelFormat() const override { return PF_BGRA8; }
 		bool IsSwapChainValid() const override { return mIsValid && mColorTextures[mCurrentImageIndex] != nullptr; }
 
@@ -61,10 +61,8 @@ namespace b3d::render
 		bool mIsSwapQueued = false;
 		u32 mCurrentImageIndex = 0;
 
-		// Obj-C strong (manually retained) members, +1 owned from newTextureWithDescriptor:. Declared through the
-		// unconditional handle aliases so the class layout is identical in .cpp and .mm translation units.
-		MTLTextureRef mColorTextures[kImageCount] = {};
-		MTLTextureRef mDepthStencilTexture = nullptr;
+		id<MTLTexture> mColorTextures[kImageCount] = {};
+		id<MTLTexture> mDepthStencilTexture = nullptr;
 	};
 
 	/** @} */

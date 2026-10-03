@@ -5,6 +5,7 @@
 #include "B3DMetalGpuQueue.h"
 #include "B3DMetalResourceManager.h"
 #include "Debug/B3DLog.h"
+#include "Threading/B3DScheduler.h"
 #define BS_COCOA_INTERNALS 1
 #include "Private/MacOS/B3DMacOSPlatform.h"
 #include "Private/MacOS/B3DMacOSWindow.h"
@@ -28,53 +29,40 @@ namespace b3d::render
 
 	MetalSwapChain::MetalSwapChain(MetalResourceManager* owner, MetalRenderWindowSurface& surface)
 		: Super(owner, "Metal render-window swap chain"), mSurface(surface)
-	{ }
+	{
+		// Present-completion notifies (swap chain NotifyUnbound) are posted back to this queue and processed on the thread
+		// responsible for the swap chain (the render thread).
+		Scheduler* const scheduler = Scheduler::Get();
+		if (B3D_ENSURE(scheduler))
+			mMessageQueue.ScheduleRunUntilShutdown(*scheduler, true);
+	}
 
 	MetalSwapChain::~MetalSwapChain()
 	{
-		mMessageQueue.RunUntilIdle();
+		mMessageQueue.PostRequestShutdownCommand(true);
 		AbortCurrentDrawable();
 
 		Lock lock(mMutex);
-		for (PendingDrawable& pendingDrawable : mPendingDrawables)
-			ReleaseDrawable(pendingDrawable.Drawable);
 		mPendingDrawables.clear();
 	}
 
-	void MetalSwapChain::ReleaseDrawable(CAMetalDrawableRef __strong& drawable)
+	id<MTLTexture> MetalSwapChain::AcquireDrawable(CAMetalLayer* layer)
 	{
-		if (drawable == nil)
-			return;
+		Lock lock(mMutex);
+		if (mIsRetired || layer == nil)
+			return nil;
 
-#if !__has_feature(objc_arc)
-		[drawable release];
-#endif
-		drawable = nil;
-	}
-
-	MTLTextureRef MetalSwapChain::AcquireDrawable(CAMetalLayerRef layer)
-	{
-		@autoreleasepool
+		if (mCurrentDrawable == nil)
 		{
-			Lock lock(mMutex);
-			if (mIsRetired || layer == nil)
-				return nil;
-
-			if (mCurrentDrawable == nil)
-			{
-				mCurrentDrawable = [layer nextDrawable];
-#if !__has_feature(objc_arc)
-				[mCurrentDrawable retain];
-#endif
-				mCurrentDrawableIndex = mNextDrawableIndex++;
-				mCurrentDrawableWasRenderedInto = false;
-			}
-
-			return mCurrentDrawable != nil ? mCurrentDrawable.texture : nil;
+			mCurrentDrawable = [layer nextDrawable];
+			mCurrentDrawableIndex = mNextDrawableIndex++;
+			mCurrentDrawableWasRenderedInto = false;
 		}
+
+		return mCurrentDrawable != nil ? mCurrentDrawable.texture : nil;
 	}
 
-	MTLTextureRef MetalSwapChain::GetCurrentTexture() const
+	id<MTLTexture> MetalSwapChain::GetCurrentTexture() const
 	{
 		Lock lock(mMutex);
 		return mCurrentDrawable != nil ? mCurrentDrawable.texture : nil;
@@ -83,7 +71,7 @@ namespace b3d::render
 	void MetalSwapChain::AbortCurrentDrawable()
 	{
 		Lock lock(mMutex);
-		ReleaseDrawable(mCurrentDrawable);
+		mCurrentDrawable = nil;
 		mCurrentDrawableWasRenderedInto = false;
 	}
 
@@ -111,8 +99,7 @@ namespace b3d::render
 		if (mCurrentDrawable == nil || mCurrentDrawableIndex != imageIndex)
 			return;
 
-		mPendingDrawables.push_back({ imageIndex, mCurrentDrawable, mSurface.mVSync,
-			mSurface.mVSyncInterval, mSurface.mRefreshRate });
+		mPendingDrawables.push_back({ imageIndex, mCurrentDrawable, mSurface.mVSync, mSurface.mVSyncInterval, mSurface.mRefreshRate });
 		mCurrentDrawable = nil;
 		mCurrentDrawableWasRenderedInto = false;
 	}
@@ -124,17 +111,11 @@ namespace b3d::render
 		PendingDrawable claimedDrawable;
 		{
 			Lock lock(mMutex);
-			auto iterFind = std::find_if(mPendingDrawables.begin(), mPendingDrawables.end(),
-				[imageIndex](const PendingDrawable& entry) { return entry.Index == imageIndex; });
+			auto iterFind = std::find_if(mPendingDrawables.begin(), mPendingDrawables.end(), [imageIndex](const PendingDrawable& entry) { return entry.Index == imageIndex; });
 			if (iterFind != mPendingDrawables.end())
 			{
 				claimedDrawable = *iterFind;
-#if __has_feature(objc_arc)
 				// The local strong keeps the drawable alive after erasing its pending entry.
-#else
-				[claimedDrawable.Drawable retain];
-#endif
-				ReleaseDrawable(iterFind->Drawable);
 				mPendingDrawables.erase(iterFind);
 			}
 		}
@@ -148,7 +129,6 @@ namespace b3d::render
 		if (commandBuffer == nil)
 		{
 			B3D_LOG(Error, LogRenderBackend, "Failed to allocate the Metal presentation command buffer.");
-			ReleaseDrawable(claimedDrawable.Drawable);
 			return;
 		}
 
@@ -192,17 +172,25 @@ namespace b3d::render
 
 		[commandBuffer commit];
 		metalQueue.NotifySubmissionCommitted(signalValue, commandBuffer, ownerCompletion);
-		ReleaseDrawable(claimedDrawable.Drawable);
 	}
 
 	void MetalSwapChain::AcquireImage()
 	{
-		B3D_ASSERT(false && "CAMetalLayer drawables are acquired late by AcquireColorTexture().");
+		B3D_ASSERT(false && "Metal drawables are acquired on the render thread at BeginRenderPass, not through the submit thread. See MetalSwapChain.");
 	}
 
 	void MetalSwapChain::NotifyWasImageAcquireQueued()
 	{
-		B3D_ASSERT(false && "CAMetalLayer drawables do not use queued image acquisition.");
+		B3D_ASSERT(false && "Metal drawables are acquired on the render thread at BeginRenderPass, not through the submit thread. See MetalSwapChain.");
+	}
+
+	void MetalSwapChain::Destroy()
+	{
+		// Process pending queued-operation unbind notifications so the resource can be destroyed immediately when its
+		// bound count reaches zero (important for shutdown).
+		mMessageQueue.RunUntilIdle();
+
+		Super::Destroy();
 	}
 
 	void MetalSwapChain::Retire()
@@ -213,8 +201,6 @@ namespace b3d::render
 	MetalRenderWindowSurface::MetalRenderWindowSurface(MetalGpuDevice& device, const RenderWindowSurfaceCreateInformation& createInformation)
 		: mGpuDevice(device), mWidth(createInformation.Width), mHeight(createInformation.Height), mVSync(createInformation.VSync), mVSyncInterval(createInformation.VsyncInterval == 0 ? 1 : createInformation.VsyncInterval), mRefreshRate(createInformation.RefreshRate), mHwGamma(createInformation.UseHardwareSRGB), mCreateDepthBuffer(createInformation.CreateDepthBuffer), mPendingWidth(createInformation.Width), mPendingHeight(createInformation.Height), mPendingVSync(createInformation.VSync), mPendingVSyncInterval(createInformation.VsyncInterval == 0 ? 1 : createInformation.VsyncInterval)
 	{
-		@autoreleasepool
-		{
 		if (createInformation.Headless)
 		{
 			// Headless surfaces are handled by MetalHeadlessRenderWindowSurface; the manager should never route
@@ -228,9 +214,6 @@ namespace b3d::render
 		CocoaWindow* window = MacOSPlatform::GetWindow((u32)createInformation.PlatformWindowHandle);
 		if (window != nullptr)
 			mLayer = (__bridge CAMetalLayer*)window->GetLayerInternal();
-#if !__has_feature(objc_arc)
-		[mLayer retain];
-#endif
 		MacOSPlatform::UnlockWindows();
 
 		if (mLayer == nil)
@@ -243,17 +226,25 @@ namespace b3d::render
 
 		mLayer.device = device.GetMetalDevice();
 		mLayer.pixelFormat = mHwGamma ? MTLPixelFormatBGRA8Unorm_sRGB : MTLPixelFormatBGRA8Unorm;
-		// framebufferOnly = NO so the drawable texture advertises blit-source usage, which the shared
-		// IMetalRenderWindowSurface::ReadAsync relies on to copy the presented frame into a PixelData staging
-		// buffer. Keeping this disabled has a persistent optimization cost versus framebufferOnly=YES, but the
-		// current RenderWindow API cannot declare capture intent before drawable acquisition. Re-enable the fast path
-		// when that backend-neutral capability is added; silently breaking window screenshots is not acceptable.
+
+		// Development builds need screen capture capability. Ideally we can always keep this to YES and do screen capture without blitting directly from framebuffer.
+#if B3D_BUILD_TYPE_DEVELOPMENT
 		mLayer.framebufferOnly = NO;
+#else
+		mLayer.framebufferOnly = YES;
+#endif
 		mLayer.drawableSize = CGSizeMake(mWidth, mHeight);
 
-		// Pin the drawable pool at 3. CAMetalLayer's default is already 3 on current macOS but was 2 in older
-		// releases, and the explicit value also documents intent: triple-buffering gives the CPU one frame of
-		// slack over the GPU, which the engine's fiber scheduler assumes.
+		// Pin the drawable pool at 3 (CAMetalLayer's default on current macOS, but 2 in older releases). The
+		// Vulkan and D3D12 backends run with 2 images because their acquire returns before the displayed
+		// image is actually free and the wait for it is deferred to the GPU (acquire semaphore / DXGI flip
+		// model), so the render thread is never blocked by the display. nextDrawable has no such deferral:
+		// it blocks the calling render thread until a drawable is fully released. Since drawables are
+		// acquired at command recording time (see MetalSwapChain), the render thread holds one drawable per
+		// frame it is ahead of the display, and with only 2 drawables BeginRenderPass would stall until the
+		// on-screen one retires at vblank. The third drawable lets the render thread run one frame ahead,
+		// the same slack the other backends get from the deferred wait; nextDrawable blocking beyond that
+		// is what paces the render thread against the display on Metal.
 		mLayer.maximumDrawableCount = 3;
 		mLayer.allowsNextDrawableTimeout = YES;
 
@@ -270,13 +261,10 @@ namespace b3d::render
 
 		mSwapChain = device.GetResourceManager().Create<MetalSwapChain>(*this);
 		RecreateDepthStencilTextureIfNeeded();
-		}
 	}
 
 	MetalRenderWindowSurface::~MetalRenderWindowSurface()
 	{
-		// Dtor mirrors @c Destroy() exactly — the Obj-C strongs are released and @c mValid flips false. Delegating
-		// keeps the teardown in one place; calling @c Destroy() on an already-destroyed surface is idempotent.
 		Destroy();
 	}
 
@@ -299,6 +287,7 @@ namespace b3d::render
 		u32 height;
 		bool vsync;
 		u32 vsyncInterval;
+
 		{
 			Lock lock(mPendingStateMutex);
 			width = mPendingWidth;
@@ -327,14 +316,12 @@ namespace b3d::render
 		if (mDepthStencilTexture != nil && (u32)mDepthStencilTexture.width == mWidth && (u32)mDepthStencilTexture.height == mHeight)
 			return;
 
-		// Depth32Float_Stencil8 is the universally supported depth/stencil format on Apple GPUs
-		// (Depth24Unorm_Stencil8 is unavailable on Apple silicon). Private storage rather than memoryless because
-		// the engine's LoadMask can legally request depth contents to be preserved across render passes.
-		MTLTextureDescriptor* descriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float_Stencil8
-			width:mWidth height:mHeight mipmapped:NO];
+		// Depth32Float_Stencil8 is the universally supported depth/stencil format on Apple GPUs (Depth24Unorm_Stencil8 is unavailable on Apple silicon).
+		MTLTextureDescriptor* descriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float_Stencil8 width:mWidth height:mHeight mipmapped:NO];
 		descriptor.usage = MTLTextureUsageRenderTarget;
 		descriptor.storageMode = MTLStorageModePrivate;
 
+		// TODO - Allocate through MetalHeapAllocator::AllocateTexture. Needs a tracked MetalImage so the resize path defers the old texture's release until in-flight command buffers retire.
 		id<MTLTexture> newDepthStencil = [mGpuDevice.GetMetalDevice() newTextureWithDescriptor:descriptor];
 		if (newDepthStencil == nil)
 		{
@@ -344,32 +331,20 @@ namespace b3d::render
 
 		newDepthStencil.label = @"RenderWindowDepthStencil";
 
-		// Any in-flight command buffer that references the old texture retains it (default retained-references
-		// mode), so replacing our strong reference here is safe even while a prior frame is still executing.
-		if (mDepthStencilTexture != nil)
-		{
-#if !__has_feature(objc_arc)
-			[mDepthStencilTexture release];
-#endif
-		}
-
-		mDepthStencilTexture = newDepthStencil; // Owns the +1 from newTextureWithDescriptor:.
+		mDepthStencilTexture = newDepthStencil;
 	}
 
-	MTLTextureRef MetalRenderWindowSurface::AcquireColorTexture()
+	id<MTLTexture> MetalRenderWindowSurface::AcquireColorTexture()
 	{
-		@autoreleasepool
-		{
-			if (!mValid || mLayer == nil)
-				return nil;
+		if (!mValid || mLayer == nil)
+			return nil;
 
-			ApplyPendingStateIfNeeded();
+		ApplyPendingStateIfNeeded();
 
-			return mSwapChain != nullptr ? mSwapChain->AcquireDrawable(mLayer) : nil;
-		}
+		return mSwapChain != nullptr ? mSwapChain->AcquireDrawable(mLayer) : nil;
 	}
 
-	MTLTextureRef MetalRenderWindowSurface::GetCurrentColorTexture() const
+	id<MTLTexture> MetalRenderWindowSurface::GetCurrentColorTexture() const
 	{
 		return mSwapChain != nullptr ? mSwapChain->GetCurrentTexture() : nil;
 	}
@@ -389,7 +364,7 @@ namespace b3d::render
 			mSwapChain->MarkDrawableAsRendered();
 	}
 
-	MTLPixelFormatValue MetalRenderWindowSurface::GetColorFormat() const
+	MTLPixelFormat MetalRenderWindowSurface::GetColorFormat() const
 	{
 		return mLayer != nil ? mLayer.pixelFormat : MTLPixelFormatBGRA8Unorm;
 	}
@@ -426,11 +401,6 @@ namespace b3d::render
 
 	void MetalRenderWindowSurface::MarkSwapChainAsInvalid()
 	{
-		// Dropping the drawable here is safe: the caller has guaranteed no render pass is currently writing to it
-		// (the engine calls this on resize *after* the frame boundary). The pending-resize flag is toggled so the
-		// next AcquireColorTexture re-applies the staged width/height to the layer — after a move between displays
-		// the layer's drawableSize may have drifted. Pending values are not touched: they are either from a prior
-		// @c RebuildSwapChain (the intended new size) or seeded from the ctor (the still-current size).
 		ReleaseCurrentDrawable();
 		mNeedsDrawableSizeReapply.store(true, std::memory_order_release);
 	}
@@ -447,26 +417,12 @@ namespace b3d::render
 			if (mGpuDevice.HasSubmitThread())
 				mGpuDevice.GetSubmitThread().WaitUntilIdle();
 
-			mSwapChain->GetMessageQueue().RunUntilIdle();
 			mSwapChain->Destroy();
 			mSwapChain = nullptr;
 		}
 
-		if (mDepthStencilTexture != nil)
-		{
-#if !__has_feature(objc_arc)
-			[mDepthStencilTexture release];
-#endif
-			mDepthStencilTexture = nil;
-		}
-
-		if (mLayer != nil)
-		{
-#if !__has_feature(objc_arc)
-			[mLayer release];
-#endif
-			mLayer = nil;
-		}
+		mDepthStencilTexture = nil;
+		mLayer = nil;
 
 		mValid = false;
 	}

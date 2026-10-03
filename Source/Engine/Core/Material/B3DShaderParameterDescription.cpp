@@ -43,7 +43,7 @@ void ShaderParameterDescription::AddParameter(ShaderObjectParameterInformation p
 void ShaderParameterDescription::AddParameter(ShaderObjectParameterInformation parameterInformation, const SamplerStateCreateInformation& defaultValue)
 {
 	u32 defaultValueIndex = ~0u;
-	if(Shader::IsSampler(parameterInformation.Type) && mSamplerParameters.count(parameterInformation.Name) == 0)
+	if(GpuObjectParameterTypeInformation::IsSampler(parameterInformation.Type) && mSamplerParameters.count(parameterInformation.Name) == 0)
 	{
 		defaultValueIndex = (u32)mSamplerDefaultValues.size();
 		mSamplerDefaultValues.push_back(defaultValue);
@@ -55,7 +55,8 @@ void ShaderParameterDescription::AddParameter(ShaderObjectParameterInformation p
 void ShaderParameterDescription::AddParameter(ShaderObjectParameterInformation parameterInformation, ShaderDefaultTextureType defaultValue)
 {
 	u32 defaultValueIndex = ~0u;
-	if(Shader::IsTexture(parameterInformation.Type) && mTextureParameters.count(parameterInformation.Name) == 0)
+	// Read-write textures are excluded: a load/store texture parameter carries no default value.
+	if(GpuObjectParameterTypeInformation::IsTexture(parameterInformation.Type) && !GpuObjectParameterTypeInformation::IsReadWriteTexture(parameterInformation.Type) && mTextureParameters.count(parameterInformation.Name) == 0)
 	{
 		defaultValueIndex = (u32)mTextureDefaultValues.size();
 		mTextureDefaultValues.push_back(defaultValue);
@@ -68,9 +69,9 @@ void ShaderParameterDescription::AddParameterInternal(ShaderObjectParameterInfor
 {
 	Map<String, ShaderObjectParameterInformation>* destinationLookup[] = { &mTextureParameters, &mBufferParameters, &mSamplerParameters };
 	u32 destinationIndex = 0;
-	if(Shader::IsBuffer(parameterInformation.Type))
+	if(GpuObjectParameterTypeInformation::IsBuffer(parameterInformation.Type))
 		destinationIndex = 1;
-	else if(Shader::IsSampler(parameterInformation.Type))
+	else if(GpuObjectParameterTypeInformation::IsSampler(parameterInformation.Type))
 		destinationIndex = 2;
 
 	Map<String, ShaderObjectParameterInformation>& parameterMap = *destinationLookup[destinationIndex];

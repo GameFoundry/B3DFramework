@@ -876,7 +876,7 @@ void FontAtlasRenderer::BlitGlyphs(Vector<GlyphBitmap> glyphBitmaps)
 		if (!B3D_ENSURE(mCommandBufferPool))
 			return;
 
-		const TShared<render::GpuCommandBuffer> commandBuffer = mCommandBufferPool->Create(render::GpuCommandBufferCreateInformation::Create("BlitGlyphBitmaps"));
+		const TShared<render::GpuCommandBuffer> commandBuffer = mCommandBufferPool->FindOrCreate(render::GpuCommandBufferCreateInformation::Create("BlitGlyphBitmaps"));
 
 		for(const auto& entry : glyphBitmaps)
 		{

@@ -9,14 +9,8 @@ namespace b3d
 {
 	namespace render
 	{
-		struct MetalGpuQueryPool::Impl
-		{
-			id<MTLBuffer> VisibilityBuffer = nil;
-			id<MTLCounterSampleBuffer> CounterBuffer = nil;
-		};
-
 		MetalGpuQueryPool::MetalGpuQueryPool(MetalGpuDevice& gpuDevice, const GpuQueryPoolCreateInformation& createInformation)
-			: GpuQueryPool(createInformation), mGpuDevice(gpuDevice), mImpl(B3DMakeUnique<Impl>())
+			: GpuQueryPool(createInformation), mGpuDevice(gpuDevice)
 		{
 			id<MTLDevice> device = gpuDevice.GetMetalDevice();
 			mResolvedResults.resize(mPoolSize);
@@ -24,21 +18,17 @@ namespace b3d
 			if (createInformation.Type == GpuQueryType::Occlusion)
 			{
 				constexpr u64 kMaximumVisibilityResultOffset = 256ull * 1024ull;
-				const u64 lastResultOffset = createInformation.PoolSize > 0
-					? ((u64)createInformation.PoolSize - 1ull) * sizeof(u64)
-					: 0;
+				const u64 lastResultOffset = createInformation.PoolSize > 0 ? ((u64)createInformation.PoolSize - 1ull) * sizeof(u64) : 0;
 				if (createInformation.PoolSize == 0 || lastResultOffset > kMaximumVisibilityResultOffset)
-				{
-					B3D_LOG(Error, LogRenderBackend,
-						"Metal occlusion query pool size {0} exceeds the Apple GPU visibility-buffer limit.",
-						createInformation.PoolSize);
-				}
+					B3D_LOG(Error, LogRenderBackend, "Metal occlusion query pool size {0} exceeds the Apple GPU visibility-buffer limit.", createInformation.PoolSize);
 				else if (device != nil)
 				{
 					const NSUInteger byteSize = (NSUInteger)createInformation.PoolSize * sizeof(u64);
-					mImpl->VisibilityBuffer = [device newBufferWithLength:byteSize options:MTLResourceStorageModeShared];
-					mSupported = mImpl->VisibilityBuffer != nil;
-					if (mImpl->VisibilityBuffer == nil)
+					// TODO - Allocate through MetalHeapAllocator::AllocateBuffer (D3D12 allocates its query readback buffer through its allocator).
+					mVisibilityBuffer = [device newBufferWithLength:byteSize options:MTLResourceStorageModeShared];
+					mSupported = mVisibilityBuffer != nil;
+
+					if (mVisibilityBuffer == nil)
 						B3D_LOG(Error, LogRenderBackend, "Failed to allocate a Metal visibility query buffer.");
 				}
 			}
@@ -48,11 +38,7 @@ namespace b3d
 				const u64 resultBytes = (u64)createInformation.PoolSize * sizeof(MTLCounterResultTimestamp);
 				id<MTLCounterSet> timestampSet = gpuDevice.GetTimestampCounterSet();
 				if (createInformation.PoolSize == 0 || resultBytes > kMaximumCounterSampleBufferLength)
-				{
-					B3D_LOG(Error, LogRenderBackend,
-						"Metal timestamp query pool size {0} exceeds the Apple GPU 32 KiB counter-buffer limit.",
-						createInformation.PoolSize);
-				}
+					B3D_LOG(Error, LogRenderBackend, "Metal timestamp query pool size {0} exceeds the Apple GPU 32 KiB counter-buffer limit.", createInformation.PoolSize);
 				else if (device != nil && timestampSet != nil)
 				{
 					MTLCounterSampleBufferDescriptor* descriptor = [[MTLCounterSampleBufferDescriptor alloc] init];
@@ -61,51 +47,19 @@ namespace b3d
 					descriptor.sampleCount = (NSUInteger)createInformation.PoolSize;
 
 					NSError* error = nil;
-					mImpl->CounterBuffer = [device newCounterSampleBufferWithDescriptor:descriptor error:&error];
-					mSupported = mImpl->CounterBuffer != nil;
-					if (mImpl->CounterBuffer == nil)
+					mCounterBuffer = [device newCounterSampleBufferWithDescriptor:descriptor error:&error];
+					mSupported = mCounterBuffer != nil;
+					if (mCounterBuffer == nil)
 					{
 						const char* reason = error ? [[error localizedDescription] UTF8String] : "unknown error";
 						B3D_LOG(Error, LogRenderBackend, "Failed to create MTLCounterSampleBuffer for timestamp pool: {0}", reason);
 					}
-#if !__has_feature(objc_arc)
-					[descriptor release];
-#endif
 				}
 				else
-				{
-					B3D_LOG(Warning, LogRenderBackend,
-						"Timestamp query pool created on a device without RSC_TIMER_QUERIES; results will remain zero.");
-				}
+					B3D_LOG(Warning, LogRenderBackend, "Timestamp query pool created on a device without RSC_TIMER_QUERIES; results will remain zero.");
 			}
 			else
-			{
-				B3D_LOG(Warning, LogRenderBackend,
-					"Pipeline-statistics query pools are unsupported by the Metal backend.");
-			}
-		}
-
-		MetalGpuQueryPool::~MetalGpuQueryPool()
-		{
-			if (mImpl)
-			{
-#if !__has_feature(objc_arc)
-				[mImpl->VisibilityBuffer release];
-				[mImpl->CounterBuffer release];
-#endif
-				mImpl->VisibilityBuffer = nil;
-				mImpl->CounterBuffer = nil;
-			}
-		}
-
-		id<MTLBuffer> MetalGpuQueryPool::GetVisibilityBuffer() const
-		{
-			return mImpl->VisibilityBuffer;
-		}
-
-		id<MTLCounterSampleBuffer> MetalGpuQueryPool::GetCounterBuffer() const
-		{
-			return mImpl->CounterBuffer;
+				B3D_LOG(Warning, LogRenderBackend, "Pipeline-statistics query pools are unsupported by the Metal backend.");
 		}
 
 		GpuQueryId MetalGpuQueryPool::AllocateQuery()
@@ -209,16 +163,17 @@ namespace b3d
 
 				if (mInFlightSubmissions.empty())
 					break;
+
 				if (!wait)
 					return false;
 
 				dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+				MTLSharedEventListener* listener = mGpuDevice.GetSharedEventListener();
 				u32 listenerWaitCount = 0;
 				TInlineArray<std::pair<MetalGpuQueue*, u64>, 4> fallbackSubmissions;
 				for (const auto& entry : mInFlightSubmissions)
 				{
 					id<MTLSharedEvent> event = entry.first->GetSharedEvent();
-					MTLSharedEventListener* listener = entry.first->GetSharedEventListener();
 					if (event == nil || listener == nil)
 						fallbackSubmissions.Add(entry);
 					else
@@ -234,11 +189,10 @@ namespace b3d
 				stateLock.unlock();
 				for (u32 waitIndex = 0; waitIndex < listenerWaitCount; waitIndex++)
 					dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+
 				for (const auto& entry : fallbackSubmissions)
 					entry.first->WaitUntilIdle();
-#if !__has_feature(objc_arc)
-				dispatch_release(semaphore);
-#endif
+
 				stateLock.lock();
 				for (const auto& completed : fallbackSubmissions)
 				{
@@ -261,10 +215,10 @@ namespace b3d
 			{
 				if (!mSubmissionFailureReported)
 				{
-					B3D_LOG(Error, LogRenderBackend,
-						"A Metal command buffer containing GPU queries failed; its query results are invalid.");
+					B3D_LOG(Error, LogRenderBackend, "A Metal command buffer containing GPU queries failed; its query results are invalid.");
 					mSubmissionFailureReported = true;
 				}
+
 				mResultsCached = true;
 				return true;
 			}
@@ -275,38 +229,35 @@ namespace b3d
 				return true;
 			}
 
-			if (mQueryType == GpuQueryType::Occlusion && mImpl->VisibilityBuffer != nil)
+			if (mQueryType == GpuQueryType::Occlusion && mVisibilityBuffer != nil)
 			{
-				const u64* contents = (const u64*)[mImpl->VisibilityBuffer contents];
+				const u64* contents = (const u64*)[mVisibilityBuffer contents];
 				if (contents != nullptr)
 					memcpy(mResolvedResults.data(), contents, (size_t)mNextQueryId * sizeof(u64));
 			}
-			else if (mQueryType == GpuQueryType::Timestamp && mImpl->CounterBuffer != nil)
+			else if (mQueryType == GpuQueryType::Timestamp && mCounterBuffer != nil)
 			{
-				@autoreleasepool
+				NSData* resolved = [mCounterBuffer resolveCounterRange:NSMakeRange(0, mNextQueryId)];
+				const size_t requiredBytes = (size_t)mNextQueryId * sizeof(MTLCounterResultTimestamp);
+				if (resolved != nil && [resolved length] >= requiredBytes)
 				{
-					NSData* resolved = [mImpl->CounterBuffer resolveCounterRange:NSMakeRange(0, mNextQueryId)];
-					const size_t requiredBytes = (size_t)mNextQueryId * sizeof(MTLCounterResultTimestamp);
-					if (resolved != nil && [resolved length] >= requiredBytes)
+					const MTLCounterResultTimestamp* timestamps = (const MTLCounterResultTimestamp*)[resolved bytes];
+					bool invalidSampleFound = false;
+					for (u32 queryIndex = 0; queryIndex < mNextQueryId; queryIndex++)
 					{
-						const MTLCounterResultTimestamp* timestamps = (const MTLCounterResultTimestamp*)[resolved bytes];
-						bool invalidSampleFound = false;
-						for (u32 queryIndex = 0; queryIndex < mNextQueryId; queryIndex++)
+						if (timestamps[queryIndex].timestamp == MTLCounterErrorValue)
 						{
-							if (timestamps[queryIndex].timestamp == MTLCounterErrorValue)
-							{
-								invalidSampleFound = true;
-								continue;
-							}
-
-							mResolvedResults[queryIndex] = timestamps[queryIndex].timestamp;
+							invalidSampleFound = true;
+							continue;
 						}
 
-						if (invalidSampleFound)
-						{
-							std::fill(mResolvedResults.begin(), mResolvedResults.end(), 0);
-							B3D_LOG(Warning, LogRenderBackend, "Metal returned an invalid timestamp counter sample.");
-						}
+						mResolvedResults[queryIndex] = timestamps[queryIndex].timestamp;
+					}
+
+					if (invalidSampleFound)
+					{
+						std::fill(mResolvedResults.begin(), mResolvedResults.end(), 0);
+						B3D_LOG(Warning, LogRenderBackend, "Metal returned an invalid timestamp counter sample.");
 					}
 				}
 			}
@@ -327,8 +278,7 @@ namespace b3d
 		void MetalGpuQueryPool::ResetAllocation()
 		{
 			Lock lock(mStateMutex);
-			B3D_ENSURE(mPendingSubmissions == 0 && mInFlightSubmissions.empty()
-				&& mRecordedCommandBuffers <= 1);
+			B3D_ENSURE(mPendingSubmissions == 0 && mInFlightSubmissions.empty() && mRecordedCommandBuffers <= 1);
 			mNextQueryId = 0;
 			mResultsCached = false;
 			mSubmissionFailed = false;

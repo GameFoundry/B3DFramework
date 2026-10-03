@@ -82,11 +82,15 @@ void PooledThread::Run()
 			}
 		}
 
+		{
+			AutoreleasePoolScope autoreleasePool;
+
 #if B3D_PLATFORM_WIN32
-		RunFunctionHelper(worker);
+			RunFunctionHelper(worker);
 #else
-		worker();
+			worker();
 #endif
+		}
 
 		{
 			Lock lock(mMutex);

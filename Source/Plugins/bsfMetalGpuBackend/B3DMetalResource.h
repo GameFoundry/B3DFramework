@@ -17,15 +17,7 @@ namespace b3d::render
 	 */
 
 	/**
-	 * Wraps a native Metal object. Extends a generic GPU resource base (@p TBase) with the Metal-specific
-	 * portion of the lifetime state machine: per-queue read/write use counters that feed @c GetUseInfo
-	 * (and, through the high-level @c MetalGpuBuffer / @c MetalTexture proxies, the engine's
-	 * @c GetUseMask queries that drive the staging-vs-direct-map decisions in @c GpuBufferUtility).
-	 * Aggregate bound/use counters and deferred destruction are inherited from IGpuResource.
-	 *
-	 * Unlike @c TVulkanResource there is no exclusive/shared queue-ownership state: Metal resources
-	 * carry no queue-family ownership (nothing analogous to @c VK_SHARING_MODE_EXCLUSIVE), so any
-	 * queue may use a resource at any time and only the per-queue use counts matter.
+	 * Wraps a native Metal object. Tracks if the resource is bound on a command buffer or currently used on the GPU, and on which queues.
 	 *
 	 * @note Thread safe.
 	 */
@@ -44,8 +36,7 @@ namespace b3d::render
 		}
 
 		/**
-		 * Returns a mask that has bits set for every queue that the resource is currently used (read or
-		 * written) by.
+		 * Returns a mask that has bits set for every queue that the resource is currently used (read or written) by.
 		 *
 		 * @param	useFlags	Flags for which to check use information (e.g. read only, write only, or both).
 		 * @return				Bitmask of which queues is the resource used on.

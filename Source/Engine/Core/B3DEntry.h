@@ -34,6 +34,9 @@ int main(int __argc, char* __argv[])
 {
 	using namespace b3d;
 
+	// Catches anything autoreleased on the main thread outside of the narrower pools set up by Application
+	AutoreleasePoolScope autoreleasePool;
+
 	CrashHandler::StartUp();
 
 #if B3D_PLATFORM_WIN32

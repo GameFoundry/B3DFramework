@@ -175,6 +175,9 @@ namespace
 
 int main(int argc, char* argv[])
 {
+	// Catches anything autoreleased on the main thread outside of the narrower pools set up by Application and the cooker
+	AutoreleasePoolScope autoreleasePool;
+
 	CommandLine::Initialize(argc, argv);
 
 	// CLI: -input takes one or more shader source folders, separated by ';' (defaults to the engine's builtin shader

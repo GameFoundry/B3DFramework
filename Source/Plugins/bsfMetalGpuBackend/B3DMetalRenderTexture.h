@@ -25,15 +25,10 @@ namespace b3d
 
 	namespace render
 	{
+		class MetalFramebuffer;
+
 		/**
 		 * Metal implementation of a render texture.
-		 *
-		 * Unlike the Vulkan render proxy, this deliberately does not override Initialize() to build a framebuffer
-		 * object: Metal has no VkFramebuffer/VkRenderPass equivalent. MTLRenderPassDescriptor is a transient,
-		 * cheap CPU-side descriptor whose load/store actions are per-pass state, so the command buffer constructs
-		 * it on every BeginRenderPass directly from the surface bindings exposed below (face/mip selection maps to
-		 * the attachment's slice/level). The core RenderTexture::Initialize() still runs and performs view
-		 * creation and validation.
 		 *
 		 * @note	Render thread only.
 		 */
@@ -41,13 +36,15 @@ namespace b3d
 		{
 		public:
 			MetalRenderTexture(const RenderTextureCreateInformation& createInformation);
-			~MetalRenderTexture() override = default;
+			~MetalRenderTexture() override;
 
-			/** Returns the full color surface binding (texture + face + mip + face count) at the given attachment index. */
-			const RenderSurfaceInformation& GetColorSurface(u32 attachmentIndex) const { return mInformation.ColorSurfaces[attachmentIndex]; }
+			void Initialize() override;
 
-			/** Returns the full depth/stencil surface binding, or one with a null Texture if none is attached. */
-			const RenderSurfaceInformation& GetDepthStencilSurface() const { return mInformation.DepthStencilSurface; }
+			/** Returns the framebuffer holding this render texture's attachments. Null until Initialize() is called. */
+			MetalFramebuffer* GetFramebuffer() const { return mFramebuffer.get(); }
+
+		private:
+			TUnique<MetalFramebuffer> mFramebuffer;
 		};
 
 	} // namespace render

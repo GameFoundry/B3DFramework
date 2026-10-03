@@ -43,8 +43,7 @@ namespace b3d::render
 		// Barriers touching attachment stages also need the render-target scope so in-pass
 		// attachment writes are visible to subsequent reads. Metal performs resolves as an
 		// attachment store action, so resolve hazards require the same encoder boundary.
-		const GpuStageFlags kAttachmentStages = GpuStageFlag::ColorAttachment | GpuStageFlag::EarlyFragmentTests
-			| GpuStageFlag::LateFragmentTests | GpuStageFlag::Resolve;
+		const GpuStageFlags kAttachmentStages = GpuStageFlag::ColorAttachment | GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests | GpuStageFlag::Resolve;
 		if(barrier.SourceStages.IsSetAny(kAttachmentStages) || barrier.DestinationStages.IsSetAny(kAttachmentStages))
 			mHasRenderTargetBarriers = true;
 
@@ -64,12 +63,14 @@ namespace b3d::render
 				MTLBarrierScope scope = (MTLBarrierScope)0;
 				if(mHasBufferBarriers)
 					scope |= MTLBarrierScopeBuffers;
+
 				if(mHasTextureBarriers)
 					scope |= MTLBarrierScopeTextures;
 
 				const GpuStageFlags vertexStages = GpuStageFlag::DrawIndirect
 					| GpuStageFlag::VertexInputAttributes | GpuStageFlag::VertexInputIndices
 					| GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::VertexShaderUniform;
+
 				const GpuStageFlags fragmentStages = GpuStageFlag::FragmentShaderNonUniform
 					| GpuStageFlag::FragmentShaderUniform | GpuStageFlag::EarlyFragmentTests
 					| GpuStageFlag::LateFragmentTests | GpuStageFlag::ColorAttachment;
@@ -77,17 +78,17 @@ namespace b3d::render
 				MTLRenderStages beforeStages = (MTLRenderStages)0;
 				if(mCombinedDestinationStages.IsSetAny(vertexStages))
 					beforeStages |= MTLRenderStageVertex;
+
 				if(mCombinedDestinationStages.IsSetAny(fragmentStages))
 					beforeStages |= MTLRenderStageFragment;
+
 				if(beforeStages == 0)
 					beforeStages = MTLRenderStageVertex;
 
 				// Apple-family GPUs support vertex-stage producers only. Dependencies involving a
 				// fragment/tile producer or render-target scope are resolved by the command buffer
 				// through an encoder boundary before Execute is called.
-				[renderEncoder memoryBarrierWithScope:scope
-					afterStages:MTLRenderStageVertex
-					beforeStages:beforeStages];
+				[renderEncoder memoryBarrierWithScope:scope afterStages:MTLRenderStageVertex beforeStages:beforeStages];
 			}
 			else if(computeEncoder != nil)
 			{
@@ -96,6 +97,7 @@ namespace b3d::render
 				MTLBarrierScope scope = (MTLBarrierScope)0;
 				if(mHasBufferBarriers)
 					scope |= MTLBarrierScopeBuffers;
+
 				if(mHasTextureBarriers || mHasRenderTargetBarriers)
 					scope |= MTLBarrierScopeTextures;
 
@@ -144,6 +146,7 @@ namespace b3d::render
 		const GpuStageFlags supportedSourceStages = GpuStageFlag::DrawIndirect
 			| GpuStageFlag::VertexInputAttributes | GpuStageFlag::VertexInputIndices
 			| GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::VertexShaderUniform;
+
 		const GpuStageFlags supportedDestinationStages = supportedSourceStages
 			| GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::FragmentShaderUniform
 			| GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests

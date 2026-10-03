@@ -16,60 +16,41 @@ namespace b3d
 		 */
 
 		/**
-		 * Fragment-stage buffer slot the clear shader reads its parameters from.
-		 *
-		 * Parameter-set argument buffers occupy the low fragment-stage slots, so the clear parameters
-		 * live at the top of the table where nothing else binds. The clear pipeline declares no vertex
-		 * inputs and no argument buffers, so this is the only slot it touches.
+		 * Fragment-stage buffer slot the clear shader reads its parameters from. Parameter set argument buffers occupy the
+		 * low slots, so the clear parameters use one at the top of the table.
 		 */
 		constexpr u32 kMetalClearParametersBufferSlot = 30;
 
 		/**
-		 * Owns the backend's internal clear pipeline: the shader library plus the pipeline and
-		 * depth-stencil state caches used by @c MetalGpuCommandBuffer::ClearViewport.
+		 * Builds the pipeline and depth-stencil states used by MetalGpuCommandBuffer::ClearViewport().
 		 *
-		 * Metal's only native clear is the render pass' @c MTLLoadActionClear, which always covers the
-		 * whole attachment. Clearing a sub-rect (the engine's viewport clear, used for shadow-map atlas
-		 * slots) therefore has to be a draw: a single oversized triangle covering NDC, rasterized
-		 * through the current viewport and scissor so only the requested region is touched. Color comes
-		 * from the fragment shader's return value, depth from its @c [[depth(any)]] output, and stencil
-		 * from the depth-stencil state's replace-on-pass operation against the encoder's reference value.
+		 * Metal can only clear whole attachments through @c MTLLoadActionClear, so clearing a sub-region is done by drawing
+		 * a full-screen triangle, limited to the region by the viewport and scissor. Color and depth are output by the
+		 * fragment shader, while stencil is written by the depth-stencil state using the encoder's stencil reference value.
 		 *
-		 * One instance is owned by the device and shared by every command buffer, so the caches are
-		 * guarded by an internal mutex. Both are keyed only by state that varies across render passes,
-		 * and in practice hold a handful of entries.
+		 * @note	Thread safe.
 		 */
 		class MetalClearPipeline
 		{
 		public:
-			/** Parameters the clear shader reads; must match the @c B3DClearParameters struct in the MSL source. */
+			/** Parameters the clear shader reads. Must match the @c B3DClearParameters struct in the shader source. */
 			struct Parameters
 			{
-				/**
-				 * Color written to each attachment, indexed by attachment index. Clear colors are a per-texture
-				 * property, so attachments cleared by the same command can carry different values. Entries for
-				 * attachments the clear does not write are ignored - Key::ColorWriteMask masks them off.
-				 */
+				/** Color written to each color attachment. Ignored for attachments not set in Key::ColorWriteMask. */
 				float Color[B3D_MAXIMUM_RENDER_TARGET_COUNT][4] = {};
-				float Depth = 0.0f;
-				float Padding[3] = { 0.0f, 0.0f, 0.0f };
+				float Depth = 0.0f; /**< Depth written, if Key::WritesDepth is set. */
+				float Padding[3] = { 0.0f, 0.0f, 0.0f }; /**< Pads the struct to the size of its shader counterpart. */
 			};
 
-			/**
-			 * Identifies one compiled clear pipeline. Metal bakes the attachment layout into the
-			 * pipeline object, and which attachments the clear may write is expressed through per-
-			 * attachment write masks, so both participate in the key.
-			 */
+			/** Identifies one clear pipeline state. Metal pipeline states are specific to the attachment formats they render to. */
 			struct Key
 			{
-				u16 ColorFormats[B3D_MAXIMUM_RENDER_TARGET_COUNT] = {}; /**< MTLPixelFormat per attachment, 0 when absent. */
-				u32 DepthFormat = 0; /**< MTLPixelFormat of the depth attachment, or 0 if none. */
-				u32 StencilFormat = 0; /**< MTLPixelFormat of the stencil attachment, or 0 if none. */
-				u16 SampleCount = 1;
-				/** Bit per color attachment: set when the clear writes it, clear when it must be preserved. */
-				u8 ColorWriteMask = 0;
-				/** True when the fragment shader outputs depth; requires a depth attachment to be present. */
-				bool WritesDepth = false;
+				u16 ColorFormats[B3D_MAXIMUM_RENDER_TARGET_COUNT] = {}; /**< MTLPixelFormat per color attachment, or 0 if absent. */
+				u32 DepthFormat = 0; /**< MTLPixelFormat of the depth attachment, or 0 if absent. */
+				u32 StencilFormat = 0; /**< MTLPixelFormat of the stencil attachment, or 0 if absent. */
+				u16 SampleCount = 1; /**< Sample count of the attachments. */
+				u8 ColorWriteMask = 0; /**< Bit per color attachment, set if the clear writes it. */
+				bool WritesDepth = false; /**< True if the clear writes depth. Requires a depth attachment. */
 
 				bool operator==(const Key& rhs) const
 				{
@@ -78,6 +59,7 @@ namespace b3d
 						if (ColorFormats[attachmentIndex] != rhs.ColorFormats[attachmentIndex])
 							return false;
 					}
+
 					return DepthFormat == rhs.DepthFormat
 						&& StencilFormat == rhs.StencilFormat
 						&& SampleCount == rhs.SampleCount
@@ -86,6 +68,7 @@ namespace b3d
 				}
 			};
 
+			/** Hashes a Key. */
 			struct KeyHash
 			{
 				size_t operator()(const Key& key) const
@@ -93,6 +76,7 @@ namespace b3d
 					size_t hash = 0;
 					for (u32 attachmentIndex = 0; attachmentIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; attachmentIndex++)
 						B3DCombineHash(hash, key.ColorFormats[attachmentIndex]);
+
 					B3DCombineHash(hash, key.DepthFormat);
 					B3DCombineHash(hash, key.StencilFormat);
 					B3DCombineHash(hash, key.SampleCount);
@@ -103,38 +87,38 @@ namespace b3d
 			};
 
 			explicit MetalClearPipeline(MetalGpuDevice& gpuDevice);
-			~MetalClearPipeline();
 
-#ifdef __OBJC__
 			/**
-			 * Returns a cached (or freshly compiled) pipeline state for @p key, or nil when the shader
-			 * library is unavailable or the pipeline failed to compile. Failures are cached as nil so a
-			 * pipeline that cannot be built is only reported once.
+			 * Returns the pipeline state for @p key, creating it on first use. Returns nil if the pipeline state could not be
+			 * created, and does not retry for the same key.
 			 */
 			id<MTLRenderPipelineState> GetOrCreatePipelineState(const Key& key);
 
 			/**
-			 * Returns a cached (or freshly created) depth-stencil state that writes depth and/or stencil
-			 * unconditionally. Stencil writes replace with the encoder's reference value, so the caller
-			 * must set it to the requested clear value before drawing.
+			 * Returns a depth-stencil state that unconditionally writes the depth and/or stencil, creating it on first use.
+			 * Stencil is written from the encoder's stencil reference value, which the caller must set to the clear value.
 			 */
 			id<MTLDepthStencilState> GetOrCreateDepthStencilState(bool writeDepth, bool writeStencil);
-#endif
 
 		private:
-#ifdef __OBJC__
-			/**
-			 * Compiles the clear shader library on first use. Returns false when compilation failed;
-			 * the failure is latched so the (expensive) compile is not retried on every clear.
-			 */
+			/** Compiles the clear shader library on first use. Returns false if compilation failed, and does not retry. */
 			bool EnsureLibrary();
-#endif
 
 			MetalGpuDevice& mGpuDevice;
+			id<MTLLibrary> mLibrary = nil;
+			id<MTLFunction> mVertexFunction = nil;
 
-			/** Pimpl holding the Obj-C library / cache state so plain C++ translation units can include this header. */
-			struct Impl;
-			TUnique<Impl> mImpl;
+			/** Depth-stencil states indexed by (writeDepth << 1) | writeStencil. Entry 0 is used by color-only clears. */
+			id<MTLDepthStencilState> mDepthStencilStates[4] = { nil, nil, nil, nil };
+
+			/** Pipeline states created so far. Nil for pipeline states that failed to be created. */
+			UnorderedMap<Key, id<MTLRenderPipelineState>, KeyHash> mPipelines;
+
+			/** Guards every other member. */
+			Mutex mCacheMutex;
+
+			/** True once library compilation was attempted, whether it succeeded or not. */
+			bool mLibraryInitialized = false;
 		};
 
 		/** @} */

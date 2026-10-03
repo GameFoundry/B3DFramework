@@ -18,20 +18,9 @@ namespace b3d
 		 *  @{
 		 */
 
-#ifdef __OBJC__
-		/** Native Metal buffer handle. Aliased to void* in plain C++ TUs so class layouts stay identical (id is a pointer). */
-		using MetalBufferNativeHandle = id<MTLBuffer>;
-		/** Native handle of a texture-buffer view over a Metal buffer. Same aliasing rules as above. */
-		using MetalBufferViewNativeHandle = id<MTLTexture>;
-#else
-		using MetalBufferNativeHandle = void*;
-		using MetalBufferViewNativeHandle = void*;
-#endif
-
 		/** Descriptor used to create a MetalBuffer. */
 		struct MetalBufferCreateInformation
 		{
-			GpuBufferType Type = GpuBufferType::Vertex; /**< Type of the buffer being created. */
 			GpuBufferFlags Flags; /**< Flags that specify how the buffer is intended to be used. */
 			StringView DebugName; /**< Optional name of the resource, for debugging purposes. */
 		};
@@ -43,12 +32,12 @@ namespace b3d
 			/**
 			 * @param	owner				Manager that takes care of tracking and releasing of this object.
 			 * @param	createInformation	Describes the buffer being wrapped.
-			 * @param	buffer				Native MTLBuffer handle the wrapper takes ownership of (+1 reference under MRC).
+			 * @param	buffer				Native MTLBuffer handle the wrapper takes ownership of.
 			 * @param	allocation			Engine allocator span backing the buffer's memory, or an invalid allocation for
 			 *								direct (non-sub-allocated) device allocations.
 			 * @param	mappedMemory		CPU-visible contents pointer for shared-storage buffers, null otherwise.
 			 */
-			MetalBuffer(MetalResourceManager* owner, const MetalBufferCreateInformation& createInformation, MetalBufferNativeHandle buffer, const GpuAllocation& allocation, void* mappedMemory);
+			MetalBuffer(MetalResourceManager* owner, const MetalBufferCreateInformation& createInformation, id<MTLBuffer> buffer, const GpuAllocation& allocation, void* mappedMemory);
 			~MetalBuffer();
 
 			/** Assigns a name to the buffer, primarily used for easier debugging. */
@@ -57,7 +46,6 @@ namespace b3d
 			/** Returns a pointer to persistently mapped memory of the buffer, or null pointer if the buffer is not mappable. */
 			void* GetMappedMemory() const { return mMappedMemory; }
 
-#ifdef __OBJC__
 			/** Returns the internal handle to the Metal object. */
 			id<MTLBuffer> GetMetalHandle() const { return mBuffer; }
 
@@ -68,7 +56,6 @@ namespace b3d
 			 * texture_buffer arguments. Views are cached for the wrapper's lifetime and retire with it.
 			 */
 			id<MTLTexture> GetTextureBufferView(GpuBufferFormat format, u32 offset, u32 range, bool writable);
-#endif
 
 		private:
 			/** One cached texture-buffer view. Cardinality per buffer is tiny, so lookup is a linear scan. */
@@ -78,12 +65,11 @@ namespace b3d
 				u32 Offset = 0;
 				u32 Range = 0;
 				bool Writable = false;
-				MetalBufferViewNativeHandle View = nullptr; /**< +1 retained reference (MRC), released in the destructor. */
+				id<MTLTexture> View = nullptr;
 			};
 
-			GpuBufferType mType;
 			GpuBufferFlags mFlags;
-			MetalBufferNativeHandle mBuffer = nullptr;
+			id<MTLBuffer> mBuffer = nullptr;
 			GpuAllocation mAllocation;
 			void* mMappedMemory = nullptr;
 			Vector<TextureBufferView> mTextureBufferViews;
@@ -92,18 +78,7 @@ namespace b3d
 			mutable Mutex mViewCacheMutex;
 		};
 
-		/**
-		 * Metal implementation of a GPU buffer.
-		 *
-		 * High-level proxy over a MetalBuffer wrapper. Storage mode follows the engine flags:
-		 * buffers created with @c GpuBufferFlag::StoreOnCPUWithGPUAccess (or typed as
-		 * @c StagingRead / @c StagingWrite) use shared storage so @c Map returns
-		 * @c [buffer contents] directly; all other buffers use private storage, which makes them
-		 * CPU-invisible so @c GpuBufferUtility routes their CPU traffic through a staging buffer +
-		 * @c CopyBufferToBuffer on the transfer queue. Persistent buffers use the device's
-		 * per-memory-type TLSF allocator; work-context scratch buffers use a completion-tracked
-		 * linear allocator (see MetalHeapAllocator).
-		 */
+		/** Metal implementation of a GPU buffer. */
 		class MetalGpuBuffer : public GpuBuffer
 		{
 		public:
@@ -130,7 +105,6 @@ namespace b3d
 			/** Gets the resource wrapping the buffer object. */
 			MetalBuffer* GetMetalResource() const { return mBuffer; }
 
-#ifdef __OBJC__
 			/** Returns the underlying MTLBuffer. May be nil before Initialize() has been called, or if creation failed. */
 			id<MTLBuffer> GetMetalBuffer() const;
 
@@ -140,7 +114,6 @@ namespace b3d
 			 * buffer's own element format.
 			 */
 			id<MTLTexture> GetTextureBufferView(GpuBufferFormat format, u32 offset, u32 range, bool writable);
-#endif
 
 		protected:
 			friend class MetalGpuDevice;

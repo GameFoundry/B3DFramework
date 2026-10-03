@@ -6,95 +6,65 @@
 
 namespace b3d
 {
-	struct MetalGpuCommandCapture::Impl
-	{
-		bool Capturing = false;
-		NSURL* OutputUrl = nil;
-	};
-
 	MetalGpuCommandCapture::MetalGpuCommandCapture(render::MetalGpuDevice& device)
-		: mDevice(device), mImpl(B3DMakeUnique<Impl>())
+		: mDevice(device)
 	{ }
 
 	MetalGpuCommandCapture::~MetalGpuCommandCapture()
 	{
 		Stop();
-#if !__has_feature(objc_arc)
-		[mImpl->OutputUrl release];
-#endif
-		mImpl->OutputUrl = nil;
 	}
 
 	void MetalGpuCommandCapture::Start()
 	{
-		if (mImpl->Capturing)
+		if (mCapturing)
 			return;
 
-		@autoreleasepool
+		mOutputUrl = nil;
+
+		MTLCaptureManager* captureManager = [MTLCaptureManager sharedCaptureManager];
+		MTLCaptureDescriptor* descriptor = [[MTLCaptureDescriptor alloc] init];
+		descriptor.captureObject = mDevice.GetMetalDevice();
+
+		NSError* error = nil;
+		bool started = false;
+		if ([captureManager supportsDestination:MTLCaptureDestinationDeveloperTools])
 		{
-#if !__has_feature(objc_arc)
-			[mImpl->OutputUrl release];
-#endif
-			mImpl->OutputUrl = nil;
+			descriptor.destination = MTLCaptureDestinationDeveloperTools;
+			started = [captureManager startCaptureWithDescriptor:descriptor error:&error];
+		}
 
-			MTLCaptureManager* captureManager = [MTLCaptureManager sharedCaptureManager];
-			MTLCaptureDescriptor* descriptor = [[MTLCaptureDescriptor alloc] init];
-			descriptor.captureObject = mDevice.GetMetalDevice();
-
-			NSError* error = nil;
-			bool started = false;
-			if ([captureManager supportsDestination:MTLCaptureDestinationDeveloperTools])
+		if (!started && [captureManager supportsDestination:MTLCaptureDestinationGPUTraceDocument])
+		{
+			NSString* fileName = [NSString stringWithFormat:@"Banshee-%@.gputrace", [[NSUUID UUID] UUIDString]];
+			NSString* outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:fileName];
+			descriptor.destination = MTLCaptureDestinationGPUTraceDocument;
+			descriptor.outputURL = [NSURL fileURLWithPath:outputPath];
+			error = nil;
+			started = [captureManager startCaptureWithDescriptor:descriptor error:&error];
+			if (started)
 			{
-				descriptor.destination = MTLCaptureDestinationDeveloperTools;
-				started = [captureManager startCaptureWithDescriptor:descriptor error:&error];
+				mOutputUrl = descriptor.outputURL;
 			}
+		}
 
-			if (!started && [captureManager supportsDestination:MTLCaptureDestinationGPUTraceDocument])
-			{
-				NSString* fileName = [NSString stringWithFormat:@"Banshee-%@.gputrace", [[NSUUID UUID] UUIDString]];
-				NSString* outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:fileName];
-				descriptor.destination = MTLCaptureDestinationGPUTraceDocument;
-				descriptor.outputURL = [NSURL fileURLWithPath:outputPath];
-				error = nil;
-				started = [captureManager startCaptureWithDescriptor:descriptor error:&error];
-				if (started)
-				{
-#if !__has_feature(objc_arc)
-					[mImpl->OutputUrl release];
-					mImpl->OutputUrl = [descriptor.outputURL retain];
-#else
-					mImpl->OutputUrl = descriptor.outputURL;
-#endif
-				}
-			}
-
-#if !__has_feature(objc_arc)
-			[descriptor release];
-#endif
-			mImpl->Capturing = started;
-			if (!started)
-			{
-				B3D_LOG(Error, LogRenderBackend, "Failed to start Metal GPU capture: {0}",
-					error ? String([[error localizedDescription] UTF8String]) : String("No supported capture destination."));
-			}
+		mCapturing = started;
+		if (!started)
+		{
+			B3D_LOG(Error, LogRenderBackend, "Failed to start Metal GPU capture: {0}",
+				error ? String([[error localizedDescription] UTF8String]) : String("No supported capture destination."));
 		}
 	}
 
 	void MetalGpuCommandCapture::Stop()
 	{
-		if (!mImpl->Capturing)
+		if (!mCapturing)
 			return;
 
-		@autoreleasepool
-		{
-			[[MTLCaptureManager sharedCaptureManager] stopCapture];
-			mImpl->Capturing = false;
-			if (mImpl->OutputUrl != nil)
-				B3D_LOG(Info, LogRenderBackend, "Metal GPU capture saved to {0}.", String([[mImpl->OutputUrl path] UTF8String]));
-#if !__has_feature(objc_arc)
-			[mImpl->OutputUrl release];
-#endif
-			mImpl->OutputUrl = nil;
-		}
+		[[MTLCaptureManager sharedCaptureManager] stopCapture];
+		mCapturing = false;
+		if (mOutputUrl != nil)
+			B3D_LOG(Info, LogRenderBackend, "Metal GPU capture saved to {0}.", String([[mOutputUrl path] UTF8String]));
+		mOutputUrl = nil;
 	}
 } // namespace b3d

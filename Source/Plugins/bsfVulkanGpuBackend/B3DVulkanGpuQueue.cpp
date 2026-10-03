@@ -315,7 +315,7 @@ VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageI
 	VulkanSemaphore* const presentSemaphore = swapChain->GetPresentBridgeSemaphore(swapChainImageIndex);
 
 	GpuCommandBufferPool& commandBufferPool = GetDevice().GetSubmitThread().GetCommandBufferPool(GetType());
-	const TShared<VulkanGpuCommandBuffer> bridgeCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBufferPool.Create(GpuCommandBufferCreateInformation::Create("Present synchronization")));
+	const TShared<VulkanGpuCommandBuffer> bridgeCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBufferPool.FindOrCreate(GpuCommandBufferCreateInformation::Create("Present synchronization")));
 	VulkanGpuCommandBufferSubmitInformation bridgeSubmitInformation;
 
 	VulkanImage& image = static_cast<VulkanImage&>(*swapChain->GetFramebufferForImage(swapChainImageIndex)->GetColorAttachments()[0].Image);

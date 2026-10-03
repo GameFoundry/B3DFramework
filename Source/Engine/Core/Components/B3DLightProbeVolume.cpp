@@ -244,7 +244,7 @@ void LightProbeVolume::RunRenderProbeTask()
 	TShared<render::LightProbeVolume> renderProxy = B3DGetRenderProxy(this);
 	auto fnRenderProbes = [renderProxy](render::GpuCommandBufferPool& commandBufferPool)
 	{
-		TShared<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("LightProbeRendering"));
+		TShared<render::GpuCommandBuffer> commandBuffer = commandBufferPool.FindOrCreate(render::GpuCommandBufferCreateInformation::Create("LightProbeRendering"));
 		TShared<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
 
 		commandBufferProfiler->BeginSample(*commandBuffer, "LightProbeRendering");
