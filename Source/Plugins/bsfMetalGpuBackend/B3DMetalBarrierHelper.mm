@@ -18,18 +18,19 @@ namespace b3d::render
 		: TGpuBarrierHelper<MetalBarrierHelper, MetalResourceTracker>(resourceTracker)
 	{ }
 
-	void MetalBarrierHelper::RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
+	void MetalBarrierHelper::RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier, GpuBarrierFlags barrierFlags)
 	{
 		// Scope-based accumulation: the native barrier synchronizes the whole buffer category, so the
 		// specific resource and access direction only matter to the base's tracker bookkeeping.
 		(void)buffer;
+		(void)barrierFlags;
 
 		mHasBufferBarriers = true;
 		mCombinedSourceStages |= barrier.SourceStages;
 		mCombinedDestinationStages |= barrier.DestinationStages;
 	}
 
-	void MetalBarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuImageBarrierFlags)
+	void MetalBarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuBarrierFlags)
 	{
 		// Metal has no image layouts — the transition itself is a no-op natively. The base records the
 		// layout bookkeeping (mImageLayoutTracking) and pushes it back into the tracker after Execute.

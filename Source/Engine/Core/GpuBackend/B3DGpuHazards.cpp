@@ -27,12 +27,10 @@ namespace
 		if(submissionBarrierAccessScope.ReadStages != GpuStageFlag::None) // RAW
 			result.MemoryBarrier = sourceWriteEpochHazardState.GetRequiredBarrier(submissionBarrierAccessScope.ReadStages, GpuAccessFlag::Read);
 
-		// A layout transition writes like any write.
+		// A layout transition writes like any write
 		const bool performsWrites = destinationHazardState.HasWrite();
-		if(performsWrites || (transitionsLayout && submissionBarrierStages != GpuStageFlag::None))
+		if((performsWrites || transitionsLayout) && submissionBarrierStages != GpuStageFlag::None)
 		{
-			B3D_ASSERT(submissionBarrierStages != GpuStageFlag::None);
-
 			// WAW
 			if(sourceWriteEpochHazardState.WriteStages != GpuStageFlag::None)
 			{
@@ -50,6 +48,11 @@ namespace
 				result.ExecutionBarrier.DestinationStages = submissionBarrierStages;
 				result.ExecutionBarrier.DestinationAccess = submissionBarrierAccess;
 			}
+		}
+		else
+		{
+			// If a write was a recorded but has no stages, that is only allowed for alias acquire step, which will have no source write/read stages (as it uses an empty source submission state)
+			B3D_ASSERT(!performsWrites || (sourceWriteEpochHazardState.WriteStages == GpuStageFlag::None && sourceWriteEpochHazardState.ReaderStages == GpuStageFlag::None));
 		}
 
 		remainingWriteEpochHazardState.RecordBarrier(result.MemoryBarrier);

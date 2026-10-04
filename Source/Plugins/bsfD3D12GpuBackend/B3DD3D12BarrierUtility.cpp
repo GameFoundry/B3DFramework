@@ -175,6 +175,82 @@ D3D12_GLOBAL_BARRIER D3D12BarrierUtility::GetGlobalBufferBarrier(D3D12_RESOURCE_
 	return barrier;
 }
 
+D3D12_GLOBAL_BARRIER D3D12BarrierUtility::GetAliasGlobalBarrier(const GpuBarrierScope& scope)
+{
+	// Accesses any resource type can perform at @p stages
+	auto fnGetAccess = [](GpuStageFlags stages, GpuAccessFlags access)
+	{
+		D3D12_BARRIER_ACCESS nativeAccess = D3D12_BARRIER_ACCESS_COMMON;
+		if(access.IsSet(GpuAccessFlag::Write))
+		{
+			if(stages.IsSetAny(GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::ComputeShaderNonUniform))
+				nativeAccess |= D3D12_BARRIER_ACCESS_UNORDERED_ACCESS;
+
+			if(stages.IsSet(GpuStageFlag::ColorAttachment))
+				nativeAccess |= D3D12_BARRIER_ACCESS_RENDER_TARGET;
+
+			if(stages.IsSetAny(GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests))
+				nativeAccess |= D3D12_BARRIER_ACCESS_DEPTH_STENCIL_WRITE;
+
+			if(stages.IsSet(GpuStageFlag::Transfer))
+				nativeAccess |= D3D12_BARRIER_ACCESS_COPY_DEST;
+
+			if(stages.IsSet(GpuStageFlag::Resolve))
+				nativeAccess |= D3D12_BARRIER_ACCESS_RESOLVE_DEST;
+		}
+
+		if(access.IsSet(GpuAccessFlag::Read))
+		{
+			if(stages.IsSet(GpuStageFlag::DrawIndirect))
+				nativeAccess |= D3D12_BARRIER_ACCESS_INDIRECT_ARGUMENT;
+
+			if(stages.IsSet(GpuStageFlag::VertexInputAttributes))
+				nativeAccess |= D3D12_BARRIER_ACCESS_VERTEX_BUFFER;
+
+			if(stages.IsSet(GpuStageFlag::VertexInputIndices))
+				nativeAccess |= D3D12_BARRIER_ACCESS_INDEX_BUFFER;
+
+			if(stages.IsSetAny(GpuStageFlag::VertexShaderUniform | GpuStageFlag::FragmentShaderUniform | GpuStageFlag::ComputeShaderUniform))
+				nativeAccess |= D3D12_BARRIER_ACCESS_CONSTANT_BUFFER;
+
+			if(stages.IsSetAny(GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::ComputeShaderNonUniform))
+				nativeAccess |= D3D12_BARRIER_ACCESS_SHADER_RESOURCE;
+
+			if(stages.IsSet(GpuStageFlag::ColorAttachment))
+				nativeAccess |= D3D12_BARRIER_ACCESS_RENDER_TARGET;
+
+			// Depth writes already include depth reads
+			if(stages.IsSetAny(GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests) && (nativeAccess & D3D12_BARRIER_ACCESS_DEPTH_STENCIL_WRITE) == 0)
+				nativeAccess |= D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ;
+
+			if(stages.IsSet(GpuStageFlag::Transfer))
+				nativeAccess |= D3D12_BARRIER_ACCESS_COPY_SOURCE;
+
+			if(stages.IsSet(GpuStageFlag::Resolve))
+				nativeAccess |= D3D12_BARRIER_ACCESS_RESOLVE_SOURCE;
+		}
+
+		return nativeAccess != D3D12_BARRIER_ACCESS_COMMON ? nativeAccess : D3D12_BARRIER_ACCESS_NO_ACCESS;
+	};
+
+	// Source reads only need their execution to complete, which the sync scope covers
+	D3D12BarrierScope beforeScope;
+	beforeScope.Access = fnGetAccess(scope.SourceStages, scope.SourceAccess & GpuAccessFlag::Write);
+	beforeScope.Sync = GetStageSync(scope.SourceStages);
+
+	D3D12BarrierScope afterScope;
+	afterScope.Access = fnGetAccess(scope.DestinationStages, scope.DestinationAccess);
+	afterScope.Sync = GetStageSync(scope.DestinationStages);
+
+	D3D12_GLOBAL_BARRIER barrier{};
+	barrier.SyncBefore = GetChainedSyncBefore(beforeScope, GpuStageFlag::None);
+	barrier.SyncAfter = GetChainedSyncBefore(afterScope, GpuStageFlag::None);
+	barrier.AccessBefore = beforeScope.Access;
+	barrier.AccessAfter = afterScope.Access;
+
+	return barrier;
+}
+
 D3D12_BUFFER_BARRIER D3D12BarrierUtility::GetBufferBarrier(ID3D12Resource* resource, const GpuBarrierScope& scope, GpuStageFlags precedingBarrierDestinationStages)
 {
 	B3D_ASSERT(resource != nullptr);

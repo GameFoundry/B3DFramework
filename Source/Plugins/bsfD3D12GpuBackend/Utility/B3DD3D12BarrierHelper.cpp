@@ -22,10 +22,10 @@ D3D12BarrierHelper::D3D12BarrierHelper(D3D12ResourceTracker* resourceTracker, Gp
 	: TGpuBarrierHelper<D3D12BarrierHelper, D3D12ResourceTracker>(resourceTracker), mQueueType(queueType)
 { }
 
-void D3D12BarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuImageBarrierFlags barrierFlags)
+void D3D12BarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuBarrierFlags barrierFlags)
 {
 	D3D12Image* const d3d12Image = static_cast<D3D12Image*>(image);
-	const bool discardContents = barrierFlags.IsSet(GpuImageBarrierFlag::DiscardContents);
+	const bool discardContents = barrierFlags.IsSet(GpuBarrierFlag::DiscardContents);
 	const GpuImageLayout barrierOldLayout = discardContents ? GpuImageLayout::Undefined : oldLayout;
 	const D3D12TextureLayout nativeOldLayout = discardContents ? D3D12TextureLayout::Undefined() : d3d12Image->GetTextureLayout(oldLayout, mQueueType);
 	const D3D12TextureLayout nativeNewLayout = d3d12Image->GetTextureLayout(newLayout, mQueueType);
@@ -36,6 +36,12 @@ void D3D12BarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, cons
 
 	// If it a texture has a layout, it must have an access scope
 	B3D_ASSERT(barrierOldLayout == GpuImageLayout::Undefined || barrier.SourceAccess.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write));
+
+	// An alias acquire's source belongs to earlier resources on the memory. A discarding texture barrier has AccessBefore NO_ACCESS and flushes
+	// nothing, so the source gets a global barrier. Its group is recorded in a separate Barrier() call before the discard: a discard and an
+	// access of overlapping memory in one call break the enhanced-barrier rules.
+	if(barrierFlags.IsSet(GpuBarrierFlag::AliasAcquire) && barrier.SourceStages != GpuStageFlag::None)
+		mBarriers.AddGlobalBarrier(D3D12BarrierUtility::GetAliasGlobalBarrier(barrier));
 
 	auto found = std::find_if(mPendingImageBarriers.begin(), mPendingImageBarriers.end(), [image, &range](const PendingImageBarrier& pendingBarrier)
 	{
@@ -62,7 +68,7 @@ void D3D12BarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, cons
 		found->BarrierFlags |= barrierFlags;
 		found->PrecedingBarrierDestinationStages |= GetPrecedingBarrierDestinationStages(image, range);
 
-		const bool mergedDiscardContents = found->BarrierFlags.IsSet(GpuImageBarrierFlag::DiscardContents);
+		const bool mergedDiscardContents = found->BarrierFlags.IsSet(GpuBarrierFlag::DiscardContents);
 		const GpuImageLayout resolvedOldLogicalLayout = mergedDiscardContents ? GpuImageLayout::Undefined : found->OldLayout;
 		const D3D12TextureLayout resolvedOldLayout = mergedDiscardContents ? D3D12TextureLayout::Undefined() : d3d12Image->GetTextureLayout(found->OldLayout, mQueueType);
 		const D3D12TextureLayout resolvedNewLayout = d3d12Image->GetTextureLayout(found->NewLayout, mQueueType);
@@ -86,12 +92,16 @@ void D3D12BarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, cons
 	mPendingImageBarriers.Add(pendingBarrier);
 }
 
-void D3D12BarrierHelper::RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
+void D3D12BarrierHelper::RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier, GpuBarrierFlags barrierFlags)
 {
 	D3D12BufferResource* const d3d12Buffer = static_cast<D3D12BufferResource*>(buffer);
 	D3D12BufferPage* const page = d3d12Buffer->GetPage();
 	const GpuStageFlags precedingBarrierDestinationStages = page != nullptr ? GetPrecedingBarrierDestinationStages(*page) : GetPrecedingBarrierDestinationStages(buffer);
-	if(page != nullptr && page->GetHeapType() == D3D12_HEAP_TYPE_READBACK)
+
+	// An alias acquire's source belongs to earlier resources on the memory, which a barrier on this buffer's resource does not cover
+	if(barrierFlags.IsSet(GpuBarrierFlag::AliasAcquire))
+		mBarriers.AddGlobalBarrier(D3D12BarrierUtility::GetAliasGlobalBarrier(barrier));
+	else if(page != nullptr && page->GetHeapType() == D3D12_HEAP_TYPE_READBACK)
 	{
 		// Agility SDK 1.619 reports BARRIER_INTEROP_INVALID_STATE for resource-scoped enhanced barriers on READBACK
 		// buffers, even when created with CreatePlacedResource2 and UNDEFINED. The enhanced-barrier specification

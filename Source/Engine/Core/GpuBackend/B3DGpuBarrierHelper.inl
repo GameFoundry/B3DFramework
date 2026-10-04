@@ -13,12 +13,12 @@ namespace b3d::render
 	{ }
 
 	template<class TDerived, class TResourceTracker>
-	void TGpuBarrierHelper<TDerived, TResourceTracker>::QueueResolvedBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
+	void TGpuBarrierHelper<TDerived, TResourceTracker>::QueueResolvedBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier, GpuBarrierFlags barrierFlags)
 	{
 		if(buffer == nullptr)
 			return;
 
-		static_cast<TDerived*>(this)->RecordNativeBufferBarrier(buffer, barrier);
+		static_cast<TDerived*>(this)->RecordNativeBufferBarrier(buffer, barrier, barrierFlags);
 
 		BarrierTrackingInfo trackingInfo;
 		trackingInfo.Buffer = buffer;
@@ -27,7 +27,7 @@ namespace b3d::render
 	}
 
 	template<class TDerived, class TResourceTracker>
-	void TGpuBarrierHelper<TDerived, TResourceTracker>::QueueResolvedImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuImageBarrierFlags barrierFlags)
+	void TGpuBarrierHelper<TDerived, TResourceTracker>::QueueResolvedImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuBarrierFlags barrierFlags)
 	{
 		if(image == nullptr)
 			return;

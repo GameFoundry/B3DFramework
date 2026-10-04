@@ -46,6 +46,12 @@ namespace b3d
 			/** Builds a native global barrier using buffer access semantics. */
 			static D3D12_GLOBAL_BARRIER GetGlobalBufferBarrier(D3D12_RESOURCE_FLAGS resourceFlags, const GpuBarrierScope& scope, GpuStageFlags precedingBarrierDestinationStages);
 
+			/**
+			 * Builds a native global barrier for an alias acquire. Its source scope belongs to earlier resources on the memory, whose type and layout
+			 * are unknown, so accesses are derived from the stages alone. Only source writes need a flush.
+			 */
+			static D3D12_GLOBAL_BARRIER GetAliasGlobalBarrier(const GpuBarrierScope& scope);
+
 			/** Builds a whole-resource native buffer barrier. */
 			static D3D12_BUFFER_BARRIER GetBufferBarrier(ID3D12Resource* resource, const GpuBarrierScope& scope, GpuStageFlags precedingBarrierDestinationStages);
 

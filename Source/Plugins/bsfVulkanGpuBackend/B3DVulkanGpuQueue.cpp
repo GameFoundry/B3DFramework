@@ -327,7 +327,7 @@ VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageI
 	presentHazards.HasLeadingBarrier = true;
 
 	// The image has a single subresource, so the image's own counters are exactly its in-flight reads
-	GpuSubmissionImageTransition transition(image, GpuTextureSubresourceRange(0, 1, 0, 1, GpuTextureAspectFlag::Color), stateResource.NativeState, GpuImageLayout::Present, GpuImageLayout::Present, GpuImageBarrierFlag::None, GpuSubmissionTransition::Build(stateResource.SubmissionState, GetDevice().GetSubmitThread().GetFrameIndex(), image.GetUseInfo(GpuAccessFlag::Read), GetId(), presentHazards));
+	GpuSubmissionImageTransition transition(image, GpuTextureSubresourceRange(0, 1, 0, 1, GpuTextureAspectFlag::Color), stateResource.NativeState, GpuImageLayout::Present, GpuImageLayout::Present, GpuBarrierFlag::None, GpuSubmissionTransition::Build(stateResource.SubmissionState, GetDevice().GetSubmitThread().GetFrameIndex(), image.GetUseInfo(GpuAccessFlag::Read), GetId(), presentHazards));
 	VulkanSubmissionTransitionVisitor transitionVisitor(GetDevice(), GetId(), bridgeSubmitInformation);
 	transitionVisitor.VisitImage(transition);
 	transitionVisitor.Finalize(bridgeCommandBuffer->GetVulkanHandle());

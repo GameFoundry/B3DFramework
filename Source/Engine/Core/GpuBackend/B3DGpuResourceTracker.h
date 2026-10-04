@@ -59,6 +59,9 @@ namespace b3d
 			 */
 			GpuResourceHazardState* HazardState = nullptr;
 
+			/** Behavior requested from the barrier preceding the first access in this command buffer. */
+			GpuBarrierFlags SubmissionBarrierFlags;
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			/** Suballocation indices that are bound in this tracking state. Typically 1-2. */
 			TInlineArray<u32, 2> BoundSuballocationIndices;
@@ -69,6 +72,12 @@ namespace b3d
 			 * Resting read resources have no hazard state tracking. This is the common state for read-only resources.
 			 */
 			bool HasOnlyRestingReads() const { return HazardState == nullptr && UseHandle.Stages != GpuStageFlag::None; }
+
+			/**
+			 * Returns true if the buffer was alias acquired but has not yet been used on the command buffer. This implies the inline memory
+			 * barrier that synchronizes against the prior memory use was not recorded.
+			 */
+			bool IsAliasAcquirePending() const { return SubmissionBarrierFlags.IsSet(GpuBarrierFlag::AliasAcquire) && !HazardState->HasAccess(); }
 		};
 
 		/** Contains information about a single GPU image resource bound/used on a command buffer. */
@@ -109,7 +118,7 @@ namespace b3d
 			GpuAccessFlags Access;
 
 			/** Behavior requested from the barrier preceding the first access in this command buffer. */
-			GpuImageBarrierFlags SubmissionBarrierFlags;
+			GpuBarrierFlags SubmissionBarrierFlags;
 
 			/** State used to resolve read-after-write, write-after-write and write-after-read hazards. */
 			GpuResourceHazardState* HazardState = nullptr;
@@ -138,6 +147,12 @@ namespace b3d
 
 			/** True if the command buffer transitions the layout after the first access, which submission synchronizes like a write. */
 			bool TransitionsLayout = false;
+
+			/**
+			 * Returns true if the image range was alias acquired but has not yet been used on the command buffer. This implies the inline memory
+			 * barrier that synchronizes against the prior memory use was not recorded.
+			 */
+			bool IsAliasAcquirePending() const { return SubmissionBarrierFlags.IsSet(GpuBarrierFlag::AliasAcquire) && !HazardState->HasAccess(); }
 		};
 
 		/**
@@ -212,7 +227,7 @@ namespace b3d
 			 * @param	barrierFlags			Additional behavior requested from the issued barrier.
 			 * @param	trackingFlags		Additional behavior requested from the image tracking.
 			 */
-			void TrackImageAccess(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags = GpuImageBarrierFlag::None, GpuImageTrackingFlags trackingFlags = GpuImageTrackingFlag::None);
+			void TrackImageAccess(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, GpuBarrierFlags barrierFlags = GpuBarrierFlag::None, GpuImageTrackingFlags trackingFlags = GpuImageTrackingFlag::None);
 
 			/**
 			 * Tracks an image access made by a shader binding of a draw or dispatch, validating shader/attachment overlap and combining layouts within the pending access batch.
@@ -241,6 +256,21 @@ namespace b3d
 			 * The image and affected subresources are retained without declaring a read or write.
 			 */
 			void TrackExplicitImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuStageFlags destinationStages, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper);
+
+			/**
+			 * Starts a new lifetime of @p buffer on memory that earlier resources used. Its contents are discarded, and its first access is
+			 * ordered after @p acquire.Source with a barrier recorded at that access. Must precede every other use of the buffer on the command
+			 * buffer, and the first access must write.
+			 */
+			void AcquireAliased(IGpuBufferResource* buffer, const GpuAliasAcquire& acquire);
+
+			/**
+			 * Starts a new lifetime of @p image on memory that earlier resources used. Its contents are discarded, and its first access is
+			 * ordered after @p acquire.Source with a barrier recorded at that access. The barrier transitions the image from
+			 * GpuImageLayout::Undefined. Must precede every other use of the image on the command buffer, and the first access of every
+			 * subresource must write.
+			 */
+			void AcquireAliased(IGpuImageResource* image, const GpuAliasAcquire& acquire);
 
 			/** Lets the tracker know that the provided swap chain will be queued on the associated command buffer. */
 			void TrackSwapChainUsage(IGpuSwapChainResource* swapChain);
@@ -404,7 +434,7 @@ namespace b3d
 			 * and barriers based on previous subresource usage.
 			 */
 			// TODO - Refactor this signature, try to clean it up once we have explicit layout transitions
-			void TrackSubresourceUsage(IGpuImageResource* image, u32 globalSubresourceIndex, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags, GpuImageTrackingFlags trackingFlags = GpuImageTrackingFlag::None);
+			void TrackSubresourceUsage(IGpuImageResource* image, u32 globalSubresourceIndex, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, GpuBarrierFlags barrierFlags, GpuImageTrackingFlags trackingFlags = GpuImageTrackingFlag::None);
 
 			/** Records a resting read of @p image if the image has no subresource tracking states. Returns false if the access must be tracked instead. */
 			bool TryTrackRestingImageRead(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags accessFlags);
@@ -435,7 +465,7 @@ namespace b3d
 			void QueueRequiredBufferBarrier(IGpuBufferResource* buffer, const GpuBufferTrackingState& bufferTrackingState, GpuStageFlags destinationStages, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper);
 
 			/** Determines if a barrier is required for the provided destination usage/access, and if so queues a barrier in the barrier helper, to be executed before the next image subresource access. */
-			void QueueRequiredImageBarrier(IGpuImageResource* image, GpuImageSubresourceTrackingState& subresourceTrackingState, GpuStageFlags destinationStages, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper, GpuImageBarrierFlags barrierFlags = GpuImageBarrierFlag::None, GpuImageTrackingFlags trackingFlags = GpuImageTrackingFlag::None);
+			void QueueRequiredImageBarrier(IGpuImageResource* image, GpuImageSubresourceTrackingState& subresourceTrackingState, GpuStageFlags destinationStages, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper, GpuBarrierFlags barrierFlags = GpuBarrierFlag::None, GpuImageTrackingFlags trackingFlags = GpuImageTrackingFlag::None);
 
 			/** Finds a subresource tracking state for the specified face, mip level, and aspect of the provided image. */
 			GpuImageSubresourceTrackingState& GetSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip, GpuTextureAspectFlag aspect);

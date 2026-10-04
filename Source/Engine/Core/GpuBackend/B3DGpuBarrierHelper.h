@@ -84,10 +84,10 @@ namespace b3d::render
 		friend class TGpuResourceTracker<TResourceTracker, TDerived>;
 
 		/** Queues a resolved buffer barrier and its post-emission tracker update. */
-		void QueueResolvedBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier);
+		void QueueResolvedBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier, GpuBarrierFlags barrierFlags);
 
 		/** Queues a resolved image barrier and its post-emission layout and hazard updates. */
-		void QueueResolvedImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuImageBarrierFlags barrierFlags);
+		void QueueResolvedImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuBarrierFlags barrierFlags);
 	};
 
 	/** @} */

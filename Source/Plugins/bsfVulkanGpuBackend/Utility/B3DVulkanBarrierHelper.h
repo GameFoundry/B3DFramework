@@ -110,10 +110,10 @@ namespace b3d::render
 		friend class TGpuBarrierHelper<VulkanBarrierHelper, VulkanResourceTracker>;
 
 		/** Accumulates a resolved native Vulkan buffer barrier. */
-		void RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier);
+		void RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier, GpuBarrierFlags barrierFlags);
 
 		/** Accumulates a resolved native image barrier and reconciles @p oldLayout after barrier merging. */
-		void RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuImageBarrierFlags barrierFlags);
+		void RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuBarrierFlags barrierFlags);
 
 		VulkanBarrierBatch mBarrierBatch;
 	};

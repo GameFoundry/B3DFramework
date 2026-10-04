@@ -105,6 +105,8 @@ namespace b3d
 			void DisableScissorTest() override;
 			void SetStencilReferenceValue(u32 value) override;
 			void IssueBarriers(const GpuBarriers& barriers) override;
+			void AcquireAliased(const TShared<Texture>& texture, const GpuAliasAcquire& acquire) override;
+			void AcquireAliased(const TShared<GpuBuffer>& buffer, const GpuAliasAcquire& acquire) override;
 			void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length) override;
 			void CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer) override;
 			void CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset) override;

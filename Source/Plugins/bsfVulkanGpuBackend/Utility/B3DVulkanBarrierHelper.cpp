@@ -221,18 +221,26 @@ VulkanBarrierHelper::VulkanBarrierHelper(VulkanResourceTracker* resourceTracker)
 	: TGpuBarrierHelper<VulkanBarrierHelper, VulkanResourceTracker>(resourceTracker)
 { }
 
-void VulkanBarrierHelper::RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier)
+void VulkanBarrierHelper::RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier, GpuBarrierFlags barrierFlags)
 {
+	// Buffer barriers without an ownership transfer are recorded as global barriers already, which also covers an alias acquire's source
+	(void)barrierFlags;
+
 	const VkBuffer bufferHandle = static_cast<VulkanBuffer*>(buffer)->GetVulkanHandle();
 	mBarrierBatch.AddBufferBarrier(bufferHandle, barrier);
 }
 
-void VulkanBarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuImageBarrierFlags barrierFlags)
+void VulkanBarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuBarrierFlags barrierFlags)
 {
 	const VkImage imageHandle = static_cast<VulkanImage*>(image)->GetVulkanHandle();
-	const VkImageLayout vkOldLayout = barrierFlags.IsSet(GpuImageBarrierFlag::DiscardContents) ? VK_IMAGE_LAYOUT_UNDEFINED : VulkanUtility::ToVkImageLayout(oldLayout);
+	const VkImageLayout vkOldLayout = barrierFlags.IsSet(GpuBarrierFlag::DiscardContents) ? VK_IMAGE_LAYOUT_UNDEFINED : VulkanUtility::ToVkImageLayout(oldLayout);
 	const VkImageLayout vkNewLayout = VulkanUtility::ToVkImageLayout(newLayout);
 	const VkImageSubresourceRange vkSubresourceRange = VulkanUtility::ToVkImageSubresourceRange(subresourceRange);
+
+	// The image barrier's memory dependency covers only this image, so an alias acquire adds a global memory barrier for them. The image barrier
+	// still performs the transition from VK_IMAGE_LAYOUT_UNDEFINED.
+	if(barrierFlags.IsSet(GpuBarrierFlag::AliasAcquire) && barrier.SourceAccess.IsSet(GpuAccessFlag::Write))
+		mBarrierBatch.AddMemoryBarrier(barrier);
 
 	mBarrierBatch.AddImageBarrier(imageHandle, vkSubresourceRange, barrier, vkOldLayout, vkNewLayout);
 }

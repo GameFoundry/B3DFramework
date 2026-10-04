@@ -175,6 +175,8 @@ namespace b3d
 			void InsertLabel(const StringView& name) override;
 			void End() override;
 			void IssueBarriers(const GpuBarriers& barriers) override;
+			void AcquireAliased(const TShared<Texture>& texture, const GpuAliasAcquire& acquire) override;
+			void AcquireAliased(const TShared<GpuBuffer>& buffer, const GpuAliasAcquire& acquire) override;
 
 			/** Returns an unique identifier of this command buffer. */
 			u32 GetId() const { return mId; }

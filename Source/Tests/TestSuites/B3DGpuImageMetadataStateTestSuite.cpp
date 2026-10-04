@@ -63,8 +63,8 @@ namespace
 
 	private:
 		friend class TGpuBarrierHelper<NativeTestBarrierHelper, NativeTestTracker>;
-		void RecordNativeBufferBarrier(IGpuBufferResource*, const GpuBarrierScope&) { }
-		void RecordNativeImageBarrier(IGpuImageResource*, const GpuTextureSubresourceRange&, const GpuBarrierScope&, GpuImageLayout, GpuImageLayout, GpuImageBarrierFlags) { }
+		void RecordNativeBufferBarrier(IGpuBufferResource*, const GpuBarrierScope&, GpuBarrierFlags) { }
+		void RecordNativeImageBarrier(IGpuImageResource*, const GpuTextureSubresourceRange&, const GpuBarrierScope&, GpuImageLayout, GpuImageLayout, GpuBarrierFlags) { }
 	};
 
 	/** Exposes mutable state for synthetic native command recording. */
@@ -82,7 +82,7 @@ namespace
 		using Base::GetSubresourceTrackingState;
 		using Base::UpdateHazardStateAfterBarrier;
 
-		void QueueRequiredImageBarrier(IGpuImageResource* image, GpuImageSubresourceTrackingState& state, GpuStageFlags usage, GpuAccessFlags access, GpuImageLayout layout, NativeTestBarrierHelper& helper, GpuImageBarrierFlags flags = GpuImageBarrierFlag::None, GpuImageTrackingFlags trackingFlags = GpuImageTrackingFlag::None)
+		void QueueRequiredImageBarrier(IGpuImageResource* image, GpuImageSubresourceTrackingState& state, GpuStageFlags usage, GpuAccessFlags access, GpuImageLayout layout, NativeTestBarrierHelper& helper, GpuBarrierFlags flags = GpuBarrierFlag::None, GpuImageTrackingFlags trackingFlags = GpuImageTrackingFlag::None)
 		{
 			Requirements++;
 			LastRequiredStages = usage;
@@ -317,7 +317,7 @@ void GpuImageMetadataStateTestSuite::TestInternalAccess()
 	tracker.Clear();
 
 	// Meta-data preparation retains the range but leaves its executed write to the backend.
-	tracker.TrackImageAccess(&image, firstFace, GpuImageLayout::General, GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write, helper, GpuImageBarrierFlag::None, GpuImageTrackingFlag::MetadataOperation);
+	tracker.TrackImageAccess(&image, firstFace, GpuImageLayout::General, GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write, helper, GpuBarrierFlag::None, GpuImageTrackingFlag::MetadataOperation);
 	helper.Execute();
 	const GpuImageSubresourceTrackingState& metadata = tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Depth);
 	B3D_TEST_ASSERT(!metadata.HazardState->HasAccess())
@@ -627,7 +627,7 @@ void GpuImageMetadataStateTestSuite::TestMergedImageLayoutBarriers()
 	B3D_TEST_ASSERT(state.RequiredLayout == GpuImageLayout::General)
 
 	// Discarding changes the native barrier's old layout, not the old layout validated by the tracker.
-	tracker.TrackImageAccess(&image, range, GpuImageLayout::TransferDestination, GpuStageFlag::Transfer, GpuAccessFlag::Write, helper, GpuImageBarrierFlag::DiscardContents);
+	tracker.TrackImageAccess(&image, range, GpuImageLayout::TransferDestination, GpuStageFlag::Transfer, GpuAccessFlag::Write, helper, GpuBarrierFlag::DiscardContents);
 	tracker.TrackExplicitImageBarrier(&image, range, GpuStageFlag::Transfer, GpuAccessFlag::Read, GpuImageLayout::TransferSource, helper);
 	helper.Execute();
 	B3D_TEST_ASSERT(state.CurrentLayout == GpuImageLayout::TransferSource)

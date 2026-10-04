@@ -70,6 +70,15 @@ namespace b3d
 		/** Verifies layout transitions, at submission and inside the command buffer, are synchronized like writes. */
 		void TestLayoutTransitionWrites();
 
+		/** Verifies an alias acquire records its barrier at the first access, and that submission starts a new lifetime. */
+		void TestAliasAcquire();
+
+		/**
+		 * Places resources on shared memory and hands the memory between them with alias acquires, within a command buffer, across command
+		 * buffers and across queues. Verifies the contents each resource reads back.
+		 */
+		void TestAliasAcquireExecution();
+
 		/** Verifies framebuffer attachment normalization and render-pass usage construction. */
 		void TestFramebufferAttachmentUsage();
 

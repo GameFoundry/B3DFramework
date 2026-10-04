@@ -318,6 +318,17 @@ namespace b3d
 		/** Returns queues on which the resource currently has in-flight accesses matching @p useFlags. */
 		GpuQueueMask GetUseInfo(GpuAccessFlags useFlags) const;
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		/**
+		 * Marks whether a resource sharing memory with this one has started a new lifetime on it (see GpuCommandBuffer::AcquireAliased()).
+		 * Accessing a superseded resource is invalid until it is acquired again. Development builds only.
+		 */
+		void SetSupersededByAlias(bool superseded) { mIsSupersededByAlias.store(superseded, std::memory_order_relaxed); }
+
+		/** Returns true if a resource sharing memory with this one has started a new lifetime on it since this resource was last acquired. */
+		bool IsSupersededByAlias() const { return mIsSupersededByAlias.load(std::memory_order_relaxed); }
+#endif
+
 		/**
 		 * Queues the resource for destruction. If the resource is currently bound to a command buffer, the actual free
 		 * is deferred until the bound count drops to zero; otherwise the manager frees it immediately. Only valid for
@@ -417,6 +428,10 @@ namespace b3d
 		void DestroyImmediately();
 
 		bool mDestroyRequested = false;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		std::atomic<bool> mIsSupersededByAlias = false;
+#endif
 	};
 
 #if B3D_BUILD_TYPE_DEVELOPMENT

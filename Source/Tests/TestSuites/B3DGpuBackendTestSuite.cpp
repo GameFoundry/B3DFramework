@@ -19,6 +19,7 @@
 #include "GpuBackend/B3DGpuProgram.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DGpuPushConstants.h"
+#include "GpuBackend/B3DRenderTexture.h"
 #include "Material/B3DShaderCompiler.h"
 #include "Material/B3DShader.h"
 #include "Material/B3DVariation.h"
@@ -70,21 +71,30 @@ namespace
 
 	struct SubmissionTestBarrierHelper
 	{
-		void QueueResolvedBufferBarrier(IGpuBufferResource*, const GpuBarrierScope& barrier) { LastBufferBarrier = barrier; }
+		void QueueResolvedBufferBarrier(IGpuBufferResource*, const GpuBarrierScope& barrier, GpuBarrierFlags barrierFlags)
+		{
+			LastBufferBarrier = barrier;
+			LastBufferBarrierFlags = barrierFlags;
+			BufferBarrierCount++;
+		}
 
-		void QueueResolvedImageBarrier(IGpuImageResource*, const GpuTextureSubresourceRange&, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuImageBarrierFlags barrierFlags)
+		void QueueResolvedImageBarrier(IGpuImageResource*, const GpuTextureSubresourceRange&, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuBarrierFlags barrierFlags)
 		{
 			LastImageBarrier = barrier;
 			LastImageBarrierOldLayout = oldLayout;
 			LastImageBarrierNewLayout = newLayout;
 			LastImageBarrierFlags = barrierFlags;
+			ImageBarrierCount++;
 		}
 
 		GpuBarrierScope LastBufferBarrier;
+		GpuBarrierFlags LastBufferBarrierFlags;
+		u32 BufferBarrierCount = 0;
+		u32 ImageBarrierCount = 0;
 		GpuBarrierScope LastImageBarrier;
 		GpuImageLayout LastImageBarrierOldLayout = GpuImageLayout::Undefined;
 		GpuImageLayout LastImageBarrierNewLayout = GpuImageLayout::Undefined;
-		GpuImageBarrierFlags LastImageBarrierFlags;
+		GpuBarrierFlags LastImageBarrierFlags;
 	};
 
 	class SubmissionTestBuffer : public IGpuBufferResource
@@ -146,7 +156,7 @@ namespace
 
 		GpuTextureAspectFlags VisitedAspects;
 		TInlineArray<GpuImageNativeState*, 2> NativeStates;
-		GpuImageBarrierFlags SubmissionBarrierFlags;
+		GpuBarrierFlags SubmissionBarrierFlags;
 	};
 
 	class SubmissionTestVisitor : public GpuSubmissionTransitionVisitor
@@ -279,13 +289,14 @@ namespace
 		GpuQueueMask ParallelAccessWaitMask;
 		GpuQueueMask ExclusiveAccessWaitMask;
 		GpuResourceSubmissionState PostTransitionSubmissionState;
+		GpuBarrierFlags SubmissionBarrierFlags;
 	};
 
 	/** Records every buffer and image transition, and commits the final image layout as native state like a backend would. */
 	class SubmissionRecordingVisitor : public GpuSubmissionTransitionVisitor
 	{
 	public:
-		void VisitBuffer(const GpuSubmissionBufferTransition& transition) override { Record(transition); }
+		void VisitBuffer(const GpuSubmissionBufferTransition& transition) override { Record(transition).SubmissionBarrierFlags = transition.SubmissionBarrierFlags; }
 
 		void VisitImage(const GpuSubmissionImageTransition& transition) override
 		{
@@ -293,6 +304,7 @@ namespace
 			recordedTransition.ImageRange = transition.ImageRange;
 			recordedTransition.InitialLayout = transition.InitialLayout;
 			recordedTransition.FinalLayout = transition.FinalLayout;
+			recordedTransition.SubmissionBarrierFlags = transition.SubmissionBarrierFlags;
 
 			transition.NativeState->Layout = (u32)transition.FinalLayout;
 		}
@@ -389,6 +401,8 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestRestingReadMaterialization)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestRestingSubmission)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestLayoutTransitionWrites)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestAliasAcquire)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestAliasAcquireExecution)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestFramebufferAttachmentUsage)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestRenderPassResourceTracking)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantMetadata)
@@ -2329,6 +2343,664 @@ void GpuBackendTestSuite::TestLayoutTransitionWrites()
 	}
 }
 
+void GpuBackendTestSuite::TestAliasAcquire()
+{
+	const GpuQueueId graphics(GQT_GRAPHICS, 0);
+	const GpuQueueId compute(GQT_COMPUTE, 0);
+	const GpuStageFlags computeStages = GpuStageFlag::ComputeShaderNonUniform;
+	const GpuStageFlags attachmentStages = GpuStageFlag::ColorAttachment;
+
+	GpuAliasAcquire attachmentWriteAcquire;
+	attachmentWriteAcquire.Source.Add(attachmentStages, GpuAccessFlag::Write);
+
+	// Tracks a full-range image access, then applies the queued barrier like a backend barrier helper would
+	auto fnExecuteImageAccess = [](SubmissionTestTracker& tracker, SubmissionTestBarrierHelper& barrierHelper, IGpuImageResource& image, GpuImageLayout layout, GpuStageFlags stages,
+		GpuAccessFlags access, GpuBarrierFlags barrierFlags = GpuBarrierFlag::None)
+	{
+		const u32 barrierCount = barrierHelper.ImageBarrierCount;
+		tracker.TrackImageAccess(&image, image.GetRange(), layout, stages, access, barrierHelper, barrierFlags);
+		if(barrierHelper.ImageBarrierCount != barrierCount)
+		{
+			tracker.UpdateImageLayoutTrackingAfterBarrier(&image, image.GetRange(), barrierHelper.LastImageBarrierOldLayout, barrierHelper.LastImageBarrierNewLayout);
+			tracker.UpdateHazardStateAfterBarrier(&image, image.GetRange(), barrierHelper.LastImageBarrier);
+		}
+
+		tracker.CommitPendingAccesses();
+	};
+
+	// The first write records one inline barrier from the source. It applies to the memory, and transitions from Undefined.
+	{
+		SubmissionTestImage image(1, 1, GpuTextureAspectFlag::Color);
+		SubmissionTestTracker tracker;
+		SubmissionTestBarrierHelper barrierHelper;
+
+		tracker.AcquireAliased(&image, attachmentWriteAcquire);
+		fnExecuteImageAccess(tracker, barrierHelper, image, GpuImageLayout::General, computeStages, GpuAccessFlag::Write);
+
+		B3D_TEST_ASSERT(barrierHelper.ImageBarrierCount == 1)
+		B3D_TEST_ASSERT(barrierHelper.LastImageBarrier.SourceStages == attachmentStages)
+		B3D_TEST_ASSERT(barrierHelper.LastImageBarrier.SourceAccess == GpuAccessFlag::Write)
+		B3D_TEST_ASSERT(barrierHelper.LastImageBarrier.DestinationStages == computeStages)
+		B3D_TEST_ASSERT(barrierHelper.LastImageBarrier.DestinationAccess == GpuAccessFlag::Write)
+		B3D_TEST_ASSERT(barrierHelper.LastImageBarrierFlags.IsSet(GpuBarrierFlag::AliasAcquire))
+		B3D_TEST_ASSERT(barrierHelper.LastImageBarrierFlags.IsSet(GpuBarrierFlag::DiscardContents))
+		B3D_TEST_ASSERT(barrierHelper.LastImageBarrierOldLayout == GpuImageLayout::Undefined)
+		B3D_TEST_ASSERT(barrierHelper.LastImageBarrierNewLayout == GpuImageLayout::General)
+
+		// The seeded source is no access of the command buffer, and the acquire's transition is part of the first access
+		const GpuImageSubresourceTrackingState& trackingState = tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Color);
+		B3D_TEST_ASSERT(trackingState.HazardState->AllAccessScope.WriteStages == computeStages)
+		B3D_TEST_ASSERT(trackingState.HazardState->AllAccessScope.ReadStages == GpuStageFlag::None)
+		B3D_TEST_ASSERT(!trackingState.HazardState->AccessScopeBeforeFirstBarrier.GetStages().IsSetAny(attachmentStages))
+		B3D_TEST_ASSERT(trackingState.InitialLayout == GpuImageLayout::Undefined)
+		B3D_TEST_ASSERT(!trackingState.TransitionsLayout)
+
+		// Later accesses are tracked normally
+		fnExecuteImageAccess(tracker, barrierHelper, image, GpuImageLayout::General, computeStages, GpuAccessFlag::Read);
+		B3D_TEST_ASSERT(barrierHelper.ImageBarrierCount == 2)
+		B3D_TEST_ASSERT(barrierHelper.LastImageBarrier.SourceStages == computeStages)
+		B3D_TEST_ASSERT(!barrierHelper.LastImageBarrierFlags.IsSet(GpuBarrierFlag::AliasAcquire))
+
+		tracker.NotifyUnbound();
+		tracker.Clear();
+	}
+
+	// Every aspect of the image is acquired
+	{
+		SubmissionTestImage image(1, 1, GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil);
+		SubmissionTestTracker tracker;
+		SubmissionTestBarrierHelper barrierHelper;
+
+		tracker.AcquireAliased(&image, attachmentWriteAcquire);
+		tracker.TrackImageAccess(&image, image.GetRange(), GpuImageLayout::DepthStencilAttachment, GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests,
+			GpuAccessFlag::Read | GpuAccessFlag::Write, barrierHelper, GpuBarrierFlag::DiscardContents);
+		tracker.CommitPendingAccesses();
+
+		B3D_TEST_ASSERT(barrierHelper.ImageBarrierCount == 2)
+		B3D_TEST_ASSERT(barrierHelper.LastImageBarrierFlags.IsSet(GpuBarrierFlag::AliasAcquire))
+
+		tracker.NotifyUnbound();
+		tracker.Clear();
+	}
+
+	// An empty source only transitions an image's layout, and gives a buffer no barrier
+	{
+		SubmissionTestImage image(1, 1, GpuTextureAspectFlag::Color);
+		SubmissionTestBuffer buffer;
+		SubmissionTestTracker tracker;
+		SubmissionTestBarrierHelper barrierHelper;
+
+		tracker.AcquireAliased(&image, GpuAliasAcquire());
+		tracker.AcquireAliased(&buffer, GpuAliasAcquire());
+		fnExecuteImageAccess(tracker, barrierHelper, image, GpuImageLayout::General, computeStages, GpuAccessFlag::Write);
+		tracker.TrackBufferAccess(&buffer, computeStages, GpuAccessFlag::Write, barrierHelper);
+		tracker.CommitPendingAccesses();
+
+		B3D_TEST_ASSERT(barrierHelper.ImageBarrierCount == 1)
+		B3D_TEST_ASSERT(barrierHelper.LastImageBarrier.SourceStages == GpuStageFlag::None)
+		B3D_TEST_ASSERT(barrierHelper.LastImageBarrier.DestinationStages == computeStages)
+		B3D_TEST_ASSERT(barrierHelper.LastImageBarrierFlags.IsSet(GpuBarrierFlag::AliasAcquire))
+		B3D_TEST_ASSERT(barrierHelper.LastImageBarrierOldLayout == GpuImageLayout::Undefined)
+		B3D_TEST_ASSERT(barrierHelper.BufferBarrierCount == 0)
+
+		tracker.NotifyUnbound();
+		tracker.Clear();
+	}
+
+	// A buffer's first write records the barrier from the source, flagged as an alias acquire. Reads before it are invalid.
+	{
+		SubmissionTestBuffer buffer;
+		SubmissionTestTracker tracker;
+		SubmissionTestBarrierHelper barrierHelper;
+
+		GpuAliasAcquire readAcquire;
+		readAcquire.Source.Add(GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read);
+		tracker.AcquireAliased(&buffer, readAcquire);
+
+		// A resting read must not hide the acquire
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("The first access of an alias acquired buffer must write.");
+			tracker.TrackBufferAccess(&buffer, computeStages, GpuAccessFlag::Read, barrierHelper);
+		}
+
+		B3D_TEST_ASSERT(tracker.FindBufferTrackingState(&buffer)->HazardState != nullptr)
+		B3D_TEST_ASSERT(barrierHelper.BufferBarrierCount == 0)
+
+		tracker.CommitPendingAccesses();
+		tracker.NotifyUnbound();
+		tracker.Clear();
+
+		tracker.AcquireAliased(&buffer, readAcquire);
+		tracker.TrackBufferAccess(&buffer, computeStages, GpuAccessFlag::Write, barrierHelper);
+		tracker.CommitPendingAccesses();
+
+		B3D_TEST_ASSERT(barrierHelper.BufferBarrierCount == 1)
+		B3D_TEST_ASSERT(barrierHelper.LastBufferBarrierFlags == GpuBarrierFlag::AliasAcquire)
+		B3D_TEST_ASSERT(barrierHelper.LastBufferBarrier.SourceStages == GpuStageFlag::FragmentShaderNonUniform)
+		B3D_TEST_ASSERT(barrierHelper.LastBufferBarrier.SourceAccess == GpuAccessFlag::Read)
+		B3D_TEST_ASSERT(barrierHelper.LastBufferBarrier.DestinationStages == computeStages)
+
+		const GpuBufferTrackingState* const trackingState = tracker.FindBufferTrackingState(&buffer);
+		B3D_TEST_ASSERT(trackingState->HazardState->AllAccessScope.ReadStages == GpuStageFlag::None)
+		B3D_TEST_ASSERT(trackingState->HazardState->AllAccessScope.WriteStages == computeStages)
+
+		// Later accesses are tracked normally
+		tracker.TrackBufferAccess(&buffer, computeStages, GpuAccessFlag::Write, barrierHelper);
+		B3D_TEST_ASSERT(barrierHelper.BufferBarrierCount == 2)
+		B3D_TEST_ASSERT(barrierHelper.LastBufferBarrierFlags == GpuBarrierFlag::None)
+
+		tracker.CommitPendingAccesses();
+		tracker.NotifyUnbound();
+		tracker.Clear();
+	}
+
+	// A predecessor accessed earlier in the same command buffer is ordered by the barrier recorded at the successor's first access
+	{
+		SubmissionTestImage predecessor(1, 1, GpuTextureAspectFlag::Color);
+		SubmissionTestImage successor(1, 1, GpuTextureAspectFlag::Color);
+		SubmissionTestTracker tracker;
+		SubmissionTestBarrierHelper barrierHelper;
+
+		fnExecuteImageAccess(tracker, barrierHelper, predecessor, GpuImageLayout::ColorAttachment, attachmentStages, GpuAccessFlag::Write);
+		const u32 barrierCountBeforeAcquire = barrierHelper.ImageBarrierCount;
+
+		tracker.AcquireAliased(&successor, attachmentWriteAcquire);
+		B3D_TEST_ASSERT(barrierHelper.ImageBarrierCount == barrierCountBeforeAcquire)
+
+		fnExecuteImageAccess(tracker, barrierHelper, successor, GpuImageLayout::General, computeStages, GpuAccessFlag::Write);
+		B3D_TEST_ASSERT(barrierHelper.ImageBarrierCount == barrierCountBeforeAcquire + 1)
+		B3D_TEST_ASSERT(barrierHelper.LastImageBarrier.SourceStages == attachmentStages)
+		B3D_TEST_ASSERT(barrierHelper.LastImageBarrierFlags.IsSet(GpuBarrierFlag::AliasAcquire))
+
+		tracker.NotifyUnbound();
+		tracker.Clear();
+	}
+
+	// The first submission ignores the previous lifetime's submission state, and publishes only the new lifetime
+	{
+		SubmissionTestImage image(1, 1, GpuTextureAspectFlag::Color);
+		image.SetNativeLayout(GpuImageLayout::ShaderReadOnly);
+
+		// Previous lifetime: written on graphics, then read on compute, still in flight. A graphics write would normally need a barrier and
+		// a wait on compute.
+		SubmissionTestTracker previousWriteTracker;
+		SubmitRecordedImageAccess(previousWriteTracker, image, image.GetRange(), GpuImageLayout::ColorAttachment, attachmentStages, GpuAccessFlag::Write, graphics, 0);
+		SubmissionTestTracker previousReadTracker;
+		SubmitRecordedImageAccess(previousReadTracker, image, image.GetRange(), GpuImageLayout::ShaderReadOnly, computeStages, GpuAccessFlag::Read, compute, 0);
+
+		SubmissionTestTracker tracker;
+		SubmissionTestBarrierHelper barrierHelper;
+		tracker.AcquireAliased(&image, attachmentWriteAcquire);
+		fnExecuteImageAccess(tracker, barrierHelper, image, GpuImageLayout::General, computeStages, GpuAccessFlag::Write);
+
+		SubmissionRecordingVisitor visitor;
+		SubmitTestTracker(tracker, graphics, 0, visitor);
+		B3D_TEST_ASSERT(visitor.Transitions.size() == 1)
+
+		const RecordedSubmissionTransition& transition = visitor.Transitions[0];
+		B3D_TEST_ASSERT(transition.SubmissionBarrierFlags.IsSet(GpuBarrierFlag::AliasAcquire))
+		B3D_TEST_ASSERT(transition.InitialLayout == GpuImageLayout::Undefined)
+		B3D_TEST_ASSERT(transition.FinalLayout == GpuImageLayout::General)
+		B3D_TEST_ASSERT(transition.ParallelAccessWaitMask.IsEmpty())
+		B3D_TEST_ASSERT(transition.ExclusiveAccessWaitMask.IsEmpty())
+		B3D_TEST_ASSERT(!transition.MemoryBarrier.IsValid())
+		B3D_TEST_ASSERT(!transition.ExecutionBarrier.IsValid())
+
+		const GpuResourceSubmissionState& state = image.GetFullRangeSubresource()->SubmissionState;
+		B3D_TEST_ASSERT(state.HasWriter && state.WriterQueueId.Id == graphics.Id)
+		B3D_TEST_ASSERT(state.WriterHazards.WriteStages == computeStages)
+		B3D_TEST_ASSERT(state.WriterHazards.ReaderStages == GpuStageFlag::None)
+		B3D_TEST_ASSERT(state.ReaderQueues.IsEmpty())
+
+		CompleteTestTracker(previousWriteTracker, graphics);
+		CompleteTestTracker(previousReadTracker, compute);
+		CompleteTestTracker(tracker, graphics);
+
+		// The next command buffer resolves against the new lifetime
+		SubmissionTestTracker nextTracker;
+		const Vector<RecordedSubmissionTransition> nextRead = SubmitRecordedImageAccess(nextTracker, image, image.GetRange(), GpuImageLayout::General, computeStages, GpuAccessFlag::Read, compute, 0);
+		B3D_TEST_ASSERT(nextRead.size() == 1)
+		B3D_TEST_ASSERT(!nextRead[0].SubmissionBarrierFlags.IsSet(GpuBarrierFlag::AliasAcquire))
+		B3D_TEST_ASSERT(nextRead[0].ParallelAccessWaitMask.IsSet(graphics))
+		CompleteTestTracker(nextTracker, compute);
+	}
+
+	// The same holds for buffers
+	{
+		SubmissionTestBuffer buffer;
+
+		SubmissionTestTracker previousWriteTracker;
+		SubmitRecordedBufferAccess(previousWriteTracker, buffer, computeStages, GpuAccessFlag::Write, compute, 0);
+
+		SubmissionTestTracker tracker;
+		SubmissionTestBarrierHelper barrierHelper;
+		tracker.AcquireAliased(&buffer, GpuAliasAcquire());
+		tracker.TrackBufferAccess(&buffer, GpuStageFlag::Transfer, GpuAccessFlag::Write, barrierHelper);
+		tracker.CommitPendingAccesses();
+
+		SubmissionRecordingVisitor visitor;
+		SubmitTestTracker(tracker, graphics, 0, visitor);
+		B3D_TEST_ASSERT(visitor.Transitions.size() == 1)
+		B3D_TEST_ASSERT(visitor.Transitions[0].SubmissionBarrierFlags == GpuBarrierFlag::AliasAcquire)
+		B3D_TEST_ASSERT(visitor.Transitions[0].ParallelAccessWaitMask.IsEmpty())
+		B3D_TEST_ASSERT(visitor.Transitions[0].ExclusiveAccessWaitMask.IsEmpty())
+		B3D_TEST_ASSERT(!visitor.Transitions[0].MemoryBarrier.IsValid())
+
+		const GpuResourceSubmissionState& state = buffer.GetSubmissionState();
+		B3D_TEST_ASSERT(state.HasWriter && state.WriterQueueId.Id == graphics.Id)
+		B3D_TEST_ASSERT(state.WriterHazards.WriteStages == GpuStageFlag::Transfer)
+
+		CompleteTestTracker(previousWriteTracker, compute);
+		CompleteTestTracker(tracker, graphics);
+	}
+
+	// Validation: the acquire must precede every other use on the command buffer
+	{
+		SubmissionTestImage image(1, 1, GpuTextureAspectFlag::Color);
+		SubmissionTestTracker tracker;
+		SubmissionTestBarrierHelper barrierHelper;
+		fnExecuteImageAccess(tracker, barrierHelper, image, GpuImageLayout::General, computeStages, GpuAccessFlag::Write);
+
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("An alias acquire must precede every other use of the GPU image on the command buffer.");
+			tracker.AcquireAliased(&image, attachmentWriteAcquire);
+		}
+
+		B3D_TEST_ASSERT(!tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Color).SubmissionBarrierFlags.IsSet(GpuBarrierFlag::AliasAcquire))
+
+		tracker.NotifyUnbound();
+		tracker.Clear();
+	}
+
+	// Validation: the first access must write without reading the previous contents
+	{
+		SubmissionTestImage image(1, 1, GpuTextureAspectFlag::Color);
+		SubmissionTestTracker tracker;
+		SubmissionTestBarrierHelper barrierHelper;
+
+		auto fnExpectInvalidFirstAccess = [this, &image, &tracker, &barrierHelper, &attachmentWriteAcquire](GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags access)
+		{
+			tracker.AcquireAliased(&image, attachmentWriteAcquire);
+			{
+				LoggingScope logs(*this);
+				logs.ExpectError("The first access of an alias acquired image must write without reading the previous contents.");
+				tracker.TrackImageAccess(&image, image.GetRange(), layout, stages, access, barrierHelper);
+			}
+
+			tracker.CommitPendingAccesses();
+			tracker.NotifyUnbound();
+			tracker.Clear();
+		};
+
+		fnExpectInvalidFirstAccess(GpuImageLayout::ShaderReadOnly, GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read);
+
+		// A writable attachment that is loaded reads the previous contents
+		fnExpectInvalidFirstAccess(GpuImageLayout::ColorAttachment, attachmentStages, GpuAccessFlag::Read | GpuAccessFlag::Write);
+
+		// One that discards them does not
+		tracker.AcquireAliased(&image, attachmentWriteAcquire);
+		tracker.TrackImageAccess(&image, image.GetRange(), GpuImageLayout::ColorAttachment, attachmentStages, GpuAccessFlag::Read | GpuAccessFlag::Write, barrierHelper, GpuBarrierFlag::DiscardContents);
+		tracker.CommitPendingAccesses();
+		tracker.NotifyUnbound();
+		tracker.Clear();
+	}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	// Validation: earlier resources on the memory are invalid after the acquire, until they are acquired again
+	{
+		SubmissionTestImage predecessorImage(1, 1, GpuTextureAspectFlag::Color);
+		SubmissionTestBuffer predecessorBuffer;
+		SubmissionTestImage successor(1, 1, GpuTextureAspectFlag::Color);
+		IGpuResource* const predecessors[] = { &predecessorImage, &predecessorBuffer };
+
+		GpuAliasAcquire acquire = attachmentWriteAcquire;
+		acquire.Predecessors = TArrayView<IGpuResource* const>(predecessors, 2);
+
+		SubmissionTestTracker tracker;
+		SubmissionTestBarrierHelper barrierHelper;
+		tracker.AcquireAliased(&successor, acquire);
+		B3D_TEST_ASSERT(predecessorImage.IsSupersededByAlias())
+		B3D_TEST_ASSERT(predecessorBuffer.IsSupersededByAlias())
+		B3D_TEST_ASSERT(!successor.IsSupersededByAlias())
+
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("A GPU image is used after another resource took over its memory with an alias acquire.");
+			logs.ExpectError("A GPU buffer is used after another resource took over its memory with an alias acquire.");
+			tracker.TrackImageAccess(&predecessorImage, predecessorImage.GetRange(), GpuImageLayout::General, computeStages, GpuAccessFlag::Write, barrierHelper);
+			tracker.TrackBufferAccess(&predecessorBuffer, computeStages, GpuAccessFlag::Write, barrierHelper);
+		}
+
+		tracker.CommitPendingAccesses();
+		tracker.NotifyUnbound();
+		tracker.Clear();
+
+		// Acquiring the predecessor again starts its own new lifetime, which supersedes the successor
+		GpuAliasAcquire predecessorAcquire;
+		IGpuResource* const successors[] = { &successor };
+		predecessorAcquire.Predecessors = TArrayView<IGpuResource* const>(successors, 1);
+		tracker.AcquireAliased(&predecessorImage, predecessorAcquire);
+		B3D_TEST_ASSERT(!predecessorImage.IsSupersededByAlias())
+		B3D_TEST_ASSERT(successor.IsSupersededByAlias())
+
+		fnExecuteImageAccess(tracker, barrierHelper, predecessorImage, GpuImageLayout::General, computeStages, GpuAccessFlag::Write);
+		tracker.NotifyUnbound();
+		tracker.Clear();
+	}
+#endif
+
+	// Validation: an explicit barrier is not the first access
+	{
+		SubmissionTestBuffer buffer;
+		SubmissionTestTracker tracker;
+		SubmissionTestBarrierHelper barrierHelper;
+		tracker.AcquireAliased(&buffer, attachmentWriteAcquire);
+
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("An alias acquired buffer must be written before an explicit barrier.");
+			tracker.TrackExplicitBufferBarrier(&buffer, computeStages, GpuAccessFlag::Read, barrierHelper);
+		}
+
+		tracker.NotifyUnbound();
+		tracker.Clear();
+	}
+
+	// Validation: the acquiring command buffer accesses every acquired subresource, as the first access records the acquire's barrier
+	{
+		SubmissionTestBuffer buffer;
+		SubmissionTestImage image(1, 2, GpuTextureAspectFlag::Color);
+		SubmissionTestTracker tracker;
+		SubmissionTestBarrierHelper barrierHelper;
+		tracker.AcquireAliased(&buffer, attachmentWriteAcquire);
+		tracker.AcquireAliased(&image, attachmentWriteAcquire);
+
+		// The buffer is not accessed, and the image only on its first mip level
+		tracker.TrackImageAccess(&image, GpuTextureSubresourceRange(0, 1, 0, 1, GpuTextureAspectFlag::Color), GpuImageLayout::General, computeStages, GpuAccessFlag::Write, barrierHelper);
+		tracker.CommitPendingAccesses();
+
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("An alias acquired GPU buffer must be accessed on the command buffer that acquires it.");
+			logs.ExpectError("Every subresource of an alias acquired GPU image must be accessed on the command buffer that acquires it.");
+
+			SubmissionRecordingVisitor visitor;
+			SubmitTestTracker(tracker, graphics, 0, visitor);
+		}
+
+		CompleteTestTracker(tracker, graphics);
+	}
+}
+
+void GpuBackendTestSuite::TestAliasAcquireExecution()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	GetRenderThread().PostCommand([this, &device]()
+	{
+		static constexpr u32 kSize = 64;
+		static constexpr u32 kClearValue = 0xFF00FF00; // Color(0, 1, 0, 1) in PF_RGBA8
+		const GpuQueueId compute(GQT_COMPUTE, 0);
+
+		// Transfers on the same queue, recorded before the acquiring command buffer
+		GpuAliasAcquire transferAcquire;
+		transferAcquire.Source.Add(GpuStageFlag::Transfer, GpuAccessFlag::Read | GpuAccessFlag::Write);
+
+		TextureCreateInformation targetInformation;
+		targetInformation.Name = "Alias acquire target";
+		targetInformation.Width = kSize;
+		targetInformation.Height = kSize;
+		targetInformation.Format = PF_RGBA8;
+		targetInformation.Usage = TextureUsageFlag::RenderTarget;
+		targetInformation.ClearColor = Color(0, 1, 0, 1);
+
+		TextureCreateInformation storageInformation = targetInformation;
+		storageInformation.Name = "Alias acquire storage";
+		storageInformation.Usage = TextureUsageFlag::AllowUnorderedAccessOnTheGPU;
+
+		const GpuBufferCreateInformation bufferInformation = GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize);
+
+		// Staging buffers hold one pattern per resource. Their size covers a texture's staging pitch.
+		const GpuMemoryRequirements targetRequirements = device->GetMemoryRequirements(targetInformation);
+		const GpuMemoryRequirements storageRequirements = device->GetMemoryRequirements(storageInformation);
+		const GpuMemoryRequirements bufferRequirements = device->GetMemoryRequirements(bufferInformation);
+		B3D_TEST_ASSERT(targetRequirements.MemoryType != GpuMemoryRequirements::kUnsupportedMemoryType)
+		B3D_TEST_ASSERT(storageRequirements.MemoryType != GpuMemoryRequirements::kUnsupportedMemoryType)
+		B3D_TEST_ASSERT(bufferRequirements.MemoryType != GpuMemoryRequirements::kUnsupportedMemoryType)
+		if(targetRequirements.MemoryType == GpuMemoryRequirements::kUnsupportedMemoryType || storageRequirements.MemoryType == GpuMemoryRequirements::kUnsupportedMemoryType ||
+			bufferRequirements.MemoryType == GpuMemoryRequirements::kUnsupportedMemoryType)
+			return;
+
+		const TShared<render::Texture> pitchTexture = device->CreateTexture(storageInformation);
+		const ImageSubresourcePitch pitch = pitchTexture->GetStagingBufferPitchForSubresource(0, 0);
+		const u32 stagingElementCount = pitch.RowPitch * pitch.SliceHeight;
+
+		// Each pattern stores the pattern index in the high bits, and the element index in the low bits
+		auto fnPatternValue = [](u32 pattern, u32 elementIndex) { return (pattern << 24) | elementIndex; };
+
+		constexpr u32 kPatternCount = 3;
+		TShared<render::GpuBuffer> uploads[kPatternCount];
+		for(u32 pattern = 0; pattern < kPatternCount; pattern++)
+		{
+			uploads[pattern] = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(stagingElementCount * sizeof(u32)));
+			const render::GpuBufferMappedScope mapping = uploads[pattern]->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			u32* elements = static_cast<u32*>(mapping.GetMappedMemory());
+			for(u32 elementIndex = 0; elementIndex < stagingElementCount; elementIndex++)
+				elements[elementIndex] = fnPatternValue(pattern + 1, elementIndex);
+		}
+
+		constexpr u32 kReadbackCount = 3;
+		TShared<render::GpuBuffer> readbacks[kReadbackCount];
+		for(TShared<render::GpuBuffer>& readback : readbacks)
+			readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(stagingElementCount * sizeof(u32)));
+
+		// Checks that a readback holds a buffer pattern, a texture pattern, or the clear value in every texel
+		enum class ReadbackLayout { Buffer, Texture };
+		auto fnCheckReadback = [this, &readbacks, &pitch, &fnPatternValue](u32 readbackIndex, ReadbackLayout layout, u32 pattern)
+		{
+			const render::GpuBufferMappedScope mapping = readbacks[readbackIndex]->Map(GpuMapOption::Read);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			const u32* elements = static_cast<const u32*>(mapping.GetMappedMemory());
+			bool matches = true;
+			for(u32 row = 0; row < kSize; row++)
+			{
+				for(u32 column = 0; column < kSize; column++)
+				{
+					const u32 elementIndex = layout == ReadbackLayout::Buffer ? row * kSize + column : row * pitch.RowPitch + column;
+					const u32 expected = pattern == 0 ? kClearValue : fnPatternValue(pattern, elementIndex);
+					matches &= elements[elementIndex] == expected;
+				}
+			}
+
+			B3D_TEST_ASSERT(matches)
+		};
+
+		// Allocates memory that fits every resource in the list, and checks that they can share it
+		// Memory behind the non-owning allocations is released once the resources placed on it are destroyed
+		struct SharedMemory
+		{
+			IGpuAllocator* Allocator = nullptr;
+			GpuAllocation Allocation;
+		};
+
+		TInlineArray<SharedMemory, 4> sharedMemories;
+		auto fnAllocateShared = [this, &device, &sharedMemories](std::initializer_list<const GpuMemoryRequirements*> requirements, SharedMemory& output)
+		{
+			u64 size = 0;
+			u64 alignment = 1;
+			for(const GpuMemoryRequirements* entry : requirements)
+			{
+				if(entry->MemoryType != (*requirements.begin())->MemoryType)
+					return false;
+
+				size = std::max(size, entry->Size);
+				alignment = std::max(alignment, entry->Alignment);
+			}
+
+			const GpuMemoryRequirements& first = **requirements.begin();
+			output.Allocator = &device->GetPersistentAllocator(first.MemoryType);
+			const bool allocated = output.Allocator->TryAllocate(size, (u32)alignment, first.Kind, nullptr, output.Allocation);
+			B3D_TEST_ASSERT(allocated)
+			if(allocated)
+				sharedMemories.Add(output);
+
+			return allocated;
+		};
+
+		auto fnCreateTexture = [&device](const TextureCreateInformation& information, const SharedMemory& memory)
+		{
+			GpuAllocation allocation = memory.Allocation;
+			allocation.Allocator = nullptr;
+			return device->CreateTexture(information, allocation, GpuObjectCreateFlag::Aliased);
+		};
+
+		auto fnCreateBuffer = [&device, &bufferInformation](const SharedMemory& memory)
+		{
+			GpuAllocation allocation = memory.Allocation;
+			allocation.Allocator = nullptr;
+			return device->CreateGpuBuffer(bufferInformation, allocation, GpuObjectCreateFlag::Aliased);
+		};
+
+		auto fnClearTarget = [](render::GpuCommandBuffer& commands, const TShared<render::Texture>& texture)
+		{
+			render::RenderTextureCreateInformation renderTextureInformation;
+			renderTextureInformation.ColorSurfaces[0].Texture = texture;
+
+			RenderPassCreateInformation pass(render::RenderTexture::Create(renderTextureInformation));
+			pass.ClearMask = RT_COLOR0;
+			commands.BeginRenderPass(pass);
+			commands.EndRenderPass();
+		};
+
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		const TShared<render::GpuCommandBufferPool> graphicsPool = device->CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_GRAPHICS));
+		const u32 bufferBytes = kSize * kSize * sizeof(u32);
+
+		// Two buffers hand the memory over within one command buffer
+		{
+			SharedMemory memory;
+			if(!fnAllocateShared({ &bufferRequirements }, memory))
+				return;
+
+			const TShared<render::GpuBuffer> first = fnCreateBuffer(memory);
+			const TShared<render::GpuBuffer> second = fnCreateBuffer(memory);
+
+			const TShared<render::GpuCommandBuffer> commands = graphicsPool->Create(GpuCommandBufferCreateInformation::Create("Alias acquire within a command buffer"));
+			commands->AcquireAliased(first, GpuAliasAcquire());
+			commands->CopyBufferToBuffer(uploads[0], first, 0, 0, bufferBytes);
+			commands->CopyBufferToBuffer(first, readbacks[0], 0, 0, bufferBytes);
+			commands->AcquireAliased(second, transferAcquire);
+			commands->CopyBufferToBuffer(uploads[1], second, 0, 0, bufferBytes);
+			commands->CopyBufferToBuffer(second, readbacks[1], 0, 0, bufferBytes);
+			context->SubmitCommandBuffer(commands, GpuQueueMask::kNone);
+			device->WaitUntilIdle();
+
+			fnCheckReadback(0, ReadbackLayout::Buffer, 1);
+			fnCheckReadback(1, ReadbackLayout::Buffer, 2);
+		}
+
+		// Two render targets hand the memory over between command buffers on one queue. The second one is cleared as its first access.
+		{
+			SharedMemory memory;
+			if(!fnAllocateShared({ &targetRequirements }, memory))
+				return;
+
+			const TShared<render::Texture> first = fnCreateTexture(targetInformation, memory);
+			const TShared<render::Texture> second = fnCreateTexture(targetInformation, memory);
+
+			const TShared<render::GpuCommandBuffer> firstCommands = graphicsPool->Create(GpuCommandBufferCreateInformation::Create("Alias acquire first target"));
+			firstCommands->AcquireAliased(first, GpuAliasAcquire());
+			firstCommands->CopyBufferToTexture(uploads[0], first, 0, 0, 0);
+			firstCommands->CopyTextureToBuffer(first, readbacks[0], 0, 0);
+			context->SubmitCommandBuffer(firstCommands, GpuQueueMask::kNone);
+
+			const TShared<render::GpuCommandBuffer> secondCommands = graphicsPool->Create(GpuCommandBufferCreateInformation::Create("Alias acquire second target"));
+			secondCommands->AcquireAliased(second, transferAcquire);
+			fnClearTarget(*secondCommands, second);
+			secondCommands->CopyTextureToBuffer(second, readbacks[1], 0, 0);
+			context->SubmitCommandBuffer(secondCommands, GpuQueueMask::kNone);
+			device->WaitUntilIdle();
+
+			fnCheckReadback(0, ReadbackLayout::Texture, 1);
+			fnCheckReadback(1, ReadbackLayout::Texture, 0);
+		}
+
+		// Storage textures hand the memory over from the compute queue to the graphics queue, behind a queue wait. The first texture then
+		// acquires the memory again on the graphics queue, while its last use was on the compute queue.
+		if(device->GetQueueCount(GQT_COMPUTE) > 0)
+		{
+			SharedMemory memory;
+			if(!fnAllocateShared({ &storageRequirements }, memory))
+				return;
+
+			const TShared<render::Texture> first = fnCreateTexture(storageInformation, memory);
+			const TShared<render::Texture> second = fnCreateTexture(storageInformation, memory);
+			const TShared<render::GpuCommandBufferPool> computePool = device->CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_COMPUTE));
+
+			const TShared<render::GpuCommandBuffer> computeCommands = computePool->Create(GpuCommandBufferCreateInformation::Create("Alias acquire on compute"));
+			computeCommands->AcquireAliased(first, GpuAliasAcquire());
+			computeCommands->CopyBufferToTexture(uploads[0], first, 0, 0, 0);
+			computeCommands->CopyTextureToBuffer(first, readbacks[0], 0, 0);
+			context->SubmitCommandBuffer(computeCommands, GpuQueueMask::kNone);
+
+			// Accesses on the compute queue are ordered by the queue wait, so they are not part of the source
+			const TShared<render::GpuCommandBuffer> graphicsCommands = graphicsPool->Create(GpuCommandBufferCreateInformation::Create("Alias acquire after compute"));
+			graphicsCommands->AcquireAliased(second, GpuAliasAcquire());
+			graphicsCommands->CopyBufferToTexture(uploads[1], second, 0, 0, 0);
+			graphicsCommands->CopyTextureToBuffer(second, readbacks[1], 0, 0);
+			context->SubmitCommandBuffer(graphicsCommands, GpuQueueMask(compute));
+
+			const TShared<render::GpuCommandBuffer> reacquireCommands = graphicsPool->Create(GpuCommandBufferCreateInformation::Create("Alias acquire again"));
+			reacquireCommands->AcquireAliased(first, transferAcquire);
+			reacquireCommands->CopyBufferToTexture(uploads[2], first, 0, 0, 0);
+			reacquireCommands->CopyTextureToBuffer(first, readbacks[2], 0, 0);
+			context->SubmitCommandBuffer(reacquireCommands, GpuQueueMask::kNone);
+			device->WaitUntilIdle();
+
+			fnCheckReadback(0, ReadbackLayout::Texture, 1);
+			fnCheckReadback(1, ReadbackLayout::Texture, 2);
+			fnCheckReadback(2, ReadbackLayout::Texture, 3);
+		}
+
+		// A buffer hands the memory over to a render target, on devices that place both in the same memory type
+		SharedMemory mixedMemory;
+		if(fnAllocateShared({ &targetRequirements, &bufferRequirements }, mixedMemory))
+		{
+			const TShared<render::GpuBuffer> buffer = fnCreateBuffer(mixedMemory);
+			const TShared<render::Texture> texture = fnCreateTexture(targetInformation, mixedMemory);
+
+			const TShared<render::GpuCommandBuffer> commands = graphicsPool->Create(GpuCommandBufferCreateInformation::Create("Alias acquire buffer to texture"));
+			commands->AcquireAliased(buffer, GpuAliasAcquire());
+			commands->CopyBufferToBuffer(uploads[0], buffer, 0, 0, bufferBytes);
+			commands->CopyBufferToBuffer(buffer, readbacks[0], 0, 0, bufferBytes);
+			commands->AcquireAliased(texture, transferAcquire);
+			fnClearTarget(*commands, texture);
+			commands->CopyTextureToBuffer(texture, readbacks[1], 0, 0);
+			context->SubmitCommandBuffer(commands, GpuQueueMask::kNone);
+			device->WaitUntilIdle();
+
+			fnCheckReadback(0, ReadbackLayout::Buffer, 1);
+			fnCheckReadback(1, ReadbackLayout::Texture, 0);
+		}
+
+		device->WaitUntilIdle();
+		for(SharedMemory& memory : sharedMemories)
+			memory.Allocator->Free(memory.Allocation);
+	}, "GpuBackendTestSuite::TestAliasAcquireExecution", true);
+}
+
 void GpuBackendTestSuite::TestFramebufferAttachmentUsage()
 {
 	SubmissionTestImage colorImage(4, 2, GpuTextureAspectFlag::Color);
@@ -2367,25 +3039,25 @@ void GpuBackendTestSuite::TestFramebufferAttachmentUsage()
 	B3D_TEST_ASSERT(attachmentUsages.Size() == 3)
 	B3D_TEST_ASSERT(attachmentUsages[0].Surface == RT_COLOR3)
 	B3D_TEST_ASSERT(attachmentUsages[0].Access == GpuAccessFlag::Read)
-	B3D_TEST_ASSERT(attachmentUsages[0].BarrierFlags == GpuImageBarrierFlag::None)
+	B3D_TEST_ASSERT(attachmentUsages[0].BarrierFlags == GpuBarrierFlag::None)
 	B3D_TEST_ASSERT(attachmentUsages[0].Layout == GpuImageLayout::General)
 	B3D_TEST_ASSERT(attachmentUsages[0].ShaderReadLayout == GpuImageLayout::ShaderReadOnly)
 	B3D_TEST_ASSERT(attachmentUsages[0].FinalLayout == GpuImageLayout::TransferSource)
 	B3D_TEST_ASSERT(attachmentUsages[1].Surface == RT_DEPTH)
 	B3D_TEST_ASSERT(attachmentUsages[1].Access == GpuAccessFlag::Read)
-	B3D_TEST_ASSERT(attachmentUsages[1].BarrierFlags == GpuImageBarrierFlag::None)
+	B3D_TEST_ASSERT(attachmentUsages[1].BarrierFlags == GpuBarrierFlag::None)
 	B3D_TEST_ASSERT(attachmentUsages[1].Layout == GpuImageLayout::Undefined)
 	B3D_TEST_ASSERT(attachmentUsages[1].ShaderReadLayout == GpuImageLayout::DepthStencilReadOnly)
 	B3D_TEST_ASSERT(attachmentUsages[2].Surface == RT_STENCIL)
 	B3D_TEST_ASSERT(attachmentUsages[2].Access == (GpuAccessFlag::Read | GpuAccessFlag::Write))
-	B3D_TEST_ASSERT(attachmentUsages[2].BarrierFlags == GpuImageBarrierFlag::None)
+	B3D_TEST_ASSERT(attachmentUsages[2].BarrierFlags == GpuBarrierFlag::None)
 	B3D_TEST_ASSERT(attachmentUsages[2].Layout == GpuImageLayout::DepthReadOnlyStencilAttachment)
 	B3D_TEST_ASSERT(!attachmentUsages[2].ShaderReadLayout.has_value())
 	B3D_TEST_ASSERT(attachmentUsages[2].FinalLayout == GpuImageLayout::General)
 
 	const GpuRenderPassAttachmentUsageArray discardAttachmentUsages = framebuffer.BuildRenderPassAttachmentUsages(RT_NONE, RT_NONE, layoutPolicy);
 	for(const GpuRenderPassAttachmentUsage& attachmentUsage : discardAttachmentUsages)
-		B3D_TEST_ASSERT(attachmentUsage.BarrierFlags == GpuImageBarrierFlag::DiscardContents)
+		B3D_TEST_ASSERT(attachmentUsage.BarrierFlags == GpuBarrierFlag::DiscardContents)
 }
 
 void GpuBackendTestSuite::TestRenderPassResourceTracking()
@@ -2499,28 +3171,28 @@ void GpuBackendTestSuite::TestRenderPassResourceTracking()
 	discardAttachmentUsage.Surface = RT_COLOR0;
 	discardAttachmentUsage.UseFlags = GpuResourceUseFlag::ColorAttachment;
 	discardAttachmentUsage.Access = GpuAccessFlag::Write;
-	discardAttachmentUsage.BarrierFlags = GpuImageBarrierFlag::DiscardContents;
+	discardAttachmentUsage.BarrierFlags = GpuBarrierFlag::DiscardContents;
 	discardAttachmentUsage.Layout = GpuImageLayout::ColorAttachment;
 
 	TInlineArray<GpuRenderPassAttachmentUsage, 1> discardAttachments;
 	discardAttachments.Add(discardAttachmentUsage);
 	discardTracker.PrepareRenderPass(discardAttachments);
 	const TArrayView<const GpuResolvedRenderPassAttachmentUsage> resolvedDiscardAttachments = discardTracker.BeginRenderPass(discardBarrierHelper);
-	B3D_TEST_ASSERT(resolvedDiscardAttachments[0].BarrierFlags == GpuImageBarrierFlag::DiscardContents)
+	B3D_TEST_ASSERT(resolvedDiscardAttachments[0].BarrierFlags == GpuBarrierFlag::DiscardContents)
 
 	discardTracker.CommitPendingAccesses();
 	const GpuImageSubresourceTrackingState& discardTrackingState = discardTracker.GetSubresourceTrackingState(
 		&discardImage, 0, 0, GpuTextureAspectFlag::Color);
-	B3D_TEST_ASSERT(discardTrackingState.SubmissionBarrierFlags == GpuImageBarrierFlag::DiscardContents)
+	B3D_TEST_ASSERT(discardTrackingState.SubmissionBarrierFlags == GpuBarrierFlag::DiscardContents)
 
 	discardTracker.EndRenderPass();
 	SubmissionImageTestVisitor discardVisitor;
 	discardTracker.ResolveSubmissionTransitions(GpuQueueId(GQT_GRAPHICS, 0), kTestFrameIndex, discardVisitor);
-	B3D_TEST_ASSERT(discardVisitor.SubmissionBarrierFlags == GpuImageBarrierFlag::DiscardContents)
+	B3D_TEST_ASSERT(discardVisitor.SubmissionBarrierFlags == GpuBarrierFlag::DiscardContents)
 
 	discardTracker.PrepareRenderPass(discardAttachments);
 	discardTracker.BeginRenderPass(discardBarrierHelper);
-	B3D_TEST_ASSERT(discardBarrierHelper.LastImageBarrierFlags == GpuImageBarrierFlag::DiscardContents)
+	B3D_TEST_ASSERT(discardBarrierHelper.LastImageBarrierFlags == GpuBarrierFlag::DiscardContents)
 	discardTracker.CommitPendingAccesses();
 	discardTracker.EndRenderPass();
 	discardTracker.NotifyUnbound();

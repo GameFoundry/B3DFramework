@@ -589,6 +589,23 @@ namespace b3d
 			virtual void IssueBarriers(const GpuBarriers& barriers) = 0;
 
 			/**
+			 * Starts a new lifetime of @p texture on memory that earlier resources used, such as a transient texture placed by an aliasing allocator.
+			 * Its contents are discarded, and its first access on this command buffer is ordered after @p acquire.Source.
+			 *
+			 * Must be called outside of a render pass, before any other use of the texture on this command buffer. The first access must write
+			 * without reading the previous contents: a render target or depth attachment must be cleared, or loaded with no load operation.
+			 */
+			virtual void AcquireAliased(const TShared<Texture>& texture, const GpuAliasAcquire& acquire) = 0;
+
+			/**
+			 * Starts a new lifetime of @p buffer on memory that earlier resources used. Its contents are discarded, and its first access on this
+			 * command buffer is ordered after @p acquire.Source.
+			 *
+			 * Must be called outside of a render pass, before any other use of the buffer on this command buffer. The first access must write.
+			 */
+			virtual void AcquireAliased(const TShared<GpuBuffer>& buffer, const GpuAliasAcquire& acquire) = 0;
+
+			/**
 			 * Sets the active viewport that will be used for all following render operations.
 			 *
 			 * @param	area			Area of the viewport, in normalized ([0,1] range) coordinates.

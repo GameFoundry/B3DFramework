@@ -2369,6 +2369,24 @@ namespace b3d
 			mState = GpuCommandBufferState::RecordingDone;
 		}
 
+		void MetalGpuCommandBuffer::AcquireAliased(const TShared<Texture>& texture, const GpuAliasAcquire& acquire)
+		{
+			EnsureValidThread();
+			if (mRecordingFailed || texture == nullptr)
+				return;
+
+			mResourceTracker.AcquireAliased(static_cast<MetalTexture*>(texture.get())->GetMetalResource(), acquire);
+		}
+
+		void MetalGpuCommandBuffer::AcquireAliased(const TShared<GpuBuffer>& buffer, const GpuAliasAcquire& acquire)
+		{
+			EnsureValidThread();
+			if (mRecordingFailed || buffer == nullptr)
+				return;
+
+			mResourceTracker.AcquireAliased(static_cast<MetalGpuBuffer*>(buffer.get())->GetMetalResource(), acquire);
+		}
+
 		void MetalGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 		{
 			EnsureValidThread();

@@ -31,10 +31,10 @@ namespace b3d::render
 		friend class D3D12ResourceTracker;
 
 		/** Adds a native barrier for the resource backing @p buffer. */
-		void RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier);
+		void RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier, GpuBarrierFlags barrierFlags);
 
 		/** Adds a native transition for one logical image range. */
-		void RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuImageBarrierFlags barrierFlags);
+		void RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuBarrierFlags barrierFlags);
 
 		/** Returns the destination stages of the preceding barrier recorded for @p buffer. */
 		GpuStageFlags GetPrecedingBarrierDestinationStages(IGpuBufferResource* buffer) const;
@@ -64,7 +64,7 @@ namespace b3d::render
 			GpuBarrierScope Barrier; /**< Access/sync scopes to issue the barrier for. */
 			GpuImageLayout OldLayout = GpuImageLayout::Undefined; /**< Layout before this synchronization point. */
 			GpuImageLayout NewLayout = GpuImageLayout::Undefined; /**< Final layout after this synchronization point. */
-			GpuImageBarrierFlags BarrierFlags; /**< Additional image-barrier behavior retained across merges. */
+			GpuBarrierFlags BarrierFlags; /**< Additional image-barrier behavior retained across merges. */
 			GpuStageFlags PrecedingBarrierDestinationStages = GpuStageFlag::None; /**< Sync stages of the previous barrier, that need to be chained from. */
 			u32 NativeBarrierIndex = 0; /**< Entry to replace after merge. */
 		};

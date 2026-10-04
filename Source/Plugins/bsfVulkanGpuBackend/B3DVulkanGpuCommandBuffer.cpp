@@ -1336,7 +1336,10 @@ namespace b3d
 			GpuQueueId ownerQueueId;
 			const bool hasOwnerQueue = buffer->GetOwnerQueueId(ownerQueueId);
 			const u32 sourceQueueFamily = hasOwnerQueue ? mDevice.GetQueueFamily(ownerQueueId.GetType()) : mDestinationQueueFamily;
-			const bool needsOwnershipTransfer = hasOwnerQueue && buffer->IsExclusive() && sourceQueueFamily != mDestinationQueueFamily;
+
+			// We don't need an explicit ownership transfer if we're fine with buffer contents being undefined on the new queue, as per Vulkan spec. And contents are always undefined after an alias acquire.
+			const bool aliasAcquired = transition.SubmissionBarrierFlags.IsSet(GpuBarrierFlag::AliasAcquire);
+			const bool needsOwnershipTransfer = !aliasAcquired && hasOwnerQueue && buffer->IsExclusive() && sourceQueueFamily != mDestinationQueueFamily;
 
 			if(!needsOwnershipTransfer && transition.HasSameQueueDependency())
 			{
@@ -1379,13 +1382,16 @@ namespace b3d
 			const VkImageLayout oldLayout = (VkImageLayout)nativeState.Layout;
 			const VkImageLayout requestedInitialLayout = VulkanUtility::ToVkImageLayout(transition.InitialLayout);
 			const VkImageLayout newLayout = requestedInitialLayout != VK_IMAGE_LAYOUT_UNDEFINED ? requestedInitialLayout : oldLayout;
-			const bool discardContents = transition.SubmissionBarrierFlags.IsSet(GpuImageBarrierFlag::DiscardContents);
+			const bool discardContents = transition.SubmissionBarrierFlags.IsSet(GpuBarrierFlag::DiscardContents);
 			const bool layoutMismatch = requestedInitialLayout != VK_IMAGE_LAYOUT_UNDEFINED && (oldLayout != newLayout || discardContents);
 			const VkImageSubresourceRange vkRange = VulkanUtility::ToVkImageSubresourceRange(transition.ImageRange);
 
+			// We don't need an explicit ownership transfer if we're fine with buffer contents being undefined on the new queue, as per Vulkan spec. And contents are always undefined after an alias acquire.
+			// The inline barrier on the command buffer itself performs transition from Undefined layout.
+			const bool aliasAcquired = transition.SubmissionBarrierFlags.IsSet(GpuBarrierFlag::AliasAcquire);
 			const TOptional<GpuQueueId> ownerQueueId = nativeState.StateQueue;
 			const u32 sourceQueueFamily = ownerQueueId.has_value() ? mDevice.GetQueueFamily(ownerQueueId->GetType()) : mDestinationQueueFamily;
-			const bool needsOwnershipTransfer = ownerQueueId.has_value() && image->IsExclusive() && sourceQueueFamily != mDestinationQueueFamily;
+			const bool needsOwnershipTransfer = !aliasAcquired && ownerQueueId.has_value() && image->IsExclusive() && sourceQueueFamily != mDestinationQueueFamily;
 			const bool needsFullSync = needsOwnershipTransfer || layoutMismatch;
 
 			if(!needsFullSync && transition.HasSameQueueDependency())
@@ -2178,6 +2184,22 @@ void VulkanGpuCommandBuffer::MemoryBarrier(VkBuffer buffer, VkAccessFlags source
 	barrier.size = VK_WHOLE_SIZE;
 
 	vkCmdPipelineBarrier(GetVulkanHandle(), sourceStage, destinationStage, 0, 0, nullptr, 1, &barrier, 0, nullptr);
+}
+
+void VulkanGpuCommandBuffer::AcquireAliased(const TShared<Texture>& texture, const GpuAliasAcquire& acquire)
+{
+	if(texture == nullptr || !B3D_ENSURE(!IsInRenderPass()))
+		return;
+
+	mResourceTracker.AcquireAliased(static_cast<VulkanTexture*>(texture.get())->GetVulkanResource(), acquire);
+}
+
+void VulkanGpuCommandBuffer::AcquireAliased(const TShared<GpuBuffer>& buffer, const GpuAliasAcquire& acquire)
+{
+	if(buffer == nullptr || !B3D_ENSURE(!IsInRenderPass()))
+		return;
+
+	mResourceTracker.AcquireAliased(static_cast<VulkanGpuBuffer*>(buffer.get())->GetVulkanResource(), acquire);
 }
 
 void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)

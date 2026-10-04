@@ -1207,7 +1207,7 @@ namespace
 
 			const GpuQueueType destinationQueueType = mDestinationQueueId.GetType();
 			const D3D12TextureLayout committedLayout((D3D12_BARRIER_LAYOUT)nativeState.Layout);
-			const bool discardContents = transition.SubmissionBarrierFlags.IsSet(GpuImageBarrierFlag::DiscardContents) || committedLayout.IsUndefined(transition.ImageRange.AspectMask);
+			const bool discardContents = transition.SubmissionBarrierFlags.IsSet(GpuBarrierFlag::DiscardContents) || committedLayout.IsUndefined(transition.ImageRange.AspectMask);
 			const D3D12_TEXTURE_BARRIER_FLAGS nativeBarrierFlags = discardContents ? D3D12_TEXTURE_BARRIER_FLAG_DISCARD : D3D12_TEXTURE_BARRIER_FLAG_NONE;
 
 			auto fnResolveLayout = [image, destinationQueueType, aspects = transition.ImageRange.AspectMask](GpuImageLayout logicalLayout, const D3D12TextureLayout& fallback)
@@ -1218,6 +1218,15 @@ namespace
 				const D3D12TextureLayout translatedLayout = image->GetTextureLayout(logicalLayout, destinationQueueType);
 				return D3D12TextureLayout(translatedLayout.GetLayout(aspects));
 			};
+
+			// If alias acquire this is the first use of this resource on the command buffer, so we can ignore prior submission state. The layout transition is handled via an inline barrier on the command buffer.
+			// (Layout transition for aliased resource cannot be done during submission as multiple resources sharing the same memory could be acquired on the same command buffer, so it needs to happen at recording time, for correct ordering)
+			if(transition.SubmissionBarrierFlags.IsSet(GpuBarrierFlag::AliasAcquire))
+			{
+				nativeState.Layout = (u32)fnResolveLayout(transition.FinalLayout, D3D12TextureLayout::Undefined()).GetLayout(transition.ImageRange.AspectMask);
+				nativeState.StateQueue = mDestinationQueueId;
+				return;
+			}
 
 			const D3D12TextureLayout initialLayout = fnResolveLayout(transition.InitialLayout, committedLayout);
 			const D3D12TextureLayout finalLayout = fnResolveLayout(transition.FinalLayout, initialLayout);
@@ -1485,6 +1494,26 @@ Area2I D3D12GpuCommandBuffer::GetRenderPassArea() const
 		return Area2I(0, 0, 0, 0);
 
 	return Area2I(0, 0, (i32)mRenderTarget->GetProperties().Width, (i32)mRenderTarget->GetProperties().Height);
+}
+
+void D3D12GpuCommandBuffer::AcquireAliased(const TShared<Texture>& texture, const GpuAliasAcquire& acquire)
+{
+	EnsureValidThread();
+
+	if(texture == nullptr || !B3D_ENSURE(!IsInRenderPass()))
+		return;
+
+	mResourceTracker.AcquireAliased(static_cast<D3D12Texture*>(texture.get())->GetD3D12Image(), acquire);
+}
+
+void D3D12GpuCommandBuffer::AcquireAliased(const TShared<GpuBuffer>& buffer, const GpuAliasAcquire& acquire)
+{
+	EnsureValidThread();
+
+	if(buffer == nullptr || !B3D_ENSURE(!IsInRenderPass()))
+		return;
+
+	mResourceTracker.AcquireAliased(static_cast<D3D12GpuBuffer*>(buffer.get())->GetD3D12Buffer(), acquire);
 }
 
 void D3D12GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)

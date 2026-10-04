@@ -119,6 +119,8 @@ namespace b3d
 			void InsertLabel(const StringView& name) override;
 			void End() override;
 			void IssueBarriers(const GpuBarriers& barriers) override;
+			void AcquireAliased(const TShared<Texture>& texture, const GpuAliasAcquire& acquire) override;
+			void AcquireAliased(const TShared<GpuBuffer>& buffer, const GpuAliasAcquire& acquire) override;
 			void ClearRecordingState() override;
 			void Destroy() override;
 

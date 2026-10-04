@@ -84,14 +84,14 @@ namespace b3d::render
 		friend class TGpuBarrierHelper<MetalBarrierHelper, MetalResourceTracker>;
 
 		/** Accumulates the native buffer scope and stage union for a resolved barrier. */
-		void RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier);
+		void RecordNativeBufferBarrier(IGpuBufferResource* buffer, const GpuBarrierScope& barrier, GpuBarrierFlags barrierFlags);
 
 		/**
 		 * Accumulates the native image scope and stage union for a resolved barrier. Metal performs no native layout
 		 * transitions, so unlike the Vulkan hook @p oldLayout is taken by value and never reconciled —
 		 * the base's layout bookkeeping proceeds with the tracked value unchanged.
 		 */
-		void RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuImageBarrierFlags barrierFlags);
+		void RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuBarrierFlags barrierFlags);
 
 		bool mHasBufferBarriers = false;
 		bool mHasTextureBarriers = false;
