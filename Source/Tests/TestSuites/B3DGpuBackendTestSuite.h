@@ -21,6 +21,7 @@ namespace b3d
 
 		/** Verifies the flat write-generation hazard state and command-buffer summary. */
 		void TestResourceHazardState();
+		void TestExplicitBarrierWriteOrdering();
 
 		/** Verifies cross-command-buffer dependencies and propagation of unresolved hazards. */
 		void TestResourceTransition();

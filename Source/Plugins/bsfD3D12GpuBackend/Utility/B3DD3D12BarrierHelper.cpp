@@ -41,7 +41,7 @@ void D3D12BarrierHelper::RecordNativeImageBarrier(IGpuImageResource* image, cons
 	// nothing, so the source gets a global barrier. Its group is recorded in a separate Barrier() call before the discard: a discard and an
 	// access of overlapping memory in one call break the enhanced-barrier rules.
 	if(barrierFlags.IsSet(GpuBarrierFlag::AliasAcquire) && barrier.SourceStages != GpuStageFlag::None)
-		mBarriers.AddGlobalBarrier(D3D12BarrierUtility::GetAliasGlobalBarrier(barrier));
+		AddAliasGlobalBarrier(barrier);
 
 	auto found = std::find_if(mPendingImageBarriers.begin(), mPendingImageBarriers.end(), [image, &range](const PendingImageBarrier& pendingBarrier)
 	{
@@ -100,7 +100,7 @@ void D3D12BarrierHelper::RecordNativeBufferBarrier(IGpuBufferResource* buffer, c
 
 	// An alias acquire's source belongs to earlier resources on the memory, which a barrier on this buffer's resource does not cover
 	if(barrierFlags.IsSet(GpuBarrierFlag::AliasAcquire))
-		mBarriers.AddGlobalBarrier(D3D12BarrierUtility::GetAliasGlobalBarrier(barrier));
+		AddAliasGlobalBarrier(barrier);
 	else if(page != nullptr && page->GetHeapType() == D3D12_HEAP_TYPE_READBACK)
 	{
 		// Agility SDK 1.619 reports BARRIER_INTEROP_INVALID_STATE for resource-scoped enhanced barriers on READBACK
@@ -116,7 +116,11 @@ void D3D12BarrierHelper::RecordNativeBufferBarrier(IGpuBufferResource* buffer, c
 	{
 		mPendingBufferPageBarriers.Add(PendingBufferPageBarrier(page, barrier));
 
-		if(page != buffer)
+		// Before the page's first access on the command buffer, the barrier orders none of the page's accesses. Recording it would remove that
+		// first access from the page's submission barrier, which orders it after the page's earlier submissions.
+		const GpuBufferTrackingState* const pageTrackingState = mResourceTracker->FindBufferTrackingState(page);
+		const bool pageHasAccess = pageTrackingState != nullptr && pageTrackingState->HazardState != nullptr && pageTrackingState->HazardState->HasAccess();
+		if(page != buffer && pageHasAccess)
 		{
 			BarrierTrackingInfo trackingInfo;
 			trackingInfo.Buffer = page;
@@ -125,6 +129,23 @@ void D3D12BarrierHelper::RecordNativeBufferBarrier(IGpuBufferResource* buffer, c
 			mBarrierTracking.Add(trackingInfo);
 		}
 	}
+}
+
+void D3D12BarrierHelper::AddAliasGlobalBarrier(const GpuBarrierScope& barrier)
+{
+	// The first acquire's global barrier precedes its discard, and with it the discards of every later acquire in the batch
+	if(mAliasGlobalBarrierIndex == ~0u)
+	{
+		mAliasGlobalBarrierScope = barrier;
+		mAliasGlobalBarrierIndex = mBarriers.AddGlobalBarrier(D3D12BarrierUtility::GetAliasGlobalBarrier(mAliasGlobalBarrierScope));
+		return;
+	}
+
+	mAliasGlobalBarrierScope.SourceStages |= barrier.SourceStages;
+	mAliasGlobalBarrierScope.SourceAccess |= barrier.SourceAccess;
+	mAliasGlobalBarrierScope.DestinationStages |= barrier.DestinationStages;
+	mAliasGlobalBarrierScope.DestinationAccess |= barrier.DestinationAccess;
+	mBarriers.ReplaceGlobalBarrier(mAliasGlobalBarrierIndex, D3D12BarrierUtility::GetAliasGlobalBarrier(mAliasGlobalBarrierScope));
 }
 
 GpuStageFlags D3D12BarrierHelper::GetPrecedingBarrierDestinationStages(IGpuBufferResource* buffer) const
@@ -189,5 +210,7 @@ void D3D12BarrierHelper::Clear()
 	mBarriers.Clear();
 	mPendingBufferPageBarriers.Clear();
 	mPendingImageBarriers.Clear();
+	mAliasGlobalBarrierScope = GpuBarrierScope();
+	mAliasGlobalBarrierIndex = ~0u;
 	TGpuBarrierHelper<D3D12BarrierHelper, D3D12ResourceTracker>::Clear();
 }

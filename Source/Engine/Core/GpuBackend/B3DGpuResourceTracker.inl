@@ -50,8 +50,11 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions
 		const bool aliasAcquired = barrierFlags.IsSet(GpuBarrierFlag::AliasAcquire);
 		const GpuResourceSubmissionState& sourceState = aliasAcquired ? newLifetimeSubmissionState : stateResource.SubmissionState;
 
+		// Acquire or layout transition is treated as a write, so other queues wait for it.
+		const bool synchronizesAsWrite = transitionsLayout || (aliasAcquired && !hazards.HasWrite());
+
 		GpuSubmissionImageTransition transition(image, range, stateResource.NativeState, initialLayout, finalLayout, barrierFlags,
-			GpuSubmissionTransition::Build(sourceState, frameIndex, aliasAcquired ? GpuQueueMask::kNone : inFlightReadQueues, destinationQueueId, hazards, transitionsLayout));
+			GpuSubmissionTransition::Build(sourceState, frameIndex, aliasAcquired ? GpuQueueMask::kNone : inFlightReadQueues, destinationQueueId, hazards, synchronizesAsWrite));
 
 		const u32 committedLayout = stateResource.NativeState.Layout;
 		visitor.VisitImage(transition);
@@ -81,7 +84,7 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions
 		GpuImageSubresource& stateResource, GpuQueueMask inFlightReadQueues)
 	{
 		const GpuResourceHazardState& hazards = GetDerived().ResolveImageSubmissionHazards(image, trackingState, stateResource);
-		if(!hazards.HasSubmissionEffect())
+		if(!hazards.HasSubmissionEffect() && !trackingState.IsAliasAcquired())
 			return;
 
 		// Selected meta-data work contributes to both subresource and parent-image use flags.
@@ -107,9 +110,6 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions
 		IGpuBufferResource* const buffer = entry.first;
 		const GpuBufferTrackingState& trackingState = entry.second;
 
-		// The first access records the acquire's barrier. Without one, the next command buffer would use incorrect hazard tracking as its not aware of the pending alias acquire. We decided not to handle that case.
-		B3D_ENSURE_LOG(!trackingState.IsAliasAcquirePending(), "An alias acquired GPU buffer must be accessed on the command buffer that acquires it.");
-
 		const GpuResourceHazardState* hazards = trackingState.HazardState;
 		GpuResourceHazardState restingReadHazardState;
 		if(trackingState.HasOnlyRestingReads())
@@ -122,15 +122,16 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions
 			restingReadHazardState.RecordAccess(trackingState.UseHandle.Stages, GpuAccessFlag::Read);
 			hazards = &restingReadHazardState;
 		}
-		else if(hazards == nullptr || !hazards->HasSubmissionEffect())
+		else if(!trackingState.HasSubmissionEffect())
 			continue;
 
-		// An alias acquire starts a new lifetime (see the image case)
-		const bool aliasAcquired = trackingState.SubmissionBarrierFlags.IsSet(GpuBarrierFlag::AliasAcquire);
+		// An alias acquire starts a new lifetime, and publishes a write even if the command buffer doesn't write the buffer
+		const bool aliasAcquired = trackingState.IsAliasAcquired();
 		const GpuResourceSubmissionState& sourceState = aliasAcquired ? newLifetimeSubmissionState : buffer->GetSubmissionState();
 		const GpuQueueMask inFlightReadQueues = aliasAcquired ? GpuQueueMask::kNone : buffer->GetUseInfo(GpuAccessFlag::Read);
+		const bool synchronizesAsWrite = aliasAcquired && !hazards->HasWrite();
 
-		GpuSubmissionBufferTransition transition(*buffer, trackingState.SubmissionBarrierFlags, GpuSubmissionTransition::Build(sourceState, frameIndex, inFlightReadQueues, destinationQueueId, *hazards));
+		GpuSubmissionBufferTransition transition(*buffer, trackingState.SubmissionBarrierFlags, GpuSubmissionTransition::Build(sourceState, frameIndex, inFlightReadQueues, destinationQueueId, *hazards, synchronizesAsWrite));
 		visitor.VisitBuffer(transition);
 
 		buffer->SetSubmissionState(std::move(transition.PostTransitionSubmissionState));
@@ -198,14 +199,10 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions
 		// Non-resting (tracked) case
 		const TArrayView<const GpuImageSubresourceTrackingState> trackingStates = GetSubresourceTrackingStatesForImage(image);
 
-		// The first access records the acquire's barrier. Without one, the next command buffer would use incorrect hazard tracking as its not aware of the pending alias acquire. We decided not to handle that case.
-		for(const GpuImageSubresourceTrackingState& trackingState : trackingStates)
-			B3D_ENSURE_LOG(!trackingState.IsAliasAcquirePending(), "Every subresource of an alias acquired GPU image must be accessed on the command buffer that acquires it.");
-
 		const GpuImageSubresourceTrackingState* firstEffectiveTrackingState = nullptr;
 		for(const GpuImageSubresourceTrackingState& trackingState : trackingStates)
 		{
-			if(trackingState.HazardState != nullptr && trackingState.HazardState->HasSubmissionEffect())
+			if(trackingState.HasSubmissionEffect())
 			{
 				firstEffectiveTrackingState = &trackingState;
 				break;
@@ -234,7 +231,7 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions
 		{
 			B3D_ASSERT(trackingState.Range.HasSingleAspect());
 
-			if(trackingState.HazardState == nullptr || !trackingState.HazardState->HasSubmissionEffect())
+			if(!trackingState.HasSubmissionEffect())
 				continue;
 
 			const GpuTextureSubresourceRange& trackedRange = trackingState.Range;
@@ -308,22 +305,62 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::QueueRequiredBufferBarrier(I
 
 	const GpuBarrierScope requiredBarrier = bufferTrackingState.HazardState->GetRequiredBarrier(destinationStages, destinationAccess);
 	if(requiredBarrier.IsValid())
-		barrierHelper.QueueResolvedBufferBarrier(buffer, requiredBarrier, bufferTrackingState.IsAliasAcquirePending() ? GpuBarrierFlag::AliasAcquire : GpuBarrierFlag::None);
+		barrierHelper.QueueResolvedBufferBarrier(buffer, requiredBarrier, GpuBarrierFlag::None);
 }
 
 template<class TDerived, class TBarrierHelper>
-void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitBufferBarrier(IGpuBufferResource* buffer, GpuStageFlags destinationStages, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper)
+void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitBufferBarrier(IGpuBufferResource* buffer, GpuStageFlags destinationStages, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper, const GpuAliasAcquire* aliasAcquire)
 {
 	if(buffer == nullptr)
 		return;
 
+	if(aliasAcquire != nullptr)
+	{
+		if(!B3D_ENSURE_LOG(FindBufferTrackingState(buffer) == nullptr, "An alias acquire must precede every other use of the GPU buffer on the command buffer."))
+			return;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		buffer->SetSupersededByAlias(false);
+		for(IGpuResource* predecessor : aliasAcquire->Predecessors)
+		{
+			// Barriers of one batch are not ordered against each other, so a barrier of an earlier resource could overlap the acquire's barrier
+			B3D_ENSURE_LOG(!barrierHelper.HasQueuedBarrier(predecessor), "A barrier of an earlier resource on the memory is issued together with the alias acquire that supersedes it.");
+			predecessor->SetSupersededByAlias(true);
+		}
+#endif
+
+		GpuBufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
+		bufferTrackingState.SubmissionBarrierFlags = GpuBarrierFlag::AliasAcquire;
+
+		// Issue a barrier to ensure prior use of the memory is hazard free
+		GpuResourceHazardState& hazardState = GetOrCreateHazardState(bufferTrackingState);
+		hazardState.LastWriteEpochHazardState.WriteStages = aliasAcquire->Source.WriteStages;
+		hazardState.LastWriteEpochHazardState.ReaderStages = aliasAcquire->Source.ReadStages;
+
+		GpuBarrierScope barrier = hazardState.GetRequiredBarrier(destinationStages, GpuAccessFlag::Write);
+		if(!barrier.IsValid())
+			return;
+
+		barrier.DestinationAccess = destinationAccess;
+		barrierHelper.QueueResolvedBufferBarrier(buffer, barrier, GpuBarrierFlag::AliasAcquire);
+
+		// The acquire is a write at the destination stages, which its barrier orders and makes visible to the destination. Not recorded as an
+		// access, as accesses determine the submission barrier, and which access is the first one after the acquire.
+		hazardState.LastWriteEpochHazardState = GpuResourceWriteEpochHazardState();
+		hazardState.LastWriteEpochHazardState.WriteStages = destinationStages;
+		hazardState.OrderedWriteStages = destinationAccess.IsSet(GpuAccessFlag::Write) ? destinationStages : GpuStageFlags(GpuStageFlag::None);
+
+		if(destinationAccess.IsSet(GpuAccessFlag::Read))
+			hazardState.LastWriteEpochHazardState.VisibleStages = destinationStages;
+
+		return;
+	}
+
 	GpuBufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
 	GpuResourceHazardState& hazardState = GetOrCreateHazardState(bufferTrackingState);
 
-	// The acquire's barrier is recorded by the first access, and an explicit barrier is not one and we don't handle that case.
-	B3D_ENSURE_LOG(!bufferTrackingState.IsAliasAcquirePending(), "An alias acquired buffer must be written before an explicit barrier.");
-
-	if(!hazardState.HasAccess())
+	// A barrier before the first access is deferred to submission.
+	if(!hazardState.HasAccess() && !bufferTrackingState.IsAliasAcquired())
 	{
 		hazardState.HasLeadingBarrier = true;
 		return;
@@ -339,7 +376,7 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackBufferAccess(IGpuBuffer
 
 	// The contents of a new lifetime are undefined
 	const bool isFirstAccess = bufferTrackingState.UseHandle.Flags == GpuAccessFlag::None;
-	B3D_ENSURE_LOG(!bufferTrackingState.SubmissionBarrierFlags.IsSet(GpuBarrierFlag::AliasAcquire) || !isFirstAccess || access.IsSet(GpuAccessFlag::Write), "The first access of an alias acquired buffer must write.");
+	B3D_ENSURE_LOG(!bufferTrackingState.IsAliasAcquired() || !isFirstAccess || access.IsSet(GpuAccessFlag::Write), "The first access of an alias acquired buffer must write.");
 
 	// Turns earlier resting reads into tracked reads, before the barrier is resolved against them
 	GpuResourceHazardState* const hazardState = &GetOrCreateHazardState(bufferTrackingState);
@@ -799,10 +836,79 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::RegisterImageSubresources(IG
 }
 
 template<class TDerived, class TBarrierHelper>
-void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuStageFlags destinationStages, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper)
+void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuStageFlags destinationStages, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper, const GpuAliasAcquire* aliasAcquire)
 {
 	if(image == nullptr)
 		return;
+
+	if(aliasAcquire != nullptr)
+	{
+		// Earlier tracking state would make the acquire's barrier order after this command buffer's accesses instead of the source
+		if(!B3D_ENSURE_LOG(FindImageTrackingStateIndex(image) == ~0u, "An alias acquire must precede every other use of the GPU image on the command buffer."))
+			return;
+
+		// The new lifetime covers all of the image's memory
+		if(!B3D_ENSURE_LOG(image->IsFullRange(GpuBackendUtility::ClampRange(subresourceRange, image->GetRange())), "An alias acquire must cover the whole GPU image."))
+			return;
+
+		if(!B3D_ENSURE_LOG(destinationLayout != GpuImageLayout::Undefined, "An alias acquire of a GPU image must provide a destination layout."))
+			return;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		image->SetSupersededByAlias(false);
+		for(IGpuResource* predecessor : aliasAcquire->Predecessors)
+		{
+			// Barriers of one batch are not ordered against each other, so a barrier of an earlier resource could overlap the acquire's discard
+			B3D_ENSURE_LOG(!barrierHelper.HasQueuedBarrier(predecessor), "A barrier of an earlier resource on the memory is issued together with the alias acquire that supersedes it.");
+			predecessor->SetSupersededByAlias(true);
+		}
+#endif
+
+		struct AcquireCallbackParameters
+		{
+			TGpuResourceTracker* Tracker;
+			TBarrierHelper* BarrierHelper;
+			IGpuImageResource* Image;
+			const GpuAccessScope* Source;
+			GpuStageFlags DestinationStages;
+			GpuAccessFlags DestinationAccess;
+			GpuImageLayout DestinationLayout;
+		};
+
+		// One tracking state per aspect, over the full range. The image never has only resting reads, so its first read cannot rest.
+		AcquireCallbackParameters acquireCallbackParameters { this, &barrierHelper, image, &aliasAcquire->Source, destinationStages, destinationAccess, destinationLayout };
+		IterateAndCreateOverlappingImageSubresourceTrackingState(image, image->GetRange(), [](u32 globalSubresourceIndex, void* userData)
+		{
+			AcquireCallbackParameters* const callbackParameters = static_cast<AcquireCallbackParameters*>(userData);
+			GpuImageSubresourceTrackingState& subresourceTrackingState = callbackParameters->Tracker->mSubresourceTrackingState[globalSubresourceIndex];
+			subresourceTrackingState.SubmissionBarrierFlags = GpuBarrierFlag::AliasAcquire;
+
+			// Issue barrier to make prior accesses on the memory safe, and also to transition layout
+			GpuResourceHazardState& hazardState = *subresourceTrackingState.HazardState;
+			hazardState.LastWriteEpochHazardState.WriteStages = callbackParameters->Source->WriteStages;
+			hazardState.LastWriteEpochHazardState.ReaderStages = callbackParameters->Source->ReadStages;
+
+			// The barrier transitions from GpuImageLayout::Undefined, the layout of a new tracking state, and discards the contents
+			callbackParameters->Tracker->RegisterImageSubresources(callbackParameters->Image, subresourceTrackingState.Range, GpuAccessFlag::None, GpuStageFlag::None);
+			callbackParameters->Tracker->GetDerived().QueueRequiredImageBarrier(callbackParameters->Image, subresourceTrackingState, callbackParameters->DestinationStages, callbackParameters->DestinationAccess,
+				callbackParameters->DestinationLayout, *callbackParameters->BarrierHelper, GpuBarrierFlag::AliasAcquire | GpuBarrierFlag::DiscardContents);
+
+			// The transition is a write at the destination stages, which the barrier orders and makes visible to the destination. Not recorded as
+			// an access, as accesses determine the submission barrier, and which access is the first one after the acquire.
+			const GpuStageFlags destinationStages = callbackParameters->DestinationStages;
+			const GpuAccessFlags destinationAccess = callbackParameters->DestinationAccess;
+			hazardState.LastWriteEpochHazardState = GpuResourceWriteEpochHazardState();
+			hazardState.LastWriteEpochHazardState.WriteStages = destinationStages;
+			hazardState.OrderedWriteStages = destinationAccess.IsSet(GpuAccessFlag::Write) ? destinationStages : GpuStageFlags(GpuStageFlag::None);
+
+			if(destinationAccess.IsSet(GpuAccessFlag::Read))
+				hazardState.LastWriteEpochHazardState.VisibleStages = destinationStages;
+
+		}, &acquireCallbackParameters);
+
+		GetDerived().InitializeAliasAcquiredImage(image);
+		return;
+	}
 
 	struct CallbackParameters
 	{
@@ -820,10 +926,8 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitImageBarrier(IG
 		CallbackParameters* const callbackParameters = static_cast<CallbackParameters*>(userData);
 		GpuImageSubresourceTrackingState& subresourceTrackingState = callbackParameters->Tracker->mSubresourceTrackingState[globalSubresourceIndex];
 
-		// The acquire's barrier is recorded by the first access, and an explicit barrier is not one and we dont' support this case
-		B3D_ENSURE_LOG(!subresourceTrackingState.IsAliasAcquirePending(), "An alias acquired image must be written before an explicit barrier.");
-
-		if(!subresourceTrackingState.HazardState->HasAccess())
+		// A barrier before the first access is deferred to submission.
+		if(!subresourceTrackingState.HazardState->HasAccess() && !subresourceTrackingState.IsAliasAcquired())
 		{
 			subresourceTrackingState.HazardState->HasLeadingBarrier = true;
 
@@ -849,12 +953,11 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::QueueRequiredImageBarrier(IG
 	if(destinationLayout == GpuImageLayout::Undefined)
 		destinationLayout = subresourceTrackingState.CurrentLayout;
 
-	// The first access after an alias acquire records the acquire's barrier, which always transitions from GpuImageLayout::Undefined
-	const bool aliasAcquirePending = subresourceTrackingState.IsAliasAcquirePending();
-	const bool needsLayoutTransition = subresourceTrackingState.CurrentLayout != destinationLayout || barrierFlags.IsSet(GpuBarrierFlag::DiscardContents) || aliasAcquirePending;
+	const GpuResourceHazardState& hazardState = *subresourceTrackingState.HazardState;
+	const bool needsLayoutTransition = subresourceTrackingState.CurrentLayout != destinationLayout || barrierFlags.IsSet(GpuBarrierFlag::DiscardContents);
 
-	// The first access defers its barrier to submission
-	if(!subresourceTrackingState.HazardState->HasAccess() && !aliasAcquirePending)
+	// A barrier before the first access is deferred to submission.
+	if(!hazardState.HasAccess() && !subresourceTrackingState.IsAliasAcquired())
 	{
 		if(needsLayoutTransition)
 		{
@@ -876,16 +979,18 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::QueueRequiredImageBarrier(IG
 	if(needsLayoutTransition)
 		hazardAccess |= GpuAccessFlag::Write;
 
-	const GpuBarrierScope requiredBarrier = subresourceTrackingState.HazardState->GetRequiredBarrier(destinationStages, hazardAccess);
+	// Earlier barriers do not order a layout transition, which executes after the source scope of its own barrier
+	const GpuBarrierScope requiredBarrier = needsLayoutTransition ? hazardState.LastWriteEpochHazardState.GetRequiredBarrier(destinationStages, hazardAccess)
+		: hazardState.GetRequiredBarrier(destinationStages, hazardAccess);
 	if(!requiredBarrier.IsValid() && !needsLayoutTransition)
 		return;
 
 	GpuBarrierScope barrier = requiredBarrier;
 	if(needsLayoutTransition)
 	{
-		// TransitionsLayout=true is used to mark the transition as a write during submission, so it's correctly ordered against other queues, but for 
-		// aliased resources we already handle that, so don't unnecessarily set it
-		if(!aliasAcquirePending)
+		// Marks the transition as a write during submission, so it's correctly ordered against other queues. Before the first access, only an
+		// alias acquire records a transition inline. Its first access must write, and orders after the transition, so it needs no marking.
+		if(hazardState.HasAccess())
 			subresourceTrackingState.TransitionsLayout = true;
 
 		// The synthetic write above only finds operations that must precede the transition. The native destination
@@ -893,9 +998,6 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::QueueRequiredImageBarrier(IG
 		barrier.DestinationStages = destinationStages;
 		barrier.DestinationAccess = destinationAccess;
 	}
-
-	if(aliasAcquirePending)
-		barrierFlags |= GpuBarrierFlag::AliasAcquire | GpuBarrierFlag::DiscardContents;
 
 	barrierHelper.QueueResolvedImageBarrier(image, subresourceTrackingState.Range, barrier, subresourceTrackingState.CurrentLayout, destinationLayout, barrierFlags);
 }
@@ -906,18 +1008,21 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackSubresourceUsage(IGpuIm
 	GpuImageSubresourceTrackingState& subresourceTrackingState = mSubresourceTrackingState[globalSubresourceIndex];
 
 	// The contents of a new lifetime are undefined, so the first access must write
-	const bool aliasAcquired = subresourceTrackingState.SubmissionBarrierFlags.IsSet(GpuBarrierFlag::AliasAcquire);
+	const bool aliasAcquired = subresourceTrackingState.IsAliasAcquired();
 	if(aliasAcquired && subresourceTrackingState.Access == GpuAccessFlag::None)
 	{
 		const GpuStageFlags attachmentStages = GpuStageFlag::ColorAttachment | GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests;
 		const bool loadsAttachment = stages.IsSetAny(attachmentStages) && accessFlags.IsSet(GpuAccessFlag::Read) && !barrierFlags.IsSet(GpuBarrierFlag::DiscardContents);
 		B3D_ENSURE_LOG(accessFlags.IsSet(GpuAccessFlag::Write) && !loadsAttachment, "The first access of an alias acquired image must write without reading the previous contents.");
+
+		// The acquire's barrier already discarded the contents. Discarding them again would issue a redundant layout transition.
+		barrierFlags.Unset(GpuBarrierFlag::DiscardContents);
 	}
 
 	if(subresourceTrackingState.Access == GpuAccessFlag::None)
 		subresourceTrackingState.SubmissionBarrierFlags |= barrierFlags;
 
-	// The first access defers its barrier to submission, except after an alias acquire, which records its barrier inline from GpuImageLayout::Undefined
+	// The first access defers its barrier to submission, except after an alias acquire, whose barrier already transitioned the layout
 	const bool hasLeadingBarrier = subresourceTrackingState.HazardState != nullptr && subresourceTrackingState.HazardState->HasLeadingBarrier;
 	if(subresourceTrackingState.Access == GpuAccessFlag::None && !subresourceTrackingState.HazardState->HasAccess() && !hasLeadingBarrier && !aliasAcquired) // New subresource
 	{
@@ -967,70 +1072,6 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackResourceUsage(IGpuResou
 		B3D_ASSERT(!useHandle.Used);
 		useHandle.Flags |= access;
 	}
-}
-
-template<class TDerived, class TBarrierHelper>
-void TGpuResourceTracker<TDerived, TBarrierHelper>::AcquireAliased(IGpuBufferResource* buffer, const GpuAliasAcquire& acquire)
-{
-	if(buffer == nullptr)
-		return;
-
-	// Earlier tracking state would make the acquire's barrier order after this command buffer's accesses instead of the source
-	if(!B3D_ENSURE_LOG(FindBufferTrackingState(buffer) == nullptr, "An alias acquire must precede every other use of the GPU buffer on the command buffer."))
-		return;
-
-#if B3D_BUILD_TYPE_DEVELOPMENT
-	buffer->SetSupersededByAlias(false);
-	for(IGpuResource* predecessor : acquire.Predecessors)
-		predecessor->SetSupersededByAlias(true);
-#endif
-
-	GpuBufferTrackingState& bufferTrackingState = GetOrCreateBufferTrackingState(buffer);
-	bufferTrackingState.SubmissionBarrierFlags = GpuBarrierFlag::AliasAcquire;
-
-	// Set the prior state of the resource, triggering an inline barrier on the next access
-	GpuResourceWriteEpochHazardState& hazards = GetOrCreateHazardState(bufferTrackingState).LastWriteEpochHazardState;
-	hazards.WriteStages = acquire.Source.WriteStages;
-	hazards.ReaderStages = acquire.Source.ReadStages;
-}
-
-template<class TDerived, class TBarrierHelper>
-void TGpuResourceTracker<TDerived, TBarrierHelper>::AcquireAliased(IGpuImageResource* image, const GpuAliasAcquire& acquire)
-{
-	if(image == nullptr)
-		return;
-
-	// Earlier tracking state would make the acquire's barrier order after this command buffer's accesses instead of the source
-	if(!B3D_ENSURE_LOG(FindImageTrackingStateIndex(image) == ~0u, "An alias acquire must precede every other use of the GPU image on the command buffer."))
-		return;
-
-#if B3D_BUILD_TYPE_DEVELOPMENT
-	image->SetSupersededByAlias(false);
-	for(IGpuResource* predecessor : acquire.Predecessors)
-		predecessor->SetSupersededByAlias(true);
-#endif
-
-	struct CallbackParameters
-	{
-		TGpuResourceTracker* Tracker;
-		const GpuAccessScope* Source;
-	};
-
-	// One tracking state per aspect, over the full range. The image never has only resting reads, so its first read cannot rest.
-	CallbackParameters callbackParameters { this, &acquire.Source };
-	IterateAndCreateOverlappingImageSubresourceTrackingState(image, image->GetRange(), [](u32 globalSubresourceIndex, void* userData)
-	{
-		CallbackParameters* const callbackParameters = static_cast<CallbackParameters*>(userData);
-		GpuImageSubresourceTrackingState& subresourceTrackingState = callbackParameters->Tracker->mSubresourceTrackingState[globalSubresourceIndex];
-
-		// Layouts stay GpuImageLayout::Undefined, which the first access transitions from
-		subresourceTrackingState.SubmissionBarrierFlags = GpuBarrierFlag::AliasAcquire;
-
-		// Set the prior state of the resource, triggering an inline barrier on the next access
-		GpuResourceWriteEpochHazardState& hazards = subresourceTrackingState.HazardState->LastWriteEpochHazardState;
-		hazards.WriteStages = callbackParameters->Source->WriteStages;
-		hazards.ReaderStages = callbackParameters->Source->ReadStages;
-	}, &callbackParameters);
 }
 
 template<class TDerived, class TBarrierHelper>

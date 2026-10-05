@@ -88,6 +88,11 @@ namespace b3d::render
 
 		/** Queues a resolved image barrier and its post-emission layout and hazard updates. */
 		void QueueResolvedImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuBarrierFlags barrierFlags);
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		/** Returns true if a barrier of @p resource is queued since the last Clear. */
+		bool HasQueuedBarrier(const IGpuResource* resource) const;
+#endif
 	};
 
 	/** @} */

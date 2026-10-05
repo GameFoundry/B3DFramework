@@ -62,6 +62,17 @@ namespace b3d::render
 		mBarrierTracking.Add(barrierTrackingInfo);
 	}
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	template<class TDerived, class TResourceTracker>
+	bool TGpuBarrierHelper<TDerived, TResourceTracker>::HasQueuedBarrier(const IGpuResource* resource) const
+	{
+		return std::any_of(mBarrierTracking.begin(), mBarrierTracking.end(), [resource](const BarrierTrackingInfo& trackingInfo)
+		{
+			return (trackingInfo.Buffer != nullptr && static_cast<const IGpuResource*>(trackingInfo.Buffer) == resource) || (trackingInfo.Image != nullptr && static_cast<const IGpuResource*>(trackingInfo.Image) == resource);
+		});
+	}
+#endif
+
 	template<class TDerived, class TResourceTracker>
 	void TGpuBarrierHelper<TDerived, TResourceTracker>::ApplyPostBarrierTracking()
 	{

@@ -2369,24 +2369,6 @@ namespace b3d
 			mState = GpuCommandBufferState::RecordingDone;
 		}
 
-		void MetalGpuCommandBuffer::AcquireAliased(const TShared<Texture>& texture, const GpuAliasAcquire& acquire)
-		{
-			EnsureValidThread();
-			if (mRecordingFailed || texture == nullptr)
-				return;
-
-			mResourceTracker.AcquireAliased(static_cast<MetalTexture*>(texture.get())->GetMetalResource(), acquire);
-		}
-
-		void MetalGpuCommandBuffer::AcquireAliased(const TShared<GpuBuffer>& buffer, const GpuAliasAcquire& acquire)
-		{
-			EnsureValidThread();
-			if (mRecordingFailed || buffer == nullptr)
-				return;
-
-			mResourceTracker.AcquireAliased(static_cast<MetalGpuBuffer*>(buffer.get())->GetMetalResource(), acquire);
-		}
-
 		void MetalGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 		{
 			EnsureValidThread();
@@ -2403,7 +2385,7 @@ namespace b3d
 				if (resource == nullptr)
 					continue;
 
-				mResourceTracker.TrackExplicitBufferBarrier(resource, GpuBackendUtility::GetStageFlags(bufferBarrier.DestinationUsage), bufferBarrier.DestinationAccess, mBarrierHelper);
+				mResourceTracker.TrackExplicitBufferBarrier(resource, GpuBackendUtility::GetStageFlags(bufferBarrier.DestinationUsage), bufferBarrier.DestinationAccess, mBarrierHelper, bufferBarrier.AliasAcquire);
 			}
 
 			for (const GpuTextureBarrier& textureBarrier : barriers.TextureBarriers)
@@ -2416,11 +2398,14 @@ namespace b3d
 				if (resource == nullptr)
 					continue;
 
-				mResourceTracker.TrackExplicitImageBarrier(resource, textureBarrier.SubresourceRange, GpuBackendUtility::GetStageFlags(textureBarrier.DestinationUsage), textureBarrier.DestinationAccess, textureBarrier.DestinationLayout, mBarrierHelper);
+				mResourceTracker.TrackExplicitImageBarrier(resource, textureBarrier.SubresourceRange, GpuBackendUtility::GetStageFlags(textureBarrier.DestinationUsage), textureBarrier.DestinationAccess, textureBarrier.DestinationLayout, mBarrierHelper, textureBarrier.AliasAcquire);
 			}
 
+			for (const GpuRenderTargetBarrier& renderTargetBarrier : barriers.RenderTargetBarriers)
+				B3D_ENSURE_LOG(renderTargetBarrier.AliasAcquire == nullptr, "Render target barriers cannot alias acquire. Use a texture barrier instead.");
+
 			// Metal has no framebuffer to resolve the surface mask against, so an active render pass is split instead
-			const bool hasRenderTargetBarriers = !barriers.RenderTargetBarriers.Empty();
+			const bool hasRenderTargetBarriers = !barriers.RenderTargetBarriers.IsEmpty();
 #if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
 			if (hasRenderTargetBarriers && mRenderEncoder != nil)
 			{

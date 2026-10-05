@@ -10,10 +10,13 @@ bool D3D12BarrierBatch::IsEmpty() const
 	return mBarrierGroups.Empty();
 }
 
-void D3D12BarrierBatch::AddGlobalBarrier(const D3D12_GLOBAL_BARRIER& barrier)
+u32 D3D12BarrierBatch::AddGlobalBarrier(const D3D12_GLOBAL_BARRIER& barrier)
 {
-	AddToGroup(D3D12_BARRIER_TYPE_GLOBAL, (u32)mGlobalBarriers.Size());
+	const u32 barrierIndex = (u32)mGlobalBarriers.Size();
+	AddToGroup(D3D12_BARRIER_TYPE_GLOBAL, barrierIndex);
 	mGlobalBarriers.Add(barrier);
+
+	return barrierIndex;
 }
 
 void D3D12BarrierBatch::AddBufferBarrier(const D3D12_BUFFER_BARRIER& barrier)
@@ -43,6 +46,13 @@ void D3D12BarrierBatch::ReplaceTextureBarrier(u32 barrierIndex, const D3D12_TEXT
 	B3D_ASSERT(barrier.Subresources.NumPlanes == 1);
 
 	mTextureBarriers[barrierIndex] = barrier;
+}
+
+void D3D12BarrierBatch::ReplaceGlobalBarrier(u32 barrierIndex, const D3D12_GLOBAL_BARRIER& barrier)
+{
+	B3D_ASSERT(barrierIndex < mGlobalBarriers.Size());
+
+	mGlobalBarriers[barrierIndex] = barrier;
 }
 
 void D3D12BarrierBatch::AddToGroup(D3D12_BARRIER_TYPE type, u32 barrierIndex)

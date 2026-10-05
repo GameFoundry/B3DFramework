@@ -1496,26 +1496,6 @@ Area2I D3D12GpuCommandBuffer::GetRenderPassArea() const
 	return Area2I(0, 0, (i32)mRenderTarget->GetProperties().Width, (i32)mRenderTarget->GetProperties().Height);
 }
 
-void D3D12GpuCommandBuffer::AcquireAliased(const TShared<Texture>& texture, const GpuAliasAcquire& acquire)
-{
-	EnsureValidThread();
-
-	if(texture == nullptr || !B3D_ENSURE(!IsInRenderPass()))
-		return;
-
-	mResourceTracker.AcquireAliased(static_cast<D3D12Texture*>(texture.get())->GetD3D12Image(), acquire);
-}
-
-void D3D12GpuCommandBuffer::AcquireAliased(const TShared<GpuBuffer>& buffer, const GpuAliasAcquire& acquire)
-{
-	EnsureValidThread();
-
-	if(buffer == nullptr || !B3D_ENSURE(!IsInRenderPass()))
-		return;
-
-	mResourceTracker.AcquireAliased(static_cast<D3D12GpuBuffer*>(buffer.get())->GetD3D12Buffer(), acquire);
-}
-
 void D3D12GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 {
 	EnsureValidThread();
@@ -1531,8 +1511,7 @@ void D3D12GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 
 		D3D12Buffer* const buffer = gpuBuffer->GetD3D12Buffer();
 
-		mResourceTracker.TrackExplicitBufferBarrier(buffer, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, mBarrierHelper);
-
+		mResourceTracker.TrackExplicitBufferBarrier(buffer, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, mBarrierHelper, barrier.AliasAcquire);
 	}
 
 	for(const auto& barrier : barriers.TextureBarriers)
@@ -1546,12 +1525,12 @@ void D3D12GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 		GpuTextureSubresourceRange maskedRange = barrier.SubresourceRange;
 		maskedRange.AspectMask &= image->GetRange().AspectMask;
 
-		mResourceTracker.TrackExplicitImageBarrier(image, maskedRange, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper);
+		mResourceTracker.TrackExplicitImageBarrier(image, maskedRange, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper, barrier.AliasAcquire);
 	}
 
 	for(const auto& barrier : barriers.RenderTargetBarriers)
 	{
-		if(barrier.Object == nullptr)
+		if(barrier.Object == nullptr || !B3D_ENSURE_LOG(barrier.AliasAcquire == nullptr, "Render target barriers cannot alias acquire. Use a texture barrier instead."))
 			continue;
 
 		// Resolve the render target's framebuffer, which carries the per-attachment image references. This is the

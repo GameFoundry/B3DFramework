@@ -320,7 +320,7 @@ namespace b3d
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		/**
-		 * Marks whether a resource sharing memory with this one has started a new lifetime on it (see GpuCommandBuffer::AcquireAliased()).
+		 * Marks whether a resource sharing memory with this one has started a new lifetime on it (see GpuBarrier::AliasAcquire).
 		 * Accessing a superseded resource is invalid until it is acquired again. Development builds only.
 		 */
 		void SetSupersededByAlias(bool superseded) { mIsSupersededByAlias.store(superseded, std::memory_order_relaxed); }

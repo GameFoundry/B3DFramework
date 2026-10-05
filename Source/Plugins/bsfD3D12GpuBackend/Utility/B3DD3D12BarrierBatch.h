@@ -20,8 +20,8 @@ namespace b3d::render
 	class D3D12BarrierBatch
 	{
 	public:
-		/** Adds an global barrier. */
-		void AddGlobalBarrier(const D3D12_GLOBAL_BARRIER& barrier);
+		/** Adds an global barrier and returns its storage index. */
+		u32 AddGlobalBarrier(const D3D12_GLOBAL_BARRIER& barrier);
 
 		/** Adds an whole-resource buffer barrier. */
 		void AddBufferBarrier(const D3D12_BUFFER_BARRIER& barrier);
@@ -44,6 +44,9 @@ namespace b3d::render
 
 		/** Replaces an already-added native texture barrier without changing its position. */
 		void ReplaceTextureBarrier(u32 barrierIndex, const D3D12_TEXTURE_BARRIER& barrier);
+
+		/** Replaces an already-added native global barrier without changing its position. */
+		void ReplaceGlobalBarrier(u32 barrierIndex, const D3D12_GLOBAL_BARRIER& barrier);
 
 		/** Consecutive barriers of one native type. */
 		struct BarrierGroup

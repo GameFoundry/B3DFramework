@@ -137,7 +137,27 @@ void GpuResourceWriteEpochHazardState::RecordBarrier(const GpuBarrierScope& barr
 
 GpuBarrierScope GpuResourceHazardState::GetRequiredBarrier(GpuStageFlags stages, GpuAccessFlags access, GpuStageFlags broadenedReadStages) const
 {
-	return LastWriteEpochHazardState.GetRequiredBarrier(stages, access, broadenedReadStages);
+	// An earlier barrier already orders writes in some of the stages, so only the rest need a barrier for the write
+	const GpuStageFlags orderedStages = access.IsSet(GpuAccessFlag::Write) ? (stages & OrderedWriteStages) : GpuStageFlags(GpuStageFlag::None);
+	if(orderedStages == GpuStageFlag::None)
+		return LastWriteEpochHazardState.GetRequiredBarrier(stages, access, broadenedReadStages);
+
+	GpuBarrierScope barrier;
+	const GpuStageFlags unorderedStages = stages & ~orderedStages;
+	if(unorderedStages != GpuStageFlag::None)
+		barrier = LastWriteEpochHazardState.GetRequiredBarrier(unorderedStages, access, broadenedReadStages);
+
+	// A read in the same access still needs the earlier writes made visible in the ordered stages
+	if(access.IsSet(GpuAccessFlag::Read))
+	{
+		const GpuBarrierScope readBarrier = LastWriteEpochHazardState.GetRequiredBarrier(orderedStages, GpuAccessFlag::Read, broadenedReadStages);
+		barrier.SourceStages |= readBarrier.SourceStages;
+		barrier.SourceAccess |= readBarrier.SourceAccess;
+		barrier.DestinationStages |= readBarrier.DestinationStages;
+		barrier.DestinationAccess |= readBarrier.DestinationAccess;
+	}
+
+	return barrier;
 }
 
 void GpuResourceHazardState::RecordAccess(GpuStageFlags stages, GpuAccessFlags access)
@@ -147,10 +167,19 @@ void GpuResourceHazardState::RecordAccess(GpuStageFlags stages, GpuAccessFlags a
 		AccessScopeBeforeFirstBarrier.Add(stages, access);
 
 	LastWriteEpochHazardState.RecordAccess(stages, access);
+	OrderedWriteStages = GpuStageFlag::None;
 }
 
 void GpuResourceHazardState::RecordBarrier(const GpuBarrierScope& barrier)
 {
+	// Writes in the destination stages are ordered if the barrier waits on every access of the write epoch, and makes its writes available
+	const GpuResourceWriteEpochHazardState& epoch = LastWriteEpochHazardState;
+	const GpuStageFlags epochStages = epoch.WriteStages | epoch.ReaderStages;
+	const bool ordersWrites = barrier.DestinationAccess.IsSet(GpuAccessFlag::Write) && barrier.SourceStages.IsSetAll(epochStages) &&
+		(epoch.WriteStages == GpuStageFlag::None || barrier.SourceAccess.IsSet(GpuAccessFlag::Write));
+	if(ordersWrites)
+		OrderedWriteStages |= barrier.DestinationStages;
+
 	LastWriteEpochHazardState.RecordBarrier(barrier);
 	if(barrier.DestinationStages != GpuStageFlag::None)
 		LastBarrier = barrier;

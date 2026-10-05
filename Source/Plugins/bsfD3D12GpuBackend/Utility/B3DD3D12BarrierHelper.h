@@ -36,6 +36,9 @@ namespace b3d::render
 		/** Adds a native transition for one logical image range. */
 		void RecordNativeImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuBarrierScope& barrier, GpuImageLayout oldLayout, GpuImageLayout newLayout, GpuBarrierFlags barrierFlags);
 
+		/** Adds the global barrier for the source of an alias acquire, merged with the other acquires of the batch. */
+		void AddAliasGlobalBarrier(const GpuBarrierScope& barrier);
+
 		/** Returns the destination stages of the preceding barrier recorded for @p buffer. */
 		GpuStageFlags GetPrecedingBarrierDestinationStages(IGpuBufferResource* buffer) const;
 
@@ -72,6 +75,8 @@ namespace b3d::render
 		D3D12BarrierBatch mBarriers;
 		TInlineArray<PendingBufferPageBarrier, 8> mPendingBufferPageBarriers;
 		TInlineArray<PendingImageBarrier, 8> mPendingImageBarriers;
+		GpuBarrierScope mAliasGlobalBarrierScope; /**< Combined source and destination of the alias acquires queued since the last Clear. */
+		u32 mAliasGlobalBarrierIndex = ~0u; /**< Global barrier of the alias acquires in mBarriers, or ~0u if none is queued. */
 		GpuQueueType mQueueType;
 	};
 

@@ -239,6 +239,19 @@ namespace b3d
 
 			GpuResourceUseFlags DestinationUsage; /**< Determines how the resource will be used after the barrier. Images will transition to a layout compatible with this usage. */
 			GpuAccessFlags DestinationAccess; /**< Determines if the resource will be read or written after the barrier. */
+
+			/**
+			 * If set, the barrier starts a new lifetime of the resource on memory that earlier resources used, such as a transient resource placed
+			 * by an aliasing allocator. The barrier discards the contents and orders the destination after AliasAcquire->Source.
+			 *
+			 * The barrier must precede every other use of the resource on the command buffer, and covers the whole resource. The destination
+			 * should describe the first access, which must write without reading the previous contents: a render target or depth attachment must
+			 * be cleared, or loaded with no load operation. A first access outside the destination still works, but will trigger another barrier.
+			 * Texture barriers must provide a destination layout. Not supported on render target barriers.
+			 *
+			 * Must remain valid until IssueBarriers() returns.
+			 */
+			const GpuAliasAcquire* AliasAcquire = nullptr;
 		};
 
 		/** Describes a barrier for a GpuBuffer. */
@@ -306,61 +319,39 @@ namespace b3d
 			RenderSurfaceMaskBits SurfaceMask; /**< Specifies which surface of the render target the barrier applies to. Must be a single bit. */
 		};
 
-		/** A list of buffer, texture, and render target barriers. */
+		/**
+		 * A list of buffer, texture, and render target barriers. Refers to the barriers without copying them, so they must remain valid until
+		 * GpuCommandBuffer::IssueBarriers() returns. 
+		 */
 		struct GpuBarriers
 		{
-			GpuBarriers(TArrayView<GpuBufferBarrier> bufferBarriers = TArrayView<GpuBufferBarrier>(), TArrayView<GpuTextureBarrier> textureBarriers = TArrayView<GpuTextureBarrier>(), TArrayView<GpuRenderTargetBarrier> renderTargetBarriers = TArrayView<GpuRenderTargetBarrier>())
-			{
-				BufferBarriers.Reserve(bufferBarriers.Size());
+			GpuBarriers(TArrayView<const GpuBufferBarrier> bufferBarriers = TArrayView<const GpuBufferBarrier>(), TArrayView<const GpuTextureBarrier> textureBarriers = TArrayView<const GpuTextureBarrier>(), TArrayView<const GpuRenderTargetBarrier> renderTargetBarriers = TArrayView<const GpuRenderTargetBarrier>())
+				: BufferBarriers(bufferBarriers), TextureBarriers(textureBarriers), RenderTargetBarriers(renderTargetBarriers)
+			{ }
 
-				for(const auto& entry : bufferBarriers)
-					BufferBarriers.Add(entry);
+			GpuBarriers(TArrayView<const GpuTextureBarrier> textureBarriers)
+				: TextureBarriers(textureBarriers)
+			{ }
 
-				TextureBarriers.Reserve(textureBarriers.Size());
-
-				for(const auto& entry : textureBarriers)
-					TextureBarriers.Add(entry);
-
-				RenderTargetBarriers.Reserve(renderTargetBarriers.Size());
-
-				for(const auto& entry : renderTargetBarriers)
-					RenderTargetBarriers.Add(entry);
-			}
-
-			GpuBarriers(TArrayView<GpuTextureBarrier> textureBarriers)
-			{
-				TextureBarriers.Reserve(textureBarriers.Size());
-
-				for(const auto& entry : textureBarriers)
-					TextureBarriers.Add(entry);
-			}
-
-			GpuBarriers(TArrayView<GpuRenderTargetBarrier> renderTargetBarriers)
-			{
-				RenderTargetBarriers.Reserve(renderTargetBarriers.Size());
-
-				for(const auto& entry : renderTargetBarriers)
-					RenderTargetBarriers.Add(entry);
-			}
+			GpuBarriers(TArrayView<const GpuRenderTargetBarrier> renderTargetBarriers)
+				: RenderTargetBarriers(renderTargetBarriers)
+			{ }
 
 			GpuBarriers(const GpuTextureBarrier& textureBarrier)
-			{
-				TextureBarriers.Add(textureBarrier);
-			}
+				: TextureBarriers(&textureBarrier, 1)
+			{ }
 
 			GpuBarriers(const GpuBufferBarrier& bufferBarrier)
-			{
-				BufferBarriers.Add(bufferBarrier);
-			}
+				: BufferBarriers(&bufferBarrier, 1)
+			{ }
 
 			GpuBarriers(const GpuRenderTargetBarrier& renderTargetBarrier)
-			{
-				RenderTargetBarriers.Add(renderTargetBarrier);
-			}
+				: RenderTargetBarriers(&renderTargetBarrier, 1)
+			{ }
 
-			TInlineArray<GpuBufferBarrier, 2> BufferBarriers;
-			TInlineArray<GpuTextureBarrier, 2> TextureBarriers;
-			TInlineArray<GpuRenderTargetBarrier, 2> RenderTargetBarriers;
+			TArrayView<const GpuBufferBarrier> BufferBarriers;
+			TArrayView<const GpuTextureBarrier> TextureBarriers;
+			TArrayView<const GpuRenderTargetBarrier> RenderTargetBarriers;
 		};
 
 		/**
@@ -582,28 +573,11 @@ namespace b3d
 			 * Issues a memory and/or execution barrier that guarantees that the contents of GPU buffers will be correctly visible for the provided destination stages.
 			 * Additionally, transitions the images to the correct layout to be used in the destination.
 			 *
-			 * Note that system automatically issues barriers when needed, you do not need to call this method manually in almost all cases. Currently the only case
-			 * you need to call this manually is when you read from a non-staging buffer that was written by the GPU, and you want to read the data on the CPU right
-			 * after GPU execution completes.
+			 * Note that system automatically issues barriers when needed, you do not need to call this method manually in almost all cases. Currently the only cases
+			 * you need to call this manually are when you read from a non-staging buffer that was written by the GPU, and you want to read the data on the CPU right
+			 * after GPU execution completes, and when a resource starts a new lifetime on aliased memory (see GpuBarrier::AliasAcquire).
 			 */
 			virtual void IssueBarriers(const GpuBarriers& barriers) = 0;
-
-			/**
-			 * Starts a new lifetime of @p texture on memory that earlier resources used, such as a transient texture placed by an aliasing allocator.
-			 * Its contents are discarded, and its first access on this command buffer is ordered after @p acquire.Source.
-			 *
-			 * Must be called outside of a render pass, before any other use of the texture on this command buffer. The first access must write
-			 * without reading the previous contents: a render target or depth attachment must be cleared, or loaded with no load operation.
-			 */
-			virtual void AcquireAliased(const TShared<Texture>& texture, const GpuAliasAcquire& acquire) = 0;
-
-			/**
-			 * Starts a new lifetime of @p buffer on memory that earlier resources used. Its contents are discarded, and its first access on this
-			 * command buffer is ordered after @p acquire.Source.
-			 *
-			 * Must be called outside of a render pass, before any other use of the buffer on this command buffer. The first access must write.
-			 */
-			virtual void AcquireAliased(const TShared<GpuBuffer>& buffer, const GpuAliasAcquire& acquire) = 0;
 
 			/**
 			 * Sets the active viewport that will be used for all following render operations.

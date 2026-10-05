@@ -135,7 +135,7 @@ namespace b3d
 
 		/**
 		 * Describes how the first access of a resource placed on memory that earlier resources used must be synchronized. The resource starts a
-		 * new lifetime on that memory, and its contents are undefined. See GpuCommandBuffer::AcquireAliased().
+		 * new lifetime on that memory, and its contents are undefined. See GpuBarrier::AliasAcquire.
 		 */
 		struct GpuAliasAcquire
 		{
@@ -209,12 +209,12 @@ namespace b3d
 		 * Tracks accesses, barriers and write-epoch hazards for one resource over a single command buffer recording scope. 
 		 *
 		 * Barriers can be placed into two categories depending where they are issued:
-		 *  - During command buffer recording - Barriers issued during recording depend exclusively on LastWriteEpochHazardState (and LastBarrier, for backends that require barrier chaining).  All other
+		 *  - During command buffer recording - Barriers issued during recording depend on LastWriteEpochHazardState, LastBarrier (for backends that require barrier chaining), 
+		 *    OrderedWriteStages (for avoiding issuing redundant barriers if previous barrier already covers the write stages).
 		 *	  state we keep is for the purpose of determining the submission barrier.
 		 *  - During command buffer submission - These barriers are issued in a specialized 'prelude' command buffer that will execute before the command buffer that recorded the resource access. We call these 'submission barriers'.
 		 *    We cannot issue these barriers during recording as at that time we do not know what command buffer will be submitted before it, and how will it use the same resources. The state tracking here generally
 		 *    boils down to 'how was the resource first used in this command buffer'.
-		 * 
 		 */
 		struct B3D_EXPORT GpuResourceHazardState
 		{
@@ -223,6 +223,7 @@ namespace b3d
 			GpuAccessScope AllAccessScope; /**< Accumulation of all accesses recorded in the tracking scope. Generally only used for cross-queue synchronization (answers the question does this command buffer read and/or write?). */
 			GpuResourceWriteEpochHazardState LastWriteEpochHazardState; /**< Last write-epoch hazard state in the recording scope. Updated during recording. After recording stores the last state. */
 			GpuBarrierScope LastBarrier; /**< Most recently recorded barrier in the command-buffer recording scope. Some backends require this for barrier chaining, for others it's unused. */
+			GpuStageFlags OrderedWriteStages = GpuStageFlag::None; /**< Stages where writes are already ordered after every access of the last write epoch, by barriers recorded since the last access. */
 
 			/** Determines the resource hazard barrier required before an access. */
 			GpuBarrierScope GetRequiredBarrier(GpuStageFlags stages, GpuAccessFlags access, GpuStageFlags broadenedReadStages = GpuStageFlag::None) const;
@@ -230,7 +231,7 @@ namespace b3d
 			/** Records that a resource was accessed on a particular stage. */
 			void RecordAccess(GpuStageFlags stages, GpuAccessFlags access);
 
-			/** Records a barrier and credits any visibility it establishes. */
+			/** Records a barrier and credits any visibility and write ordering it establishes. */
 			void RecordBarrier(const GpuBarrierScope& barrier);
 
 			/** Returns true if the tracking scope accesses the resource. */

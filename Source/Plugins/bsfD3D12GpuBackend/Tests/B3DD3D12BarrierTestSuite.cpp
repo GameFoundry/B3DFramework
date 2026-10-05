@@ -346,13 +346,15 @@ void D3D12BarrierTestSuite::TestTextureBarrierBatch()
 
 	const GpuResourceUseFlags colorAttachmentUsage = GpuResourceUseFlag::ColorAttachment;
 	const GpuResourceUseFlags fragmentShaderUsage = GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageFragmentShader;
-	GpuBarriers sequentialBarriers;
-	sequentialBarriers.TextureBarriers.Add(GpuTextureBarrier(texture, colorAttachmentUsage, GpuAccessFlag::Write, GpuImageLayout::ColorAttachment, topMip));
-	sequentialBarriers.TextureBarriers.Add(GpuTextureBarrier(texture, fragmentShaderUsage, GpuAccessFlag::Read, GpuImageLayout::ShaderReadOnly, topMip));
+	const GpuTextureBarrier sequentialBarriers[] =
+	{
+		GpuTextureBarrier(texture, colorAttachmentUsage, GpuAccessFlag::Write, GpuImageLayout::ColorAttachment, topMip),
+		GpuTextureBarrier(texture, fragmentShaderUsage, GpuAccessFlag::Read, GpuImageLayout::ShaderReadOnly, topMip)
+	};
 
 	const TShared<GpuCommandBufferPool> graphicsPool = device->CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_GRAPHICS));
 	const TShared<GpuCommandBuffer> commandBuffer = graphicsPool->Create(GpuCommandBufferCreateInformation::Create("D3D12 sequential texture barrier validation"));
-	commandBuffer->IssueBarriers(sequentialBarriers);
+	commandBuffer->IssueBarriers(GpuBarriers(TArrayView<const GpuTextureBarrier>(sequentialBarriers, 2)));
 	commandBuffer->End();
 }
 

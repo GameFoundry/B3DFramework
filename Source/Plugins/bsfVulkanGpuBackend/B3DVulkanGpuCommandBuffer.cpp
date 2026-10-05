@@ -2186,22 +2186,6 @@ void VulkanGpuCommandBuffer::MemoryBarrier(VkBuffer buffer, VkAccessFlags source
 	vkCmdPipelineBarrier(GetVulkanHandle(), sourceStage, destinationStage, 0, 0, nullptr, 1, &barrier, 0, nullptr);
 }
 
-void VulkanGpuCommandBuffer::AcquireAliased(const TShared<Texture>& texture, const GpuAliasAcquire& acquire)
-{
-	if(texture == nullptr || !B3D_ENSURE(!IsInRenderPass()))
-		return;
-
-	mResourceTracker.AcquireAliased(static_cast<VulkanTexture*>(texture.get())->GetVulkanResource(), acquire);
-}
-
-void VulkanGpuCommandBuffer::AcquireAliased(const TShared<GpuBuffer>& buffer, const GpuAliasAcquire& acquire)
-{
-	if(buffer == nullptr || !B3D_ENSURE(!IsInRenderPass()))
-		return;
-
-	mResourceTracker.AcquireAliased(static_cast<VulkanGpuBuffer*>(buffer.get())->GetVulkanResource(), acquire);
-}
-
 void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 {
 	if(!B3D_ENSURE(!IsInRenderPass()))
@@ -2217,7 +2201,7 @@ void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 		GpuTextureSubresourceRange maskedRange = subresourceRange;
 		maskedRange.AspectMask &= vulkanImage->GetRange().AspectMask;
 
-		mResourceTracker.TrackExplicitImageBarrier(vulkanImage, maskedRange, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper);
+		mResourceTracker.TrackExplicitImageBarrier(vulkanImage, maskedRange, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper, barrier.AliasAcquire);
 	};
 
 	for(const auto& barrier : barriers.BufferBarriers)
@@ -2228,7 +2212,7 @@ void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 
 		VulkanBuffer* const vulkanBuffer = vulkanGpuBuffer->GetVulkanResource();
 
-		mResourceTracker.TrackExplicitBufferBarrier(vulkanBuffer, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, mBarrierHelper);
+		mResourceTracker.TrackExplicitBufferBarrier(vulkanBuffer, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, mBarrierHelper, barrier.AliasAcquire);
 	}
 
 	for(const auto& barrier : barriers.TextureBarriers)
@@ -2243,7 +2227,7 @@ void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 
 	for(const auto& barrier : barriers.RenderTargetBarriers)
 	{
-		if(barrier.Object == nullptr)
+		if(barrier.Object == nullptr || !B3D_ENSURE_LOG(barrier.AliasAcquire == nullptr, "Render target barriers cannot alias acquire. Use a texture barrier instead."))
 			continue;
 
 		// Get framebuffer based on render target type

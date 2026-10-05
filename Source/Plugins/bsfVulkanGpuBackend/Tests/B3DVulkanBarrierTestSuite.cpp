@@ -396,10 +396,12 @@ void VulkanBarrierTestSuite::TestRenderPassAttachmentTransitions()
 				commands->BeginRenderPass(pass);
 				commands->EndRenderPass();
 				// Return to the attachment layout within one batch; no intermediate transition may survive.
-				GpuBarriers mergedBarriers;
-				mergedBarriers.TextureBarriers.Add(GpuTextureBarrier(texture, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, GpuImageLayout::TransferSource));
-				mergedBarriers.TextureBarriers.Add(GpuTextureBarrier(texture, depth ? GpuResourceUseFlag::DepthStencilAttachment : GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read | GpuAccessFlag::Write, depth ? GpuImageLayout::DepthStencilAttachment : GpuImageLayout::ColorAttachment));
-				commands->IssueBarriers(mergedBarriers);
+				const GpuTextureBarrier mergedBarriers[] =
+				{
+					GpuTextureBarrier(texture, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, GpuImageLayout::TransferSource),
+					GpuTextureBarrier(texture, depth ? GpuResourceUseFlag::DepthStencilAttachment : GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read | GpuAccessFlag::Write, depth ? GpuImageLayout::DepthStencilAttachment : GpuImageLayout::ColorAttachment)
+				};
+				commands->IssueBarriers(GpuBarriers(TArrayView<const GpuTextureBarrier>(mergedBarriers, 2)));
 
 				pass.ClearMask = RT_NONE;
 				pass.LoadMask = surfaces;
