@@ -233,6 +233,9 @@ namespace b3d
 
 	public:
 
+		/** Returns the debug name. Empty if none was set. */
+		const String& GetDebugName() const { return mDebugName; }
+
 		/** Sets a debug name. Stored only in development builds. */
 		void SetDebugName(const StringView& name)
 		{
