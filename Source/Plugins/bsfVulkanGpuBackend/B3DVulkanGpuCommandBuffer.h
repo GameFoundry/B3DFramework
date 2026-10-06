@@ -197,7 +197,7 @@ namespace b3d
 			void NotifyWasSubmitted(GpuQueueId queueId);
 
 			/** Called when the command buffer is about to be sent to the submit queue for submit. */
-			void NotifyWillQueueForSubmit();
+			void NotifyWillQueueForSubmit(GpuQueueId queueId, GpuQueueMask syncMask) override;
 
 			/** Returns the handle to the internal Vulkan command buffer wrapped by this object. */
 			VkCommandBuffer GetVulkanHandle() const { return mCommandBufferHandle; }

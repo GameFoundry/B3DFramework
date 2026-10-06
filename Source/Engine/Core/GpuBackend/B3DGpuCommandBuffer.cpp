@@ -108,6 +108,10 @@ GpuCommandBufferPool::GpuCommandBufferPool(GpuDevice& gpuDevice, const GpuComman
 	{
 		mMessageQueue.ScheduleRunUntilShutdown(*scheduler, true);
 	}
+
+#if B3D_GPU_EXPLICIT_BARRIERS
+	B3D_ENSURE_LOG(!mInformation.ExplicitBarriers || mGpuDevice.GetCapabilities().HasCapability(RSC_EXPLICIT_BARRIERS), "The GPU backend does not support explicit barriers.");
+#endif
 }
 
 void GpuCommandBufferPool::Destroy()
@@ -126,6 +130,10 @@ GpuCommandBuffer::GpuCommandBuffer(GpuDevice& gpuDevice, ThreadId ownerThread, G
 GpuCommandBuffer::~GpuCommandBuffer()
 {
 	OnDestroyed(mState == GpuCommandBufferState::Executing);
+
+#if B3D_GPU_EXPLICIT_BARRIERS
+	ClearSplitBarriers(mState == GpuCommandBufferState::Executing || mState == GpuCommandBufferState::Done);
+#endif
 }
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
@@ -148,6 +156,139 @@ void GpuCommandBuffer::SetPushConstants(u32 /*offsetInBytes*/, u32 sizeInBytes, 
 
 	B3D_LOG(Error, LogRenderBackend, "Push constants are unsupported by this GPU backend.");
 }
+
+void GpuCommandBuffer::NotifyWillQueueForSubmit([[maybe_unused]] GpuQueueId queueId, [[maybe_unused]] GpuQueueMask syncMask)
+{
+#if B3D_GPU_EXPLICIT_BARRIERS && B3D_BUILD_TYPE_DEVELOPMENT
+	// The submit thread executes submissions in the order they are queued, so this sees the releases in GPU submission order
+	using ReleaseSubmission = GpuSplitBarrier::ReleaseSubmission;
+
+	for(const RecordedSplitBarrier& recorded : mSplitBarriers)
+	{
+		GpuSplitBarrier& splitBarrier = *recorded.SplitBarrier;
+		if(recorded.Phase == GpuBarrierPhase::Release)
+		{
+			splitBarrier.mReleaseQueue = queueId.Id;
+			splitBarrier.mReleaseSubmission = ReleaseSubmission::Submitted;
+			continue;
+		}
+
+		if(recorded.IsReleasedByRecording)
+			continue;
+
+		// Without the release ahead of it, the acquire waits for a signal that never arrives
+		if(!B3D_ENSURE_LOG(splitBarrier.mIsReleased, "The acquire of a split barrier was submitted, but its release was never recorded."))
+			continue;
+
+		const ReleaseSubmission releaseSubmission = splitBarrier.mReleaseSubmission;
+		if(!B3D_ENSURE_LOG(releaseSubmission != ReleaseSubmission::Pending, "The acquire of a split barrier was submitted before its release."))
+			continue;
+
+		if(!B3D_ENSURE_LOG(releaseSubmission != ReleaseSubmission::Discarded, "The acquire of a split barrier was submitted, but its release was discarded without being submitted."))
+			continue;
+
+		const GpuQueueId releaseQueueId(splitBarrier.mReleaseQueue.load());
+		B3D_ENSURE_LOG(releaseQueueId.Id == queueId.Id || syncMask.IsSet(releaseQueueId), "The acquire of a split barrier was submitted on a different queue than its release, without waiting for the queue of the release.");
+	}
+#endif
+}
+
+#if B3D_GPU_EXPLICIT_BARRIERS
+void GpuCommandBuffer::IssueExplicitBarriers(const GpuExplicitBarriers& barriers)
+{
+	EnsureValidThread();
+
+	if(!B3D_ENSURE_LOG(!IsInRenderPass(), "Explicit barriers can only be recorded outside of a render pass."))
+		return;
+
+	RecordExplicitBarriers(barriers, GpuBarrierPhase::Full, nullptr);
+}
+
+void GpuCommandBuffer::ReleaseBarriers(const GpuExplicitBarriers& barriers, const TShared<GpuSplitBarrier>& split)
+{
+	EnsureValidThread();
+
+	if(!B3D_ENSURE_LOG(split != nullptr, "A split barrier must be created by GpuDevice::CreateSplitBarrier()."))
+		return;
+
+	if(!B3D_ENSURE_LOG(!IsInRenderPass(), "Explicit barriers can only be recorded outside of a render pass."))
+		return;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	// An acquire recorded earlier would wait for a release that follows it, so the GPU would never get past it
+	for(const RecordedSplitBarrier& recorded : mSplitBarriers)
+	{
+		if(!B3D_ENSURE_LOG(recorded.SplitBarrier != split || recorded.Phase != GpuBarrierPhase::Acquire, "The release of a split barrier must be recorded before its acquire."))
+			return;
+	}
+#endif
+
+	if(!B3D_ENSURE_LOG(!split->mIsReleased.exchange(true), "The split barrier was already released."))
+		return;
+
+	if(!RecordExplicitBarriers(barriers, GpuBarrierPhase::Release, split.get()))
+	{
+		split->mIsReleased = false;
+		return;
+	}
+
+	RecordedSplitBarrier recorded;
+	recorded.SplitBarrier = split;
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	recorded.Phase = GpuBarrierPhase::Release;
+#endif
+	mSplitBarriers.Add(std::move(recorded));
+}
+
+void GpuCommandBuffer::AcquireBarriers(const GpuExplicitBarriers& barriers, const TShared<GpuSplitBarrier>& split)
+{
+	EnsureValidThread();
+
+	if(!B3D_ENSURE_LOG(split != nullptr, "A split barrier must be created by GpuDevice::CreateSplitBarrier()."))
+		return;
+
+	if(!B3D_ENSURE_LOG(!IsInRenderPass(), "Explicit barriers can only be recorded outside of a render pass."))
+		return;
+
+	if(!B3D_ENSURE_LOG(!split->mIsAcquired.exchange(true), "The split barrier was already acquired."))
+		return;
+
+	if(!RecordExplicitBarriers(barriers, GpuBarrierPhase::Acquire, split.get()))
+	{
+		split->mIsAcquired = false;
+		return;
+	}
+
+	RecordedSplitBarrier recorded;
+	recorded.SplitBarrier = split;
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	recorded.Phase = GpuBarrierPhase::Acquire;
+	recorded.IsReleasedByRecording = std::any_of(mSplitBarriers.begin(), mSplitBarriers.end(), [&split](const RecordedSplitBarrier& entry) { return entry.SplitBarrier == split; });
+#endif
+	mSplitBarriers.Add(std::move(recorded));
+}
+
+bool GpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& /*barriers*/, GpuBarrierPhase /*phase*/, GpuSplitBarrier* /*split*/)
+{
+	B3D_LOG(Error, LogRenderBackend, "Explicit barriers are unsupported by this GPU backend.");
+	return false;
+}
+
+void GpuCommandBuffer::ClearSplitBarriers([[maybe_unused]] bool wasSubmitted)
+{
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	using ReleaseSubmission = GpuSplitBarrier::ReleaseSubmission;
+
+	for(const RecordedSplitBarrier& recorded : mSplitBarriers)
+	{
+		if(recorded.Phase == GpuBarrierPhase::Release && !wasSubmitted)
+			recorded.SplitBarrier->mReleaseSubmission = ReleaseSubmission::Discarded;
+	}
+#endif
+
+	mSplitBarriers.Clear();
+}
+#endif
 
 #if B3D_PROFILING_ENABLED
 TShared<GpuCommandBufferProfiler> GpuCommandBuffer::BeginProfiling(const ProfilerString& profilingScopeName)

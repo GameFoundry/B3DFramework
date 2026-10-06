@@ -2706,8 +2706,10 @@ namespace b3d
 			mUsedQueryPools.Add(pool);
 		}
 
-		void MetalGpuCommandBuffer::NotifyWillQueueForSubmit()
+		void MetalGpuCommandBuffer::NotifyWillQueueForSubmit(GpuQueueId queueId, GpuQueueMask syncMask)
 		{
+			GpuCommandBuffer::NotifyWillQueueForSubmit(queueId, syncMask);
+
 			for (const TShared<MetalGpuQueryPool>& pool : mUsedQueryPools)
 				pool->MarkQueuedForSubmission();
 				

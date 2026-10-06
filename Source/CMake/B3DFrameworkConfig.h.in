@@ -46,3 +46,6 @@
 
 // Importer plugins are part of the build; when off (consoles, cooked-data runtimes) the application expects pre-baked data
 #cmakedefine01 B3D_BUILD_IMPORTERS
+
+// Command buffers support explicit barriers (see GpuCommandBuffer::IssueExplicitBarriers()), next to the automatic barriers of the resource tracker
+#cmakedefine01 B3D_GPU_EXPLICIT_BARRIERS

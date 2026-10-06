@@ -414,6 +414,9 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestAliasAcquireExecution)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestFramebufferAttachmentUsage)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestRenderPassResourceTracking)
+#if B3D_GPU_EXPLICIT_BARRIERS
+	B3D_ADD_TEST(GpuBackendTestSuite::TestExplicitBarrierTracking)
+#endif
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantMetadata)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantWrites)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantSerialization)
@@ -3392,6 +3395,88 @@ void GpuBackendTestSuite::TestRenderPassResourceTracking()
 	discardTracker.NotifyUnbound();
 	discardTracker.Clear();
 }
+
+#if B3D_GPU_EXPLICIT_BARRIERS
+void GpuBackendTestSuite::TestExplicitBarrierTracking()
+{
+	SubmissionTestBarrierHelper barrierHelper;
+	SubmissionTestTracker tracker;
+	tracker.SetExplicitBarriers(true);
+
+	// Buffer hazards queue no barriers and create no hazard state
+	SubmissionTestBuffer buffer;
+	tracker.TrackBufferAccess(&buffer, GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write, barrierHelper);
+	tracker.CommitPendingAccesses();
+	tracker.TrackBufferAccess(&buffer, GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write, barrierHelper);
+	tracker.CommitPendingAccesses();
+	tracker.TrackBufferAccess(&buffer, GpuStageFlag::FragmentShaderUniform, GpuAccessFlag::Read, barrierHelper);
+	tracker.CommitPendingAccesses();
+
+	const GpuBufferTrackingState* const bufferState = tracker.FindBufferTrackingState(&buffer);
+	B3D_TEST_ASSERT(bufferState->HazardState == nullptr)
+	B3D_TEST_ASSERT(bufferState->UseHandle.Flags == (GpuAccessFlag::Read | GpuAccessFlag::Write))
+	B3D_TEST_ASSERT(bufferState->UseHandle.Stages == (GpuStageFlag::ComputeShaderNonUniform | GpuStageFlag::FragmentShaderUniform))
+	B3D_TEST_ASSERT(buffer.GetBoundCount() == 1)
+	B3D_TEST_ASSERT(barrierHelper.BufferBarrierCount == 0)
+
+	// Image hazards and layout changes queue no barriers and create no subresource tracking states
+	SubmissionTestImage image(2, 2, GpuTextureAspectFlag::Color);
+	tracker.TrackImageAccess(&image, GpuTextureSubresourceRange(1, 1, 0, 2, GpuTextureAspectFlag::Color), GpuImageLayout::TransferDestination, GpuStageFlag::Transfer, GpuAccessFlag::Write, barrierHelper);
+	tracker.CommitPendingAccesses();
+	tracker.TrackImageAccess(&image, image.GetRange(), GpuImageLayout::ShaderReadOnly, GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read, barrierHelper);
+	tracker.CommitPendingAccesses();
+
+	const GpuImageTrackingState* const imageState = tracker.FindImageTrackingState(&image);
+	B3D_TEST_ASSERT(imageState->UseHandle.Flags == (GpuAccessFlag::Read | GpuAccessFlag::Write))
+	B3D_TEST_ASSERT(tracker.GetSubresourceTrackingStatesForImage(&image).Size() == 0)
+	B3D_TEST_ASSERT(image.GetBoundCount() == 1)
+	B3D_TEST_ASSERT(image.GetFullRangeSubresource()->GetBoundCount() == 1)
+	B3D_TEST_ASSERT(image.GetSubresource(0, 1, GpuTextureAspectFlag::Color)->GetBoundCount() == 1)
+	B3D_TEST_ASSERT(barrierHelper.ImageBarrierCount == 0)
+
+	// A sampled read-only attachment still makes the render pass use its shader read layout
+	SubmissionTestImage attachmentImage(1, 1, GpuTextureAspectFlag::Color);
+	GpuRenderPassAttachmentUsage attachmentUsage;
+	attachmentUsage.Image = &attachmentImage;
+	attachmentUsage.Range = attachmentImage.GetRange();
+	attachmentUsage.Surface = RT_COLOR0;
+	attachmentUsage.UseFlags = GpuResourceUseFlag::ColorAttachment;
+	attachmentUsage.Access = GpuAccessFlag::Read;
+	attachmentUsage.Layout = GpuImageLayout::ColorAttachment;
+	attachmentUsage.ShaderReadLayout = GpuImageLayout::ShaderReadOnly;
+
+	TInlineArray<GpuRenderPassAttachmentUsage, 1> attachments;
+	attachments.Add(attachmentUsage);
+	tracker.PrepareRenderPass(attachments);
+
+	const GpuResourceUseFlags shaderUse = GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::StageFragmentShader;
+	B3D_TEST_ASSERT(TrackImageBinding(tracker, &attachmentImage, attachmentImage.GetRange(), GpuImageLayout::ShaderReadOnly, shaderUse, GpuAccessFlag::Read, barrierHelper))
+
+	const TArrayView<const GpuResolvedRenderPassAttachmentUsage> resolvedAttachments = tracker.BeginRenderPass(barrierHelper);
+	B3D_TEST_ASSERT(resolvedAttachments.Size() == 1)
+	B3D_TEST_ASSERT(resolvedAttachments[0].Layout == GpuImageLayout::ShaderReadOnly)
+	tracker.CommitPendingAccesses();
+	tracker.EndRenderPass();
+
+	B3D_TEST_ASSERT(tracker.GetSubresourceTrackingStatesForImage(&attachmentImage).Size() == 0)
+	B3D_TEST_ASSERT(attachmentImage.GetBoundCount() == 1)
+	B3D_TEST_ASSERT(barrierHelper.ImageBarrierCount == 0)
+
+	// Submission resolves no transitions and leaves the submission states as they were
+	SubmissionImageTestVisitor visitor;
+	tracker.ResolveSubmissionTransitions(GpuQueueId(GQT_GRAPHICS, 0), kTestFrameIndex, visitor);
+	B3D_TEST_ASSERT(visitor.NativeStates.Empty())
+	B3D_TEST_ASSERT(!buffer.GetSubmissionState().HasWriter)
+	B3D_TEST_ASSERT(!image.GetFullRangeSubresource()->SubmissionState.HasWriter)
+
+	tracker.NotifyUnbound();
+	tracker.Clear();
+	B3D_TEST_ASSERT(buffer.GetBoundCount() == 0)
+	B3D_TEST_ASSERT(image.GetBoundCount() == 0)
+	B3D_TEST_ASSERT(attachmentImage.GetBoundCount() == 0)
+	B3D_TEST_ASSERT(tracker.UsesExplicitBarriers())
+}
+#endif
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 void GpuBackendTestSuite::TestDrawAccessValidation()

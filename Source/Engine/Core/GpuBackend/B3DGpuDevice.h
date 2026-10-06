@@ -14,6 +14,10 @@
 #include "B3DGpuSubmitThread.h"
 #include "B3DGpuWorkContext.h"
 
+#if B3D_GPU_EXPLICIT_BARRIERS
+#include "B3DGpuSplitBarrier.h"
+#endif
+
 namespace b3d::render
 {
 	class GpuQueryPool;
@@ -280,6 +284,14 @@ namespace b3d
 
 		/** Creates a timeline fence that can be signaled when command buffer execution finishes. */
 		virtual TShared<GpuTimelineFence> CreateTimelineFence() = 0;
+
+#if B3D_GPU_EXPLICIT_BARRIERS
+		/**
+		 * Creates an object that connects the release of a split barrier with its acquire. See
+		 * render::GpuCommandBuffer::ReleaseBarriers(). Thread safe.
+		 */
+		virtual TShared<render::GpuSplitBarrier> CreateSplitBarrier();
+#endif
 
 		/**
 		 * Backend factory for a context-owned scratch (linear/bump) allocator. Manufactures an

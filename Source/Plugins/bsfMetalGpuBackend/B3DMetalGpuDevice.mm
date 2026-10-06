@@ -533,11 +533,6 @@ namespace b3d
 			GetSubmitThread().QueueEndFrameAndWaitForPreviousFrame();
 		}
 
-		void MetalGpuDevice::NotifyWillQueueForSubmit(GpuCommandBuffer& commandBuffer)
-		{
-			static_cast<MetalGpuCommandBuffer&>(commandBuffer).NotifyWillQueueForSubmit();
-		}
-
 		void MetalGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 		{
 			MetalGpuQueue& metalQueue = static_cast<MetalGpuQueue&>(queue);

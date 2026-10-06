@@ -37,19 +37,6 @@ namespace b3d::render
 	public:
 		virtual ~IGpuSubmitThreadBackend() = default;
 
-		/** @name Render thread
-		 *  @{
-		 */
-
-		/**
-		 * Called on the command buffer's owning thread just before it is queued for submission on the submit
-		 * thread. The backend should release any command buffer state that must not be touched from the submit
-		 * thread.
-		 */
-		virtual void NotifyWillQueueForSubmit(GpuCommandBuffer& commandBuffer) = 0;
-
-		/** @} */
-
 		/** @name Submit thread
 		 *  @{
 		 */
