@@ -192,7 +192,7 @@ namespace b3d
 
 		TDenseMap& operator=(const TDenseMap<Key, Value>& other)
 		{
-			if(this == other)
+			if(this == &other)
 				return *this;
 
 			copy(other);
