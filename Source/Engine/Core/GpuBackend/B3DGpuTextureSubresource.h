@@ -67,6 +67,19 @@ namespace b3d
 			return count;
 		}
 
+		/** Returns a hash value for the range. */
+		u64 GenerateHash() const
+		{
+			size_t hash = 0;
+			B3DCombineHash(hash, BaseMipLevel);
+			B3DCombineHash(hash, MipLevelCount);
+			B3DCombineHash(hash, BaseArrayLayer);
+			B3DCombineHash(hash, ArrayLayerCount);
+			B3DCombineHash(hash, (u32)AspectMask);
+
+			return hash;
+		}
+
 		u32 BaseMipLevel = 0;
 		u32 MipLevelCount = 1;
 		u32 BaseArrayLayer = 0;

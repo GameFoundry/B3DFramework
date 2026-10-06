@@ -394,6 +394,18 @@ namespace b3d
 				: Stages(stages), Access(access), Layout(layout), Compression(compression)
 			{ }
 
+			/** Returns a hash value for the access state. */
+			u64 GenerateHash() const
+			{
+				size_t hash = 0;
+				B3DCombineHash(hash, (u32)Stages);
+				B3DCombineHash(hash, (u32)Access);
+				B3DCombineHash(hash, Layout);
+				B3DCombineHash(hash, Compression);
+
+				return hash;
+			}
+
 			GpuStageFlags Stages = GpuStageFlag::None; /**< Stages accessing the resource. None in the source if nothing accessed it yet. */
 			GpuAccessFlags Access = GpuAccessFlag::None; /**< Whether the stages read or write the resource. */
 
@@ -414,6 +426,17 @@ namespace b3d
 				: Source(source), Destination(destination), Flags(flags)
 			{ }
 
+			/** Returns a hash value for the fields common to all explicit barriers. */
+			u64 GenerateHash() const
+			{
+				size_t hash = 0;
+				B3DCombineHash(hash, Source.GenerateHash());
+				B3DCombineHash(hash, Destination.GenerateHash());
+				B3DCombineHash(hash, (u32)Flags);
+
+				return hash;
+			}
+
 			GpuAccessState Source; /**< Accesses before the barrier. The barrier makes their writes visible to the destination. */
 			GpuAccessState Destination; /**< Accesses after the barrier. */
 
@@ -432,6 +455,16 @@ namespace b3d
 				: GpuExplicitBarrier(source, destination, flags), Object(object)
 			{ }
 
+			/** Returns a hash value for the barrier. Identifies the buffer by its address. */
+			u64 GenerateHash() const
+			{
+				size_t hash = 0;
+				B3DCombineHash(hash, Object.get());
+				B3DCombineHash(hash, GpuExplicitBarrier::GenerateHash());
+
+				return hash;
+			}
+
 			TShared<GpuBuffer> Object;
 		};
 
@@ -442,6 +475,17 @@ namespace b3d
 				const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources(), GpuBarrierFlags flags = GpuBarrierFlag::None)
 				: GpuExplicitBarrier(source, destination, flags), Object(object), SubresourceRange(subresourceRange)
 			{ }
+
+			/** Returns a hash value for the barrier. Identifies the texture by its address. */
+			u64 GenerateHash() const
+			{
+				size_t hash = 0;
+				B3DCombineHash(hash, Object.get());
+				B3DCombineHash(hash, SubresourceRange.GenerateHash());
+				B3DCombineHash(hash, GpuExplicitBarrier::GenerateHash());
+
+				return hash;
+			}
 
 			TShared<Texture> Object;
 			GpuTextureSubresourceRange SubresourceRange; /**< Subresources (mips, array layers, aspects) the barrier applies to. */
@@ -457,6 +501,18 @@ namespace b3d
 				const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources(), GpuBarrierFlags flags = GpuBarrierFlag::None)
 				: GpuExplicitBarrier(source, destination, flags), Object(object), SurfaceMask(surfaceMask), SubresourceRange(subresourceRange)
 			{ }
+
+			/** Returns a hash value for the barrier. Identifies the render target by its address. */
+			u64 GenerateHash() const
+			{
+				size_t hash = 0;
+				B3DCombineHash(hash, Object.get());
+				B3DCombineHash(hash, SurfaceMask);
+				B3DCombineHash(hash, SubresourceRange.GenerateHash());
+				B3DCombineHash(hash, GpuExplicitBarrier::GenerateHash());
+
+				return hash;
+			}
 
 			TShared<RenderTarget> Object;
 			RenderSurfaceMaskBits SurfaceMask; /**< Surface of the render target the barrier applies to. Must be a single bit. */
@@ -494,6 +550,22 @@ namespace b3d
 			GpuExplicitBarriers(const GpuExplicitRenderTargetBarrier& renderTargetBarrier)
 				: RenderTargetBarriers(&renderTargetBarrier, 1)
 			{ }
+
+			/** Returns a hash value for the barriers. Depends on their order. */
+			u64 GenerateHash() const
+			{
+				size_t hash = 0;
+				for(const GpuExplicitBufferBarrier& barrier : BufferBarriers)
+					B3DCombineHash(hash, barrier.GenerateHash());
+
+				for(const GpuExplicitTextureBarrier& barrier : TextureBarriers)
+					B3DCombineHash(hash, barrier.GenerateHash());
+
+				for(const GpuExplicitRenderTargetBarrier& barrier : RenderTargetBarriers)
+					B3DCombineHash(hash, barrier.GenerateHash());
+
+				return hash;
+			}
 
 			TArrayView<const GpuExplicitBufferBarrier> BufferBarriers;
 			TArrayView<const GpuExplicitTextureBarrier> TextureBarriers;

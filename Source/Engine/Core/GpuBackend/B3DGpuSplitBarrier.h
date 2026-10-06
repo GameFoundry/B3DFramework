@@ -57,6 +57,7 @@ namespace b3d::render
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		std::atomic<ReleaseSubmission> mReleaseSubmission = ReleaseSubmission::Pending;
 		std::atomic<u32> mReleaseQueue = 0; /**< GpuQueueId::Id of the queue the release was submitted on. */
+		std::atomic<u64> mBarrierHash = 0; /**< Hash of the barriers of the half recorded first, or 0 if neither was recorded. */
 #endif
 	};
 

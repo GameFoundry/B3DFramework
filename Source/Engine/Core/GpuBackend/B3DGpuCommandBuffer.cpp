@@ -194,6 +194,30 @@ void GpuCommandBuffer::NotifyWillQueueForSubmit([[maybe_unused]] GpuQueueId queu
 }
 
 #if B3D_GPU_EXPLICIT_BARRIERS
+#if B3D_BUILD_TYPE_DEVELOPMENT
+namespace
+{
+	/**
+	 * Checks that both halves of a split barrier are given the same barriers. The half recorded first stores the hash of its barriers
+	 * in @p recordedHash, and the other half compares against it. The acquire derives its synchronization from the barriers alone,
+	 * so it misses the work of the release if they differ.
+	 */
+	void ValidateSplitBarrierHalf(std::atomic<u64>& recordedHash, const GpuExplicitBarriers& barriers)
+	{
+		const u64 hash = barriers.GenerateHash();
+
+		// 0 marks a split barrier with neither half recorded
+		const u64 barriersHash = hash != 0 ? hash : 1;
+
+		u64 otherHalfHash = 0;
+		if(recordedHash.compare_exchange_strong(otherHalfHash, barriersHash))
+			return;
+
+		B3D_ENSURE_LOG(otherHalfHash == barriersHash, "The release and the acquire of a split barrier must be given the same barriers, in the same order.");
+	}
+}
+#endif
+
 void GpuCommandBuffer::IssueExplicitBarriers(const GpuExplicitBarriers& barriers)
 {
 	EnsureValidThread();
@@ -236,6 +260,7 @@ void GpuCommandBuffer::ReleaseBarriers(const GpuExplicitBarriers& barriers, cons
 	recorded.SplitBarrier = split;
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	recorded.Phase = GpuBarrierPhase::Release;
+	ValidateSplitBarrierHalf(split->mBarrierHash, barriers);
 #endif
 	mSplitBarriers.Add(std::move(recorded));
 }
@@ -264,6 +289,7 @@ void GpuCommandBuffer::AcquireBarriers(const GpuExplicitBarriers& barriers, cons
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	recorded.Phase = GpuBarrierPhase::Acquire;
 	recorded.IsReleasedByRecording = std::any_of(mSplitBarriers.begin(), mSplitBarriers.end(), [&split](const RecordedSplitBarrier& entry) { return entry.SplitBarrier == split; });
+	ValidateSplitBarrierHalf(split->mBarrierHash, barriers);
 #endif
 	mSplitBarriers.Add(std::move(recorded));
 }
