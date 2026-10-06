@@ -87,7 +87,7 @@ void GpuSubmitThread::QueueSubmit(const TShared<GpuCommandBuffer>& commandBuffer
 		mBackend.ExecuteSubmit(queue, commandBuffer, syncMask, signalFences);
 	};
 
-	mBackend.NotifyWillQueueForSubmit(*commandBuffer);
+	commandBuffer->NotifyWillQueueForSubmit(queue.GetId(), syncMask | commandBuffer->GetQueueSyncMask());
 	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "Command buffer submit");
 
 	if (blocking)

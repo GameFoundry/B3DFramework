@@ -77,6 +77,13 @@ void GpuDevice::DestroyTransientHeapPools()
 	mTransientHeapPools.Clear();
 }
 
+#if B3D_GPU_EXPLICIT_BARRIERS
+TShared<render::GpuSplitBarrier> GpuDevice::CreateSplitBarrier()
+{
+	return B3DMakeShared<render::GpuSplitBarrier>();
+}
+#endif
+
 namespace
 {
 	/**

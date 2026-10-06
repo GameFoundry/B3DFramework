@@ -524,11 +524,6 @@ void VulkanGpuDevice::WaitUntilIdle()
 	GetSubmitThread().WaitUntilIdle();
 }
 
-void VulkanGpuDevice::NotifyWillQueueForSubmit(GpuCommandBuffer& commandBuffer)
-{
-	static_cast<VulkanGpuCommandBuffer&>(commandBuffer).NotifyWillQueueForSubmit();
-}
-
 void VulkanGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
 	VulkanGpuQueue& vulkanQueue = static_cast<VulkanGpuQueue&>(queue);

@@ -1409,8 +1409,10 @@ D3D12GpuCommandBufferSubmitInformation D3D12GpuCommandBuffer::PrepareForSubmitOn
 	return submitInformation;
 }
 
-void D3D12GpuCommandBuffer::NotifyWillQueueForSubmit()
+void D3D12GpuCommandBuffer::NotifyWillQueueForSubmit(GpuQueueId queueId, GpuQueueMask syncMask)
 {
+	GpuCommandBuffer::NotifyWillQueueForSubmit(queueId, syncMask);
+
 	EnsureValidThread();
 
 	// Clear everything not allowed on the submit thread.

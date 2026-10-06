@@ -59,6 +59,8 @@ set(B3D_BUILD_IMPORTERS ON CACHE BOOL "Build asset importer plugins and the impo
 
 set(B3D_BUILD_COOK_TOOL ON CACHE BOOL "Build the offline asset cook tool.")
 
+set(B3D_GPU_EXPLICIT_BARRIERS ON CACHE BOOL "Support explicit GPU barriers, whose source and destination the caller provides, next to the automatic barriers of the resource tracker.")
+
 # Apply platform-specific option overrides, if the target platform defines any.
 if(COMMAND B3DApplyPlatformOptionOverrides)
 	B3DApplyPlatformOptionOverrides()

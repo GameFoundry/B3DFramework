@@ -49,7 +49,7 @@ namespace b3d
 			 * Called on the owner thread just before the command buffer is handed to the submit thread. Releases the
 			 * recording state the submit thread must not touch.
 			 */
-			void NotifyWillQueueForSubmit();
+			void NotifyWillQueueForSubmit(GpuQueueId queueId, GpuQueueMask syncMask) override;
 
 			/**
 			 * Notifies the command buffer that the pool it was allocated from was reset, returning a finished command

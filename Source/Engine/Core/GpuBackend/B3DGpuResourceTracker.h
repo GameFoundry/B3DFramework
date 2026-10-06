@@ -356,6 +356,18 @@ namespace b3d
 			/** Identifies the current access batch. Advances whenever pending accesses are committed, including barrier-only batches; resets on Clear(). */
 			u64 GetEpoch() const { return mEpoch; }
 
+#if B3D_GPU_EXPLICIT_BARRIERS
+			/**
+			 * Enables or disables explicit barriers. With explicit barriers the caller issues every barrier, so the tracker only keeps the
+			 * tracked resources alive: it resolves no hazards, queues no barriers and resolves no submission transitions. Persists through
+			 * Clear(). Change only while no resources are tracked.
+			 */
+			void SetExplicitBarriers(bool enabled) { mExplicitBarriers = enabled; }
+
+			/** Returns true if the caller issues every barrier. See SetExplicitBarriers(). */
+			bool UsesExplicitBarriers() const { return mExplicitBarriers; }
+#endif
+
 			/** Returns the internal map of all tracked buffers and their tracking states. */
 			TDenseMap<IGpuBufferResource*, GpuBufferTrackingState>& GetBuffers() { return mBuffers; }
 
@@ -427,6 +439,11 @@ namespace b3d
 			 */
 			// TODO - Refactor this signature, try to clean it up once we have explicit layout transitions
 			void TrackSubresourceUsage(IGpuImageResource* image, u32 globalSubresourceIndex, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, GpuBarrierFlags barrierFlags, GpuImageTrackingFlags trackingFlags = GpuImageTrackingFlag::None);
+
+#if B3D_GPU_EXPLICIT_BARRIERS
+			/** TrackShaderImageAccess() with explicit barriers: validates render pass attachment overlap and keeps the image alive. */
+			bool TrackExplicitShaderImageAccess(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags);
+#endif
 
 			/** Records a resting read of @p image if the image has no subresource tracking states. Returns false if the access must be tracked instead. */
 			bool TryTrackRestingImageRead(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags accessFlags);
@@ -514,6 +531,10 @@ namespace b3d
 
 			u64 mEpoch = 1; /**< Incremented every time accesses are commited (usually after the barrier helper executes). */
 			u32 mAttachmentsNeedingAccess = 0; /**< Indices of active attachments interrupted by internal operations. */
+
+#if B3D_GPU_EXPLICIT_BARRIERS
+			bool mExplicitBarriers = false; /**< True if the caller issues every barrier. See SetExplicitBarriers(). */
+#endif
 		};
 
 		/** @} */

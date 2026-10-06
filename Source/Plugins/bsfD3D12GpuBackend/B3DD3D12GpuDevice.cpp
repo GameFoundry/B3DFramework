@@ -460,11 +460,6 @@ void D3D12GpuDevice::WaitUntilIdle()
 
 }
 
-void D3D12GpuDevice::NotifyWillQueueForSubmit(GpuCommandBuffer& commandBuffer)
-{
-	static_cast<D3D12GpuCommandBuffer&>(commandBuffer).NotifyWillQueueForSubmit();
-}
-
 void D3D12GpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
 	const TShared<D3D12GpuCommandBuffer> d3d12CommandBuffer = std::static_pointer_cast<D3D12GpuCommandBuffer>(commandBuffer);

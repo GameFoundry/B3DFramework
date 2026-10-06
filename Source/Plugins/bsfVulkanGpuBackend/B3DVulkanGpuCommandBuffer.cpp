@@ -1540,8 +1540,10 @@ void VulkanGpuCommandBuffer::NotifyWasSubmitted(GpuQueueId queueId)
 	mResourceTracker.NotifyUsed(queueId);
 }
 
-void VulkanGpuCommandBuffer::NotifyWillQueueForSubmit()
+void VulkanGpuCommandBuffer::NotifyWillQueueForSubmit(GpuQueueId queueId, GpuQueueMask syncMask)
 {
+	GpuCommandBuffer::NotifyWillQueueForSubmit(queueId, syncMask);
+
 	// Clear everything not allowed on the submit thread
 	mGraphicsPipeline = nullptr;
 	mComputePipeline = nullptr;
