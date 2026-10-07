@@ -370,7 +370,7 @@ namespace b3d
 		} // namespace
 
 		MetalGpuCommandBuffer::MetalGpuCommandBuffer(MetalGpuDevice& device, MetalGpuCommandBufferPool& pool, u32 id, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation)
-			: GpuCommandBuffer(device, ownerThread, queueType, createInformation), mGpuDevice(device), mPool(pool), mId(id), mBarrierHelper(&mResourceTracker)
+			: GpuCommandBuffer(device, ownerThread, queueType, pool.UsesExplicitBarriers(), createInformation), mGpuDevice(device), mPool(pool), mId(id), mBarrierHelper(&mResourceTracker)
 		{
 		}
 
@@ -772,6 +772,7 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::SetGpuParameterSet(const TShared<GpuParameterSet>& parameters)
 		{
+			GpuCommandBuffer::SetGpuParameterSet(parameters);
 			EnsureValidThread();
 
 			// A null set carries no set index, so there is no slot to clear. Sets are replaced by binding another set at the same index.
@@ -891,6 +892,7 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState)
 		{
+			GpuCommandBuffer::SetGpuGraphicsPipelineState(pipelineState);
 			EnsureValidThread();
 
 			mBoundGraphicsPipeline = std::static_pointer_cast<MetalGpuGraphicsPipelineState>(pipelineState);
@@ -900,6 +902,7 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::SetGpuComputePipelineState(const TShared<GpuComputePipelineState>& pipelineState)
 		{
+			GpuCommandBuffer::SetGpuComputePipelineState(pipelineState);
 			EnsureValidThread();
 
 			mBoundComputePipeline = pipelineState;
@@ -1063,6 +1066,7 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount)
 		{
+			GpuCommandBuffer::SetVertexBuffers(index, buffers, bufferCount);
 			EnsureValidThread();
 
 			// Native handles are resolved at draw time, see mBoundVertexBuffers
@@ -1116,6 +1120,7 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::SetIndexBuffer(const TShared<GpuBuffer>& buffer)
 		{
+			GpuCommandBuffer::SetIndexBuffer(buffer);
 			EnsureValidThread();
 			mBoundIndexBuffer = buffer;
 		}
@@ -1269,6 +1274,7 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance)
 		{
+			GpuCommandBuffer::Draw(vertexOffset, vertexCount, instanceCount, firstInstance);
 			EnsureValidThread();
 			if (mRenderEncoder == nil || vertexCount == 0)
 				return;
@@ -1285,6 +1291,7 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance)
 		{
+			GpuCommandBuffer::DrawIndexed(startIndex, indexCount, vertexOffset, vertexCount, instanceCount, firstInstance);
 			EnsureValidThread();
 			(void)vertexCount;
 
@@ -1315,6 +1322,7 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u32 groupCountZ)
 		{
+			GpuCommandBuffer::DispatchCompute(groupCountX, groupCountY, groupCountZ);
 			EnsureValidThread();
 			if (groupCountX == 0 || groupCountY == 0 || groupCountZ == 0)
 			{
@@ -1379,6 +1387,7 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& createInformation)
 		{
+			GpuCommandBuffer::BeginRenderPass(createInformation);
 			EnsureValidThread();
 			EnsureEncoderKind(EncoderKind::None);
 
@@ -1772,6 +1781,7 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length)
 		{
+			GpuCommandBuffer::CopyBufferToBuffer(source, destination, sourceOffset, destinationOffset, length);
 			EnsureValidThread();
 
 			if (!source || !destination || length == 0)
@@ -1837,6 +1847,7 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer)
 		{
+			GpuCommandBuffer::CopyBufferToTexture(source, destination, bufferOffset, mipLevel, arrayLayer);
 			EnsureValidThread();
 
 			if (!source || !destination)
@@ -1894,6 +1905,7 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset)
 		{
+			GpuCommandBuffer::CopyTextureToBuffer(source, destination, mipLevel, arrayLayer, bufferOffset);
 			EnsureValidThread();
 			if (!source || !destination)
 				return;
@@ -2385,7 +2397,7 @@ namespace b3d
 				if (resource == nullptr)
 					continue;
 
-				mResourceTracker.TrackExplicitBufferBarrier(resource, GpuBackendUtility::GetStageFlags(bufferBarrier.DestinationUsage), bufferBarrier.DestinationAccess, mBarrierHelper, bufferBarrier.AliasAcquire);
+				mResourceTracker.TrackBufferBarrier(resource, GpuBackendUtility::GetStageFlags(bufferBarrier.DestinationUsage), bufferBarrier.DestinationAccess, mBarrierHelper, bufferBarrier.AliasAcquire);
 			}
 
 			for (const GpuTextureBarrier& textureBarrier : barriers.TextureBarriers)
@@ -2398,7 +2410,7 @@ namespace b3d
 				if (resource == nullptr)
 					continue;
 
-				mResourceTracker.TrackExplicitImageBarrier(resource, textureBarrier.SubresourceRange, GpuBackendUtility::GetStageFlags(textureBarrier.DestinationUsage), textureBarrier.DestinationAccess, textureBarrier.DestinationLayout, mBarrierHelper, textureBarrier.AliasAcquire);
+				mResourceTracker.TrackImageBarrier(resource, textureBarrier.SubresourceRange, GpuBackendUtility::GetStageFlags(textureBarrier.DestinationUsage), textureBarrier.DestinationAccess, textureBarrier.DestinationLayout, mBarrierHelper, textureBarrier.AliasAcquire);
 			}
 
 			for (const GpuRenderTargetBarrier& renderTargetBarrier : barriers.RenderTargetBarriers)
@@ -2737,6 +2749,10 @@ namespace b3d
 				mResourceTracker.NotifyDone(mSubmittedQueueId);
 			else
 				mResourceTracker.NotifyUnbound();
+
+#if B3D_GPU_EXPLICIT_BARRIERS
+			ClearExplicitBarrierState(mResourcesSubmitted);
+#endif
 
 			mResourceTracker.Clear();
 			mResourcesSubmitted = false;

@@ -20,23 +20,6 @@ using namespace b3d::render;
 
 namespace
 {
-	/** Converts reflected shader-stage visibility into the shader-stage flags used by resource tracking. */
-	GpuResourceUseFlags GetShaderResourceUseFlags(const GpuProgramStageBits& stages)
-	{
-		GpuResourceUseFlags output = GpuResourceUseFlag::Undefined;
-		if (stages.IsSetAny(GpuProgramStageBit::Vertex | GpuProgramStageBit::Hull | GpuProgramStageBit::Domain | GpuProgramStageBit::Geometry))
-			output |= GpuResourceUseFlag::StageVertexShader;
-
-		if (stages.IsSet(GpuProgramStageBit::Fragment))
-			output |= GpuResourceUseFlag::StageFragmentShader;
-
-		if (stages.IsSet(GpuProgramStageBit::Compute))
-			output |= GpuResourceUseFlag::StageComputeShader;
-
-		// Stage metadata should always be present on a pipeline layout, but retain a safe fallback for manually built or legacy layouts.
-		return output != GpuResourceUseFlag::Undefined ? output : GpuResourceUseFlag::AnyStage;
-	}
-
 	/** Returns the SRV dimension matching a sampled-texture object type. */
 	D3D12_SRV_DIMENSION GetSRVDimension(GpuParameterObjectType type)
 	{
@@ -275,7 +258,7 @@ bool D3D12GpuParameters::TrackResources(const GpuPipelineParameterSetLayout& pip
 			if (uniformInformation == nullptr || uniformInformation->Type != type)
 				continue;
 
-			const GpuResourceUseFlags stageUseFlags = GetShaderResourceUseFlags(pipelineUniformInformation->Usage);
+			GpuResourceUseFlags stageUseFlags = GpuBackendUtility::GetShaderResourceUseFlags(pipelineUniformInformation->Usage);
 			const u32 arraySize = std::min(uniformInformation->ArraySize, pipelineUniformInformation->ArraySize);
 
 			for (u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)

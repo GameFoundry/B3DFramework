@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "GpuBackend/B3DGpuResourceManager.h"
+#include "GpuBackend/B3DGpuBackendUtility.h"
 
 namespace b3d
 {
@@ -263,16 +264,7 @@ namespace b3d
 	{
 		B3D_ASSERT(surface.Face < mFaceCount && surface.MipLevel < mMipLevelCount);
 
-		const u32 remainingFaceCount = surface.Face < mFaceCount ? mFaceCount - surface.Face : 0;
-		const u32 remainingMipLevelCount = surface.MipLevel < mMipLevelCount ? mMipLevelCount - surface.MipLevel : 0;
-
-		GpuTextureSubresourceRange range;
-		range.BaseArrayLayer = surface.Face;
-		range.ArrayLayerCount = surface.FaceCount == 0 ? remainingFaceCount : Math::Min(surface.FaceCount, remainingFaceCount);
-		range.BaseMipLevel = surface.MipLevel;
-		range.MipLevelCount = surface.MipLevelCount == 0 ? remainingMipLevelCount : Math::Min(surface.MipLevelCount, remainingMipLevelCount);
-		range.AspectMask = mFullRange.AspectMask;
-		return range;
+		return GpuBackendUtility::GetSurfaceRange(mFullRange, surface);
 	}
 
 	u32 IGpuImageResource::GetSubresourceIndex(u32 face, u32 mipLevel, GpuTextureAspectFlag aspect) const

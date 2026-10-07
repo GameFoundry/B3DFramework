@@ -87,8 +87,17 @@ namespace b3d
 		void TestRenderPassResourceTracking();
 
 #if B3D_GPU_EXPLICIT_BARRIERS
-		/** Verifies a tracker with explicit barriers keeps resources alive without resolving hazards, barriers or submission transitions. */
-		void TestExplicitBarrierTracking();
+		/** Verifies a tracker without hazard tracking keeps resources alive without resolving hazards, barriers or submission transitions. */
+		void TestTrackingWithoutHazards();
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		/**
+		 * Verifies the errors for explicit barriers and command buffer methods that do not match the state earlier explicit barriers
+		 * declared. Each method is checked on its own resource, so the test fails if a backend override skips the validating base
+		 * implementation. Runs only on devices that support explicit barriers.
+		 */
+		void TestExplicitBarrierValidation();
+#endif
 #endif
 
 		/** Verifies push-constant metadata merging and carrier separation across program stages. */

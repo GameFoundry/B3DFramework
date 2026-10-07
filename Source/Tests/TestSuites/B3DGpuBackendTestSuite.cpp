@@ -8,6 +8,8 @@
 #include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
 #include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuDeviceCapabilities.h"
+#include "GpuBackend/B3DGpuSplitBarrier.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuParameterSetPool.h"
@@ -415,7 +417,10 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestFramebufferAttachmentUsage)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestRenderPassResourceTracking)
 #if B3D_GPU_EXPLICIT_BARRIERS
-	B3D_ADD_TEST(GpuBackendTestSuite::TestExplicitBarrierTracking)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestTrackingWithoutHazards)
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	B3D_ADD_TEST(GpuBackendTestSuite::TestExplicitBarrierValidation)
+#endif
 #endif
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantMetadata)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantWrites)
@@ -1987,7 +1992,7 @@ void GpuBackendTestSuite::TestRestingReadMaterialization()
 		// An explicit barrier after resting reads orders after them, instead of becoming a leading barrier
 		SubmissionTestBuffer barrierBuffer;
 		tracker.TrackBufferAccess(&barrierBuffer, GpuStageFlag::VertexInputAttributes, GpuAccessFlag::Read, barrierHelper);
-		tracker.TrackExplicitBufferBarrier(&barrierBuffer, GpuStageFlag::Transfer, GpuAccessFlag::Write, barrierHelper);
+		tracker.TrackBufferBarrier(&barrierBuffer, GpuStageFlag::Transfer, GpuAccessFlag::Write, barrierHelper);
 		B3D_TEST_ASSERT(!tracker.FindBufferTrackingState(&barrierBuffer)->HazardState->HasLeadingBarrier)
 		B3D_TEST_ASSERT(barrierHelper.LastBufferBarrier.SourceStages == GpuStageFlag::VertexInputAttributes)
 
@@ -2404,14 +2409,14 @@ void GpuBackendTestSuite::TestAliasAcquire()
 	auto fnAcquireImage = [&fnExecuteBarriers](SubmissionTestTracker& tracker, SubmissionTestBarrierHelper& barrierHelper, IGpuImageResource& image, const GpuAliasAcquire& acquire,
 		GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags access)
 	{
-		tracker.TrackExplicitImageBarrier(&image, image.GetRange(), stages, access, layout, barrierHelper, &acquire);
+		tracker.TrackImageBarrier(&image, image.GetRange(), stages, access, layout, barrierHelper, &acquire);
 		fnExecuteBarriers(tracker, barrierHelper, &image, nullptr);
 	};
 
 	auto fnAcquireBuffer = [&fnExecuteBarriers](SubmissionTestTracker& tracker, SubmissionTestBarrierHelper& barrierHelper, IGpuBufferResource& buffer, const GpuAliasAcquire& acquire,
 		GpuStageFlags stages, GpuAccessFlags access)
 	{
-		tracker.TrackExplicitBufferBarrier(&buffer, stages, access, barrierHelper, &acquire);
+		tracker.TrackBufferBarrier(&buffer, stages, access, barrierHelper, &acquire);
 		fnExecuteBarriers(tracker, barrierHelper, nullptr, &buffer);
 	};
 
@@ -2579,7 +2584,7 @@ void GpuBackendTestSuite::TestAliasAcquire()
 		SubmissionTestBarrierHelper barrierHelper;
 
 		fnAcquireBuffer(tracker, barrierHelper, buffer, attachmentWriteAcquire, computeStages, GpuAccessFlag::Write);
-		tracker.TrackExplicitBufferBarrier(&buffer, GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read, barrierHelper);
+		tracker.TrackBufferBarrier(&buffer, GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read, barrierHelper);
 		fnExecuteBarriers(tracker, barrierHelper, nullptr, &buffer);
 
 		B3D_TEST_ASSERT(barrierHelper.BufferBarrierCount == 2)
@@ -2727,7 +2732,7 @@ void GpuBackendTestSuite::TestAliasAcquire()
 		{
 			LoggingScope logs(*this);
 			logs.ExpectError("An alias acquire must precede every other use of the GPU image on the command buffer.");
-			tracker.TrackExplicitImageBarrier(&image, image.GetRange(), computeStages, GpuAccessFlag::Write, GpuImageLayout::General, barrierHelper, &attachmentWriteAcquire);
+			tracker.TrackImageBarrier(&image, image.GetRange(), computeStages, GpuAccessFlag::Write, GpuImageLayout::General, barrierHelper, &attachmentWriteAcquire);
 		}
 
 		B3D_TEST_ASSERT(!tracker.GetSubresourceTrackingState(&image, 0, 0, GpuTextureAspectFlag::Color).IsAliasAcquired())
@@ -2746,9 +2751,9 @@ void GpuBackendTestSuite::TestAliasAcquire()
 			LoggingScope logs(*this);
 			logs.ExpectError("An alias acquire must cover the whole GPU image.");
 			logs.ExpectError("An alias acquire of a GPU image must provide a destination layout.");
-			tracker.TrackExplicitImageBarrier(&image, GpuTextureSubresourceRange(0, 1, 0, 1, GpuTextureAspectFlag::Color), computeStages, GpuAccessFlag::Write, GpuImageLayout::General, barrierHelper,
+			tracker.TrackImageBarrier(&image, GpuTextureSubresourceRange(0, 1, 0, 1, GpuTextureAspectFlag::Color), computeStages, GpuAccessFlag::Write, GpuImageLayout::General, barrierHelper,
 				&attachmentWriteAcquire);
-			tracker.TrackExplicitImageBarrier(&image, image.GetRange(), computeStages, GpuAccessFlag::Write, GpuImageLayout::Undefined, barrierHelper, &attachmentWriteAcquire);
+			tracker.TrackImageBarrier(&image, image.GetRange(), computeStages, GpuAccessFlag::Write, GpuImageLayout::Undefined, barrierHelper, &attachmentWriteAcquire);
 		}
 
 		B3D_TEST_ASSERT(tracker.FindImageTrackingState(&image) == nullptr)
@@ -2872,11 +2877,11 @@ void GpuBackendTestSuite::TestAliasAcquire()
 		SubmissionTestBarrierHelper barrierHelper;
 		fnExecuteImageAccess(tracker, barrierHelper, predecessor, GpuImageLayout::ColorAttachment, attachmentStages, GpuAccessFlag::Write);
 
-		tracker.TrackExplicitImageBarrier(&predecessor, predecessor.GetRange(), computeStages, GpuAccessFlag::Read, GpuImageLayout::General, barrierHelper);
+		tracker.TrackImageBarrier(&predecessor, predecessor.GetRange(), computeStages, GpuAccessFlag::Read, GpuImageLayout::General, barrierHelper);
 		{
 			LoggingScope logs(*this);
 			logs.ExpectError("A barrier of an earlier resource on the memory is issued together with the alias acquire that supersedes it.");
-			tracker.TrackExplicitImageBarrier(&successor, successor.GetRange(), computeStages, GpuAccessFlag::Write, GpuImageLayout::General, barrierHelper, &acquire);
+			tracker.TrackImageBarrier(&successor, successor.GetRange(), computeStages, GpuAccessFlag::Write, GpuImageLayout::General, barrierHelper, &acquire);
 		}
 
 		fnExecuteBarriers(tracker, barrierHelper, &successor, nullptr);
@@ -3397,11 +3402,11 @@ void GpuBackendTestSuite::TestRenderPassResourceTracking()
 }
 
 #if B3D_GPU_EXPLICIT_BARRIERS
-void GpuBackendTestSuite::TestExplicitBarrierTracking()
+void GpuBackendTestSuite::TestTrackingWithoutHazards()
 {
 	SubmissionTestBarrierHelper barrierHelper;
 	SubmissionTestTracker tracker;
-	tracker.SetExplicitBarriers(true);
+	tracker.SetHazardTracking(false);
 
 	// Buffer hazards queue no barriers and create no hazard state
 	SubmissionTestBuffer buffer;
@@ -3474,8 +3479,177 @@ void GpuBackendTestSuite::TestExplicitBarrierTracking()
 	B3D_TEST_ASSERT(buffer.GetBoundCount() == 0)
 	B3D_TEST_ASSERT(image.GetBoundCount() == 0)
 	B3D_TEST_ASSERT(attachmentImage.GetBoundCount() == 0)
-	B3D_TEST_ASSERT(tracker.UsesExplicitBarriers())
+	B3D_TEST_ASSERT(!tracker.TracksHazards())
 }
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+void GpuBackendTestSuite::TestExplicitBarrierValidation()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0 || !backend.GetDevice(0)->GetCapabilities().HasCapability(RSC_EXPLICIT_BARRIERS))
+		return;
+
+	// Each case uses its own resource, named after the case, so the errors do not cascade and each one identifies its case
+	const String undeclaredStages = "The resource was accessed in stages that its last explicit barrier does not declare.";
+	LoggingScope logs(*this);
+	logs.ExpectError("The source layout of an explicit barrier differs from the destination layout of the previous barrier of the resource. Image: 'SourceLayout'.");
+	logs.ExpectError("The source of an explicit barrier is missing stages that accessed the resource since the previous barrier. Buffer: 'MissingStages'.");
+	logs.ExpectError("The source of an explicit barrier is missing the writes of the resource since the previous barrier. Buffer: 'MissingWrites'.");
+	logs.ExpectError("The resource was accessed with reads or writes that its last explicit barrier does not declare. Buffer: 'UndeclaredWrite'.");
+	logs.ExpectError("The resource was accessed between the release and the acquire of a split barrier. Buffer: 'AccessBetweenHalves'.");
+	logs.ExpectError("An explicit barrier was recorded between the release and the acquire of a split barrier of the same resource. Buffer: 'BarrierBetweenHalves'.");
+	logs.ExpectError("An alias acquire must precede every other use of the resource on the command buffer. Buffer: 'LateAliasAcquire'.");
+	logs.ExpectError("The release and the acquire of a split barrier must be given the same barriers, in the same order.");
+	logs.ExpectError("The image was accessed in a different layout than its last explicit barrier declares. Image: 'RenderPassLayout'.");
+	for(const char* name : { "Buffer: 'CopyBufferToBuffer'.", "Image: 'CopyBufferToTexture'.", "Image: 'CopyTextureToBuffer'.", "Image: 'CopyTexture'.", "Image: 'BlitTexture'.", "Image: 'RenderPass'." })
+		logs.ExpectError(undeclaredStages + " " + name);
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	GetRenderThread().PostCommand([&device]()
+	{
+		static constexpr u32 kSize = 16;
+		const GpuAccessFlags readWrite = GpuAccessFlag::Read | GpuAccessFlag::Write;
+		const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write, GpuImageLayout::TransferDestination);
+		const GpuAccessState transferRead(GpuStageFlag::Transfer, GpuAccessFlag::Read, GpuImageLayout::TransferSource);
+		const GpuAccessState colorAttachment(GpuStageFlag::ColorAttachment, readWrite, GpuImageLayout::ColorAttachment);
+
+		// Declares accesses in other stages than the ones the commands access in
+		const GpuAccessState host(GpuStageFlag::Host, readWrite);
+
+		const auto fnCreateBuffer = [&device](const char* name)
+		{
+			const TShared<render::GpuBuffer> buffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize));
+			buffer->SetName(name);
+			return buffer;
+		};
+
+		const auto fnCreateTexture = [&device](const char* name)
+		{
+			TextureCreateInformation information;
+			information.Name = name;
+			information.Width = kSize;
+			information.Height = kSize;
+			information.Format = PF_RGBA8;
+			information.Usage = TextureUsageFlag::RenderTarget;
+			return device->CreateTexture(information);
+		};
+
+		const auto fnCreateTarget = [](const TShared<render::Texture>& texture)
+		{
+			render::RenderTextureCreateInformation information;
+			information.ColorSurfaces[0].Texture = texture;
+			return render::RenderTexture::Create(information);
+		};
+
+		GpuCommandBufferPoolCreateInformation poolInformation = GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_GRAPHICS);
+		poolInformation.ExplicitBarriers = true;
+		const TShared<GpuCommandBufferPool> pool = device->CreateGpuCommandBufferPool(poolInformation);
+		const TShared<GpuCommandBuffer> commandBuffer = pool->Create(GpuCommandBufferCreateInformation::Create("Explicit barrier validation"));
+
+		const TShared<render::GpuBuffer> source = fnCreateBuffer("Source");
+		const TShared<render::Texture> sourceTexture = fnCreateTexture("SourceTexture");
+		const ImageSubresourcePitch pitch = sourceTexture->GetStagingBufferPitchForSubresource(0, 0);
+		const u32 stagingSize = pitch.RowPitch * pitch.SliceHeight * 4;
+		const TShared<render::GpuBuffer> upload = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(stagingSize));
+		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(stagingSize));
+		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(source, GpuAccessState(), transferRead));
+		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(upload, GpuAccessState(), transferRead));
+		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(sourceTexture, GpuAccessState(), transferRead));
+		const auto fnCopy = [&commandBuffer, &source](const TShared<render::GpuBuffer>& destination) { commandBuffer->CopyBufferToBuffer(source, destination, 0, 0, sizeof(u32)); };
+
+		// The source layout must be the declared layout
+		const TShared<render::Texture> sourceLayout = fnCreateTexture("SourceLayout");
+		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(sourceLayout, GpuAccessState(), transferWrite));
+		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(sourceLayout, transferRead, colorAttachment));
+
+		// The source must include the stages and the writes since the previous barrier
+		const TShared<render::GpuBuffer> missingStages = fnCreateBuffer("MissingStages");
+		fnCopy(missingStages);
+		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(missingStages, GpuAccessState(GpuStageFlag::VertexShaderNonUniform, GpuAccessFlag::Write), transferRead));
+
+		const TShared<render::GpuBuffer> missingWrites = fnCreateBuffer("MissingWrites");
+		fnCopy(missingWrites);
+		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(missingWrites, transferRead, transferRead));
+
+		// Accesses must be declared by the last barrier
+		const TShared<render::GpuBuffer> undeclaredWrite = fnCreateBuffer("UndeclaredWrite");
+		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(undeclaredWrite, GpuAccessState(), transferRead));
+		fnCopy(undeclaredWrite);
+
+		// The resource must not be accessed, or given another barrier, between the halves of a split barrier
+		const TShared<render::GpuBuffer> accessBetweenHalves = fnCreateBuffer("AccessBetweenHalves");
+		const TShared<GpuSplitBarrier> accessedSplit = device->CreateSplitBarrier();
+		const GpuExplicitBufferBarrier accessedBarrier(accessBetweenHalves, transferWrite, transferRead);
+		commandBuffer->ReleaseBarriers(accessedBarrier, accessedSplit);
+		commandBuffer->CopyBufferToBuffer(accessBetweenHalves, readback, 0, 0, sizeof(u32));
+		commandBuffer->AcquireBarriers(accessedBarrier, accessedSplit);
+
+		const TShared<render::GpuBuffer> barrierBetweenHalves = fnCreateBuffer("BarrierBetweenHalves");
+		const TShared<GpuSplitBarrier> interruptedSplit = device->CreateSplitBarrier();
+		const GpuExplicitBufferBarrier interruptedBarrier(barrierBetweenHalves, transferWrite, transferRead);
+		commandBuffer->ReleaseBarriers(interruptedBarrier, interruptedSplit);
+		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(barrierBetweenHalves, transferWrite, transferRead));
+		commandBuffer->AcquireBarriers(interruptedBarrier, interruptedSplit);
+
+		// An alias acquire must be the first use of the resource
+		const TShared<render::GpuBuffer> lateAliasAcquire = fnCreateBuffer("LateAliasAcquire");
+		fnCopy(lateAliasAcquire);
+		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(lateAliasAcquire, GpuAccessState(), transferWrite, GpuBarrierFlag::AliasAcquire));
+
+		// Both halves of a split barrier must be given the same barriers
+		const TShared<render::GpuBuffer> mismatchedHalves = fnCreateBuffer("MismatchedHalves");
+		const TShared<GpuSplitBarrier> mismatchedSplit = device->CreateSplitBarrier();
+		commandBuffer->ReleaseBarriers(GpuExplicitBufferBarrier(mismatchedHalves, transferWrite, transferRead), mismatchedSplit);
+		commandBuffer->AcquireBarriers(GpuExplicitBufferBarrier(mismatchedHalves, transferWrite, GpuAccessState(GpuStageFlag::Host, GpuAccessFlag::Read)), mismatchedSplit);
+
+		// Each command validates its accesses
+		const TShared<render::GpuBuffer> copyBufferToBuffer = fnCreateBuffer("CopyBufferToBuffer");
+		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(copyBufferToBuffer, GpuAccessState(), host));
+		commandBuffer->CopyBufferToBuffer(copyBufferToBuffer, readback, 0, 0, sizeof(u32));
+
+		const TShared<render::Texture> copyBufferToTexture = fnCreateTexture("CopyBufferToTexture");
+		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(copyBufferToTexture, GpuAccessState(), host));
+		commandBuffer->CopyBufferToTexture(upload, copyBufferToTexture, 0, 0, 0);
+
+		const TShared<render::Texture> copyTextureToBuffer = fnCreateTexture("CopyTextureToBuffer");
+		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(copyTextureToBuffer, GpuAccessState(), host));
+		commandBuffer->CopyTextureToBuffer(copyTextureToBuffer, readback, 0, 0);
+
+		const TShared<render::Texture> copyTexture = fnCreateTexture("CopyTexture");
+		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(copyTexture, GpuAccessState(), host));
+		commandBuffer->CopyTexture(sourceTexture, copyTexture);
+
+		const TShared<render::Texture> blitTexture = fnCreateTexture("BlitTexture");
+		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(blitTexture, GpuAccessState(), host));
+		commandBuffer->BlitTexture(sourceTexture, blitTexture);
+
+		// Attachments must be declared for the attachment stages, in the attachment layout
+		const TShared<render::Texture> renderPass = fnCreateTexture("RenderPass");
+		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(renderPass, GpuAccessState(), GpuAccessState(GpuStageFlag::FragmentShaderNonUniform, readWrite, GpuImageLayout::ColorAttachment)));
+		commandBuffer->BeginRenderPass(RenderPassCreateInformation(fnCreateTarget(renderPass)));
+		commandBuffer->EndRenderPass();
+
+		const TShared<render::Texture> renderPassLayout = fnCreateTexture("RenderPassLayout");
+		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(renderPassLayout, GpuAccessState(), GpuAccessState(GpuStageFlag::ColorAttachment, readWrite, GpuImageLayout::TransferDestination)));
+		commandBuffer->BeginRenderPass(RenderPassCreateInformation(fnCreateTarget(renderPassLayout)));
+		commandBuffer->EndRenderPass();
+
+		// Correctly declared accesses report nothing
+		const TShared<render::Texture> declared = fnCreateTexture("Declared");
+		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(declared, GpuAccessState(), transferWrite));
+		commandBuffer->CopyTexture(sourceTexture, declared);
+		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(declared, transferWrite, colorAttachment));
+		commandBuffer->BeginRenderPass(RenderPassCreateInformation(fnCreateTarget(declared)));
+		commandBuffer->EndRenderPass();
+		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(declared, colorAttachment, transferRead));
+		commandBuffer->CopyTextureToBuffer(declared, readback, 0, 0);
+
+		// The command buffer is never submitted
+		commandBuffer->End();
+		pool->Reset();
+	}, "GpuBackendTestSuite::TestExplicitBarrierValidation", true);
+}
+#endif
 #endif
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
@@ -3753,7 +3927,7 @@ void GpuBackendTestSuite::TestExplicitBarrierWriteOrdering()
 		fnExecuteBarriers(tracker, barrierHelper, nullptr, &buffer);
 		B3D_TEST_ASSERT(barrierHelper.BufferBarrierCount == 0)
 
-		tracker.TrackExplicitBufferBarrier(&buffer, GpuStageFlag::Transfer, GpuAccessFlag::Write, barrierHelper);
+		tracker.TrackBufferBarrier(&buffer, GpuStageFlag::Transfer, GpuAccessFlag::Write, barrierHelper);
 		fnExecuteBarriers(tracker, barrierHelper, nullptr, &buffer);
 		B3D_TEST_ASSERT(barrierHelper.BufferBarrierCount == 1)
 		B3D_TEST_ASSERT(barrierHelper.LastBufferBarrier.SourceStages == computeStages)
@@ -3781,7 +3955,7 @@ void GpuBackendTestSuite::TestExplicitBarrierWriteOrdering()
 
 		tracker.TrackBufferAccess(&buffer, computeStages, GpuAccessFlag::Write, barrierHelper);
 		fnExecuteBarriers(tracker, barrierHelper, nullptr, &buffer);
-		tracker.TrackExplicitBufferBarrier(&buffer, GpuStageFlag::Transfer, GpuAccessFlag::Read | GpuAccessFlag::Write, barrierHelper);
+		tracker.TrackBufferBarrier(&buffer, GpuStageFlag::Transfer, GpuAccessFlag::Read | GpuAccessFlag::Write, barrierHelper);
 		fnExecuteBarriers(tracker, barrierHelper, nullptr, &buffer);
 		B3D_TEST_ASSERT(barrierHelper.BufferBarrierCount == 1)
 
@@ -3806,7 +3980,7 @@ void GpuBackendTestSuite::TestExplicitBarrierWriteOrdering()
 
 		tracker.TrackImageAccess(&image, image.GetRange(), GpuImageLayout::General, computeStages, GpuAccessFlag::Write, barrierHelper);
 		fnExecuteBarriers(tracker, barrierHelper, &image, nullptr);
-		tracker.TrackExplicitImageBarrier(&image, image.GetRange(), GpuStageFlag::Transfer, GpuAccessFlag::Write, GpuImageLayout::General, barrierHelper);
+		tracker.TrackImageBarrier(&image, image.GetRange(), GpuStageFlag::Transfer, GpuAccessFlag::Write, GpuImageLayout::General, barrierHelper);
 		fnExecuteBarriers(tracker, barrierHelper, &image, nullptr);
 		B3D_TEST_ASSERT(barrierHelper.ImageBarrierCount == 1)
 
@@ -3815,7 +3989,7 @@ void GpuBackendTestSuite::TestExplicitBarrierWriteOrdering()
 		fnExecuteBarriers(tracker, barrierHelper, &image, nullptr);
 		B3D_TEST_ASSERT(barrierHelper.ImageBarrierCount == 1)
 
-		tracker.TrackExplicitImageBarrier(&image, image.GetRange(), computeStages, GpuAccessFlag::Write, GpuImageLayout::General, barrierHelper);
+		tracker.TrackImageBarrier(&image, image.GetRange(), computeStages, GpuAccessFlag::Write, GpuImageLayout::General, barrierHelper);
 		fnExecuteBarriers(tracker, barrierHelper, &image, nullptr);
 		B3D_TEST_ASSERT(barrierHelper.ImageBarrierCount == 2)
 

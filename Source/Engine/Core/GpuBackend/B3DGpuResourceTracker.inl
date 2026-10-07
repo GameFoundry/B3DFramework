@@ -20,10 +20,8 @@ TDerived& TGpuResourceTracker<TDerived, TBarrierHelper>::GetDerived()
 template<class TDerived, class TBarrierHelper>
 void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions(GpuQueueId destinationQueueId, u32 frameIndex, GpuSubmissionTransitionVisitor& visitor)
 {
-#if B3D_GPU_EXPLICIT_BARRIERS
-	if(mExplicitBarriers)
+	if(!mTracksHazards)
 		return;
-#endif
 
 	// Tracks resting reads in the submission state if the resource is at rest, so they need no transition. Returns false if the reads need a GpuSubmissionTransition::Build().
 	auto fnTryTrackRestingRead = [destinationQueueId, frameIndex](GpuResourceSubmissionState& state, GpuStageFlags readStages)
@@ -314,15 +312,13 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::QueueRequiredBufferBarrier(I
 }
 
 template<class TDerived, class TBarrierHelper>
-void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitBufferBarrier(IGpuBufferResource* buffer, GpuStageFlags destinationStages, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper, const GpuAliasAcquire* aliasAcquire)
+void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackBufferBarrier(IGpuBufferResource* buffer, GpuStageFlags destinationStages, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper, const GpuAliasAcquire* aliasAcquire)
 {
 	if(buffer == nullptr)
 		return;
 
-#if B3D_GPU_EXPLICIT_BARRIERS
-	if(!B3D_ENSURE_LOG(!mExplicitBarriers, "Barriers derived from tracked resource state cannot be issued on a command buffer with explicit barriers."))
+	if(!B3D_ENSURE_LOG(mTracksHazards, "Barriers derived from tracked resource state require hazard tracking."))
 		return;
-#endif
 
 	if(aliasAcquire != nullptr)
 	{
@@ -445,19 +441,11 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackBufferAccess(IGpuBuffer
 	// Resting read optimization
 	bool onlyKeepAlive = bufferTrackingState.HazardState == nullptr && accessFlags == GpuAccessFlag::Read && stages != GpuStageFlag::None;
 
-#if B3D_GPU_EXPLICIT_BARRIERS
-	// The caller issues every barrier
-	onlyKeepAlive |= mExplicitBarriers;
-
-#if B3D_BUILD_TYPE_DEVELOPMENT
-	if(mExplicitBarriers)
-		mExplicitBarrierValidator.ValidateAccess(buffer, stages, accessFlags);
-#endif
-#endif
+	onlyKeepAlive |= !mTracksHazards;
 
 	if(onlyKeepAlive)
 	{
-		TrackBufferAccessWithoutBarrier(buffer, bufferTrackingState, stages, accessFlags, dynamicOffset);
+		TrackBufferUsage(buffer, bufferTrackingState, stages, accessFlags, dynamicOffset);
 		return;
 	}
 
@@ -465,7 +453,13 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackBufferAccess(IGpuBuffer
 }
 
 template<class TDerived, class TBarrierHelper>
-void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackBufferAccessWithoutBarrier(IGpuBufferResource* buffer, GpuBufferTrackingState& bufferTrackingState, GpuStageFlags stages, GpuAccessFlags accessFlags, [[maybe_unused]] u32 dynamicOffset)
+void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackBufferUsage(IGpuBufferResource* buffer, GpuStageFlags stages, GpuAccessFlags accessFlags, u32 dynamicOffset)
+{
+	TrackBufferUsage(buffer, GetOrCreateBufferTrackingState(buffer), stages, accessFlags, dynamicOffset);
+}
+
+template<class TDerived, class TBarrierHelper>
+void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackBufferUsage(IGpuBufferResource* buffer, GpuBufferTrackingState& bufferTrackingState, GpuStageFlags stages, GpuAccessFlags accessFlags, [[maybe_unused]] u32 dynamicOffset)
 {
 	B3D_ASSERT(!bufferTrackingState.UseHandle.Used);
 
@@ -491,11 +485,9 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::PrepareRenderPass(TArrayView
 
 		mPendingRenderPassAttachments.Add(PendingRenderPassAttachmentUsage(attachment));
 
-#if B3D_GPU_EXPLICIT_BARRIERS
-		// Explicit barriers need no subresource tracking states
-		if(mExplicitBarriers)
+		// Subresource tracking states only serve hazard tracking
+		if(!mTracksHazards)
 			continue;
-#endif
 
 		// Cut attachment subresource ranges
 		IterateAndCreateOverlappingImageSubresourceTrackingState(attachment.Image, attachment.Range, [](u32, void*) { });
@@ -540,14 +532,11 @@ TArrayView<const GpuResolvedRenderPassAttachmentUsage> TGpuResourceTracker<TDeri
 
 	for(const GpuResolvedRenderPassAttachmentUsage& attachment : mActiveRenderPassAttachments)
 	{
-#if B3D_GPU_EXPLICIT_BARRIERS
-		// Unlike other image accesses, attachments must be in the layout the render pass uses them in
-		if(mExplicitBarriers)
+		if(!mTracksHazards)
 		{
-			TrackExplicitImageAccess(attachment.Image, attachment.Range, attachment.Layout, GpuBackendUtility::GetStageFlags(attachment.UseFlags), attachment.Access);
+			TrackImageUsage(attachment.Image, attachment.Range, GpuBackendUtility::GetStageFlags(attachment.UseFlags), attachment.Access);
 			continue;
 		}
-#endif
 
 		TrackImageAccess(attachment.Image, attachment.Range, attachment.Layout, GpuBackendUtility::GetStageFlags(attachment.UseFlags), attachment.Access, barrierHelper, attachment.BarrierFlags);
 	}
@@ -569,11 +558,9 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::EndRenderPass()
 
 	for(const GpuResolvedRenderPassAttachmentUsage& attachment : mActiveRenderPassAttachments)
 	{
-#if B3D_GPU_EXPLICIT_BARRIERS
-		// With explicit barriers the caller tracks the layouts
-		if(mExplicitBarriers)
+		// Without hazard tracking the caller tracks the layouts
+		if(!mTracksHazards)
 			break;
-#endif
 
 		CallbackParameters callbackParameters;
 		callbackParameters.Self = this;
@@ -683,10 +670,8 @@ bool TGpuResourceTracker<TDerived, TBarrierHelper>::TrackShaderImageAccess(IGpuI
 		return true;
 	}
 
-#if B3D_GPU_EXPLICIT_BARRIERS
-	if(mExplicitBarriers)
-		return TrackExplicitShaderImageAccess(image, subresourceRange, layout, useFlags, accessFlags);
-#endif
+	if(!mTracksHazards)
+		return TrackShaderImageUsage(image, subresourceRange, useFlags, accessFlags);
 
 	const GpuStageFlags stages = GpuBackendUtility::GetStageFlags(useFlags);
 	if(TryTrackRestingImageRead(image, subresourceRange, layout, stages, accessFlags))
@@ -771,7 +756,7 @@ bool TGpuResourceTracker<TDerived, TBarrierHelper>::TrackShaderImageAccess(IGpuI
 	}, &callbackParameters);
 
 	if(callbackParameters.Valid)
-		RegisterImageSubresources(image, subresourceRange, accessFlags, stages);
+		TrackImageUsage(image, subresourceRange, stages, accessFlags);
 
 	return callbackParameters.Valid;
 }
@@ -782,13 +767,11 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackImageAccess(IGpuImageRe
 	if(image == nullptr)
 		return;
 
-#if B3D_GPU_EXPLICIT_BARRIERS
-	if(mExplicitBarriers)
+	if(!mTracksHazards)
 	{
-		TrackExplicitImageAccess(image, subresourceRange, GpuImageLayout::Undefined, stages, accessFlags);
+		TrackImageUsage(image, subresourceRange, stages, accessFlags);
 		return;
 	}
-#endif
 
 	if(barrierFlags == GpuBarrierFlag::None && trackingFlags == GpuImageTrackingFlag::None && TryTrackRestingImageRead(image, subresourceRange, layout, stages, accessFlags))
 		return;
@@ -828,15 +811,13 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackImageAccess(IGpuImageRe
 
 	// For meta-data operations ignore access for now, just make sure the resource is registered. Since meta-data ops are conditional we patch the access during submission
 	// (access for hazard tracking is updated right away though, conservatively)
-	RegisterImageSubresources(image, subresourceRange, trackingFlags.IsSet(GpuImageTrackingFlag::MetadataOperation) ? GpuAccessFlags(GpuAccessFlag::Read) : accessFlags, stages);
+	TrackImageUsage(image, subresourceRange, stages, trackingFlags.IsSet(GpuImageTrackingFlag::MetadataOperation) ? GpuAccessFlags(GpuAccessFlag::Read) : accessFlags);
 }
 
-#if B3D_GPU_EXPLICIT_BARRIERS
 template<class TDerived, class TBarrierHelper>
-bool TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitShaderImageAccess(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags)
+bool TGpuResourceTracker<TDerived, TBarrierHelper>::TrackShaderImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags)
 {
 	const GpuTextureSubresourceRange range = GpuBackendUtility::ClampRange(subresourceRange, image->GetRange());
-	bool isPendingAttachment = false;
 	if(mRenderPassTrackingPhase == RenderPassTrackingPhase::Preparing)
 	{
 		// A shader read of an attachment of the pending render pass makes the render pass use the attachment's shader read layout
@@ -853,7 +834,6 @@ bool TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitShaderImageAcce
 			}
 
 			pendingAttachment.ShaderUseFlags |= useFlags;
-			isPendingAttachment = true;
 		}
 	}
 	else
@@ -864,55 +844,11 @@ bool TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitShaderImageAcce
 			B3D_LOG(Error, LogRenderBackend, "Framebuffer attachments sampled during a render pass must be marked read-only.");
 			return false;
 		}
-
-		// The read uses the layout of the attachment
-		if(attachment != nullptr)
-			layout = GpuImageLayout::Undefined;
 	}
 
-	// The render pass validates the reads of its pending attachments, together with the attachment use
-	if(isPendingAttachment)
-		RegisterImageSubresources(image, range, accessFlags, GpuBackendUtility::GetStageFlags(useFlags));
-	else
-		TrackExplicitImageAccess(image, range, layout, GpuBackendUtility::GetStageFlags(useFlags), accessFlags);
-
+	TrackImageUsage(image, range, GpuBackendUtility::GetStageFlags(useFlags), accessFlags);
 	return true;
 }
-
-template<class TDerived, class TBarrierHelper>
-void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitImageAccess(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, [[maybe_unused]] GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags accessFlags)
-{
-	const GpuTextureSubresourceRange range = GpuBackendUtility::ClampRange(subresourceRange, image->GetRange());
-
-#if B3D_BUILD_TYPE_DEVELOPMENT
-	mExplicitBarrierValidator.ValidateAccess(image, range, layout, stages, accessFlags);
-#endif
-
-	RegisterImageSubresources(image, range, accessFlags, stages);
-}
-
-template<class TDerived, class TBarrierHelper>
-void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitBarrierResource(IGpuBufferResource* buffer, const GpuExplicitBarrier& barrier, [[maybe_unused]] GpuBarrierPhase phase, [[maybe_unused]] const GpuSplitBarrier* split)
-{
-#if B3D_BUILD_TYPE_DEVELOPMENT
-	mExplicitBarrierValidator.ValidateBarrier(buffer, barrier, phase, split);
-#endif
-
-	TrackBufferAccessWithoutBarrier(buffer, GetOrCreateBufferTrackingState(buffer), barrier.Destination.Stages, barrier.Destination.Access | GpuAccessFlag::Read, 0);
-}
-
-template<class TDerived, class TBarrierHelper>
-void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitBarrierResource(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuExplicitBarrier& barrier, [[maybe_unused]] GpuBarrierPhase phase, [[maybe_unused]] const GpuSplitBarrier* split, GpuAccessFlags additionalAccess)
-{
-	const GpuTextureSubresourceRange range = GpuBackendUtility::ClampRange(subresourceRange, image->GetRange());
-
-#if B3D_BUILD_TYPE_DEVELOPMENT
-	mExplicitBarrierValidator.ValidateBarrier(image, range, barrier, phase, split);
-#endif
-
-	RegisterImageSubresources(image, range, barrier.Destination.Access | GpuAccessFlag::Read | additionalAccess, barrier.Destination.Stages);
-}
-#endif
 
 template<class TDerived, class TBarrierHelper>
 bool TGpuResourceTracker<TDerived, TBarrierHelper>::TryTrackRestingImageRead(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags accessFlags)
@@ -937,7 +873,7 @@ bool TGpuResourceTracker<TDerived, TBarrierHelper>::TryTrackRestingImageRead(IGp
 	if(isFirstAccess || !GpuBackendUtility::RangeContains(imageTrackingState.Range, newRange))
 	{
 		imageTrackingState.Range = newRange;
-		RegisterImageSubresources(image, newRange, GpuAccessFlag::Read, stages);
+		TrackImageUsage(image, newRange, stages, GpuAccessFlag::Read);
 	}
 	else
 		imageTrackingState.UseHandle.Stages |= stages;
@@ -946,7 +882,7 @@ bool TGpuResourceTracker<TDerived, TBarrierHelper>::TryTrackRestingImageRead(IGp
 }
 
 template<class TDerived, class TBarrierHelper>
-void TGpuResourceTracker<TDerived, TBarrierHelper>::RegisterImageSubresources(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuAccessFlags accessFlags, GpuStageFlags stages)
+void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& range, GpuStageFlags stages, GpuAccessFlags accessFlags)
 {
 	GpuImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
 	B3D_ASSERT(!imageTrackingState.UseHandle.Used);
@@ -954,8 +890,7 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::RegisterImageSubresources(IG
 	imageTrackingState.UseHandle.Stages |= stages;
 
 	// Register any sub-resources
-	B3D_ASSERT(subresourceRange.ArrayLayerCount != ~0u);
-	B3D_ASSERT(subresourceRange.MipLevelCount != ~0u);
+	const GpuTextureSubresourceRange subresourceRange = GpuBackendUtility::ClampRange(range, image->GetRange());
 
 	if(image->IsFullRange(subresourceRange))
 	{
@@ -983,15 +918,13 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::RegisterImageSubresources(IG
 }
 
 template<class TDerived, class TBarrierHelper>
-void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuStageFlags destinationStages, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper, const GpuAliasAcquire* aliasAcquire)
+void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuStageFlags destinationStages, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper, const GpuAliasAcquire* aliasAcquire)
 {
 	if(image == nullptr)
 		return;
 
-#if B3D_GPU_EXPLICIT_BARRIERS
-	if(!B3D_ENSURE_LOG(!mExplicitBarriers, "Barriers derived from tracked resource state cannot be issued on a command buffer with explicit barriers."))
+	if(!B3D_ENSURE_LOG(mTracksHazards, "Barriers derived from tracked resource state require hazard tracking."))
 		return;
-#endif
 
 	if(aliasAcquire != nullptr)
 	{
@@ -1041,7 +974,7 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitImageBarrier(IG
 			hazardState.LastWriteEpochHazardState.ReaderStages = callbackParameters->Source->ReadStages;
 
 			// The barrier transitions from GpuImageLayout::Undefined, the layout of a new tracking state, and discards the contents
-			callbackParameters->Tracker->RegisterImageSubresources(callbackParameters->Image, subresourceTrackingState.Range, GpuAccessFlag::None, GpuStageFlag::None);
+			callbackParameters->Tracker->TrackImageUsage(callbackParameters->Image, subresourceTrackingState.Range, GpuStageFlag::None, GpuAccessFlag::None);
 			callbackParameters->Tracker->GetDerived().QueueRequiredImageBarrier(callbackParameters->Image, subresourceTrackingState, callbackParameters->DestinationStages, callbackParameters->DestinationAccess,
 				callbackParameters->DestinationLayout, *callbackParameters->BarrierHelper, GpuBarrierFlag::AliasAcquire | GpuBarrierFlag::DiscardContents);
 
@@ -1091,7 +1024,7 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitImageBarrier(IG
 			}
 		}
 
-		callbackParameters->Tracker->RegisterImageSubresources(callbackParameters->Image, subresourceTrackingState.Range, GpuAccessFlag::None, GpuStageFlag::None);
+		callbackParameters->Tracker->TrackImageUsage(callbackParameters->Image, subresourceTrackingState.Range, GpuStageFlag::None, GpuAccessFlag::None);
 		callbackParameters->Tracker->GetDerived().QueueRequiredImageBarrier(callbackParameters->Image, subresourceTrackingState, callbackParameters->DestinationStages, callbackParameters->DestinationAccess, callbackParameters->DestinationLayout, *callbackParameters->BarrierHelper);
 	}, &callbackParameters);
 }
@@ -1892,10 +1825,6 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::Clear()
 	mAttachmentsNeedingAccess = 0;
 	mRenderPassTrackingPhase = RenderPassTrackingPhase::Inactive;
 	mEpoch = 1;
-
-#if B3D_GPU_EXPLICIT_BARRIERS && B3D_BUILD_TYPE_DEVELOPMENT
-	mExplicitBarrierValidator.Clear();
-#endif
 }
 
 	} // namespace render

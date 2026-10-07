@@ -58,6 +58,12 @@ namespace b3d
 		/** Maps resource usage flags to the stages describing on which pipeline stage and how the resource is accessed. */
 		static render::GpuStageFlags GetStageFlags(render::GpuResourceUseFlags usage);
 
+		/**
+		 * Maps the program stages using a shader binding to the shader stage flags used by resource tracking. Returns
+		 * GpuResourceUseFlag::Undefined if @p stages contains no shader stages.
+		 */
+		static render::GpuResourceUseFlags GetShaderResourceUseFlags(GpuProgramStageBits stages);
+
 		/** Returns the stages that queues of @p queueType can execute. */
 		static render::GpuStageFlags GetQueueStageFlags(GpuQueueType queueType);
 
@@ -85,8 +91,18 @@ namespace b3d
 		/** Returns true if @p outer contains every subresource of @p inner. */
 		static bool RangeContains(const GpuTextureSubresourceRange& outer, const GpuTextureSubresourceRange& inner);
 
+		/** Returns the aspects of an image with the engine pixel @p format: depth, depth and stencil, or color. */
+		static GpuTextureAspectFlags GetFormatAspects(PixelFormat format);
+
 		/** Returns @p range with "remaining" counts resolved and aspects limited to those of @p imageRange, the full range of the image. */
 		static GpuTextureSubresourceRange ClampRange(GpuTextureSubresourceRange range, const GpuTextureSubresourceRange& imageRange);
+
+		/**
+		 * Returns the subresource range covering the faces and mip levels described by @p surface, over every aspect of
+		 * @p imageRange, the full range of the image. A zero face or mip count covers everything from the first face or mip
+		 * onward, and explicit counts are clamped to the subresources that remain.
+		 */
+		static GpuTextureSubresourceRange GetSurfaceRange(const GpuTextureSubresourceRange& imageRange, const TextureSurface& surface);
 
 		/**
 		 * Subdivides an image subresource range by cutting it with another range. If the ranges don't overlap, or the

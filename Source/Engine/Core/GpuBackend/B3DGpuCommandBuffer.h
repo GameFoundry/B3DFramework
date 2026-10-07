@@ -18,6 +18,11 @@
 namespace b3d
 {
 	class GpuCommandBufferProfiler;
+
+	namespace render
+	{
+		class GpuExplicitBarrierValidator;
+	}
 }
 
 namespace b3d
@@ -215,10 +220,15 @@ namespace b3d
 			/** Returns true if the pool uses pool-level reset instead of individual command buffer reset. */
 			bool GetUsePoolReset() const { return mInformation.UsePoolReset; }
 
-#if B3D_GPU_EXPLICIT_BARRIERS
 			/** Returns true if command buffers of the pool issue only explicit barriers. See GpuCommandBufferPoolInformation::ExplicitBarriers. */
-			bool UsesExplicitBarriers() const { return mInformation.ExplicitBarriers; }
+			bool UsesExplicitBarriers() const
+			{
+#if B3D_GPU_EXPLICIT_BARRIERS
+				return mInformation.ExplicitBarriers;
+#else
+				return false;
 #endif
+			}
 
 			/** Creates a new command buffer. */
 			virtual TShared<GpuCommandBuffer> Create(const GpuCommandBufferCreateInformation& createInformation) = 0;
@@ -644,7 +654,7 @@ namespace b3d
 			void ClearBindings();
 
 			/** Adds the resources used by the active pipeline's parameter set. Parameters must remain unchanged during the pass. */
-			void AddParameterSet(const GpuParameterSet& parameters, const GpuPipelineParameterSetLayout& layout);
+			void AddParameterSet(const GpuParameterSet& parameters, const GpuPipelineParameterSetLayout& pipelineSetLayout);
 
 			/** Adds one binding; aliases within the same draw are combined. Null resources are ignored. */
 			void AddResource(const void* resource, GpuAccessFlags access);
@@ -681,6 +691,11 @@ namespace b3d
 			/** Returns the current state of the command buffer. */
 			GpuCommandBufferState GetState() const { return mState; }
 
+#if B3D_GPU_EXPLICIT_BARRIERS
+			/** Returns true if the command buffer issues only explicit barriers. See GpuCommandBufferPoolInformation::ExplicitBarriers. */
+			bool UsesExplicitBarriers() const { return mUsesExplicitBarriers; }
+#endif
+
 			/** Assigns an name to the command buffer, primarily used for easier debugging. */
 			virtual void SetName(const StringView& name) { mName = name; }
 
@@ -689,7 +704,7 @@ namespace b3d
 			 * in their GPU programs. The caller must ensure the provided parameters match the bound graphics/compute pipeline
 			 * at the time of the draw/dispatch call.
 			 */
-			virtual void SetGpuParameterSet(const TShared<GpuParameterSet>& parameters) = 0;
+			virtual void SetGpuParameterSet(const TShared<GpuParameterSet>& parameters);
 
 			/**
 			 * Applies an offset from which reads in a buffer should start in a GPU program. This allows caller to quickly change
@@ -710,10 +725,10 @@ namespace b3d
 			virtual void SetPushConstants(u32 offsetInBytes, u32 sizeInBytes, const void* data);
 
 			/** Sets a pipeline state that controls how will subsequent draw commands render primitives. */
-			virtual void SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState) = 0;
+			virtual void SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState);
 
 			/** Sets a pipeline state that controls how will subsequent dispatch commands execute. */
-			virtual void SetGpuComputePipelineState(const TShared<GpuComputePipelineState>& pipelineState) = 0;
+			virtual void SetGpuComputePipelineState(const TShared<GpuComputePipelineState>& pipelineState);
 
 			/**
 			 * Sets the provided vertex buffers starting at the specified source index.	Set buffer to nullptr to clear the
@@ -723,7 +738,7 @@ namespace b3d
 			 * @param	buffers			A list of buffers to bind to the pipeline.
 			 * @param	bufferCount		Number of buffers in the @p buffers list.
 			 */
-			virtual void SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount) = 0;
+			virtual void SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount);
 
 			/**
 			 * Sets an index buffer to use when drawing. Indices in an index buffer reference vertices in the vertex buffer,
@@ -731,7 +746,7 @@ namespace b3d
 			 *
 			 * @param	buffer			Index buffer to bind, null to unbind.
 			 */
-			virtual void SetIndexBuffer(const TShared<GpuBuffer>& buffer) = 0;
+			virtual void SetIndexBuffer(const TShared<GpuBuffer>& buffer);
 
 			/**
 			 * Sets the description of vertex elements in the vertex buffers that will be bound when executing the vertex GPU program.
@@ -756,7 +771,7 @@ namespace b3d
 			 * @param	instanceCount	Number of times to draw the provided geometry, each time with an (optionally) separate per-instance data.
 			 * @param	firstInstance	ID of the first instance to draw.
 			 */
-			virtual void Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount = 0, u32 firstInstance = 0) = 0;
+			virtual void Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount = 0, u32 firstInstance = 0);
 
 			/**
 			 * Draw an object based on currently bound GPU programs, vertex declaration, vertex and index buffers.
@@ -768,7 +783,7 @@ namespace b3d
 			 * @param	instanceCount	Number of times to draw the provided geometry, each time with an (optionally) separate per-instance data.
 			 * @param	firstInstance	ID of the first instance to draw.
 			 */
-			virtual void DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount = 0, u32 firstInstance = 0) = 0;
+			virtual void DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount = 0, u32 firstInstance = 0);
 
 			/**
 			 * Executes the currently bound compute shader.
@@ -777,7 +792,7 @@ namespace b3d
 			 * @param	groupCountY		Number of groups to start in the Y direction. Must be in range [1, 65535].
 			 * @param	groupCountZ		Number of groups to start in the Z direction. Must be in range [1, 64].
 			 */
-			virtual void DispatchCompute(u32 groupCountX, u32 groupCountY = 1, u32 groupCountZ = 1) = 0;
+			virtual void DispatchCompute(u32 groupCountX, u32 groupCountY = 1, u32 groupCountZ = 1);
 
 			/**
 			 * Begins a new render pass, allowing rendering commands to be recorded.
@@ -788,7 +803,7 @@ namespace b3d
 			 * @param createInformation    Structure containing render target, masks, and all parameters
 			 *                            that will be used during the render pass.
 			 */
-			virtual void BeginRenderPass(const RenderPassCreateInformation& createInformation) = 0;
+			virtual void BeginRenderPass(const RenderPassCreateInformation& createInformation);
 
 			/** Ends the current render pass. */
 			virtual void EndRenderPass() = 0;
@@ -901,7 +916,7 @@ namespace b3d
 			 * @param	destinationOffset	Offset into the destination buffer, at which to place the copied data, in bytes.
 			 * @param	length				Size of the data to copy, in bytes.
 			 */
-			virtual void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length) = 0;
+			virtual void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length);
 
 			/**
 			 * Copies data from a buffer to a texture subresource. The buffer must contain pixel data in the same format as the texture, accounting for the required
@@ -913,7 +928,7 @@ namespace b3d
 			 * @param	mipLevel		Destination mipmap level.
 			 * @param	arrayLayer		Destination texture face (array slice or cubemap face).
 			 */
-			virtual void CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer) = 0;
+			virtual void CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer);
 
 			/**
 			 * Copies data from a texture subresource to a buffer. The buffer must have enough space to receive all pixel data in the same format as the texture,
@@ -925,7 +940,7 @@ namespace b3d
 			 * @param	arrayLayer		Source texture face (array slice or cubemap face).
 			 * @param	bufferOffset	Offset into the destination buffer, in bytes.
 			 */
-			virtual void CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset = 0) = 0;
+			virtual void CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset = 0);
 
 			/**
 			 * Copies data between texture subresources without format conversion or scaling. Both textures must have matching formats.
@@ -1052,27 +1067,27 @@ namespace b3d
 			friend class GpuCommandBufferPool;
 			friend class GpuSubmitThread;
 
-			GpuCommandBuffer(GpuDevice& gpuDevice, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
+			GpuCommandBuffer(GpuDevice& gpuDevice, ThreadId ownerThread, GpuQueueType queueType, bool explicitBarriers, const GpuCommandBufferCreateInformation& createInformation);
 
 #if B3D_GPU_EXPLICIT_BARRIERS
 			/**
 			 * Records explicit barriers, or one half of split barriers. The base implementation reports that the backend does not
-			 * support explicit barriers. Only called outside of a render pass.
+			 * support explicit barriers. Only called outside of a render pass, on command buffers that use explicit barriers.
 			 *
 			 * @param	barriers	Barriers to record.
 			 * @param	phase		Part of the barriers to record.
 			 * @param	split		Split barrier connecting the halves. Null for GpuBarrierPhase::Full.
-			 * @return				True if the barriers were recorded. False if the command buffer cannot record them, such as when
-			 *						its pool does not use explicit barriers.
+			 * @return				True if the barriers were recorded. False if the command buffer cannot record them.
 			 */
 			virtual bool RecordExplicitBarriers(const GpuExplicitBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split);
 
 			/**
-			 * Releases the split barriers recorded since the last reset. Backends call it whenever they clear the recording state.
+			 * Releases the split barriers recorded since the last reset, and forgets the state validated in development builds. Backends
+			 * call it whenever they clear the recording state.
 			 *
 			 * @param	wasSubmitted	True if the recording was submitted. Otherwise the release halves it recorded never execute.
 			 */
-			void ClearSplitBarriers(bool wasSubmitted);
+			void ClearExplicitBarrierState(bool wasSubmitted);
 
 			/** Split barrier half recorded by the command buffer. Keeps the split barrier alive until the command buffer is reset. */
 			struct RecordedSplitBarrier
@@ -1134,7 +1149,12 @@ namespace b3d
 			bool mIsDestroyed = false;
 
 #if B3D_GPU_EXPLICIT_BARRIERS
+			const bool mUsesExplicitBarriers;
 			TInlineArray<RecordedSplitBarrier, 4> mSplitBarriers;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			TUnique<GpuExplicitBarrierValidator> mExplicitBarrierValidator; /**< Only created for command buffers with explicit barriers. */
+#endif
 #endif
 
 #if B3D_PROFILING_ENABLED

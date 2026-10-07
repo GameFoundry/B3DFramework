@@ -53,7 +53,7 @@ namespace b3d::render
 		/**
 		 * Emits the accumulated barriers on the currently open encoder, then runs the post-barrier
 		 * tracker updates (ApplyPostBarrierTracking, CommitPendingAccesses) and clears the
-		 * accumulated state. Always call this after a batch of Track*Usage / TrackExplicit*Barrier calls and
+		 * accumulated state. Always call this after a batch of Track*Usage / Track*Barrier calls and
 		 * before recording the dependent commands — even when HasBarriers() is false — so deferred
 		 * hazard registrations commit at the right point.
 		 *

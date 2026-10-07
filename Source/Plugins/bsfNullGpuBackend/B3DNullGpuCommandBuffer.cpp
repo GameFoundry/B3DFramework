@@ -9,7 +9,7 @@ namespace b3d
 	namespace render
 	{
 		NullGpuCommandBuffer::NullGpuCommandBuffer(NullGpuDevice& device, NullGpuCommandBufferPool& pool, u32 id, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation)
-			: GpuCommandBuffer(device, ownerThread, queueType, createInformation)
+			: GpuCommandBuffer(device, ownerThread, queueType, pool.UsesExplicitBarriers(), createInformation)
 			, mId(id)
 		{ }
 

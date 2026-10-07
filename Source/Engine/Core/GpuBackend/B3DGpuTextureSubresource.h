@@ -21,6 +21,9 @@ namespace b3d
 	using GpuTextureAspectFlags = Flags<GpuTextureAspectFlag>;
 	B3D_FLAGS_OPERATORS(GpuTextureAspectFlag)
 
+	/** Every texture aspect. */
+	inline const GpuTextureAspectFlags kAllImageAspects = GpuTextureAspectFlag::Color | GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil;
+
 	/** Stable order used when expanding a texture aspect mask. */
 	constexpr std::array<GpuTextureAspectFlag, 3> kGpuTextureAspects = {
 		GpuTextureAspectFlag::Color,
@@ -36,13 +39,13 @@ namespace b3d
 		{ }
 
 		/** Creates a subresource range covering only the highest (first) mip level. */
-		static GpuTextureSubresourceRange TopMip(u32 baseArrayLayer = 0, u32 arrayLayerCount = 1, GpuTextureAspectFlags aspectMask = GpuTextureAspectFlag::Color | GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil)
+		static GpuTextureSubresourceRange TopMip(u32 baseArrayLayer = 0, u32 arrayLayerCount = 1, GpuTextureAspectFlags aspectMask = kAllImageAspects)
 		{
 			return GpuTextureSubresourceRange(0, 1, baseArrayLayer, arrayLayerCount, aspectMask);
 		}
 
 		/** Creates a subresource range covering all subresources. */
-		static GpuTextureSubresourceRange AllSubresources(GpuTextureAspectFlags aspectMask = GpuTextureAspectFlag::Color | GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil)
+		static GpuTextureSubresourceRange AllSubresources(GpuTextureAspectFlags aspectMask = kAllImageAspects)
 		{
 			return GpuTextureSubresourceRange(0, ~0u, 0, ~0u, aspectMask);
 		}

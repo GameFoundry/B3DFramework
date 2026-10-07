@@ -184,7 +184,7 @@ void D3D12GpuCommandBufferPool::Reset()
 	B3D_ASSERT(SUCCEEDED(hr) && "Failed to reset command allocator");
 }
 
-D3D12GpuCommandBuffer::D3D12GpuCommandBuffer(D3D12GpuDevice& device, D3D12GpuCommandBufferPool& pool, u32 id, ID3D12GraphicsCommandList7* commandList, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation) : GpuCommandBuffer(device, ownerThread, queueType, createInformation), mId(id), mCommandList(commandList), mPool(pool), mBarrierHelper(&mResourceTracker, queueType), mGraphicsPipelineRequiresBind(true), mGraphicsRootSignatureRequiresBind(true), mComputePipelineRequiresBind(true), mPrimitiveTopologyRequiresBind(true), mViewportRequiresBind(true), mStencilReferenceValueRequiresBind(true), mScissorRequiresBind(true), mGraphicsParametersRequireBind(false), mComputeParametersRequireBind(false), mGraphicsPushConstantsRequireBind(false), mComputePushConstantsRequireBind(false), mVertexInputsDirty(false)
+D3D12GpuCommandBuffer::D3D12GpuCommandBuffer(D3D12GpuDevice& device, D3D12GpuCommandBufferPool& pool, u32 id, ID3D12GraphicsCommandList7* commandList, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation) : GpuCommandBuffer(device, ownerThread, queueType, pool.UsesExplicitBarriers(), createInformation), mId(id), mCommandList(commandList), mPool(pool), mBarrierHelper(&mResourceTracker, queueType), mGraphicsPipelineRequiresBind(true), mGraphicsRootSignatureRequiresBind(true), mComputePipelineRequiresBind(true), mPrimitiveTopologyRequiresBind(true), mViewportRequiresBind(true), mStencilReferenceValueRequiresBind(true), mScissorRequiresBind(true), mGraphicsParametersRequireBind(false), mComputeParametersRequireBind(false), mGraphicsPushConstantsRequireBind(false), mComputePushConstantsRequireBind(false), mVertexInputsDirty(false)
 {
 	HRESULT hr = GetD3D12GpuDevice().GetD3D12Device()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
 	B3D_ASSERT(SUCCEEDED(hr) && "Failed to create fence");
@@ -308,6 +308,7 @@ void D3D12GpuCommandBuffer::SetName(const StringView& name)
 
 void D3D12GpuCommandBuffer::SetGpuParameterSet(const TShared<GpuParameterSet>& parameters)
 {
+	GpuCommandBuffer::SetGpuParameterSet(parameters);
 	EnsureValidThread();
 
 	if (!B3D_ENSURE(parameters != nullptr))
@@ -366,6 +367,7 @@ void D3D12GpuCommandBuffer::SetPushConstants(u32 offsetInBytes, u32 sizeInBytes,
 
 void D3D12GpuCommandBuffer::SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& pipelineState)
 {
+	GpuCommandBuffer::SetGpuGraphicsPipelineState(pipelineState);
 	EnsureValidThread();
 
 	if(mGraphicsPipeline == pipelineState)
@@ -380,6 +382,7 @@ void D3D12GpuCommandBuffer::SetGpuGraphicsPipelineState(const TShared<GpuGraphic
 
 void D3D12GpuCommandBuffer::SetGpuComputePipelineState(const TShared<GpuComputePipelineState>& pipelineState)
 {
+	GpuCommandBuffer::SetGpuComputePipelineState(pipelineState);
 	EnsureValidThread();
 
 	if(mComputePipeline == pipelineState)
@@ -392,6 +395,7 @@ void D3D12GpuCommandBuffer::SetGpuComputePipelineState(const TShared<GpuComputeP
 
 void D3D12GpuCommandBuffer::SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount)
 {
+	GpuCommandBuffer::SetVertexBuffers(index, buffers, bufferCount);
 	EnsureValidThread();
 
 	const u32 endIndex = index + bufferCount;
@@ -417,6 +421,7 @@ void D3D12GpuCommandBuffer::SetVertexBuffers(u32 index, TShared<GpuBuffer>* buff
 
 void D3D12GpuCommandBuffer::SetIndexBuffer(const TShared<GpuBuffer>& buffer)
 {
+	GpuCommandBuffer::SetIndexBuffer(buffer);
 	EnsureValidThread();
 
 	const TShared<D3D12GpuBuffer> d3d12Buffer = std::static_pointer_cast<D3D12GpuBuffer>(buffer);
@@ -453,6 +458,7 @@ void D3D12GpuCommandBuffer::SetDrawOperation(DrawOperationType operation)
 
 void D3D12GpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance)
 {
+	GpuCommandBuffer::Draw(vertexOffset, vertexCount, instanceCount, firstInstance);
 	EnsureValidThread();
 
 	if(vertexCount == 0)
@@ -490,6 +496,7 @@ void D3D12GpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instance
 
 void D3D12GpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance)
 {
+	GpuCommandBuffer::DrawIndexed(startIndex, indexCount, vertexOffset, vertexCount, instanceCount, firstInstance);
 	EnsureValidThread();
 
 	if(indexCount == 0)
@@ -527,6 +534,7 @@ void D3D12GpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 vert
 
 void D3D12GpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u32 groupCountZ)
 {
+	GpuCommandBuffer::DispatchCompute(groupCountX, groupCountY, groupCountZ);
 	EnsureValidThread();
 
 	if(!B3D_ENSURE(!IsInRenderPass()))
@@ -568,6 +576,7 @@ void D3D12GpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u3
 
 void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& createInformation)
 {
+	GpuCommandBuffer::BeginRenderPass(createInformation);
 	EnsureValidThread();
 	B3D_ASSERT(mState == GpuCommandBufferState::Recording);
 
@@ -1460,6 +1469,10 @@ void D3D12GpuCommandBuffer::Reset()
 	mResourceTracker.Clear();
 	mQueueSyncMask = GpuQueueMask();
 
+#if B3D_GPU_EXPLICIT_BARRIERS
+	ClearExplicitBarrierState(wasSubmitted);
+#endif
+
 	OnDidComplete.Clear();
 	OnDestroyed.Clear();
 
@@ -1513,7 +1526,7 @@ void D3D12GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 
 		D3D12Buffer* const buffer = gpuBuffer->GetD3D12Buffer();
 
-		mResourceTracker.TrackExplicitBufferBarrier(buffer, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, mBarrierHelper, barrier.AliasAcquire);
+		mResourceTracker.TrackBufferBarrier(buffer, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, mBarrierHelper, barrier.AliasAcquire);
 	}
 
 	for(const auto& barrier : barriers.TextureBarriers)
@@ -1527,7 +1540,7 @@ void D3D12GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 		GpuTextureSubresourceRange maskedRange = barrier.SubresourceRange;
 		maskedRange.AspectMask &= image->GetRange().AspectMask;
 
-		mResourceTracker.TrackExplicitImageBarrier(image, maskedRange, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper, barrier.AliasAcquire);
+		mResourceTracker.TrackImageBarrier(image, maskedRange, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper, barrier.AliasAcquire);
 	}
 
 	for(const auto& barrier : barriers.RenderTargetBarriers)
@@ -1562,7 +1575,7 @@ void D3D12GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 
 		const GpuFramebufferAttachment* const attachment = framebuffer->FindAttachment(barrier.SurfaceMask);
 		if(attachment != nullptr)
-			mResourceTracker.TrackExplicitImageBarrier(attachment->Image, attachment->Range, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper);
+			mResourceTracker.TrackImageBarrier(attachment->Image, attachment->Range, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper);
 	}
 
 	mBarrierHelper.Execute(*this);
@@ -1574,6 +1587,7 @@ void D3D12GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 
 void D3D12GpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length)
 {
+	GpuCommandBuffer::CopyBufferToBuffer(source, destination, sourceOffset, destinationOffset, length);
 	EnsureValidThread();
 	B3D_ASSERT(mState == GpuCommandBufferState::Recording && "Command buffer must be in recording state");
 
@@ -1601,6 +1615,7 @@ void D3D12GpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source,
 
 void D3D12GpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer)
 {
+	GpuCommandBuffer::CopyBufferToTexture(source, destination, bufferOffset, mipLevel, arrayLayer);
 	EnsureValidThread();
 	B3D_ASSERT(mState == GpuCommandBufferState::Recording && "Command buffer must be in recording state");
 
@@ -1854,6 +1869,7 @@ bool D3D12GpuCommandBuffer::BlitTexture(const TShared<Texture>& source, const TS
 
 void D3D12GpuCommandBuffer::CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset)
 {
+	GpuCommandBuffer::CopyTextureToBuffer(source, destination, mipLevel, arrayLayer, bufferOffset);
 	EnsureValidThread();
 
 	if (!B3D_ENSURE(source != nullptr && destination != nullptr))
