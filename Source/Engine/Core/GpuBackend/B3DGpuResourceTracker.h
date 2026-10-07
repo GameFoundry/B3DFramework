@@ -13,10 +13,6 @@
 #include "Utility/B3DDenseMap.h"
 #include "Utility/B3DTArrayView.h"
 
-#if B3D_GPU_EXPLICIT_BARRIERS
-#include "GpuBackend/B3DGpuExplicitBarrierValidator.h"
-#endif
-
 namespace b3d
 {
 	namespace render
@@ -180,6 +176,11 @@ namespace b3d
 		{
 		public:
 			/**
+			 * @name Render pass
+			 * @{
+			 */
+
+			/**
 			 * Starts collecting resource usage for a render pass. The attachment list is copied into inline tracker storage,
 			 * and shader reads accessing the render attachments are tracked.
 			 */
@@ -195,28 +196,33 @@ namespace b3d
 			/** Publishes native render-pass final layouts and clears the active attachment tracking scope. */
 			void EndRenderPass();
 
+			/** Re-tracks render pass attachment accesses that were invalidated via InvalidateRenderPassAttachmentAccess. */
+			void TrackRenderPassAttachmentAccesses(TBarrierHelper& barrierHelper);
+
 			/**
-			 * Returns the layout a shader read of the specified image range is performed in. Reads of a read-only attachment of the pending or active
-			 * render pass use the attachment's layout, all other reads use @p requestedLayout.
+			 * Normally render targets are only tracked at the beginning of a render pass, but some backends require that we re-track them after certain operations (e.g., a clear operation implemented as a compute shader). 
+			 * This ensures that correct barrier is issued between that operation stages and the raster stages when TrackRenderPassAttachmentAccesses is called.
 			 */
-			GpuImageLayout ResolveShaderImageLayout(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout requestedLayout) const;
+			void InvalidateRenderPassAttachmentAccess(IGpuImageResource* image);
+
+			/** @} */
+
+			/**
+			 * @name Image & buffer access tracking (lifetime + hazard tracking)
+			 * @{
+			 */
 
 			/**
 			 * Lets the tracker know that the provided buffer resource will be used on the associated command buffer. Call this before the buffer is used, with
 			 * the appropriate stage + access flags. Execute the barriers queued in @p barrierHelper before use.
 			 *
 			 * @param	buffer				Buffer to track.
-			 * @param	stages				Stages at which the buffer will be accessed. With explicit barriers, the stages of the operation instead.
+			 * @param	stages				Stages at which the buffer will be accessed.
 			 * @param	accessFlags			Access flags specifying how the buffer will be accessed (read/write).
 			 * @param	barrierHelper		If there are any necessary memory barriers before the buffer can be used they will be recorded into the provided object.
 			 * @param	dynamicOffset		Byte offset into the buffer (e.g., for dynamic uniform buffers). Used to calculate suballocation index for tracking in debug builds.
 			 */
 			void TrackBufferAccess(IGpuBufferResource* buffer, GpuStageFlags stages, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, u32 dynamicOffset = 0);
-
-#if B3D_BUILD_TYPE_DEVELOPMENT
-			/** Marks the suballocation at @p offset as bound without changing resource access or queuing barriers. The buffer's access must already be tracked. */
-			void TrackBufferSuballocation(IGpuBufferResource* buffer, u32 offset);
-#endif
 
 			/**
 			 * Lets the tracker know that the provided image resource will be used on the associated command buffer. Call this before the image is used, with
@@ -225,7 +231,7 @@ namespace b3d
 			 * @param	image				Image to track.
 			 * @param	subresourceRange		Subresource range of the image to track.
 			 * @param	layout				Expected layout the image should be during use.
-			 * @param	stages				Stages at which the image will be accessed. With explicit barriers, the stages of the operation instead.
+			 * @param	stages				Stages at which the image will be accessed.
 			 * @param	accessFlags			Access flags specifying how the image will be accessed (read/write).
 			 * @param	barrierHelper		If there are any necessary layout transitions or memory barriers before the buffer can be used they will be recorded into the provided object.
 			 * @param	barrierFlags			Additional behavior requested from the issued barrier.
@@ -239,43 +245,74 @@ namespace b3d
 			*/
 			bool TrackShaderImageAccess(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper);
 
-			/** Re-tracks render pass attachment accesses that were invalidated via InvalidateRenderPassAttachmentAccess. */
-			void TrackRenderPassAttachmentAccesses(TBarrierHelper& barrierHelper);
+			/** @} */
 
-			/**
-			 * Normally render targets are only tracked at the beginning of a render pass, but some backends require that we re-track them after certain operations (e.g., a clear operation implemented as a compute shader). 
-			 * This ensures that correct barrier is issued between that operation stages and the raster stages when TrackRenderPassAttachmentAccesses is called.
+			/** 
+			 * @name User issued barrier tracking
+			 * @{
 			 */
-			void InvalidateRenderPassAttachmentAccess(IGpuImageResource* image);
 
 			/**
-			 * Tracks an explicit buffer barrier. Its source scope is derived from previous command-buffer accesses. A barrier
-			 * before the first access becomes a submission-entry requirement instead of a native command-list barrier.
+			 * Tracks a buffer barrier requested by GpuCommandBuffer::IssueBarriers(). Its source scope is derived from previous
+			 * command-buffer accesses. A barrier before the first access becomes a submission-entry requirement instead of a native
+			 * command-list barrier.
 			 *
 			 * If @p aliasAcquire is set, the barrier starts a new lifetime of the buffer on memory that earlier resources used (see
 			 * GpuBarrier::AliasAcquire). It orders the destination after @p aliasAcquire->Source.
 			 */
-			void TrackExplicitBufferBarrier(IGpuBufferResource* buffer, GpuStageFlags destinationStages, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper, const GpuAliasAcquire* aliasAcquire = nullptr);
+			void TrackBufferBarrier(IGpuBufferResource* buffer, GpuStageFlags destinationStages, GpuAccessFlags destinationAccess, TBarrierHelper& barrierHelper, const GpuAliasAcquire* aliasAcquire = nullptr);
 
 			/**
-			 * Tracks an explicit image barrier. The tracker partitions @p subresourceRange and derives each source scope and
-			 * layout. A barrier before the first access becomes a submission-entry requirement. 
+			 * Tracks an image barrier requested by GpuCommandBuffer::IssueBarriers(). The tracker partitions @p subresourceRange and
+			 * derives each source scope and layout. A barrier before the first access becomes a submission-entry requirement.
 			 * The image and affected subresources are retained without declaring a read or write.
 			 *
 			 * If @p aliasAcquire is set, the barrier starts a new lifetime of the image on memory that earlier resources used (see
 			 * GpuBarrier::AliasAcquire). It transitions the whole image from GpuImageLayout::Undefined to @p destinationLayout,
 			 * and orders the destination after @p aliasAcquire->Source.
 			 */
-			void TrackExplicitImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuStageFlags destinationStages, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper, const GpuAliasAcquire* aliasAcquire = nullptr);
+			void TrackImageBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuStageFlags destinationStages, GpuAccessFlags destinationAccess, GpuImageLayout destinationLayout, TBarrierHelper& barrierHelper, const GpuAliasAcquire* aliasAcquire = nullptr);
+
+			/** @} */
+
+			/**
+			 * @name Lifetime tracking (all resource types)
+			 * @{
+			 */
+
+			/**
+			 * Lets the tracker know that the provided buffer will be used on the associated command buffer, without tracking its hazards
+			 * or queuing barriers. Keeps the buffer alive until the command buffer is done, and records the use in its submission.
+			 *
+			 * @param	buffer			Buffer to track.
+			 * @param	stages			Stages accessing the buffer.
+			 * @param	accessFlags		How the stages access the buffer.
+			 * @param	dynamicOffset	Byte offset into the buffer. Used to track suballocations in development builds.
+			 */
+			void TrackBufferUsage(IGpuBufferResource* buffer, GpuStageFlags stages, GpuAccessFlags accessFlags, u32 dynamicOffset = 0);
+
+			/**
+			 * Lets the tracker know that the provided image subresource range will be used on the associated command buffer, without
+			 * tracking their hazards or queuing barriers. Keeps the image and the subresources alive until the command buffer is done, and
+			 * records the use in its submission. Use GpuAccessFlag::None to keep them alive without declaring a read or write.
+			 */
+			void TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuStageFlags stages, GpuAccessFlags accessFlags);
 
 			/** Lets the tracker know that the provided swap chain will be queued on the associated command buffer. */
 			void TrackSwapChainUsage(IGpuSwapChainResource* swapChain);
 
 			/**
 			 * Lets the tracker know that the provided resource will be queued on the associated command buffer.
-			 * If a resource is an image, buffer, swap chain or framebuffer use the more specific Track*Use() overload.
+			 * If a resource is an image, buffer, swap chain or framebuffer use the more specific Track*Usage() overload.
 			 */
 			void TrackResourceUsage(IGpuResource* resource, GpuAccessFlags access);
+
+			/** @} */
+
+			/**
+			 * @name Submit time transitions
+			 * @{
+			 */
 
 			/**
 			 * Resolves transitions required before the command buffer associated with this resource tracker can be submitted. Resources track their last access scope and queue, and if their first use on the tracker
@@ -292,6 +329,13 @@ namespace b3d
 			 * Submit thread only.
 			 */
 			void ResolveSubmissionTransitions(GpuQueueId destinationQueueId, u32 frameIndex, GpuSubmissionTransitionVisitor& visitor);
+
+			/** @} */
+
+			/** 
+			 * @name Tracking states (read-only)
+			 * @{
+			 */
 
 			/**
 			 * Iterates over all subresource tracking states that overlap with the provided subresource range. The provided callback is invoked for each overlapping subresource.
@@ -326,6 +370,13 @@ namespace b3d
 			/** Finds a read-only subresource tracking state for the specified face, mip level, and aspect of the provided image. */
 			const GpuImageSubresourceTrackingState* FindSubresourceTrackingState(IGpuImageResource* image, u32 face, u32 mip, GpuTextureAspectFlag aspect) const;
 
+			/** @} */
+
+			/** 
+			 * @name Command buffer lifetime notifications
+			 * @{
+			 */
+
 			/** Notifies all tracked resources that the command buffer has submitted to a GPU queue. */
 			void NotifyUsed(GpuQueueId queueId);
 
@@ -340,6 +391,13 @@ namespace b3d
 			 * Should be called when the command buffer is reset.
 			 */
 			void Clear();
+
+			/** @} */
+
+			/**
+			 * @name Barrier helper callbacks
+			 * @{
+			 */
 
 			/** Updates image layout tracking for a single image subresource after a barrier has been issued. */
 			void UpdateImageLayoutTrackingAfterBarrier(IGpuImageResource* image, const GpuTextureSubresourceRange& range, GpuImageLayout oldLayout, GpuImageLayout newLayout);
@@ -357,39 +415,31 @@ namespace b3d
 			 */
 			void CommitPendingAccesses();
 
+			/** @} */
+
+			/**
+			 * Returns the layout a shader read of the specified image range is performed in. Reads of a read-only attachment of the pending or active
+			 * render pass use the attachment's layout, all other reads use @p requestedLayout.
+			 */
+			GpuImageLayout ResolveShaderImageLayout(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout requestedLayout) const;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			/** Marks the suballocation at @p offset as bound without changing resource access or queuing barriers. The buffer's access must already be tracked. */
+			void TrackBufferSuballocation(IGpuBufferResource* buffer, u32 offset);
+#endif
+
 			/** Identifies the current access batch. Advances whenever pending accesses are committed, including barrier-only batches; resets on Clear(). */
 			u64 GetEpoch() const { return mEpoch; }
 
-#if B3D_GPU_EXPLICIT_BARRIERS
 			/**
-			 * Enables or disables explicit barriers. With explicit barriers the caller issues every barrier, so the tracker only keeps the
-			 * tracked resources alive: it resolves no hazards, queues no barriers and resolves no submission transitions. Persists through
-			 * Clear(). Change only while no resources are tracked.
+			 * Enables or disables hazard tracking. Without hazard tracking the tracker only registers uses: it keeps the resources alive
+			 * and records their GPU use, but resolves no hazards, queues no barriers and resolves no submission transitions. The caller
+			 * synchronizes the accesses instead. Persists through Clear(). Change only while no resources are tracked.
 			 */
-			void SetExplicitBarriers(bool enabled) { mExplicitBarriers = enabled; }
+			void SetHazardTracking(bool enabled) { mTracksHazards = enabled; }
 
-			/** Returns true if the caller issues every barrier. See SetExplicitBarriers(). */
-			bool UsesExplicitBarriers() const { return mExplicitBarriers; }
-
-			/**
-			 * Keeps the buffer of an explicit barrier alive. In development builds, also checks the barrier against the state that earlier
-			 * explicit barriers and accesses on the command buffer left (see GpuExplicitBarrierValidator). Backends call this for every
-			 * buffer of the explicit barriers they record.
-			 *
-			 * @param	buffer		Buffer the barrier applies to.
-			 * @param	barrier		Barrier the backend records.
-			 * @param	phase		Part of the barrier the backend records.
-			 * @param	split		Split barrier connecting the halves. Null for GpuBarrierPhase::Full.
-			 */
-			void TrackExplicitBarrierResource(IGpuBufferResource* buffer, const GpuExplicitBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split);
-
-			/**
-			 * Keeps the subresources of an explicit image barrier alive, and validates the barrier. See the buffer overload.
-			 *
-			 * @param	additionalAccess	Accesses of backend operations the barrier records on the image, such as metadata transitions.
-			 */
-			void TrackExplicitBarrierResource(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, const GpuExplicitBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split, GpuAccessFlags additionalAccess = GpuAccessFlag::None);
-#endif
+			/** Returns true if the tracker resolves hazards. See SetHazardTracking(). */
+			bool TracksHazards() const { return mTracksHazards; }
 
 			/** Returns the internal map of all tracked buffers and their tracking states. */
 			TDenseMap<IGpuBufferResource*, GpuBufferTrackingState>& GetBuffers() { return mBuffers; }
@@ -404,9 +454,6 @@ namespace b3d
 			const TDenseMap<IGpuImageResource*, u32>& GetImages() const { return mImages; }
 
 		private:
-			/** Returns the instance of the resource tracker cast as the actual derived type. Useful to allow derived type to shadow (override) method implementations. */
-			TDerived& GetDerived();
-
 			enum class RenderPassTrackingPhase
 			{
 				Inactive,
@@ -426,6 +473,14 @@ namespace b3d
 				GpuResourceUseFlags ShaderUseFlags;
 			};
 
+			/** Returns the instance of the resource tracker cast as the actual derived type. Useful to allow derived type to shadow (override) method implementations. */
+			TDerived& GetDerived();
+
+			/**
+			 * @name Tracking states (read/write)
+			 * @{
+			 */
+
 			/** Creates a new tracking state for the buffer (if this is the first time the buffer has been used on the command buffer), or returns existing tracking state. */
 			GpuBufferTrackingState& GetOrCreateBufferTrackingState(IGpuBufferResource* buffer);
 
@@ -444,6 +499,8 @@ namespace b3d
 			/** Returns the buffer's hazard state, creating it on first use. Resting reads recorded so far become tracked reads. */
 			GpuResourceHazardState& GetOrCreateHazardState(GpuBufferTrackingState& bufferTrackingState);
 
+			/** @} */
+
 			/** Finds the render-pass attachment overlapping @p range, or returns null. */
 			const GpuResolvedRenderPassAttachmentUsage* FindRenderPassAttachment(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const;
 
@@ -456,10 +513,8 @@ namespace b3d
 			 */
 			void TrackBufferAccess(IGpuBufferResource* buffer, GpuBufferTrackingState& bufferTrackingState, GpuStageFlags stages, GpuAccessFlags access, TBarrierHelper& barrierHelper, u32 dynamicOffset = 0);
 
-#if B3D_GPU_EXPLICIT_BARRIERS
-			/** Records an access of a buffer that needs no barrier, which only keeps the buffer alive. */
-			void TrackBufferAccessWithoutBarrier(IGpuBufferResource* buffer, GpuBufferTrackingState& bufferTrackingState, GpuStageFlags stages, GpuAccessFlags accessFlags, u32 dynamicOffset);
-#endif
+			/** TrackBufferUsage() on an existing GpuBufferTrackingState. */
+			void TrackBufferUsage(IGpuBufferResource* buffer, GpuBufferTrackingState& bufferTrackingState, GpuStageFlags stages, GpuAccessFlags accessFlags, u32 dynamicOffset);
 
 			/**
 			 * Lets the tracker know that the provided image subresource range resource will be queued the associated command buffer. This does bulk of the work to determine necessary layout transitions
@@ -468,19 +523,8 @@ namespace b3d
 			// TODO - Refactor this signature, try to clean it up once we have explicit layout transitions
 			void TrackSubresourceUsage(IGpuImageResource* image, u32 globalSubresourceIndex, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags accessFlags, TBarrierHelper& barrierHelper, GpuBarrierFlags barrierFlags, GpuImageTrackingFlags trackingFlags = GpuImageTrackingFlag::None);
 
-#if B3D_GPU_EXPLICIT_BARRIERS
-			/**
-			 * TrackShaderImageAccess() with explicit barriers: validates render pass attachment overlap and, in development builds, the
-			 * state the explicit barriers declared, and keeps the image alive.
-			 */
-			bool TrackExplicitShaderImageAccess(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags);
-
-			/**
-			 * TrackImageAccess() with explicit barriers: keeps the image alive and, in development builds, validates the access against the
-			 * state the explicit barriers declared. @p layout is only validated if it is not GpuImageLayout::Undefined.
-			 */
-			void TrackExplicitImageAccess(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags accessFlags);
-#endif
+			/** TrackShaderImageAccess() without hazard tracking: validates render pass attachment overlap, and tracks the usage. */
+			bool TrackShaderImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuResourceUseFlags useFlags, GpuAccessFlags accessFlags);
 
 			/** Records a resting read of @p image if the image has no subresource tracking states. Returns false if the access must be tracked instead. */
 			bool TryTrackRestingImageRead(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags accessFlags);
@@ -498,12 +542,6 @@ namespace b3d
 			u32 CopySubresourceTrackingStateWithNewRange(u32 copyFromIndex, const GpuTextureSubresourceRange& newRange);
 
 		protected:
-			/**
-			 * Retains the image and its affected subresources. Use GpuAccessFlag::None to retain them without declaring a read or write.
-			 * @p stages declare on which stages is the image being accessed.
-			 */
-			void RegisterImageSubresources(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuAccessFlags accessFlags, GpuStageFlags stages);
-
 			/** Selects the accesses executed for one submitted subresource. @p subresource holds the state the submission starts from. */
 			const GpuResourceHazardState& ResolveImageSubmissionHazards(IGpuImageResource* image, const GpuImageSubresourceTrackingState& trackingState, GpuImageSubresource& subresource) { return *trackingState.HazardState; }
 
@@ -569,13 +607,7 @@ namespace b3d
 			u64 mEpoch = 1; /**< Incremented every time accesses are commited (usually after the barrier helper executes). */
 			u32 mAttachmentsNeedingAccess = 0; /**< Indices of active attachments interrupted by internal operations. */
 
-#if B3D_GPU_EXPLICIT_BARRIERS
-			bool mExplicitBarriers = false; /**< True if the caller issues every barrier. See SetExplicitBarriers(). */
-
-#if B3D_BUILD_TYPE_DEVELOPMENT
-			GpuExplicitBarrierValidator mExplicitBarrierValidator;
-#endif
-#endif
+			bool mTracksHazards = true; /**< See SetHazardTracking(). */
 		};
 
 		/** @} */

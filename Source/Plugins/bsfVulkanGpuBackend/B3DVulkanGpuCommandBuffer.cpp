@@ -176,7 +176,7 @@ const Color kDebugLabelColor = Color::kBansheeOrange;
 constexpr u32 kMaximumBoundDescriptorSets = 64;
 
 VulkanGpuCommandBuffer::VulkanGpuCommandBuffer(VulkanGpuDevice& device, VulkanGpuCommandBufferPool& pool, u32 id, VkCommandBuffer commandBufferHandle, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation)
-	: GpuCommandBuffer(device, ownerThread, queueType, createInformation), mId(id), mCommandBufferHandle(commandBufferHandle), mPool(pool), mOwnerThread(ownerThread), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true), mGraphicsPushConstantsRequireBind(false), mComputePushConstantsRequireBind(false), mViewportRequiresBind(true), mStencilRefRequiresBind(true), mScissorRequiresBind(true), mBoundParamsDirty(false), mVertexInputsDirty(false), mBarrierHelper(&mResourceTracker)
+	: GpuCommandBuffer(device, ownerThread, queueType, pool.UsesExplicitBarriers(), createInformation), mId(id), mCommandBufferHandle(commandBufferHandle), mPool(pool), mOwnerThread(ownerThread), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true), mGraphicsPushConstantsRequireBind(false), mComputePushConstantsRequireBind(false), mViewportRequiresBind(true), mStencilRefRequiresBind(true), mScissorRequiresBind(true), mBoundParamsDirty(false), mVertexInputsDirty(false), mBarrierHelper(&mResourceTracker)
 {
 	const u32 maximumBoundDescriptorSets = Math::Min(kMaximumBoundDescriptorSets, device.GetDeviceProperties().limits.maxBoundDescriptorSets);
 	mDescriptorSetsTemp = (VkDescriptorSet*)B3DAllocate(sizeof(VkDescriptorSet) * maximumBoundDescriptorSets);
@@ -263,6 +263,7 @@ void VulkanGpuCommandBuffer::End()
 
 void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& createInformation)
 {
+	GpuCommandBuffer::BeginRenderPass(createInformation);
 	EnsureValidThread();
 	B3D_ASSERT(mState == GpuCommandBufferState::Recording);
 
@@ -491,6 +492,7 @@ void VulkanGpuCommandBuffer::ClearViewport(RenderSurfaceMask mask)
 
 void VulkanGpuCommandBuffer::SetGpuGraphicsPipelineState(const TShared<GpuGraphicsPipelineState>& state)
 {
+	GpuCommandBuffer::SetGpuGraphicsPipelineState(state);
 	EnsureValidThread();
 
 	if(mGraphicsPipeline == state)
@@ -508,6 +510,7 @@ void VulkanGpuCommandBuffer::SetGpuGraphicsPipelineState(const TShared<GpuGraphi
 
 void VulkanGpuCommandBuffer::SetGpuComputePipelineState(const TShared<GpuComputePipelineState>& state)
 {
+	GpuCommandBuffer::SetGpuComputePipelineState(state);
 	EnsureValidThread();
 
 	if(mComputePipeline == state)
@@ -522,6 +525,7 @@ void VulkanGpuCommandBuffer::SetGpuComputePipelineState(const TShared<GpuCompute
 
 void VulkanGpuCommandBuffer::SetGpuParameterSet(const TShared<GpuParameterSet>& parameterSet)
 {
+	GpuCommandBuffer::SetGpuParameterSet(parameterSet);
 	EnsureValidThread();
 
 	if(!B3D_ENSURE(parameterSet != nullptr))
@@ -722,6 +726,7 @@ void VulkanGpuCommandBuffer::SetDrawOperation(DrawOperationType drawOperation)
 
 void VulkanGpuCommandBuffer::SetVertexBuffers(u32 startIndex, TShared<GpuBuffer>* buffers, u32 bufferCount)
 {
+	GpuCommandBuffer::SetVertexBuffers(startIndex, buffers, bufferCount);
 	EnsureValidThread();
 
 	const u32 endIndex = startIndex + bufferCount;
@@ -754,6 +759,7 @@ void VulkanGpuCommandBuffer::SetVertexBuffers(u32 startIndex, TShared<GpuBuffer>
 
 void VulkanGpuCommandBuffer::SetIndexBuffer(const TShared<GpuBuffer>& buffer)
 {
+	GpuCommandBuffer::SetIndexBuffer(buffer);
 	EnsureValidThread();
 
 	if(mIndexBuffer == buffer)
@@ -781,6 +787,7 @@ void VulkanGpuCommandBuffer::SetVertexDescription(const TShared<VertexDescriptio
 
 void VulkanGpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance)
 {
+	GpuCommandBuffer::Draw(vertexOffset, vertexCount, instanceCount, firstInstance);
 	EnsureValidThread();
 
 	if(vertexCount == 0)
@@ -844,6 +851,7 @@ void VulkanGpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanc
 
 void VulkanGpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance)
 {
+	GpuCommandBuffer::DrawIndexed(startIndex, indexCount, vertexOffset, vertexCount, instanceCount, firstInstance);
 	EnsureValidThread();
 
 	B3D_ENSURE(IsInRenderPass());
@@ -907,6 +915,7 @@ void VulkanGpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 ver
 
 void VulkanGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u32 groupCountZ)
 {
+	GpuCommandBuffer::DispatchCompute(groupCountX, groupCountY, groupCountZ);
 	EnsureValidThread();
 
 	if(mComputePipeline == nullptr)
@@ -960,6 +969,7 @@ void VulkanGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u
 
 void VulkanGpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length)
 {
+	GpuCommandBuffer::CopyBufferToBuffer(source, destination, sourceOffset, destinationOffset, length);
 	EnsureValidThread();
 
 	auto* vulkanSource = static_cast<VulkanGpuBuffer*>(source.get());
@@ -976,6 +986,7 @@ void VulkanGpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source
 
 void VulkanGpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer)
 {
+	GpuCommandBuffer::CopyBufferToTexture(source, destination, bufferOffset, mipLevel, arrayLayer);
 	B3D_ASSERT(bufferOffset == 0 && "Buffer offset not yet supported for texture copies");
 	EnsureValidThread();
 
@@ -1013,6 +1024,7 @@ void VulkanGpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& sourc
 
 void VulkanGpuCommandBuffer::CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset)
 {
+	GpuCommandBuffer::CopyTextureToBuffer(source, destination, mipLevel, arrayLayer, bufferOffset);
 	B3D_ASSERT(bufferOffset == 0 && "Buffer offset not yet supported for texture copies");
 	EnsureValidThread();
 
@@ -1597,6 +1609,10 @@ void VulkanGpuCommandBuffer::ClearRecordingState()
 	mPushConstants.Clear();
 	mGraphicsPushConstantsRequireBind = false;
 	mComputePushConstantsRequireBind = false;
+
+#if B3D_GPU_EXPLICIT_BARRIERS
+	ClearExplicitBarrierState(wasSubmitted);
+#endif
 
 	OnDidComplete.Clear();
 	OnDestroyed.Clear();
@@ -2203,7 +2219,7 @@ void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 		GpuTextureSubresourceRange maskedRange = subresourceRange;
 		maskedRange.AspectMask &= vulkanImage->GetRange().AspectMask;
 
-		mResourceTracker.TrackExplicitImageBarrier(vulkanImage, maskedRange, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper, barrier.AliasAcquire);
+		mResourceTracker.TrackImageBarrier(vulkanImage, maskedRange, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, barrier.DestinationLayout, mBarrierHelper, barrier.AliasAcquire);
 	};
 
 	for(const auto& barrier : barriers.BufferBarriers)
@@ -2214,7 +2230,7 @@ void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 
 		VulkanBuffer* const vulkanBuffer = vulkanGpuBuffer->GetVulkanResource();
 
-		mResourceTracker.TrackExplicitBufferBarrier(vulkanBuffer, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, mBarrierHelper, barrier.AliasAcquire);
+		mResourceTracker.TrackBufferBarrier(vulkanBuffer, GpuBackendUtility::GetStageFlags(barrier.DestinationUsage), barrier.DestinationAccess, mBarrierHelper, barrier.AliasAcquire);
 	}
 
 	for(const auto& barrier : barriers.TextureBarriers)

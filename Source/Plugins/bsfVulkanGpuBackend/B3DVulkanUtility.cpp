@@ -5,6 +5,7 @@
 #include "Image/B3DTexture.h"
 #include "Math/B3DArea2.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
+#include "GpuBackend/B3DGpuBackendUtility.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -42,7 +43,7 @@ PixelFormat VulkanUtility::GetClosestSupportedPixelFormat(const VulkanGpuDevice&
 
 		if(usage.IsSet(TextureUsageFlag::DepthStencil))
 		{
-			bool hasStencil = format == PF_D24S8 || format == PF_D32_S8X24;
+			bool hasStencil = GpuBackendUtility::GetFormatAspects(format).IsSet(GpuTextureAspectFlag::Stencil);
 
 			// Spec guarantees at least one depth-only, and one depth-stencil format to be supported
 			if(hasStencil)

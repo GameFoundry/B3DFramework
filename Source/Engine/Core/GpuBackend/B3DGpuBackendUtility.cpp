@@ -4,6 +4,7 @@
 
 #include "Utility/B3DBitwise.h"
 #include "Math/B3DMath.h"
+#include "Image/B3DPixelUtility.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -107,6 +108,21 @@ namespace
 			numAreas++;
 		}
 	}
+}
+
+GpuResourceUseFlags GpuBackendUtility::GetShaderResourceUseFlags(GpuProgramStageBits stages)
+{
+	GpuResourceUseFlags output = GpuResourceUseFlag::Undefined;
+	if(stages.IsSetAny(GpuProgramStageBit::Vertex | GpuProgramStageBit::Hull | GpuProgramStageBit::Domain | GpuProgramStageBit::Geometry))
+		output |= GpuResourceUseFlag::StageVertexShader;
+
+	if(stages.IsSet(GpuProgramStageBit::Fragment))
+		output |= GpuResourceUseFlag::StageFragmentShader;
+
+	if(stages.IsSet(GpuProgramStageBit::Compute))
+		output |= GpuResourceUseFlag::StageComputeShader;
+
+	return output;
 }
 
 GpuStageFlags GpuBackendUtility::GetStageFlags(GpuResourceUseFlags usage)
@@ -308,6 +324,16 @@ bool GpuBackendUtility::RangeContains(const GpuTextureSubresourceRange& outer, c
 		outer.BaseArrayLayer <= inner.BaseArrayLayer && inner.BaseArrayLayer + inner.ArrayLayerCount <= outer.BaseArrayLayer + outer.ArrayLayerCount;
 }
 
+GpuTextureAspectFlags GpuBackendUtility::GetFormatAspects(PixelFormat format)
+{
+	if(!PixelUtility::IsDepth(format))
+		return GpuTextureAspectFlag::Color;
+
+	// Only the combined depth-stencil formats carry a stencil aspect
+	const bool hasStencil = format == PF_D24S8 || format == PF_D32_S8X24;
+	return hasStencil ? (GpuTextureAspectFlag::Depth | GpuTextureAspectFlag::Stencil) : GpuTextureAspectFlags(GpuTextureAspectFlag::Depth);
+}
+
 GpuTextureSubresourceRange GpuBackendUtility::ClampRange(GpuTextureSubresourceRange range, const GpuTextureSubresourceRange& imageRange)
 {
 	if(range.ArrayLayerCount == ~0u)
@@ -317,6 +343,20 @@ GpuTextureSubresourceRange GpuBackendUtility::ClampRange(GpuTextureSubresourceRa
 		range.MipLevelCount = imageRange.MipLevelCount;
 
 	range.AspectMask &= imageRange.AspectMask;
+	return range;
+}
+
+GpuTextureSubresourceRange GpuBackendUtility::GetSurfaceRange(const GpuTextureSubresourceRange& imageRange, const TextureSurface& surface)
+{
+	const u32 remainingFaceCount = surface.Face < imageRange.ArrayLayerCount ? imageRange.ArrayLayerCount - surface.Face : 0;
+	const u32 remainingMipLevelCount = surface.MipLevel < imageRange.MipLevelCount ? imageRange.MipLevelCount - surface.MipLevel : 0;
+
+	GpuTextureSubresourceRange range;
+	range.BaseArrayLayer = surface.Face;
+	range.ArrayLayerCount = surface.FaceCount == 0 ? remainingFaceCount : Math::Min(surface.FaceCount, remainingFaceCount);
+	range.BaseMipLevel = surface.MipLevel;
+	range.MipLevelCount = surface.MipLevelCount == 0 ? remainingMipLevelCount : Math::Min(surface.MipLevelCount, remainingMipLevelCount);
+	range.AspectMask = imageRange.AspectMask;
 	return range;
 }
 
