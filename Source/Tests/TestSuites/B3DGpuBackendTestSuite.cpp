@@ -3749,8 +3749,10 @@ void GpuBackendTestSuite::TestExplicitBarriers()
 			fnCheck(resources, caseName);
 		};
 
-		fnTestSplitAcrossCommandBuffers(graphicsPool, GQT_GRAPHICS, GQT_GRAPHICS, false, "Split barriers across command buffers");
-		fnTestSplitAcrossCommandBuffers(graphicsPool, GQT_GRAPHICS, GQT_GRAPHICS, true, "Split barriers across command buffers, acquire recorded first");
+		// Both command buffers record at once, which some backends only allow for command buffers from different pools
+		const TShared<GpuCommandBufferPool> writePool = fnCreatePool(GQT_GRAPHICS, true);
+		fnTestSplitAcrossCommandBuffers(writePool, GQT_GRAPHICS, GQT_GRAPHICS, false, "Split barriers across command buffers");
+		fnTestSplitAcrossCommandBuffers(writePool, GQT_GRAPHICS, GQT_GRAPHICS, true, "Split barriers across command buffers, acquire recorded first");
 
 		if(device->GetQueueCount(GQT_COMPUTE) > 0)
 		{
@@ -3829,8 +3831,13 @@ void GpuBackendTestSuite::TestExplicitBarrierValidation()
 
 	// Each case uses its own resource, named after the case, so the errors do not cascade and each one identifies its case
 	const String undeclaredStages = "The resource was accessed in stages that its last explicit barrier does not declare.";
+	// The D3D12 debug layer tracks layouts natively and fails to close a command list with a misdeclared layout
+	const bool recordsMisdeclaredLayouts = String(backend.GetBackendName()) != "bsfD3D12GpuBackend";
+
 	LoggingScope logs(*this);
-	logs.ExpectError("The source layout of an explicit barrier differs from the destination layout of the previous barrier of the resource. Image: 'SourceLayout'.");
+	if(recordsMisdeclaredLayouts)
+		logs.ExpectError("The source layout of an explicit barrier differs from the destination layout of the previous barrier of the resource. Image: 'SourceLayout'.");
+
 	logs.ExpectError("The source of an explicit barrier is missing stages that accessed the resource since the previous barrier. Buffer: 'MissingStages'.");
 	logs.ExpectError("The source of an explicit barrier is missing the writes of the resource since the previous barrier. Buffer: 'MissingWrites'.");
 	logs.ExpectError("The resource was accessed with reads or writes that its last explicit barrier does not declare. Buffer: 'UndeclaredWrite'.");
@@ -3852,7 +3859,7 @@ void GpuBackendTestSuite::TestExplicitBarrierValidation()
 	if(pipeline != nullptr)
 		logs.ExpectError(undeclaredStages + " Buffer: 'DispatchCompute'.");
 
-	GetRenderThread().PostCommand([&device, &pipeline]()
+	GetRenderThread().PostCommand([&device, &pipeline, recordsMisdeclaredLayouts]()
 	{
 		static constexpr u32 kSize = 16;
 		const GpuAccessFlags readWrite = GpuAccessFlag::Read | GpuAccessFlag::Write;
@@ -3908,9 +3915,12 @@ void GpuBackendTestSuite::TestExplicitBarrierValidation()
 		const auto fnCopy = [&commandBuffer, &source](const TShared<render::GpuBuffer>& destination) { commandBuffer->CopyBufferToBuffer(source, destination, 0, 0, sizeof(u32)); };
 
 		// The source layout must be the declared layout
-		const TShared<render::Texture> sourceLayout = fnCreateTexture("SourceLayout");
-		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(sourceLayout, GpuAccessState(), transferWrite));
-		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(sourceLayout, transferRead, colorAttachment));
+		if(recordsMisdeclaredLayouts)
+		{
+			const TShared<render::Texture> sourceLayout = fnCreateTexture("SourceLayout");
+			commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(sourceLayout, GpuAccessState(), transferWrite));
+			commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(sourceLayout, transferRead, colorAttachment));
+		}
 
 		// The source must include the stages and the writes since the previous barrier
 		const TShared<render::GpuBuffer> missingStages = fnCreateBuffer("MissingStages");

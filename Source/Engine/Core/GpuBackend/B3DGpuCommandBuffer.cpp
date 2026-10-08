@@ -6,6 +6,8 @@
 #include "GpuBackend/B3DGpuPipelineParameterLayout.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DGpuExplicitBarrierValidator.h"
+#include "GpuBackend/B3DGpuSubmitThread.h"
+#include "GpuBackend/Allocators/B3DGpuResource.h"
 
 #include "Image/B3DTexture.h"
 #include "Image/B3DPixelUtility.h"
@@ -460,6 +462,32 @@ void GpuCommandBuffer::ClearExplicitBarrierState([[maybe_unused]] bool wasSubmit
 #endif
 
 	mSplitBarriers.Clear();
+	mExplicitImageLayouts.Clear();
+}
+
+void GpuCommandBuffer::AddExplicitImageLayout(IGpuImageResource& image, const GpuTextureSubresourceRange& range, u32 nativeLayout)
+{
+	ExplicitImageLayout explicitLayout;
+	explicitLayout.Image = &image;
+	explicitLayout.Range = range;
+	explicitLayout.Layout = nativeLayout;
+	mExplicitImageLayouts.Add(explicitLayout);
+}
+
+void GpuCommandBuffer::PublishExplicitImageLayouts(GpuQueueId queueId)
+{
+	AssertIfNotSubmitThread();
+
+	for(const ExplicitImageLayout& explicitLayout : mExplicitImageLayouts)
+	{
+		GpuImageNativeState nativeState;
+		nativeState.Layout = explicitLayout.Layout;
+		nativeState.StateQueue = queueId;
+
+		explicitLayout.Image->SetNativeState(explicitLayout.Range, nativeState);
+	}
+
+	mExplicitImageLayouts.Clear();
 }
 #endif
 

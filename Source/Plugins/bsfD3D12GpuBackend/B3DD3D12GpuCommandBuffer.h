@@ -207,6 +207,10 @@ namespace b3d
 			friend class D3D12GpuCommandBufferPool;
 			friend class D3D12GpuQueue;
 
+#if B3D_GPU_EXPLICIT_BARRIERS
+			bool RecordExplicitBarriers(const GpuExplicitBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split) override;
+#endif
+
 			/** Creates a command buffer wrapping @p commandList. */
 			D3D12GpuCommandBuffer(D3D12GpuDevice& device, D3D12GpuCommandBufferPool& pool, u32 id, ID3D12GraphicsCommandList7* commandList, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
 
@@ -242,6 +246,12 @@ namespace b3d
 
 			/** Uploads the cached push-constant block for the selected pipeline bind point. */
 			void BindPushConstants(bool isGraphics);
+
+			/**
+			 * Returns the framebuffer of the active swap chain image of @p renderWindow, and registers the swap chain with the command
+			 * buffer. Returns null if the window has no surface.
+			 */
+			D3D12Framebuffer* AcquireWindowFramebuffer(RenderWindow& renderWindow);
 
 			/** Clears the specified area of the currently bound render target. */
 			void ClearViewportArea(const Area2I& area, RenderSurfaceMask mask);
