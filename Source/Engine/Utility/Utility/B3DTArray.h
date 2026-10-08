@@ -331,17 +331,17 @@ namespace b3d
 			Iterator mutableStart = const_cast<Iterator>(start);
 			Iterator mutableEnd = const_cast<Iterator>(end);
 
-			Iterator current = mutableStart;
-			Iterator iter = std::move(mutableEnd, End(), mutableStart);
+			// Early out, so an empty range doesn't self-move-assign the tail
+			if(mutableStart == mutableEnd)
+				return mutableStart;
 
-			while(mutableStart != mutableEnd)
-			{
-				--mutableEnd;
-				mutableEnd->~Type();
-			}
+			// Shift the tail down over the erased range, then destroy the moved-from leftovers past the new end
+			Iterator newEnd = std::move(mutableEnd, End(), mutableStart);
+			for(Iterator iter = newEnd; iter != End(); ++iter)
+				iter->~Type();
 
-			mSize = iter - Begin();
-			return current;
+			mSize = newEnd - Begin();
+			return mutableStart;
 		}
 
 		void Remove(u64 index)
