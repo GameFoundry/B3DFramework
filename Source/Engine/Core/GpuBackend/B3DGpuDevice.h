@@ -27,6 +27,7 @@ namespace b3d
 	class GpuPipelineParameterSetLayout;
 	class GpuCommandCapture;
 	class IGpuAllocator;
+	class IGpuTransientHeapPool;
 	struct GpuMemoryRequirements;
 	struct GpuAllocation;
 	struct SamplerStateCreateInformation;
@@ -60,7 +61,7 @@ namespace b3d
 	class B3D_EXPORT GpuDevice
 	{
 	public:
-		virtual ~GpuDevice() = default;
+		virtual ~GpuDevice();
 
 		/** Initializes the GpuDevice. Should be called after construction but before any other operations. */
 		virtual bool Initialize() = 0;
@@ -110,8 +111,12 @@ namespace b3d
 		/** Notifies the device the rendering for the current frame will start. See EndFrame(). Render thread only. */
 		virtual void BeginFrame() = 0;
 
-		/** Notifies the device the rendering for the current frame has ended, see BeginFrame(). Render thread only. */
-		virtual void EndFrame() {}
+		/**
+		 * Notifies the device the rendering for the current frame has ended, see BeginFrame(). Blocks until the previous frame's
+		 * resources are safe to reuse, then reclaims unused heaps of every transient heap pool, and advances the frame index.
+		 * Render thread only.
+		 */
+		void EndFrame();
 
 		/**
 		 * Runs an incremental defragmentation pass over the device's persistent GPU memory allocators,
@@ -291,6 +296,19 @@ namespace b3d
 		 */
 		virtual TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker);
 
+		/**
+		 * Returns the transient heap pool that resources of memory type @p memoryType, as reported by GetMemoryRequirements(),
+		 * are placed in by GpuTransientResourceAllocator. Several memory types may share one pool. Returns null if the memory
+		 * type cannot be aliased. Thread safe.
+		 */
+		virtual IGpuTransientHeapPool* GetTransientHeapPool(u32 memoryType);
+
+		/** Returns every transient heap pool of the device. Thread safe. */
+		TArrayView<IGpuTransientHeapPool* const> GetTransientHeapPools() const;
+
+		/** Returns the index of the current frame, as advanced by EndFrame(). Thread safe. */
+		u64 GetFrameIndex() const { return mFrameCompletionTracker.GetCurrentMarker(); }
+
 		/************************************************************************/
 		/* 								UTILITY METHODS                    		*/
 		/************************************************************************/
@@ -353,11 +371,32 @@ namespace b3d
 		 */
 		virtual TShared<render::GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) = 0;
 
+		/**
+		 * Registers a transient heap pool created by the backend, takes ownership of it, and returns it. Must only be called during
+		 * device initialization.
+		 */
+		IGpuTransientHeapPool* AddTransientHeapPool(TUnique<IGpuTransientHeapPool> pool);
+
+		/**
+		 * Destroys every transient heap pool. Backends call this during destruction, once the GPU is idle and every resource
+		 * placed in the pools is destroyed, and before the heap backends the pools create heaps with are destroyed.
+		 */
+		void DestroyTransientHeapPools();
+
 		mutable UnorderedMap<SamplerStateCreateInformation, TShared<SamplerState>> mCachedSamplerStates;
 		mutable Mutex mSamplerStateMutex;
 
 		/** Thread responsible for executing queue submit and present operations. Constructed by backends that use one. */
 		TUnique<render::GpuSubmitThread> mSubmitThread;
+
+		/**
+		 * Completion tracker whose marker is the frame index, advanced by EndFrame(). Transient heap pools defer the destruction
+		 * of released heaps against it.
+		 */
+		GpuFrameCompletionTracker mFrameCompletionTracker;
+
+	private:
+		TArray<IGpuTransientHeapPool*> mTransientHeapPools; /**< Owned. */
 	};
 
 	/** @} */

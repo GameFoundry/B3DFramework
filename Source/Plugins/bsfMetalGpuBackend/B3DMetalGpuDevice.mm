@@ -60,6 +60,9 @@ namespace b3d
 
 			mClearPipeline.reset();
 			mResourceManager.reset();
+
+			// The pool creates its heaps through the heap allocator's backend
+			DestroyTransientHeapPools();
 			mHeapAllocator.reset();
 
 			if (MetalVertexInputManager::IsStarted())
@@ -145,6 +148,7 @@ namespace b3d
 			InitializeCapabilities();
 
 			mHeapAllocator = B3DMakeUnique<MetalHeapAllocator>(*this);
+			mTransientHeapPool = AddTransientHeapPool(mHeapAllocator->CreateTransientHeapPool(mFrameCompletionTracker));
 			mResourceManager = B3DMakeUnique<MetalResourceManager>(*this);
 
 			mClearPipeline = B3DMakeUnique<MetalClearPipeline>(*this);
@@ -365,6 +369,11 @@ namespace b3d
 			return mHeapAllocator->CreateScratchAllocator(memoryType, completionTracker);
 		}
 
+		IGpuTransientHeapPool* MetalGpuDevice::GetTransientHeapPool(u32 memoryType)
+		{
+			return memoryType == MetalHeapAllocator::kMemoryTypePrivate ? mTransientHeapPool : nullptr;
+		}
+
 		TShared<GpuQueryPool> MetalGpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)
 		{
 			return B3DMakeShared<MetalGpuQueryPool>(*this, createInformation);
@@ -523,14 +532,6 @@ namespace b3d
 			}
 
 			GetSubmitThread().WaitUntilIdle();
-		}
-
-		void MetalGpuDevice::EndFrame()
-		{
-			ASSERT_IF_NOT_RENDER_THREAD
-
-			// Blocks until the previous frame's resources are safe to reuse
-			GetSubmitThread().QueueEndFrameAndWaitForPreviousFrame();
 		}
 
 		void MetalGpuDevice::NotifyWillQueueForSubmit(GpuCommandBuffer& commandBuffer)

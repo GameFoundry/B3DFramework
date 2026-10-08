@@ -327,6 +327,16 @@ namespace b3d
 
 		/** Returns true if a resource sharing memory with this one has started a new lifetime on it since this resource was last acquired. */
 		bool IsSupersededByAlias() const { return mIsSupersededByAlias.load(std::memory_order_relaxed); }
+
+		/** Notifies the resource that it started a new lifetime on its memory with an alias acquire. Development builds only. */
+		void NotifyAliasAcquired()
+		{
+			mIsSupersededByAlias.store(false, std::memory_order_relaxed);
+			mAliasAcquireCount.fetch_add(1, std::memory_order_relaxed);
+		}
+
+		/** Returns the number of alias acquires of the resource. Development builds only. */
+		u32 GetAliasAcquireCount() const { return mAliasAcquireCount.load(std::memory_order_relaxed); }
 #endif
 
 		/**
@@ -431,6 +441,7 @@ namespace b3d
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		std::atomic<bool> mIsSupersededByAlias = false;
+		std::atomic<u32> mAliasAcquireCount = 0;
 #endif
 	};
 

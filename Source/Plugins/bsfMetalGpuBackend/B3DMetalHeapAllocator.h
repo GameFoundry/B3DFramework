@@ -6,6 +6,7 @@
 #include "GpuBackend/Allocators/B3DGpuAllocator.h"
 #include "GpuBackend/Allocators/B3DGpuLinearAllocator.h"
 #include "GpuBackend/Allocators/B3DGpuTlsfAllocator.h"
+#include "GpuBackend/Allocators/B3DGpuTransientHeapPool.h"
 #include "Utility/B3DPool.h"
 #include "Threading/B3DThreading.h"
 
@@ -126,6 +127,12 @@ namespace b3d
 			 * @p memoryType is invalid.
 			 */
 			TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker);
+
+			/**
+			 * Creates the transient heap pool of the private memory type, whose released heaps are destroyed once
+			 * @p completionTracker reports the GPU has finished with them.
+			 */
+			TUnique<IGpuTransientHeapPool> CreateTransientHeapPool(IGpuCompletionTracker& completionTracker);
 
 			/**
 			 * Returns the memory requirements of a buffer of @p length bytes, allocated from @p memoryType. Memory type is

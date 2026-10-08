@@ -26,6 +26,7 @@
 #include "GpuBackend/B3DGpuPushConstants.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "Utility/B3DBitwise.h"
+#include "GpuBackend/Allocators/B3DGpuTransientHeapPool.h"
 
 #if B3D_PLATFORM_WIN32
 #	include "Private/Win32/B3DWin32VideoModeInfo.h"
@@ -35,6 +36,15 @@
 
 using namespace b3d;
 using namespace b3d::render;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+namespace b3d
+{
+	static TConfigVariable<bool> gD3D12TightAlignment("d3d12.TightAlignment",
+		"Use tight alignment for buffers on devices that support it. Disabling it runs the buffer placement of devices without "
+		"tight alignment. Development builds only.", true, ConfigVariableFlag::ReadOnly);
+} // namespace b3d
+#endif
 
 D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter) : mAdapter(adapter)
 {
@@ -55,6 +65,21 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter) : mAdapter(adapter)
 
 	if(!options.EnhancedBarriersSupported)
 		B3D_LOG(Fatal, LogRenderBackend, "The selected D3D12 device does not support enhanced barriers.");
+
+	// Transient buffers and textures share heaps, which resource heap tier 1 does not allow
+	D3D12_FEATURE_DATA_D3D12_OPTIONS baseOptions = {};
+	hr = mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &baseOptions, sizeof(baseOptions));
+	if(FAILED(hr) || baseOptions.ResourceHeapTier < D3D12_RESOURCE_HEAP_TIER_2)
+		B3D_LOG(Fatal, LogRenderBackend, "The selected D3D12 device does not support resource heap tier 2 (hr={0}).", (u32)hr);
+
+	// Older runtimes fail the query, which counts as unsupported
+	D3D12_FEATURE_DATA_TIGHT_ALIGNMENT tightAlignment = {};
+	if(SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_TIGHT_ALIGNMENT, &tightAlignment, sizeof(tightAlignment))))
+		mIsTightAlignmentSupported = tightAlignment.SupportTier >= D3D12_TIGHT_ALIGNMENT_TIER_1;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	mIsTightAlignmentSupported = mIsTightAlignmentSupported && gD3D12TightAlignment.Get();
+#endif
 
 	// TODO - Query D3D12_FEATURE_ARCHITECTURE and add architecture-aware custom L0 heap policies where CPU-visible default resources outperform abstract heaps, especially WRITE_BACK on CacheCoherentUMA.
 	hr = mDevice.As(&mEnhancedDevice);
@@ -91,6 +116,16 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter) : mAdapter(adapter)
 	mResourceManager = B3DNew<D3D12ResourceManager>(*this);
 	mHeapBackend = B3DMakeUnique<D3D12HeapBackend>(*this);
 	mBufferPool = B3DMakeUnique<D3D12BufferPool>(*this);
+
+	// Transient buffers and textures share one pool, so they share memory. A buffer in the pool is a placed resource, which
+	// without tight alignment occupies a multiple of 64 KB at a 64 KB aligned offset.
+	TGpuTransientHeapPool<D3D12HeapBackend>::Configuration transientConfiguration;
+	transientConfiguration.HeapCreateInformation.Type = D3D12_HEAP_TYPE_DEFAULT;
+	transientConfiguration.HeapCreateInformation.Flags = D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES;
+	transientConfiguration.HeapCreateInformation.Alignment = D3D12_DEFAULT_MSAA_RESOURCE_PLACEMENT_ALIGNMENT;
+	transientConfiguration.Granularity = mIsTightAlignmentSupported ? 1 : D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+	transientConfiguration.CompletionTracker = &mFrameCompletionTracker;
+	mTransientHeapPool = AddTransientHeapPool(B3DMakeUnique<TGpuTransientHeapPool<D3D12HeapBackend>>(mHeapBackend.get(), transientConfiguration));
 
 #if B3D_PLATFORM_WIN32
 	mVideoModeInfo = B3DMakeShared<Win32VideoModeInfo>();
@@ -154,6 +189,9 @@ D3D12GpuDevice::~D3D12GpuDevice()
 
 	B3DDelete(mResourceManager);
 	B3DDelete(mDescriptorManager);
+
+	// Transient resources are destroyed with the GpuWorkContexts that cache them, before the device
+	DestroyTransientHeapPools();
 
 	// Allocators own the native heaps, so destroy every allocator before its heap backend.
 	for(TUnique<GpuMemoryAllocator>& allocator : mGpuMemoryAllocators)
@@ -256,20 +294,49 @@ GpuMemoryRequirements D3D12GpuDevice::GetMemoryRequirements(const GpuBufferCreat
 		return output;
 	}
 
+	// Buffers keep the buffer pool's memory types either way, so scratch allocators keep slicing buffer pages
 	output.MemoryType = (u32)memoryType;
-	output.Size = D3D12GpuBuffer::GetSliceSize(createInformation, b3d::GpuBuffer::CalculateTotalBufferSize(createInformation, *this));
-	output.Alignment = D3D12GpuBuffer::GetSliceAlignment(createInformation);
 	output.Kind = GpuResourceKind::Linear;
+
+	const u32 sliceSize = D3D12GpuBuffer::GetSliceSize(createInformation, b3d::GpuBuffer::CalculateTotalBufferSize(createInformation, *this));
+	if(!mIsTightAlignmentSupported)
+	{
+		output.Size = sliceSize;
+		output.Alignment = D3D12GpuBuffer::GetSliceAlignment(createInformation);
+		return output;
+	}
+
+	// With tight alignment, a buffer is a placed resource. Its views need more alignment than the resource: a constant buffer
+	// view's address must be 256-byte aligned.
+	const D3D12_RESOURCE_DESC resourceDescription = D3D12GpuBuffer::GetResourceDescription(sliceSize, resourceFlags, true);
+	const D3D12_RESOURCE_ALLOCATION_INFO allocationInfo = mDevice->GetResourceAllocationInfo(0, 1, &resourceDescription);
+	const u64 viewAlignment = createInformation.Type == GpuBufferType::Uniform ? D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT : D3D12_RAW_UAV_SRV_BYTE_ALIGNMENT;
+
+	output.Size = allocationInfo.SizeInBytes;
+	output.Alignment = std::max(allocationInfo.Alignment, viewAlignment);
 	return output;
 }
 
 IGpuAllocator& D3D12GpuDevice::GetPersistentAllocator(u32 memoryType)
 {
 	constexpr u32 kBufferMemoryTypeCount = (u32)D3D12BufferPool::MemoryType::Count;
-	if(memoryType < kBufferMemoryTypeCount)
-		return mBufferPool->GetOrCreatePersistentAllocator((D3D12BufferPool::MemoryType)memoryType);
+	if(memoryType >= kBufferMemoryTypeCount)
+		return GetOrCreateGpuMemoryAllocator((MemoryPoolType)(memoryType - kBufferMemoryTypeCount));
 
-	return GetOrCreateGpuMemoryAllocator((MemoryPoolType)(memoryType - kBufferMemoryTypeCount));
+	const D3D12BufferPool::MemoryType bufferMemoryType = (D3D12BufferPool::MemoryType)memoryType;
+	if(!mIsTightAlignmentSupported)
+		return mBufferPool->GetOrCreatePersistentAllocator(bufferMemoryType);
+
+	// With tight alignment, buffers are placed resources in heaps of their own, like textures
+	switch(bufferMemoryType)
+	{
+	case D3D12BufferPool::MemoryType::Upload:
+		return GetOrCreateGpuMemoryAllocator(MemoryPoolType::UploadBuffer);
+	case D3D12BufferPool::MemoryType::Readback:
+		return GetOrCreateGpuMemoryAllocator(MemoryPoolType::ReadbackBuffer);
+	default:
+		return GetOrCreateGpuMemoryAllocator(MemoryPoolType::DefaultBuffer);
+	}
 }
 
 TUnique<IGpuAllocator> D3D12GpuDevice::CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker)
@@ -279,6 +346,30 @@ TUnique<IGpuAllocator> D3D12GpuDevice::CreateScratchAllocator(u32 memoryType, IG
 		return nullptr;
 
 	return mBufferPool->CreateScratchAllocator(memoryType, completionTracker);
+}
+
+IGpuTransientHeapPool* D3D12GpuDevice::GetTransientHeapPool(u32 memoryType)
+{
+	constexpr u32 kBufferMemoryTypeCount = (u32)D3D12BufferPool::MemoryType::Count;
+	if(memoryType < kBufferMemoryTypeCount)
+	{
+		const D3D12BufferPool::MemoryType bufferMemoryType = (D3D12BufferPool::MemoryType)memoryType;
+		const bool isGpuOnly = bufferMemoryType == D3D12BufferPool::MemoryType::Default || bufferMemoryType == D3D12BufferPool::MemoryType::DefaultUnorderedAccess;
+		B3D_ASSERT(isGpuOnly && "Buffers visible to the CPU cannot be transient.");
+
+		return isGpuOnly ? mTransientHeapPool : nullptr;
+	}
+
+	switch((MemoryPoolType)(memoryType - kBufferMemoryTypeCount))
+	{
+	case MemoryPoolType::DefaultTexture:
+	case MemoryPoolType::DefaultMsaaTexture:
+	case MemoryPoolType::DefaultRenderTargetTexture:
+	case MemoryPoolType::DefaultMsaaRenderTargetTexture:
+		return mTransientHeapPool;
+	default:
+		return nullptr;
+	}
 }
 
 TShared<GpuQueryPool> D3D12GpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)
@@ -415,14 +506,6 @@ void D3D12GpuDevice::BeginFrame()
 	ASSERT_IF_NOT_RENDER_THREAD
 }
 
-void D3D12GpuDevice::EndFrame()
-{
-	ASSERT_IF_NOT_RENDER_THREAD
-
-	// Signal end-of-frame to submit thread. This blocks until the previous frame's resources are safe to reuse.
-	GetSubmitThread().QueueEndFrameAndWaitForPreviousFrame();
-}
-
 D3D12GpuDevice::MemoryPoolType D3D12GpuDevice::GetMemoryPoolType(const D3D12_RESOURCE_DESC& resourceDesc, D3D12_HEAP_TYPE heapType)
 {
 	if(resourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER)
@@ -538,7 +621,6 @@ HRESULT D3D12GpuDevice::CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, 
 
 	if(requestedAllocation.IsPending())
 	{
-		// TODO - Query D3D12_FEATURE_D3D12_TIGHT_ALIGNMENT and use D3D12_RESOURCE_FLAG_USE_TIGHT_ALIGNMENT to avoid 64 KiB placement granularity where supported.
 		const D3D12_RESOURCE_ALLOCATION_INFO allocationInfo = mDevice->GetResourceAllocationInfo(0, 1, &resourceDesc);
 		if(allocationInfo.SizeInBytes == UINT64_MAX || allocationInfo.Alignment == 0 || allocationInfo.Alignment > UINT32_MAX)
 			return E_INVALIDARG;

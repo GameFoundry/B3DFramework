@@ -5,6 +5,7 @@
 #include "B3DGpuCommandBuffer.h"
 #include "B3DGpuCommandBufferPoolRing.h"
 #include "B3DGpuParameterSetPool.h"
+#include "B3DGpuTransientResourceAllocator.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
 
 using namespace b3d;
@@ -94,6 +95,14 @@ IGpuWorkContextLocal& GpuWorkContext::AddLocal(const void* key, TUnique<IGpuWork
 	return *slot;
 }
 
+GpuTransientResourceAllocator& GpuWorkContext::GetTransientResourceAllocator()
+{
+	if (mTransientResourceAllocator == nullptr)
+		mTransientResourceAllocator = B3DMakeUnique<GpuTransientResourceAllocator>(mDevice);
+
+	return *mTransientResourceAllocator;
+}
+
 TShared<render::GpuBuffer> GpuWorkContext::CreateScratchGpuBuffer(const GpuBufferCreateInformation& createInformation)
 {
 	const GpuMemoryRequirements memoryRequirements = mDevice.GetMemoryRequirements(createInformation);
@@ -127,6 +136,7 @@ GpuWorkContext::~GpuWorkContext()
 	// borrowed-tracker context destroyed without its owner having called WaitAndReclaim(); the pools below
 	// (declared after mLocalObjects) are still alive, so any parameter sets the locals hold free cleanly.
 	mLocalObjects.clear();
+	mTransientResourceAllocator = nullptr;
 
 	if (!mTransferPoolRing)
 		return;
@@ -295,6 +305,7 @@ void GpuWorkContext::WaitAndReclaim()
 	// before the scratch allocations are asserted clean and reclaimed below. Borrowed-tracker contexts
 	// rely on their owner having drained the GPU before calling this (see the destructor contract).
 	mLocalObjects.clear();
+	mTransientResourceAllocator = nullptr;
 
 	// With the locals gone, a context with no submitted work and no scratch memory has nothing left to do.
 	if (!hasSubmittedWork && mScratchAllocators.empty())

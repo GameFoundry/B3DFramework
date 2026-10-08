@@ -224,5 +224,52 @@ namespace b3d
 		 * through its (new) carried handle without orphaning the free path.
 		 */
 		void TestAllocatorIdentity_DefraggedAllocationFreesThroughCarriedAllocator();
+
+		/**
+		 * Submissions are ordered on their queue, through queue waits and transitively through chains of waits. A wait on a queue
+		 * without a submission in the timeline orders nothing in the timeline.
+		 */
+		void TestSubmissionTimeline();
+
+		/**
+		 * Memory released on a queue is reused by a later allocation on the same queue, whose acquire orders it after the
+		 * released accesses. Memory released by a later submission on the queue is not reused by an earlier one.
+		 */
+		void TestAliasing_SameQueueReuse();
+
+		/**
+		 * Memory last used on another queue is only reused once the first use waits on that queue, and adds nothing to the
+		 * acquire. The configuration variables disable aliasing across queues, and aliasing within a scope.
+		 */
+		void TestAliasing_CrossQueueEligibility();
+
+		/** Memory released without accesses keeps the accesses of the resources released on it before. */
+		void TestAliasing_InheritedTags();
+
+		/**
+		 * Scopes of different allocators open at the same time each see the pool's heaps as free, and share the heaps that
+		 * either of them creates. Only the first of two requests for a new heap in the same slot creates one, so the pool holds
+		 * the memory of the largest scope. A scope starts without the accesses of earlier scopes.
+		 */
+		void TestAliasing_ConcurrentScopes();
+
+		/**
+		 * An allocation at the location of an earlier allocation succeeds over free memory whose last uses are ordered before
+		 * the first use, and returns the accesses to order after. It fails over memory in use, or over memory whose last uses
+		 * are not ordered before the first use.
+		 */
+		void TestAliasing_ExactClaims();
+
+		/**
+		 * Placements pad to their alignment and to the granularity, free memory coalesces, allocations that fit no heap create
+		 * a heap sized to fit them, and heap creation failures fail soft.
+		 */
+		void TestAliasing_SegmentsAndGranularity();
+
+		/**
+		 * Referenced heaps are kept. Heaps without references are released after the configured number of idle frames, and
+		 * destroyed once the GPU has finished with them. Statistics report the heaps the pool owns.
+		 */
+		void TestTransientHeapPool_ReleaseAndStatistics();
 	};
 } // namespace b3d

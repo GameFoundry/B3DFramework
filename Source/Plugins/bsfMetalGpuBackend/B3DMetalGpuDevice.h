@@ -134,7 +134,6 @@ namespace b3d
 			void PresentRenderWindow(const TShared<RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) override;
 			void WaitUntilIdle() override;
 			void BeginFrame() override;
-			void EndFrame() override;
 
 			TShared<render::GpuCommandBufferPool> CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation) override;
 			GpuMemoryRequirements GetMemoryRequirements(const TextureCreateInformation& createInformation) const override;
@@ -151,6 +150,7 @@ namespace b3d
 			TShared<GpuTimelineFence> CreateTimelineFence() override;
 			TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType,
 				IGpuCompletionTracker& completionTracker) override;
+			IGpuTransientHeapPool* GetTransientHeapPool(u32 memoryType) override;
 
 			void ConvertProjectionMatrix(const Matrix4& input, Matrix4& output) override;
 			GpuUniformBufferInformation GenerateUniformBufferInformation(const String& name, TArray<GpuUniformBufferMemberInformation>& inOutUniforms) override;
@@ -213,6 +213,9 @@ namespace b3d
 			Mutex mTimestampCalibrationMutex;
 
 			TUnique<MetalHeapAllocator> mHeapAllocator;
+
+			/** Transient heap pool of the private memory type, owned by GpuDevice. */
+			IGpuTransientHeapPool* mTransientHeapPool = nullptr;
 
 			TUnique<MetalResourceManager> mResourceManager;
 			TUnique<MetalClearPipeline> mClearPipeline;

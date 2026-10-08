@@ -79,7 +79,6 @@ namespace b3d
 			void PresentRenderWindow(const TShared<RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) override;
 			void WaitUntilIdle() override;
 			void BeginFrame() override;
-			void EndFrame() override;
 			void RunDefragPass(GpuWorkContext& gpuContext) override;
 
 			TShared<GpuCommandBufferPool> CreateGpuCommandBufferPool(const GpuCommandBufferPoolCreateInformation& createInformation) override;
@@ -96,6 +95,7 @@ namespace b3d
 			TUnique<GpuParameterSetPool> CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation) override;
 			TShared<GpuTimelineFence> CreateTimelineFence() override;
 			TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker) override;
+			IGpuTransientHeapPool* GetTransientHeapPool(u32 memoryType) override;
 
 			void ConvertProjectionMatrix(const Matrix4& input, Matrix4& output) override;
 			GpuUniformBufferInformation GenerateUniformBufferInformation(const String& name, TArray<GpuUniformBufferMemberInformation>& inOutUniforms) override;
@@ -342,6 +342,9 @@ namespace b3d
 
 			/** Guards lazy creation of mLinearPagePools entries. */
 			mutable Mutex mLinearPagePoolMutex;
+
+			/** Transient heap pool of each memory type, owned by GpuDevice. Valid for indices below the memory type count. */
+			IGpuTransientHeapPool* mTransientHeapPools[VK_MAX_MEMORY_TYPES];
 
 			u64 mDefragBudgetBytes = 8ull * 1024 * 1024;
 			u32 mDefragBudgetAllocations = 8;

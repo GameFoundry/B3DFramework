@@ -48,8 +48,11 @@ namespace b3d
 			/** Returns the native buffer resource. */
 			virtual ID3D12Resource* GetD3D12Resource() const = 0;
 
-			/** Returns the physical page containing this resource. */
+			/** Returns the physical page containing this resource, or null if the resource is not on a page. */
 			virtual D3D12BufferPage* GetPage() const = 0;
+
+			/** Returns the native heap type of the memory the resource is in. */
+			virtual D3D12_HEAP_TYPE GetHeapType() const = 0;
 		};
 
 		/** Tracked lifetime wrapper for a native D3D12 COM object referenced by command-list commands. */

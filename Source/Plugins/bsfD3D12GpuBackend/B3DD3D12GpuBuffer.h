@@ -15,15 +15,23 @@ namespace b3d
 		 */
 
 		/**
-		 * Wraps a slice of a pooled native D3D12 buffer resource. Lifetime is owned by the device's
-		 * resource manager and released via IGpuResource::Destroy(), deferred until the GPU is done with the
-		 * resource.
+		 * Wraps a native D3D12 buffer: either a slice of a pooled native buffer resource, or a placed resource of its own in
+		 * a native heap. Lifetime is owned by the device's resource manager and released via IGpuResource::Destroy(),
+		 * deferred until the GPU is done with the resource.
 		 */
 		class D3D12Buffer : public D3D12BufferResource
 		{
 		public:
-			/** Creates a logical buffer owning @p allocation until its tracked GPU uses complete. */
+			/** Creates a logical buffer on a slice of a buffer page, owning @p allocation until its tracked GPU uses complete. */
 			D3D12Buffer(D3D12ResourceManager* owner, GpuAllocation allocation, const StringView& name = "");
+
+			/**
+			 * Creates a buffer that owns @p resource, placed at @p allocation in a native heap of type @p heapType. Owns
+			 * @p allocation until its tracked GPU uses complete, if the allocation is owned. @p mappedData is the persistent
+			 * CPU mapping of the resource, or null.
+			 */
+			D3D12Buffer(D3D12ResourceManager* owner, GpuAllocation allocation, ComPtr<ID3D12Resource> resource, D3D12_HEAP_TYPE heapType, void* mappedData,
+				const StringView& name = "");
 			~D3D12Buffer() override;
 
 			/** Returns the native D3D12 resource. */
@@ -32,17 +40,23 @@ namespace b3d
 			/** Returns the GPU virtual address of the buffer. */
 			D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() const;
 
-			/** Returns the native page shared by this logical buffer and other compatible slices. */
+			/** Returns the native page shared by this buffer slice and other compatible slices, or null for a placed buffer. */
 			D3D12BufferPage* GetPage() const override;
 
-			/** Returns the byte offset of this logical buffer from the start of its native page. */
-			u64 GetOffset() const { return mAllocation.Offset; }
+			/** Returns the byte offset of this buffer from the start of its native resource. */
+			u64 GetOffset() const { return mResource != nullptr ? 0 : mAllocation.Offset; }
 
-			/** Returns the heap type of the shared native page containing this buffer slice. */
-			D3D12_HEAP_TYPE GetHeapType() const;
+			/** Returns the native heap type of the memory the buffer is in. */
+			D3D12_HEAP_TYPE GetHeapType() const override;
+
+			/** Returns the persistent CPU mapping of the buffer, or null for device-local buffers. */
+			void* GetMappedData() const;
 
 		private:
 			GpuAllocation mAllocation;
+			ComPtr<ID3D12Resource> mResource; /**< Placed resource, or null if the buffer is a slice of a page. */
+			D3D12_HEAP_TYPE mHeapType = D3D12_HEAP_TYPE_DEFAULT; /**< Heap type of the placed resource. */
+			void* mMappedData = nullptr; /**< Persistent CPU mapping of the placed resource. */
 		};
 
 		/** DirectX 12 implementation of a GPU buffer. */
@@ -79,6 +93,7 @@ namespace b3d
 			GpuQueueMask GetUseMask(GpuAccessFlags accessFlags) override;
 			u32 GetBoundCount() const override;
 			u32 GetUseCount() const override;
+			IGpuResource* GetGpuResource() const override { return mBuffer; }
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			bool IsRangeBound(u32 offset, u32 size) const override;
@@ -134,6 +149,17 @@ namespace b3d
 			 * depends on how the buffer was originally classified.
 			 */
 			static u32 GetSliceAlignment(const GpuBufferInformation& information);
+
+			/**
+			 * Returns the description of a placed buffer resource of @p size bytes with @p flags. The same description must be
+			 * used to query the resource's size and alignment, and to create it.
+			 *
+			 * @param	size				Size of the buffer, in bytes.
+			 * @param	flags				Native resource flags of the buffer.
+			 * @param	useTightAlignment	True to request tight alignment for the resource. Must only be set if the device
+			 *								supports it.
+			 */
+			static D3D12_RESOURCE_DESC GetResourceDescription(u64 size, D3D12_RESOURCE_FLAGS flags, bool useTightAlignment);
 
 		protected:
 			void RecreateInternalBuffer() override;

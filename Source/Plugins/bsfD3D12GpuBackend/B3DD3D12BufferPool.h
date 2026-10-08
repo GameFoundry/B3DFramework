@@ -4,13 +4,14 @@
 
 #include "B3DD3D12Prerequisites.h"
 #include "B3DD3D12Resource.h"
+#include "B3DD3D12HeapBackend.h"
 #include "GpuBackend/Allocators/B3DGpuLinearAllocator.h"
 #include "GpuBackend/Allocators/B3DGpuTlsfAllocator.h"
 
 namespace b3d::render
 {
 	/** A persistently allocated native buffer resource suballocated into logical D3D12Buffer slices. */
-	class D3D12BufferPage : public D3D12BufferResource, public IGpuHeap
+	class D3D12BufferPage : public D3D12BufferResource, public D3D12HeapBase
 	{
 	public:
 		/** Takes ownership of @p resource and its @p backingAllocation. */
@@ -27,7 +28,7 @@ namespace b3d::render
 		D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() const { return mResource->GetGPUVirtualAddress(); }
 
 		/** Returns the native heap type used by the page. */
-		D3D12_HEAP_TYPE GetHeapType() const { return mHeapType; }
+		D3D12_HEAP_TYPE GetHeapType() const override { return mHeapType; }
 
 		/** Returns the flags used to create the native resource. */
 		D3D12_RESOURCE_FLAGS GetFlags() const { return mFlags; }

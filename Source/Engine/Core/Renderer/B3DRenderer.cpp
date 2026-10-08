@@ -54,8 +54,8 @@ void Renderer::EndFrame()
 	mDevice->RunDefragPass(gpuContext);
 	gpuContext.SubmitTransferCommandBuffers();
 
-	// Backend frame-boundary work - e.g. Vulkan signals end-of-frame to its submission thread and
-	// blocks until the previous frame's resources are safe to reuse.
+	// Device frame-boundary work - signals end-of-frame to the submission thread and blocks until the
+	// previous frame's resources are safe to reuse.
 	mDevice->EndFrame();
 
 	// Advance the context across the frame boundary: recycles its transfer pools and reclaims

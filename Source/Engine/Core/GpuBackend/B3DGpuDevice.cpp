@@ -7,9 +7,16 @@
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuProgram.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
+#include "GpuBackend/Allocators/B3DGpuTransientHeapPool.h"
 #include "Material/B3DShaderCompiler.h"
+#include "CoreObject/B3DRenderThread.h"
 
 using namespace b3d;
+
+GpuDevice::~GpuDevice()
+{
+	B3D_ASSERT(mTransientHeapPools.Empty() && "The backend must destroy its transient heap pools before its heap backends.");
+}
 
 TShared<GpuProgramBytecode> GpuDevice::CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const
 {
@@ -27,6 +34,47 @@ TUnique<IGpuAllocator> GpuDevice::CreateScratchAllocator(u32 /*memoryType*/, IGp
 {
 	// Default: context-owned scratch allocation is unsupported. Backends that support it override this.
 	return nullptr;
+}
+
+IGpuTransientHeapPool* GpuDevice::GetTransientHeapPool(u32 /*memoryType*/)
+{
+	// Default: transient resources use persistent memory. Backends that support aliasing override this.
+	return nullptr;
+}
+
+TArrayView<IGpuTransientHeapPool* const> GpuDevice::GetTransientHeapPools() const
+{
+	return TArrayView<IGpuTransientHeapPool* const>(mTransientHeapPools.Data(), mTransientHeapPools.Size());
+}
+
+void GpuDevice::EndFrame()
+{
+	ASSERT_IF_NOT_RENDER_THREAD
+
+	// Signal end-of-frame to the submit thread. This blocks until the previous frame's resources are safe to reuse.
+	if(mSubmitThread != nullptr)
+		mSubmitThread->QueueEndFrameAndWaitForPreviousFrame();
+
+	for(IGpuTransientHeapPool* pool : mTransientHeapPools)
+		pool->ReclaimUnused();
+
+	mFrameCompletionTracker.AdvanceFrame();
+}
+
+IGpuTransientHeapPool* GpuDevice::AddTransientHeapPool(TUnique<IGpuTransientHeapPool> pool)
+{
+	B3D_ASSERT(pool != nullptr);
+
+	mTransientHeapPools.Add(pool.release());
+	return mTransientHeapPools.Back();
+}
+
+void GpuDevice::DestroyTransientHeapPools()
+{
+	for(IGpuTransientHeapPool* pool : mTransientHeapPools)
+		B3DDelete(pool);
+
+	mTransientHeapPools.Clear();
 }
 
 namespace

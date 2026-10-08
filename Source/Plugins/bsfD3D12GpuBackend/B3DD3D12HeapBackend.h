@@ -18,9 +18,37 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** References a native D3D12 heap used by placed resources. */
-	struct D3D12GpuHeap : IGpuHeap
+	/** Kind of memory a heap handle of the D3D12 backend refers to. */
+	enum class D3D12HeapKind : u8
 	{
+		Heap, /**< A native heap, in which resources are placed. See D3D12GpuHeap. */
+		BufferPage /**< A native buffer resource, of which buffers are slices. See render::D3D12BufferPage. */
+	};
+
+	/** Base of every heap handle of the D3D12 backend. Identifies the kind of memory the handle refers to. */
+	struct D3D12HeapBase : IGpuHeap
+	{
+		explicit D3D12HeapBase(D3D12HeapKind kind)
+			: Kind(kind)
+		{ }
+
+		D3D12HeapKind Kind;
+	};
+
+	/** Returns the kind of memory @p heap, a heap handle of the D3D12 backend, refers to. */
+	inline D3D12HeapKind GetD3D12HeapKind(IGpuHeap* heap)
+	{
+		B3D_ASSERT(heap != nullptr);
+		return static_cast<D3D12HeapBase*>(heap)->Kind;
+	}
+
+	/** References a native D3D12 heap used by placed resources. */
+	struct D3D12GpuHeap : D3D12HeapBase
+	{
+		D3D12GpuHeap()
+			: D3D12HeapBase(D3D12HeapKind::Heap)
+		{ }
+
 		ComPtr<ID3D12Heap> Heap; /**< Backing native heap. */
 		u64 Size = 0; /**< Total heap size in bytes. */
 		D3D12_HEAP_TYPE Type = D3D12_HEAP_TYPE_DEFAULT; /**< Native memory type. */
@@ -30,7 +58,7 @@ namespace b3d
 	/** Downcasts an opaque engine heap handle to the concrete D3D12 heap it must refer to. */
 	inline D3D12GpuHeap& ToD3D12GpuHeap(IGpuHeap* heap)
 	{
-		B3D_ASSERT(heap != nullptr);
+		B3D_ASSERT(GetD3D12HeapKind(heap) == D3D12HeapKind::Heap);
 		return *static_cast<D3D12GpuHeap*>(heap);
 	}
 

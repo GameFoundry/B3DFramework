@@ -101,13 +101,13 @@ void D3D12BarrierHelper::RecordNativeBufferBarrier(IGpuBufferResource* buffer, c
 	// An alias acquire's source belongs to earlier resources on the memory, which a barrier on this buffer's resource does not cover
 	if(barrierFlags.IsSet(GpuBarrierFlag::AliasAcquire))
 		AddAliasGlobalBarrier(barrier);
-	else if(page != nullptr && page->GetHeapType() == D3D12_HEAP_TYPE_READBACK)
+	else if(d3d12Buffer->GetHeapType() == D3D12_HEAP_TYPE_READBACK)
 	{
 		// Agility SDK 1.619 reports BARRIER_INTEROP_INVALID_STATE for resource-scoped enhanced barriers on READBACK
 		// buffers, even when created with CreatePlacedResource2 and UNDEFINED. The enhanced-barrier specification
 		// explicitly permits these barriers for readback WAW hazards, so retain the dependency through a global barrier.
 		// TODO - Restore the page-scoped buffer barrier once the D3D12 debug layer accepts enhanced READBACK barriers.
-		mBarriers.AddGlobalBarrier(D3D12BarrierUtility::GetGlobalBufferBarrier(page->GetFlags(), barrier, precedingBarrierDestinationStages));
+		mBarriers.AddGlobalBarrier(D3D12BarrierUtility::GetGlobalBufferBarrier(D3D12_RESOURCE_FLAG_NONE, barrier, precedingBarrierDestinationStages));
 	}
 	else
 		mBarriers.AddBufferBarrier(D3D12BarrierUtility::GetBufferBarrier(d3d12Buffer->GetD3D12Resource(), barrier, precedingBarrierDestinationStages));

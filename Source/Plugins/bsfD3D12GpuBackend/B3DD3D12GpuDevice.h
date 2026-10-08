@@ -52,13 +52,13 @@ namespace b3d
 			void PresentRenderWindow(const TShared<RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) override;
 			void WaitUntilIdle() override;
 			void BeginFrame() override;
-			void EndFrame() override;
 
 			TShared<GpuCommandBufferPool> CreateGpuCommandBufferPool(const GpuCommandBufferPoolCreateInformation& createInformation) override;
 			GpuMemoryRequirements GetMemoryRequirements(const TextureCreateInformation& createInformation) const override;
 			GpuMemoryRequirements GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const override;
 			IGpuAllocator& GetPersistentAllocator(u32 memoryType) override;
 			TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker) override;
+			IGpuTransientHeapPool* GetTransientHeapPool(u32 memoryType) override;
 			TShared<GpuQueryPool> CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation) override;
 			TShared<EventQuery> CreateEventQuery() override;
 			TShared<GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
@@ -93,6 +93,12 @@ namespace b3d
 
 			/** Returns true if the submit thread is currently running. */
 			bool HasSubmitThread() const { return mSubmitThread != nullptr; }
+
+			/**
+			 * Returns true if placed buffers use tight alignment. Buffers are then placed resources of their own in persistent
+			 * memory too, rather than slices of buffer pages.
+			 */
+			bool IsTightAlignmentSupported() const { return mIsTightAlignmentSupported; }
 
 			/**
 			 * Creates a resource using the matching heap pool. When valid, @p outAllocation owns the suballocation and 
@@ -181,6 +187,7 @@ namespace b3d
 			ComPtr<ID3D12Device10> mEnhancedDevice;
 			ComPtr<IDXGIAdapter4> mAdapter;
 			bool mIsPrimary = false;
+			bool mIsTightAlignmentSupported = false;
 
 			D3D12DescriptorManager* mDescriptorManager = nullptr;
 			D3D12ResourceManager* mResourceManager = nullptr;
@@ -188,6 +195,9 @@ namespace b3d
 			TUnique<D3D12BufferPool> mBufferPool;
 			TUnique<GpuMemoryAllocator> mGpuMemoryAllocators[(u32)MemoryPoolType::Count];
 			Mutex mGpuMemoryAllocatorMutex;
+
+			/** Transient heap pool of every GPU-only buffer and texture memory type, owned by GpuDevice. */
+			IGpuTransientHeapPool* mTransientHeapPool = nullptr;
 			u64 mTimestampFrequency = 0;
 			bool mLoggedDeviceRemoval = false; /**< Ensures DRED breadcrumbs are logged only once per removal. */
 

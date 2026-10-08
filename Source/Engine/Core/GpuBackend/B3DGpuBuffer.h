@@ -676,6 +676,9 @@ namespace b3d::render
 		/** Number of in-flight submissions currently referencing this buffer. */
 		virtual u32 GetUseCount() const = 0;
 
+		/** Returns the resource that tracks the GPU use of the buffer, or null if the backend tracks none. */
+		virtual IGpuResource* GetGpuResource() const { return nullptr; }
+
 		/**
 		 * Returns true if the buffer is fixed to the memory it was created at. Such a buffer never recreates its native
 		 * resource, so writes cannot discard its contents.

@@ -235,6 +235,7 @@ namespace b3d
 			GpuQueueMask GetUseMask(u32 mipLevel, u32 arrayLayer, GpuAccessFlags accessFlags) const override;
 			u32 GetBoundCount(u32 subresourceIdx = 0) const override;
 			u32 GetUseCount(u32 subresourceIdx = 0) const override;
+			IGpuResource* GetGpuResource() const override { return mImage; }
 			void Flush(u32 mipLevel, u32 arrayLayer) override;
 			void Invalidate(u32 mipLevel, u32 arrayLayer) override;
 			void RecreateInternalTexture() override;

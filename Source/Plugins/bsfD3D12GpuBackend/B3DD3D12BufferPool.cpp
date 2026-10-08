@@ -8,7 +8,7 @@ using namespace b3d;
 using namespace b3d::render;
 
 D3D12BufferPage::D3D12BufferPage(D3D12ResourceManager* owner, ComPtr<ID3D12Resource> resource, GpuAllocation backingAllocation, D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_FLAGS flags, void* mappedData)
-	: D3D12BufferResource(owner, "D3D12 buffer page"), mResource(std::move(resource)), mBackingAllocation(backingAllocation), mHeapType(heapType), mFlags(flags), mMappedData(mappedData)
+	: D3D12BufferResource(owner, "D3D12 buffer page"), D3D12HeapBase(D3D12HeapKind::BufferPage), mResource(std::move(resource)), mBackingAllocation(backingAllocation), mHeapType(heapType), mFlags(flags), mMappedData(mappedData)
 { }
 
 D3D12BufferPage::~D3D12BufferPage()

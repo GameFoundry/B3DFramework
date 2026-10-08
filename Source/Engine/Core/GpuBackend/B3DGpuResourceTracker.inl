@@ -320,7 +320,7 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitBufferBarrier(I
 			return;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-		buffer->SetSupersededByAlias(false);
+		buffer->NotifyAliasAcquired();
 		for(IGpuResource* predecessor : aliasAcquire->Predecessors)
 		{
 			// Barriers of one batch are not ordered against each other, so a barrier of an earlier resource could overlap the acquire's barrier
@@ -855,7 +855,7 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::TrackExplicitImageBarrier(IG
 			return;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-		image->SetSupersededByAlias(false);
+		image->NotifyAliasAcquired();
 		for(IGpuResource* predecessor : aliasAcquire->Predecessors)
 		{
 			// Barriers of one batch are not ordered against each other, so a barrier of an earlier resource could overlap the acquire's discard

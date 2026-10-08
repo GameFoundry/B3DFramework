@@ -35,6 +35,7 @@ static_assert(false, "Other platform includes go here.");
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
 #include "Utility/B3DBitwise.h"
+#include "GpuBackend/Allocators/B3DGpuTransientHeapPool.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -309,6 +310,18 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 
 	mHeapBackend = B3DMakeUnique<VulkanHeapBackend>(*this);
 
+	// Buffers and images of one memory type share its transient heaps. A pool creates no heap until a resource is placed in it.
+	for (u32 memoryTypeIndex = 0; memoryTypeIndex < mMemoryProperties.memoryTypeCount; memoryTypeIndex++)
+	{
+		TGpuTransientHeapPool<VulkanHeapBackend>::Configuration configuration;
+		configuration.HeapCreateInformation.MemoryTypeBits = 1u << memoryTypeIndex;
+		configuration.HeapCreateInformation.PropertyFlags = mMemoryProperties.memoryTypes[memoryTypeIndex].propertyFlags;
+		configuration.Granularity = mDeviceProperties.limits.bufferImageGranularity;
+		configuration.CompletionTracker = &mFrameCompletionTracker;
+
+		mTransientHeapPools[memoryTypeIndex] = AddTransientHeapPool(B3DMakeUnique<TGpuTransientHeapPool<VulkanHeapBackend>>(mHeapBackend.get(), configuration));
+	}
+
 	// Initialize capabilities
 	InitializeCapabilities();
 
@@ -355,6 +368,9 @@ VulkanGpuDevice::~VulkanGpuDevice()
 
 	// Needs to happen after query pool & command buffer pool shutdown, to ensure their resources are destroyed
 	B3DDelete(mResourceManager);
+
+	// Transient resources are destroyed with the GpuWorkContexts that cache them, before the device
+	DestroyTransientHeapPools();
 
 	// Drain every per-memory-type allocator before tearing down the heap backend; the allocator
 	// destructor releases all owned heaps via mHeapBackend, so the heap backend must outlive it.
@@ -547,14 +563,6 @@ void VulkanGpuDevice::ExecuteWaitUntilIdle(GpuQueue& queue)
 void VulkanGpuDevice::BeginFrame()
 {
 	ASSERT_IF_NOT_RENDER_THREAD
-}
-
-void VulkanGpuDevice::EndFrame()
-{
-	ASSERT_IF_NOT_RENDER_THREAD
-
-	// Signal end-of-frame to submit thread. This blocks until the previous frame's resources are safe to reuse.
-	GetSubmitThread().QueueEndFrameAndWaitForPreviousFrame();
 }
 
 void VulkanGpuDevice::RunDefragPass(GpuWorkContext& gpuContext)
@@ -1073,6 +1081,12 @@ TUnique<IGpuAllocator> VulkanGpuDevice::CreateScratchAllocator(u32 memoryType, I
 	configuration.HeapCreateInfo.MapPersistently = isHostVisible;
 
 	return B3DMakeUnique<TGpuLinearAllocator<VulkanHeapBackend>>(mHeapBackend.get(), &completionTracker, configuration, &pool);
+}
+
+IGpuTransientHeapPool* VulkanGpuDevice::GetTransientHeapPool(u32 memoryType)
+{
+	B3D_ASSERT(memoryType < mMemoryProperties.memoryTypeCount);
+	return mTransientHeapPools[memoryType];
 }
 
 void VulkanGpuDevice::InitializeCapabilities()

@@ -87,6 +87,7 @@ namespace b3d
 			GpuQueueMask GetUseMask(u32 mipLevel, u32 arrayLayer, GpuAccessFlags accessFlags = GpuAccessFlag::Read | GpuAccessFlag::Write) const override;
 			u32 GetBoundCount(u32 subresourceIndex = 0) const override;
 			u32 GetUseCount(u32 subresourceIndex = 0) const override;
+			IGpuResource* GetGpuResource() const override { return mImage; }
 
 			/** Returns the low-level image resource wrapping the native D3D12 texture. */
 			D3D12Image* GetD3D12Image() const { return mImage; }

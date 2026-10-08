@@ -20,6 +20,7 @@
 #include "GpuBackend/B3DGpuTimelineFence.h"
 #include "Math/B3DMatrix4.h"
 #include "Image/B3DPixelUtility.h"
+#include "GpuBackend/Allocators/B3DGpuTransientHeapPool.h"
 
 namespace b3d
 {
@@ -53,6 +54,15 @@ namespace b3d
 			configuration.DeferralMode = GpuAllocatorFreeDeferralMode::ResourceLifecycle;
 
 			mPersistentAllocator = B3DMakeUnique<TGpuTlsfAllocator<NullHeapBackend>>(&mHeapBackend, nullptr, configuration);
+
+			TGpuTransientHeapPool<NullHeapBackend>::Configuration transientConfiguration;
+			transientConfiguration.CompletionTracker = &mFrameCompletionTracker;
+			mTransientHeapPool = AddTransientHeapPool(B3DMakeUnique<TGpuTransientHeapPool<NullHeapBackend>>(&mHeapBackend, transientConfiguration));
+		}
+
+		NullGpuDevice::~NullGpuDevice()
+		{
+			DestroyTransientHeapPools();
 		}
 
 		bool NullGpuDevice::Initialize()
@@ -205,6 +215,11 @@ namespace b3d
 			B3D_ASSERT(memoryType == 0);
 
 			return *mPersistentAllocator;
+		}
+
+		IGpuTransientHeapPool* NullGpuDevice::GetTransientHeapPool(u32 memoryType)
+		{
+			return memoryType == 0 ? mTransientHeapPool : nullptr;
 		}
 
 		TShared<Texture> NullGpuDevice::CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags)

@@ -567,6 +567,9 @@ namespace b3d
 			/** Number of in-flight submissions currently referencing the given subresource. */
 			virtual u32 GetUseCount(u32 subresourceIdx = 0) const = 0;
 
+			/** Returns the resource that tracks the GPU use of the whole texture, or null if the backend tracks none. */
+			virtual IGpuResource* GetGpuResource() const { return nullptr; }
+
 			/**
 			 * Returns true if the texture is fixed to the memory it was created at. Such a texture never recreates its
 			 * native resource, so writes cannot discard its contents.

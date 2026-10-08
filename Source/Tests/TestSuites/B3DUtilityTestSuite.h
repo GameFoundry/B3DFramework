@@ -18,6 +18,7 @@ namespace b3d
 		void TestOctree();
 		void TestInlineArray();
 		void TestArray();
+		void TestArrayEraseLifetimes();
 		void TestComplex();
 		void TestMinHeap();
 		void TestQuadtree();

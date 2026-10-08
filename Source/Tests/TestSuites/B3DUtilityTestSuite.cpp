@@ -162,6 +162,85 @@ i32 PoolLifetimeProbe::sLiveCount = 0;
 i32 PoolLifetimeProbe::sConstructCount = 0;
 i32 PoolLifetimeProbe::sDestructCount = 0;
 
+/**
+ * Tracks the lifetime of TArray elements by registering the address of every live instance. Unlike balanced
+ * construction/destruction counts, the registry detects destroyed objects left inside the array, double destruction and
+ * moved-from objects that are never destroyed.
+ */
+struct ArrayLifetimeProbe
+{
+	/** Value assigned to the source of a move, so moved-from leftovers are recognizable. */
+	static constexpr i32 kMovedFromValue = -1;
+
+	ArrayLifetimeProbe(i32 value)
+		: Value(value)
+	{
+		GetLiveProbes().insert(this);
+	}
+
+	ArrayLifetimeProbe(const ArrayLifetimeProbe& other)
+		: Value(other.Value)
+	{
+		CheckLive(other);
+		GetLiveProbes().insert(this);
+	}
+
+	ArrayLifetimeProbe(ArrayLifetimeProbe&& other) noexcept
+		: Value(other.Value)
+	{
+		CheckLive(other);
+		other.Value = kMovedFromValue;
+		GetLiveProbes().insert(this);
+	}
+
+	~ArrayLifetimeProbe()
+	{
+		if(GetLiveProbes().erase(this) == 0)
+			++sInvalidUseCount;
+	}
+
+	ArrayLifetimeProbe& operator=(const ArrayLifetimeProbe& other)
+	{
+		CheckLive(*this);
+		CheckLive(other);
+		Value = other.Value;
+		return *this;
+	}
+
+	ArrayLifetimeProbe& operator=(ArrayLifetimeProbe&& other) noexcept
+	{
+		CheckLive(*this);
+		CheckLive(other);
+		Value = other.Value;
+		other.Value = kMovedFromValue;
+		return *this;
+	}
+
+	/** Returns true if @p probe is constructed and not yet destroyed. */
+	static bool IsLive(const ArrayLifetimeProbe& probe) { return GetLiveProbes().count(&probe) > 0; }
+
+	/** Returns the addresses of all constructed and not yet destroyed probes. */
+	static UnorderedSet<const ArrayLifetimeProbe*>& GetLiveProbes()
+	{
+		static UnorderedSet<const ArrayLifetimeProbe*> sLiveProbes;
+		return sLiveProbes;
+	}
+
+	i32 Value;
+
+	/** Number of copies, moves, assignments or destructions that involved a probe that was not live. */
+	static i32 sInvalidUseCount;
+
+private:
+	static void CheckLive(const ArrayLifetimeProbe& probe)
+	{
+		if(!IsLive(probe))
+			++sInvalidUseCount;
+	}
+};
+
+i32 ArrayLifetimeProbe::sInvalidUseCount = 0;
+
 UtilityTestSuite::UtilityTestSuite()
 	: TestSuite("UtilityTestSuite")
 {
@@ -171,6 +250,7 @@ UtilityTestSuite::UtilityTestSuite()
 	B3D_ADD_TEST(UtilityTestSuite::TestBitfield);
 	B3D_ADD_TEST(UtilityTestSuite::TestInlineArray);
 	B3D_ADD_TEST(UtilityTestSuite::TestArray);
+	B3D_ADD_TEST(UtilityTestSuite::TestArrayEraseLifetimes);
 	B3D_ADD_TEST(UtilityTestSuite::TestComplex);
 	B3D_ADD_TEST(UtilityTestSuite::TestMinHeap);
 	B3D_ADD_TEST(UtilityTestSuite::TestQuadtree)
@@ -636,6 +716,105 @@ void UtilityTestSuite::TestArray()
 	B3D_TEST_ASSERT(v3[0].A == 10);
 	B3D_TEST_ASSERT(v3[3].A == 10);
 	B3D_TEST_ASSERT(v3[3].B == 0);
+}
+
+void UtilityTestSuite::TestArrayEraseLifetimes()
+{
+	// Range erase must destroy the moved-from leftovers past the new end, and leave every remaining element live
+	ArrayLifetimeProbe::sInvalidUseCount = 0;
+	{
+		TArray<ArrayLifetimeProbe> probes;
+		probes.Reserve(7);
+		for(i32 value = 0; value < 7; value++)
+			probes.EmplaceBack(value);
+
+		auto fnCheckProbes = [this, &probes](std::initializer_list<i32> expectedValues)
+		{
+			B3D_TEST_ASSERT(probes.Size() == expectedValues.size());
+			B3D_TEST_ASSERT(ArrayLifetimeProbe::GetLiveProbes().size() == expectedValues.size());
+
+			u64 elementIndex = 0;
+			for(i32 expectedValue : expectedValues)
+			{
+				B3D_TEST_ASSERT(ArrayLifetimeProbe::IsLive(probes[elementIndex]));
+				B3D_TEST_ASSERT(probes[elementIndex].Value == expectedValue);
+				elementIndex++;
+			}
+		};
+
+		// Erase a middle range
+		auto iterNext = probes.Erase(probes.begin() + 2, probes.begin() + 4);
+		B3D_TEST_ASSERT(iterNext == probes.begin() + 2);
+		fnCheckProbes({ 0, 1, 4, 5, 6 });
+
+		// Erase a leading range
+		iterNext = probes.Erase(probes.begin(), probes.begin() + 2);
+		B3D_TEST_ASSERT(iterNext == probes.begin());
+		fnCheckProbes({ 4, 5, 6 });
+
+		// Erase an empty range
+		iterNext = probes.Erase(probes.begin() + 1, probes.begin() + 1);
+		B3D_TEST_ASSERT(iterNext == probes.begin() + 1);
+		fnCheckProbes({ 4, 5, 6 });
+
+		// Erase a trailing range
+		iterNext = probes.Erase(probes.begin() + 1, probes.end());
+		B3D_TEST_ASSERT(iterNext == probes.end());
+		fnCheckProbes({ 4 });
+
+		// Erase a single element
+		probes.Add(ArrayLifetimeProbe(7));
+		probes.Add(ArrayLifetimeProbe(8));
+		probes.Erase(probes.begin());
+		fnCheckProbes({ 7, 8 });
+	}
+
+	B3D_TEST_ASSERT(ArrayLifetimeProbe::GetLiveProbes().empty());
+	B3D_TEST_ASSERT(ArrayLifetimeProbe::sInvalidUseCount == 0);
+
+	// Strings longer than the small-string buffer own heap memory, so a destroyed element shows up as wrong contents
+	{
+		TArray<String> strings;
+		for(u32 stringIndex = 0; stringIndex < 6; stringIndex++)
+			strings.Add("Long array element string number " + ToString(stringIndex));
+
+		strings.Erase(strings.begin() + 1, strings.begin() + 3);
+		B3D_TEST_ASSERT(strings.Size() == 4);
+		B3D_TEST_ASSERT(strings[0] == "Long array element string number 0");
+		B3D_TEST_ASSERT(strings[1] == "Long array element string number 3");
+		B3D_TEST_ASSERT(strings[2] == "Long array element string number 4");
+		B3D_TEST_ASSERT(strings[3] == "Long array element string number 5");
+
+		strings.Erase(strings.begin(), strings.begin() + 2);
+		B3D_TEST_ASSERT(strings.Size() == 2);
+		B3D_TEST_ASSERT(strings[0] == "Long array element string number 4");
+		B3D_TEST_ASSERT(strings[1] == "Long array element string number 5");
+	}
+
+	// Shared pointer reference counts reveal both destroyed live elements and leaked moved-from elements
+	{
+		TArray<TShared<i32>> owners;
+		for(i32 value = 0; value < 5; value++)
+			owners.Add(B3DMakeShared<i32>(value));
+
+		{
+			TArray<TShared<i32>> references = owners;
+			references.Erase(references.begin(), references.begin() + 2);
+			B3D_TEST_ASSERT(references.Size() == 3);
+			B3D_TEST_ASSERT(references[0] == owners[2]);
+			B3D_TEST_ASSERT(references[1] == owners[3]);
+			B3D_TEST_ASSERT(references[2] == owners[4]);
+
+			B3D_TEST_ASSERT(owners[0].use_count() == 1);
+			B3D_TEST_ASSERT(owners[1].use_count() == 1);
+			B3D_TEST_ASSERT(owners[2].use_count() == 2);
+			B3D_TEST_ASSERT(owners[3].use_count() == 2);
+			B3D_TEST_ASSERT(owners[4].use_count() == 2);
+		}
+
+		for(const TShared<i32>& owner : owners)
+			B3D_TEST_ASSERT(owner.use_count() == 1);
+	}
 }
 
 void UtilityTestSuite::TestComplex()

@@ -7,6 +7,7 @@
 #include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
+#include "GpuBackend/B3DGpuCompletionTracker.h"
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
@@ -20,6 +21,7 @@
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DGpuPushConstants.h"
 #include "GpuBackend/B3DRenderTexture.h"
+#include "GpuBackend/B3DGpuTransientResourceAllocator.h"
 #include "Material/B3DShaderCompiler.h"
 #include "Material/B3DShader.h"
 #include "Material/B3DVariation.h"
@@ -412,6 +414,8 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestLayoutTransitionWrites)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestAliasAcquire)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestAliasAcquireExecution)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestTransientResourceAllocator)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestTransientResourceExecution)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestFramebufferAttachmentUsage)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestRenderPassResourceTracking)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantMetadata)
@@ -3967,4 +3971,517 @@ void GpuBackendTestSuite::TestSubmissionTransitionPlanning()
 	B3D_TEST_ASSERT(rewriteAfterWriterAndReader.ExecutionBarrier.SourceStages == GpuStageFlag::VertexShaderNonUniform)
 	B3D_TEST_ASSERT(rewriteAfterWriterAndReader.ExecutionBarrier.SourceAccess == GpuAccessFlag::Read)
 	EndTestRead(writerAndReaderBuffer, writerQueue);
+}
+
+namespace
+{
+	/** Sets the transient resource configuration variables, and restores their earlier values when destroyed. */
+	class TransientConfigurationScope
+	{
+	public:
+		TransientConfigurationScope(u32 heapMinimumSize, u32 idleFrames, u32 maxCachedTextures)
+			: mHeapMinimumSize(gGpuTransientHeapMinimumSize), mIdleFrames(gGpuTransientIdleFrames), mMaxCachedTextures(gGpuTransientMaxCachedTextures)
+		{
+			gGpuTransientHeapMinimumSize.Set(heapMinimumSize);
+			gGpuTransientIdleFrames.Set(idleFrames);
+			gGpuTransientMaxCachedTextures.Set(maxCachedTextures);
+		}
+
+		~TransientConfigurationScope()
+		{
+			gGpuTransientHeapMinimumSize.Set(mHeapMinimumSize);
+			gGpuTransientIdleFrames.Set(mIdleFrames);
+			gGpuTransientMaxCachedTextures.Set(mMaxCachedTextures);
+		}
+
+	private:
+		u32 mHeapMinimumSize;
+		u32 mIdleFrames;
+		u32 mMaxCachedTextures;
+	};
+
+	/** Returns the number of heaps in all of the device's transient heap pools, and their total size. */
+	GpuTransientHeapPoolStatistics GetTransientHeapStatistics(const GpuDevice& device)
+	{
+		GpuTransientHeapPoolStatistics output;
+		for(const IGpuTransientHeapPool* pool : device.GetTransientHeapPools())
+		{
+			const GpuTransientHeapPoolStatistics statistics = pool->GetStatistics();
+			output.HeapCount += statistics.HeapCount;
+			output.Capacity += statistics.Capacity;
+		}
+
+		return output;
+	}
+} // namespace
+
+void GpuBackendTestSuite::TestTransientResourceAllocator()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	GetRenderThread().PostCommand([this, &device]()
+	{
+		static constexpr u32 kHeapSizeMegabytes = 4;
+		const TransientConfigurationScope configurationScope(kHeapSizeMegabytes, 2, 2);
+
+		GpuSubmissionTimeline timeline;
+		timeline.AddSubmission(GpuQueueId(GQT_GRAPHICS, 0), GpuQueueMask::kNone);
+
+		GpuTransientResourceAllocator allocator(*device);
+
+		TextureCreateInformation textureInformation;
+		textureInformation.Name = "Transient texture";
+		textureInformation.Width = 64;
+		textureInformation.Height = 64;
+		textureInformation.Format = PF_RGBA8;
+		textureInformation.Usage = TextureUsageFlag::RenderTarget;
+
+		const TArrayView<const GpuTransientLastUse> noUses;
+
+		// The same allocations in the same order reuse the textures cached by the previous frame. A texture is handed out at most once per
+		// scope, so the second allocation creates a new texture at the memory the first one released.
+		bool isAliased = false;
+		TShared<render::Texture> cachedTextures[2];
+		for(u32 frame = 0; frame < 2; frame++)
+		{
+			GpuTransientScope& scope = allocator.BeginScope(timeline);
+			for(u32 textureIndex = 0; textureIndex < 2; textureIndex++)
+			{
+				const GpuTransientTexture texture = scope.AllocateTexture(textureInformation, 0);
+				B3D_TEST_ASSERT(texture.Texture != nullptr)
+				if(texture.Texture == nullptr)
+					continue;
+
+				if(frame == 0)
+				{
+					cachedTextures[textureIndex] = texture.Texture;
+					isAliased = texture.Texture->HasFixedLocation();
+				}
+				else
+					B3D_TEST_ASSERT(!isAliased || texture.Texture == cachedTextures[textureIndex])
+
+				scope.Release(*texture.Texture, noUses);
+			}
+
+			allocator.EndScope();
+			device->EndFrame();
+
+			const GpuTransientStatistics statistics = allocator.GetStatistics();
+			B3D_TEST_ASSERT(statistics.AllocationCount == 2)
+			if(isAliased)
+			{
+				B3D_TEST_ASSERT(statistics.CacheHits == (frame == 0 ? 0u : 2u))
+				B3D_TEST_ASSERT(statistics.CacheMisses == (frame == 0 ? 2u : 0u))
+				B3D_TEST_ASSERT(statistics.CachedTextures == 2)
+			}
+		}
+
+		B3D_TEST_ASSERT(cachedTextures[0] != cachedTextures[1])
+
+		// Textures are placed in transient memory whenever the device has a pool for their memory type
+		const u32 textureMemoryType = device->GetMemoryRequirements(textureInformation).MemoryType;
+		B3D_TEST_ASSERT(isAliased == (device->GetTransientHeapPool(textureMemoryType) != nullptr))
+
+		if(isAliased)
+		{
+			// A cached texture whose memory is in use is not reused, so the second and third allocations create new textures. The end of the
+			// scope then releases the least recently used textures beyond the cache size.
+			TShared<render::Texture> liveTextures[3];
+			{
+				GpuTransientScope& scope = allocator.BeginScope(timeline);
+				for(u32 textureIndex = 0; textureIndex < 3; textureIndex++)
+				{
+					liveTextures[textureIndex] = scope.AllocateTexture(textureInformation, 0).Texture;
+					B3D_TEST_ASSERT(liveTextures[textureIndex] != nullptr)
+				}
+
+				B3D_TEST_ASSERT(liveTextures[0] == cachedTextures[0])
+				for(const TShared<render::Texture>& texture : liveTextures)
+				{
+					if(texture != nullptr)
+						scope.Release(*texture, noUses);
+				}
+
+				allocator.EndScope();
+
+				const GpuTransientStatistics statistics = allocator.GetStatistics();
+				B3D_TEST_ASSERT(statistics.AllocationCount == 3)
+				B3D_TEST_ASSERT(statistics.CacheHits == 1)
+				B3D_TEST_ASSERT(statistics.CacheMisses == 2)
+				B3D_TEST_ASSERT(statistics.CachedTextures == 2)
+			}
+
+			// The textures created last remain cached
+			{
+				GpuTransientScope& scope = allocator.BeginScope(timeline);
+				const GpuTransientTexture first = scope.AllocateTexture(textureInformation, 0);
+				const GpuTransientTexture second = scope.AllocateTexture(textureInformation, 0);
+				B3D_TEST_ASSERT(first.Texture == liveTextures[1] && second.Texture == liveTextures[2])
+
+				if(first.Texture != nullptr)
+					scope.Release(*first.Texture, noUses);
+
+				if(second.Texture != nullptr)
+					scope.Release(*second.Texture, noUses);
+
+				allocator.EndScope();
+				B3D_TEST_ASSERT(allocator.GetStatistics().CacheHits == 2)
+			}
+
+			// A scope releases the cached textures that went unused for the idle frames. A heap without references is released once it went
+			// unused for the idle frames.
+			device->EndFrame();
+			allocator.BeginScope(timeline);
+			allocator.EndScope();
+			B3D_TEST_ASSERT(allocator.GetStatistics().CachedTextures == 2)
+
+			device->EndFrame();
+			allocator.BeginScope(timeline);
+			allocator.EndScope();
+			B3D_TEST_ASSERT(allocator.GetStatistics().CachedTextures == 0)
+
+			for(u32 frameIndex = 0; frameIndex <= gGpuTransientIdleFrames; frameIndex++)
+				device->EndFrame();
+
+			GpuTransientHeapPoolStatistics heapStatistics = GetTransientHeapStatistics(*device);
+			B3D_TEST_ASSERT(heapStatistics.HeapCount == 0 && heapStatistics.Capacity == 0)
+
+			// Scopes of two contexts open at the same time each see the heaps as free, so their textures share the heap one of them creates
+			{
+				const TShared<GpuWorkContext> firstContext = GpuWorkContext::Create(*device);
+				const TShared<GpuWorkContext> secondContext = GpuWorkContext::Create(*device);
+				GpuTransientResourceAllocator& firstAllocator = firstContext->GetTransientResourceAllocator();
+				GpuTransientResourceAllocator& secondAllocator = secondContext->GetTransientResourceAllocator();
+
+				GpuTransientScope& firstScope = firstAllocator.BeginScope(timeline);
+				GpuTransientScope& secondScope = secondAllocator.BeginScope(timeline);
+				const GpuTransientTexture firstTexture = firstScope.AllocateTexture(textureInformation, 0);
+				const GpuTransientTexture secondTexture = secondScope.AllocateTexture(textureInformation, 0);
+				B3D_TEST_ASSERT(firstTexture.Texture != nullptr && secondTexture.Texture != nullptr && firstTexture.Texture != secondTexture.Texture)
+
+				heapStatistics = GetTransientHeapStatistics(*device);
+				B3D_TEST_ASSERT(heapStatistics.HeapCount == 1 && heapStatistics.Capacity == (u64)kHeapSizeMegabytes * 1024 * 1024)
+
+				if(firstTexture.Texture != nullptr)
+					firstScope.Release(*firstTexture.Texture, noUses);
+
+				if(secondTexture.Texture != nullptr)
+					secondScope.Release(*secondTexture.Texture, noUses);
+
+				firstAllocator.EndScope();
+				secondAllocator.EndScope();
+			}
+
+			device->EndFrame();
+		}
+
+		// Validation: a resource not released before the end of its scope is reported
+		{
+			GpuTransientScope& scope = allocator.BeginScope(timeline);
+			const GpuTransientTexture texture = scope.AllocateTexture(textureInformation, 0);
+			B3D_TEST_ASSERT(texture.Texture != nullptr)
+			{
+				LoggingScope logs(*this);
+				logs.ExpectError("A transient resource was not released before the end of the scope that allocated it.");
+				allocator.EndScope();
+			}
+
+			device->EndFrame();
+		}
+
+		// Validation: a resource released with uses must have been alias acquired
+		{
+			GpuTransientScope& scope = allocator.BeginScope(timeline);
+			const GpuTransientTexture texture = scope.AllocateTexture(textureInformation, 0);
+			B3D_TEST_ASSERT(texture.Texture != nullptr)
+
+			bool isAcquireValidated = false;
+			if(texture.Texture != nullptr)
+			{
+#if B3D_BUILD_TYPE_DEVELOPMENT
+				isAcquireValidated = texture.Texture->HasFixedLocation() && texture.Texture->GetGpuResource() != nullptr;
+#endif
+
+				GpuAccessScope access;
+				access.Add(GpuStageFlag::Transfer, GpuAccessFlag::Write);
+				const GpuTransientLastUse lastUse(0, access);
+				scope.Release(*texture.Texture, TArrayView<const GpuTransientLastUse>(&lastUse, 1));
+			}
+
+			{
+				LoggingScope logs(*this);
+				if(isAcquireValidated)
+					logs.ExpectError("A transient resource was used without an alias acquire before its first use.");
+
+				allocator.EndScope();
+			}
+
+			device->EndFrame();
+		}
+
+		// Validation: resources accessed by the CPU, and textures first used on a transfer queue, cannot be transient
+		{
+			GpuSubmissionTimeline transferTimeline;
+			transferTimeline.AddSubmission(GpuQueueId(GQT_TRANSFER, 0), GpuQueueMask::kNone);
+
+			TextureCreateInformation cpuTextureInformation = textureInformation;
+			cpuTextureInformation.Name = "Transient CPU texture";
+			cpuTextureInformation.Usage = TextureUsageFlag::StoreOnCPUWithGPUAccess;
+
+			GpuTransientScope& scope = allocator.BeginScope(transferTimeline);
+			{
+				LoggingScope logs(*this);
+				logs.ExpectError("The first use of transient texture 'Transient texture' cannot be on a transfer queue.");
+				logs.ExpectError("Transient texture 'Transient CPU texture' must only be accessed by the GPU.");
+				logs.ExpectError("Transient buffers must only be accessed by the GPU.");
+
+				B3D_TEST_ASSERT(scope.AllocateTexture(textureInformation, 0).Texture == nullptr)
+				B3D_TEST_ASSERT(scope.AllocateTexture(cpuTextureInformation, 0).Texture == nullptr)
+				B3D_TEST_ASSERT(scope.AllocateBuffer(GpuBufferCreateInformation::CreateStagingWrite(1024), 0).Buffer == nullptr)
+			}
+
+			allocator.EndScope();
+			device->EndFrame();
+		}
+
+		// With transient resources disabled, textures are created in persistent memory and never cached
+		{
+			gGpuTransientResources.Set(false);
+			const u32 cachedTextureCount = allocator.GetStatistics().CachedTextures;
+
+			GpuTransientScope& scope = allocator.BeginScope(timeline);
+			const GpuTransientTexture texture = scope.AllocateTexture(textureInformation, 0);
+			B3D_TEST_ASSERT(texture.Texture != nullptr)
+			if(texture.Texture != nullptr)
+			{
+				B3D_TEST_ASSERT(!texture.Texture->HasFixedLocation())
+				scope.Release(*texture.Texture, noUses);
+			}
+
+			allocator.EndScope();
+			device->EndFrame();
+			gGpuTransientResources.Set(true);
+
+			const GpuTransientStatistics statistics = allocator.GetStatistics();
+			B3D_TEST_ASSERT(statistics.AllocationCount == 1)
+			B3D_TEST_ASSERT(statistics.CacheHits == 0)
+			B3D_TEST_ASSERT(statistics.CacheMisses == 0)
+
+			// The scope may have released textures that went unused for the idle frames
+			B3D_TEST_ASSERT(statistics.CachedTextures <= cachedTextureCount)
+		}
+	}, "GpuBackendTestSuite::TestTransientResourceAllocator", true);
+}
+
+void GpuBackendTestSuite::TestTransientResourceExecution()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	GetRenderThread().PostCommand([this, &device]()
+	{
+		static constexpr u32 kSize = 64;
+		const GpuQueueId graphics(GQT_GRAPHICS, 0);
+		const GpuQueueId compute(GQT_COMPUTE, 0);
+		const bool hasComputeQueue = device->GetQueueCount(GQT_COMPUTE) > 0;
+
+		TextureCreateInformation textureInformation;
+		textureInformation.Name = "Transient storage texture";
+		textureInformation.Width = kSize;
+		textureInformation.Height = kSize;
+		textureInformation.Format = PF_RGBA8;
+		textureInformation.Usage = TextureUsageFlag::AllowUnorderedAccessOnTheGPU;
+
+		const GpuBufferCreateInformation bufferInformation = GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize);
+		const u32 bufferBytes = kSize * kSize * sizeof(u32);
+
+		// Staging buffers hold one pattern per resource. Their size covers a texture's staging pitch.
+		const TShared<render::Texture> pitchTexture = device->CreateTexture(textureInformation);
+		const ImageSubresourcePitch pitch = pitchTexture->GetStagingBufferPitchForSubresource(0, 0);
+		const u32 stagingElementCount = pitch.RowPitch * pitch.SliceHeight;
+
+		// Each pattern stores the pattern index in the high bits, and the element index in the low bits
+		auto fnPatternValue = [](u32 pattern, u32 elementIndex) { return (pattern << 24) | elementIndex; };
+
+		constexpr u32 kResourceCount = 4;
+		TShared<render::GpuBuffer> uploads[kResourceCount];
+		TShared<render::GpuBuffer> readbacks[kResourceCount];
+		for(u32 resourceIndex = 0; resourceIndex < kResourceCount; resourceIndex++)
+		{
+			uploads[resourceIndex] = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(stagingElementCount * sizeof(u32)));
+			readbacks[resourceIndex] = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(stagingElementCount * sizeof(u32)));
+
+			const render::GpuBufferMappedScope mapping = uploads[resourceIndex]->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			u32* elements = static_cast<u32*>(mapping.GetMappedMemory());
+			for(u32 elementIndex = 0; elementIndex < stagingElementCount; elementIndex++)
+				elements[elementIndex] = fnPatternValue(resourceIndex + 1, elementIndex);
+		}
+
+		// Checks that the readback of a resource holds the resource's pattern in every element
+		auto fnCheckReadback = [this, &readbacks, &pitch, &fnPatternValue](u32 resourceIndex, bool isTexture)
+		{
+			const render::GpuBufferMappedScope mapping = readbacks[resourceIndex]->Map(GpuMapOption::Read);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			const u32* elements = static_cast<const u32*>(mapping.GetMappedMemory());
+			bool matches = true;
+			for(u32 row = 0; row < kSize; row++)
+			{
+				for(u32 column = 0; column < kSize; column++)
+				{
+					const u32 elementIndex = isTexture ? row * pitch.RowPitch + column : row * kSize + column;
+					matches &= elements[elementIndex] == fnPatternValue(resourceIndex + 1, elementIndex);
+				}
+			}
+
+			B3D_TEST_ASSERT(matches)
+		};
+
+		// Issue the barriers that start a new lifetime of a resource, with the resource's first access as the destination
+		auto fnAcquireBuffer = [](render::GpuCommandBuffer& commands, const GpuTransientBuffer& buffer)
+		{
+			GpuBufferBarrier barrier(buffer.Buffer, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write);
+			barrier.AliasAcquire = &buffer.Acquire;
+			commands.IssueBarriers(barrier);
+		};
+
+		auto fnAcquireTexture = [](render::GpuCommandBuffer& commands, const GpuTransientTexture& texture)
+		{
+			GpuTextureBarrier barrier(texture.Texture, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, GpuImageLayout::TransferDestination);
+			barrier.AliasAcquire = &texture.Acquire;
+			commands.IssueBarriers(barrier);
+		};
+
+		GpuAccessScope transferAccess;
+		transferAccess.Add(GpuStageFlag::Transfer, GpuAccessFlag::Read | GpuAccessFlag::Write);
+
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		const TShared<render::GpuCommandBufferPool> graphicsPool = device->CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_GRAPHICS));
+		const TShared<render::GpuCommandBufferPool> producerPool = hasComputeQueue ? device->CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_COMPUTE)) : graphicsPool;
+
+		// The producer scope uses the compute queue first, then the graphics queue after a wait for the compute queue. The consumer scope
+		// uses the graphics queue only.
+		GpuSubmissionTimeline producerTimeline;
+		producerTimeline.AddSubmission(hasComputeQueue ? compute : graphics, GpuQueueMask::kNone);
+		producerTimeline.AddSubmission(graphics, hasComputeQueue ? GpuQueueMask(compute) : GpuQueueMask::kNone);
+
+		GpuSubmissionTimeline consumerTimeline;
+		consumerTimeline.AddSubmission(graphics, GpuQueueMask::kNone);
+
+		const TransientConfigurationScope configurationScope(4, gGpuTransientIdleFrames, gGpuTransientMaxCachedTextures);
+		GpuTransientResourceAllocator& allocator = context->GetTransientResourceAllocator();
+
+		for(u32 frame = 0; frame < 2; frame++)
+		{
+			// The second buffer and the texture are placed over the memory released by the resources before them
+			GpuTransientScope& producerScope = allocator.BeginScope(producerTimeline);
+			const GpuTransientLastUse producerLastUse(0, transferAccess);
+			const GpuTransientLastUse graphicsLastUse(1, transferAccess);
+
+			const GpuTransientBuffer first = producerScope.AllocateBuffer(bufferInformation, 0);
+			if(first.Buffer != nullptr)
+				producerScope.Release(*first.Buffer, TArrayView<const GpuTransientLastUse>(&producerLastUse, 1));
+
+			const GpuTransientBuffer second = producerScope.AllocateBuffer(bufferInformation, 1);
+			if(second.Buffer != nullptr)
+				producerScope.Release(*second.Buffer, TArrayView<const GpuTransientLastUse>(&graphicsLastUse, 1));
+
+			const GpuTransientTexture texture = producerScope.AllocateTexture(textureInformation, 1);
+			if(texture.Texture != nullptr)
+				producerScope.Release(*texture.Texture, TArrayView<const GpuTransientLastUse>(&graphicsLastUse, 1));
+
+			const bool isAllocated = first.Buffer != nullptr && second.Buffer != nullptr && texture.Texture != nullptr;
+			B3D_TEST_ASSERT(isAllocated)
+			if(!isAllocated)
+			{
+				allocator.EndScope();
+				return;
+			}
+
+			IGpuTransientHeapPool* bufferPool = device->GetTransientHeapPool(device->GetMemoryRequirements(bufferInformation).MemoryType);
+			IGpuTransientHeapPool* texturePool = device->GetTransientHeapPool(device->GetMemoryRequirements(textureInformation).MemoryType);
+
+			const bool isBufferAliased = first.Buffer->HasFixedLocation();
+			B3D_TEST_ASSERT(isBufferAliased == (bufferPool != nullptr))
+			B3D_TEST_ASSERT(first.Buffer != second.Buffer)
+
+			// Accesses on the compute queue are ordered by the queue wait, so they are not part of the acquire's source
+			if(isBufferAliased && hasComputeQueue)
+				B3D_TEST_ASSERT(second.Acquire.Source.GetStages() == GpuStageFlag::None)
+
+			// A texture in the same pool as the buffers is placed over the second buffer, after its transfers on the same queue
+			if(isBufferAliased && bufferPool == texturePool)
+				B3D_TEST_ASSERT(texture.Acquire.Source.GetStages() == GpuStageFlag::Transfer)
+
+			const TShared<render::GpuCommandBuffer> producerCommands = producerPool->Create(GpuCommandBufferCreateInformation::Create("Transient producer"));
+			fnAcquireBuffer(*producerCommands, first);
+			producerCommands->CopyBufferToBuffer(uploads[0], first.Buffer, 0, 0, bufferBytes);
+			producerCommands->CopyBufferToBuffer(first.Buffer, readbacks[0], 0, 0, bufferBytes);
+			context->SubmitCommandBuffer(producerCommands, GpuQueueMask::kNone);
+
+			const TShared<render::GpuCommandBuffer> graphicsCommands = graphicsPool->Create(GpuCommandBufferCreateInformation::Create("Transient producer on graphics"));
+			fnAcquireBuffer(*graphicsCommands, second);
+			graphicsCommands->CopyBufferToBuffer(uploads[1], second.Buffer, 0, 0, bufferBytes);
+			graphicsCommands->CopyBufferToBuffer(second.Buffer, readbacks[1], 0, 0, bufferBytes);
+			fnAcquireTexture(*graphicsCommands, texture);
+			graphicsCommands->CopyBufferToTexture(uploads[2], texture.Texture, 0, 0, 0);
+			graphicsCommands->CopyTextureToBuffer(texture.Texture, readbacks[2], 0, 0);
+			context->SubmitCommandBuffer(graphicsCommands, hasComputeQueue ? GpuQueueMask(compute) : GpuQueueMask::kNone);
+			allocator.EndScope();
+
+			// Aliasing keeps the peak memory use of the scope below the total size of its allocations. The second frame reuses every cached
+			// resource.
+			GpuTransientStatistics statistics = allocator.GetStatistics();
+			B3D_TEST_ASSERT(statistics.AllocationCount == 3)
+			if(isBufferAliased)
+				B3D_TEST_ASSERT(statistics.LastScope.PeakUsed < statistics.LastScope.RequestedBytes)
+
+			if(frame == 1)
+				B3D_TEST_ASSERT(statistics.CacheMisses == 0)
+
+			// The consumer scope reuses the memory of the producer scope, and with it the first buffer's cached resource
+			GpuTransientScope& consumerScope = allocator.BeginScope(consumerTimeline);
+			const GpuTransientLastUse consumerLastUse(0, transferAccess);
+			const GpuTransientBuffer consumer = consumerScope.AllocateBuffer(bufferInformation, 0);
+			B3D_TEST_ASSERT(consumer.Buffer != nullptr)
+			if(consumer.Buffer == nullptr)
+			{
+				allocator.EndScope();
+				return;
+			}
+
+			consumerScope.Release(*consumer.Buffer, TArrayView<const GpuTransientLastUse>(&consumerLastUse, 1));
+			B3D_TEST_ASSERT(!isBufferAliased || consumer.Buffer == first.Buffer)
+
+			const TShared<render::GpuCommandBuffer> consumerCommands = graphicsPool->Create(GpuCommandBufferCreateInformation::Create("Transient consumer"));
+			fnAcquireBuffer(*consumerCommands, consumer);
+			consumerCommands->CopyBufferToBuffer(uploads[3], consumer.Buffer, 0, 0, bufferBytes);
+			consumerCommands->CopyBufferToBuffer(consumer.Buffer, readbacks[3], 0, 0, bufferBytes);
+			context->SubmitCommandBuffer(consumerCommands, GpuQueueMask::kNone);
+			allocator.EndScope();
+
+			statistics = allocator.GetStatistics();
+			B3D_TEST_ASSERT(statistics.AllocationCount == 1)
+			B3D_TEST_ASSERT(statistics.CacheHits == (isBufferAliased ? 1u : 0u))
+
+			device->WaitUntilIdle();
+			device->EndFrame();
+
+			fnCheckReadback(0, false);
+			fnCheckReadback(1, false);
+			fnCheckReadback(2, true);
+			fnCheckReadback(3, false);
+		}
+	}, "GpuBackendTestSuite::TestTransientResourceExecution", true);
 }

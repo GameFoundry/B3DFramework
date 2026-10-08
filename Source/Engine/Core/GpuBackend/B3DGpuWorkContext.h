@@ -12,6 +12,7 @@ namespace b3d
 	class IGpuAllocator;
 	class IGpuCompletionTracker;
 	class GpuFenceCompletionTracker;
+	class GpuTransientResourceAllocator;
 	struct GpuBufferCreateInformation;
 
 	namespace render
@@ -135,6 +136,13 @@ namespace b3d
 		GpuParameterSetPool& GetParameterSetPool() { return *mParameterSetPool; }
 
 		/**
+		 * Returns the allocator for transient resources of the GPU work this context records, creating it on first use. The
+		 * allocator and the resources it caches are destroyed with the context, once its GPU work drains. Must be called from
+		 * the owning thread.
+		 */
+		GpuTransientResourceAllocator& GetTransientResourceAllocator();
+
+		/**
 		 * Returns the context-local object registered under @p key, or null if none is. Context-local objects
 		 * let systems cache per-context state (e.g. renderer material instances) with the context's lifetime.
 		 * Must be called from the owning thread.
@@ -254,6 +262,9 @@ namespace b3d
 		 * resources from.
 		 */
 		Map<const void*, TUnique<IGpuWorkContextLocal>> mLocalObjects;
+
+		/** Allocator for transient resources, created on first use. Destroyed together with the context-local objects. */
+		TUnique<GpuTransientResourceAllocator> mTransientResourceAllocator;
 
 		// Transfer command-buffers
 		TUnique<render::GpuCommandBufferPoolRing> mTransferPoolRing;

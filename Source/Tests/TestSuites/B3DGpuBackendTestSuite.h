@@ -80,6 +80,19 @@ namespace b3d
 		 */
 		void TestAliasAcquireExecution();
 
+		/**
+		 * Verifies the transient resource cache across scopes and frames, cache eviction by idle frames and by cache size, the release of
+		 * idle heaps, concurrent scopes of two contexts sharing a heap, the persistent memory fallback and the validation of transient
+		 * resource use.
+		 */
+		void TestTransientResourceAllocator();
+
+		/**
+		 * Allocates transient resources from a context's allocator, in scopes spanning the compute and graphics queues, over two frames.
+		 * Verifies the contents each resource reads back, and that the resources shared memory.
+		 */
+		void TestTransientResourceExecution();
+
 		/** Verifies framebuffer attachment normalization and render-pass usage construction. */
 		void TestFramebufferAttachmentUsage();
 

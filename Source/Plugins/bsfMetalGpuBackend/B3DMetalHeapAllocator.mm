@@ -198,6 +198,15 @@ namespace b3d
 			return B3DMakeUnique<ScratchAllocator>(&mBackend, &completionTracker, configuration, &pagePool);
 		}
 
+		TUnique<IGpuTransientHeapPool> MetalHeapAllocator::CreateTransientHeapPool(IGpuCompletionTracker& completionTracker)
+		{
+			TGpuTransientHeapPool<MetalHeapBackend>::Configuration configuration;
+			configuration.HeapCreateInformation.MemoryType = kMemoryTypePrivate;
+			configuration.CompletionTracker = &completionTracker;
+
+			return B3DMakeUnique<TGpuTransientHeapPool<MetalHeapBackend>>(&mBackend, configuration);
+		}
+
 		GpuMemoryRequirements MetalHeapAllocator::GetBufferMemoryRequirements(u64 length, u32 memoryType) const
 		{
 			GpuMemoryRequirements output;

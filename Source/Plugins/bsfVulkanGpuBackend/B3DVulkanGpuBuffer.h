@@ -129,6 +129,7 @@ namespace b3d
 			GpuQueueMask GetUseMask(GpuAccessFlags accessFlags) override;
 			u32 GetBoundCount() const override { return mBuffer->GetBoundCount(); }
 			u32 GetUseCount() const override { return mBuffer->GetUseCount(); }
+			IGpuResource* GetGpuResource() const override { return mBuffer; }
 
 			void Flush(u32 offset, u32 size) override;
 			void Invalidate(u32 offset, u32 size) override;

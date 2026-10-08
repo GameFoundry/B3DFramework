@@ -52,6 +52,7 @@ namespace b3d
 			static constexpr const char* kGpuProgramLanguageName = kGpuProgramLanguageNullsl;
 
 			NullGpuDevice();
+			~NullGpuDevice() override;
 
 			/**
 			 * @name GpuDevice Interface
@@ -77,6 +78,7 @@ namespace b3d
 			GpuMemoryRequirements GetMemoryRequirements(const TextureCreateInformation& createInformation) const override;
 			GpuMemoryRequirements GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const override;
 			IGpuAllocator& GetPersistentAllocator(u32 memoryType) override;
+			IGpuTransientHeapPool* GetTransientHeapPool(u32 memoryType) override;
 			TShared<GpuQueryPool> CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation) override;
 			TShared<EventQuery> CreateEventQuery() override;
 			TShared<GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
@@ -115,6 +117,7 @@ namespace b3d
 
 			NullHeapBackend mHeapBackend;
 			TUnique<TGpuTlsfAllocator<NullHeapBackend>> mPersistentAllocator; /**< Allocator for the device's only memory type. */
+			IGpuTransientHeapPool* mTransientHeapPool = nullptr; /**< Transient heap pool of the device's only memory type, owned by GpuDevice. */
 		};
 
 		/** @} */

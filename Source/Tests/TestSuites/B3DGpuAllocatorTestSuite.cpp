@@ -12,6 +12,8 @@
 #include "GpuBackend/Allocators/B3DGpuAllocator.h"
 #include "GpuBackend/Allocators/B3DGpuLinearAllocator.h"
 #include "GpuBackend/Allocators/B3DGpuTlsfAllocator.h"
+#include "GpuBackend/Allocators/B3DGpuAliasingAllocator.h"
+#include "GpuBackend/B3DGpuSubmissionTimeline.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "Renderer/B3DRenderer.h"
 
@@ -75,6 +77,14 @@ GpuAllocatorTestSuite::GpuAllocatorTestSuite()
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_SharedPoolForceDrainReturnsPages)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestAllocatorIdentity_FreeRoutesByCarriedAllocator)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestAllocatorIdentity_DefraggedAllocationFreesThroughCarriedAllocator)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestSubmissionTimeline)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestAliasing_SameQueueReuse)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestAliasing_CrossQueueEligibility)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestAliasing_InheritedTags)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestAliasing_ConcurrentScopes)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestAliasing_ExactClaims)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestAliasing_SegmentsAndGranularity)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestTransientHeapPool_ReleaseAndStatistics)
 }
 
 namespace
@@ -2561,3 +2571,674 @@ void GpuAllocatorTestSuite::TestAllocatorIdentity_DefraggedAllocationFreesThroug
 	B3D_TEST_ASSERT(allocator.GetUsedBytes() == 0)
 }
 
+void GpuAllocatorTestSuite::TestSubmissionTimeline()
+{
+	const GpuQueueId graphics(GQT_GRAPHICS, 0);
+	const GpuQueueId compute(GQT_COMPUTE, 0);
+	const GpuQueueId transfer(GQT_TRANSFER, 0);
+
+	// Graphics G1, compute A1 waiting on graphics, graphics G2, then graphics G3 waiting on compute
+	GpuSubmissionTimeline timeline;
+	const u32 g1 = timeline.AddSubmission(graphics, GpuQueueMask::kNone);
+	const u32 a1 = timeline.AddSubmission(compute, GpuQueueMask(graphics));
+	const u32 g2 = timeline.AddSubmission(graphics, GpuQueueMask::kNone);
+	const u32 g3 = timeline.AddSubmission(graphics, GpuQueueMask(compute));
+
+	B3D_TEST_ASSERT(timeline.GetSubmissionCount() == 4)
+	B3D_TEST_ASSERT(timeline.GetQueue(a1).Id == compute.Id)
+
+	// A queue executes in submission order
+	B3D_TEST_ASSERT(timeline.IsOrderedBefore(g1, g2))
+	B3D_TEST_ASSERT(timeline.IsOrderedBefore(g2, g2))
+	B3D_TEST_ASSERT(!timeline.IsOrderedBefore(g2, g1))
+
+	// A wait covers the latest submission of the queue at the time, and nothing submitted to it later
+	B3D_TEST_ASSERT(timeline.IsOrderedBefore(g1, a1))
+	B3D_TEST_ASSERT(!timeline.IsOrderedBefore(g2, a1))
+	B3D_TEST_ASSERT(timeline.IsOrderedBefore(a1, g3))
+	B3D_TEST_ASSERT(!timeline.IsOrderedBefore(a1, g2))
+	B3D_TEST_ASSERT(!timeline.IsOrderedBefore(a1, g1))
+
+	// A wait on a queue without a submission in the timeline orders nothing in the timeline
+	timeline.Clear();
+	B3D_TEST_ASSERT(timeline.GetSubmissionCount() == 0)
+
+	const u32 waitsOnCompute = timeline.AddSubmission(graphics, GpuQueueMask(compute));
+	const u32 c1 = timeline.AddSubmission(compute, GpuQueueMask::kNone);
+	B3D_TEST_ASSERT(!timeline.IsOrderedBefore(c1, waitsOnCompute))
+
+	// Waits chain, and carry the coverage of earlier work along
+	const u32 g4 = timeline.AddSubmission(graphics, GpuQueueMask(compute));
+	const u32 t1 = timeline.AddSubmission(transfer, GpuQueueMask(graphics));
+	B3D_TEST_ASSERT(timeline.IsOrderedBefore(c1, t1))
+	B3D_TEST_ASSERT(timeline.IsOrderedBefore(g4, t1))
+	B3D_TEST_ASSERT(timeline.IsOrderedBefore(waitsOnCompute, t1))
+	B3D_TEST_ASSERT(!timeline.IsOrderedBefore(t1, g4))
+}
+
+namespace
+{
+	using TransientHeapPool = TGpuTransientHeapPool<MockHeapBackend>;
+
+	/** Size of a transient heap in the tests, in megabytes. */
+	constexpr u32 kTransientHeapSizeMegabytes = 1;
+
+	/** Size of a transient heap in the tests, in bytes. */
+	constexpr u64 kTransientHeapSize = (u64)kTransientHeapSizeMegabytes * 1024 * 1024;
+
+	/** Sets the transient heap configuration variables, and restores their earlier values when destroyed. */
+	class TransientHeapConfigurationScope
+	{
+	public:
+		TransientHeapConfigurationScope(u32 heapMinimumSize, u32 idleFrames)
+			: mHeapMinimumSize(gGpuTransientHeapMinimumSize), mIdleFrames(gGpuTransientIdleFrames)
+		{
+			gGpuTransientHeapMinimumSize.Set(heapMinimumSize);
+			gGpuTransientIdleFrames.Set(idleFrames);
+		}
+
+		~TransientHeapConfigurationScope()
+		{
+			gGpuTransientHeapMinimumSize.Set(mHeapMinimumSize);
+			gGpuTransientIdleFrames.Set(mIdleFrames);
+		}
+
+	private:
+		u32 mHeapMinimumSize;
+		u32 mIdleFrames;
+	};
+
+	/** Transient heap pool configuration over @p tracker, with a granularity of one byte. */
+	TransientHeapPool::Configuration MakeTransientHeapPoolConfiguration(MockGpuCompletionTracker& tracker)
+	{
+		TransientHeapPool::Configuration configuration;
+		configuration.CompletionTracker = &tracker;
+		return configuration;
+	}
+
+	/** Returns an access scope with @p access in @p stages. */
+	GpuAccessScope MakeAccess(GpuStageFlags stages, GpuAccessFlags access)
+	{
+		GpuAccessScope output;
+		output.Add(stages, access);
+		return output;
+	}
+
+	/** Resource standing in for the occupant of aliased memory. */
+	class MockAliasedResource : public IGpuResource
+	{
+	public:
+		MockAliasedResource() = default;
+	};
+}
+
+void GpuAllocatorTestSuite::TestAliasing_SameQueueReuse()
+{
+	const TransientHeapConfigurationScope configurationScope(kTransientHeapSizeMegabytes, 1);
+	MockHeapBackend backend;
+	MockGpuCompletionTracker tracker;
+	TransientHeapPool pool(&backend, MakeTransientHeapPoolConfiguration(tracker));
+	GpuAliasingAllocator allocator;
+
+	const GpuQueueId graphics(GQT_GRAPHICS, 0);
+	GpuSubmissionTimeline timeline;
+	const u32 first = timeline.AddSubmission(graphics, GpuQueueMask::kNone);
+	const u32 second = timeline.AddSubmission(graphics, GpuQueueMask::kNone);
+
+	MockAliasedResource firstOwner;
+	allocator.BeginScope(timeline);
+
+	GpuAllocation firstAllocation;
+	GpuAliasAcquire firstAcquire;
+	B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, first, firstAllocation, firstAcquire))
+	B3D_TEST_ASSERT(firstAllocation.HasMemory() && !firstAllocation.IsOwned())
+	B3D_TEST_ASSERT(firstAllocation.Offset == 0 && firstAllocation.Size == 256)
+	B3D_TEST_ASSERT(!firstAcquire.Source.IsValid())
+	B3D_TEST_ASSERT(backend.CreateCount() == 1)
+
+	const GpuTransientLastUse firstLastUse(first, MakeAccess(GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read));
+	allocator.Release(firstAllocation, TArrayView<const GpuTransientLastUse>(&firstLastUse, 1), &firstOwner);
+
+	// A later allocation on the same queue reuses the memory, ordered after the read
+	GpuAllocation secondAllocation;
+	GpuAliasAcquire secondAcquire;
+	B3D_TEST_ASSERT(allocator.TryAllocate(pool, 128, 16, second, secondAllocation, secondAcquire))
+	B3D_TEST_ASSERT(secondAllocation.Heap == firstAllocation.Heap && secondAllocation.Offset == 0)
+	B3D_TEST_ASSERT(secondAcquire.Source.ReadStages == GpuStageFlag::FragmentShaderNonUniform)
+	B3D_TEST_ASSERT(secondAcquire.Source.WriteStages == GpuStageFlag::None)
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	B3D_TEST_ASSERT(secondAcquire.Predecessors.Size() == 1 && secondAcquire.Predecessors[0] == &firstOwner)
+#endif
+
+	// The rest of the released memory keeps its accesses
+	GpuAllocation thirdAllocation;
+	GpuAliasAcquire thirdAcquire;
+	B3D_TEST_ASSERT(allocator.TryAllocate(pool, 128, 16, second, thirdAllocation, thirdAcquire))
+	B3D_TEST_ASSERT(thirdAllocation.Offset == 128)
+	B3D_TEST_ASSERT(thirdAcquire.Source.ReadStages == GpuStageFlag::FragmentShaderNonUniform)
+
+	// Memory never used before has nothing to order after
+	GpuAllocation fourthAllocation;
+	GpuAliasAcquire fourthAcquire;
+	B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, first, fourthAllocation, fourthAcquire))
+	B3D_TEST_ASSERT(fourthAllocation.Offset == 256)
+	B3D_TEST_ASSERT(!fourthAcquire.Source.IsValid())
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	B3D_TEST_ASSERT(fourthAcquire.Predecessors.IsEmpty())
+#endif
+
+	// Memory released after a later submission on the queue is not reused by an earlier one
+	const GpuTransientLastUse secondLastUse(second, MakeAccess(GpuStageFlag::ColorAttachment, GpuAccessFlag::Write));
+	allocator.Release(secondAllocation, TArrayView<const GpuTransientLastUse>(&secondLastUse, 1), nullptr);
+
+	GpuAllocation fifthAllocation;
+	GpuAliasAcquire fifthAcquire;
+	B3D_TEST_ASSERT(allocator.TryAllocate(pool, 128, 16, first, fifthAllocation, fifthAcquire))
+	B3D_TEST_ASSERT(fifthAllocation.Offset == 512)
+
+	GpuAllocation sixthAllocation;
+	GpuAliasAcquire sixthAcquire;
+	B3D_TEST_ASSERT(allocator.TryAllocate(pool, 128, 16, second, sixthAllocation, sixthAcquire))
+	B3D_TEST_ASSERT(sixthAllocation.Offset == 0)
+	B3D_TEST_ASSERT(sixthAcquire.Source.WriteStages == GpuStageFlag::ColorAttachment)
+
+	// Allocations still live at the end of the scope are dropped with it
+	allocator.EndScope();
+	B3D_TEST_ASSERT(backend.CreateCount() == 1)
+}
+
+void GpuAllocatorTestSuite::TestAliasing_CrossQueueEligibility()
+{
+	const TransientHeapConfigurationScope configurationScope(kTransientHeapSizeMegabytes, 1);
+	MockHeapBackend backend;
+	MockGpuCompletionTracker tracker;
+	TransientHeapPool pool(&backend, MakeTransientHeapPoolConfiguration(tracker));
+	GpuAliasingAllocator allocator;
+
+	const GpuQueueId graphics(GQT_GRAPHICS, 0);
+	const GpuQueueId compute(GQT_COMPUTE, 0);
+
+	// Graphics, compute without a wait, then graphics waiting on compute
+	GpuSubmissionTimeline timeline;
+	const u32 graphicsSubmission = timeline.AddSubmission(graphics, GpuQueueMask::kNone);
+	const u32 computeSubmission = timeline.AddSubmission(compute, GpuQueueMask::kNone);
+	const u32 joinSubmission = timeline.AddSubmission(graphics, GpuQueueMask(compute));
+
+	const GpuTransientLastUse graphicsLastUse(graphicsSubmission, MakeAccess(GpuStageFlag::ColorAttachment, GpuAccessFlag::Write));
+	const GpuTransientLastUse computeLastUse(computeSubmission, MakeAccess(GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write));
+
+	MockAliasedResource graphicsOwner;
+	MockAliasedResource computeOwner;
+	{
+		allocator.BeginScope(timeline);
+
+		GpuAllocation graphicsAllocation;
+		GpuAliasAcquire graphicsAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, graphicsSubmission, graphicsAllocation, graphicsAcquire))
+		B3D_TEST_ASSERT(graphicsAllocation.Offset == 0)
+		allocator.Release(graphicsAllocation, TArrayView<const GpuTransientLastUse>(&graphicsLastUse, 1), &graphicsOwner);
+
+		// Compute does not wait on graphics, so it cannot reuse memory graphics used
+		GpuAllocation computeAllocation;
+		GpuAliasAcquire computeAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, computeSubmission, computeAllocation, computeAcquire))
+		B3D_TEST_ASSERT(computeAllocation.Offset == 256)
+		B3D_TEST_ASSERT(!computeAcquire.Source.IsValid())
+		allocator.Release(computeAllocation, TArrayView<const GpuTransientLastUse>(&computeLastUse, 1), &computeOwner);
+
+		// Graphics after the wait on compute reuses both. Only the graphics accesses need a barrier.
+		GpuAllocation joinAllocation;
+		GpuAliasAcquire joinAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 512, 16, joinSubmission, joinAllocation, joinAcquire))
+		B3D_TEST_ASSERT(joinAllocation.Offset == 0)
+		B3D_TEST_ASSERT(joinAcquire.Source.WriteStages == GpuStageFlag::ColorAttachment)
+		B3D_TEST_ASSERT(joinAcquire.Source.ReadStages == GpuStageFlag::None)
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		B3D_TEST_ASSERT(joinAcquire.Predecessors.Size() == 2)
+		B3D_TEST_ASSERT(joinAcquire.Predecessors.Contains(&graphicsOwner) && joinAcquire.Predecessors.Contains(&computeOwner))
+#endif
+
+		allocator.EndScope();
+	}
+
+	// Aliasing across queues can be disabled
+	gGpuTransientAliasAcrossQueues.Set(false);
+	{
+		allocator.BeginScope(timeline);
+
+		GpuAllocation computeAllocation;
+		GpuAliasAcquire computeAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, computeSubmission, computeAllocation, computeAcquire))
+		B3D_TEST_ASSERT(computeAllocation.Offset == 0)
+		allocator.Release(computeAllocation, TArrayView<const GpuTransientLastUse>(&computeLastUse, 1), nullptr);
+
+		GpuAllocation joinAllocation;
+		GpuAliasAcquire joinAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, joinSubmission, joinAllocation, joinAcquire))
+		B3D_TEST_ASSERT(joinAllocation.Offset == 256)
+
+		allocator.EndScope();
+	}
+	gGpuTransientAliasAcrossQueues.Set(true);
+
+	// Aliasing within a scope can be disabled
+	gGpuTransientAliasing.Set(false);
+	{
+		allocator.BeginScope(timeline);
+
+		GpuAllocation graphicsAllocation;
+		GpuAliasAcquire graphicsAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, graphicsSubmission, graphicsAllocation, graphicsAcquire))
+		B3D_TEST_ASSERT(graphicsAllocation.Offset == 0)
+		allocator.Release(graphicsAllocation, TArrayView<const GpuTransientLastUse>(&graphicsLastUse, 1), nullptr);
+
+		GpuAllocation joinAllocation;
+		GpuAliasAcquire joinAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, joinSubmission, joinAllocation, joinAcquire))
+		B3D_TEST_ASSERT(joinAllocation.Offset == 256)
+
+		allocator.EndScope();
+	}
+	gGpuTransientAliasing.Set(true);
+
+	B3D_TEST_ASSERT(backend.CreateCount() == 1)
+}
+
+void GpuAllocatorTestSuite::TestAliasing_InheritedTags()
+{
+	const TransientHeapConfigurationScope configurationScope(kTransientHeapSizeMegabytes, 1);
+	MockHeapBackend backend;
+	MockGpuCompletionTracker tracker;
+	TransientHeapPool pool(&backend, MakeTransientHeapPoolConfiguration(tracker));
+	GpuAliasingAllocator allocator;
+
+	const GpuQueueId graphics(GQT_GRAPHICS, 0);
+	GpuSubmissionTimeline timeline;
+	const u32 first = timeline.AddSubmission(graphics, GpuQueueMask::kNone);
+	const u32 second = timeline.AddSubmission(graphics, GpuQueueMask::kNone);
+
+	MockAliasedResource writerOwner;
+	MockAliasedResource unusedOwner;
+	allocator.BeginScope(timeline);
+
+	GpuAllocation writerAllocation;
+	GpuAliasAcquire writerAcquire;
+	B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, first, writerAllocation, writerAcquire))
+
+	const GpuTransientLastUse writerLastUse(first, MakeAccess(GpuStageFlag::Transfer, GpuAccessFlag::Write));
+	allocator.Release(writerAllocation, TArrayView<const GpuTransientLastUse>(&writerLastUse, 1), &writerOwner);
+
+	// A resource placed over the written memory, and never used
+	GpuAllocation unusedAllocation;
+	GpuAliasAcquire unusedAcquire;
+	B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, second, unusedAllocation, unusedAcquire))
+	B3D_TEST_ASSERT(unusedAllocation.Offset == 0)
+	B3D_TEST_ASSERT(unusedAcquire.Source.WriteStages == GpuStageFlag::Transfer)
+	allocator.Release(unusedAllocation, TArrayView<const GpuTransientLastUse>(), &unusedOwner);
+
+	// The next resource on the memory is still ordered after the write
+	GpuAllocation readerAllocation;
+	GpuAliasAcquire readerAcquire;
+	B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, second, readerAllocation, readerAcquire))
+	B3D_TEST_ASSERT(readerAllocation.Offset == 0)
+	B3D_TEST_ASSERT(readerAcquire.Source.WriteStages == GpuStageFlag::Transfer)
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	B3D_TEST_ASSERT(readerAcquire.Predecessors.Size() == 1 && readerAcquire.Predecessors[0] == &writerOwner)
+#endif
+
+	// A resource that was used replaces the accesses it was placed over
+	const GpuTransientLastUse readerLastUse(second, MakeAccess(GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read));
+	allocator.Release(readerAllocation, TArrayView<const GpuTransientLastUse>(&readerLastUse, 1), nullptr);
+
+	GpuAllocation lastAllocation;
+	GpuAliasAcquire lastAcquire;
+	B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, second, lastAllocation, lastAcquire))
+	B3D_TEST_ASSERT(lastAllocation.Offset == 0)
+	B3D_TEST_ASSERT(lastAcquire.Source.ReadStages == GpuStageFlag::FragmentShaderNonUniform)
+	B3D_TEST_ASSERT(lastAcquire.Source.WriteStages == GpuStageFlag::None)
+
+	allocator.EndScope();
+}
+
+void GpuAllocatorTestSuite::TestAliasing_ConcurrentScopes()
+{
+	const TransientHeapConfigurationScope configurationScope(kTransientHeapSizeMegabytes, 1);
+	MockHeapBackend backend;
+	MockGpuCompletionTracker tracker;
+	TransientHeapPool pool(&backend, MakeTransientHeapPoolConfiguration(tracker));
+
+	const GpuQueueId graphics(GQT_GRAPHICS, 0);
+	GpuSubmissionTimeline timeline;
+	const u32 first = timeline.AddSubmission(graphics, GpuQueueMask::kNone);
+	const u32 second = timeline.AddSubmission(graphics, GpuQueueMask::kNone);
+
+	constexpr u64 kLargeSize = 768 * 1024;
+	constexpr u64 kSmallSize = 512 * 1024;
+	{
+		GpuAliasingAllocator firstAllocator;
+		GpuAliasingAllocator secondAllocator;
+		firstAllocator.BeginScope(timeline);
+		secondAllocator.BeginScope(timeline);
+
+		// Each scope sees the whole heap as free, so both place at its start, with nothing to order after
+		GpuAllocation firstLarge;
+		GpuAliasAcquire firstLargeAcquire;
+		B3D_TEST_ASSERT(firstAllocator.TryAllocate(pool, kLargeSize, 16, first, firstLarge, firstLargeAcquire))
+
+		GpuAllocation secondLarge;
+		GpuAliasAcquire secondLargeAcquire;
+		B3D_TEST_ASSERT(secondAllocator.TryAllocate(pool, kLargeSize, 16, first, secondLarge, secondLargeAcquire))
+		B3D_TEST_ASSERT(firstLarge.Heap == secondLarge.Heap && firstLarge.Offset == 0 && secondLarge.Offset == 0)
+		B3D_TEST_ASSERT(!firstLargeAcquire.Source.IsValid() && !secondLargeAcquire.Source.IsValid())
+		B3D_TEST_ASSERT(backend.CreateCount() == 1)
+
+		// A scope that runs out of memory creates a heap, which the other scope then uses as well
+		GpuAllocation firstSmall;
+		GpuAliasAcquire firstSmallAcquire;
+		B3D_TEST_ASSERT(firstAllocator.TryAllocate(pool, kSmallSize, 16, first, firstSmall, firstSmallAcquire))
+
+		GpuAllocation secondSmall;
+		GpuAliasAcquire secondSmallAcquire;
+		B3D_TEST_ASSERT(secondAllocator.TryAllocate(pool, kSmallSize, 16, first, secondSmall, secondSmallAcquire))
+		B3D_TEST_ASSERT(firstSmall.Heap != firstLarge.Heap && firstSmall.Heap == secondSmall.Heap && firstSmall.Offset == 0 && secondSmall.Offset == 0)
+		B3D_TEST_ASSERT(backend.CreateCount() == 2)
+
+		// Two scopes that run out of memory at the same time ask for the same slot, and only the first creates a heap
+		const GpuTransientHeap firstNewHeap = pool.AcquireNewHeap(2, kSmallSize);
+		const GpuTransientHeap secondNewHeap = pool.AcquireNewHeap(2, kSmallSize);
+		B3D_TEST_ASSERT(firstNewHeap.Heap != nullptr && firstNewHeap.Heap == secondNewHeap.Heap)
+		B3D_TEST_ASSERT(backend.CreateCount() == 3)
+		pool.ReleaseHeap(firstNewHeap.Heap);
+		pool.ReleaseHeap(secondNewHeap.Heap);
+
+		// The pool holds the largest scope's memory, not the sum over scopes
+		const GpuTransientHeapPoolStatistics poolStatistics = pool.GetStatistics();
+		B3D_TEST_ASSERT(poolStatistics.HeapCount == 3 && poolStatistics.Capacity == 3 * kTransientHeapSize)
+
+		const GpuTransientScopeStatistics scopeStatistics = firstAllocator.GetStatistics();
+		B3D_TEST_ASSERT(scopeStatistics.PeakUsed == kLargeSize + kSmallSize && scopeStatistics.RequestedBytes == kLargeSize + kSmallSize)
+
+		firstAllocator.EndScope();
+		secondAllocator.EndScope();
+	}
+
+	// Memory released in a scope has nothing to order after in the next scope, because a scope's work is synchronized when it ends
+	GpuAliasingAllocator allocator;
+	allocator.BeginScope(timeline);
+
+	GpuAllocation writerAllocation;
+	GpuAliasAcquire writerAcquire;
+	B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, first, writerAllocation, writerAcquire))
+
+	const GpuTransientLastUse writerLastUse(first, MakeAccess(GpuStageFlag::Transfer, GpuAccessFlag::Write));
+	allocator.Release(writerAllocation, TArrayView<const GpuTransientLastUse>(&writerLastUse, 1), nullptr);
+	allocator.EndScope();
+
+	allocator.BeginScope(timeline);
+
+	GpuAllocation readerAllocation;
+	GpuAliasAcquire readerAcquire;
+	B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, second, readerAllocation, readerAcquire))
+	B3D_TEST_ASSERT(readerAllocation.Heap == writerAllocation.Heap && readerAllocation.Offset == 0)
+	B3D_TEST_ASSERT(!readerAcquire.Source.IsValid())
+
+	allocator.EndScope();
+}
+
+void GpuAllocatorTestSuite::TestAliasing_ExactClaims()
+{
+	const TransientHeapConfigurationScope configurationScope(kTransientHeapSizeMegabytes, 1);
+	MockHeapBackend backend;
+	MockGpuCompletionTracker tracker;
+	TransientHeapPool pool(&backend, MakeTransientHeapPoolConfiguration(tracker));
+	GpuAliasingAllocator allocator;
+
+	const GpuQueueId graphics(GQT_GRAPHICS, 0);
+	const GpuQueueId compute(GQT_COMPUTE, 0);
+
+	// Graphics, graphics, then compute without a wait
+	GpuSubmissionTimeline timeline;
+	const u32 first = timeline.AddSubmission(graphics, GpuQueueMask::kNone);
+	const u32 second = timeline.AddSubmission(graphics, GpuQueueMask::kNone);
+	const u32 computeSubmission = timeline.AddSubmission(compute, GpuQueueMask::kNone);
+
+	GpuAllocation firstLocation;
+	GpuAllocation secondLocation;
+	{
+		allocator.BeginScope(timeline);
+
+		GpuAliasAcquire acquire;
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, first, firstLocation, acquire))
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, first, secondLocation, acquire))
+		B3D_TEST_ASSERT(firstLocation.Offset == 0 && secondLocation.Offset == 256)
+
+		const GpuTransientLastUse writerLastUse(first, MakeAccess(GpuStageFlag::Transfer, GpuAccessFlag::Write));
+		allocator.Release(firstLocation, TArrayView<const GpuTransientLastUse>(&writerLastUse, 1), nullptr);
+
+		// A claim over released memory returns the accesses to order after
+		GpuAllocation claim;
+		GpuAliasAcquire claimAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocateAt(pool, firstLocation, second, claim, claimAcquire))
+		B3D_TEST_ASSERT(claim.Heap == firstLocation.Heap && claim.Offset == 0 && claim.Size == 256)
+		B3D_TEST_ASSERT(claimAcquire.Source.WriteStages == GpuStageFlag::Transfer)
+
+		// A claim over memory in use fails
+		GpuAllocation occupiedClaim;
+		GpuAliasAcquire occupiedAcquire;
+		B3D_TEST_ASSERT(!allocator.TryAllocateAt(pool, secondLocation, second, occupiedClaim, occupiedAcquire))
+
+		// A claim over memory whose last use is not ordered before the first use fails
+		const GpuTransientLastUse readerLastUse(second, MakeAccess(GpuStageFlag::FragmentShaderNonUniform, GpuAccessFlag::Read));
+		allocator.Release(claim, TArrayView<const GpuTransientLastUse>(&readerLastUse, 1), nullptr);
+
+		GpuAllocation unorderedClaim;
+		GpuAliasAcquire unorderedAcquire;
+		B3D_TEST_ASSERT(!allocator.TryAllocateAt(pool, firstLocation, computeSubmission, unorderedClaim, unorderedAcquire))
+
+		allocator.EndScope();
+	}
+
+	// A claim over a heap the scope has not used yet has nothing to order after, and the rest of the heap stays free around it
+	{
+		allocator.BeginScope(timeline);
+
+		GpuAllocation claim;
+		GpuAliasAcquire claimAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocateAt(pool, secondLocation, first, claim, claimAcquire))
+		B3D_TEST_ASSERT(claim.Heap == secondLocation.Heap && claim.Offset == 256)
+		B3D_TEST_ASSERT(!claimAcquire.Source.IsValid())
+
+		GpuAllocation before;
+		GpuAliasAcquire beforeAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, first, before, beforeAcquire))
+		B3D_TEST_ASSERT(before.Heap == claim.Heap && before.Offset == 0)
+
+		GpuAllocation after;
+		GpuAliasAcquire afterAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 512, 16, first, after, afterAcquire))
+		B3D_TEST_ASSERT(after.Heap == claim.Heap && after.Offset == 512)
+
+		allocator.EndScope();
+	}
+
+	B3D_TEST_ASSERT(backend.CreateCount() == 1)
+}
+
+void GpuAllocatorTestSuite::TestAliasing_SegmentsAndGranularity()
+{
+	const TransientHeapConfigurationScope configurationScope(kTransientHeapSizeMegabytes, 1);
+	const GpuQueueId graphics(GQT_GRAPHICS, 0);
+	GpuSubmissionTimeline timeline;
+	const u32 submission = timeline.AddSubmission(graphics, GpuQueueMask::kNone);
+	const TArrayView<const GpuTransientLastUse> noUses;
+
+	// Alignment pads the start of a placement, and the padding stays free
+	{
+		MockHeapBackend backend;
+		MockGpuCompletionTracker tracker;
+		TransientHeapPool pool(&backend, MakeTransientHeapPoolConfiguration(tracker));
+		GpuAliasingAllocator allocator;
+		allocator.BeginScope(timeline);
+
+		GpuAllocation firstAllocation;
+		GpuAliasAcquire firstAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, submission, firstAllocation, firstAcquire))
+
+		GpuAllocation alignedAllocation;
+		GpuAliasAcquire alignedAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 512, 512, submission, alignedAllocation, alignedAcquire))
+		B3D_TEST_ASSERT(alignedAllocation.Offset == 512)
+
+		GpuAllocation paddingAllocation;
+		GpuAliasAcquire paddingAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 256, 16, submission, paddingAllocation, paddingAcquire))
+		B3D_TEST_ASSERT(paddingAllocation.Offset == 256)
+
+		// Released neighbors coalesce, so the whole heap fits one allocation again
+		allocator.Release(paddingAllocation, noUses, nullptr);
+		allocator.Release(firstAllocation, noUses, nullptr);
+		allocator.Release(alignedAllocation, noUses, nullptr);
+
+		GpuAllocation wholeAllocation;
+		GpuAliasAcquire wholeAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, kTransientHeapSize, 16, submission, wholeAllocation, wholeAcquire))
+		B3D_TEST_ASSERT(wholeAllocation.Offset == 0 && wholeAllocation.Heap == firstAllocation.Heap)
+		B3D_TEST_ASSERT(backend.CreateCount() == 1)
+
+		// Allocations that do not fit an existing heap create a new one, sized to fit them
+		GpuAllocation overflowAllocation;
+		GpuAliasAcquire overflowAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 2 * kTransientHeapSize, 16, submission, overflowAllocation, overflowAcquire))
+		B3D_TEST_ASSERT(overflowAllocation.Offset == 0 && overflowAllocation.Heap != wholeAllocation.Heap)
+		B3D_TEST_ASSERT(backend.CreateCount() == 2)
+		B3D_TEST_ASSERT(static_cast<MockGpuHeap*>(overflowAllocation.Heap)->Size == 2 * kTransientHeapSize)
+
+		allocator.EndScope();
+	}
+
+	// Granularity rounds offsets and sizes
+	{
+		MockHeapBackend backend;
+		MockGpuCompletionTracker tracker;
+		TransientHeapPool::Configuration configuration = MakeTransientHeapPoolConfiguration(tracker);
+		configuration.Granularity = 1024;
+
+		TransientHeapPool pool(&backend, configuration);
+		GpuAliasingAllocator allocator;
+		allocator.BeginScope(timeline);
+
+		GpuAllocation firstAllocation;
+		GpuAliasAcquire firstAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 100, 16, submission, firstAllocation, firstAcquire))
+		B3D_TEST_ASSERT(firstAllocation.Offset == 0 && firstAllocation.Size == 1024)
+
+		GpuAllocation secondAllocation;
+		GpuAliasAcquire secondAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 1, 1, submission, secondAllocation, secondAcquire))
+		B3D_TEST_ASSERT(secondAllocation.Offset == 1024 && secondAllocation.Size == 1024)
+
+		allocator.EndScope();
+	}
+
+	// A backend that cannot create heaps fails the allocation
+	{
+		OutOfMemoryHeapBackend backend;
+		MockGpuCompletionTracker tracker;
+
+		TGpuTransientHeapPool<OutOfMemoryHeapBackend>::Configuration configuration;
+		configuration.CompletionTracker = &tracker;
+
+		TGpuTransientHeapPool<OutOfMemoryHeapBackend> pool(&backend, configuration);
+		GpuAliasingAllocator allocator;
+		allocator.BeginScope(timeline);
+
+		GpuAllocation allocation;
+		GpuAliasAcquire acquire;
+		B3D_TEST_ASSERT(!allocator.TryAllocate(pool, 256, 16, submission, allocation, acquire))
+		B3D_TEST_ASSERT(!allocation.HasMemory())
+		B3D_TEST_ASSERT(backend.CreateCallCount == 1)
+
+		allocator.EndScope();
+	}
+}
+
+void GpuAllocatorTestSuite::TestTransientHeapPool_ReleaseAndStatistics()
+{
+	const TransientHeapConfigurationScope configurationScope(kTransientHeapSizeMegabytes, 2);
+	MockHeapBackend backend;
+	MockGpuCompletionTracker tracker;
+	TransientHeapPool pool(&backend, MakeTransientHeapPoolConfiguration(tracker));
+
+	// Ends a frame the way GpuDevice::EndFrame() does
+	auto fnEndFrame = [&pool, &tracker]()
+	{
+		pool.ReclaimUnused();
+		tracker.AdvanceFrame();
+	};
+
+	// A referenced heap is kept over any number of frames
+	const GpuTransientHeap heap = pool.AcquireNewHeap(0, 1024);
+	B3D_TEST_ASSERT(heap.Heap != nullptr && heap.Size == kTransientHeapSize)
+	B3D_TEST_ASSERT(pool.GetSlotCount() == 1)
+
+	GpuTransientHeapPoolStatistics statistics = pool.GetStatistics();
+	B3D_TEST_ASSERT(statistics.HeapCount == 1 && statistics.Capacity == kTransientHeapSize)
+
+	for(u32 frameIndex = 0; frameIndex < 4; frameIndex++)
+		fnEndFrame();
+
+	B3D_TEST_ASSERT(backend.LiveHeapCount() == 1)
+
+	// Only a heap at least as large as asked for is acquired. A slot without a heap reports no size.
+	const GpuTransientHeap tooSmall = pool.AcquireHeap(0, 2 * kTransientHeapSize);
+	B3D_TEST_ASSERT(tooSmall.Heap == nullptr && tooSmall.Size == kTransientHeapSize)
+
+	const GpuTransientHeap missing = pool.AcquireHeap(3, 1024);
+	B3D_TEST_ASSERT(missing.Heap == nullptr && missing.Size == 0)
+
+	// Every reference keeps the heap
+	pool.AddHeapReference(heap.Heap);
+	pool.ReleaseHeap(heap.Heap);
+	for(u32 frameIndex = 0; frameIndex < 4; frameIndex++)
+		fnEndFrame();
+
+	B3D_TEST_ASSERT(pool.GetStatistics().HeapCount == 1)
+
+	// Without references, the heap is released once it went unused for the idle frames
+	pool.ReleaseHeap(heap.Heap);
+	fnEndFrame();
+	fnEndFrame();
+	B3D_TEST_ASSERT(pool.GetStatistics().HeapCount == 1)
+
+	pool.ReclaimUnused();
+	statistics = pool.GetStatistics();
+	B3D_TEST_ASSERT(statistics.HeapCount == 0 && statistics.Capacity == 0)
+	B3D_TEST_ASSERT(pool.GetSlotCount() == 0)
+
+	// The released heap is destroyed once the GPU has finished the frame that last used it
+	B3D_TEST_ASSERT(backend.DestroyCount() == 0 && backend.LiveHeapCount() == 1)
+
+	tracker.MarkAllFramesComplete();
+	pool.ReclaimUnused();
+	B3D_TEST_ASSERT(backend.DestroyCount() == 1 && backend.LiveHeapCount() == 0)
+
+	// A later heap reuses the empty slot
+	const GpuTransientHeap nextHeap = pool.AcquireNewHeap(0, 1024);
+	B3D_TEST_ASSERT(nextHeap.Heap != nullptr && pool.GetSlotCount() == 1)
+	B3D_TEST_ASSERT(backend.CreateCount() == 2)
+
+	// A heap whose last frame of use the GPU already finished is destroyed as soon as it is released
+	const u64 lastUsedFrame = tracker.CurrentFrameIndex();
+	pool.ReleaseHeap(nextHeap.Heap);
+	fnEndFrame();
+	fnEndFrame();
+
+	tracker.MarkFrameComplete(lastUsedFrame);
+	pool.ReclaimUnused();
+	B3D_TEST_ASSERT(pool.GetStatistics().HeapCount == 0)
+	B3D_TEST_ASSERT(backend.DestroyCount() == 2 && backend.LiveHeapCount() == 0)
+}

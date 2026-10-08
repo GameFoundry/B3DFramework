@@ -96,6 +96,7 @@ namespace b3d
 			GpuQueueMask GetUseMask(GpuAccessFlags accessFlags) override;
 			u32 GetBoundCount() const override;
 			u32 GetUseCount() const override;
+			IGpuResource* GetGpuResource() const override { return mBuffer; }
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			bool IsRangeBound(u32 offset, u32 size) const override;
