@@ -6,6 +6,7 @@
 #include "B3DVulkanGpuCommandBuffer.h"
 #include "B3DVulkanTexture.h"
 #include "B3DVulkanUtility.h"
+#include "B3DVulkanGpuBackend.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
 
 using namespace b3d;
@@ -198,6 +199,91 @@ void VulkanBarrierBatch::Execute(VkCommandBuffer commandBuffer) const
 	const VkPipelineStageFlags destinationStages = mCombinedDestinationStages != 0 ? mCombinedDestinationStages : VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 	vkCmdPipelineBarrier(commandBuffer, sourceStages, destinationStages, 0, mHasMemoryBarrier ? 1u : 0u, mHasMemoryBarrier ? &mMemoryBarrier : nullptr, (u32)mOwnershipBufferBarriers.size(), mOwnershipBufferBarriers.data(), (u32)mImageBarriers.size(), mImageBarriers.data());
 }
+
+#if B3D_GPU_EXPLICIT_BARRIERS
+template<class TRecord>
+void VulkanBarrierBatch::RecordDependencyInformation(TRecord fnRecord) const
+{
+	// Like Execute(), every barrier uses the stages of the whole batch. The stage and access bits of synchronization 1 have the same
+	// values in synchronization2.
+	const VkPipelineStageFlags2 sourceStages = mCombinedSourceStages;
+	const VkPipelineStageFlags2 destinationStages = mCombinedDestinationStages;
+
+	// An execution barrier is a memory barrier without accesses
+	VkMemoryBarrier2 memoryBarrier{};
+	memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2;
+	memoryBarrier.srcStageMask = sourceStages;
+	memoryBarrier.srcAccessMask = mMemoryBarrier.srcAccessMask;
+	memoryBarrier.dstStageMask = destinationStages;
+	memoryBarrier.dstAccessMask = mMemoryBarrier.dstAccessMask;
+
+	TInlineArray<VkBufferMemoryBarrier2, 2> bufferBarriers;
+	for(const VkBufferMemoryBarrier& barrier : mOwnershipBufferBarriers)
+	{
+		VkBufferMemoryBarrier2 output{};
+		output.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
+		output.srcStageMask = sourceStages;
+		output.srcAccessMask = barrier.srcAccessMask;
+		output.dstStageMask = destinationStages;
+		output.dstAccessMask = barrier.dstAccessMask;
+		output.srcQueueFamilyIndex = barrier.srcQueueFamilyIndex;
+		output.dstQueueFamilyIndex = barrier.dstQueueFamilyIndex;
+		output.buffer = barrier.buffer;
+		output.offset = barrier.offset;
+		output.size = barrier.size;
+
+		bufferBarriers.Add(output);
+	}
+
+	TInlineArray<VkImageMemoryBarrier2, 4> imageBarriers;
+	for(const VkImageMemoryBarrier& barrier : mImageBarriers)
+	{
+		VkImageMemoryBarrier2 output{};
+		output.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+		output.srcStageMask = sourceStages;
+		output.srcAccessMask = barrier.srcAccessMask;
+		output.dstStageMask = destinationStages;
+		output.dstAccessMask = barrier.dstAccessMask;
+		output.oldLayout = barrier.oldLayout;
+		output.newLayout = barrier.newLayout;
+		output.srcQueueFamilyIndex = barrier.srcQueueFamilyIndex;
+		output.dstQueueFamilyIndex = barrier.dstQueueFamilyIndex;
+		output.image = barrier.image;
+		output.subresourceRange = barrier.subresourceRange;
+
+		imageBarriers.Add(output);
+	}
+
+	const bool hasMemoryBarrier = mHasMemoryBarrier || mHasExecutionBarrier;
+
+	VkDependencyInfo dependencyInformation{};
+	dependencyInformation.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+	dependencyInformation.memoryBarrierCount = hasMemoryBarrier ? 1u : 0u;
+	dependencyInformation.pMemoryBarriers = hasMemoryBarrier ? &memoryBarrier : nullptr;
+	dependencyInformation.bufferMemoryBarrierCount = (u32)bufferBarriers.Size();
+	dependencyInformation.pBufferMemoryBarriers = bufferBarriers.Data();
+	dependencyInformation.imageMemoryBarrierCount = (u32)imageBarriers.Size();
+	dependencyInformation.pImageMemoryBarriers = imageBarriers.Data();
+
+	fnRecord(dependencyInformation);
+}
+
+void VulkanBarrierBatch::SetEvent(VkCommandBuffer commandBuffer, VkEvent event) const
+{
+	RecordDependencyInformation([commandBuffer, event](const VkDependencyInfo& dependencyInformation)
+	{
+		vkCmdSetEvent2(commandBuffer, event, &dependencyInformation);
+	});
+}
+
+void VulkanBarrierBatch::WaitEvent(VkCommandBuffer commandBuffer, VkEvent event) const
+{
+	RecordDependencyInformation([commandBuffer, event](const VkDependencyInfo& dependencyInformation)
+	{
+		vkCmdWaitEvents2(commandBuffer, 1, &event, &dependencyInformation);
+	});
+}
+#endif
 
 void VulkanBarrierBatch::Clear()
 {

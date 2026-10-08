@@ -294,8 +294,12 @@ namespace b3d
 		/**
 		 * Creates an object that connects the release of a split barrier with its acquire. See
 		 * render::GpuCommandBuffer::ReleaseBarriers(). Thread safe.
+		 *
+		 * @param	releaseQueue	Type of the queue the release is recorded for. Empty if it matches @p acquireQueue.
+		 * @param	acquireQueue	Type of the queue the acquire is recorded for. Empty if it matches @p releaseQueue. If both are
+		 *							empty, the halves are recorded for one queue of any type, which is the common case.
 		 */
-		virtual TShared<render::GpuSplitBarrier> CreateSplitBarrier();
+		virtual TShared<render::GpuSplitBarrier> CreateSplitBarrier(TOptional<GpuQueueType> releaseQueue = {}, TOptional<GpuQueueType> acquireQueue = {});
 #endif
 
 		/**

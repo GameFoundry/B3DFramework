@@ -133,6 +133,29 @@ namespace b3d
 			TInlineArray<SourceQueueTransitionInformation, 4> mSourceQueueTransitions;
 		};
 
+#if B3D_GPU_EXPLICIT_BARRIERS
+		/**
+		 * Vulkan split barrier. Halves on one queue are connected by an event. The release sets it with the whole dependency, so the layout
+		 * transitions start in the release, and the acquire waits for it. Halves on different queues are ordered by the queue wait of the
+		 * acquire's submission. Their release records the queue family ownership release or the layout transitions, and their acquire
+		 * records the ownership acquire.
+		 */
+		class VulkanSplitBarrier final : public GpuSplitBarrier
+		{
+		public:
+			/** See GpuDevice::CreateSplitBarrier() for @p releaseQueue and @p acquireQueue. */
+			VulkanSplitBarrier(VulkanGpuDevice& device, TOptional<GpuQueueType> releaseQueue, TOptional<GpuQueueType> acquireQueue);
+			~VulkanSplitBarrier() override;
+
+			/** Returns the event connecting halves on one queue. VK_NULL_HANDLE if the halves are on different queues. */
+			VkEvent GetEvent() const { return mEvent; }
+
+		private:
+			VkDevice mDevice;
+			VkEvent mEvent = VK_NULL_HANDLE;
+		};
+#endif
+
 		/** CommandBuffer implementation for Vulkan. */
 		class VulkanGpuCommandBuffer final : public GpuCommandBuffer
 		{
@@ -238,6 +261,13 @@ namespace b3d
 
 			void ClearRecordingState() override;
 			void Destroy() override;
+
+#if B3D_GPU_EXPLICIT_BARRIERS
+		protected:
+			bool RecordExplicitBarriers(const GpuExplicitBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split) override;
+
+		public:
+#endif
 
 			/************************************************************************/
 			/* 								COMMANDS	                     		*/
@@ -470,6 +500,28 @@ namespace b3d
 			/** Rebuilds the flat dynamic offset array from per-set arrays. */
 			void RebuildFlatDynamicOffsets();
 
+			/**
+			 * Acquires the active swap chain image of @p renderWindow and registers its surface with the command buffer. Returns the
+			 * framebuffer of the image, or null if no image could be acquired.
+			 */
+			VulkanFramebuffer* AcquireWindowFramebuffer(RenderWindow& renderWindow);
+
+#if B3D_GPU_EXPLICIT_BARRIERS
+			/** Layout that explicit barriers leave image subresources in once the command buffer executes. */
+			struct ExplicitImageLayout
+			{
+				VulkanImage* Image = nullptr;
+				GpuTextureSubresourceRange Range;
+				VkImageLayout Layout = VK_IMAGE_LAYOUT_UNDEFINED;
+			};
+
+			/**
+			 * Stores the layouts explicit barriers leave images in as their native state, so later command buffers that derive their
+			 * barriers from it, and presentation, start from the actual layouts. Submit thread only.
+			 */
+			void PublishExplicitImageLayouts(GpuQueueId queueId);
+#endif
+
 			u32 mId;
 			VkCommandBuffer mCommandBufferHandle;
 			VulkanGpuCommandBufferPool& mPool;
@@ -521,6 +573,10 @@ namespace b3d
 
 			TShared<RenderTarget> mRenderTarget;
 			bool mRenderTargetModified = false;
+
+#if B3D_GPU_EXPLICIT_BARRIERS
+			TInlineArray<ExplicitImageLayout, 4> mExplicitImageLayouts;
+#endif
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			Vector<QueryInformation> mOpenQueries; // Only used for validation

@@ -78,9 +78,9 @@ void GpuDevice::DestroyTransientHeapPools()
 }
 
 #if B3D_GPU_EXPLICIT_BARRIERS
-TShared<render::GpuSplitBarrier> GpuDevice::CreateSplitBarrier()
+TShared<render::GpuSplitBarrier> GpuDevice::CreateSplitBarrier(TOptional<GpuQueueType> releaseQueue, TOptional<GpuQueueType> acquireQueue)
 {
-	return B3DMakeShared<render::GpuSplitBarrier>();
+	return B3DMakeShared<render::GpuSplitBarrier>(releaseQueue, acquireQueue);
 }
 #endif
 

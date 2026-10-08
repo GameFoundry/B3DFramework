@@ -103,6 +103,13 @@ namespace b3d
 		/** Verifies a tracker without hazard tracking keeps resources alive without resolving hazards, barriers or submission transitions. */
 		void TestTrackingWithoutHazards();
 
+		/**
+		 * Verifies that explicit barriers order GPU writes before later reads: full barriers, split barriers within a command buffer,
+		 * across command buffers in both recording orders, and across queues. Also checks that command buffers deriving barriers from
+		 * tracked state continue from the layouts explicit barriers left. Runs only on devices that support explicit barriers.
+		 */
+		void TestExplicitBarriers();
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		/**
 		 * Verifies the errors for explicit barriers and command buffer methods that do not match the state earlier explicit barriers

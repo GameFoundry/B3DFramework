@@ -834,9 +834,11 @@ namespace b3d
 			 * not access the resources of @p barriers. Only valid outside of a render pass, on command buffers of a pool created with
 			 * GpuCommandBufferPoolInformation::ExplicitBarriers.
 			 *
-			 * The halves may be recorded on different command buffers, in any order and on any threads. The command buffer of the release
-			 * must be submitted before the command buffer of the acquire. If they are submitted on different queues, the submission of
-			 * the acquire must wait for the queue of the release (see GpuSubmissionInformation::SyncMask).
+			 * The halves may be recorded on different command buffers, in any order and on any threads, on command buffers of the queue
+			 * types the split barrier was created for (see GpuDevice::CreateSplitBarrier()). The command buffer of the release must be
+			 * submitted before the command buffer of the acquire. If the queue types are the same, both are submitted on the same queue.
+			 * Otherwise the split barrier transfers the resources between the queues, and the submission of the acquire must wait for the
+			 * queue of the release (see GpuSubmissionInformation::SyncMask).
 			 *
 			 * @param	barriers	Barriers to release. The acquire must receive the same barriers.
 			 * @param	split		Split barrier created by GpuDevice::CreateSplitBarrier(). Each split barrier is released once. The
