@@ -301,8 +301,12 @@ void GpuCommandBuffer::NotifyWillQueueForSubmit([[maybe_unused]] GpuQueueId queu
 		if(!B3D_ENSURE_LOG(releaseSubmission != ReleaseSubmission::Discarded, "The acquire of a split barrier was submitted, but its release was discarded without being submitted."))
 			continue;
 
+		// Halves on the same queue type may be connected by a native object that only works within one queue
 		const GpuQueueId releaseQueueId(splitBarrier.mReleaseQueue.load());
-		B3D_ENSURE_LOG(releaseQueueId.Id == queueId.Id || syncMask.IsSet(releaseQueueId), "The acquire of a split barrier was submitted on a different queue than its release, without waiting for the queue of the release.");
+		if(!splitBarrier.IsQueueTransfer())
+			B3D_ENSURE_LOG(releaseQueueId.Id == queueId.Id, "The acquire of a split barrier was submitted on a different queue than its release. Create the split barrier with the queue type of each half to transfer resources between queues.");
+		else
+			B3D_ENSURE_LOG(syncMask.IsSet(releaseQueueId), "The acquire of a split barrier was submitted without waiting for the queue of its release.");
 	}
 
 	// Recording is done, so release the bound objects together with the backend
@@ -367,6 +371,9 @@ void GpuCommandBuffer::ReleaseBarriers(const GpuExplicitBarriers& barriers, cons
 	if(!B3D_ENSURE_LOG(!IsInRenderPass(), "Explicit barriers can only be recorded outside of a render pass."))
 		return;
 
+	if(!split->ValidateQueueType(true, mQueueType))
+		return;
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	// An acquire recorded earlier would wait for a release that follows it, so the GPU would never get past it
 	for(const RecordedSplitBarrier& recorded : mSplitBarriers)
@@ -406,6 +413,9 @@ void GpuCommandBuffer::AcquireBarriers(const GpuExplicitBarriers& barriers, cons
 		return;
 
 	if(!B3D_ENSURE_LOG(!IsInRenderPass(), "Explicit barriers can only be recorded outside of a render pass."))
+		return;
+
+	if(!split->ValidateQueueType(false, mQueueType))
 		return;
 
 	if(!B3D_ENSURE_LOG(!split->mIsAcquired.exchange(true), "The split barrier was already acquired."))

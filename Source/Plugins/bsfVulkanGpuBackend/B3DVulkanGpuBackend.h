@@ -73,8 +73,13 @@ namespace b3d
 	extern PFN_vkGetSemaphoreCounterValue vkGetSemaphoreCounterValue;
 	extern PFN_vkWaitSemaphores vkWaitSemaphores;
 
-	extern PFN_vkGetDeviceBufferMemoryRequirementsKHR vkGetDeviceBufferMemoryRequirementsKHR;
-	extern PFN_vkGetDeviceImageMemoryRequirementsKHR vkGetDeviceImageMemoryRequirementsKHR;
+	extern PFN_vkGetDeviceBufferMemoryRequirements vkGetDeviceBufferMemoryRequirements;
+	extern PFN_vkGetDeviceImageMemoryRequirements vkGetDeviceImageMemoryRequirements;
+
+#if B3D_GPU_EXPLICIT_BARRIERS
+	extern PFN_vkCmdSetEvent2 vkCmdSetEvent2;
+	extern PFN_vkCmdWaitEvents2 vkCmdWaitEvents2;
+#endif
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	// Diagnostics (VK_KHR_pipeline_executable_properties): used by the optional gpu.DumpPipelineStats occupancy dump.

@@ -52,6 +52,17 @@ namespace b3d::render
 		/** Emits the accumulated dependency into @p commandBuffer. */
 		void Execute(VkCommandBuffer commandBuffer) const;
 
+#if B3D_GPU_EXPLICIT_BARRIERS
+		/** Emits the accumulated dependency as the release of a split barrier, which performs the layout transitions and signals @p event. */
+		void SetEvent(VkCommandBuffer commandBuffer, VkEvent event) const;
+
+		/**
+		 * Emits the accumulated dependency as the acquire of a split barrier, which waits for @p event. The release must have emitted
+		 * the same dependency with SetEvent().
+		 */
+		void WaitEvent(VkCommandBuffer commandBuffer, VkEvent event) const;
+#endif
+
 		/** Clears all accumulated barriers. */
 		void Clear();
 
@@ -59,6 +70,12 @@ namespace b3d::render
 		bool HasBarriers() const;
 
 	private:
+#if B3D_GPU_EXPLICIT_BARRIERS
+		/** Converts the accumulated dependency to its synchronization2 form and passes it to @p fnRecord. */
+		template<class TRecord>
+		void RecordDependencyInformation(TRecord fnRecord) const;
+#endif
+
 		VkMemoryBarrier mMemoryBarrier;
 		TInlineArray<VkBufferMemoryBarrier, 2> mOwnershipBufferBarriers;
 		TInlineArray<VkImageMemoryBarrier, 4> mImageBarriers;

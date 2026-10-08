@@ -87,8 +87,8 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	vkGetPhysicalDeviceFeatures(device, &mDeviceFeatures);
 	vkGetPhysicalDeviceMemoryProperties(device, &mMemoryProperties);
 
-	if(mDeviceProperties.apiVersion < VK_API_VERSION_1_2)
-		B3D_LOG(Fatal, LogRenderBackend, "The selected GPU does not support Vulkan 1.2. Update the graphics driver, select another GPU, or use a different backend.");
+	if(mDeviceProperties.apiVersion < VK_API_VERSION_1_3)
+		B3D_LOG(Fatal, LogRenderBackend, "The selected GPU does not support Vulkan 1.3. Update the graphics driver, select another GPU, or use a different backend.");
 
 	uint32_t numQueueFamilies;
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &numQueueFamilies, nullptr);
@@ -172,7 +172,7 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	if(transferQueueFamilyIndex != ~0u)
 		fnPopulateQueueInfo(GQT_TRANSFER, transferQueueFamilyIndex);
 
-	// Set up extensions. Required: swapchain, maintenance1, maintenance2, maintenance4. Plus optional ones discovered
+	// Set up extensions. Required: swapchain, maintenance1, maintenance2. Plus optional ones discovered
 	// below (shader_viewport_index_layer).
 	const char* extensions[12];
 	uint32_t extensionCount = 0;
@@ -180,7 +180,6 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	extensions[extensionCount++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
 	extensions[extensionCount++] = VK_KHR_MAINTENANCE1_EXTENSION_NAME;
 	extensions[extensionCount++] = VK_KHR_MAINTENANCE2_EXTENSION_NAME;
-	extensions[extensionCount++] = VK_KHR_MAINTENANCE_4_EXTENSION_NAME;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	// Diagnostics: optional, only enabled for the gpu.DumpPipelineStats occupancy dump (development builds only).
@@ -231,8 +230,7 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	if(separateDepthStencilLayoutsFeatureProbe.separateDepthStencilLayouts != VK_TRUE)
 		B3D_LOG(Fatal, LogRenderBackend, "The Vulkan device does not support the Vulkan 1.2 separateDepthStencilLayouts feature required for independent depth and stencil synchronization. Update the graphics driver or use a different backend.");
 
-	// Build the enabled-feature pNext chain. Maintenance4 is required and enabled unconditionally; if the
-	// physical device lacks the extension/feature, the vkCreateDevice below fails its assert.
+	// Build the enabled-feature pNext chain
 	void* featureChain = nullptr;
 
 	VkPhysicalDeviceTimelineSemaphoreFeatures timelineFeatures = {};
@@ -247,11 +245,13 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	separateDepthStencilLayoutsFeatures.separateDepthStencilLayouts = VK_TRUE;
 	featureChain = &separateDepthStencilLayoutsFeatures;
 
-	VkPhysicalDeviceMaintenance4FeaturesKHR maintenance4Features = {};
-	maintenance4Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES_KHR;
-	maintenance4Features.pNext = featureChain;
-	maintenance4Features.maintenance4 = VK_TRUE;
-	featureChain = &maintenance4Features;
+	// Vulkan 1.3 requires every device to support these, so they need no probe
+	VkPhysicalDeviceVulkan13Features vulkan13Features = {};
+	vulkan13Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+	vulkan13Features.pNext = featureChain;
+	vulkan13Features.synchronization2 = VK_TRUE;
+	vulkan13Features.maintenance4 = VK_TRUE;
+	featureChain = &vulkan13Features;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR pipelineExecutableFeatures = {};
@@ -282,9 +282,13 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	GET_DEVICE_PROC_ADDR(mLogicalDevice, GetSemaphoreCounterValue)
 	GET_DEVICE_PROC_ADDR(mLogicalDevice, WaitSemaphores)
 
-	GET_DEVICE_PROC_ADDR(mLogicalDevice, GetDeviceBufferMemoryRequirementsKHR)
-	GET_DEVICE_PROC_ADDR(mLogicalDevice, GetDeviceImageMemoryRequirementsKHR)
-	B3D_ASSERT(vkGetDeviceBufferMemoryRequirementsKHR != nullptr && "VK_KHR_maintenance4 is required.");
+	GET_DEVICE_PROC_ADDR(mLogicalDevice, GetDeviceBufferMemoryRequirements)
+	GET_DEVICE_PROC_ADDR(mLogicalDevice, GetDeviceImageMemoryRequirements)
+
+#if B3D_GPU_EXPLICIT_BARRIERS
+	GET_DEVICE_PROC_ADDR(mLogicalDevice, CmdSetEvent2)
+	GET_DEVICE_PROC_ADDR(mLogicalDevice, CmdWaitEvents2)
+#endif
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	if(supportsPipelineExecutableProperties)
@@ -494,6 +498,13 @@ TShared<GpuTimelineFence> VulkanGpuDevice::CreateTimelineFence()
 {
 	return B3DMakeShared<VulkanGpuTimelineFence>(*this);
 }
+
+#if B3D_GPU_EXPLICIT_BARRIERS
+TShared<GpuSplitBarrier> VulkanGpuDevice::CreateSplitBarrier(TOptional<GpuQueueType> releaseQueue, TOptional<GpuQueueType> acquireQueue)
+{
+	return B3DMakeShared<VulkanSplitBarrier>(*this, releaseQueue, acquireQueue);
+}
+#endif
 
 void VulkanGpuDevice::WaitUntilIdle()
 {
@@ -859,14 +870,14 @@ GpuMemoryRequirements VulkanGpuDevice::GetMemoryRequirements(const TextureCreate
 	VulkanTextureDescription description;
 	VulkanTexture::BuildDescription(*this, TextureProperties(createInformation), description);
 
-	VkDeviceImageMemoryRequirementsKHR query{};
-	query.sType = VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS_KHR;
+	VkDeviceImageMemoryRequirements query{};
+	query.sType = VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS;
 	query.pCreateInfo = &description.CreateInfo;
 
 	VkMemoryRequirements2 requirements{};
 	requirements.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2;
 
-	vkGetDeviceImageMemoryRequirementsKHR(mLogicalDevice, &query, &requirements);
+	vkGetDeviceImageMemoryRequirements(mLogicalDevice, &query, &requirements);
 
 	const u32 memoryTypeIndex = PickMemoryTypeIndex(requirements.memoryRequirements.memoryTypeBits, description.RequiredMemoryFlags, description.PreferredMemoryFlags);
 	B3D_ASSERT(memoryTypeIndex != VK_MAX_MEMORY_TYPES && "No Vulkan memory type satisfies the requested image allocation flags.");
@@ -901,14 +912,14 @@ GpuMemoryRequirements VulkanGpuDevice::GetMemoryRequirements(const GpuBufferCrea
 	bufferInfo.queueFamilyIndexCount = usesConcurrentSharing ? (u32)mQueueFamilies.Size() : 0;
 	bufferInfo.pQueueFamilyIndices = usesConcurrentSharing ? mQueueFamilies.data() : nullptr;
 
-	VkDeviceBufferMemoryRequirementsKHR query{};
-	query.sType = VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS_KHR;
+	VkDeviceBufferMemoryRequirements query{};
+	query.sType = VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS;
 	query.pCreateInfo = &bufferInfo;
 
 	VkMemoryRequirements2 requirements{};
 	requirements.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2;
 
-	vkGetDeviceBufferMemoryRequirementsKHR(mLogicalDevice, &query, &requirements);
+	vkGetDeviceBufferMemoryRequirements(mLogicalDevice, &query, &requirements);
 
 	const u32 memoryTypeIndex = PickMemoryTypeIndex(requirements.memoryRequirements.memoryTypeBits, requiredFlags, preferredFlags);
 	B3D_ASSERT(memoryTypeIndex != VK_MAX_MEMORY_TYPES && "No Vulkan memory type satisfies the requested buffer allocation flags.");
@@ -1124,6 +1135,9 @@ void VulkanGpuDevice::InitializeCapabilities()
 	mCapabilities.SetCapability(RSC_TEXTURE_VIEWS);
 	mCapabilities.SetCapability(RSC_RENDER_TARGET_LAYERS);
 	mCapabilities.SetCapability(RSC_MULTI_THREADED_CB);
+#if B3D_GPU_EXPLICIT_BARRIERS
+	mCapabilities.SetCapability(RSC_EXPLICIT_BARRIERS);
+#endif
 
 	mCapabilities.Conventions.NdcYAxis = GpuBackendConventions::Axis::Down;
 	mCapabilities.Conventions.MatrixOrder = GpuBackendConventions::MatrixOrder::ColumnMajor;

@@ -189,6 +189,10 @@ VulkanGpuCommandBuffer::VulkanGpuCommandBuffer(VulkanGpuDevice& device, VulkanGp
 	const VkResult result = vkCreateFence(GetVulkanGpuDevice().GetLogical(), &fenceCI, gVulkanAllocator, &mFence);
 	B3D_ASSERT(result == VK_SUCCESS);
 
+#if B3D_GPU_EXPLICIT_BARRIERS
+	mResourceTracker.SetHazardTracking(!UsesExplicitBarriers());
+#endif
+
 	SetName(createInformation.Name);
 }
 
@@ -275,32 +279,11 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 	RenderSurfaceMask loadMask = createInformation.LoadMask;
 
 	VulkanFramebuffer* newFramebuffer;
-	VulkanSwapChain* swapChain = nullptr;
 	if(renderTarget->GetProperties().IsWindow)
 	{
-		RenderWindow* const renderWindow = static_cast<RenderWindow*>(renderTarget.get());
-
-		IVulkanRenderWindowSurface* const renderWindowSurface = static_cast<IVulkanRenderWindowSurface*>(renderWindow->GetRenderWindowSurface().get());
-		if(!B3D_ENSURE(renderWindowSurface != nullptr))
-			return;
-
-		if(!renderWindowSurface->IsSwapChainValid())
-			renderWindow->RebuildSwapChain();
-
-		newFramebuffer = renderWindowSurface->GetActiveFramebuffer();
-		if(newFramebuffer != nullptr)
-		{
-			// Track surface (only add if not already tracked)
-			auto found = std::find(mAcquiredSurfaces.begin(), mAcquiredSurfaces.end(), renderWindowSurface);
-			if(found == mAcquiredSurfaces.end())
-				mAcquiredSurfaces.push_back(renderWindowSurface);
-		}
-		else
-		{
+		newFramebuffer = AcquireWindowFramebuffer(static_cast<RenderWindow&>(*renderTarget));
+		if(newFramebuffer == nullptr)
 			B3D_LOG(Error, LogRenderBackend, "Binding render target failed. Unable to acquire swap chain image.");
-		}
-
-		swapChain = renderWindowSurface->GetSwapChain();
 	}
 	else
 	{
@@ -344,9 +327,6 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 	mDrawAccessValidator.BeginRenderPass();
 #endif
 	mResourceTracker.PrepareRenderPass(renderPassAttachmentUsages);
-
-	if(swapChain)
-		mResourceTracker.TrackSwapChainUsage(swapChain);
 
 	// Pre-register all GPU parameters before the render pass, so we can automatically issue barriers
 	for(const TShared<GpuParameterSet>& parameters : createInformation.Parameters)
@@ -1054,7 +1034,12 @@ void VulkanGpuCommandBuffer::CopyTextureToBuffer(const TShared<Texture>& source,
 	range.BaseMipLevel = mipLevel;
 	range.MipLevelCount = 1;
 
-	const GpuImageLayout transferLayout = GpuImageLayout::TransferSource;
+	GpuImageLayout transferLayout;
+	if(vulkanSource->UsesGeneralLayout())
+		transferLayout = GpuImageLayout::General;
+	else
+		transferLayout = GpuImageLayout::TransferSource;
+
 	CopyImageToBuffer(sourceImage, destinationBuffer, extent, range, transferLayout, pitch.RowPitch, pitch.SliceHeight);
 }
 
@@ -1523,6 +1508,10 @@ VulkanGpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmit
 	mResourceTracker.ResolveSubmissionTransitions(destinationQueueId, device.GetSubmitThread().GetFrameIndex(), transitionVisitor);
 	transitionVisitor.Finalize();
 
+#if B3D_GPU_EXPLICIT_BARRIERS
+	PublishExplicitImageLayouts(destinationQueueId);
+#endif
+
 	// Wait on present (i.e. until the back buffer becomes available) for any surfaces
 	for(IVulkanRenderWindowSurface* surface : mAcquiredSurfaces)
 		surface->AppendWaitSemaphoresIfRequired(submitInformation.WaitSemaphores);
@@ -1611,6 +1600,7 @@ void VulkanGpuCommandBuffer::ClearRecordingState()
 	mComputePushConstantsRequireBind = false;
 
 #if B3D_GPU_EXPLICIT_BARRIERS
+	mExplicitImageLayouts.Clear();
 	ClearExplicitBarrierState(wasSubmitted);
 #endif
 
@@ -2281,6 +2271,275 @@ void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 
 	mBarrierHelper.Execute(*this);
 }
+
+VulkanFramebuffer* VulkanGpuCommandBuffer::AcquireWindowFramebuffer(RenderWindow& renderWindow)
+{
+	IVulkanRenderWindowSurface* const surface = static_cast<IVulkanRenderWindowSurface*>(renderWindow.GetRenderWindowSurface().get());
+	if(!B3D_ENSURE(surface != nullptr))
+		return nullptr;
+
+	if(!surface->IsSwapChainValid())
+		renderWindow.RebuildSwapChain();
+
+	VulkanFramebuffer* const framebuffer = surface->GetActiveFramebuffer();
+	if(framebuffer == nullptr)
+		return nullptr;
+
+	// Track surface (only add if not already tracked)
+	auto found = std::find(mAcquiredSurfaces.begin(), mAcquiredSurfaces.end(), surface);
+	if(found == mAcquiredSurfaces.end())
+		mAcquiredSurfaces.push_back(surface);
+
+	if(VulkanSwapChain* const swapChain = surface->GetSwapChain())
+		mResourceTracker.TrackSwapChainUsage(swapChain);
+
+	return framebuffer;
+}
+
+#if B3D_GPU_EXPLICIT_BARRIERS
+VulkanSplitBarrier::VulkanSplitBarrier(VulkanGpuDevice& device, TOptional<GpuQueueType> releaseQueue, TOptional<GpuQueueType> acquireQueue)
+	: GpuSplitBarrier(releaseQueue, acquireQueue), mDevice(device.GetLogical())
+{
+	// Events only connect commands on one queue
+	if(IsQueueTransfer())
+		return;
+
+	VkEventCreateInfo eventCreateInformation{};
+	eventCreateInformation.sType = VK_STRUCTURE_TYPE_EVENT_CREATE_INFO;
+	eventCreateInformation.flags = VK_EVENT_CREATE_DEVICE_ONLY_BIT;
+
+	const VkResult result = vkCreateEvent(mDevice, &eventCreateInformation, gVulkanAllocator, &mEvent);
+	B3D_ASSERT(result == VK_SUCCESS);
+}
+
+VulkanSplitBarrier::~VulkanSplitBarrier()
+{
+	// Command buffers that recorded either half keep the split barrier alive until they are done executing
+	if(mEvent != VK_NULL_HANDLE)
+		vkDestroyEvent(mDevice, mEvent, gVulkanAllocator);
+}
+
+bool VulkanGpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split)
+{
+	VulkanGpuDevice& device = GetVulkanGpuDevice();
+
+	// Halves on different queues are ordered by the queue wait of the acquire's submission, which also makes the source writes available
+	// and visible. They only record queue family ownership transfers and layout transitions.
+	const bool transfersQueue = split != nullptr && split->IsQueueTransfer();
+	const u32 releaseQueueFamily = transfersQueue ? device.GetQueueFamily(*split->GetReleaseQueueType()) : VK_QUEUE_FAMILY_IGNORED;
+	const u32 acquireQueueFamily = transfersQueue ? device.GetQueueFamily(*split->GetAcquireQueueType()) : VK_QUEUE_FAMILY_IGNORED;
+	const bool isRelease = phase == GpuBarrierPhase::Release;
+
+	// Halves of an ownership transfer each record their own side of the dependency. Only writes require memory availability, source
+	// reads are ordered through the stage mask.
+	const auto fnGetTransferScope = [isRelease](const GpuExplicitBarrier& barrier, VkPipelineStageFlags& outStages, VkAccessFlags& outAccess)
+	{
+		if(isRelease)
+		{
+			const GpuAccessFlags sourceAccess = barrier.Source.Access.IsSet(GpuAccessFlag::Write) ? GpuAccessFlags(GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::None);
+			VulkanUtility::GetPipelineStageAndAccessMask(barrier.Source.Stages, sourceAccess, outStages, outAccess);
+		}
+		else
+			VulkanUtility::GetPipelineStageAndAccessMask(barrier.Destination.Stages, barrier.Destination.Access, outStages, outAccess);
+	};
+
+	VulkanBarrierBatch batch;
+	for(const GpuExplicitBufferBarrier& barrier : barriers.BufferBarriers)
+	{
+		auto* const gpuBuffer = static_cast<VulkanGpuBuffer*>(barrier.Object.get());
+		VulkanBuffer* const buffer = gpuBuffer != nullptr ? gpuBuffer->GetVulkanResource() : nullptr;
+		if(buffer == nullptr)
+			continue;
+
+		mResourceTracker.TrackBufferUsage(buffer, barrier.Destination.Stages, barrier.Destination.Access | GpuAccessFlag::Read);
+
+		const GpuBarrierScope scope(barrier.Source.Stages, barrier.Source.Access, barrier.Destination.Stages, barrier.Destination.Access);
+		if(!transfersQueue)
+			batch.AddBufferBarrier(buffer->GetVulkanHandle(), scope);
+		else if(buffer->IsExclusive() && releaseQueueFamily != acquireQueueFamily)
+		{
+			VkPipelineStageFlags stages;
+			VkAccessFlags access;
+			fnGetTransferScope(barrier, stages, access);
+
+			if(isRelease)
+				batch.AddBufferBarrier(buffer->GetVulkanHandle(), stages, access, 0, 0, releaseQueueFamily, acquireQueueFamily);
+			else
+				batch.AddBufferBarrier(buffer->GetVulkanHandle(), 0, 0, stages, access, releaseQueueFamily, acquireQueueFamily);
+		}
+	}
+
+	const auto fnAddImageBarrier = [&](VulkanImage& image, const GpuTextureSubresourceRange& range, const GpuExplicitBarrier& barrier, bool usesGeneralLayout)
+	{
+		const bool isAliasAcquire = barrier.Flags.IsSet(GpuBarrierFlag::AliasAcquire);
+		if(isAliasAcquire && !B3D_ENSURE_LOG(barrier.Source.Layout == GpuImageLayout::Undefined && image.IsFullRange(range), "An alias acquire of an image must start from GpuImageLayout::Undefined and cover the whole image."))
+			return;
+
+		// Images in the general layout stay in it for shader and transfer accesses, see VulkanTexture::UsesGeneralLayout()
+		const auto fnGetNativeLayout = [usesGeneralLayout](GpuImageLayout layout)
+		{
+			const bool isShaderOrTransferLayout = layout == GpuImageLayout::ShaderReadOnly || layout == GpuImageLayout::TransferSource || layout == GpuImageLayout::TransferDestination ||
+				layout == GpuImageLayout::ResolveSource || layout == GpuImageLayout::ResolveDestination;
+
+			return usesGeneralLayout && isShaderOrTransferLayout ? VK_IMAGE_LAYOUT_GENERAL : VulkanUtility::ToVkImageLayout(layout);
+		};
+
+		const VkImageLayout sourceLayout = fnGetNativeLayout(barrier.Source.Layout);
+		const VkImageLayout destinationLayout = fnGetNativeLayout(barrier.Destination.Layout);
+
+		// Layout transitions write the image
+		GpuAccessFlags trackedAccess = barrier.Destination.Access | GpuAccessFlag::Read;
+		if(sourceLayout != destinationLayout)
+			trackedAccess |= GpuAccessFlag::Write;
+
+		mResourceTracker.TrackImageUsage(&image, range, barrier.Destination.Stages, trackedAccess);
+
+		const VkImageSubresourceRange vkRange = VulkanUtility::ToVkImageSubresourceRange(range);
+		if(!transfersQueue)
+		{
+			// The image barrier's memory dependency covers only this image, so an alias acquire adds a global memory barrier for the
+			// resources that used the memory before it
+			const GpuBarrierScope scope(barrier.Source.Stages, barrier.Source.Access, barrier.Destination.Stages, barrier.Destination.Access);
+			if(isAliasAcquire && barrier.Source.Access.IsSet(GpuAccessFlag::Write))
+				batch.AddMemoryBarrier(scope);
+
+			batch.AddImageBarrier(image.GetVulkanHandle(), vkRange, scope, sourceLayout, destinationLayout);
+		}
+		else if(image.IsExclusive() && releaseQueueFamily != acquireQueueFamily)
+		{
+			// Both halves of an ownership transfer specify the layout transition, and it executes once
+			VkPipelineStageFlags stages;
+			VkAccessFlags access;
+			fnGetTransferScope(barrier, stages, access);
+
+			if(isRelease)
+				batch.AddImageBarrier(image.GetVulkanHandle(), vkRange, stages, access, 0, 0, sourceLayout, destinationLayout, releaseQueueFamily, acquireQueueFamily);
+			else
+				batch.AddImageBarrier(image.GetVulkanHandle(), vkRange, 0, 0, stages, access, sourceLayout, destinationLayout, releaseQueueFamily, acquireQueueFamily);
+		}
+		else if(isRelease && sourceLayout != destinationLayout)
+		{
+			VkPipelineStageFlags stages;
+			VkAccessFlags access;
+			fnGetTransferScope(barrier, stages, access);
+
+			batch.AddImageBarrier(image.GetVulkanHandle(), vkRange, stages, access, 0, 0, sourceLayout, destinationLayout);
+		}
+
+		// The release leaves the transition in flight until the acquire
+		if(!isRelease)
+		{
+			ExplicitImageLayout explicitLayout;
+			explicitLayout.Image = &image;
+			explicitLayout.Range = range;
+			explicitLayout.Layout = destinationLayout;
+			mExplicitImageLayouts.Add(explicitLayout);
+		}
+	};
+
+	for(const GpuExplicitTextureBarrier& barrier : barriers.TextureBarriers)
+	{
+		auto* const texture = static_cast<VulkanTexture*>(barrier.Object.get());
+		VulkanImage* const image = texture != nullptr ? texture->GetVulkanResource() : nullptr;
+		if(image == nullptr)
+			continue;
+
+		fnAddImageBarrier(*image, GpuBackendUtility::ClampRange(barrier.SubresourceRange, image->GetRange()), barrier, texture->UsesGeneralLayout());
+	}
+
+	for(const GpuExplicitRenderTargetBarrier& barrier : barriers.RenderTargetBarriers)
+	{
+		RenderTarget* const renderTarget = barrier.Object.get();
+		if(renderTarget == nullptr)
+			continue;
+
+		// The barrier covers the surface's faces and mip levels, and the aspects it selects
+		if(renderTarget->GetProperties().IsWindow)
+		{
+			// Barriers can precede the render pass that would otherwise acquire the swap chain image
+			VulkanFramebuffer* const framebuffer = AcquireWindowFramebuffer(static_cast<RenderWindow&>(*renderTarget));
+			const GpuFramebufferAttachment* const attachment = framebuffer != nullptr ? framebuffer->FindAttachment(barrier.SurfaceMask) : nullptr;
+			if(attachment == nullptr)
+				continue;
+
+			VulkanImage& image = static_cast<VulkanImage&>(*attachment->Image);
+			GpuTextureSubresourceRange range = image.GetRange();
+			range.AspectMask &= barrier.SubresourceRange.AspectMask;
+
+			fnAddImageBarrier(image, range, barrier, false);
+			continue;
+		}
+
+		const RenderTexture& renderTexture = static_cast<const RenderTexture&>(*renderTarget);
+		const bool isColor = ((u32)barrier.SurfaceMask & (u32)RT_COLOR_ALL) != 0;
+		const RenderSurfaceInformation& surfaceInformation = isColor ? renderTexture.GetColorSurfaceInformation(Bitwise::LeastSignificantBit((u32)barrier.SurfaceMask)) : renderTexture.GetDepthStencilSurfaceInformation();
+
+		auto* const texture = static_cast<VulkanTexture*>(surfaceInformation.Texture.get());
+		VulkanImage* const image = texture != nullptr ? texture->GetVulkanResource() : nullptr;
+		if(image == nullptr)
+			continue;
+
+		GpuTextureSubresourceRange range = GpuBackendUtility::GetSurfaceRange(image->GetRange(), TextureSurface(surfaceInformation.MipLevel, 1, surfaceInformation.Face, surfaceInformation.FaceCount));
+		range.AspectMask &= barrier.SubresourceRange.AspectMask;
+
+		fnAddImageBarrier(*image, range, barrier, texture->UsesGeneralLayout());
+	}
+
+	// Halves on one queue are connected by the event, which performs the transitions in the release. Halves on different queues record
+	// their own part of the ownership transfer.
+	const VkEvent event = split != nullptr ? static_cast<VulkanSplitBarrier*>(split)->GetEvent() : VK_NULL_HANDLE;
+	if(event != VK_NULL_HANDLE)
+	{
+		if(isRelease)
+			batch.SetEvent(mCommandBufferHandle, event);
+		else
+			batch.WaitEvent(mCommandBufferHandle, event);
+	}
+	else if(transfersQueue || !isRelease)
+		batch.Execute(mCommandBufferHandle);
+
+	return true;
+}
+
+void VulkanGpuCommandBuffer::PublishExplicitImageLayouts(GpuQueueId queueId)
+{
+	AssertIfNotSubmitThread();
+
+	for(const ExplicitImageLayout& explicitLayout : mExplicitImageLayouts)
+	{
+		GpuImageNativeState nativeState;
+		nativeState.Layout = (u32)explicitLayout.Layout;
+		nativeState.StateQueue = queueId;
+
+		VulkanImage& image = *explicitLayout.Image;
+		const GpuTextureSubresourceRange& range = explicitLayout.Range;
+		if(image.HasUniformSubmissionState())
+		{
+			if(image.IsFullRange(range))
+			{
+				image.GetFullRangeSubresource()->NativeState = nativeState;
+				continue;
+			}
+
+			image.SplitSubmissionState();
+		}
+
+		for(GpuTextureAspectFlag aspect : { GpuTextureAspectFlag::Color, GpuTextureAspectFlag::Depth, GpuTextureAspectFlag::Stencil })
+		{
+			if(!range.AspectMask.IsSet(aspect))
+				continue;
+
+			for(u32 face = range.BaseArrayLayer; face < range.BaseArrayLayer + range.ArrayLayerCount; face++)
+			{
+				for(u32 mipLevel = range.BaseMipLevel; mipLevel < range.BaseMipLevel + range.MipLevelCount; mipLevel++)
+					image.GetSubmissionStateResource(face, mipLevel, aspect).NativeState = nativeState;
+			}
+		}
+	}
+
+	mExplicitImageLayouts.Clear();
+}
+#endif
 
 void VulkanGpuCommandBuffer::NotifyRenderTargetModified()
 {
