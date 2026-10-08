@@ -217,6 +217,32 @@ namespace b3d
 		mHasUniformSubmissionState = false;
 	}
 
+	void IGpuImageResource::SetNativeState(const GpuTextureSubresourceRange& range, const render::GpuImageNativeState& nativeState)
+	{
+		if(mHasUniformSubmissionState)
+		{
+			if(IsFullRange(range))
+			{
+				GetFullRangeSubresource()->NativeState = nativeState;
+				return;
+			}
+
+			SplitSubmissionState();
+		}
+
+		for(GpuTextureAspectFlag aspect : { GpuTextureAspectFlag::Color, GpuTextureAspectFlag::Depth, GpuTextureAspectFlag::Stencil })
+		{
+			if(!range.AspectMask.IsSet(aspect))
+				continue;
+
+			for(u32 face = range.BaseArrayLayer; face < range.BaseArrayLayer + range.ArrayLayerCount; face++)
+			{
+				for(u32 mipLevel = range.BaseMipLevel; mipLevel < range.BaseMipLevel + range.MipLevelCount; mipLevel++)
+					GetSubresource(face, mipLevel, aspect)->NativeState = nativeState;
+			}
+		}
+	}
+
 	bool IGpuImageResource::TryMergeSubmissionState(u32 frameIndex)
 	{
 		B3D_ASSERT(!mHasUniformSubmissionState);

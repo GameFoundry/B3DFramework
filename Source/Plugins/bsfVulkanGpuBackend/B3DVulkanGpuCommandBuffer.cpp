@@ -1600,7 +1600,6 @@ void VulkanGpuCommandBuffer::ClearRecordingState()
 	mComputePushConstantsRequireBind = false;
 
 #if B3D_GPU_EXPLICIT_BARRIERS
-	mExplicitImageLayouts.Clear();
 	ClearExplicitBarrierState(wasSubmitted);
 #endif
 
@@ -2428,13 +2427,7 @@ bool VulkanGpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& b
 
 		// The release leaves the transition in flight until the acquire
 		if(!isRelease)
-		{
-			ExplicitImageLayout explicitLayout;
-			explicitLayout.Image = &image;
-			explicitLayout.Range = range;
-			explicitLayout.Layout = destinationLayout;
-			mExplicitImageLayouts.Add(explicitLayout);
-		}
+			AddExplicitImageLayout(image, range, (u32)destinationLayout);
 	};
 
 	for(const GpuExplicitTextureBarrier& barrier : barriers.TextureBarriers)
@@ -2499,45 +2492,6 @@ bool VulkanGpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& b
 		batch.Execute(mCommandBufferHandle);
 
 	return true;
-}
-
-void VulkanGpuCommandBuffer::PublishExplicitImageLayouts(GpuQueueId queueId)
-{
-	AssertIfNotSubmitThread();
-
-	for(const ExplicitImageLayout& explicitLayout : mExplicitImageLayouts)
-	{
-		GpuImageNativeState nativeState;
-		nativeState.Layout = (u32)explicitLayout.Layout;
-		nativeState.StateQueue = queueId;
-
-		VulkanImage& image = *explicitLayout.Image;
-		const GpuTextureSubresourceRange& range = explicitLayout.Range;
-		if(image.HasUniformSubmissionState())
-		{
-			if(image.IsFullRange(range))
-			{
-				image.GetFullRangeSubresource()->NativeState = nativeState;
-				continue;
-			}
-
-			image.SplitSubmissionState();
-		}
-
-		for(GpuTextureAspectFlag aspect : { GpuTextureAspectFlag::Color, GpuTextureAspectFlag::Depth, GpuTextureAspectFlag::Stencil })
-		{
-			if(!range.AspectMask.IsSet(aspect))
-				continue;
-
-			for(u32 face = range.BaseArrayLayer; face < range.BaseArrayLayer + range.ArrayLayerCount; face++)
-			{
-				for(u32 mipLevel = range.BaseMipLevel; mipLevel < range.BaseMipLevel + range.MipLevelCount; mipLevel++)
-					image.GetSubmissionStateResource(face, mipLevel, aspect).NativeState = nativeState;
-			}
-		}
-	}
-
-	mExplicitImageLayouts.Clear();
 }
 #endif
 

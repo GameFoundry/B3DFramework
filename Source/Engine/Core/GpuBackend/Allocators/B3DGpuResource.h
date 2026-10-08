@@ -581,6 +581,12 @@ namespace b3d
 		void SplitSubmissionState();
 
 		/**
+		 * Sets the native state of every subresource in @p range. Switches the image to per-subresource state if @p range does not cover
+		 * the whole image. Submit thread only.
+		 */
+		void SetNativeState(const GpuTextureSubresourceRange& range, const render::GpuImageNativeState& nativeState);
+
+		/**
 		 * Merges the state of every subresource into the full-range subresource and switches the image to uniform state. Fails and
 		 * changes nothing if the image has more than one aspect, if the native states differ, or if the submission states cannot
 		 * be represented by one state (see GpuResourceSubmissionState::TryMerge()). Submit thread only.

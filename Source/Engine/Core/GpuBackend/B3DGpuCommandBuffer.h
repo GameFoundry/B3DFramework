@@ -1091,6 +1091,28 @@ namespace b3d
 			 */
 			void ClearExplicitBarrierState(bool wasSubmitted);
 
+			/**
+			 * Remembers that an explicit barrier leaves @p range of @p image in @p nativeLayout once the command buffer executes. Backends call
+			 * it for full barriers and acquires.
+			 */
+			void AddExplicitImageLayout(IGpuImageResource& image, const GpuTextureSubresourceRange& range, u32 nativeLayout);
+
+			/**
+			 * Stores the layouts explicit barriers leave images in as their native state, so later command buffers that derive their
+			 * barriers from it, and presentation, start from the actual layouts. Backends call it when preparing the submission. 
+			 *
+			 * Submit thread only.
+			 */
+			void PublishExplicitImageLayouts(GpuQueueId queueId);
+
+			/** Layout that explicit barriers leave image subresources in once the command buffer executes. */
+			struct ExplicitImageLayout
+			{
+				IGpuImageResource* Image = nullptr;
+				GpuTextureSubresourceRange Range;
+				u32 Layout = 0; /**< Native layout, see GpuImageNativeState::Layout. */
+			};
+
 			/** Split barrier half recorded by the command buffer. Keeps the split barrier alive until the command buffer is reset. */
 			struct RecordedSplitBarrier
 			{
@@ -1153,6 +1175,7 @@ namespace b3d
 #if B3D_GPU_EXPLICIT_BARRIERS
 			const bool mUsesExplicitBarriers;
 			TInlineArray<RecordedSplitBarrier, 4> mSplitBarriers;
+			TInlineArray<ExplicitImageLayout, 4> mExplicitImageLayouts;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			TUnique<GpuExplicitBarrierValidator> mExplicitBarrierValidator; /**< Only created for command buffers with explicit barriers. */

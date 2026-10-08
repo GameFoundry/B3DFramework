@@ -262,13 +262,6 @@ namespace b3d
 			void ClearRecordingState() override;
 			void Destroy() override;
 
-#if B3D_GPU_EXPLICIT_BARRIERS
-		protected:
-			bool RecordExplicitBarriers(const GpuExplicitBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split) override;
-
-		public:
-#endif
-
 			/************************************************************************/
 			/* 								COMMANDS	                     		*/
 			/************************************************************************/
@@ -390,6 +383,10 @@ namespace b3d
 			friend class VulkanTexture;
 			friend class VulkanBarrierHelper;
 
+#if B3D_GPU_EXPLICIT_BARRIERS
+			bool RecordExplicitBarriers(const GpuExplicitBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split) override;
+#endif
+
 			/** Contains information about a single Vulkan resource bound/used on this command buffer. */
 			struct ResourceUseHandle
 			{
@@ -506,22 +503,6 @@ namespace b3d
 			 */
 			VulkanFramebuffer* AcquireWindowFramebuffer(RenderWindow& renderWindow);
 
-#if B3D_GPU_EXPLICIT_BARRIERS
-			/** Layout that explicit barriers leave image subresources in once the command buffer executes. */
-			struct ExplicitImageLayout
-			{
-				VulkanImage* Image = nullptr;
-				GpuTextureSubresourceRange Range;
-				VkImageLayout Layout = VK_IMAGE_LAYOUT_UNDEFINED;
-			};
-
-			/**
-			 * Stores the layouts explicit barriers leave images in as their native state, so later command buffers that derive their
-			 * barriers from it, and presentation, start from the actual layouts. Submit thread only.
-			 */
-			void PublishExplicitImageLayouts(GpuQueueId queueId);
-#endif
-
 			u32 mId;
 			VkCommandBuffer mCommandBufferHandle;
 			VulkanGpuCommandBufferPool& mPool;
@@ -573,10 +554,6 @@ namespace b3d
 
 			TShared<RenderTarget> mRenderTarget;
 			bool mRenderTargetModified = false;
-
-#if B3D_GPU_EXPLICIT_BARRIERS
-			TInlineArray<ExplicitImageLayout, 4> mExplicitImageLayouts;
-#endif
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			Vector<QueryInformation> mOpenQueries; // Only used for validation
