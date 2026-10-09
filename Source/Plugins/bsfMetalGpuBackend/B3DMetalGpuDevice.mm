@@ -204,6 +204,9 @@ namespace b3d
 			mCapabilities.SetCapability(RSC_TEXTURE_VIEWS);
 			mCapabilities.SetCapability(RSC_RENDER_TARGET_LAYERS);
 			mCapabilities.SetCapability(RSC_MULTI_THREADED_CB);
+#if B3D_GPU_EXPLICIT_BARRIERS
+			mCapabilities.SetCapability(RSC_EXPLICIT_BARRIERS);
+#endif
 
 			// Timer queries can be issued inside any encoder, so they are only advertised when the device can sample at draw,
 			// dispatch and blit boundaries. Apple Silicon usually only samples at stage boundaries, which cannot represent

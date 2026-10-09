@@ -128,6 +128,10 @@ namespace b3d
 			friend class MetalGpuCommandBufferPool;
 			friend class MetalGpuQueue;
 
+#if B3D_GPU_EXPLICIT_BARRIERS
+			bool RecordExplicitBarriers(const GpuExplicitBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split) override;
+#endif
+
 			enum class EncoderKind
 			{
 				None,

@@ -251,6 +251,36 @@ D3D12_GLOBAL_BARRIER D3D12BarrierUtility::GetAliasGlobalBarrier(const GpuBarrier
 	return barrier;
 }
 
+void D3D12BarrierUtility::MergeGlobalBarrier(D3D12_GLOBAL_BARRIER& target, const D3D12_GLOBAL_BARRIER& source)
+{
+	// Common access covers every access, so it absorbs the others
+	const auto fnMergeAccess = [](D3D12_BARRIER_ACCESS first, D3D12_BARRIER_ACCESS second)
+	{
+		if(first == D3D12_BARRIER_ACCESS_NO_ACCESS)
+			return second;
+
+		if(second == D3D12_BARRIER_ACCESS_NO_ACCESS)
+			return first;
+
+		if(first == D3D12_BARRIER_ACCESS_COMMON || second == D3D12_BARRIER_ACCESS_COMMON)
+			return D3D12_BARRIER_ACCESS_COMMON;
+
+		return first | second;
+	};
+
+	target.SyncBefore |= source.SyncBefore;
+	target.SyncAfter |= source.SyncAfter;
+	target.AccessBefore = fnMergeAccess(target.AccessBefore, source.AccessBefore);
+	target.AccessAfter = fnMergeAccess(target.AccessAfter, source.AccessAfter);
+
+	// Global barriers with common access on one side require it on the other
+	if(target.AccessBefore == D3D12_BARRIER_ACCESS_COMMON || target.AccessAfter == D3D12_BARRIER_ACCESS_COMMON)
+	{
+		target.AccessBefore = D3D12_BARRIER_ACCESS_COMMON;
+		target.AccessAfter = D3D12_BARRIER_ACCESS_COMMON;
+	}
+}
+
 D3D12_BUFFER_BARRIER D3D12BarrierUtility::GetBufferBarrier(ID3D12Resource* resource, const GpuBarrierScope& scope, GpuStageFlags precedingBarrierDestinationStages)
 {
 	B3D_ASSERT(resource != nullptr);
@@ -606,4 +636,37 @@ bool D3D12BarrierUtility::CanTransitionTextureLayoutOnQueue(const D3D12TextureLa
 		return false;
 
 	return !aspects.IsSet(GpuTextureAspectFlag::Stencil) || fnCanTransition(layout.GetLayout(GpuTextureAspectFlag::Stencil));
+}
+
+bool D3D12BarrierUtility::CanTransitionTextureLayoutOnQueue(const D3D12TextureLayout& source, const D3D12TextureLayout& destination, GpuTextureAspectFlags aspects, GpuQueueType queueType)
+{
+	for(GpuTextureAspectFlag aspect : { GpuTextureAspectFlag::Color, GpuTextureAspectFlag::Depth, GpuTextureAspectFlag::Stencil })
+	{
+		// Planes that keep their layout need no transition
+		if(!aspects.IsSet(aspect) || source.GetLayout(aspect) == destination.GetLayout(aspect))
+			continue;
+
+		if(!CanTransitionTextureLayoutOnQueue(source, aspect, queueType) || !CanTransitionTextureLayoutOnQueue(destination, aspect, queueType))
+			return false;
+	}
+
+	return true;
+}
+
+D3D12TextureLayout D3D12BarrierUtility::GetTransferHandoffLayout(const D3D12TextureLayout& source, const D3D12TextureLayout& destination, GpuQueueType releaseQueueType)
+{
+	// Returns the handoff layout of the plane that @p aspect selects
+	const auto fnGetPlaneHandoffLayout = [&source, &destination, releaseQueueType](GpuTextureAspectFlag aspect)
+	{
+		if(source.GetLayout(aspect) == D3D12_BARRIER_LAYOUT_UNDEFINED)
+			return D3D12_BARRIER_LAYOUT_UNDEFINED;
+
+		if(CanTransitionTextureLayoutOnQueue(source, destination, aspect, releaseQueueType))
+			return destination.GetLayout(aspect);
+
+		return D3D12_BARRIER_LAYOUT_COMMON;
+	};
+
+	// The depth aspect selects the color or depth plane
+	return D3D12TextureLayout(fnGetPlaneHandoffLayout(GpuTextureAspectFlag::Depth), fnGetPlaneHandoffLayout(GpuTextureAspectFlag::Stencil));
 }
