@@ -99,6 +99,9 @@ namespace b3d
 			mCapabilities.SetCapability(RSC_TEXTURE_VIEWS);
 			mCapabilities.SetCapability(RSC_RENDER_TARGET_LAYERS);
 			mCapabilities.SetCapability(RSC_MULTI_THREADED_CB);
+#if B3D_GPU_EXPLICIT_BARRIERS
+			mCapabilities.SetCapability(RSC_EXPLICIT_BARRIERS);
+#endif
 
 			// Set conventions (matching Vulkan for consistency)
 			mCapabilities.Conventions.NdcYAxis = GpuBackendConventions::Axis::Down;

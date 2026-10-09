@@ -372,6 +372,9 @@ namespace b3d
 		MetalGpuCommandBuffer::MetalGpuCommandBuffer(MetalGpuDevice& device, MetalGpuCommandBufferPool& pool, u32 id, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation)
 			: GpuCommandBuffer(device, ownerThread, queueType, pool.UsesExplicitBarriers(), createInformation), mGpuDevice(device), mPool(pool), mId(id), mBarrierHelper(&mResourceTracker)
 		{
+#if B3D_GPU_EXPLICIT_BARRIERS
+			mResourceTracker.SetHazardTracking(!UsesExplicitBarriers());
+#endif
 		}
 
 		MetalGpuCommandBuffer::~MetalGpuCommandBuffer()
@@ -2435,6 +2438,112 @@ namespace b3d
 				return;
 		}
 
+#if B3D_GPU_EXPLICIT_BARRIERS
+		bool MetalGpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split)
+		{
+			// Metal has no image layouts, and orders work between command buffers itself: tracked resources through its hazard
+			// tracking, untracked ones (explicit resource synchronization) by every submission waiting for its queue's previous
+			// one. Halves of a split barrier on different queues are ordered by the queue wait of the acquire's submission. The
+			// barriers keep their resources alive, record their logical layouts for later automatic command buffers, and with
+			// explicit resource synchronization, order the work of the open encoder.
+			if (mRecordingFailed)
+				return false;
+
+			// The release leaves the barrier in flight until the acquire
+			const bool completesBarrier = phase != GpuBarrierPhase::Release;
+
+			bool hasBufferBarriers = false;
+			for (const GpuExplicitBufferBarrier& barrier : barriers.BufferBarriers)
+			{
+				auto* const gpuBuffer = static_cast<MetalGpuBuffer*>(barrier.Object.get());
+				MetalBuffer* const buffer = gpuBuffer != nullptr ? gpuBuffer->GetMetalResource() : nullptr;
+				if (buffer == nullptr)
+					continue;
+
+				mResourceTracker.TrackBufferUsage(buffer, barrier.Destination.Stages, barrier.Destination.Access | GpuAccessFlag::Read);
+				hasBufferBarriers = true;
+			}
+
+			bool hasTextureBarriers = false;
+			const auto fnAddImageBarrier = [&](MetalImage& image, const GpuTextureSubresourceRange& range, const GpuExplicitBarrier& barrier)
+			{
+				mResourceTracker.TrackImageUsage(&image, range, barrier.Destination.Stages, barrier.Destination.Access | GpuAccessFlag::Read);
+				if (completesBarrier)
+					AddExplicitImageLayout(image, range, (u32)barrier.Destination.Layout);
+
+				hasTextureBarriers = true;
+			};
+
+			for (const GpuExplicitTextureBarrier& barrier : barriers.TextureBarriers)
+			{
+				auto* const texture = static_cast<MetalTexture*>(barrier.Object.get());
+				MetalImage* const image = texture != nullptr ? texture->GetMetalResource() : nullptr;
+				if (image == nullptr)
+					continue;
+
+				fnAddImageBarrier(*image, GpuBackendUtility::ClampRange(barrier.SubresourceRange, image->GetRange()), barrier);
+			}
+
+			for (const GpuExplicitRenderTargetBarrier& barrier : barriers.RenderTargetBarriers)
+			{
+				RenderTarget* const renderTarget = barrier.Object.get();
+				if (renderTarget == nullptr)
+					continue;
+
+				// Window back buffers are not tracked resources, and only need their encoder work ordered
+				if (renderTarget->GetProperties().IsWindow)
+				{
+					hasTextureBarriers = true;
+					continue;
+				}
+
+				MetalFramebuffer* const framebuffer = static_cast<MetalRenderTexture*>(renderTarget)->GetFramebuffer();
+				const GpuFramebufferAttachment* const attachment = framebuffer != nullptr ? framebuffer->FindAttachment(barrier.SurfaceMask) : nullptr;
+				if (attachment == nullptr)
+					continue;
+
+				// The barrier covers the surface's faces and mip levels, and the aspects it selects
+				GpuTextureSubresourceRange range = attachment->Range;
+				range.AspectMask &= barrier.SubresourceRange.AspectMask;
+
+				fnAddImageBarrier(static_cast<MetalImage&>(*attachment->Image), range, barrier);
+			}
+
+#if B3D_METAL_USE_EXPLICIT_RESOURCE_SYNCHRONIZATION
+			// Encoders wait for the previous one through the resource fence, so only the work of the open encoder needs a
+			// barrier. Halves on one queue order the work recorded before the release in the acquire, like a full barrier.
+			// Nothing accesses the resources between the halves, so the release records nothing. Halves on different queues
+			// record nothing either, as their encoders belong to different command buffers.
+			const bool transfersQueue = split != nullptr && split->IsQueueTransfer();
+			if (completesBarrier && !transfersQueue && (hasBufferBarriers || hasTextureBarriers))
+			{
+				if (mComputeEncoder != nil)
+				{
+					MTLBarrierScope scope = (MTLBarrierScope)0;
+					if (hasBufferBarriers)
+						scope |= MTLBarrierScopeBuffers;
+
+					if (hasTextureBarriers)
+						scope |= MTLBarrierScopeTextures;
+
+					[mComputeEncoder memoryBarrierWithScope:scope];
+				}
+				else if (GetActiveEncoder() != nil)
+				{
+					// Blit encoders have no memory barriers, so the next encoder waits for this one through the fence
+					EnsureEncoderKind(EncoderKind::None);
+				}
+			}
+#else
+			(void)split;
+			(void)hasBufferBarriers;
+			(void)hasTextureBarriers;
+#endif
+
+			return true;
+		}
+#endif
+
 		void MetalGpuCommandBuffer::EncodeQueueWaits(id<MTLCommandBuffer> commandBuffer, MetalGpuQueue& submitQueue, GpuQueueMask syncMask)
 		{
 			const GpuQueueMask selfMask = GpuQueueId(submitQueue.GetType(), submitQueue.GetIndex());
@@ -2574,6 +2683,9 @@ namespace b3d
 				MetalSubmissionTransitionVisitor transitionVisitor;
 				mResourceTracker.ResolveSubmissionTransitions(mSubmittedQueueId, submitThread.GetFrameIndex(), transitionVisitor);
 				syncMask |= transitionVisitor.GetRequiredWaitMask();
+#if B3D_GPU_EXPLICIT_BARRIERS
+				PublishExplicitImageLayouts(mSubmittedQueueId);
+#endif
 
 				mResourceTracker.NotifyUsed(mSubmittedQueueId);
 				mResourcesSubmitted = true;
@@ -2640,6 +2752,9 @@ namespace b3d
 			MetalSubmissionTransitionVisitor transitionVisitor;
 			mResourceTracker.ResolveSubmissionTransitions(mSubmittedQueueId, submitThread.GetFrameIndex(), transitionVisitor);
 			syncMask |= transitionVisitor.GetRequiredWaitMask();
+#if B3D_GPU_EXPLICIT_BARRIERS
+			PublishExplicitImageLayouts(mSubmittedQueueId);
+#endif
 
 			// The resolved transitions rely on the frame fence ordering this submission after all earlier frames
 			const TArrayView<const u64> frameFenceValues = submitThread.ConsumeFrameFence(submitQueue);

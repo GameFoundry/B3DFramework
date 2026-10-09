@@ -58,6 +58,11 @@ namespace b3d
 			friend class NullGpuCommandBufferPool;
 			friend class NullGpuQueue;
 
+#if B3D_GPU_EXPLICIT_BARRIERS
+			/** Accepts every barrier, since nothing executes. */
+			bool RecordExplicitBarriers(const GpuExplicitBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split) override { return true; }
+#endif
+
 			/** Sets the command buffer state. Only accessible by friends (pool and queue). */
 			void SetState(GpuCommandBufferState state) { mState = state; }
 

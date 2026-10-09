@@ -52,6 +52,12 @@ namespace b3d
 			 */
 			static D3D12_GLOBAL_BARRIER GetAliasGlobalBarrier(const GpuBarrierScope& scope);
 
+			/**
+			 * Extends @p target so it also orders everything @p source orders. A target with no synchronization and no access on either side
+			 * (D3D12_BARRIER_ACCESS_NO_ACCESS) is empty, and takes on @p source.
+			 */
+			static void MergeGlobalBarrier(D3D12_GLOBAL_BARRIER& target, const D3D12_GLOBAL_BARRIER& source);
+
 			/** Builds a whole-resource native buffer barrier. */
 			static D3D12_BUFFER_BARRIER GetBufferBarrier(ID3D12Resource* resource, const GpuBarrierScope& scope, GpuStageFlags precedingBarrierDestinationStages);
 
@@ -69,6 +75,16 @@ namespace b3d
 
 			/** Returns whether the specified queue type can transition into or out of @p layout. */
 			static bool CanTransitionTextureLayoutOnQueue(const D3D12TextureLayout& layout, GpuTextureAspectFlags aspects, GpuQueueType queueType);
+
+			/** Returns whether the specified queue type can transition the planes of @p aspects from @p source to @p destination. */
+			static bool CanTransitionTextureLayoutOnQueue(const D3D12TextureLayout& source, const D3D12TextureLayout& destination, GpuTextureAspectFlags aspects, GpuQueueType queueType);
+
+			/**
+			 * Returns the layout a texture is handed over in, from a queue of @p releaseQueueType in @p source to a queue of another type that uses
+			 * it in @p destination. Planes without contents (an undefined source) are handed over undefined, so the acquire discards them. Other
+			 * planes are handed over in @p destination if the release queue type can transition into it, or in the common layout otherwise.
+			 */
+			static D3D12TextureLayout GetTransferHandoffLayout(const D3D12TextureLayout& source, const D3D12TextureLayout& destination, GpuQueueType releaseQueueType);
 
 		private:
 			/** 
