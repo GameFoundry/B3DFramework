@@ -3854,6 +3854,11 @@ void GpuBackendTestSuite::TestExplicitBarrierValidation()
 	logs.IgnoreError("VUID-VkImageMemoryBarrier-oldLayout-01197");
 	logs.IgnoreError("VUID-vkCmdBeginRenderPass-initialLayout-00900");
 
+	// The D3D12 debug layer reports accesses and barriers between the halves of split barriers on resources that get barriers of their own
+	logs.IgnoreError("possibly pending an incomplete split barrier");
+	logs.IgnoreError("is pending a previous split barrier");
+	logs.IgnoreError("is not paired with a matching begin-only barrier");
+
 	const TShared<GpuDevice> device = backend.GetDevice(0);
 	const TShared<GpuComputePipelineState> pipeline = CreateExplicitBarrierDispatchPipeline(*device);
 	if(pipeline != nullptr)
@@ -4038,6 +4043,9 @@ void GpuBackendTestSuite::TestExplicitBarrierValidation()
 		// The command buffer is never submitted
 		commandBuffer->End();
 		pool->Reset();
+
+		// Backends may only report their validation messages when the device next goes idle, which must happen within the logging scope
+		device->WaitUntilIdle();
 	}, "GpuBackendTestSuite::TestExplicitBarrierValidation", true);
 }
 #endif

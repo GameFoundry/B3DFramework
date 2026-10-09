@@ -1957,18 +1957,19 @@ bool D3D12GpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& ba
 {
 	// What the barriers of each case record:
 	//
-	// Case            | Buffers               | Alias global barrier | Texture barrier per aspect                | Layout write-back
-	// --------------- | --------------------- | -------------------- | ----------------------------------------- | -----------------
-	// Full            | merged global barrier | yes                  | source -> destination                     | yes
-	// SplitRelease    | -                     | yes                  | source -> destination, SyncAfter = SPLIT  | no
-	// SplitAcquire    | merged global barrier | -                    | source -> destination, SyncBefore = SPLIT | yes
-	// TransferRelease | -                     | -                    | source -> handoff, SyncAfter = NONE       | no
-	// TransferAcquire | -                     | -                    | handoff -> destination, SyncBefore = NONE | yes
+	// Case            | Page and readback buffers | Placed buffers      | Alias global barrier | Texture barrier per aspect                | Layout write-back
+	// --------------- | ------------------------- | ------------------- | -------------------- | ----------------------------------------- | -----------------
+	// Full            | merged global barrier     | barrier             | yes                  | source -> destination                     | yes
+	// SplitRelease    | -                         | SyncAfter = SPLIT   | yes                  | source -> destination, SyncAfter = SPLIT  | no
+	// SplitAcquire    | merged global barrier     | SyncBefore = SPLIT  | -                    | source -> destination, SyncBefore = SPLIT | yes
+	// TransferRelease | -                         | -                   | -                    | source -> handoff, SyncAfter = NONE       | no
+	// TransferAcquire | -                         | -                   | -                    | handoff -> destination, SyncBefore = NONE | yes
 	//
-	// Buffers are slices of shared pages, so a barrier on a buffer's resource would also order the unrelated buffers on its page, and a split
-	// pair would forbid accessing them between its halves. Buffers share one global barrier instead. Global barriers cannot be split, so split
-	// barriers record them in one half: the alias global barrier in the release, where the discards start, and the buffer barrier in the
-	// acquire.
+	// Buffers on pages are slices of a shared resource, so a barrier on that resource would also order the unrelated buffers on the page, and a
+	// split pair would forbid accessing them between its halves. Those buffers share one global barrier instead, and so do readback buffers,
+	// whose resource barriers the debug layer rejects (see D3D12BarrierHelper::RecordNativeBufferBarrier()). Placed buffers own their resource,
+	// so they get barriers of their own. Global barriers cannot be split, so split barriers record them in one half: the alias global barrier
+	// in the release, where the discards start, and the buffer global barrier in the acquire.
 	//
 	// The halves of a split barrier on queues of one type are identical, except that the release ends in the split and the acquire starts
 	// from it. The pair may cross ExecuteCommandLists() boundaries, where it only transitions layouts.
@@ -1986,7 +1987,7 @@ bool D3D12GpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& ba
 		barrierCase = transfersQueue ? BarrierCase::TransferAcquire : BarrierCase::SplitAcquire;
 
 	const bool recordsAliasGlobalBarrier = barrierCase == BarrierCase::Full || barrierCase == BarrierCase::SplitRelease;
-	const bool recordsBufferBarrier = barrierCase == BarrierCase::Full || barrierCase == BarrierCase::SplitAcquire;
+	const bool recordsBufferGlobalBarrier = barrierCase == BarrierCase::Full || barrierCase == BarrierCase::SplitAcquire;
 	const bool writesBackLayouts = barrierCase == BarrierCase::Full || barrierCase == BarrierCase::SplitAcquire || barrierCase == BarrierCase::TransferAcquire;
 
 	const GpuQueueType releaseQueueType = transfersQueue ? *split->GetReleaseQueueType() : GetQueueType();
@@ -2002,9 +2003,10 @@ bool D3D12GpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& ba
 		aliasScope.DestinationAccess |= barrier.Destination.Access;
 	};
 
-	D3D12_GLOBAL_BARRIER bufferBarrier{ D3D12_BARRIER_SYNC_NONE, D3D12_BARRIER_SYNC_NONE, D3D12_BARRIER_ACCESS_NO_ACCESS, D3D12_BARRIER_ACCESS_NO_ACCESS };
+	D3D12_GLOBAL_BARRIER bufferGlobalBarrier{ D3D12_BARRIER_SYNC_NONE, D3D12_BARRIER_SYNC_NONE, D3D12_BARRIER_ACCESS_NO_ACCESS, D3D12_BARRIER_ACCESS_NO_ACCESS };
 
 	// Buffer barriers
+	TInlineArray<D3D12_BUFFER_BARRIER, 8> bufferBarriers;
 	const auto fnAddBufferBarrier = [&](D3D12Buffer& buffer, const GpuExplicitBarrier& barrier)
 	{
 		mResourceTracker.TrackBufferUsage(&buffer, barrier.Destination.Stages, barrier.Destination.Access | GpuAccessFlag::Read);
@@ -2013,12 +2015,44 @@ bool D3D12GpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& ba
 		{
 			if(recordsAliasGlobalBarrier)
 				fnAddAliasScope(barrier);
+
+			return;
 		}
-		else if(recordsBufferBarrier)
+
+		const GpuBarrierScope scope(barrier.Source.Stages, barrier.Source.Access, barrier.Destination.Stages, barrier.Destination.Access);
+		D3D12BufferPage* const page = buffer.GetPage();
+		if(page != nullptr || buffer.GetHeapType() == D3D12_HEAP_TYPE_READBACK)
 		{
-			const GpuBarrierScope scope(barrier.Source.Stages, barrier.Source.Access, barrier.Destination.Stages, barrier.Destination.Access);
-			D3D12BarrierUtility::MergeGlobalBarrier(bufferBarrier, D3D12BarrierUtility::GetGlobalBufferBarrier(buffer.GetPage()->GetFlags(), scope, GpuStageFlag::None));
+			if(recordsBufferGlobalBarrier)
+			{
+				const D3D12_RESOURCE_FLAGS flags = page != nullptr ? page->GetFlags() : D3D12_RESOURCE_FLAG_NONE;
+				D3D12BarrierUtility::MergeGlobalBarrier(bufferGlobalBarrier, D3D12BarrierUtility::GetGlobalBufferBarrier(flags, scope, GpuStageFlag::None));
+			}
+
+			return;
 		}
+
+		// A buffer barrier without work on either side orders nothing. Both halves of a split barrier make the same choice.
+		D3D12_BUFFER_BARRIER nativeBarrier = D3D12BarrierUtility::GetBufferBarrier(buffer.GetD3D12Resource(), scope, GpuStageFlag::None);
+		if(nativeBarrier.SyncBefore == D3D12_BARRIER_SYNC_NONE || nativeBarrier.SyncAfter == D3D12_BARRIER_SYNC_NONE)
+			return;
+
+		switch(barrierCase)
+		{
+		case BarrierCase::Full:
+			break;
+		case BarrierCase::SplitRelease:
+			nativeBarrier.SyncAfter = D3D12_BARRIER_SYNC_SPLIT;
+			break;
+		case BarrierCase::SplitAcquire:
+			nativeBarrier.SyncBefore = D3D12_BARRIER_SYNC_SPLIT;
+			break;
+		case BarrierCase::TransferRelease:
+		case BarrierCase::TransferAcquire:
+			return;
+		}
+
+		bufferBarriers.Add(nativeBarrier);
 	};
 
 	// Texture barriers
@@ -2117,7 +2151,7 @@ bool D3D12GpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& ba
 	{
 		auto* const gpuBuffer = static_cast<D3D12GpuBuffer*>(barrier.Object.get());
 		D3D12Buffer* const buffer = gpuBuffer != nullptr ? gpuBuffer->GetD3D12Buffer() : nullptr;
-		if(buffer == nullptr || buffer->GetPage() == nullptr)
+		if(buffer == nullptr)
 			continue;
 
 		fnAddBufferBarrier(*buffer, barrier);
@@ -2163,8 +2197,11 @@ bool D3D12GpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& ba
 	if(aliasScope.SourceStages != GpuStageFlag::None)
 		batch.AddGlobalBarrier(D3D12BarrierUtility::GetAliasGlobalBarrier(aliasScope));
 
-	if(bufferBarrier.SyncBefore != D3D12_BARRIER_SYNC_NONE && bufferBarrier.SyncAfter != D3D12_BARRIER_SYNC_NONE)
-		batch.AddGlobalBarrier(bufferBarrier);
+	if(bufferGlobalBarrier.SyncBefore != D3D12_BARRIER_SYNC_NONE && bufferGlobalBarrier.SyncAfter != D3D12_BARRIER_SYNC_NONE)
+		batch.AddGlobalBarrier(bufferGlobalBarrier);
+
+	for(const D3D12_BUFFER_BARRIER& bufferBarrier : bufferBarriers)
+		batch.AddBufferBarrier(bufferBarrier);
 
 	for(const D3D12_TEXTURE_BARRIER& textureBarrier : textureBarriers)
 		batch.AddTextureBarrier(textureBarrier);
