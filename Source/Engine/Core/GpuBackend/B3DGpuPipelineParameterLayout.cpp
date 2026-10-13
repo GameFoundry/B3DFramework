@@ -277,6 +277,22 @@ u32 GpuPipelineParameterSetLayout::GetSlot(const StringView& name) const
 	return ~0u;
 }
 
+u32 GpuPipelineParameterSetLayout::GetSlot(const StringView& name, GpuParameterType type) const
+{
+	const auto found = mUniformMap.find(name);
+	if(found == mUniformMap.end())
+		return ~0u;
+
+	const UniformInformation& uniformInformation = found->second;
+	if(uniformInformation.Type != type)
+	{
+		B3D_LOG(Warning, LogRenderBackend, "Parameter {0} was requested with type {1}, but has type {2}.", name, (u32)type, (u32)uniformInformation.Type);
+		return ~0u;
+	}
+
+	return uniformInformation.Slot;
+}
+
 u32 GpuPipelineParameterSetLayout::GetArraySize(GpuParameterType type, u32 sequentialBindingIndex) const
 {
 #if B3D_DEBUG

@@ -119,6 +119,12 @@ namespace b3d
 		/** Finds slot index of a parameter with the specified name. Slot index is set to ~0u if parameter cannot be found. */
 		u32 GetSlot(const StringView& name) const;
 
+		/**
+		 * Finds slot index of a parameter with the specified name and type. Returns ~0u if the parameter cannot be found. If a parameter with the
+		 * name exists but has a different type, logs a warning and returns ~0u.
+		 */
+		u32 GetSlot(const StringView& name, GpuParameterType type) const;
+
 		/** Returns the number of entries in the array at the specified sequential binding index. */
 		u32 GetArraySize(GpuParameterType type, u32 sequentialBindingIndex) const;
 

@@ -167,7 +167,7 @@ bool TGpuParameterSet<IsRenderProxy>::SetUniformBuffer(u32 slot, const UniformBu
 template <bool IsRenderProxy>
 bool TGpuParameterSet<IsRenderProxy>::SetUniformBuffer(const StringView& name, const UniformBufferType& buffer, u32 arrayIndex, u32 offset)
 {
-	const u32 slot = mParameterSetLayout->GetSlot(name);
+	const u32 slot = mParameterSetLayout->GetSlot(name, GpuParameterType::UniformBuffer);
 	if(slot == ~0u)
 	{
 		B3D_LOG(Warning, LogRenderBackend, "Unable to assign parameter. Cannot find uniform buffer with name: {0}", name);
@@ -268,7 +268,7 @@ bool TGpuParameterSet<IsRenderProxy>::TryGetStructParameter(const StringView& na
 template <bool IsRenderProxy>
 bool TGpuParameterSet<IsRenderProxy>::TryGetSampledTextureParameter(const StringView& name, TGpuParameterSampledTexture<IsRenderProxy>& output) const
 {
-	const u32 slot = mParameterSetLayout->GetSlot(name);
+	const u32 slot = mParameterSetLayout->GetSlot(name, GpuParameterType::SampledTexture);
 	if (slot == ~0u)
 	{
 		output = TGpuParameterSampledTexture<IsRenderProxy>();
@@ -282,7 +282,7 @@ bool TGpuParameterSet<IsRenderProxy>::TryGetSampledTextureParameter(const String
 template <bool IsRenderProxy>
 bool TGpuParameterSet<IsRenderProxy>::TryGetStorageTextureParameter(const StringView& name, TGpuParameterStorageTexture<IsRenderProxy>& output) const
 {
-	const u32 slot = mParameterSetLayout->GetSlot(name);
+	const u32 slot = mParameterSetLayout->GetSlot(name, GpuParameterType::StorageTexture);
 	if (slot == ~0u)
 	{
 		output = TGpuParameterStorageTexture<IsRenderProxy>();
@@ -296,7 +296,7 @@ bool TGpuParameterSet<IsRenderProxy>::TryGetStorageTextureParameter(const String
 template <bool IsRenderProxy>
 bool TGpuParameterSet<IsRenderProxy>::TryGetStorageBufferParameter(const StringView& name, TGpuParameterStorageBuffer<IsRenderProxy>& output) const
 {
-	const u32 slot = mParameterSetLayout->GetSlot(name);
+	const u32 slot = mParameterSetLayout->GetSlot(name, GpuParameterType::StorageBuffer);
 	if (slot == ~0u)
 	{
 		output = TGpuParameterStorageBuffer<IsRenderProxy>();
@@ -310,7 +310,7 @@ bool TGpuParameterSet<IsRenderProxy>::TryGetStorageBufferParameter(const StringV
 template <bool IsRenderProxy>
 bool TGpuParameterSet<IsRenderProxy>::TryGetUniformBufferParameter(const StringView& name, TGpuParameterUniformBuffer<IsRenderProxy>& output) const
 {
-	const u32 slot = mParameterSetLayout->GetSlot(name);
+	const u32 slot = mParameterSetLayout->GetSlot(name, GpuParameterType::UniformBuffer);
 	if (slot == ~0u)
 	{
 		output = TGpuParameterUniformBuffer<IsRenderProxy>();
@@ -324,7 +324,7 @@ bool TGpuParameterSet<IsRenderProxy>::TryGetUniformBufferParameter(const StringV
 template <bool IsRenderProxy>
 bool TGpuParameterSet<IsRenderProxy>::TryGetSamplerStateParameter(const StringView& name, TGpuParameterSampler<IsRenderProxy>& output) const
 {
-	const u32 slot = mParameterSetLayout->GetSlot(name);
+	const u32 slot = mParameterSetLayout->GetSlot(name, GpuParameterType::Sampler);
 	if (slot == ~0u)
 	{
 		output = TGpuParameterSampler<IsRenderProxy>();
