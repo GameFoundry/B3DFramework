@@ -45,9 +45,16 @@ shader ClearLoadStore
             #endif
 	    #endif
 
+	    // Float four-component storage textures are RGBA16F. Other texture variations keep the compiler's default format.
 	    #if OBJ_TYPE == 0
+	        #if DATA_TYPE == 0 && NUM_COMPONENTS == 3
+			[layout(rgba16f)]
+	        #endif
 			RWTexture2D<TYPE> gOutput;
 	    #elif OBJ_TYPE == 1
+	        #if DATA_TYPE == 0 && NUM_COMPONENTS == 3
+			[layout(rgba16f)]
+	        #endif
 			RWTexture2DArray<TYPE> gOutput;
 	    #elif OBJ_TYPE == 2
 		    RWBuffer<TYPE> gOutput;

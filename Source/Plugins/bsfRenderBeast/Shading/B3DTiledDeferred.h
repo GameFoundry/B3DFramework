@@ -128,7 +128,8 @@ namespace b3d
 
 			/**
 			 * Binds the material for rendering, sets up parameters and executes it. Only works on variations of
-			 * this material intended for textures and texture arrays.
+			 * this material intended for textures and texture arrays. Float variations with four components require
+			 * an RGBA16F texture.
 			 */
 			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& target, const Color& clearValue = Color::kZero, const TextureSurface& surface = TextureSurface::kComplete);
 
