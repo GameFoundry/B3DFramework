@@ -104,6 +104,10 @@ Framework/
 - **Logging**: `B3D_LOG(Level, LogCategory, "message {0}", param)` - never use `GetDebug().LogDebug()`
 - **Construction**: All types must provide constructors; do not use aggregate brace initialization anywhere.
 
+### Control flow
+
+- When a function handles alternative cases, write them as explicit branches (`if`/`else`), not as an early `return` from one case followed by the other case's code after the `if`. Early returns are for guards: rejecting invalid input or nothing to do, before the function's main work.
+
 ### Comments
 
 - When writing new implementation comments do not narrate the rationale for an edit or reference what used to be there - that belongs in the commit message, not the source. 
