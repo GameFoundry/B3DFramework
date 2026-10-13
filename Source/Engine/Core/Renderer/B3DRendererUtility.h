@@ -412,6 +412,17 @@ namespace b3d
 			 */
 			void SetPassParams(GpuCommandBuffer& commandBuffer, const TShared<MaterialParameterAdapter>& adapter, u32 passIndex = 0);
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			/**
+			 * Checks that every pass of a material variation declares the resources of @p expected in set @p setIndex, with the
+			 * same names, slots, types and array sizes, and no others. Logs an error naming the material, pass and resource for
+			 * the first difference.
+			 *
+			 * @return	True if every pass matches.
+			 */
+			bool ValidateRendererSetLayout(const Material& material, u32 variationIndex, u32 setIndex, const GpuPipelineParameterSetLayout& expected) const;
+#endif
+
 			/**
 			 * Draws the specified mesh.
 			 *

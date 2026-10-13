@@ -1,20 +1,25 @@
+#include "$ENGINE$\RendererPassInput.bslinc"
+
 mixin DepthInput
 {
 	code 
 	{
+		// Surface shaders load the depth without a sampler
+		#ifndef IS_SURFACE_SHADER
 		[alias(gDepthBufferTex)]
 		SamplerState gDepthBufferSamp;
-		
+		#endif
+
 		#ifndef MSAA_COUNT
 			#define MSAA_COUNT 1
 		#endif
 
 		#if MSAA_COUNT > 1
 		[internal]
-		Texture2DMS<float4> gDepthBufferTex;
+		B3D_RENDERER_PASS_INPUT(Texture2DMS<float4> gDepthBufferTex, t2);
 		#else
 		[internal]
-		Texture2D gDepthBufferTex;
-		#endif	
+		B3D_RENDERER_PASS_INPUT(Texture2D gDepthBufferTex, t2);
+		#endif
 	};
 };

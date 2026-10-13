@@ -12,8 +12,7 @@ shader ReflectionCubeDownsample
 		cbuffer Input
 		{
 			int gCubeFace;
-			int gMipLevel;
-		}	
+		}
 	
 		SamplerState gInputSamp;
 		TextureCube gInputTex;
@@ -23,7 +22,7 @@ shader ReflectionCubeDownsample
 			float2 scaledUV = input.uv0 * 2.0f - 1.0f;
 			float3 dir = getDirFromCubeFace(gCubeFace, scaledUV);
 			
-			return gInputTex.SampleLevel(gInputSamp, dir, gMipLevel);
+			return gInputTex.SampleLevel(gInputSamp, dir, 0);
 		}	
 	};
 };

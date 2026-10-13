@@ -6,7 +6,6 @@ shader PPTonemapping
 
 	variations
 	{
-		VOLUME_LUT = { true, false };
 		GAMMA_ONLY = { true, false };
 		AUTO_EXPOSURE = { true, false };
 		MSAA = { true, false };
@@ -55,11 +54,7 @@ shader PPTonemapping
 		
 		SamplerState gColorLUTSamp;
 		
-		#if VOLUME_LUT
 		Texture3D gColorLUT;
-		#else
-		Texture2D gColorLUT;
-		#endif
 		
 		Texture2D gBloomTex;
 		SamplerState gBloomSamp;
@@ -78,25 +73,7 @@ shader PPTonemapping
 			float3 logColor = LinearToLogColor(linearColor);
 			float3 UVW = logColor * ((LUT_SIZE - 1) / (float)LUT_SIZE) + (0.5f / LUT_SIZE);
 			
-			#if VOLUME_LUT
-			
 			float3 gradedColor = gColorLUT.Sample(gColorLUTSamp, UVW).rgb;
-			
-			#else
-			
-			float slice = floor(UVW.z * LUT_SIZE - 0.5f);
-			float sliceFrac = UVW.z * LUT_SIZE - 0.5f - slice;
-
-			float U = (UVW.x + slice) / LUT_SIZE;
-			float V = UVW.y;
-
-			// Blend between two slices (emulating a 3D texture sample)
-			float3 v0 = gColorLUT.Sample(gColorLUTSamp, float2(U, V)).rgb;
-			float3 v1 = gColorLUT.Sample(gColorLUTSamp, float2(U + 1.0f / LUT_SIZE, V)).rgb;
-
-			float3 gradedColor = lerp(v0, v1, sliceFrac);
-			
-			#endif
 			
 			return gradedColor;
 		}

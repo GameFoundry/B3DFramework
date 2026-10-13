@@ -142,6 +142,7 @@ VkFormat VulkanTextureManager::GetDummyViewFormat(GpuBufferFormat format)
 	case BF_32X4F:
 	case BF_64X3F:
 	case BF_64X4F:
+	case BF_UNKNOWN: // Layouts that don't record the texel type, which expect floating point texels
 		return VK_FORMAT_R8G8B8A8_UNORM;
 	case BF_16X1U:
 	case BF_32X1U:

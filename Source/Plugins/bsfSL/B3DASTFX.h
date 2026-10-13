@@ -246,6 +246,9 @@ struct tagDefineEntry
 {
 	char* Name;
 	char* Expr;
+
+	/** True if the macro takes parameters. Its expression then starts with the parameter list. */
+	int IsFunctionLike;
 };
 
 struct tagParseState
@@ -329,6 +332,7 @@ void AppendCodeBlock(ParseState* parseState, RawCodeType type, const char* value
 int GetCodeBlockIndex(ParseState* parseState, RawCodeType type);
 
 void AddDefine(ParseState* parseState, const char* value);
+void AddFunctionLikeDefine(ParseState* parseState, const char* value);
 void AddDefineExpr(ParseState* parseState, const char* value);
 int HasDefine(ParseState* parseState, const char* value);
 void RemoveDefine(ParseState* parseState, const char* value);

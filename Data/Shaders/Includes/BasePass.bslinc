@@ -1,3 +1,6 @@
+// Shaders built on this include are surface shaders
+#define IS_SURFACE_SHADER 1
+
 #ifndef WRITE_VELOCITY
 	#define WRITE_VELOCITY 0
 #endif
@@ -11,12 +14,14 @@
 #endif
 
 #include "$ENGINE$\PerCameraData.bslinc"
+#include "$ENGINE$\PerFrameData.bslinc"
 #include "$ENGINE$\PerObjectData.bslinc"
 #include "$ENGINE$\VertexInput.bslinc"
 
 mixin BasePass
 {
 	mixin PerCameraData;
+	mixin PerFrameData;
 	mixin PerObjectData;
 	mixin VertexInput;
 

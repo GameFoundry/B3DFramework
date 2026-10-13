@@ -37,75 +37,23 @@ static const ShaderVariationParameters* kDecalVariationParameterLookup[2][3] = {
 	  &GetDecalShaderVariation<true, MSAAMode::Full>() }
 };
 
-/** Returns a specific forward rendering shader variation. */
-template <bool SKINNED, bool MORPH, bool CLUSTERED, bool WRITE_VELOCITY>
-static const ShaderVariationParameters& GetForwardRenderingVariation(bool supportsVelocityWrites)
-{
-	if(!supportsVelocityWrites)
-	{
-		static ShaderVariationParameters variation = ShaderVariationParameters(
-			{
-				ShaderVariationParameter("SKINNED", SKINNED),
-				ShaderVariationParameter("MORPH", MORPH),
-				ShaderVariationParameter("CLUSTERED", CLUSTERED),
-			});
-
-		return variation;
-	}
-	else
-	{
-		static ShaderVariationParameters variation = ShaderVariationParameters(
-			{
-				ShaderVariationParameter("SKINNED", SKINNED),
-				ShaderVariationParameter("MORPH", MORPH),
-				ShaderVariationParameter("CLUSTERED", CLUSTERED),
-				ShaderVariationParameter("WRITE_VELOCITY", WRITE_VELOCITY),
-			});
-
-		return variation;
-	}
-}
-
-/** Returns a specific forward rendering shader variation. */
-template <bool CLUSTERED, bool WRITE_VELOCITY>
-static const ShaderVariationParameters* GetClusteredForwardRenderingVariation(RenderableAnimType animType, bool shaderCanWriteVelocity)
+/** Returns a specific base pass shader variation. */
+template <bool WRITE_VELOCITY>
+static const ShaderVariationParameters* GetBasePassVariation(bool shaderCanWriteVelocity, RenderableAnimType animType)
 {
 	const ShaderVariationParameters* VAR_LOOKUP[4];
-	VAR_LOOKUP[0] = &GetForwardRenderingVariation<false, false, CLUSTERED, WRITE_VELOCITY>(shaderCanWriteVelocity);
-	VAR_LOOKUP[1] = &GetForwardRenderingVariation<true, false, CLUSTERED, WRITE_VELOCITY>(shaderCanWriteVelocity);
-	VAR_LOOKUP[2] = &GetForwardRenderingVariation<false, true, CLUSTERED, WRITE_VELOCITY>(shaderCanWriteVelocity);
-	VAR_LOOKUP[3] = &GetForwardRenderingVariation<true, true, CLUSTERED, WRITE_VELOCITY>(shaderCanWriteVelocity);
+	VAR_LOOKUP[0] = &GetVertexInputVariation<false, false, WRITE_VELOCITY>(shaderCanWriteVelocity);
+	VAR_LOOKUP[1] = &GetVertexInputVariation<true, false, WRITE_VELOCITY>(shaderCanWriteVelocity);
+	VAR_LOOKUP[2] = &GetVertexInputVariation<false, true, WRITE_VELOCITY>(shaderCanWriteVelocity);
+	VAR_LOOKUP[3] = &GetVertexInputVariation<true, true, WRITE_VELOCITY>(shaderCanWriteVelocity);
 
 	return VAR_LOOKUP[(int)animType];
 }
 
-/** Returns a specific base pass shader variation. */
-template <bool WRITE_VELOCITY>
-static const ShaderVariationParameters* GetBasePassVariation(bool useForwardRendering, bool supportsClusteredForward, bool shaderCanWriteVelocity, RenderableAnimType animType)
-{
-	if(useForwardRendering)
-	{
-		if(supportsClusteredForward)
-			return GetClusteredForwardRenderingVariation<true, WRITE_VELOCITY>(animType, shaderCanWriteVelocity);
-		else
-			return GetClusteredForwardRenderingVariation<false, WRITE_VELOCITY>(animType, shaderCanWriteVelocity);
-	}
-	else
-	{
-		const ShaderVariationParameters* VAR_LOOKUP[4];
-		VAR_LOOKUP[0] = &GetVertexInputVariation<false, false, WRITE_VELOCITY>(shaderCanWriteVelocity);
-		VAR_LOOKUP[1] = &GetVertexInputVariation<true, false, WRITE_VELOCITY>(shaderCanWriteVelocity);
-		VAR_LOOKUP[2] = &GetVertexInputVariation<false, true, WRITE_VELOCITY>(shaderCanWriteVelocity);
-		VAR_LOOKUP[3] = &GetVertexInputVariation<true, true, WRITE_VELOCITY>(shaderCanWriteVelocity);
-
-		return VAR_LOOKUP[(int)animType];
-	}
-}
-
 /** Initializes a specific base pass variation on the provided material and returns the variation index. */
-static u32 InitAndRetrieveBasePassVariation(Material& material, bool useForwardRendering, bool supportsClusteredForward, bool shaderCanWriteVelocity, bool writeVelocity, RenderableAnimType animType)
+static u32 InitAndRetrieveBasePassVariation(Material& material, bool shaderCanWriteVelocity, bool writeVelocity, RenderableAnimType animType)
 {
-	const ShaderVariationParameters* const variationParameters = writeVelocity ? GetBasePassVariation<true>(useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, animType) : GetBasePassVariation<false>(useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, animType);
+	const ShaderVariationParameters* const variationParameters = writeVelocity ? GetBasePassVariation<true>(shaderCanWriteVelocity, animType) : GetBasePassVariation<false>(shaderCanWriteVelocity, animType);
 
 	FindVariationInformation findInformation;
 	findInformation.VariationParameters = variationParameters;
@@ -233,9 +181,6 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 				static_assert((u32)RenderableAnimType::Count == 4, "RenderableAnimType is expected to have four sequential entries.");
 
 				const TShared<Shader>& shader = drawCommand.Material->GetShader();
-				ShaderFlags shaderFlags = shader->GetFlags();
-				const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward) || shaderFlags.IsSet(ShaderFlag::Transparent);
-				bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 
 				const Vector<ShaderVariationParameterInformation>& variationParams = shader->GetVariationParameters();
 				const bool shaderCanWriteVelocity = std::find_if(variationParams.begin(), variationParams.end(), [](const ShaderVariationParameterInformation& x)
@@ -245,7 +190,7 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 
 				RenderableAnimType animType = proxy.GetAnimType();
 
-				drawCommand.DefaultVariationIndex = InitAndRetrieveBasePassVariation(*drawCommand.Material, useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, false, animType);
+				drawCommand.DefaultVariationIndex = InitAndRetrieveBasePassVariation(*drawCommand.Material, shaderCanWriteVelocity, false, animType);
 
 #if B3D_DEBUG
 				ValidateBasePassMaterial(*drawCommand.Material, animType, drawCommand.DefaultVariationIndex, *vertexDescription);
@@ -257,7 +202,7 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 
 				if(writeVelocity)
 				{
-					drawCommand.WriteVelocityVariationIndex = InitAndRetrieveBasePassVariation(*drawCommand.Material, useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, true, animType);
+					drawCommand.WriteVelocityVariationIndex = InitAndRetrieveBasePassVariation(*drawCommand.Material, shaderCanWriteVelocity, true, animType);
 
 #if B3D_DEBUG
 					ValidateBasePassMaterial(*drawCommand.Material, animType, drawCommand.WriteVelocityVariationIndex, *vertexDescription);
@@ -298,25 +243,37 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 			drawCommand.SharedPerObjectParameterSet = renderState->PerObjectParameterSet;
 			drawCommand.PerObjectBufferOffset = renderState->PerObjectSuballocation.GetSuballocationOffset();
 
+			// Set 0 is null for a shader without material parameters
 			TShared<GpuParameterSet> gpuParameterSet = drawCommand.ParameterAdapter->GetGpuParameterSet();
-
-			// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
-			// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
-			gpuParameterSet->TryGetUniformBufferParameter("PerFrame", drawCommand.PerFrameUniformBufferParameter);
-			gpuParameterSet->TryGetUniformBufferParameter("PerCamera", drawCommand.PerCameraUniformBufferParameter);
-			gpuParameterSet->TryGetStorageBufferParameter("boneMatrices", drawCommand.BoneMatrixBufferParameter);
-			gpuParameterSet->TryGetStorageBufferParameter("prevBoneMatrices", drawCommand.PreviousBoneMatrixBufferParameter);
-
-			ShaderFlags shaderFlags = shader->GetFlags();
-			const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward) || shaderFlags.IsSet(ShaderFlag::Transparent);
-
-			if(useForwardRendering)
+			if(gpuParameterSet != nullptr)
 			{
-				const bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
-
-				drawCommand.ForwardLightingParams.Populate(gpuParameterSet, supportsClusteredForward);
-				drawCommand.ImageBasedParams.Initialize(gpuParameterSet, GPT_FRAGMENT_PROGRAM, true, supportsClusteredForward, supportsClusteredForward);
+				gpuParameterSet->TryGetStorageBufferParameter("boneMatrices", drawCommand.BoneMatrixBufferParameter);
+				gpuParameterSet->TryGetStorageBufferParameter("prevBoneMatrices", drawCommand.PreviousBoneMatrixBufferParameter);
 			}
+
+			// The Forward flag comes from the forward lighting include; transparent surfaces without it are unlit
+			const ShaderFlags shaderFlags = shader->GetFlags();
+			SurfaceShaderType shaderType;
+			if(shaderFlags.IsSet(ShaderFlag::Forward))
+				shaderType = SurfaceShaderType::LitForward;
+			else if(shaderFlags.IsSet(ShaderFlag::Transparent))
+				shaderType = SurfaceShaderType::Unlit;
+			else
+				shaderType = SurfaceShaderType::LitDeferred;
+
+			drawCommand.SurfaceShaderType = (u32)shaderType;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			const TShared<GpuPipelineParameterSetLayout>& inputLayout = GetRenderBeast()->GetSurfaceShaderParameterSetInfo().Get(shaderType, false);
+			for(u32 variationIndex : { drawCommand.DefaultVariationIndex, drawCommand.WriteVelocityVariationIndex })
+			{
+				if(variationIndex == ~0u)
+					continue;
+
+				GetRendererUtility().ValidateRendererSetLayout(*drawCommand.Material, variationIndex, GpuPipelineSet::kPerObjectSetIndex, *drawCommand.SharedPerObjectParameterSet->GetLayout());
+				GetRendererUtility().ValidateRendererSetLayout(*drawCommand.Material, variationIndex, GpuPipelineSet::kSurfaceShaderInputSetIndex, *inputLayout);
+			}
+#endif
 		}
 	}
 }
@@ -618,9 +575,6 @@ void DecalObjectStorage::CreateRenderState(TArrayView<const PackedRendererId> id
 		// Generate or assign sampler state overrides
 		drawCommand.SamplerOverrides = mRenderBeastScene->AllocSamplerStateOverrides(drawCommand);
 
-		// Prepare all parameter bindings
-		TShared<GpuParameterSet> gpuParameterSet = drawCommand.ParameterAdapter->GetGpuParameterSet();
-
 		// Allocate from the uniform buffer manager after ParameterAdapter is created
 		{
 			UniformBufferPools::AllocationResult result = uniformBufferPools.Allocate(UniformBufferPools::DecalPool);
@@ -640,10 +594,23 @@ void DecalObjectStorage::CreateRenderState(TArrayView<const PackedRendererId> id
 		uniformBufferPools.UpdatePerObjectBuffer(renderState);
 		uniformBufferPools.UpdateDecalParamBuffer(renderState, proxy);
 
-		gpuParameterSet->TryGetUniformBufferParameter("PerFrame", drawCommand.PerFrameUniformBufferParameter);
-		gpuParameterSet->TryGetUniformBufferParameter("PerCamera", drawCommand.PerCameraUniformBufferParameter);
-		gpuParameterSet->TryGetSampledTextureParameter("gDepthBufferTex", drawCommand.DepthInputTexture);
-		gpuParameterSet->TryGetSampledTextureParameter("gMaskTex", drawCommand.MaskInputTexture);
+		drawCommand.SurfaceShaderType = (u32)SurfaceShaderType::Decal;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		// MSAAMode::None variations read single-sampled scene inputs, the others multisampled ones
+		const SurfaceShaderParameterSetInfo& parameterSetInfo = GetRenderBeast()->GetSurfaceShaderParameterSetInfo();
+		for(u32 insideGeometryIndex = 0; insideGeometryIndex < 2; insideGeometryIndex++)
+		{
+			for(u32 msaaModeIndex = 0; msaaModeIndex < 3; msaaModeIndex++)
+			{
+				const u32 variationIndex = drawCommand.VariationIndices[insideGeometryIndex][msaaModeIndex];
+				const bool msaa = msaaModeIndex != (u32)MSAAMode::None;
+
+				GetRendererUtility().ValidateRendererSetLayout(*drawCommand.Material, variationIndex, GpuPipelineSet::kPerObjectSetIndex, *drawCommand.SharedPerObjectParameterSet->GetLayout());
+				GetRendererUtility().ValidateRendererSetLayout(*drawCommand.Material, variationIndex, GpuPipelineSet::kSurfaceShaderInputSetIndex, *parameterSetInfo.Get(SurfaceShaderType::Decal, msaa));
+			}
+		}
+#endif
 	}
 }
 
@@ -756,19 +723,8 @@ void ParticleSystemObjectStorage::CreateRenderState(TArrayView<const PackedRende
 
 		ShaderFlags shaderFlags = shader->GetFlags();
 		const bool requiresForwardLighting = shaderFlags.IsSet(ShaderFlag::Forward);
-		const bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 
-		ParticleForwardLightingType forwardLightingType;
-		if(requiresForwardLighting)
-		{
-			forwardLightingType = supportsClusteredForward
-				? ParticleForwardLightingType::Clustered
-				: ParticleForwardLightingType::Standard;
-		}
-		else
-			forwardLightingType = ParticleForwardLightingType::None;
-
-		const ShaderVariationParameters* variationParameters = &GetParticleShaderVariationParameters(orientation, lockY, gpu, is3d, forwardLightingType);
+		const ShaderVariationParameters* variationParameters = &GetParticleShaderVariationParameters(orientation, lockY, gpu, is3d);
 
 		FindVariationInformation findVariationInformation;
 		findVariationInformation.VariationParameters = variationParameters;
@@ -887,7 +843,6 @@ void ParticleSystemObjectStorage::CreateRenderState(TArrayView<const PackedRende
 		}
 
 		// Bind additional parameters
-		gpuParameterSet->TryGetUniformBufferParameter("PerCamera", drawCommand.PerCameraUniformBufferParameter);
 		gpuParameterSet->TryGetUniformBufferParameter("ParticleParams", drawCommand.ParticlesUniformBufferParameter);
 		gpuParameterSet->GetStorageBufferParameter("gIndices", drawCommand.IndicesBuffer);
 
@@ -924,20 +879,21 @@ void ParticleSystemObjectStorage::CreateRenderState(TArrayView<const PackedRende
 			}
 		}
 
-		const bool isTransparent = shaderFlags.IsSet(ShaderFlag::Transparent);
-		if(isTransparent)
-		{
-			if(gpuParameterSet->HasSampledTexture("gDepthBufferTex"))
-				gpuParameterSet->GetSampledTextureParameter("gDepthBufferTex", drawCommand.DepthInputTexture);
-		}
+		// Unlit transparent particles read scene depth for soft particles; opaque ones write the G-buffer
+		SurfaceShaderType shaderType;
+		if(requiresForwardLighting)
+			shaderType = SurfaceShaderType::LitForward;
+		else if(shaderFlags.IsSet(ShaderFlag::Transparent))
+			shaderType = SurfaceShaderType::UnlitParticle;
+		else
+			shaderType = SurfaceShaderType::LitDeferred;
 
-		// Set up buffers for lighting
-		const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward);
-		if(useForwardRendering)
-		{
-			drawCommand.ForwardLightingParams.Populate(gpuParameterSet, supportsClusteredForward);
-			drawCommand.ImageBasedParams.Initialize(gpuParameterSet, GPT_FRAGMENT_PROGRAM, true, supportsClusteredForward, supportsClusteredForward);
-		}
+		drawCommand.SurfaceShaderType = (u32)shaderType;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		GetRendererUtility().ValidateRendererSetLayout(*drawCommand.Material, variationIndex, GpuPipelineSet::kPerObjectSetIndex, *drawCommand.SharedPerObjectParameterSet->GetLayout());
+		GetRendererUtility().ValidateRendererSetLayout(*drawCommand.Material, variationIndex, GpuPipelineSet::kSurfaceShaderInputSetIndex, *GetRenderBeast()->GetSurfaceShaderParameterSetInfo().Get(shaderType, false));
+#endif
 
 		// Initialize cull info
 		mParticleSystemCullInfos[id] = CullInfo(Bounds(kZeroTag), proxy.GetLayer());
@@ -1546,26 +1502,26 @@ void RenderBeastScene::RefreshSamplerOverrides(bool force)
 			MaterialSamplerOverrides* overrides = drawCommand.SamplerOverrides;
 			if(overrides != nullptr && overrides->IsDirty)
 			{
+				// Overrides cover material parameters, which only set 0 holds
 				const u32 passCount = drawCommand.Material->GetPassCount(drawCommand.DefaultVariationIndex);
 				for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 				{
-					const u32 setCount = drawCommand.ParameterAdapter->GetSetCount(passIndex);
-					for(u32 setIndex = 0; setIndex < setCount; setIndex++)
+					const TShared<GpuParameterSet>& parameterSet = drawCommand.ParameterAdapter->GetGpuParameterSet(passIndex, GpuPipelineSet::kMaterialSetIndex);
+					if(parameterSet == nullptr)
+						continue;
+
+					const TShared<GpuPipelineParameterSetLayout>& uniformLayoutSet = parameterSet->GetLayout();
+
+					const u32 samplerCount = uniformLayoutSet->GetBindingCount(GpuParameterType::Sampler);
+					for(u32 samplerIndex = 0; samplerIndex < samplerCount; ++samplerIndex)
 					{
-						const TShared<GpuParameterSet>& parameterSet = drawCommand.ParameterAdapter->GetGpuParameterSet(passIndex, setIndex);
-						const TShared<GpuPipelineParameterSetLayout>& uniformLayoutSet = parameterSet->GetLayout();
+						const u32 slot = uniformLayoutSet->GetSlot(GpuParameterType::Sampler, samplerIndex);
 
-						const u32 samplerCount = uniformLayoutSet->GetBindingCount(GpuParameterType::Sampler);
-						for(u32 samplerIndex = 0; samplerIndex < samplerCount; ++samplerIndex)
-						{
-							const u32 slot = uniformLayoutSet->GetSlot(GpuParameterType::Sampler, samplerIndex);
+						const u32& overrideIndex = overrides->Passes[passIndex].StateOverrides[GpuPipelineSet::kMaterialSetIndex][slot];
+						if(overrideIndex == ~0u)
+							continue;
 
-							const u32& overrideIndex = overrides->Passes[passIndex].StateOverrides[setIndex][slot];
-							if(overrideIndex == ~0u)
-								continue;
-
-							parameterSet->SetSamplerState(slot, overrides->Overrides[overrideIndex].State);
-						}
+						parameterSet->SetSamplerState(slot, overrides->Overrides[overrideIndex].State);
 					}
 				}
 			}

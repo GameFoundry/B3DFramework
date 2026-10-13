@@ -1,3 +1,5 @@
+#include "$ENGINE$\RendererPassInput.bslinc"
+
 mixin MaskInput
 {
 	code 
@@ -8,10 +10,10 @@ mixin MaskInput
 
 		#if MSAA_COUNT > 1
 		[internal]
-		Texture2DMS<float> gMaskTex;
+		B3D_RENDERER_PASS_INPUT(Texture2DMS<float> gMaskTex, t3);
 		#else
 		[internal]
-		Texture2D<float> gMaskTex;
-		#endif	
+		B3D_RENDERER_PASS_INPUT(Texture2D<float> gMaskTex, t3);
+		#endif
 	};
 };

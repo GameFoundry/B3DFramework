@@ -25,25 +25,19 @@ namespace b3d
 		/** Descriptor set indices used by RenderBeast for GPU pipeline parameter binding. */
 		namespace GpuPipelineSet
 		{
-			/** Descriptor set for user material parameters, and other renderer parameters that don't have a specific set. */
-			constexpr u32 kMaterial = 0;
+			/**
+			 * Descriptor set for material parameters. In surface shaders it holds the user material parameters and the
+			 * renderer data stored in the material (bone matrices, particle system textures). In other renderer shaders it
+			 * holds all parameters except per-object data.
+			 */
+			constexpr u32 kMaterialSetIndex = 0;
 
 			/** Descriptor set for per-object uniform buffers and other per-object data. */
-			constexpr u32 kPerObject = 1;
-		}
+			constexpr u32 kPerObjectSetIndex = 1;
 
-		/**
-		 * Determines the feature set to be used by RenderBeast. Feature sets control the quality and type of rendering
-		 * effects depending on available hardware (For example a desktop computer can handle higher end rendering than a
-		 * mobile device).
-		 */
-		enum class RenderBeastFeatureSet
-		{
-			/** High end feature set utilizing the latest and greatest effects. */
-			Desktop,
-			/** Mid-range feature set optimized for macOS and its obsolete OpenGL 4.1 version. */
-			DesktopMacOS
-		};
+			/** Descriptor set for per-pass renderer inputs of surface shaders (see SurfaceShaderType). */
+			constexpr u32 kSurfaceShaderInputSetIndex = 2;
+		}
 
 		/** Available implementation of the DrawCommand class. */
 		enum class DrawCommandType

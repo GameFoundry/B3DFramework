@@ -1,9 +1,11 @@
+#include "$ENGINE$\RendererPassInput.bslinc"
+
 mixin PerFrameData
 {
 	code
 	{
 		[internal]
-		cbuffer PerFrame
+		B3D_RENDERER_PASS_INPUT(cbuffer PerFrame, b1)
 		{
 			float gTime;
 		}

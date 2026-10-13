@@ -198,7 +198,7 @@ TShared<render::GpuParameterSet> UniformBufferPools::GetOrCreateParameterSet(Poo
 	}
 
 	GpuParameterSetPool& pool = GetRenderer()->GetGpuContext().GetParameterSetPool();
-	TShared<GpuParameterSet> parameterSet = pool.Create(group.ParameterSetLayout, GpuPipelineSet::kPerObject);
+	TShared<GpuParameterSet> parameterSet = pool.Create(group.ParameterSetLayout, GpuPipelineSet::kPerObjectSetIndex);
 
 	// Bind all buffers by their uniform buffer names
 	for (u32 poolIndex = 0; poolIndex < entry.Suballocations.Size(); ++poolIndex)

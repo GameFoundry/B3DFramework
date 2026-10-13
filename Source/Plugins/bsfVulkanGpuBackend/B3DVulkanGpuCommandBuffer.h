@@ -491,8 +491,11 @@ namespace b3d
 			/** Returns the owner GPU device, cast as a VulkanGpuDevice. */
 			VulkanGpuDevice& GetVulkanGpuDevice() const { return static_cast<VulkanGpuDevice&>(mGpuDevice); }
 
-			/** Rebuilds the flat dynamic offset array from per-set arrays. */
-			void RebuildFlatDynamicOffsets();
+			/**
+			 * Binds the descriptor sets prepared by BindGpuParameters() to @p bindPoint, in runs of consecutive set indices,
+			 * since one bind call covers a contiguous range of sets.
+			 */
+			void BindDescriptorSets(VkPipelineBindPoint bindPoint, VkPipelineLayout pipelineLayout);
 
 			/**
 			 * Acquires the active swap chain image of @p renderWindow and registers its surface with the command buffer. Returns the
@@ -524,7 +527,7 @@ namespace b3d
 			u32 mStencilRef = 0;
 			DrawOperationType mDrawOp = DOT_TRIANGLE_LIST;
 			u32 mRequiredVertexBufferBindingCount = 0;
-			u32 mBoundDescriptorSetCount = 0;
+			u64 mBoundDescriptorSetMask = 0; /**< Bit per set index prepared by BindGpuParameters() for binding. */
 			GpuPushConstantPayload mPushConstants;
 			bool mGfxPipelineRequiresBind : 1;
 			bool mCmpPipelineRequiresBind : 1;
@@ -546,7 +549,6 @@ namespace b3d
 			Vector<IVulkanRenderWindowSurface*> mAcquiredSurfaces;
 			TInlineArray<TInlineArray<u32, 4>, 4> mDynamicOffsetsPerSet;
 			TInlineArray<UnorderedMap<u32, u32>, 4> mDynamicOffsetsOverridesPerSet;
-			TInlineArray<u32, 16> mFlatDynamicOffsets;
 			UnorderedMap<GpuParameterSet*, CachedGpuParameterData> mRenderPassGpuParameterSetCache;
 
 			TShared<RenderTarget> mRenderTarget;

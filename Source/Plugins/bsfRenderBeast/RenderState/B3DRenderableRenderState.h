@@ -49,18 +49,6 @@ namespace b3d
 			/** Type of animation applied to this element, if any. */
 			RenderableAnimType AnimType;
 
-			/** Parameter for binding the per-camera uniform buffer. */
-			GpuParameterUniformBuffer PerCameraUniformBufferParameter;
-
-			/** Parameter for binding the per-frame uniform buffer. */
-			GpuParameterUniformBuffer PerFrameUniformBufferParameter;
-
-			/** Collection of parameters used for direct lighting using the forward rendering path. */
-			ForwardLightingParams ForwardLightingParams;
-
-			/** Collection of parameters used for image based lighting. */
-			ImageBasedLightingParameterBinding ImageBasedParams;
-
 			/** Vertex buffer containing element's morph shape vertices, if it has any. */
 			TShared<GpuBuffer> MorphShapeBuffer;
 

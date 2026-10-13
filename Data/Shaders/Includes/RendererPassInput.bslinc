@@ -1,0 +1,11 @@
+// B3D_RENDERER_PASS_INPUT(declaration, register) declares a renderer input that the renderer binds once per pass.
+// Surface shaders, which the renderer draws for renderables, decals and particle systems, define IS_SURFACE_SHADER
+// before their includes. Their renderer inputs are internal parameters in set 2, at a register number that is unique
+// across register classes. Other shaders declare them as regular parameters.
+#ifndef B3D_RENDERER_PASS_INPUT
+	#ifdef IS_SURFACE_SHADER
+		#define B3D_RENDERER_PASS_INPUT(declaration, registerIndex) [internal] declaration : register(registerIndex, space2)
+	#else
+		#define B3D_RENDERER_PASS_INPUT(declaration, registerIndex) declaration
+	#endif
+#endif

@@ -1,8 +1,10 @@
+#include "$ENGINE$\RendererPassInput.bslinc"
+
 mixin LightGridCommon
 {
 	code
 	{
-		cbuffer GridParams : register(b4)
+		B3D_RENDERER_PASS_INPUT(cbuffer GridParams, b4)
 		{
 			// Number of lights per type in the lights buffer
 			// x - directional lights, y - radial lights, z - spot lights, w - total number of lights

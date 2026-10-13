@@ -1,3 +1,4 @@
+#include "$ENGINE$\RendererPassInput.bslinc"
 #include "$ENGINE$\LightGridCommon.bslinc"
 #include "$ENGINE$\ReflectionCubemapCommon.bslinc"
 #define USE_LIGHT_GRID_INDICES 1
@@ -15,45 +16,21 @@ mixin ForwardLighting
 	mixin ReflectionCubemapCommon;
 	mixin ImageBasedLighting;
 	
-	#if CLUSTERED
 	mixin LightGridCommon;
 	mixin LightAccumulatorIndexed;
 	mixin ReflProbeAccumulatorIndexed;
 	
 	featureset = HighEnd;
-	#else
-	mixin LightAccumulatorDirect;
-	mixin ReflProbeAccumulatorDirect;
-	#endif
 	
-	variations
-	{
-		CLUSTERED = { true, false };
-	};		
-
 	code
 	{
-		#if CLUSTERED
-		Buffer<uint4> gGridLightOffsetsAndSize;
-		Buffer<uint2> gGridProbeOffsetsAndSize;
-		#else
 		[internal]
-		cbuffer LightAndReflProbeParams
-		{
-			// Number of lights per type in the lights buffer
-			// x - number of directional lights
-			// y - offset to radial lights
-			// z - offset to spot lights
-			// w - total number of lights
-			uint4 gLightOffsets;
-			
-			uint gReflProbeCount;
-		}
-		#endif
+		B3D_RENDERER_PASS_INPUT(Buffer<uint4> gGridLightOffsetsAndSize, t5);
+		[internal]
+		B3D_RENDERER_PASS_INPUT(Buffer<uint2> gGridProbeOffsetsAndSize, t6);
 
 		float3 calcLighting(float3 worldPosition, float3 screenPosition, float2 uv, SurfaceData surfaceData)
 		{
-			#if CLUSTERED
 			uint2 pixelPos = (uint2)screenPosition.xy;
 			uint cellIdx = calcCellIdx(pixelPos, screenPosition.z);
 			uint3 lightOffsetAndSize = gGridLightOffsetsAndSize[cellIdx].rgb;
@@ -65,10 +42,6 @@ mixin ForwardLighting
 			lightOffsets.w = lightOffsets.z + lightOffsetAndSize.z;
 			
 			uint2 reflProbeOffsetAndSize = gGridProbeOffsetsAndSize[cellIdx];
-			#else
-			uint4 lightOffsets = gLightOffsets;
-			uint2 reflProbeOffsetAndSize = uint2(0, gReflProbeCount);			
-			#endif
 			
 			float3 V = normalize(gViewOrigin - worldPosition);
 			float3 N = surfaceData.worldNormal.xyz;

@@ -44,16 +44,23 @@ struct VStoFS
 It must include the following mixins:
  - **VertexInput** (from `VertexInput.bslinc`) - Contains a set of helper methods useful for transforming vertex inputs into outputs.
  - **PerCameraData** (from `PerCameraData.bslinc`) - Provides a variety of camera parameters, including the view-projection matrix, view direction and origin. Check the contents of `PerCameraData.bslinc` to see all the provided properties.
+ - **PerFrameData** (from `PerFrameData.bslinc`) - Provides values that are constant over an entire frame, such as the current time.
  - **PerObjectData** (from `PerObjectData.bslinc`) - Provides a variety of per-object paramters, including the world transform, world-view-projection matrix and object layer. Check the contents of `PerObjectData.bslinc` to see all the provided properties.
 
+Shaders that the renderer draws for scene objects (renderables, decals and particle systems) are surface shaders. The renderer provides their camera and frame data in parameter set 2, which it owns. A surface shader must define `IS_SURFACE_SHADER` before including these files, so that they declare their parameters in that set. Without the define they declare them as material parameters, which the renderer doesn't set. Shaders that include `BasePass.bslinc` get the define from it.
+
 ~~~~~~~~~~~~~
+#define IS_SURFACE_SHADER 1
+
 #include "$ENGINE$\PerCameraData.bslinc"
+#include "$ENGINE$\PerFrameData.bslinc"
 #include "$ENGINE$\PerObjectData.bslinc"
 #include "$ENGINE$\VertexInput.bslinc"
 
 shader VertexTransform
 {
 	mixin PerCameraData;
+	mixin PerFrameData;
 	mixin PerObjectData;
 	mixin VertexInput;
 
@@ -75,13 +82,17 @@ When populating **VStoFS** output structure you can use the following helper met
 You are of course not forced to use any of the methods above, as long as you properly populate the **VStoFS** structure. An example shader making use of these methods would look like so:
 
 ~~~~~~~~~~~~~
+#define IS_SURFACE_SHADER 1
+
 #include "$ENGINE$\PerCameraData.bslinc"
+#include "$ENGINE$\PerFrameData.bslinc"
 #include "$ENGINE$\PerObjectData.bslinc"
 #include "$ENGINE$\VertexInput.bslinc"
 
 shader VertexTransform
 {
 	mixin PerCameraData;
+	mixin PerFrameData;
 	mixin PerObjectData;
 	mixin VertexInput;
 

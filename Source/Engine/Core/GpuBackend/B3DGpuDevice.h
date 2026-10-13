@@ -273,12 +273,15 @@ namespace b3d
 		virtual TShared<GpuPipelineParameterSetLayout> CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription, const TShared<GpuResourceTableLayout>& resourceTableLayout = nullptr, u32 tableIndex = ~0u) = 0;
 
 		/**
-		 * Maps a uniform-buffer shader register index to the parameter slot value this backend uses in parameter
-		 * descriptions and set layouts. Engine-authored parameter descriptions must assign slots through this mapping
-		 * to remain slot-compatible with shader-reflected layouts, which may encode more than the register index into
-		 * the slot value (e.g. the register class).
+		 * Maps a shader register to the parameter slot value this backend uses in parameter descriptions and set
+		 * layouts. Engine-authored parameter descriptions must assign slots through this mapping to remain
+		 * slot-compatible with shader-reflected layouts, which may encode more than the register index into the slot
+		 * value (e.g. the register class).
+		 *
+		 * Backends that don't encode the class use the register index as the slot, so register indices within one set
+		 * must be unique across all register classes.
 		 */
-		virtual u32 GetUniformBufferParameterSlot(u32 registerIndex) const { return registerIndex; }
+		virtual u32 GetParameterSlot(ShaderRegisterClass registerClass, u32 registerIndex) const { return registerIndex; }
 
 		/**
 		 * Creates a parameter set pool for allocating GPU parameter sets.

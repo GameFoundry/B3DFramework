@@ -11,6 +11,8 @@
 #include "Material/B3DMaterialParameterAdapter.h"
 #include "Material/B3DPass.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
+#include "GpuBackend/B3DGpuPipelineParameterLayout.h"
+#include "GpuBackend/B3DGpuPipelineState.h"
 #include "Utility/B3DShapeMeshes3D.h"
 #include "Material/B3DShader.h"
 #include "Renderer/B3DIBLUtility.h"
@@ -617,5 +619,74 @@ BicubicUpsampleMaterial* BicubicUpsampleMaterial::GetVariation(bool hermite)
 
 	return Get(GetVariation<false>());
 }
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+bool RendererUtility::ValidateRendererSetLayout(const Material& material, u32 variationIndex, u32 setIndex, const GpuPipelineParameterSetLayout& expected) const
+{
+	const u32 passCount = material.GetPassCount(variationIndex);
+	for(u32 passIndex = 0; passIndex < passCount; passIndex++)
+	{
+		const TShared<Pass> pass = material.GetPass(passIndex, variationIndex);
+		if(pass == nullptr || pass->GetGraphicsPipelineState() == nullptr)
+			continue;
+
+		const TShared<GpuPipelineParameterLayout>& pipelineLayout = pass->GetGraphicsPipelineState()->GetParameterLayout();
+		TShared<GpuPipelineParameterSetLayout> declared;
+		if(setIndex < pipelineLayout->GetSetCount())
+			declared = pipelineLayout->GetSet(setIndex);
+
+		auto fnReportError = [&](const String& resourceName, const char* problem)
+		{
+			B3D_LOG(Error, LogRenderer, "Shader '{0}', variation {1}, pass {2}: renderer input '{3}' in set {4} {5}.",
+				material.GetShader()->GetShaderName(), variationIndex, passIndex, resourceName, setIndex, problem);
+		};
+
+		for(u32 typeIndex = 0; typeIndex < (u32)GpuParameterType::Count; typeIndex++)
+		{
+			const GpuParameterType type = (GpuParameterType)typeIndex;
+			for(u32 bindingIndex = 0; bindingIndex < expected.GetBindingCount(type); bindingIndex++)
+			{
+				const UniformInformation* expectedInformation = expected.TryGetUniformInformation(type, bindingIndex);
+				if(expectedInformation == nullptr)
+					continue;
+
+				const UniformInformation* declaredInformation = declared != nullptr ? declared->TryGetUniformInformation(expectedInformation->Name) : nullptr;
+				if(declaredInformation == nullptr)
+				{
+					fnReportError(expectedInformation->Name, "is not declared");
+					return false;
+				}
+
+				const bool matches = declaredInformation->Type == expectedInformation->Type &&
+					declaredInformation->Slot == expectedInformation->Slot &&
+					declaredInformation->ArraySize == expectedInformation->ArraySize &&
+					(type == GpuParameterType::UniformBuffer || declaredInformation->ObjectType == expectedInformation->ObjectType) &&
+					(declaredInformation->DynamicOffsetIndex != ~0u) == (expectedInformation->DynamicOffsetIndex != ~0u);
+
+				if(!matches)
+				{
+					fnReportError(expectedInformation->Name, "differs from the renderer's layout");
+					return false;
+				}
+			}
+
+			if(declared != nullptr)
+			{
+				for(u32 bindingIndex = 0; bindingIndex < declared->GetBindingCount(type); bindingIndex++)
+				{
+					const UniformInformation* declaredInformation = declared->TryGetUniformInformation(type, bindingIndex);
+					if(declaredInformation != nullptr && !expected.HasUniform(declaredInformation->Name))
+					{
+						fnReportError(declaredInformation->Name, "is not in the renderer's layout");
+						return false;
+					}
+				}
+			}
+		}
+	}
+
+	return true;
+}
+#endif
 
 }}

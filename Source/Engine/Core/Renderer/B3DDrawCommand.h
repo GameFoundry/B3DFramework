@@ -41,6 +41,9 @@ namespace b3d
 			/** Byte offset of this element's per-object data within the shared buffer. */
 			u32 PerObjectBufferOffset = 0;
 
+			/** Renderer specific type of the element's surface shader, which selects the per-pass parameter set it binds. */
+			u32 SurfaceShaderType = 0;
+
 			/** Renderer specific value that identifies the type of this renderable element. */
 			u32 Type = 0;
 

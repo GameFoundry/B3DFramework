@@ -75,22 +75,11 @@ namespace b3d
 			 */
 			MaterialSamplerOverrides* SamplerOverrides;
 
-			/** Parameter for binding the per-camera uniform buffer. */
-			GpuParameterUniformBuffer PerCameraUniformBufferParameter;
-			/** Parameter for binding the per-frame uniform buffer. */
-			GpuParameterUniformBuffer PerFrameUniformBufferParameter;
-
 			/** Indices for different variations of the used material. */
 			u32 VariationIndices[2][3];
 
 			/** Time to used for evaluating material animation. */
 			float MaterialAnimationTime = 0.0f;
-
-			/** Texture input for the depth buffer. */
-			GpuParameterSampledTexture DepthInputTexture;
-
-			/** Texture input for the mask buffer. */
-			GpuParameterSampledTexture MaskInputTexture;
 
 			/** Dynamic buffer offset for the decal parameters buffer. */
 			u32 DecalParamBufferOffset = 0;

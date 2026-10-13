@@ -26,17 +26,7 @@ void ReflectionCubeDownsampleMaterial::Execute(GpuCommandBuffer& commandBuffer, 
 
 	gReflectionCubeDownsampleUniformDefinition.gCubeFace.Set(uniforms, face);
 
-	const GpuDeviceCapabilities& gpuDeviceCapabilities = mGpuDevice->GetCapabilities();
-	if(gpuDeviceCapabilities.HasCapability(RSC_TEXTURE_VIEWS))
-	{
-		mInputTextureParameter.Set(source, TextureSurface(mip, 1, 0, 6));
-		gReflectionCubeDownsampleUniformDefinition.gMipLevel.Set(uniforms, 0);
-	}
-	else
-	{
-		mInputTextureParameter.Set(source);
-		gReflectionCubeDownsampleUniformDefinition.gMipLevel.Set(uniforms, mip);
-	}
+	mInputTextureParameter.Set(source, TextureSurface(mip, 1, 0, 6));
 
 	mUniformBufferParameter.Set(uniforms);
 
@@ -171,133 +161,6 @@ IrradianceComputeSHMaterial* IrradianceComputeSHMaterial::GetVariation(int order
 		return Get(GetVariation<3>());
 
 	return Get(GetVariation<5>());
-}
-
-IrradianceComputeSHFragUniformDefinition gIrradianceComputeSHFragUniformDefinition;
-
-void IrradianceComputeSHFragMaterial::Initialize()
-{
-	mGpuParameterSet->GetUniformBufferParameter("Params", mUniformBufferParameter);
-	mGpuParameterSet->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
-}
-
-void IrradianceComputeSHFragMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, u32 face, u32 coefficientIdx, const TShared<RenderTarget>& output)
-{
-	B3D_PROFILE_RENDERER_MATERIAL
-
-	GpuBufferMappedScope uniforms = gIrradianceComputeSHFragUniformDefinition.AllocateTransient().Map();
-
-	gIrradianceComputeSHFragUniformDefinition.gCubeFace.Set(uniforms, face);
-	gIrradianceComputeSHFragUniformDefinition.gFaceSize.Set(uniforms, source->GetProperties().Width);
-	gIrradianceComputeSHFragUniformDefinition.gCoeffEntryIdx.Set(uniforms, coefficientIdx / 4);
-	gIrradianceComputeSHFragUniformDefinition.gCoeffComponentIdx.Set(uniforms, coefficientIdx % 4);
-
-	mUniformBufferParameter.Set(uniforms);
-	mInputTextureParameter.Set(source);
-
-	commandBuffer.BeginRenderPass(RenderPassCreateInformation(output, mGpuParameterSet));
-
-	Bind(commandBuffer);
-	GetRendererUtility().DrawScreenQuad(commandBuffer);
-
-	commandBuffer.EndRenderPass();
-}
-
-PooledRenderTextureCreateInformation IrradianceComputeSHFragMaterial::GetOutputDesc(const TShared<Texture>& input)
-{
-	auto& props = input->GetProperties();
-	return PooledRenderTextureCreateInformation::CreateCube(PF_RGBA16F, props.Width, props.Height, TextureUsageFlag::RenderTarget);
-}
-
-IrradianceAccumulateSHUniformDefinition gIrradianceAccumulateSHUniformDefinition;
-
-void IrradianceAccumulateSHMaterial::Initialize()
-{
-	mGpuParameterSet->GetUniformBufferParameter("Params", mUniformBufferParameter);
-	mGpuParameterSet->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
-}
-
-void IrradianceAccumulateSHMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, u32 face, u32 sourceMip, const TShared<RenderTarget>& output)
-{
-	B3D_PROFILE_RENDERER_MATERIAL
-
-	GpuBufferMappedScope uniforms = gIrradianceAccumulateSHUniformDefinition.AllocateTransient().Map();
-
-	auto& props = source->GetProperties();
-	Vector2 halfPixel(0.5f / props.Width, 0.5f / props.Height);
-
-	gIrradianceAccumulateSHUniformDefinition.gCubeFace.Set(uniforms, face);
-	gIrradianceAccumulateSHUniformDefinition.gCubeMip.Set(uniforms, sourceMip);
-	gIrradianceAccumulateSHUniformDefinition.gHalfPixel.Set(uniforms, halfPixel);
-
-	mUniformBufferParameter.Set(uniforms);
-	mInputTextureParameter.Set(source);
-
-	commandBuffer.BeginRenderPass(RenderPassCreateInformation(output, mGpuParameterSet));
-
-	Bind(commandBuffer);
-	GetRendererUtility().DrawScreenQuad(commandBuffer);
-
-	commandBuffer.EndRenderPass();
-}
-
-PooledRenderTextureCreateInformation IrradianceAccumulateSHMaterial::GetOutputDesc(const TShared<Texture>& input)
-{
-	auto& props = input->GetProperties();
-
-	// Assuming it's a cubemap
-	u32 size = std::max(1U, (u32)(props.Width * 0.5f));
-
-	return PooledRenderTextureCreateInformation::CreateCube(PF_RGBA32F, size, size, TextureUsageFlag::RenderTarget);
-}
-
-void IrradianceAccumulateCubeSHMaterial::Initialize()
-{
-	mGpuParameterSet->GetUniformBufferParameter("Params", mUniformBufferParameter);
-	mGpuParameterSet->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
-}
-
-void IrradianceAccumulateCubeSHMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, u32 sourceMip, const Vector2I& outputOffset, u32 coefficientIdx, const TShared<RenderTarget>& output)
-{
-	B3D_PROFILE_RENDERER_MATERIAL
-
-	GpuBufferMappedScope uniforms = gIrradianceAccumulateSHUniformDefinition.AllocateTransient().Map();
-
-	auto& props = source->GetProperties();
-	Vector2 halfPixel(0.5f / props.Width, 0.5f / props.Height);
-
-	gIrradianceAccumulateSHUniformDefinition.gCubeFace.Set(uniforms, 0);
-	gIrradianceAccumulateSHUniformDefinition.gCubeMip.Set(uniforms, sourceMip);
-	gIrradianceAccumulateSHUniformDefinition.gHalfPixel.Set(uniforms, halfPixel);
-
-	mUniformBufferParameter.Set(uniforms);
-	mInputTextureParameter.Set(source);
-
-	auto& rtProps = output->GetProperties();
-
-	// Render to just one pixel corresponding to the coefficient
-	Area2 viewRect;
-	viewRect.X = (outputOffset.X + coefficientIdx) / (float)rtProps.Width;
-	viewRect.Y = outputOffset.Y / (float)rtProps.Height;
-
-	viewRect.Width = 1.0f / rtProps.Width;
-	viewRect.Height = 1.0f / rtProps.Height;
-
-	// Render
-	commandBuffer.BeginRenderPass(RenderPassCreateInformation(output, mGpuParameterSet));
-	commandBuffer.SetViewport(viewRect);
-
-	Bind(commandBuffer);
-	GetRendererUtility().DrawScreenQuad(commandBuffer);
-
-	commandBuffer.EndRenderPass();
-
-	commandBuffer.SetViewport(Area2(0, 0, 1, 1));
-}
-
-PooledRenderTextureCreateInformation IrradianceAccumulateCubeSHMaterial::GetOutputDesc()
-{
-	return PooledRenderTextureCreateInformation::Create2D(PF_RGBA32F, 9, 1, TextureUsageFlag::RenderTarget);
 }
 
 IrradianceReduceSHUniformDefinition gIrradianceReduceSHUniformDefinition;
@@ -446,34 +309,18 @@ void RenderBeastIBLUtility::FilterCubemapForSpecular(GpuCommandBuffer& commandBu
 	}
 }
 
-bool SupportsComputeSh()
-{
-	return GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
-}
-
 void RenderBeastIBLUtility::FilterCubemapForIrradiance(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const TShared<Texture>& output) const
 {
-	TShared<Texture> coeffTexture;
-	if(SupportsComputeSh())
-	{
-		IrradianceComputeSHMaterial* shCompute = IrradianceComputeSHMaterial::GetVariation(5);
-		IrradianceReduceSHMaterial* shReduce = IrradianceReduceSHMaterial::GetVariation(5);
+	IrradianceComputeSHMaterial* shCompute = IrradianceComputeSHMaterial::GetVariation(5);
+	IrradianceReduceSHMaterial* shReduce = IrradianceReduceSHMaterial::GetVariation(5);
 
-		u32 numCoeffSets;
-		TShared<GpuBuffer> coeffSetBuffer = shCompute->CreateOutputBuffer(cubemap, numCoeffSets);
-		for(u32 face = 0; face < 6; face++)
-			shCompute->Execute(commandBuffer, cubemap, face, coeffSetBuffer);
+	u32 numCoeffSets;
+	TShared<GpuBuffer> coeffSetBuffer = shCompute->CreateOutputBuffer(cubemap, numCoeffSets);
+	for(u32 face = 0; face < 6; face++)
+		shCompute->Execute(commandBuffer, cubemap, face, coeffSetBuffer);
 
-		coeffTexture = shReduce->CreateOutputTexture(1);
-		shReduce->Execute(commandBuffer, coeffSetBuffer, numCoeffSets, coeffTexture, 0);
-	}
-	else
-	{
-		TShared<PooledRenderTexture> finalCoeffs = GetGpuResourcePool().Get(IrradianceAccumulateCubeSHMaterial::GetOutputDesc());
-
-		FilterCubemapForIrradianceNonCompute(commandBuffer, cubemap, 0, finalCoeffs->RenderTexture);
-		coeffTexture = finalCoeffs->Texture;
-	}
+	TShared<Texture> coeffTexture = shReduce->CreateOutputTexture(1);
+	shReduce->Execute(commandBuffer, coeffSetBuffer, numCoeffSets, coeffTexture, 0);
 
 	IrradianceProjectSHMaterial* shProject = IrradianceProjectSHMaterial::Get();
 	for(u32 face = 0; face < 6; face++)
@@ -491,26 +338,15 @@ void RenderBeastIBLUtility::FilterCubemapForIrradiance(GpuCommandBuffer& command
 
 void RenderBeastIBLUtility::FilterCubemapForIrradiance(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const TShared<Texture>& output, u32 outputIdx) const
 {
-	if(SupportsComputeSh())
-	{
-		IrradianceComputeSHMaterial* shCompute = IrradianceComputeSHMaterial::GetVariation(3);
-		IrradianceReduceSHMaterial* shReduce = IrradianceReduceSHMaterial::GetVariation(3);
+	IrradianceComputeSHMaterial* shCompute = IrradianceComputeSHMaterial::GetVariation(3);
+	IrradianceReduceSHMaterial* shReduce = IrradianceReduceSHMaterial::GetVariation(3);
 
-		u32 numCoeffSets;
-		TShared<GpuBuffer> coeffSetBuffer = shCompute->CreateOutputBuffer(cubemap, numCoeffSets);
-		for(u32 face = 0; face < 6; face++)
-			shCompute->Execute(commandBuffer, cubemap, face, coeffSetBuffer);
+	u32 numCoeffSets;
+	TShared<GpuBuffer> coeffSetBuffer = shCompute->CreateOutputBuffer(cubemap, numCoeffSets);
+	for(u32 face = 0; face < 6; face++)
+		shCompute->Execute(commandBuffer, cubemap, face, coeffSetBuffer);
 
-		shReduce->Execute(commandBuffer, coeffSetBuffer, numCoeffSets, output, outputIdx);
-	}
-	else
-	{
-		RenderTextureCreateInformation rtDesc;
-		rtDesc.ColorSurfaces[0].Texture = output;
-
-		TShared<RenderTexture> target = RenderTexture::Create(rtDesc);
-		FilterCubemapForIrradianceNonCompute(commandBuffer, cubemap, outputIdx, target);
-	}
+	shReduce->Execute(commandBuffer, coeffSetBuffer, numCoeffSets, output, outputIdx);
 }
 
 void RenderBeastIBLUtility::ScaleCubemap(GpuCommandBuffer& commandBuffer, const TShared<Texture>& src, u32 srcMip, const TShared<Texture>& dst, u32 dstMip) const
@@ -588,64 +424,6 @@ void RenderBeastIBLUtility::DownsampleCubemap(GpuCommandBuffer& commandBuffer, c
 
 		ReflectionCubeDownsampleMaterial* material = ReflectionCubeDownsampleMaterial::Get();
 		material->Execute(commandBuffer, src, face, srcMip, target);
-	}
-}
-
-void RenderBeastIBLUtility::FilterCubemapForIrradianceNonCompute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, u32 outputIdx, const TShared<RenderTexture>& output)
-{
-	static const u32 kNumCoeffs = 9;
-
-	GpuResourcePool& resPool = GetGpuResourcePool();
-	IrradianceComputeSHFragMaterial* shCompute = IrradianceComputeSHFragMaterial::Get();
-	IrradianceAccumulateSHMaterial* shAccum = IrradianceAccumulateSHMaterial::Get();
-	IrradianceAccumulateCubeSHMaterial* shAccumCube = IrradianceAccumulateCubeSHMaterial::Get();
-
-	for(u32 coeff = 0; coeff < kNumCoeffs; ++coeff)
-	{
-		TShared<PooledRenderTexture> coeffsTex = resPool.Get(shCompute->GetOutputDesc(cubemap));
-
-		// Generate SH coefficients and weights per-texel
-		for(u32 face = 0; face < 6; face++)
-		{
-			RenderTextureCreateInformation cubeFaceRTDesc;
-			cubeFaceRTDesc.ColorSurfaces[0].Texture = coeffsTex->Texture;
-			cubeFaceRTDesc.ColorSurfaces[0].Face = face;
-			cubeFaceRTDesc.ColorSurfaces[0].FaceCount = 1;
-			cubeFaceRTDesc.ColorSurfaces[0].MipLevel = 0;
-
-			TShared<RenderTarget> target = RenderTexture::Create(cubeFaceRTDesc);
-			shCompute->Execute(commandBuffer, cubemap, face, coeff, target);
-		}
-
-		// Downsample, summing up coefficients and weights all the way down to 1x1
-		auto& sourceProps = cubemap->GetProperties();
-		u32 numMips = PixelUtility::GetMipmapCount(sourceProps.Width, sourceProps.Height, 1, sourceProps.Format);
-
-		TShared<PooledRenderTexture> downsampleInput = coeffsTex;
-		coeffsTex = nullptr;
-
-		for(u32 mip = 0; mip < numMips; mip++)
-		{
-			TShared<PooledRenderTexture> accumCoeffsTex = resPool.Get(shAccum->GetOutputDesc(downsampleInput->Texture));
-
-			for(u32 face = 0; face < 6; face++)
-			{
-				RenderTextureCreateInformation cubeFaceRTDesc;
-				cubeFaceRTDesc.ColorSurfaces[0].Texture = accumCoeffsTex->Texture;
-				cubeFaceRTDesc.ColorSurfaces[0].Face = face;
-				cubeFaceRTDesc.ColorSurfaces[0].FaceCount = 1;
-				cubeFaceRTDesc.ColorSurfaces[0].MipLevel = 0;
-
-				TShared<RenderTarget> target = RenderTexture::Create(cubeFaceRTDesc);
-				shAccum->Execute(commandBuffer, downsampleInput->Texture, face, 0, target);
-			}
-
-			downsampleInput = accumCoeffsTex;
-		}
-
-		// Sum up all the faces and write the coefficient to the final texture
-		Vector2I outputOffset = GetShCoeffXyFromIdx(outputIdx, 3);
-		shAccumCube->Execute(commandBuffer, downsampleInput->Texture, 0, outputOffset, coeff, output);
 	}
 }
 }} // namespace b3d::render

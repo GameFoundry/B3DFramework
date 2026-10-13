@@ -170,69 +170,6 @@ namespace b3d
 			GpuParameterSampledTexture mReducedHistogramTex;
 		};
 
-		/**
-		 * Shader that computes luminance of all the pixels in the provided texture, and stores them in log2 format, scaled
-		 * to [0, 1] range (according to eye adapatation parameters) and stores those values in the alpha channel of the
-		 * output texture. Color channel is just a copy of the input texture. Resulting texture is intended to be provided
-		 * to the downsampling shader in order to calculate the average luminance, used for non-histogram eye adaptation
-		 * calculation (when compute shader is not available).
-		 */
-		class EyeAdaptationBasicSetupMaterial : public RendererMaterial<EyeAdaptationBasicSetupMaterial>
-		{
-			RMAT_DEF("PPEyeAdaptationBasicSetup.bsl");
-
-		public:
-			EyeAdaptationBasicSetupMaterial() = default;
-			void Initialize() override;
-
-			/** Prepares GPU parameters before rendering. */
-			void Prepare(const TShared<Texture>& input, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
-
-			/** Executes the post-process effect with the provided parameters. */
-			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
-
-			/** Returns the texture descriptor that can be used for initializing the output render target. */
-			static PooledRenderTextureCreateInformation GetOutputDesc(const TShared<Texture>& input);
-
-		private:
-			GpuParameterUniformBuffer mUniformBufferParameter;
-			GpuParameterSampledTexture mInputTextureParameter;
-		};
-
-		B3D_UNIFORM_BUFFER_BEGIN(EyeAdaptationBasicUniformDefinition)
-			B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gInputTexSize)
-		B3D_UNIFORM_BUFFER_END
-
-		extern EyeAdaptationBasicUniformDefinition gEyeAdaptationBasicUniformDefinition;
-
-		/**
-		 * Shader that computes eye adapatation value from a texture that has luminance encoded in its alpha channel (as done
-		 * by EyeAdaptationBasicSetupMat). The result is a 1x1 texture containing the eye adaptation value.
-		 */
-		class EyeAdaptationBasicMaterial : public RendererMaterial<EyeAdaptationBasicMaterial>
-		{
-			RMAT_DEF("PPEyeAdaptationBasic.bsl");
-
-		public:
-			EyeAdaptationBasicMaterial() = default;
-			void Initialize() override;
-
-			/** Prepares GPU parameters before rendering. */
-			void Prepare(const TShared<Texture>& curFrame, const TShared<Texture>& prevFrame, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
-
-			/** Executes the post-process effect with the provided parameters. */
-			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
-
-			/** Returns the texture descriptor that can be used for initializing the output render target. */
-			static PooledRenderTextureCreateInformation GetOutputDesc();
-
-		private:
-			GpuParameterUniformBuffer mEyeAdaptationUniformBufferParameter;
-			GpuParameterUniformBuffer mUniformBufferParameter;
-			GpuParameterSampledTexture mCurrentFrameTextureParameter;
-			GpuParameterSampledTexture mPreviousFrameTextureParameter;
-		};
-
 		B3D_UNIFORM_BUFFER_BEGIN(CreateTonemapLUTUniformDefinition)
 			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(Vector4, gTonemapParams, 2)
 			B3D_UNIFORM_BUFFER_MEMBER(float, gGammaAdjustment)
@@ -252,38 +189,6 @@ namespace b3d
 
 		extern WhiteBalanceUniformDefinition gWhiteBalanceUniformDefinition;
 
-		/** Shader that creates a 2D lookup texture that is used to apply tonemapping, color grading, white balancing and gamma correction. Uses a vertex/fragment pipeline. */
-		class CreateTonemap2DLUTMaterial : public RendererMaterial<CreateTonemap2DLUTMaterial>
-		{
-			RMAT_DEF_CUSTOMIZED("PPCreateTonemap2DLUT.bsl")
-
-		public:
-			CreateTonemap2DLUTMaterial() = default;
-			void Initialize() override;
-
-			/** Prepares GPU parameters for rendering. Must be called before Execute(). */
-			void Prepare(const RenderSettings& settings);
-
-			/** Executes the post-process effect with the provided parameters, generating an unwrapped 2D LUT using the vertex & fragment shader pipeline. */
-			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTexture>& output);
-
-			/** Returns the texture descriptor that can be used for initializing the output render target. */
-			PooledRenderTextureCreateInformation GetOutputDesc() const;
-
-			/** Populates uniform buffer memory of CreateTonemapLUTUniformDefinition type using the provided settings. */
-			static void PopulateTonemappingUniformBuffer(const RenderSettings& settings, const GpuBufferMappedScope& uniforms);
-
-			/** Populates uniform buffer memory of WhiteBalanceUniformDefinition type using the provided settings. */
-			static void PopulateWhiteBalanceUniformBuffer(const RenderSettings& settings, const GpuBufferMappedScope& uniforms);
-
-			/** Size of a single dimension in the color lookup table. */
-			static const u32 kLutSize = 32;
-
-		private:
-			GpuParameterUniformBuffer mUniformBufferParameter;
-			GpuParameterUniformBuffer mWhiteBalanceUniformBufferParameter;
-		};
-
 		/** Shader that creates a 3D lookup texture that is used to apply tonemapping, color grading, white balancing and gamma correction. Uses a compute pipeline. */
 		class CreateTonemap3DLUTMaterial : public RendererMaterial<CreateTonemap3DLUTMaterial>
 		{
@@ -298,6 +203,15 @@ namespace b3d
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
 			PooledRenderTextureCreateInformation GetOutputDesc() const;
+
+			/** Populates uniform buffer memory of CreateTonemapLUTUniformDefinition type using the provided settings. */
+			static void PopulateTonemappingUniformBuffer(const RenderSettings& settings, const GpuBufferMappedScope& uniforms);
+
+			/** Populates uniform buffer memory of WhiteBalanceUniformDefinition type using the provided settings. */
+			static void PopulateWhiteBalanceUniformBuffer(const RenderSettings& settings, const GpuBufferMappedScope& uniforms);
+
+			/** Size of a single dimension in the color lookup table. */
+			static const u32 kLutSize = 32;
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
@@ -321,12 +235,11 @@ namespace b3d
 			RMAT_DEF_CUSTOMIZED("PPTonemapping.bsl");
 
 			/** Helper method used for initializing variations of this material. */
-			template <bool volumeLUT, bool gammaOnly, bool autoExposure, bool MSAA>
+			template <bool gammaOnly, bool autoExposure, bool MSAA>
 			static const ShaderVariationParameters& GetVariation()
 			{
 				static ShaderVariationParameters variation = ShaderVariationParameters(
 					{
-						ShaderVariationParameter("VOLUME_LUT", volumeLUT),
 						ShaderVariationParameter("GAMMA_ONLY", gammaOnly),
 						ShaderVariationParameter("AUTO_EXPOSURE", autoExposure),
 						ShaderVariationParameter("MSAA", MSAA),
@@ -360,7 +273,7 @@ namespace b3d
 			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
 
 			/** Returns the material variation matching the provided parameters. */
-			static TonemappingMaterial* GetVariation(bool volumeLUT, bool gammaOnly, bool autoExposure, bool MSAA);
+			static TonemappingMaterial* GetVariation(bool gammaOnly, bool autoExposure, bool MSAA);
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
@@ -1099,29 +1012,10 @@ namespace b3d
 			GpuParameterSampledTexture mDepthTexture;
 		};
 
-		B3D_UNIFORM_BUFFER_BEGIN(BuildHiZUniformDefinition)
-			B3D_UNIFORM_BUFFER_MEMBER(Vector2, gHalfPixelOffset)
-			B3D_UNIFORM_BUFFER_MEMBER(int, gMipLevel)
-		B3D_UNIFORM_BUFFER_END
-
-		extern BuildHiZUniformDefinition gBuildHiZUniformDefinition;
-
 		/** Shader that calculates a single level of the hierarchical Z mipmap chain. */
 		class BuildHiZMaterial : public RendererMaterial<BuildHiZMaterial>
 		{
 			RMAT_DEF("PPBuildHiZ.bsl");
-
-			/** Helper method used for initializing variations of this material. */
-			template <bool noTextureViews>
-			static const ShaderVariationParameters& GetVariation()
-			{
-				static ShaderVariationParameters variation = ShaderVariationParameters(
-					{
-						ShaderVariationParameter("NO_TEXTURE_VIEWS", noTextureViews),
-					});
-
-				return variation;
-			}
 
 		public:
 			BuildHiZMaterial() = default;
@@ -1146,18 +1040,8 @@ namespace b3d
 			 */
 			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTexture>& output, const Area2& srcRect, const Area2& dstRect);
 
-			/**
-			 * Returns the material variation matching the provided parameters.
-			 *
-			 * @param	noTextureViews		Specify as true if the current render backend doesn't support texture views, in
-			 *								which case the implementation falls back on using a simpler version of the shader.
-			 */
-			static BuildHiZMaterial* GetVariation(bool noTextureViews);
-
 		private:
 			GpuParameterSampledTexture mInputTexture;
-			GpuParameterUniformBuffer mUniformBufferParameter;
-			bool mNoTextureViews = false;
 		};
 
 		B3D_UNIFORM_BUFFER_BEGIN(FXAAUniformDefinition)

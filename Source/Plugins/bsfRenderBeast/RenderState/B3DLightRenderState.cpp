@@ -163,23 +163,6 @@ void GBufferParameterBinding::Set(GpuDevice& gpuDevice, const TShared<GpuParamet
 	}
 }
 
-void ForwardLightingParams::Populate(const TShared<GpuParameterSet>& params, bool clustered)
-{
-	if(clustered)
-	{
-		params->TryGetUniformBufferParameter("GridParams", GridUniformBufferParameter);
-		params->TryGetStorageBufferParameter("gLights", LightsBufferParameter);
-		params->TryGetStorageBufferParameter("gGridLightOffsetsAndSize", GridLightOffsetsAndSizeParameter);
-		params->TryGetStorageBufferParameter("gLightIndices", GridLightIndicesParameter);
-		params->TryGetStorageBufferParameter("gGridProbeOffsetsAndSize", GridProbeOffsetsAndSizeParameter);
-	}
-	else
-	{
-		params->TryGetUniformBufferParameter("Lights", LightsUniformBufferParameter);
-		params->TryGetUniformBufferParameter("LightAndReflProbeParams", LightAndReflectionProbeUniformBufferParameter);
-	}
-}
-
 VisibleLightData::VisibleLightData()
 	: mLightCounts{}, mShadowedLightCounts{}
 {}
@@ -262,137 +245,33 @@ void VisibleLightData::Update(const RenderBeastScene& scene, const RendererViewG
 		}
 	}
 
-	bool supportsStructuredBuffers = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
-	if(supportsStructuredBuffers)
+	u32 size = (u32)mVisibleLightData.size() * sizeof(LightData);
+	u32 curBufferSize;
+
+	if(mLightBuffer != nullptr)
+		curBufferSize = mLightBuffer->GetTotalSize();
+	else
+		curBufferSize = 0;
+
+	if(size > curBufferSize || curBufferSize == 0)
 	{
-		u32 size = (u32)mVisibleLightData.size() * sizeof(LightData);
-		u32 curBufferSize;
+		// Allocate at least one block even if no lights, to avoid issues with null buffers
+		u32 bufferSize = std::max(1, Math::CeilToInt(size / (float)kLightDataBufferIncrement)) * kLightDataBufferIncrement;
 
-		if(mLightBuffer != nullptr)
-			curBufferSize = mLightBuffer->GetTotalSize();
-		else
-			curBufferSize = 0;
+		GpuBufferCreateInformation bufferCreateInformation;
+		bufferCreateInformation.Type = GpuBufferType::StructuredStorage;
+		bufferCreateInformation.StructuredStorage.Count = bufferSize / sizeof(LightData);
+		bufferCreateInformation.StructuredStorage.ElementSize = sizeof(LightData);
 
-		if(size > curBufferSize || curBufferSize == 0)
-		{
-			// Allocate at least one block even if no lights, to avoid issues with null buffers
-			u32 bufferSize = std::max(1, Math::CeilToInt(size / (float)kLightDataBufferIncrement)) * kLightDataBufferIncrement;
+		const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+		mLightBuffer = gpuDevice->CreateGpuBuffer(bufferCreateInformation);
+	}
 
-			GpuBufferCreateInformation bufferCreateInformation;
-			bufferCreateInformation.Type = GpuBufferType::StructuredStorage;
-			bufferCreateInformation.StructuredStorage.Count = bufferSize / sizeof(LightData);
-			bufferCreateInformation.StructuredStorage.ElementSize = sizeof(LightData);
-
-			const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
-			mLightBuffer = gpuDevice->CreateGpuBuffer(bufferCreateInformation);
-		}
-
-		if(size > 0)
-		{
-			GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
-			GpuBufferUtility::Write(gpuContext, mLightBuffer, 0, size, mVisibleLightData.data(), GpuBufferWriteFlag::Discard);
-		}
+	if(size > 0)
+	{
+		GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
+		GpuBufferUtility::Write(gpuContext, mLightBuffer, 0, size, mVisibleLightData.data(), GpuBufferWriteFlag::Discard);
 	}
 }
 
-void VisibleLightData::GatherInfluencingLights(const Bounds& bounds, const LightData* (&output)[kStandardForwardMaxNumLights], Vector3I& counts) const
-{
-	u32 outputIndices[kStandardForwardMaxNumLights];
-	u32 numInfluencingLights = 0;
-
-	u32 numDirLights = GetDirectionalLightCount();
-	for(u32 i = 0; i < numDirLights; i++)
-	{
-		if(numInfluencingLights >= kStandardForwardMaxNumLights)
-			return;
-
-		outputIndices[numInfluencingLights] = i;
-		numInfluencingLights++;
-	}
-
-	u32 pointLightOffset = numInfluencingLights;
-
-	float distances[kStandardForwardMaxNumLights];
-	for(u32 i = 0; i < kStandardForwardMaxNumLights; i++)
-		distances[i] = std::numeric_limits<float>::max();
-
-	// Note: This is an ad-hoc way of evaluating light influence, a better way might be wanted
-	u32 numLights = (u32)mVisibleLightData.size();
-	u32 furthestLightIdx = (u32)-1;
-	float furthestDistance = 0.0f;
-	for(u32 j = numDirLights; j < numLights; j++)
-	{
-		const LightData* lightData = &mVisibleLightData[j];
-
-		Sphere lightSphere(lightData->Position, lightData->BoundsRadius);
-		if(bounds.GetSphere().Intersects(lightSphere))
-		{
-			float distance = bounds.GetSphere().Center.SquaredDistance(lightData->Position);
-
-			// See where in the array can we fit the light
-			if(numInfluencingLights < kStandardForwardMaxNumLights)
-			{
-				outputIndices[numInfluencingLights] = j;
-				distances[numInfluencingLights] = distance;
-
-				if(distance > furthestDistance)
-				{
-					furthestLightIdx = numInfluencingLights;
-					furthestDistance = distance;
-				}
-
-				numInfluencingLights++;
-			}
-			else if(distance < furthestDistance)
-			{
-				outputIndices[furthestLightIdx] = j;
-				distances[furthestLightIdx] = distance;
-
-				furthestDistance = distance;
-				for(u32 k = 0; k < kStandardForwardMaxNumLights; k++)
-				{
-					if(distances[k] > furthestDistance)
-					{
-						furthestDistance = distances[k];
-						furthestLightIdx = k;
-					}
-				}
-			}
-		}
-	}
-
-	// Output actual light data, sorted by type
-	counts = Vector3I(0, 0, 0);
-
-	for(u32 i = 0; i < pointLightOffset; i++)
-	{
-		output[i] = &mVisibleLightData[outputIndices[i]];
-		counts.X += 1;
-	}
-
-	u32 outputIdx = pointLightOffset;
-	u32 spotLightIdx = GetDirectionalLightCount() + GetRadialLightCount();
-	for(u32 i = pointLightOffset; i < numInfluencingLights; i++)
-	{
-		bool isSpot = outputIndices[i] >= spotLightIdx;
-		if(isSpot)
-			continue;
-
-		output[outputIdx++] = &mVisibleLightData[outputIndices[i]];
-		counts.Y += 1;
-	}
-
-	for(u32 i = pointLightOffset; i < numInfluencingLights; i++)
-	{
-		bool isSpot = outputIndices[i] >= spotLightIdx;
-		if(!isSpot)
-			continue;
-
-		output[outputIdx++] = &mVisibleLightData[outputIndices[i]];
-		counts.Z += 1;
-	}
-}
-
-LightsUniformDefinition gLightsUniformDefinition;
-LightAndReflProbeParamsUniformDefinition gLightAndReflProbeParamsUniformDefinition;
 }} // namespace b3d::render

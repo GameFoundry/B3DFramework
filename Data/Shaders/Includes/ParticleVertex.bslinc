@@ -1,10 +1,15 @@
+// Shaders built on this include are surface shaders
+#define IS_SURFACE_SHADER 1
+
 #include "$ENGINE$\PerCameraData.bslinc"
+#include "$ENGINE$\PerFrameData.bslinc"
 #include "$ENGINE$\PerObjectData.bslinc"
 // Note: I should include VertexCommon.bslinc here, instead of redefining vertex input code below
 
 mixin ParticleVertex
 {
 	mixin PerCameraData;
+	mixin PerFrameData;
 	mixin PerObjectData;
 
 	variations

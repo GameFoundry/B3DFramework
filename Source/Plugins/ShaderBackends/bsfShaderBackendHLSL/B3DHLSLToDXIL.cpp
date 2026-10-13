@@ -364,6 +364,7 @@ namespace
 			GpuObjectParameterInformation parameterInformation;
 			parameterInformation.Name = bindDesc.Name;
 			parameterInformation.Set = bindDesc.Space;
+			parameterInformation.ArraySize = std::max(bindDesc.BindCount, 1u);
 
 			switch (bindDesc.Type)
 			{
@@ -578,6 +579,100 @@ namespace
 		}
 	}
 
+	/**
+	 * Adds resources that were stripped out from @p parameterDescription by the D3D shader compiler, due to them being unused.
+	 * We use the output from the high-level shader compiler to detect this case and re-add the missing entries, so we can have
+	 * a stable set of bindings for all backends.
+	 */
+	void AddUnusedDeclarations(const ShaderParameterDescription& declarations, GpuProgramParameterDescription& parameterDescription)
+	{
+		UnorderedSet<u64> reflectedBindings;
+		auto fnBindingKey = [](u32 set, u32 slot) { return ((u64)set << 32) | slot; };
+
+		for (const auto& entry : parameterDescription.UniformBuffers)
+			reflectedBindings.insert(fnBindingKey(entry.second.Set, entry.second.Slot));
+
+		for (const Map<String, GpuObjectParameterInformation>* objects : { &parameterDescription.Samplers, &parameterDescription.SampledTextures, &parameterDescription.StorageTextures, &parameterDescription.Buffers })
+		{
+			for (const auto& entry : *objects)
+				reflectedBindings.insert(fnBindingKey(entry.second.Set, entry.second.Slot));
+		}
+
+		for (const auto& entry : declarations.GetUniformBuffers())
+		{
+			const ShaderUniformBufferInformation& declaration = entry.second;
+			if (declaration.Set == ~0u || declaration.Slot == ~0u)
+				continue;
+
+			const u32 slot = MapRegisterToSlot(declaration.Slot, HLSLRegisterClass::ConstantBuffer);
+			if (!reflectedBindings.insert(fnBindingKey(declaration.Set, slot)).second)
+				continue;
+
+			GpuUniformBufferInformation bufferInformation;
+			bufferInformation.Name = declaration.Name;
+			bufferInformation.Set = declaration.Set;
+			bufferInformation.Slot = slot;
+			bufferInformation.Size = 0;
+			bufferInformation.IsShareable = true;
+			bufferInformation.UsesDynamicOffset = declaration.UsesDynamicOffset;
+			parameterDescription.UniformBuffers[bufferInformation.Name] = bufferInformation;
+		}
+
+		auto fnAddObjects = [&](const Map<String, ShaderObjectParameterInformation>& objects)
+		{
+			for (const auto& entry : objects)
+			{
+				const ShaderObjectParameterInformation& declaration = entry.second;
+				if (declaration.Set == ~0u || declaration.Slot == ~0u)
+					continue;
+
+				HLSLRegisterClass registerClass;
+				Map<String, GpuObjectParameterInformation>* target;
+				if (GpuObjectParameterTypeInformation::IsSampler(declaration.Type))
+				{
+					registerClass = HLSLRegisterClass::Sampler;
+					target = &parameterDescription.Samplers;
+				}
+				else if (GpuObjectParameterTypeInformation::IsReadWriteTexture(declaration.Type))
+				{
+					registerClass = HLSLRegisterClass::UnorderedAccess;
+					target = &parameterDescription.StorageTextures;
+				}
+				else if (GpuObjectParameterTypeInformation::IsTexture(declaration.Type))
+				{
+					registerClass = HLSLRegisterClass::ShaderResource;
+					target = &parameterDescription.SampledTextures;
+				}
+				else if (GpuObjectParameterTypeInformation::IsReadWriteBuffer(declaration.Type))
+				{
+					registerClass = HLSLRegisterClass::UnorderedAccess;
+					target = &parameterDescription.Buffers;
+				}
+				else
+				{
+					registerClass = HLSLRegisterClass::ShaderResource;
+					target = &parameterDescription.Buffers;
+				}
+
+				const u32 slot = MapRegisterToSlot(declaration.Slot, registerClass);
+				if (!reflectedBindings.insert(fnBindingKey(declaration.Set, slot)).second)
+					continue;
+
+				GpuObjectParameterInformation parameterInformation;
+				parameterInformation.Name = declaration.GpuVariableName;
+				parameterInformation.Type = registerClass == HLSLRegisterClass::Sampler ? GPOT_SAMPLER2D : declaration.Type;
+				parameterInformation.Set = declaration.Set;
+				parameterInformation.Slot = slot;
+				parameterInformation.ArraySize = std::max(declaration.ArraySize, 1u);
+				(*target)[parameterInformation.Name] = parameterInformation;
+			}
+		};
+
+		fnAddObjects(declarations.GetTextureParameters());
+		fnAddObjects(declarations.GetBufferParameters());
+		fnAddObjects(declarations.GetSamplerParameters());
+	}
+
 	/** Performs shader reflection to extract parameter descriptions, vertex inputs, and execution requirements. */
 	bool ReflectShader(IDxcUtils* utilities, IDxcResult* compilationResult, GpuProgramType type, GpuProgramBytecode& bytecode)
 	{
@@ -749,6 +844,7 @@ TShared<GpuProgramBytecode> HLSLToDXIL::CompileBytecode(const GpuProgramCreateIn
 	if(createInformation.ShaderReflection != nullptr && createInformation.ShaderReflection->Parameters != nullptr)
 	{
 		ShaderParameterDescription::IterateMatching(createInformation.ShaderReflection->Parameters->GetUniformBuffers(), bytecode->ParameterDescription->UniformBuffers, [](const auto& source, auto& outTarget) { outTarget.UsesDynamicOffset = source.UsesDynamicOffset; }, [](u32 slot) { return MapRegisterToSlot(slot, HLSLRegisterClass::ConstantBuffer); });
+		AddUnusedDeclarations(*createInformation.ShaderReflection->Parameters, *bytecode->ParameterDescription);
 	}
 
 	ComPtr<IDxcBlob> shaderBlob;

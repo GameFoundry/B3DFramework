@@ -1017,16 +1017,12 @@ void RendererViewGroup::DetermineVisibility(GpuCommandBuffer& commandBuffer, con
 	mVisibleLightData.Update(scene, *this);
 	mVisibleReflProbeData.Update(scene, *this);
 
-	const bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
-	if(supportsClusteredForward)
+	for(u32 i = 0; i < viewCount; i++)
 	{
-		for(u32 i = 0; i < viewCount; i++)
-		{
-			if(!mViews[i]->ShouldDraw3D())
-				continue;
+		if(!mViews[i]->ShouldDraw3D())
+			continue;
 
-			mViews[i]->UpdateLightGrid(commandBuffer, mVisibleLightData, mVisibleReflProbeData);
-		}
+		mViews[i]->UpdateLightGrid(commandBuffer, mVisibleLightData, mVisibleReflProbeData);
 	}
 }
 

@@ -456,11 +456,29 @@ TShared<GpuPipelineParameterSetLayout> D3D12GpuDevice::CreateGpuPipelineParamete
 	return B3DMakeShared<D3D12GpuPipelineParameterSetLayout>(parameterDescription);
 }
 
-u32 D3D12GpuDevice::GetUniformBufferParameterSlot(u32 registerIndex) const
+u32 D3D12GpuDevice::GetParameterSlot(ShaderRegisterClass registerClass, u32 registerIndex) const
 {
 	// Slots encode the HLSL register class alongside the register index (see MapRegisterToSlot()); engine-authored
 	// parameter descriptions must use the same encoding to remain slot-compatible with shader-reflected layouts.
-	return MapRegisterToSlot(registerIndex, HLSLRegisterClass::ConstantBuffer);
+	HLSLRegisterClass hlslRegisterClass;
+	switch(registerClass)
+	{
+	default:
+	case ShaderRegisterClass::ConstantBuffer:
+		hlslRegisterClass = HLSLRegisterClass::ConstantBuffer;
+		break;
+	case ShaderRegisterClass::ShaderResource:
+		hlslRegisterClass = HLSLRegisterClass::ShaderResource;
+		break;
+	case ShaderRegisterClass::UnorderedAccess:
+		hlslRegisterClass = HLSLRegisterClass::UnorderedAccess;
+		break;
+	case ShaderRegisterClass::Sampler:
+		hlslRegisterClass = HLSLRegisterClass::Sampler;
+		break;
+	}
+
+	return MapRegisterToSlot(registerIndex, hlslRegisterClass);
 }
 
 TUnique<GpuParameterSetPool> D3D12GpuDevice::CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation)

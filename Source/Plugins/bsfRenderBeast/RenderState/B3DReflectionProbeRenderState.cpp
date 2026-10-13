@@ -45,36 +45,32 @@ void VisibleReflectionProbeData::Update(const RenderBeastScene& scene, const Ren
 	mNumProbes = (u32)mReflProbeData.size();
 
 	// Move refl. probe data into a GPU buffer
-	bool supportsStructuredBuffers = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
-	if(supportsStructuredBuffers)
+	u32 size = mNumProbes * sizeof(ReflectioneProbeData);
+	u32 curBufferSize;
+
+	if(mProbeBuffer != nullptr)
+		curBufferSize = mProbeBuffer->GetTotalSize();
+	else
+		curBufferSize = 0;
+
+	if(size > curBufferSize || curBufferSize == 0)
 	{
-		u32 size = mNumProbes * sizeof(ReflectioneProbeData);
-		u32 curBufferSize;
+		// Allocate at least one block even if no probes, to avoid issues with null buffers
+		u32 bufferSize = std::max(1, Math::CeilToInt(size / (float)kReflProbeBufferIncrement)) * kReflProbeBufferIncrement;
 
-		if(mProbeBuffer != nullptr)
-			curBufferSize = mProbeBuffer->GetTotalSize();
-		else
-			curBufferSize = 0;
+		GpuBufferCreateInformation bufferCreateInformation;
+		bufferCreateInformation.Type = GpuBufferType::StructuredStorage;
+		bufferCreateInformation.StructuredStorage.Count = bufferSize / sizeof(ReflectioneProbeData);
+		bufferCreateInformation.StructuredStorage.ElementSize = sizeof(ReflectioneProbeData);
 
-		if(size > curBufferSize || curBufferSize == 0)
-		{
-			// Allocate at least one block even if no probes, to avoid issues with null buffers
-			u32 bufferSize = std::max(1, Math::CeilToInt(size / (float)kReflProbeBufferIncrement)) * kReflProbeBufferIncrement;
+		const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+		mProbeBuffer = gpuDevice->CreateGpuBuffer(bufferCreateInformation);
+	}
 
-			GpuBufferCreateInformation bufferCreateInformation;
-			bufferCreateInformation.Type = GpuBufferType::StructuredStorage;
-			bufferCreateInformation.StructuredStorage.Count = bufferSize / sizeof(ReflectioneProbeData);
-			bufferCreateInformation.StructuredStorage.ElementSize = sizeof(ReflectioneProbeData);
-
-			const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
-			mProbeBuffer = gpuDevice->CreateGpuBuffer(bufferCreateInformation);
-		}
-
-		if(size > 0)
-		{
-			GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
-			GpuBufferUtility::Write(gpuContext, mProbeBuffer, 0, size, mReflProbeData.data(), GpuBufferWriteFlag::Discard);
-		}
+	if(size > 0)
+	{
+		GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
+		GpuBufferUtility::Write(gpuContext, mProbeBuffer, 0, size, mReflProbeData.data(), GpuBufferWriteFlag::Discard);
 	}
 }
 
@@ -104,23 +100,16 @@ void ReflectionProbeRenderState::GetParameters(const ReflectionProbeProxy& proxy
 	output.InvBoxTransform.SetInverseTrs(output.Position, proxy.GetWorldTransform().GetRotation(), output.BoxExtents);
 }
 
-void ImageBasedLightingParameterBinding::Initialize(const TShared<GpuParameterSet>& parameters, GpuProgramType programType, bool optional, bool gridIndices, bool probeArray)
+void ImageBasedLightingParameterBinding::Initialize(const TShared<GpuParameterSet>& parameters)
 {
 	// Sky
-	if(!optional || parameters->HasSampledTexture(kSkyReflectionTextureName))
-		parameters->GetSampledTextureParameter(kSkyReflectionTextureName, SkyReflectionsTexParam);
+	parameters->GetSampledTextureParameter(kSkyReflectionTextureName, SkyReflectionsTexParam);
 
 	// Reflections
-	if(!optional || parameters->HasSampledTexture(kReflectionProbeCubemapsTextureName))
-	{
-		parameters->GetSampledTextureParameter(kReflectionProbeCubemapsTextureName, ReflectionProbeCubemapsTexParameter);
+	parameters->GetSampledTextureParameter(kReflectionProbeCubemapsTextureName, ReflectionProbeCubemapsTexParameter);
+	parameters->GetStorageBufferParameter(kReflectionProbesBufferName, ReflectionProbesParameter);
 
-		if(probeArray)
-			parameters->GetStorageBufferParameter(kReflectionProbesBufferName, ReflectionProbesParameter);
-	}
-
-	if(!optional || parameters->HasSampledTexture(kPreintegratedEnvBRDFTextureName))
-		parameters->GetSampledTextureParameter(kPreintegratedEnvBRDFTextureName, PreintegratedEnvBrdfParameter);
+	parameters->GetSampledTextureParameter(kPreintegratedEnvBRDFTextureName, PreintegratedEnvBrdfParameter);
 
 	// AO
 	if(parameters->HasSampledTexture(kAmbientOcclusionTextureName))
@@ -129,21 +118,6 @@ void ImageBasedLightingParameterBinding::Initialize(const TShared<GpuParameterSe
 	// SSR
 	if(parameters->HasSampledTexture(kSSRTexName))
 		parameters->GetSampledTextureParameter(kSSRTexName, SsrTexParameter);
-
-	if(gridIndices)
-	{
-		if(!optional || parameters->HasStorageBuffer(kReflectionProbeIndicesBufferName))
-			parameters->GetStorageBufferParameter(kReflectionProbeIndicesBufferName, ReflectionProbeIndicesParameter);
-	}
-
-	parameters->TryGetUniformBufferParameter(kPerProbeUniformBufferName, ReflectionProbeUniformBufferParameter);
-	parameters->TryGetUniformBufferParameter(kGlobalReflectionProbeUniformBufferName, ReflectionProbesUniformBufferParameter);
-}
-
-void ImageBasedLightingParameterBinding::SetReflectionProbeCubemaps(const TShared<GpuParameterSet>& parameters, const TShared<Texture>& cubemaps, bool optional)
-{
-	if(!optional || parameters->HasSampledTexture(kReflectionProbeCubemapsTextureName))
-		parameters->SetSampledTexture(kReflectionProbeCubemapsTextureName, cubemaps);
 }
 
 void ReflectionProbeRenderState::PopulateGlobalReflectionProbeUniformBuffer(const GpuBufferSuballocation& uniformBuffer, const Skybox* sky, u32 probeCount, const TShared<Texture>& reflectionCubemaps, bool capturingReflections)
@@ -178,5 +152,4 @@ void ReflectionProbeRenderState::PopulateGlobalReflectionProbeUniformBuffer(cons
 	gGlobalReflectionProbeUniformBufferDefinition.gSkyBrightness.Set(uniforms, brightness);
 }
 
-ReflProbesUniformDefinition gReflProbesUniformDefinition;
 }} // namespace b3d::render

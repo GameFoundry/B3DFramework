@@ -236,6 +236,15 @@ namespace b3d
 		GVU_RANDOMWRITE = 0x08
 	};
 
+	/** Shader register classes, as named by the HLSL register syntax (b/t/u/s) that BSL shaders use. */
+	enum class ShaderRegisterClass
+	{
+		ConstantBuffer, /**< b registers: uniform buffers. */
+		ShaderResource, /**< t registers: sampled textures and read-only buffers. */
+		UnorderedAccess, /**< u registers: storage textures and read-write buffers. */
+		Sampler, /**< s registers: samplers. */
+	};
+
 	/** Types of GPU parameters (i.e. uniform type). */
 	enum class GpuParameterType
 	{

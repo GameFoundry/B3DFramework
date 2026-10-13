@@ -213,6 +213,7 @@ show			{ return TOKEN_SHOW; }
 
 #define							{ BEGIN(DEFINE_COND); }
 <DEFINE_COND>{SPACE}			{ /* Skip blank */ }
+<DEFINE_COND>{IDENTIFIER}/\(	{ AddFunctionLikeDefine(yyextra, yytext); BEGIN(DEFINE_COND_EXPR); }
 <DEFINE_COND>{IDENTIFIER}		{ AddDefine(yyextra, yytext); BEGIN(DEFINE_COND_EXPR); }
 <DEFINE_COND>{ENDLINE}			{ BEGIN(INITIAL); }
 <DEFINE_COND>{COMMENT}			{ /* Skip comment */ }

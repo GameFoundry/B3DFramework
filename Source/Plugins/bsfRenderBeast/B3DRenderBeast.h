@@ -8,6 +8,7 @@
 #include "B3DRendererView.h"
 #include "B3DRenderBeastScene.h"
 #include "Utility/B3DUniformBufferPools.h"
+#include "RenderState/B3DSurfaceShaderParameterSets.h"
 
 namespace b3d
 {
@@ -79,9 +80,6 @@ namespace b3d
 			void SetOptions(const TShared<RendererOptions>& options) override;
 			TShared<RendererOptions> GetOptions() const override;
 
-			/** Returns the feature set the renderer is operating on. Render thread only. */
-			RenderBeastFeatureSet GetFeatureSet() const { return mFeatureSet; }
-
 			/** Returns the per-object parameter set info for normal renderables. */
 			const RenderableParameterSetInfo& GetRenderableParameterSetInfo() const { return mRenderableParameterSetInfo; }
 
@@ -90,6 +88,9 @@ namespace b3d
 
 			/** Returns the per-object parameter set info for GPU-simulated particles. */
 			const GpuParticlesParameterSetInfo& GetGpuParticlesParameterSetInfo() const { return mGpuParticlesParameterSetInfo; }
+
+			/** Returns the per-pass parameter set info for surface shaders. */
+			const SurfaceShaderParameterSetInfo& GetSurfaceShaderParameterSetInfo() const { return mSurfaceShaderParameterSetInfo; }
 
 			/** Returns the type configurations for the renderable uniform buffer manager. */
 			const TInlineArray<UniformBufferPools::PoolConfiguration, 4>& GetPerObjectUniformTypeConfigurations() const { return mTypeConfigurations; }
@@ -186,7 +187,6 @@ namespace b3d
 			void NotifySceneDestroyed(const RenderBeastScene* scene);
 
 			// Render thread only fields
-			RenderBeastFeatureSet mFeatureSet = RenderBeastFeatureSet::Desktop;
 			bool mIsGPUCommandCaptureRequested = false;
 
 			// Per-object parameter set layouts and dynamic offset indices
@@ -194,6 +194,7 @@ namespace b3d
 			DecalParameterSetInfo mDecalParameterSetInfo;
 			GpuParticlesParameterSetInfo mGpuParticlesParameterSetInfo;
 			TInlineArray<UniformBufferPools::PoolConfiguration, 4> mTypeConfigurations;
+			SurfaceShaderParameterSetInfo mSurfaceShaderParameterSetInfo;
 
 			// Scene data
 			Vector<RenderBeastScene*> mScenes;

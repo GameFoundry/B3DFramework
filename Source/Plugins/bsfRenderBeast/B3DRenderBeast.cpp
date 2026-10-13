@@ -83,7 +83,7 @@ void RenderBeast::ActivateOnRenderThread(const LoadedRendererTextures& rendererT
 		!caps.HasCapability(RSC_LOAD_STORE) ||
 		!caps.HasCapability(RSC_TEXTURE_VIEWS))
 	{
-		mFeatureSet = RenderBeastFeatureSet::DesktopMacOS;
+		B3D_LOG(Fatal, LogRenderer, "RenderBeast requires a device with compute programs, load-store textures and texture views.");
 	}
 
 	// Create per-object parameter set layouts
@@ -91,8 +91,8 @@ void RenderBeast::ActivateOnRenderThread(const LoadedRendererTextures& rendererT
 		// PerObject uniform buffer info (shared by both layouts)
 		GpuUniformBufferInformation perObjectInfo;
 		perObjectInfo.Name = "PerObject";
-		perObjectInfo.Set = GpuPipelineSet::kPerObject;
-		perObjectInfo.Slot = mDevice->GetUniformBufferParameterSlot(0);
+		perObjectInfo.Set = GpuPipelineSet::kPerObjectSetIndex;
+		perObjectInfo.Slot = mDevice->GetParameterSlot(ShaderRegisterClass::ConstantBuffer, 0);
 		perObjectInfo.Size = Math::CeilToMultiple(gPerObjectUniformDefinition.GetSize() / 4u, 4u);
 		perObjectInfo.Stages = GpuProgramStageBit::Vertex | GpuProgramStageBit::Fragment;
 		perObjectInfo.IsShareable = true;
@@ -116,8 +116,8 @@ void RenderBeast::ActivateOnRenderThread(const LoadedRendererTextures& rendererT
 
 			GpuUniformBufferInformation decalInfo;
 			decalInfo.Name = "DecalParams";
-			decalInfo.Set = GpuPipelineSet::kPerObject;
-			decalInfo.Slot = mDevice->GetUniformBufferParameterSlot(1);
+			decalInfo.Set = GpuPipelineSet::kPerObjectSetIndex;
+			decalInfo.Slot = mDevice->GetParameterSlot(ShaderRegisterClass::ConstantBuffer, 1);
 			decalInfo.Size = Math::CeilToMultiple(gDecalUniformDefinition.GetSize() / 4u, 4u);
 			decalInfo.Stages = GpuProgramStageBit::Vertex | GpuProgramStageBit::Fragment;
 			decalInfo.IsShareable = true;
@@ -142,8 +142,8 @@ void RenderBeast::ActivateOnRenderThread(const LoadedRendererTextures& rendererT
 
 			GpuUniformBufferInformation gpuParticlesInfo;
 			gpuParticlesInfo.Name = "GpuParticleParams";
-			gpuParticlesInfo.Set = GpuPipelineSet::kPerObject;
-			gpuParticlesInfo.Slot = mDevice->GetUniformBufferParameterSlot(1);
+			gpuParticlesInfo.Set = GpuPipelineSet::kPerObjectSetIndex;
+			gpuParticlesInfo.Slot = mDevice->GetParameterSlot(ShaderRegisterClass::ConstantBuffer, 1);
 			gpuParticlesInfo.Size = Math::CeilToMultiple(gGpuParticlesUniformDefinition.GetSize() / 4u, 4u);
 			gpuParticlesInfo.Stages = GpuProgramStageBit::Vertex | GpuProgramStageBit::Fragment;
 			gpuParticlesInfo.IsShareable = true;
@@ -161,6 +161,8 @@ void RenderBeast::ActivateOnRenderThread(const LoadedRendererTextures& rendererT
 				mGpuParticlesParameterSetInfo.GpuParticlesDynamicOffsetIndex = mGpuParticlesParameterSetInfo.Layout->GetDynamicOffsetIndex(gpuParticlesSlot);
 		}
 	}
+
+	mSurfaceShaderParameterSetInfo.Initialize(*mDevice);
 
 	// Build type configurations for UniformBufferPools
 	{
@@ -592,7 +594,7 @@ void RenderBeast::RenderView(GpuCommandBuffer& commandBuffer, RenderBeastScene& 
 
 	view.BeginFrame(frameInfo);
 
-	RenderCompositorNodeInputs inputs(scene, viewGroup, view, *mRenderThreadOptions, frameInfo, mFeatureSet);
+	RenderCompositorNodeInputs inputs(scene, viewGroup, view, *mRenderThreadOptions, frameInfo);
 	inputs.ActiveCommandBuffer = commandBuffer.GetShared();
 
 #if B3D_PROFILING_ENABLED

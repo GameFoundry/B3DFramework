@@ -495,7 +495,6 @@ void VulkanGpuCommandBuffer::SetDynamicBufferOffset(u32 set, u32 bufferIndex, u3
 	if(!mBoundParamsDirty && set < mDynamicOffsetsPerSet.size() && bufferIndex < mDynamicOffsetsPerSet[set].size())
 	{
 		mDynamicOffsetsPerSet[set][bufferIndex] = offset;
-		RebuildFlatDynamicOffsets();
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		mBoundGpuParameterSets[set]->TrackDynamicUniformBufferOffsets(mResourceTracker, mDynamicOffsetsPerSet[set]);
 #endif
@@ -737,12 +736,7 @@ void VulkanGpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanc
 
 	if(mDescriptorSetsBindState.IsSet(DescriptorSetBindFlag::Graphics))
 	{
-		if(mBoundDescriptorSetCount > 0)
-		{
-			VkPipelineLayout pipelineLayout = mGraphicsPipeline->GetPipelineLayoutHandle();
-
-			vkCmdBindDescriptorSets(mCommandBufferHandle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, mBoundDescriptorSetCount, mDescriptorSetsTemp, (u32)mFlatDynamicOffsets.size(), mFlatDynamicOffsets.data());
-		}
+		BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline->GetPipelineLayoutHandle());
 
 		mDescriptorSetsBindState.Unset(DescriptorSetBindFlag::Graphics);
 	}
@@ -801,12 +795,7 @@ void VulkanGpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 ver
 
 	if(mDescriptorSetsBindState.IsSet(DescriptorSetBindFlag::Graphics))
 	{
-		if(mBoundDescriptorSetCount > 0)
-		{
-			VkPipelineLayout pipelineLayout = mGraphicsPipeline->GetPipelineLayoutHandle();
-
-			vkCmdBindDescriptorSets(mCommandBufferHandle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, mBoundDescriptorSetCount, mDescriptorSetsTemp, (u32)mFlatDynamicOffsets.size(), mFlatDynamicOffsets.data());
-		}
+		BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline->GetPipelineLayoutHandle());
 
 		mDescriptorSetsBindState.Unset(DescriptorSetBindFlag::Graphics);
 	}
@@ -867,11 +856,7 @@ void VulkanGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u
 
 	if(mDescriptorSetsBindState.IsSet(DescriptorSetBindFlag::Compute))
 	{
-		if(mBoundDescriptorSetCount > 0)
-		{
-			VkPipelineLayout pipelineLayout = mComputePipeline->GetPipelineLayoutHandle();
-			vkCmdBindDescriptorSets(mCommandBufferHandle, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, mBoundDescriptorSetCount, mDescriptorSetsTemp, (u32)mFlatDynamicOffsets.size(), mFlatDynamicOffsets.data());
-		}
+		BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipeline->GetPipelineLayoutHandle());
 
 		mDescriptorSetsBindState.Unset(DescriptorSetBindFlag::Compute);
 	}
@@ -1860,7 +1845,7 @@ bool VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParamete
 		mDrawAccessValidator.ClearBindings();
 #endif
 
-	mBoundDescriptorSetCount = 0;
+	mBoundDescriptorSetMask = 0;
 
 	const u32 setCount = pipelineParameterLayout->GetSetCount();
 
@@ -1875,8 +1860,10 @@ bool VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParamete
 	{
 		mDynamicOffsetsPerSet[set].clear();
 
+		// A set the pipeline declares no resources in is not bound, even if one remains bound from an earlier draw
 		const TShared<VulkanGpuParameterSet>& boundGpuParameterSet = mBoundGpuParameterSets[set];
-		if(boundGpuParameterSet != nullptr)
+		const TShared<GpuPipelineParameterSetLayout>& pipelineSetLayout = pipelineParameterLayout->GetSet(set);
+		if(boundGpuParameterSet != nullptr && pipelineSetLayout != nullptr && pipelineSetLayout->GetResourceCount() > 0)
 		{
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			if(IsInRenderPass())
@@ -1922,11 +1909,10 @@ bool VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParamete
 #endif
 
 			mDynamicOffsetsPerSet[set] = setDynamicOffsets;
-			mBoundDescriptorSetCount++;
+			mBoundDescriptorSetMask |= 1ull << set;
 		}
 	}
 
-	RebuildFlatDynamicOffsets();
 	mBoundParamsDirty = false;
 	return true;
 }
@@ -1965,17 +1951,28 @@ void VulkanGpuCommandBuffer::BindPushConstants(bool isGraphics)
 		mComputePushConstantsRequireBind = false;
 }
 
-void VulkanGpuCommandBuffer::RebuildFlatDynamicOffsets()
+void VulkanGpuCommandBuffer::BindDescriptorSets(VkPipelineBindPoint bindPoint, VkPipelineLayout pipelineLayout)
 {
-	mFlatDynamicOffsets.clear();
-
-	for(u32 set = 0; set < mBoundDescriptorSetCount; set++)
+	u32 set = 0;
+	while(set < kMaximumBoundDescriptorSets)
 	{
-		if(set >= (u32)mDynamicOffsetsPerSet.size())
-			continue;
+		if((mBoundDescriptorSetMask & (1ull << set)) == 0)
+			set++;
+		else
+		{
+			const u32 firstSet = set;
 
-		for(u32 offset : mDynamicOffsetsPerSet[set])
-			mFlatDynamicOffsets.Add(offset);
+			TInlineArray<u32, 16> dynamicOffsets;
+			while(set < kMaximumBoundDescriptorSets && (mBoundDescriptorSetMask & (1ull << set)) != 0)
+			{
+				for(u32 offset : mDynamicOffsetsPerSet[set])
+					dynamicOffsets.Add(offset);
+
+				set++;
+			}
+
+			vkCmdBindDescriptorSets(mCommandBufferHandle, bindPoint, pipelineLayout, firstSet, set - firstSet, &mDescriptorSetsTemp[firstSet], (u32)dynamicOffsets.size(), dynamicOffsets.data());
+		}
 	}
 }
 

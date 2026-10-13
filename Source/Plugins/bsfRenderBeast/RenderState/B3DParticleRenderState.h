@@ -55,19 +55,6 @@ namespace b3d
 
 		extern GpuParticlesUniformDefinition gGpuParticlesUniformDefinition;
 
-		/** Types of forward lighting supported on particle shaders. */
-		enum class ParticleForwardLightingType
-		{
-			/** No forward lighting. */
-			None,
-
-			/** Using the modern clustered forward lighting approach (requires compute). */
-			Clustered,
-
-			/** Using the old-school standard forward lighting approach. */
-			Standard
-		};
-
 		/**
 		 * Returns a specific particle rendering shader variation.
 		 *
@@ -75,37 +62,17 @@ namespace b3d
 		 * @tparam LOCK_Y	If true, billboard rotation will be locked around the Y axis, otherwise the rotation is free.
 		 * @tparam GPU		If true, the particle shader expects input from the GPU simulation instead of the CPU simulation.
 		 * @tparam IS_3D	If true, the particle shader will render meshes instead of billboards.
-		 * @tparam FWD		Determines what form of forward lighting should the shader support.
 		 */
-		template <ParticleOrientation ORIENT, bool LOCK_Y, bool GPU, bool IS_3D, ParticleForwardLightingType FWD>
+		template <ParticleOrientation ORIENT, bool LOCK_Y, bool GPU, bool IS_3D>
 		static const ShaderVariationParameters& GetParticleShaderVariation()
 		{
-			static bool initialized = false;
-			static TInlineArray<ShaderVariationParameter, 4> params({
+			static ShaderVariationParameters variation = ShaderVariationParameters({
 				ShaderVariationParameter("ORIENT", (u32)ORIENT),
 				ShaderVariationParameter("LOCK_Y", LOCK_Y),
 				ShaderVariationParameter("GPU", GPU),
 				ShaderVariationParameter("IS_3D", IS_3D),
 			});
 
-			if(!initialized)
-			{
-				switch(FWD)
-				{
-				case ParticleForwardLightingType::Clustered:
-					params.Add(ShaderVariationParameter("CLUSTERED", true));
-					break;
-				case ParticleForwardLightingType::Standard:
-					params.Add(ShaderVariationParameter("CLUSTERED", false));
-					break;
-				case ParticleForwardLightingType::None:
-					break;
-				}
-
-				initialized = true;
-			}
-
-			static ShaderVariationParameters variation = ShaderVariationParameters(params);
 			return variation;
 		}
 
@@ -118,10 +85,9 @@ namespace b3d
 		 * @param[in]	gpu					If true, the particle shader expects input from the GPU simulation instead of the
 		 *									CPU simulation.
 		 * @param[in]	is3d				If true, the particle shader will render meshes instead of billboards.
-		 * @param[in]	forwardLighting		Form of forward lighting the shader should support.
 		 * @return							Object that can be used for looking up the variations in the material.
 		 */
-		const ShaderVariationParameters& GetParticleShaderVariationParameters(ParticleOrientation orient, bool lockY, bool gpu, bool is3d, ParticleForwardLightingType forwardLighting);
+		const ShaderVariationParameters& GetParticleShaderVariationParameters(ParticleOrientation orient, bool lockY, bool gpu, bool is3d);
 
 		/** Contains information required for drawing a particle system. */
 		class ParticlesDrawCommand : public DrawCommand
@@ -169,17 +135,11 @@ namespace b3d
 				GpuParameterSampledTexture CurvesTexture;
 			};
 
-			/** Parameter for binding the per-camera uniform buffer. */
-			GpuParameterUniformBuffer PerCameraUniformBufferParameter;
-
 			/** Parameter for binding the particle params uniform buffer. */
 			GpuParameterUniformBuffer ParticlesUniformBufferParameter;
 
 			/** Binding spot for the buffer containing instance id -> particle index mapping. */
 			GpuParameterStorageBuffer IndicesBuffer;
-
-			/** Optional texture input for the depth buffer. */
-			GpuParameterSampledTexture DepthInputTexture;
 
 			/** Parameters relevant for billboard rendering of the outputs of the particle CPU simulation. */
 			CpuBillboardSimulationParams ParamsCpuBillboard;
@@ -189,12 +149,6 @@ namespace b3d
 
 			/** Parameters relevant for rendering the outputs of the particle GPU simulation. */
 			GpuSimulationParams ParamsGpu;
-
-			/** Collection of parameters used for direct lighting using the forward rendering path. */
-			ForwardLightingParams ForwardLightingParams;
-
-			/** Collection of parameters used for image based lighting. */
-			ImageBasedLightingParameterBinding ImageBasedParams;
 
 			/** Number of particles to render. */
 			u32 NumParticles = 0;
@@ -242,17 +196,15 @@ namespace b3d
 			 * Binds all the GPU program inputs required for rendering a particle system that is being simulated by the CPU.
 			 *
 			 * @param renderData	Render data representing the state of a CPU simulated particle system.
-			 * @param view			View the particle system is being rendered from.
 			 */
-			void BindCpuSimulatedInputs(const ParticleSystemProxy& proxy, const ParticleRenderData* renderData, const RendererView& view) const;
+			void BindCpuSimulatedInputs(const ParticleSystemProxy& proxy, const ParticleRenderData* renderData) const;
 
 			/**
 			 * Binds all the GPU program inputs required for rendering a particle system that is being simulated by the GPU.
 			 *
 			 * @param gpuSimResources	Resources containing global data for all GPU simulated particle systems.
-			 * @param view				View the particle system is being rendered from.
 			 */
-			void BindGpuSimulatedInputs(const ParticleSystemProxy& proxy, const GpuParticleResources& gpuSimResources, const RendererView& view) const;
+			void BindGpuSimulatedInputs(const ParticleSystemProxy& proxy, const GpuParticleResources& gpuSimResources) const;
 
 		private:
 			/**

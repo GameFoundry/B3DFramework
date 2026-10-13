@@ -379,9 +379,4 @@ mixin DirectLighting
 	mixin LuminanceSpot;
 };
 
-// Hackish way of "instantiating" two versions of a mixin (to be removed when template/specialization support is added)
 #include "$ENGINE$\DirectLightAccumulator.bslinc"
-
-#define USE_UNIFORM_BUFFER
-#include "$ENGINE$\DirectLightAccumulator.bslinc"
-#undef USE_UNIFORM_BUFFER

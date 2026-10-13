@@ -328,7 +328,7 @@ void TiledDeferredImageBasedLightingMaterial::Initialize()
 
 	mGpuParameterSet->GetUniformBufferParameter("Params", mUniformBufferParameter);
 
-	mImageBasedParams.Initialize(mGpuParameterSet, GPT_COMPUTE_PROGRAM, false, false, true);
+	mImageBasedParams.Initialize(mGpuParameterSet);
 
 	mGpuParameterSet->TryGetUniformBufferParameter("ReflProbeParams", mReflProbeParamsUniformBufferParameter);
 }

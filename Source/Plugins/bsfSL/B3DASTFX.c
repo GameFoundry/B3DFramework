@@ -212,7 +212,10 @@ void BeginCodeBlock(ParseState* parseState, RawCodeType type)
 
 		if (parseState->Defines[i].Expr != 0)
 		{
-			AppendCodeBlock(parseState, type, " ", 1);
+			// The parameter list of a function-like macro must directly follow its name
+			if (!parseState->Defines[i].IsFunctionLike)
+				AppendCodeBlock(parseState, type, " ", 1);
+
 			AppendCodeBlock(parseState, type, parseState->Defines[i].Expr, (int)strlen(parseState->Defines[i].Expr));
 		}
 
@@ -276,6 +279,13 @@ void AddDefine(ParseState* parseState, const char* value)
 
 	parseState->Defines[defineIdx].Name = MmallocStrdup(parseState->MemContext, value);
 	parseState->Defines[defineIdx].Expr = 0;
+	parseState->Defines[defineIdx].IsFunctionLike = 0;
+}
+
+void AddFunctionLikeDefine(ParseState* parseState, const char* value)
+{
+	AddDefine(parseState, value);
+	parseState->Defines[parseState->NumDefines - 1].IsFunctionLike = 1;
 }
 
 void AddDefineExpr(ParseState* parseState, const char* value)

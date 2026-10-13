@@ -31,7 +31,7 @@ void D3D12ParameterTestSuite::TestUniformBufferLayout()
 			GpuUniformBufferInformation buffer;
 			buffer.Name = "Buffer" + ToString(bindingIndex);
 			buffer.Set = bindingIndex % 2;
-			buffer.Slot = device->GetUniformBufferParameterSlot(bindingIndex / 2);
+			buffer.Slot = device->GetParameterSlot(ShaderRegisterClass::ConstantBuffer, bindingIndex / 2);
 			buffer.Size = 4;
 			buffer.UsesDynamicOffset = bindingIndex >= staticCount;
 			createInformation.Compute->UniformBuffers[buffer.Name] = buffer;

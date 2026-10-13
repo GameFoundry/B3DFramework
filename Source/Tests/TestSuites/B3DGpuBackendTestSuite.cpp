@@ -621,14 +621,14 @@ void GpuBackendTestSuite::TestDynamicOffsetUniformBufferLayout()
 	GpuUniformBufferInformation staticBuffer;
 	staticBuffer.Name = "StaticData";
 	staticBuffer.Set = 0;
-	staticBuffer.Slot = device->GetUniformBufferParameterSlot(0);
+	staticBuffer.Slot = device->GetParameterSlot(ShaderRegisterClass::ConstantBuffer, 0);
 	staticBuffer.Size = 4;
 	staticBuffer.Stages = GpuProgramStageBit::Vertex;
 	staticBuffer.IsShareable = true;
 
 	GpuUniformBufferInformation dynamicBuffer = staticBuffer;
 	dynamicBuffer.Name = "PerObject";
-	dynamicBuffer.Slot = device->GetUniformBufferParameterSlot(1);
+	dynamicBuffer.Slot = device->GetParameterSlot(ShaderRegisterClass::ConstantBuffer, 1);
 	dynamicBuffer.UsesDynamicOffset = true;
 
 	GpuProgramParameterDescription description;

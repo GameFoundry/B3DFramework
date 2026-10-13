@@ -4,6 +4,7 @@
 
 #include "B3DRenderBeastPrerequisites.h"
 #include "Utility/B3DTypeList.h"
+#include "RenderState/B3DSurfaceShaderParameterSets.h"
 
 namespace b3d
 {
@@ -29,8 +30,8 @@ namespace b3d
 		/** Inputs provided to each node in the render compositor hierarchy */
 		struct RenderCompositorNodeInputs
 		{
-			RenderCompositorNodeInputs(RenderBeastScene& scene, const RendererViewGroup& viewGroup, const RendererView& view, const RenderBeastOptions& options, const FrameInfo& frameInfo, RenderBeastFeatureSet featureSet)
-				: Scene(scene), ViewGroup(viewGroup), View(view), Options(options), FrameInfo(frameInfo), FeatureSet(featureSet)
+			RenderCompositorNodeInputs(RenderBeastScene& scene, const RendererViewGroup& viewGroup, const RendererView& view, const RenderBeastOptions& options, const FrameInfo& frameInfo)
+				: Scene(scene), ViewGroup(viewGroup), View(view), Options(options), FrameInfo(frameInfo)
 			{}
 
 			TShared<GpuCommandBuffer> ActiveCommandBuffer;
@@ -43,7 +44,6 @@ namespace b3d
 			const RendererView& View;
 			const RenderBeastOptions& Options;
 			const FrameInfo& FrameInfo;
-			const RenderBeastFeatureSet FeatureSet;
 
 			// Callbacks to external systems can hook into the compositor
 			TInlineArray<RendererExtension*, 4> ExtPrepare;
@@ -357,6 +357,8 @@ namespace b3d
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
 			void Clear() override;
+
+			SurfaceShaderParameterSets mSurfaceShaderParameterSets;
 		};
 
 		/** Initializes the scene color texture and/or buffer. Does not perform any rendering. */
@@ -483,7 +485,7 @@ namespace b3d
 			/** Converts MSAA data from the texture array into the MSAA texture. */
 			void MsaaTexArrayToTexture(GpuCommandBuffer& commandBuffer);
 
-			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneColor, RCNodeSceneDepth>;
+			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneDepth>;
 
 			static StringID GetNodeId() { return "LightAccumulation"; }
 			static DependencyDefinition GetDependencyDefinition();
@@ -577,6 +579,7 @@ namespace b3d
 			void Clear() override;
 
 			TShared<RenderTexture> renderTarget;
+			SurfaceShaderParameterSets mSurfaceShaderParameterSets;
 		};
 
 		/**
@@ -661,12 +664,6 @@ namespace b3d
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
 			void Clear() override;
-
-			/**
-			 * Returns true if the more advanced (and more expensive) compute shader based method of computing eye adaptation
-			 * should be used.
-			 */
-			bool UseHistogramEyeAdapatation(const RenderCompositorNodeInputs& inputs);
 
 			TShared<PooledRenderTexture> previous;
 		};

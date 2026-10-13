@@ -38,7 +38,7 @@ namespace b3d
 
 			/**
 			 * Determines Vulkan format required for binding a dummy texture (as returned by getDummyTexture()) to the shader
-			 * expecting a format of type @p format.
+			 * expecting a format of type @p format. An unknown format binds as a floating point format.
 			 */
 			static VkFormat GetDummyViewFormat(GpuBufferFormat format);
 

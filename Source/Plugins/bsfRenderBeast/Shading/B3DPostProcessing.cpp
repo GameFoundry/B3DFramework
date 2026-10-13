@@ -310,140 +310,10 @@ void EyeAdaptationMaterial::PopulateUniformBuffer(const GpuBufferMappedScope& un
 	gEyeAdaptationUniformDefinition.gEyeAdaptationParams.Set(uniforms, eyeAdaptationParams[2], 2);
 }
 
-void EyeAdaptationBasicSetupMaterial::Initialize()
-{
-	mGpuParameterSet->GetUniformBufferParameter("EyeAdaptationParams", mUniformBufferParameter);
-	mGpuParameterSet->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
-
-	SamplerStateCreateInformation samplerStateCreateInformation;
-	samplerStateCreateInformation.MinFilter = FO_POINT;
-	samplerStateCreateInformation.MagFilter = FO_POINT;
-	samplerStateCreateInformation.MipFilter = FO_POINT;
-
-	TShared<SamplerState> samplerState = mGpuDevice->FindOrCreateSamplerState(samplerStateCreateInformation);
-	SetSamplerState(mGpuParameterSet, "gInputSamp", "gInputTex", samplerState);
-}
-
-void EyeAdaptationBasicSetupMaterial::Prepare(const TShared<Texture>& input, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
-{
-	mInputTextureParameter.Set(input);
-
-	GpuBufferMappedScope uniforms = gEyeAdaptationUniformDefinition.AllocateTransient().Map();
-	EyeAdaptationMaterial::PopulateUniformBuffer(uniforms, frameDelta, settings, exposureScale);
-
-	mUniformBufferParameter.Set(uniforms);
-}
-
-void EyeAdaptationBasicSetupMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output)
-{
-	B3D_PROFILE_RENDERER_MATERIAL
-
-	RenderPassCreateInformation info(output, mGpuParameterSet);
-	commandBuffer.BeginRenderPass(info);
-
-	Bind(commandBuffer);
-	GetRendererUtility().DrawScreenQuad(commandBuffer);
-
-	commandBuffer.EndRenderPass();
-}
-
-PooledRenderTextureCreateInformation EyeAdaptationBasicSetupMaterial::GetOutputDesc(const TShared<Texture>& input)
-{
-	auto& props = input->GetProperties();
-	return PooledRenderTextureCreateInformation::Create2D(PF_RGBA16F, props.Width, props.Height, TextureUsageFlag::RenderTarget);
-}
-
-EyeAdaptationBasicUniformDefinition gEyeAdaptationBasicUniformDefinition;
-
-void EyeAdaptationBasicMaterial::Initialize()
-{
-	mGpuParameterSet->GetUniformBufferParameter("Input", mUniformBufferParameter);
-	mGpuParameterSet->GetUniformBufferParameter("EyeAdaptationParams", mEyeAdaptationUniformBufferParameter);
-	mGpuParameterSet->GetSampledTextureParameter("gCurFrameTex", mCurrentFrameTextureParameter);
-	mGpuParameterSet->GetSampledTextureParameter("gPrevFrameTex", mPreviousFrameTextureParameter);
-}
-
-void EyeAdaptationBasicMaterial::Prepare(const TShared<Texture>& curFrame, const TShared<Texture>& prevFrame, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
-{
-	GpuBufferMappedScope eyeAdaptationUniforms = gEyeAdaptationUniformDefinition.AllocateTransient().Map();
-	GpuBufferMappedScope eyeAdaptationBasicUniforms = gEyeAdaptationBasicUniformDefinition.AllocateTransient().Map();
-
-	EyeAdaptationMaterial::PopulateUniformBuffer(eyeAdaptationUniforms, frameDelta, settings, exposureScale);
-
-	auto& texProps = curFrame->GetProperties();
-	Vector2I texSize = { (i32)texProps.Width, (i32)texProps.Height };
-
-	gEyeAdaptationBasicUniformDefinition.gInputTexSize.Set(eyeAdaptationBasicUniforms, texSize);
-
-	mEyeAdaptationUniformBufferParameter.Set(eyeAdaptationUniforms);
-	mUniformBufferParameter.Set(eyeAdaptationBasicUniforms);
-	mCurrentFrameTextureParameter.Set(curFrame);
-
-	if(prevFrame == nullptr) // Could be that this is the first run
-		mPreviousFrameTextureParameter.Set(Texture::kWhite);
-	else
-		mPreviousFrameTextureParameter.Set(prevFrame);
-}
-
-void EyeAdaptationBasicMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output)
-{
-	B3D_PROFILE_RENDERER_MATERIAL
-
-	RenderPassCreateInformation info(output, mGpuParameterSet);
-	commandBuffer.BeginRenderPass(info);
-
-	Bind(commandBuffer);
-	GetRendererUtility().DrawScreenQuad(commandBuffer);
-
-	commandBuffer.EndRenderPass();
-}
-
-PooledRenderTextureCreateInformation EyeAdaptationBasicMaterial::GetOutputDesc()
-{
-	return PooledRenderTextureCreateInformation::Create2D(PF_R32F, 1, 1, TextureUsageFlag::RenderTarget);
-}
-
 CreateTonemapLUTUniformDefinition gCreateTonemapLUTUniformDefinition;
 WhiteBalanceUniformDefinition gWhiteBalanceUniformDefinition;
 
-void CreateTonemap2DLUTMaterial::Initialize()
-{
-	mGpuParameterSet->GetUniformBufferParameter("Input", mUniformBufferParameter);
-	mGpuParameterSet->GetUniformBufferParameter("WhiteBalanceInput", mWhiteBalanceUniformBufferParameter);
-}
-
-void CreateTonemap2DLUTMaterial::InitDefinesInternal(ShaderDefines& defines)
-{
-	defines.Set("LUT_SIZE", kLutSize);
-}
-
-void CreateTonemap2DLUTMaterial::Prepare(const RenderSettings& settings)
-{
-	GpuBufferMappedScope lutUniforms = gCreateTonemapLUTUniformDefinition.AllocateTransient().Map();
-	GpuBufferMappedScope whiteBalanceUniforms = gWhiteBalanceUniformDefinition.AllocateTransient().Map();
-
-	PopulateTonemappingUniformBuffer(settings, lutUniforms);
-	PopulateWhiteBalanceUniformBuffer(settings, whiteBalanceUniforms);
-
-	mUniformBufferParameter.Set(lutUniforms);
-	mWhiteBalanceUniformBufferParameter.Set(whiteBalanceUniforms);
-}
-
-void CreateTonemap2DLUTMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTexture>& output)
-{
-	B3D_PROFILE_RENDERER_MATERIAL
-
-	// Render
-	RenderPassCreateInformation info(output, mGpuParameterSet);
-	commandBuffer.BeginRenderPass(info);
-
-	Bind(commandBuffer);
-	GetRendererUtility().DrawScreenQuad(commandBuffer);
-
-	commandBuffer.EndRenderPass();
-}
-
-void CreateTonemap2DLUTMaterial::PopulateTonemappingUniformBuffer(const RenderSettings& settings, const GpuBufferMappedScope& uniforms)
+void CreateTonemap3DLUTMaterial::PopulateTonemappingUniformBuffer(const RenderSettings& settings, const GpuBufferMappedScope& uniforms)
 {
 	// Set parameters
 	gCreateTonemapLUTUniformDefinition.gGammaAdjustment.Set(uniforms, 2.2f / settings.Gamma);
@@ -473,15 +343,10 @@ void CreateTonemap2DLUTMaterial::PopulateTonemappingUniformBuffer(const RenderSe
 	gCreateTonemapLUTUniformDefinition.gOffset.Set(uniforms, settings.ColorGrading.Offset);
 }
 
-void CreateTonemap2DLUTMaterial::PopulateWhiteBalanceUniformBuffer(const RenderSettings& settings, const GpuBufferMappedScope& uniforms)
+void CreateTonemap3DLUTMaterial::PopulateWhiteBalanceUniformBuffer(const RenderSettings& settings, const GpuBufferMappedScope& uniforms)
 {
 	gWhiteBalanceUniformDefinition.gWhiteTemp.Set(uniforms, settings.WhiteBalance.Temperature);
 	gWhiteBalanceUniformDefinition.gWhiteOffset.Set(uniforms, settings.WhiteBalance.Tint);
-}
-
-PooledRenderTextureCreateInformation CreateTonemap2DLUTMaterial::GetOutputDesc() const
-{
-	return PooledRenderTextureCreateInformation::Create2D(PF_RGBA8, kLutSize * kLutSize, kLutSize, TextureUsageFlag::RenderTarget);
 }
 
 void CreateTonemap3DLUTMaterial::Initialize()
@@ -493,7 +358,7 @@ void CreateTonemap3DLUTMaterial::Initialize()
 
 void CreateTonemap3DLUTMaterial::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("LUT_SIZE", CreateTonemap2DLUTMaterial::kLutSize);
+	defines.Set("LUT_SIZE", kLutSize);
 }
 
 void CreateTonemap3DLUTMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& output, const RenderSettings& settings)
@@ -503,8 +368,8 @@ void CreateTonemap3DLUTMaterial::Execute(GpuCommandBuffer& commandBuffer, const 
 	GpuBufferMappedScope lutUniforms = gCreateTonemapLUTUniformDefinition.AllocateTransient().Map();
 	GpuBufferMappedScope whiteBalanceUniforms = gWhiteBalanceUniformDefinition.AllocateTransient().Map();
 
-	CreateTonemap2DLUTMaterial::PopulateTonemappingUniformBuffer(settings, lutUniforms);
-	CreateTonemap2DLUTMaterial::PopulateWhiteBalanceUniformBuffer(settings, whiteBalanceUniforms);
+	PopulateTonemappingUniformBuffer(settings, lutUniforms);
+	PopulateWhiteBalanceUniformBuffer(settings, whiteBalanceUniforms);
 
 	mUniformBufferParameter.Set(lutUniforms);
 	mWhiteBalanceUniformBufferParameter.Set(whiteBalanceUniforms);
@@ -513,12 +378,12 @@ void CreateTonemap3DLUTMaterial::Execute(GpuCommandBuffer& commandBuffer, const 
 	mOutputTextureParameter.Set(output);
 
 	Bind(commandBuffer);
-	commandBuffer.DispatchCompute(CreateTonemap2DLUTMaterial::kLutSize / 8, CreateTonemap2DLUTMaterial::kLutSize / 8, CreateTonemap2DLUTMaterial::kLutSize);
+	commandBuffer.DispatchCompute(kLutSize / 8, kLutSize / 8, kLutSize);
 }
 
 PooledRenderTextureCreateInformation CreateTonemap3DLUTMaterial::GetOutputDesc() const
 {
-	return PooledRenderTextureCreateInformation::Create3D(PF_RGBA8, CreateTonemap2DLUTMaterial::kLutSize, CreateTonemap2DLUTMaterial::kLutSize, CreateTonemap2DLUTMaterial::kLutSize, TextureUsageFlag::AllowUnorderedAccessOnTheGPU);
+	return PooledRenderTextureCreateInformation::Create3D(PF_RGBA8, kLutSize, kLutSize, kLutSize, TextureUsageFlag::AllowUnorderedAccessOnTheGPU);
 }
 
 TonemappingUniformDefinition gTonemappingUniformDefinition;
@@ -536,7 +401,7 @@ void TonemappingMaterial::Initialize()
 
 void TonemappingMaterial::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("LUT_SIZE", CreateTonemap2DLUTMaterial::kLutSize);
+	defines.Set("LUT_SIZE", CreateTonemap3DLUTMaterial::kLutSize);
 }
 
 void TonemappingMaterial::Prepare(const TShared<Texture>& sceneColor, const TShared<Texture>& eyeAdaptation, const TShared<Texture>& bloom, const TShared<Texture>& colorLUT, const RenderSettings& settings)
@@ -572,80 +437,40 @@ void TonemappingMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared
 	commandBuffer.EndRenderPass();
 }
 
-TonemappingMaterial* TonemappingMaterial::GetVariation(bool volumeLUT, bool gammaOnly, bool autoExposure, bool MSAA)
+TonemappingMaterial* TonemappingMaterial::GetVariation(bool gammaOnly, bool autoExposure, bool MSAA)
 {
-	if(volumeLUT)
+	if(gammaOnly)
 	{
-		if(gammaOnly)
+		if(autoExposure)
 		{
-			if(autoExposure)
-			{
-				if(MSAA)
-					return Get(GetVariation<true, true, true, true>());
-				else
-					return Get(GetVariation<true, true, true, false>());
-			}
+			if(MSAA)
+				return Get(GetVariation<true, true, true>());
 			else
-			{
-				if(MSAA)
-					return Get(GetVariation<true, true, false, true>());
-				else
-					return Get(GetVariation<true, true, false, false>());
-			}
+				return Get(GetVariation<true, true, false>());
 		}
 		else
 		{
-			if(autoExposure)
-			{
-				if(MSAA)
-					return Get(GetVariation<true, false, true, true>());
-				else
-					return Get(GetVariation<true, false, true, false>());
-			}
+			if(MSAA)
+				return Get(GetVariation<true, false, true>());
 			else
-			{
-				if(MSAA)
-					return Get(GetVariation<true, false, false, true>());
-				else
-					return Get(GetVariation<true, false, false, false>());
-			}
+				return Get(GetVariation<true, false, false>());
 		}
 	}
 	else
 	{
-		if(gammaOnly)
+		if(autoExposure)
 		{
-			if(autoExposure)
-			{
-				if(MSAA)
-					return Get(GetVariation<false, true, true, true>());
-				else
-					return Get(GetVariation<false, true, true, false>());
-			}
+			if(MSAA)
+				return Get(GetVariation<false, true, true>());
 			else
-			{
-				if(MSAA)
-					return Get(GetVariation<false, true, false, true>());
-				else
-					return Get(GetVariation<false, true, false, false>());
-			}
+				return Get(GetVariation<false, true, false>());
 		}
 		else
 		{
-			if(autoExposure)
-			{
-				if(MSAA)
-					return Get(GetVariation<false, false, true, true>());
-				else
-					return Get(GetVariation<false, false, true, false>());
-			}
+			if(MSAA)
+				return Get(GetVariation<false, false, true>());
 			else
-			{
-				if(MSAA)
-					return Get(GetVariation<false, false, false, true>());
-				else
-					return Get(GetVariation<false, false, false, false>());
-			}
+				return Get(GetVariation<false, false, false>());
 		}
 	}
 }
@@ -1631,50 +1456,14 @@ void MotionBlurMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<
 	commandBuffer.EndRenderPass();
 }
 
-BuildHiZUniformDefinition gBuildHiZUniformDefinition;
-
 void BuildHiZMaterial::Initialize()
 {
-	mNoTextureViews = mVariationParameters.GetBool("NO_TEXTURE_VIEWS");
-
 	mGpuParameterSet->GetSampledTextureParameter("gDepthTex", mInputTexture);
-
-	// If no texture view support, we must manually pick a valid mip level in the shader
-	if(mNoTextureViews)
-	{
-		mGpuParameterSet->GetUniformBufferParameter("Input", mUniformBufferParameter);
-
-		SamplerStateInformation inputSampDesc;
-		inputSampDesc.MinFilter = FO_POINT;
-		inputSampDesc.MagFilter = FO_POINT;
-		inputSampDesc.MipFilter = FO_POINT;
-
-		TShared<SamplerState> inputSampState = mGpuDevice->FindOrCreateSamplerState(inputSampDesc);
-		SetSamplerState(mGpuParameterSet, "gDepthSamp", "gDepthTex", inputSampState);
-	}
 }
 
 void BuildHiZMaterial::Prepare(const TShared<Texture>& source, u32 srcMip)
 {
-	// If no texture view support, we must manually pick a valid mip level in the shader
-	if(mNoTextureViews)
-	{
-		mInputTexture.Set(source);
-
-		auto& props = source->GetProperties();
-		float pixelWidth = (float)props.Width;
-		float pixelHeight = (float)props.Height;
-
-		Vector2 halfPixelOffset(0.5f / pixelWidth, 0.5f / pixelHeight);
-
-		GpuBufferMappedScope uniforms = gBuildHiZUniformDefinition.AllocateTransient().Map();
-		gBuildHiZUniformDefinition.gHalfPixelOffset.Set(uniforms, halfPixelOffset);
-		gBuildHiZUniformDefinition.gMipLevel.Set(uniforms, srcMip);
-
-		mUniformBufferParameter.Set(uniforms);
-	}
-	else
-		mInputTexture.Set(source, TextureSurface(srcMip));
+	mInputTexture.Set(source, TextureSurface(srcMip));
 }
 
 void BuildHiZMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTexture>& output, const Area2& srcRect, const Area2& dstRect)
@@ -1691,14 +1480,6 @@ void BuildHiZMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<Re
 
 	commandBuffer.SetViewport(Area2(0, 0, 1, 1));
 	commandBuffer.EndRenderPass();
-}
-
-BuildHiZMaterial* BuildHiZMaterial::GetVariation(bool noTextureViews)
-{
-	if(noTextureViews)
-		return Get(GetVariation<true>());
-
-	return Get(GetVariation<false>());
 }
 
 FXAAUniformDefinition gFXAAUniformDefinition;

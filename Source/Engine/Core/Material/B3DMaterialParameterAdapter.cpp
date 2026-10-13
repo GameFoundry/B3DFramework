@@ -209,6 +209,13 @@ Vector<ShaderUniformBuffer> DetermineValidShareableUniformBuffers(const Vector<T
 			if(!iterFind->second.IsValid)
 				continue;
 
+			// A program that doesn't use the buffer may not know its size
+			if(otherBlock.Size == 0 && curBlock.Size != 0)
+			{
+				iterFind->second = UniformBufferInfo(&curBlock, *iter);
+				continue;
+			}
+
 			String otherBlockName = otherBlock.Name;
 			TShared<GpuProgramParameterDescription> otherDesc = iterFind->second.ParamDesc;
 
@@ -541,8 +548,9 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const TShare
 	//// Create uniform buffers
 	for(auto& uniformBufferData : uniformBufferData)
 	{
+		// Zero size: no program uses the buffer, so its size is unknown and it doesn't need contents
 		UniformBufferPointerType newUniformBuffer;
-		if(!uniformBufferData.External)
+		if(!uniformBufferData.External && uniformBufferData.Size > 0)
 			newUniformBuffer = CreateGpuBuffer<UniformBufferType>(GpuBufferCreateInformation::CreateUniform(uniformBufferData.Size, uniformBufferData.Flags));
 
 		uniformBufferData.SequentialIdx = (u32)mUniformBuffers.size();

@@ -758,10 +758,6 @@ void GpuParticleSimulation::Sort(GpuCommandBuffer& commandBuffer, const RenderBe
 {
 	const ParticleSystemObjectStorage& particleStorage = scene.GetParticleSystemStorage();
 
-	const bool supportsCompute = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
-	if(!supportsCompute)
-		return;
-
 	const Vector3& viewOrigin = view.GetProperties().ViewOrigin;
 
 	GpuParticleSortPrepareMaterial* prepareMat = GpuParticleSortPrepareMaterial::Get();

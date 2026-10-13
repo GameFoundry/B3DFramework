@@ -21,9 +21,6 @@ namespace b3d
 		 *  @{
 		 */
 
-		/** Maximum number of refl. probes that can influence an object when basic forward rendering is used. */
-		static constexpr u32 kStandardForwardMaxNumProbes = 8;
-
 		/** Information about a single reflection probe, as seen by the lighting shader. */
 		struct ReflectioneProbeData
 		{
@@ -110,23 +107,9 @@ namespace b3d
 			static constexpr const char* kAmbientOcclusionTextureName = "gAmbientOcclusionTex";
 			static constexpr const char* kSSRTexName = "gSSRTex";
 			static constexpr const char* kReflectionProbesBufferName = "gReflectionProbes";
-			static constexpr const char* kReflectionProbeIndicesBufferName = "gReflectionProbeIndices";
-			static constexpr const char* kGlobalReflectionProbeUniformBufferName = "ReflectionProbes";
-			static constexpr const char* kPerProbeUniformBufferName = "ReflProbeParams";
 
-			/**
-			 * Initializes the parameters from the provided parameters.
-			 *
-			 * @param[in]	parameters	GPU parameters object to look for the parameters in.
-			 * @param[in]	programType	Type of the GPU program to look up the parameters for.
-			 * @param[in]	optional	If true no warnings will be thrown if some or all of the parameters will be found.
-			 * @param[in]	gridIndices	Set to true if grid indices (used by light grid) parameter is required.
-			 * @param[in]	probeArray	True if the refl. probe data is to be provided in a structured buffer.
-			 */
-			void Initialize(const TShared<GpuParameterSet>& parameters, GpuProgramType programType, bool optional, bool gridIndices, bool probeArray);
-
-			/** Sets the reflection probe cubemaps texture in the provided @p parameters object. */
-			static void SetReflectionProbeCubemaps(const TShared<GpuParameterSet>& parameters, const TShared<Texture>& cubemaps, bool optional = false);
+			/** Looks up the parameters in @p parameters. */
+			void Initialize(const TShared<GpuParameterSet>& parameters);
 
 			GpuParameterSampledTexture SkyReflectionsTexParam;
 			GpuParameterSampledTexture AmbientOcclusionTexParam;
@@ -135,19 +118,7 @@ namespace b3d
 
 			GpuParameterSampledTexture PreintegratedEnvBrdfParameter;
 			GpuParameterStorageBuffer ReflectionProbesParameter;
-
-			GpuParameterStorageBuffer ReflectionProbeIndicesParameter;
-			GpuParameterUniformBuffer ReflectionProbeUniformBufferParameter;
-
-			// Only utilized when standard forward rendering is used
-			GpuParameterUniformBuffer ReflectionProbesUniformBufferParameter;
 		};
-
-		B3D_UNIFORM_BUFFER_BEGIN(ReflProbesUniformDefinition)
-			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(ReflectioneProbeData, gReflectionProbes, kStandardForwardMaxNumProbes)
-		B3D_UNIFORM_BUFFER_END
-
-		extern ReflProbesUniformDefinition gReflProbesUniformDefinition;
 
 		/** @} */
 	} // namespace render

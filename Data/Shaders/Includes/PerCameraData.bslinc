@@ -1,9 +1,11 @@
+#include "$ENGINE$\RendererPassInput.bslinc"
+
 mixin PerCameraData
 {
 	code
 	{
 		[internal]
-		cbuffer PerCamera
+		B3D_RENDERER_PASS_INPUT(cbuffer PerCamera, b0)
 		{
 			float3	 gViewDir;
 			float3 	 gViewOrigin;

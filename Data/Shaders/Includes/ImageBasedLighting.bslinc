@@ -1,3 +1,4 @@
+#include "$ENGINE$\RendererPassInput.bslinc"
 #include "$ENGINE$\ReflectionCubemapCommon.bslinc"
 
 mixin ImageBasedLighting
@@ -18,20 +19,22 @@ mixin ImageBasedLighting
 			uint type; // 0 - Sphere, 1 - Box
 			float2 padding;
 		};
-	
+
+		// Surface shaders read these through set 2, which has no material to apply the sampler states declared here. The
+		// renderer assigns matching states there, so keep both in sync.
 		[internal]
-		TextureCube gSkyReflectionTex;
-		SamplerState gSkyReflectionSamp;
-		
+		B3D_RENDERER_PASS_INPUT(TextureCube gSkyReflectionTex, t12);
+		B3D_RENDERER_PASS_INPUT(SamplerState gSkyReflectionSamp, s13);
+
 		[internal]
-		TextureCubeArray gReflProbeCubemaps;
-		SamplerState gReflProbeSamp;
-		
+		B3D_RENDERER_PASS_INPUT(TextureCubeArray gReflProbeCubemaps, t14);
+		B3D_RENDERER_PASS_INPUT(SamplerState gReflProbeSamp, s15);
+
 		[internal]
-		Texture2D gAmbientOcclusionTex;
-		
+		B3D_RENDERER_PASS_INPUT(Texture2D gAmbientOcclusionTex, t16);
+
 		[internal] [alias(gAmbientOcclusionTex)]
-		SamplerState gAmbientOcclusionSamp
+		B3D_RENDERER_PASS_INPUT(SamplerState gAmbientOcclusionSamp, s17)
 		{
 			Filter = MIN_MAG_MIP_POINT;
 			AddressU = CLAMP;
@@ -39,10 +42,10 @@ mixin ImageBasedLighting
 		};
 		
 		[internal]
-		Texture2D gSSRTex;
-		
+		B3D_RENDERER_PASS_INPUT(Texture2D gSSRTex, t18);
+
 		[internal] [alias(gSSRTex)]
-		SamplerState gSSRSamp
+		B3D_RENDERER_PASS_INPUT(SamplerState gSSRSamp, s19)
 		{
 			Filter = MIN_MAG_MIP_POINT;
 			AddressU = CLAMP;
@@ -50,10 +53,10 @@ mixin ImageBasedLighting
 		};
 		
 		[internal]
-		Texture2D gPreintegratedEnvBRDF;
-		
+		B3D_RENDERER_PASS_INPUT(Texture2D gPreintegratedEnvBRDF, t20);
+
 		[internal] [alias(gPreintegratedEnvBRDF)]
-		SamplerState gPreintegratedEnvBRDFSamp
+		B3D_RENDERER_PASS_INPUT(SamplerState gPreintegratedEnvBRDFSamp, s21)
 		{
 			Filter = MIN_MAG_MIP_LINEAR;
 			AddressU = CLAMP;
@@ -61,7 +64,7 @@ mixin ImageBasedLighting
 		};
 		
 		[internal]
-		cbuffer ReflProbeParams
+		B3D_RENDERER_PASS_INPUT(cbuffer ReflProbeParams, b11)
 		{
 			uint gReflCubemapNumMips;
 			uint gNumProbes;
@@ -191,9 +194,4 @@ mixin ImageBasedLighting
 	};
 };
 
-// Hackish way of "instantiating" two versions of a mixin (to be removed when template/specialization support is added)
 #include "$ENGINE$\ReflProbeAccumulator.bslinc"
-
-#define USE_UNIFORM_BUFFER
-#include "$ENGINE$\ReflProbeAccumulator.bslinc"
-#undef USE_UNIFORM_BUFFER

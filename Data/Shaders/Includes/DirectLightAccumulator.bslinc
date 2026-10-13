@@ -1,36 +1,23 @@
-// 
-// Contains helper mixin used for initializing different forms of light accumulation. Can be removed 
-// when template/specialization support for mixins is added to BSL.
+//
+// Accumulates direct lighting from the lights selected by light grid or compute shader indices.
 //
 
-#ifdef USE_UNIFORM_BUFFER
-mixin LightAccumulatorDirect
-#else
+#include "$ENGINE$\RendererPassInput.bslinc"
+
 mixin LightAccumulatorIndexed
-#endif
 {
 	code
 	{
-		#ifdef USE_UNIFORM_BUFFER
-			#define MAX_LIGHTS 8
-			
-			[internal]
-			cbuffer Lights
-			{
-				LightData gLights[MAX_LIGHTS];
-			}
-		#else
-			#define MAX_LIGHTS 512 // Arbitrary limit, increase if needed
+		#define MAX_LIGHTS 512 // Arbitrary limit, increase if needed
+	
+		#ifdef USE_COMPUTE_INDICES
+			groupshared uint gLightIndices[MAX_LIGHTS];
+			StructuredBuffer<LightData> gLights;
+		#endif
 		
-			#ifdef USE_COMPUTE_INDICES
-				groupshared uint gLightIndices[MAX_LIGHTS];
-				StructuredBuffer<LightData> gLights;
-			#endif
-			
-			#ifdef USE_LIGHT_GRID_INDICES
-				Buffer<uint> gLightIndices;
-				StructuredBuffer<LightData> gLights;
-			#endif
+		#ifdef USE_LIGHT_GRID_INDICES
+			B3D_RENDERER_PASS_INPUT(Buffer<uint> gLightIndices, t7);
+			B3D_RENDERER_PASS_INPUT(StructuredBuffer<LightData> gLights, t8);
 		#endif
 		
 		float4 getDirectLighting(float3 worldPos, float3 V, float3 R, SurfaceData surfaceData, uint4 lightOffsets)
@@ -55,11 +42,7 @@ mixin LightAccumulatorIndexed
 				[loop]
 				for (uint j = lightOffsets.y; j < lightOffsets.z; ++j)
 				{
-					#ifdef USE_UNIFORM_BUFFER
-					uint lightIdx = j;
-					#else
 					uint lightIdx = gLightIndices[j];
-					#endif
 					
 					LightData lightData = gLights[lightIdx];
 					outLuminance += getLuminanceRadial(lightData, worldPos, V, R, roughness2, surfaceData);
@@ -69,11 +52,7 @@ mixin LightAccumulatorIndexed
 				[loop]
 				for(uint k = lightOffsets.z; k < lightOffsets.w; ++k)
 				{
-					#ifdef USE_UNIFORM_BUFFER
-					uint lightIdx = k;
-					#else
 					uint lightIdx = gLightIndices[k];
-					#endif
 					
 					LightData lightData = gLights[lightIdx];
 					outLuminance += getLuminanceSpot(lightData, worldPos, V, R, roughness2, surfaceData);

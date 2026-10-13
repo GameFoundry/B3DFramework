@@ -63,7 +63,8 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(GpuDe
 		const u32 passCount = materialParameterAdapter->GetPassCount();
 
 		// First pass: determine if we need to override and count sampler states
-		// All materials should only use set 0
+		// Only set 0 holds material parameters; the other sets hold renderer inputs. Set 0 is null if the pass has no
+		// material parameters.
 		u32 totalNumSamplerStates = 0;
 		u32* slotsPerPass = (u32*)B3DStackAllocate<u32>(passCount);
 		memset(slotsPerPass, 0, sizeof(u32) * passCount);
@@ -71,7 +72,8 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(GpuDe
 		for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 		{
 			TShared<GpuParameterSet> gpuParameters = materialParameterAdapter->GetGpuParameterSet(passIndex);
-			B3D_ASSERT(gpuParameters->GetSet() == 0 && "Materials should only use set 0");
+			if(gpuParameters == nullptr)
+				continue;
 
 			const TShared<GpuPipelineParameterSetLayout> layoutSet = gpuParameters->GetLayout();
 			const u32 samplerCount = layoutSet->GetBindingCount(GpuParameterType::Sampler);
@@ -105,7 +107,6 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(GpuDe
 		for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 		{
 			TShared<GpuParameterSet> paramsPtr = materialParameterAdapter->GetGpuParameterSet(passIndex);
-			const TShared<GpuPipelineParameterSetLayout> layoutSet = paramsPtr->GetLayout();
 
 			PassSamplerOverrides& passOverrides = output->Passes[passIndex];
 			passOverrides.NumSets = 1; // All materials use only set 0
@@ -119,7 +120,11 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(GpuDe
 			for(u32 slotIndex = 0; slotIndex < slotsPerPass[passIndex]; slotIndex++)
 				passOverrides.StateOverrides[0][slotIndex] = (u32)-1;
 
+			if(paramsPtr == nullptr)
+				continue;
+
 			// Fill in sampler overrides
+			const TShared<GpuPipelineParameterSetLayout> layoutSet = paramsPtr->GetLayout();
 			const u32 samplerCount = layoutSet->GetBindingCount(GpuParameterType::Sampler);
 			for(u32 samplerIndex = 0; samplerIndex < samplerCount; ++samplerIndex)
 			{

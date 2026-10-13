@@ -16,7 +16,7 @@ DecalUniformDefinition gDecalUniformDefinition;
 void DecalDrawCommand::Draw(GpuCommandBuffer& commandBuffer) const
 {
 	const u32 decalDynamicOffsetIndex = GetRenderBeast()->GetDecalParameterSetInfo().DecalDynamicOffsetIndex;
-	commandBuffer.SetDynamicBufferOffset(GpuPipelineSet::kPerObject, decalDynamicOffsetIndex, DecalParamBufferOffset);
+	commandBuffer.SetDynamicBufferOffset(GpuPipelineSet::kPerObjectSetIndex, decalDynamicOffsetIndex, DecalParamBufferOffset);
 
 	GetRendererUtility().Draw(commandBuffer, Mesh, SubMesh);
 }

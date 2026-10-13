@@ -20,60 +20,45 @@
 namespace b3d {
 namespace render {
 
-template <bool LOCK_Y, bool GPU, bool IS_3D, ParticleForwardLightingType FWD>
+template <bool LOCK_Y, bool GPU, bool IS_3D>
 const ShaderVariationParameters& GetParticleShaderVariationInternal(ParticleOrientation orient)
 {
 	switch(orient)
 	{
 	default:
 	case ParticleOrientation::ViewPlane:
-		return GetParticleShaderVariation<ParticleOrientation::ViewPlane, LOCK_Y, GPU, IS_3D, FWD>();
+		return GetParticleShaderVariation<ParticleOrientation::ViewPlane, LOCK_Y, GPU, IS_3D>();
 	case ParticleOrientation::ViewPosition:
-		return GetParticleShaderVariation<ParticleOrientation::ViewPosition, LOCK_Y, GPU, IS_3D, FWD>();
+		return GetParticleShaderVariation<ParticleOrientation::ViewPosition, LOCK_Y, GPU, IS_3D>();
 	case ParticleOrientation::Plane:
-		return GetParticleShaderVariation<ParticleOrientation::Plane, LOCK_Y, GPU, IS_3D, FWD>();
+		return GetParticleShaderVariation<ParticleOrientation::Plane, LOCK_Y, GPU, IS_3D>();
 	}
 }
 
-template <bool GPU, bool IS_3D, ParticleForwardLightingType FWD>
+template <bool GPU, bool IS_3D>
 const ShaderVariationParameters& GetParticleShaderVariationInternal(ParticleOrientation orient, bool lockY)
 {
 	if(lockY)
-		return GetParticleShaderVariationInternal<true, GPU, IS_3D, FWD>(orient);
+		return GetParticleShaderVariationInternal<true, GPU, IS_3D>(orient);
 
-	return GetParticleShaderVariationInternal<false, GPU, IS_3D, FWD>(orient);
+	return GetParticleShaderVariationInternal<false, GPU, IS_3D>(orient);
 }
 
-template <bool IS_3D, ParticleForwardLightingType FWD>
+template <bool IS_3D>
 const ShaderVariationParameters& GetParticleShaderVariationInternal(ParticleOrientation orient, bool lockY, bool gpu)
 {
 	if(gpu)
-		return GetParticleShaderVariationInternal<true, IS_3D, FWD>(orient, lockY);
+		return GetParticleShaderVariationInternal<true, IS_3D>(orient, lockY);
 
-	return GetParticleShaderVariationInternal<false, IS_3D, FWD>(orient, lockY);
+	return GetParticleShaderVariationInternal<false, IS_3D>(orient, lockY);
 }
 
-template <ParticleForwardLightingType FWD>
-const ShaderVariationParameters& GetParticleShaderVariationInternal(ParticleOrientation orient, bool lockY, bool gpu, bool is3D)
+const ShaderVariationParameters& GetParticleShaderVariationParameters(ParticleOrientation orient, bool lockY, bool gpu, bool is3D)
 {
 	if(is3D)
-		return GetParticleShaderVariationInternal<true, FWD>(orient, lockY, gpu);
+		return GetParticleShaderVariationInternal<true>(orient, lockY, gpu);
 
-	return GetParticleShaderVariationInternal<false, FWD>(orient, lockY, gpu);
-}
-
-const ShaderVariationParameters& GetParticleShaderVariationParameters(ParticleOrientation orient, bool lockY, bool gpu, bool is3D, ParticleForwardLightingType forwardLighting)
-{
-	switch(forwardLighting)
-	{
-	default:
-	case ParticleForwardLightingType::None:
-		return GetParticleShaderVariationInternal<ParticleForwardLightingType::None>(orient, lockY, gpu, is3D);
-	case ParticleForwardLightingType::Clustered:
-		return GetParticleShaderVariationInternal<ParticleForwardLightingType::Clustered>(orient, lockY, gpu, is3D);
-	case ParticleForwardLightingType::Standard:
-		return GetParticleShaderVariationInternal<ParticleForwardLightingType::Standard>(orient, lockY, gpu, is3D);
-	}
+	return GetParticleShaderVariationInternal<false>(orient, lockY, gpu);
 }
 
 ParticlesUniformDefinition gParticlesUniformDefinition;
@@ -108,7 +93,7 @@ void ParticlesDrawCommand::Draw(GpuCommandBuffer& commandBuffer) const
 		if(IsGpuSimulated)
 		{
 			const u32 gpuParticlesDynamicOffsetIndex = GetRenderBeast()->GetGpuParticlesParameterSetInfo().GpuParticlesDynamicOffsetIndex;
-			commandBuffer.SetDynamicBufferOffset(GpuPipelineSet::kPerObject, gpuParticlesDynamicOffsetIndex, GpuParticlesParamBufferOffset);
+			commandBuffer.SetDynamicBufferOffset(GpuPipelineSet::kPerObjectSetIndex, gpuParticlesDynamicOffsetIndex, GpuParticlesParamBufferOffset);
 		}
 
 		if(Is3D)
@@ -118,7 +103,7 @@ void ParticlesDrawCommand::Draw(GpuCommandBuffer& commandBuffer) const
 	}
 }
 
-void ParticleRenderState::BindCpuSimulatedInputs(const ParticleSystemProxy& proxy, const ParticleRenderData* renderData, const RendererView& view) const
+void ParticleRenderState::BindCpuSimulatedInputs(const ParticleSystemProxy& proxy, const ParticleRenderData* renderData) const
 {
 	ParticleTexturePool& particlesTexPool = ParticleRenderer::Instance().GetTexturePool();
 
@@ -159,10 +144,9 @@ void ParticleRenderState::BindCpuSimulatedInputs(const ParticleSystemProxy& prox
 	DrawCommand.NumParticles = renderData->NumParticles;
 
 	PopulateAndBindParticlesUniformBuffer(proxy, texSize, 0);
-	DrawCommand.PerCameraUniformBufferParameter.Set(view.GetPerViewBuffer());
 }
 
-void ParticleRenderState::BindGpuSimulatedInputs(const ParticleSystemProxy& proxy, const GpuParticleResources& gpuSimResources, const RendererView& view) const
+void ParticleRenderState::BindGpuSimulatedInputs(const ParticleSystemProxy& proxy, const GpuParticleResources& gpuSimResources) const
 {
 	const GpuParticleStateTextures& gpuSimStateTextures = gpuSimResources.GetCurrentState();
 	const GpuParticleStaticTextures& gpuSimStaticTextures = gpuSimResources.GetStaticTextures();
@@ -187,7 +171,6 @@ void ParticleRenderState::BindGpuSimulatedInputs(const ParticleSystemProxy& prox
 	}
 
 	PopulateAndBindParticlesUniformBuffer(proxy, GpuParticleConstants::kTexSize, bufferOffset);
-	DrawCommand.PerCameraUniformBufferParameter.Set(view.GetPerViewBuffer());
 }
 
 void ParticleRenderState::PopulateAndBindParticlesUniformBuffer(const ParticleSystemProxy& proxy, i32 texSize, i32 bufferOffset) const

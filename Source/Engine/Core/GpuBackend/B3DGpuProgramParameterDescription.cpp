@@ -23,7 +23,10 @@ Result GpuProgramParameterDescription::TryCombine(const GpuProgramParameterDescr
 			if(found->second.Slot != uniformBuffer.Slot)
 				return Result::Fail("Uniform buffer slot mismatch.", ResultStatus::Failed, StringUtility::Format("Uniform buffer '{0}' has slot {1}, but expected {2}.", uniformBuffer.Name, uniformBuffer.Slot, found->second.Slot));
 
-			if(found->second.Size != uniformBuffer.Size)
+			// Zero size means the stage's reflection doesn't know it (see GpuUniformBufferInformation::Size)
+			if(found->second.Size == 0)
+				found->second.Size = uniformBuffer.Size;
+			else if(uniformBuffer.Size != 0 && found->second.Size != uniformBuffer.Size)
 				return Result::Fail("Uniform buffer size mismatch.", ResultStatus::Failed, StringUtility::Format("Uniform buffer '{0}' has size {1}, but expected {2}.", uniformBuffer.Name, uniformBuffer.Size, found->second.Size));
 
 			if(found->second.UsesDynamicOffset != uniformBuffer.UsesDynamicOffset)

@@ -561,7 +561,7 @@ namespace b3d
 								const GpuBufferSuballocation& perObjectSuballocation = command.Renderable->PerObjectSuballocation;
 								TShared<GpuParameterSet> shadowParameterSet = opt.GetShadowParameterSet(command.Renderable); // TODO - Should sort objects by set if possible, to avoid switching sets
 								commandBuffer.SetGpuParameterSet(shadowParameterSet);
-								commandBuffer.SetDynamicBufferOffset(GpuPipelineSet::kPerObject, perObjectDynamicOffsetIndex, perObjectSuballocation.GetSuballocationOffset());
+								commandBuffer.SetDynamicBufferOffset(GpuPipelineSet::kPerObjectSetIndex, perObjectDynamicOffsetIndex, perObjectSuballocation.GetSuballocationOffset());
 							}
 						}
 					}
@@ -848,8 +848,8 @@ namespace b3d
 			{
 				GpuUniformBufferInformation perObjectInfo;
 				perObjectInfo.Name = "PerObject";
-				perObjectInfo.Set = GpuPipelineSet::kPerObject;
-				perObjectInfo.Slot = gpuDevice->GetUniformBufferParameterSlot(0);
+				perObjectInfo.Set = GpuPipelineSet::kPerObjectSetIndex;
+				perObjectInfo.Slot = gpuDevice->GetParameterSlot(ShaderRegisterClass::ConstantBuffer, 0);
 				perObjectInfo.Size = Math::CeilToMultiple(gPerObjectUniformDefinition.GetSize() / 4u, 4u);
 				perObjectInfo.Stages = GpuProgramStageBit::Vertex | GpuProgramStageBit::Geometry;
 				perObjectInfo.IsShareable = true;
@@ -882,7 +882,7 @@ namespace b3d
 				return iter->second.ParameterSet;
 
 			GpuParameterSetPool& pool = GetRenderer()->GetGpuContext().GetParameterSetPool();
-			TShared<GpuParameterSet> parameterSet = pool.Create(mCubemapShadowPerObjectLayout, GpuPipelineSet::kPerObject);
+			TShared<GpuParameterSet> parameterSet = pool.Create(mCubemapShadowPerObjectLayout, GpuPipelineSet::kPerObjectSetIndex);
 			parameterSet->SetUniformBuffer("PerObject", perObjectBuffer, 0);
 
 			CubemapShadowParameterSetEntry entry;

@@ -1,36 +1,23 @@
-// 
-// Contains helper mixin used for initializing different forms of refl. probe accumulation. Can be removed 
-// when template/specialization support for mixins is added to BSL.
+//
+// Accumulates reflections from the reflection probes selected by light grid or compute shader indices.
 //
 
-#ifdef USE_UNIFORM_BUFFER
-mixin ReflProbeAccumulatorDirect
-#else
+#include "$ENGINE$\RendererPassInput.bslinc"
+
 mixin ReflProbeAccumulatorIndexed
-#endif
 {
 	code
 	{
-		#ifdef USE_UNIFORM_BUFFER
-			#define MAX_PROBES 8
-			
-			[internal]
-			cbuffer ReflProbes
-			{
-				ReflProbeData gReflectionProbes[MAX_PROBES];
-			}
-		#else
-			#define MAX_PROBES 512 // Arbitrary limit, increase if needed
+		#define MAX_PROBES 512 // Arbitrary limit, increase if needed
+	
+		#ifdef USE_COMPUTE_INDICES
+			groupshared uint gReflectionProbeIndices[MAX_PROBES];
+			StructuredBuffer<ReflProbeData> gReflectionProbes;
+		#endif
 		
-			#ifdef USE_COMPUTE_INDICES
-				groupshared uint gReflectionProbeIndices[MAX_PROBES];
-				StructuredBuffer<ReflProbeData> gReflectionProbes;
-			#endif
-			
-			#ifdef USE_LIGHT_GRID_INDICES
-				Buffer<uint> gReflectionProbeIndices;
-				StructuredBuffer<ReflProbeData> gReflectionProbes;
-			#endif
+		#ifdef USE_LIGHT_GRID_INDICES
+			B3D_RENDERER_PASS_INPUT(Buffer<uint> gReflectionProbeIndices, t9);
+			B3D_RENDERER_PASS_INPUT(StructuredBuffer<ReflProbeData> gReflectionProbes, t10);
 		#endif
 		
 		float3 gatherReflectionRadiance(float3 worldPos, float3 dir, float roughness, float alpha, float3 specularColor, uint probeOffset, uint numProbes)
@@ -47,11 +34,7 @@ mixin ReflProbeAccumulatorIndexed
 				if(alpha < 0.001f)
 					break;
 						
-				#ifdef USE_UNIFORM_BUFFER
-				uint probeIdx = probeOffset + i;
-				#else
 				uint probeIdx = gReflectionProbeIndices[probeOffset + i];
-				#endif
 				
 				ReflProbeData probeData = gReflectionProbes[probeIdx];
 				float4 probeValue = evaluateProbe(worldPos, dir, mipLevel, probeData);

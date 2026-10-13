@@ -25,9 +25,6 @@ namespace b3d
 			u32 TypeArrayIndex = 0;
 		};
 
-		/** Maximum number of lights that can influence an object when basic forward rendering is used. */
-		static constexpr u32 kStandardForwardMaxNumLights = 8;
-
 		/** Information about a single light, as seen by the lighting shader. */
 		struct LightData
 		{
@@ -97,52 +94,6 @@ namespace b3d
 			GpuParameterSampledTexture mGBufferDepth;
 		};
 
-		/** Helper struct containing all parameters required for forward lighting. */
-		struct ForwardLightingParams
-		{
-			/**
-			 * Initializes the parameters from the provided parameters.
-			 *
-			 * @param[in]	params		GPU parameters object to look for the parameters in.
-			 * @param[in]	clustered	If true, set up parameters for clustered forward rendering. If false, set up parameters
-			 *							for normal forward rendering.
-			 */
-			void Populate(const TShared<GpuParameterSet>& params, bool clustered);
-
-			/** Parameter used for binding the light grid uniform buffer. */
-			GpuParameterUniformBuffer GridUniformBufferParameter;
-
-			/**
-			 * Parameter to which to bind a buffer containing light grid offsets and size, per grid cell. Used for forward
-			 * rendering.
-			 */
-			GpuParameterStorageBuffer GridLightOffsetsAndSizeParameter;
-
-			/** Parameter to which to bind a buffer containing all light indices, as mapped by grid offsets & size. */
-			GpuParameterStorageBuffer GridLightIndicesParameter;
-
-			/** Parameter to which to bind light buffer used for forward rendering. */
-			GpuParameterStorageBuffer LightsBufferParameter;
-
-			/**
-			 * Parameter to which to bind a buffer containing reflection probe grid offsets and size, per grid cell. Used for
-			 * forward rendering.
-			 */
-			GpuParameterStorageBuffer GridProbeOffsetsAndSizeParameter;
-
-			/**
-			 * Parameter used for binding a uniform block containing a list of lights influencing this object. Only used when standard
-			 * (non-clustered) forward rendering is used.
-			 */
-			GpuParameterUniformBuffer LightsUniformBufferParameter;
-
-			/**
-			 * Parameter used for binding a uniform buffer that contains the number of lights and reflection probes in the light/refl. probe
-			 * uniform buffers. Only used when standard (non-clustered) forward rendering is used.
-			 */
-			GpuParameterUniformBuffer LightAndReflectionProbeUniformBufferParameter;
-		};
-
 		/**
 		 * Contains lights that are visible from a specific set of views, determined by scene information provided to
 		 * setLights().
@@ -160,19 +111,6 @@ namespace b3d
 
 			/** Returns a GPU bindable buffer containing information about every light. */
 			TShared<GpuBuffer> GetLightBuffer() const { return mLightBuffer; }
-
-			/**
-			 * Scans the list of lights visible in the view frustum to find the ones influencing the object described by
-			 * the provided bounds. A maximum number of STANDARD_FORWARD_MAX_NUM_LIGHTS will be output. If there are more
-			 * influencing lights, only the most important ones will be returned.
-			 *
-			 * The lights will be output in the following order: directional, radial, spot. @p counts will contain the number
-			 * of directional lights (component 'x'), number of radial lights (component 'y') and number of spot lights
-			 * (component 'z');
-			 *
-			 * update() must have been called with most recent scene/view information before calling this method.
-			 */
-			void GatherInfluencingLights(const Bounds& bounds, const LightData* (&output)[kStandardForwardMaxNumLights], Vector3I& counts) const;
 
 			/** Returns the number of directional lights in the lights buffer. */
 			u32 GetDirectionalLightCount() const { return mLightCounts[0]; }
@@ -205,19 +143,6 @@ namespace b3d
 			Vector<PackedRendererId> mVisibleLights[(u32)LightType::Count];
 			Vector<LightData> mVisibleLightData;
 		};
-
-		B3D_UNIFORM_BUFFER_BEGIN(LightsUniformDefinition)
-			B3D_UNIFORM_BUFFER_MEMBER_ARRAY(LightData, gLights, kStandardForwardMaxNumLights)
-		B3D_UNIFORM_BUFFER_END
-
-		extern LightsUniformDefinition gLightsUniformDefinition;
-
-		B3D_UNIFORM_BUFFER_BEGIN(LightAndReflProbeParamsUniformDefinition)
-			B3D_UNIFORM_BUFFER_MEMBER(Vector4I, gLightOffsets)
-			B3D_UNIFORM_BUFFER_MEMBER(int, gReflProbeCount)
-		B3D_UNIFORM_BUFFER_END
-
-		extern LightAndReflProbeParamsUniformDefinition gLightAndReflProbeParamsUniformDefinition;
 
 		/** @} */
 	} // namespace render

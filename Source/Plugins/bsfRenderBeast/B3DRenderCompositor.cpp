@@ -33,8 +33,10 @@ namespace b3d { namespace render {
 UnorderedMap<StringID, RenderCompositor::NodeDescriptor*> RenderCompositor::mNodeDescriptors;
 
 /** Prepares a render pass by registering all required parameter sets from the render queue elements. */
-void PrepareRenderQueuePass(RenderPassCreateInformation& passInfo, const Vector<RenderQueueEntry>& entries)
+void PrepareRenderQueuePass(RenderPassCreateInformation& passInfo, const Vector<RenderQueueEntry>& entries, const SurfaceShaderParameterSets& surfaceShaderParameterSets)
 {
+	surfaceShaderParameterSets.DeclareSets(passInfo, entries);
+
 	TInlineArray<TShared<GpuParameterSet>, 4> perObjectParameterSets;
 
 	for(const auto& entry : entries)
@@ -54,13 +56,14 @@ void PrepareRenderQueuePass(RenderPassCreateInformation& passInfo, const Vector<
 }
 
 /** Renders all elements in a render queue. */
-void RenderQueueEntries(GpuCommandBuffer& commandBuffer, const Vector<RenderQueueEntry>& entries)
+void RenderQueueEntries(GpuCommandBuffer& commandBuffer, const Vector<RenderQueueEntry>& entries, const SurfaceShaderParameterSets& surfaceShaderParameterSets)
 {
 	// TODO: Consider sorting elements by SharedPerObjectParameterSet to minimize parameter set rebinds.
 	// Currently respecting existing RenderQueue sorting rules (material, distance, etc.).
 
 	const u32 perObjectDynamicOffsetIndex = GetRenderBeast()->GetRenderableParameterSetInfo().PerObjectDynamicOffsetIndex;
 	TShared<GpuParameterSet> lastBoundPerObjectSet;
+	u32 boundShaderType = ~0u;
 
 	for(auto& entry : entries)
 	{
@@ -78,7 +81,9 @@ void RenderQueueEntries(GpuCommandBuffer& commandBuffer, const Vector<RenderQueu
 		}
 
 		// Set the dynamic buffer offset for this element's per-object data
-		commandBuffer.SetDynamicBufferOffset(GpuPipelineSet::kPerObject, perObjectDynamicOffsetIndex, entry.DrawCommand->PerObjectBufferOffset);
+		commandBuffer.SetDynamicBufferOffset(GpuPipelineSet::kPerObjectSetIndex, perObjectDynamicOffsetIndex, entry.DrawCommand->PerObjectBufferOffset);
+
+		surfaceShaderParameterSets.Bind(commandBuffer, entry, boundShaderType);
 
 		GetRendererUtility().SetPassParams(commandBuffer, entry.DrawCommand->ParameterAdapter, entry.PassIndex);
 
@@ -402,21 +407,10 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	}
 
 	// Prepare all visible objects. Note that this also prepares non-opaque objects.
-
-	//// Prepare normal renderables
 	const VisibilityInfo& visibility = inputs.View.GetVisibilityMasks();
-	const auto renderableCount = inputs.Scene.GetRenderableCount();
-	for(u32 i = 0; i < renderableCount; i++)
-	{
-		if(!visibility.Renderables[i])
-			continue;
 
-		for(auto& drawCommand : inputs.Scene.GetRenderable(i)->DrawCommands)
-		{
-			drawCommand.PerFrameUniformBufferParameter.Set(inputs.Scene.GetPerFrameSuballocation());
-			drawCommand.PerCameraUniformBufferParameter.Set(inputs.View.GetPerViewBuffer());
-		}
-	}
+	mSurfaceShaderParameterSets.Prepare(inputs.View, inputs.Scene);
+	mSurfaceShaderParameterSets.SetDecalInputs(sceneDepthTex->Texture, IdTex->Texture);
 
 	//// Prepare particle systems
 	const EvaluatedParticleData* particleData = inputs.FrameInfo.PerSceneFrameData.Particles;
@@ -443,30 +437,14 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 			if(iterFind != particleData->CpuData.end())
 			{
 				ParticleRenderData* renderData = iterFind->second;
-				renderState.BindCpuSimulatedInputs(proxy, renderData, inputs.View);
+				renderState.BindCpuSimulatedInputs(proxy, renderData);
 			}
 			// Bind textures/buffers from GPU simulation
 			else if(renderState.GpuParticleSystem)
 			{
-				renderState.BindGpuSimulatedInputs(proxy, gpuSimResources, inputs.View);
+				renderState.BindGpuSimulatedInputs(proxy, gpuSimResources);
 			}
 		}
-	}
-
-	//// Prepare decals
-	const auto decalCount = inputs.Scene.GetDecalCount();
-	for(u32 i = 0; i < decalCount; i++)
-	{
-		if(!visibility.Decals[i])
-			continue;
-
-		const DecalRenderState& renderState = inputs.Scene.GetDecalRenderState(i);
-		DecalDrawCommand& drawCommand = renderState.DrawCommand;
-
-		drawCommand.PerFrameUniformBufferParameter.Set(inputs.Scene.GetPerFrameSuballocation());
-		drawCommand.PerCameraUniformBufferParameter.Set(inputs.View.GetPerViewBuffer());
-		drawCommand.DepthInputTexture.Set(sceneDepthTex->Texture);
-		drawCommand.MaskInputTexture.Set(IdTex->Texture);
 	}
 
 	Camera* sceneCamera = inputs.View.GetSceneCamera();
@@ -515,12 +493,12 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	// Collect all GpuParameters that will be used in the base pass
 	const Vector<RenderQueueEntry>& opaqueEntries = inputs.View.GetOpaqueQueue(false)->GetSortedEntries();
 	RenderPassCreateInformation basePassInfo(RenderTarget, RT_NONE, RT_ALL);
-	PrepareRenderQueuePass(basePassInfo, opaqueEntries);
+	PrepareRenderQueuePass(basePassInfo, opaqueEntries, mSurfaceShaderParameterSets);
 
 	commandBuffer.BeginRenderPass(basePassInfo);
 
 	// Render all visible opaque elements that use the deferred pipeline
-	RenderQueueEntries(commandBuffer, opaqueEntries);
+	RenderQueueEntries(commandBuffer, opaqueEntries, mSurfaceShaderParameterSets);
 
 	commandBuffer.EndRenderPass();
 
@@ -556,11 +534,11 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	// Render decals after all normal objects, using a read-only depth buffer
 	const Vector<RenderQueueEntry>& decalEntries = inputs.View.GetDecalQueue()->GetSortedEntries();
 	RenderPassCreateInformation decalPassInfo(RenderTargetNoMask, RT_DEPTH, RT_ALL);
-	PrepareRenderQueuePass(decalPassInfo, decalEntries);
+	PrepareRenderQueuePass(decalPassInfo, decalEntries, mSurfaceShaderParameterSets);
 
 	commandBuffer.BeginRenderPass(decalPassInfo);
 
-	RenderQueueEntries(commandBuffer, decalEntries);
+	RenderQueueEntries(commandBuffer, decalEntries, mSurfaceShaderParameterSets);
 
 	// Trigger post-base-pass callbacks
 	if(sceneCamera != nullptr)
@@ -606,8 +584,7 @@ void RCNodeSceneColor::Render(const RenderCompositorNodeInputs& inputs)
 
 	TextureUsageFlags usageFlags = TextureUsageFlag::RenderTarget;
 
-	bool tiledDeferredSupported = inputs.FeatureSet != RenderBeastFeatureSet::DesktopMacOS;
-	if(tiledDeferredSupported && numSamples == 1)
+	if(numSamples == 1)
 		usageFlags |= TextureUsageFlag::AllowUnorderedAccessOnTheGPU;
 
 	// Note: Consider customizable HDR format via options? e.g. smaller PF_FLOAT_R11G11B10 or larger 32-bit format
@@ -617,7 +594,7 @@ void RCNodeSceneColor::Render(const RenderCompositorNodeInputs& inputs)
 	RCNodeSceneDepth* sceneDepthNode = dependencies.Get<RCNodeSceneDepth>();
 	TShared<PooledRenderTexture> sceneDepthTex = sceneDepthNode->DepthTex;
 
-	if(tiledDeferredSupported && viewProps.Target.NumSamples > 1)
+	if(viewProps.Target.NumSamples > 1)
 	{
 		SceneColorTexArray = resPool.Get(PooledRenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, TextureUsageFlag::AllowUnorderedAccessOnTheGPU, 1, false, viewProps.Target.NumSamples));
 	}
@@ -838,18 +815,6 @@ void RCNodeLightAccumulation::Render(const RenderCompositorNodeInputs& inputs)
 {
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
 
-	bool supportsTiledDeferred = GetRenderBeast()->GetFeatureSet() != RenderBeastFeatureSet::DesktopMacOS;
-	if(!supportsTiledDeferred)
-	{
-		// If tiled deferred is not supported, we don't need a separate texture for light accumulation, instead we
-		// use scene color directly
-		RCNodeSceneColor* sceneColorNode = dependencies.Get<RCNodeSceneColor>();
-		LightAccumulationTex = sceneColorNode->SceneColorTex;
-		RenderTarget = sceneColorNode->RenderTarget;
-
-		return;
-	}
-
 	GpuResourcePool& resPool = GetGpuResourcePool();
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 
@@ -933,15 +898,7 @@ void RCNodeLightAccumulation::Clear()
 
 RCNodeLightAccumulation::DependencyDefinition RCNodeLightAccumulation::GetDependencyDefinition()
 {
-	auto fnSupportsTiledDeferred = [](const RendererView& view)
-	{
-		return GetRenderBeast()->GetFeatureSet() != RenderBeastFeatureSet::DesktopMacOS;
-	};
-
-	static const DependencyDefinition kDependencyDefinition = DependencyDefinition()
-		.ConditionalEnable<RCNodeSceneColor>([fnSupportsTiledDeferred](const RendererView& view) { return !fnSupportsTiledDeferred(view); })
-		.ConditionalEnable<RCNodeSceneDepth>(fnSupportsTiledDeferred);
-
+	static const DependencyDefinition kDependencyDefinition;
 	return kDependencyDefinition;
 }
 
@@ -967,75 +924,35 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 	if(!inputs.View.GetRenderSettings().EnableShadows)
 		mLightOcclusionRT = nullptr;
 
-	bool tiledDeferredSupported = inputs.FeatureSet != RenderBeastFeatureSet::DesktopMacOS;
-	if(tiledDeferredSupported)
+	TShared<Texture> msaaCoverage;
+	if(viewProps.Target.NumSamples > 1)
 	{
-		TShared<Texture> msaaCoverage;
-		if(viewProps.Target.NumSamples > 1)
-		{
-			RCNodeMSAACoverage* coverageNode = dependencies.Get<RCNodeMSAACoverage>();
-			msaaCoverage = coverageNode->Output->Texture;
-		}
-
-		TiledDeferredLightingMaterial* tiledDeferredMat =
-			TiledDeferredLightingMaterial::GetVariation(viewProps.Target.NumSamples);
-
-		const VisibleLightData& lightData = inputs.ViewGroup.GetVisibleLightData();
-
-		TShared<Texture> lightAccumTexArray;
-		if(Output->LightAccumulationTexArray)
-			lightAccumTexArray = Output->LightAccumulationTexArray->Texture;
-
-		tiledDeferredMat->Execute(commandBuffer, inputs.View, lightData, gbuffer, sceneColorNode->SceneColorTex->Texture, Output->LightAccumulationTex->Texture, lightAccumTexArray, msaaCoverage);
-
-		if(viewProps.Target.NumSamples > 1)
-			Output->MsaaTexArrayToTexture(commandBuffer);
-
-		// If shadows are disabled we handle all lights through tiled deferred so we can exit immediately
-		if(!inputs.View.GetRenderSettings().EnableShadows)
-			return;
+		RCNodeMSAACoverage* coverageNode = dependencies.Get<RCNodeMSAACoverage>();
+		msaaCoverage = coverageNode->Output->Texture;
 	}
 
-	// Standard deferred used for shadowed lights, or when tiled deferred isn't supported
-	u32 width = viewProps.Target.ViewRect.Width;
-	u32 height = viewProps.Target.ViewRect.Height;
-	u32 numSamples = viewProps.Target.NumSamples;
+	TiledDeferredLightingMaterial* tiledDeferredMat =
+		TiledDeferredLightingMaterial::GetVariation(viewProps.Target.NumSamples);
 
 	const VisibleLightData& lightData = inputs.ViewGroup.GetVisibleLightData();
 
-	// Render unshadowed lights
-	if(!tiledDeferredSupported)
-	{
-		ProfileGPUBlock sampleBlock(commandBuffer, "Standard deferred unshadowed lights");
+	TShared<Texture> lightAccumTexArray;
+	if(Output->LightAccumulationTexArray)
+		lightAccumTexArray = Output->LightAccumulationTexArray->Texture;
 
-		// Collect all unshadowed lights
-		Vector<PackedRendererId> unshadowedLightIds;
-		for(u32 i = 0; i < (u32)LightType::Count; i++)
-		{
-			LightType lightType = (LightType)i;
-			auto& lights = lightData.GetLights(lightType);
-			u32 count = lightData.GetUnshadowedLightCount(lightType);
+	tiledDeferredMat->Execute(commandBuffer, inputs.View, lightData, gbuffer, sceneColorNode->SceneColorTex->Texture, Output->LightAccumulationTex->Texture, lightAccumTexArray, msaaCoverage);
 
-			for(u32 j = 0; j < count; j++)
-				unshadowedLightIds.push_back(lights[j]);
-		}
+	if(viewProps.Target.NumSamples > 1)
+		Output->MsaaTexArrayToTexture(commandBuffer);
 
-		// Prepare batch (groups lights and creates instanced uniform buffers)
-		StandardDeferred::LightBatches baches = StandardDeferred::Instance().PrepareLightBatches(unshadowedLightIds, inputs.Scene, inputs.View, gbuffer, Texture::kBlack);
+	// If shadows are disabled we handle all lights through tiled deferred so we can exit immediately
+	if(!inputs.View.GetRenderSettings().EnableShadows)
+		return;
 
-		// Begin render pass with pre-declared parameters
-		// Lights blend onto the emissive light the base pass wrote
-		RenderPassCreateInformation passInfo(Output->RenderTarget, RT_DEPTH_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
-		for(const auto& [key, value] : baches.Batches)
-			passInfo.Parameters.Add(value.GpuParameters);
-
-		commandBuffer.BeginRenderPass(passInfo);
-
-		// Render all lights using dynamic offsets
-		StandardDeferred::Instance().RenderLightBatches(commandBuffer, baches);
-
-		commandBuffer.EndRenderPass();
-	}
+	// Standard deferred used for shadowed lights
+	u32 width = viewProps.Target.ViewRect.Width;
+	u32 height = viewProps.Target.ViewRect.Height;
+	u32 numSamples = viewProps.Target.NumSamples;
 
 	// Allocate light occlusion
 	TShared<PooledRenderTexture> lightOcclusionTex = GetGpuResourcePool().Get(
@@ -1244,194 +1161,32 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 
-	bool tiledDeferredSupported = inputs.FeatureSet != RenderBeastFeatureSet::DesktopMacOS;
-	if(tiledDeferredSupported)
+	TShared<Texture> msaaCoverage;
+	if(viewProps.Target.NumSamples > 1)
 	{
-		TShared<Texture> msaaCoverage;
-		if(viewProps.Target.NumSamples > 1)
-		{
-			RCNodeMSAACoverage* coverageNode = static_cast<RCNodeMSAACoverage*>(inputs.InputNodes[6]);
-			msaaCoverage = coverageNode->Output->Texture;
-		}
-
-		TiledDeferredImageBasedLightingMaterial* material =
-			TiledDeferredImageBasedLightingMaterial::GetVariation(viewProps.Target.NumSamples);
-
-		TiledDeferredImageBasedLightingMaterial::Inputs iblInputs;
-		iblInputs.Gbuffer = gbuffer;
-		iblInputs.SceneColorTex = sceneColorNode->SceneColorTex->Texture;
-		iblInputs.LightAccumulation = lightAccumNode->LightAccumulationTex->Texture;
-		iblInputs.PreIntegratedGf = RendererTextures::preintegratedEnvGF;
-		iblInputs.AmbientOcclusion = ssaoNode->Output;
-		iblInputs.Ssr = ssrNode->Output;
-		iblInputs.MsaaCoverage = msaaCoverage;
-
-		if(sceneColorNode->SceneColorTexArray)
-			iblInputs.SceneColorTexArray = sceneColorNode->SceneColorTexArray->Texture;
-
-		material->Execute(*inputs.ActiveCommandBuffer, inputs.View, inputs.Scene, inputs.ViewGroup.GetVisibleReflProbeData(), iblInputs);
-
-		if(viewProps.Target.NumSamples > 1)
-			sceneColorNode->MsaaTexArrayToTexture(*inputs.ActiveCommandBuffer);
+		RCNodeMSAACoverage* coverageNode = static_cast<RCNodeMSAACoverage*>(inputs.InputNodes[6]);
+		msaaCoverage = coverageNode->Output->Texture;
 	}
-	else // Standard deferred
-	{
-		TShared<RenderTexture> outputRT = lightAccumNode->RenderTarget;
 
-		u32 width = viewProps.Target.ViewRect.Width;
-		u32 height = viewProps.Target.ViewRect.Height;
-		u32 sampleCount = viewProps.Target.NumSamples;
+	TiledDeferredImageBasedLightingMaterial* material =
+		TiledDeferredImageBasedLightingMaterial::GetVariation(viewProps.Target.NumSamples);
 
-		bool isMSAA = viewProps.Target.NumSamples > 1;
+	TiledDeferredImageBasedLightingMaterial::Inputs iblInputs;
+	iblInputs.Gbuffer = gbuffer;
+	iblInputs.SceneColorTex = sceneColorNode->SceneColorTex->Texture;
+	iblInputs.LightAccumulation = lightAccumNode->LightAccumulationTex->Texture;
+	iblInputs.PreIntegratedGf = RendererTextures::preintegratedEnvGF;
+	iblInputs.AmbientOcclusion = ssaoNode->Output;
+	iblInputs.Ssr = ssrNode->Output;
+	iblInputs.MsaaCoverage = msaaCoverage;
 
-		TShared<PooledRenderTexture> iblRadianceTex = GetGpuResourcePool().Get(
-			PooledRenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, TextureUsageFlag::RenderTarget, sampleCount, false));
+	if(sceneColorNode->SceneColorTexArray)
+		iblInputs.SceneColorTexArray = sceneColorNode->SceneColorTexArray->Texture;
 
-		RenderTextureCreateInformation renderTextureCreateInformation;
-		renderTextureCreateInformation.ColorSurfaces[0].Texture = iblRadianceTex->Texture;
-		renderTextureCreateInformation.DepthStencilSurface.Texture = sceneDepthNode->DepthTex->Texture;
+	material->Execute(commandBuffer, inputs.View, inputs.Scene, inputs.ViewGroup.GetVisibleReflProbeData(), iblInputs);
 
-		const GpuBufferSuballocation& perViewBuffer = inputs.View.GetPerViewBuffer();
-
-		TShared<RenderTexture> iblRadianceRT = RenderTexture::Create(renderTextureCreateInformation);
-
-		const VisibleReflectionProbeData& probeData = inputs.ViewGroup.GetVisibleReflProbeData();
-
-		Skybox* skybox = nullptr;
-		if(inputs.View.GetRenderSettings().EnableSkybox)
-			skybox = inputs.Scene.GetSkybox();
-
-		DeferredIBLSetupMaterial* const setupMaterial = DeferredIBLSetupMaterial::GetVariation(isMSAA, true);
-		DeferredIBLSkyMaterial* const skyMaterial = DeferredIBLSkyMaterial::GetVariation(isMSAA, true);
-
-		DeferredIBLSetupMaterial* msaaSetupMaterial = nullptr;
-		DeferredIBLSkyMaterial* msaaSkyMaterial = nullptr;
-		if(isMSAA)
-		{
-			msaaSetupMaterial  = DeferredIBLSetupMaterial::GetVariation(true, false);
-			msaaSkyMaterial = DeferredIBLSkyMaterial::GetVariation(true, false);
-		}
-
-		// Prepare buffers and parameters for rendering
-		GpuBufferSuballocation reflProbeParamsBuffer = gGlobalReflectionProbeUniformBufferDefinition.AllocateTransient();
-		ReflectionProbeRenderState::PopulateGlobalReflectionProbeUniformBuffer(reflProbeParamsBuffer, skybox, probeData.GetProbeCount(), inputs.Scene.GetReflectionProbeCubemapsTex(), viewProps.CapturingReflections);
-
-		RenderPassCreateInformation mainPassCreateInformation(iblRadianceRT, RT_DEPTH_STENCIL, RT_DEPTH_STENCIL);
-		{
-			setupMaterial->Prepare(gbuffer, perViewBuffer, ssrNode->Output, ssaoNode->Output, reflProbeParamsBuffer);
-			mainPassCreateInformation.Parameters.Add(setupMaterial->GetGpuParameterSet());
-
-			if(isMSAA)
-			{
-				msaaSetupMaterial->Prepare(gbuffer, perViewBuffer, ssrNode->Output, ssaoNode->Output, reflProbeParamsBuffer);
-				mainPassCreateInformation.Parameters.Add(msaaSetupMaterial->GetGpuParameterSet());
-			}
-		}
-
-		TShared<Texture> skyFilteredRadiance;
-		if(skybox)
-			skyFilteredRadiance = skybox->GetFilteredRadiance();
-
-		TArray<StandardDeferred::ReflectionProbeRenderInformation> reflectionProbeRenderInformations;
-		if(!viewProps.CapturingReflections)
-		{
-			reflectionProbeRenderInformations = StandardDeferred::Instance().PrepareReflectionProbes(commandBuffer.GetGpuDevice(), probeData, inputs.View, gbuffer, inputs.Scene, reflProbeParamsBuffer);
-
-			for(const auto& entry : reflectionProbeRenderInformations)
-				mainPassCreateInformation.Parameters.Add(entry.GpuParameters);
-
-			if(skyFilteredRadiance)
-			{
-				skyMaterial->Prepare(gbuffer, perViewBuffer, skybox, reflProbeParamsBuffer);
-				mainPassCreateInformation.Parameters.Add(skyMaterial->GetGpuParameterSet());
-
-				if(isMSAA)
-				{
-					msaaSkyMaterial->Prepare(gbuffer, perViewBuffer, skybox, reflProbeParamsBuffer);
-					mainPassCreateInformation.Parameters.Add(msaaSkyMaterial->GetGpuParameterSet());
-				}
-			}
-		}
-
-		commandBuffer.BeginRenderPass(mainPassCreateInformation);
-
-		// Prepare the texture for refl. probe and skybox rendering
-		{
-			DeferredIBLSetupMaterial* const setupMaterial = DeferredIBLSetupMaterial::GetVariation(isMSAA, true);
-			setupMaterial->Bind(commandBuffer);
-
-			GetRendererUtility().DrawScreenQuad(commandBuffer);
-
-			// Draw pixels requiring per-sample evaluation
-			if(isMSAA)
-			{
-				DeferredIBLSetupMaterial* msaaSetupMaterial = DeferredIBLSetupMaterial::GetVariation(true, false);
-				msaaSetupMaterial->Bind(commandBuffer);
-
-				GetRendererUtility().DrawScreenQuad(commandBuffer);
-			}
-		}
-
-		if(!viewProps.CapturingReflections)
-		{
-			// Render refl. probes
-			StandardDeferred::Instance().RenderReflectionProbes(commandBuffer, reflectionProbeRenderInformations, inputs.View);
-
-			// Render sky
-			if(skyFilteredRadiance)
-			{
-				skyMaterial->Bind(commandBuffer);
-
-				GetRendererUtility().DrawScreenQuad(commandBuffer);
-
-				// Draw pixels requiring per-sample evaluation
-				if(isMSAA)
-				{
-					msaaSkyMaterial->Bind(commandBuffer);
-
-					GetRendererUtility().DrawScreenQuad(commandBuffer);
-				}
-			}
-		}
-
-		commandBuffer.EndRenderPass();
-
-		// Finalize rendered reflections and output them to main render target
-		{
-			RenderPassCreateInformation finalizePassCreateInformation(outputRT, RT_DEPTH_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
-
-			DeferredIBLFinalizeMaterial* const finalizeMaterial = DeferredIBLFinalizeMaterial::GetVariation(isMSAA, true);
-			finalizeMaterial->Prepare(gbuffer, perViewBuffer, iblRadianceTex->Texture, RendererTextures::preintegratedEnvGF, reflProbeParamsBuffer);
-
-			finalizePassCreateInformation.Parameters.Add(finalizeMaterial->GetGpuParameterSet());
-
-			DeferredIBLFinalizeMaterial* msaaFinalizeMaterial = nullptr;
-
-			if(isMSAA)
-			{
-				msaaFinalizeMaterial = DeferredIBLFinalizeMaterial::GetVariation(true, false);
-				msaaFinalizeMaterial->Prepare(gbuffer, perViewBuffer, iblRadianceTex->Texture, RendererTextures::preintegratedEnvGF, reflProbeParamsBuffer);
-
-				finalizePassCreateInformation.Parameters.Add(msaaFinalizeMaterial->GetGpuParameterSet());
-			}
-
-			commandBuffer.BeginRenderPass(finalizePassCreateInformation);
-
-			finalizeMaterial->Bind(commandBuffer);
-
-			GetRendererUtility().DrawScreenQuad(commandBuffer);
-
-			// Draw pixels requiring per-sample evaluation
-			if(isMSAA)
-			{
-				msaaFinalizeMaterial->Bind(commandBuffer);
-
-				GetRendererUtility().DrawScreenQuad(commandBuffer);
-			}
-
-			commandBuffer.EndRenderPass();
-		}
-	}
+	if(viewProps.Target.NumSamples > 1)
+		sceneColorNode->MsaaTexArrayToTexture(commandBuffer);
 }
 
 void RCNodeDeferredIndirectSpecularLighting::Clear()
@@ -1448,104 +1203,13 @@ RCNodeDeferredIndirectSpecularLighting::DependencyDefinition RCNodeDeferredIndir
 void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 {
 	const RenderBeastScene& scene = inputs.Scene;
-	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 
 	const VisibleLightData& visibleLightData = inputs.ViewGroup.GetVisibleLightData();
 	const VisibleReflectionProbeData& visibleReflProbeData = inputs.ViewGroup.GetVisibleReflProbeData();
 
-	LightGridOutputs lightGridOutputs;
-
-	struct StandardForwardBuffers
-	{
-		GpuBufferSuballocation LightsUniformBuffer;
-		GpuBufferSuballocation ReflProbesUniformBuffer;
-		GpuBufferSuballocation LightAndReflProbeParamsUniformBuffer;
-	} standardForwardBuffers;
-
-	const bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
-	if(supportsClusteredForward)
-	{
-		const LightGrid& lightGrid = inputs.View.GetLightGrid();
-		lightGridOutputs = lightGrid.GetOutputs();
-	}
-
 	Skybox* skybox = nullptr;
 	if(inputs.View.GetRenderSettings().EnableSkybox)
 		skybox = scene.GetSkybox();
-
-	// Prepare refl. probe param buffer
-	GpuBufferSuballocation reflProbeParamBuffer = gGlobalReflectionProbeUniformBufferDefinition.AllocateTransient();
-	ReflectionProbeRenderState::PopulateGlobalReflectionProbeUniformBuffer(reflProbeParamBuffer, skybox, visibleReflProbeData.GetProbeCount(), scene.GetReflectionProbeCubemapsTex(), viewProps.CapturingReflections);
-
-	TShared<Texture> skyFilteredRadiance;
-	if(skybox)
-		skyFilteredRadiance = skybox->GetFilteredRadiance();
-
-	const auto fnBindClusteredForwardParameters = [&lightGridOutputs, &visibleLightData, &visibleReflProbeData](MaterialParameterAdapter& parameterAdapter, const ForwardLightingParams& fwdParams, const ImageBasedLightingParameterBinding& iblParams)
-	{
-		fwdParams.GridUniformBufferParameter.Set(lightGridOutputs.UniformBuffer);
-
-		fwdParams.GridLightOffsetsAndSizeParameter.Set(lightGridOutputs.GridLightOffsetsAndSize);
-		fwdParams.GridProbeOffsetsAndSizeParameter.Set(lightGridOutputs.GridProbeOffsetsAndSize);
-
-		fwdParams.GridLightIndicesParameter.Set(lightGridOutputs.GridLightIndices);
-		iblParams.ReflectionProbeIndicesParameter.Set(lightGridOutputs.GridProbeIndices);
-
-		fwdParams.LightsBufferParameter.Set(visibleLightData.GetLightBuffer());
-		iblParams.ReflectionProbesParameter.Set(visibleReflProbeData.GetProbeBuffer());
-	};
-
-	const auto fnBindStandardDeferredParameters = [&standardForwardBuffers, &visibleLightData, &visibleReflProbeData](MaterialParameterAdapter& parameterAdapter, const Bounds& bounds, const ForwardLightingParams& fwdParams, const ImageBasedLightingParameterBinding& iblParams)
-	{
-		// Allocate transient uniform buffers
-		standardForwardBuffers.LightsUniformBuffer = gLightsUniformDefinition.AllocateTransient();
-		standardForwardBuffers.ReflProbesUniformBuffer = gReflProbesUniformDefinition.AllocateTransient();
-		standardForwardBuffers.LightAndReflProbeParamsUniformBuffer = gLightAndReflProbeParamsUniformDefinition.AllocateTransient();
-
-		// Populate light & probe buffers
-		Vector3I lightCounts;
-		const LightData* lights[kStandardForwardMaxNumLights];
-		visibleLightData.GatherInfluencingLights(bounds, lights, lightCounts);
-
-		Vector4I lightOffsets;
-		lightOffsets.X = lightCounts.X;
-		lightOffsets.Y = lightCounts.X;
-		lightOffsets.Z = lightOffsets.Y + lightCounts.Y;
-		lightOffsets.W = lightOffsets.Z + lightCounts.Z;
-
-		GpuBufferMappedScope lightsUniforms = standardForwardBuffers.LightsUniformBuffer.Map();
-		GpuBufferMappedScope reflectionProbesUniforms = standardForwardBuffers.ReflProbesUniformBuffer.Map();
-		GpuBufferMappedScope lightAndReflectionProbeUniforms = standardForwardBuffers.LightAndReflProbeParamsUniformBuffer.Map();
-
-		for(i32 j = 0; j < lightOffsets.W; j++)
-			gLightsUniformDefinition.gLights.Set(lightsUniforms, *lights[j], j);
-
-		i32 numReflProbes = std::min(visibleReflProbeData.GetProbeCount(), kStandardForwardMaxNumProbes);
-		for(i32 j = 0; j < numReflProbes; j++)
-		{
-			gReflProbesUniformDefinition.gReflectionProbes.Set(reflectionProbesUniforms, visibleReflProbeData.GetProbeData(j), j);
-		}
-
-		gLightAndReflProbeParamsUniformDefinition.gLightOffsets.Set(lightAndReflectionProbeUniforms, lightOffsets);
-		gLightAndReflProbeParamsUniformDefinition.gReflProbeCount.Set(lightAndReflectionProbeUniforms, numReflProbes);
-
-		iblParams.ReflectionProbesUniformBufferParameter.Set(standardForwardBuffers.ReflProbesUniformBuffer);
-		fwdParams.LightsUniformBufferParameter.Set(standardForwardBuffers.LightsUniformBuffer);
-		fwdParams.LightAndReflectionProbeUniformBufferParameter.Set(standardForwardBuffers.LightAndReflProbeParamsUniformBuffer);
-	};
-
-	const auto fnBindCommonIBLParameters = [&reflProbeParamBuffer, &skyFilteredRadiance, &scene](MaterialParameterAdapter& parameterAdapter, ImageBasedLightingParameterBinding& iblParams)
-	{
-		// Note: Ideally these should be bound once (they are the same for all renderables)
-		iblParams.ReflectionProbeUniformBufferParameter.Set(reflProbeParamBuffer);
-
-		iblParams.SkyReflectionsTexParam.Set(skyFilteredRadiance);
-		iblParams.AmbientOcclusionTexParam.Set(Texture::kWhite); // Note: Add SSAO here?
-		iblParams.SsrTexParameter.Set(Texture::kBlack); // Note: Add SSR here?
-
-		iblParams.ReflectionProbeCubemapsTexParameter.Set(scene.GetReflectionProbeCubemapsTex());
-		iblParams.PreintegratedEnvBrdfParameter.Set(RendererTextures::preintegratedEnvGF);
-	};
 
 	// Prepare render target
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
@@ -1578,79 +1242,10 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 		renderTarget = RenderTexture::Create(rtDesc);
 	}
 
-	// Prepare objects for rendering by binding forward lighting data
-	//// Normal renderables
-	const VisibilityInfo& visibility = inputs.View.GetVisibilityMasks();
-
-	const u32 renderableCount = inputs.Scene.GetRenderableCount();
-	for(u32 renderableIndex = 0; renderableIndex < renderableCount; renderableIndex++)
-	{
-		if(!visibility.Renderables[renderableIndex])
-			continue;
-
-		for(auto& drawCommand : inputs.Scene.GetRenderable(renderableIndex)->DrawCommands)
-		{
-			ShaderFlags shaderFlags = drawCommand.Material->GetShader()->GetFlags();
-
-			const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward) || shaderFlags.IsSet(ShaderFlag::Transparent);
-			if(!useForwardRendering)
-				continue;
-
-			// Note: It would be nice to be able to set this once and keep it, only updating if the buffers actually
-			// change (e.g. when growing).
-			if(supportsClusteredForward)
-				fnBindClusteredForwardParameters(*drawCommand.ParameterAdapter, drawCommand.ForwardLightingParams, drawCommand.ImageBasedParams);
-			else
-			{
-				// Populate light & probe buffers
-				const Bounds& bounds = inputs.Scene.GetRenderableCullInfo(renderableIndex).Bounds;
-				fnBindStandardDeferredParameters(*drawCommand.ParameterAdapter, bounds, drawCommand.ForwardLightingParams, drawCommand.ImageBasedParams);
-			}
-
-			fnBindCommonIBLParameters(*drawCommand.ParameterAdapter, drawCommand.ImageBasedParams);
-		}
-	}
-
-	//// Particle systems
-	const EvaluatedParticleData* particleData = inputs.FrameInfo.PerSceneFrameData.Particles;
-	if(particleData)
-	{
-		const auto numParticleSystems = inputs.Scene.GetParticleSystemCount();
-
-		for(u32 i = 0; i < numParticleSystems; i++)
-		{
-			if(!visibility.ParticleSystems[i])
-				continue;
-
-			const ParticleRenderState& particleRenderState = inputs.Scene.GetParticleRenderState(i);
-			ParticlesDrawCommand& drawCommand = particleRenderState.DrawCommand;
-
-			ShaderFlags shaderFlags = drawCommand.Material->GetShader()->GetFlags();
-
-			if(shaderFlags.IsSet(ShaderFlag::Transparent))
-				drawCommand.DepthInputTexture.Set(resolvedSceneDepthNode->Output->Texture);
-
-			const bool requiresForwardLighting = shaderFlags.IsSet(ShaderFlag::Forward);
-			if(!requiresForwardLighting)
-				continue;
-
-			if(!drawCommand.IsValid())
-				continue;
-
-			// Note: It would be nice to be able to set this once and keep it, only updating if the buffers actually
-			// change (e.g. when growing).
-			if(supportsClusteredForward)
-				fnBindClusteredForwardParameters(*drawCommand.ParameterAdapter, drawCommand.ForwardLightingParams, drawCommand.ImageBasedParams);
-			else
-			{
-				// Populate light & probe buffers
-				const Bounds& bounds = inputs.Scene.GetParticleSystemCullInfos()[i].Bounds;
-				fnBindStandardDeferredParameters(*drawCommand.ParameterAdapter, bounds, drawCommand.ForwardLightingParams, drawCommand.ImageBasedParams);
-			}
-
-			fnBindCommonIBLParameters(*drawCommand.ParameterAdapter, drawCommand.ImageBasedParams);
-		}
-	}
+	// Prepare the renderer inputs of forward draws
+	mSurfaceShaderParameterSets.Prepare(inputs.View, inputs.Scene);
+	mSurfaceShaderParameterSets.SetSceneDepth(resolvedSceneDepthNode->Output->Texture);
+	mSurfaceShaderParameterSets.SetForwardLightingInputs(inputs.View, visibleLightData, visibleReflProbeData, scene, skybox);
 
 	// TODO: Forward pipeline rendering doesn't support shadows. In order to support this I'd have to render the light
 	// occlusion for all lights affecting this object into a single (or a few) textures. I can likely use texture
@@ -1665,19 +1260,19 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 	// Collect all GpuParameters that will be used in the opaque pass
 	const Vector<RenderQueueEntry>& opaqueElements = opaqueQueue->GetSortedEntries();
 	RenderPassCreateInformation opaquePassInfo(renderTarget, RT_NONE, RT_ALL);
-	PrepareRenderQueuePass(opaquePassInfo, opaqueElements);
+	PrepareRenderQueuePass(opaquePassInfo, opaqueElements, mSurfaceShaderParameterSets);
 
 	commandBuffer.BeginRenderPass(opaquePassInfo);
-	RenderQueueEntries(commandBuffer, opaqueElements);
+	RenderQueueEntries(commandBuffer, opaqueElements, mSurfaceShaderParameterSets);
 	commandBuffer.EndRenderPass();
 
 	// Collect all GpuParameters that will be used in the transparent pass
 	const Vector<RenderQueueEntry>& transparentElements = transparentQueue->GetSortedEntries();
 	RenderPassCreateInformation transparentPassInfo(renderTarget, RT_DEPTH, RT_ALL);
-	PrepareRenderQueuePass(transparentPassInfo, transparentElements);
+	PrepareRenderQueuePass(transparentPassInfo, transparentElements, mSurfaceShaderParameterSets);
 
 	commandBuffer.BeginRenderPass(transparentPassInfo);
-	RenderQueueEntries(commandBuffer, transparentElements);
+	RenderQueueEntries(commandBuffer, transparentElements, mSurfaceShaderParameterSets);
 	commandBuffer.EndRenderPass();
 
 	// Note: Perhaps delay clearing this one frame, so previous frame textures have a better chance of being done
@@ -1913,81 +1508,34 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 		auto* halfSceneColorNode = dependencies.Get<RCNodeHalfSceneColor>();
 		const TShared<PooledRenderTexture>& downsampledScene = halfSceneColorNode->Output;
 
-		if(UseHistogramEyeAdapatation(inputs))
-		{
-			// Generate histogram
-			TShared<PooledRenderTexture> eyeAdaptHistogram =
-				resPool.Get(EyeAdaptHistogramMaterial::GetOutputDesc(downsampledScene->Texture));
-			EyeAdaptHistogramMaterial* eyeAdaptHistogramMat = EyeAdaptHistogramMaterial::Get();
-			eyeAdaptHistogramMat->Execute(commandBuffer, downsampledScene->Texture, eyeAdaptHistogram->Texture, settings.AutoExposure);
+		// Generate histogram
+		TShared<PooledRenderTexture> eyeAdaptHistogram =
+			resPool.Get(EyeAdaptHistogramMaterial::GetOutputDesc(downsampledScene->Texture));
+		EyeAdaptHistogramMaterial* eyeAdaptHistogramMat = EyeAdaptHistogramMaterial::Get();
+		eyeAdaptHistogramMat->Execute(commandBuffer, downsampledScene->Texture, eyeAdaptHistogram->Texture, settings.AutoExposure);
 
-			// Reduce histogram
-			TShared<PooledRenderTexture> reducedHistogram = resPool.Get(EyeAdaptHistogramReduceMaterial::GetOutputDesc());
+		// Reduce histogram
+		TShared<PooledRenderTexture> reducedHistogram = resPool.Get(EyeAdaptHistogramReduceMaterial::GetOutputDesc());
 
-			TShared<Texture> prevFrameEyeAdaptation;
-			if(previous != nullptr)
-				prevFrameEyeAdaptation = previous->Texture;
+		TShared<Texture> prevFrameEyeAdaptation;
+		if(previous != nullptr)
+			prevFrameEyeAdaptation = previous->Texture;
 
-			EyeAdaptHistogramReduceMaterial* eyeAdaptHistogramReduce = EyeAdaptHistogramReduceMaterial::Get();
-			eyeAdaptHistogramReduce->Prepare(downsampledScene->Texture, eyeAdaptHistogram->Texture, prevFrameEyeAdaptation);
-			eyeAdaptHistogramReduce->Execute(commandBuffer, reducedHistogram->RenderTexture);
+		EyeAdaptHistogramReduceMaterial* eyeAdaptHistogramReduce = EyeAdaptHistogramReduceMaterial::Get();
+		eyeAdaptHistogramReduce->Prepare(downsampledScene->Texture, eyeAdaptHistogram->Texture, prevFrameEyeAdaptation);
+		eyeAdaptHistogramReduce->Execute(commandBuffer, reducedHistogram->RenderTexture);
 
-			eyeAdaptHistogram = nullptr;
+		eyeAdaptHistogram = nullptr;
 
-			// Generate eye adaptation value
-			Output = resPool.Get(EyeAdaptationMaterial::GetOutputDesc());
-			EyeAdaptationMaterial* eyeAdaptationMat = EyeAdaptationMaterial::Get();
-			eyeAdaptationMat->Prepare(
-				reducedHistogram->Texture,
-				inputs.FrameInfo.Timings.TimeDelta,
-				settings.AutoExposure,
-				settings.ExposureScale);
-			eyeAdaptationMat->Execute(commandBuffer, Output->RenderTexture);
-		}
-		else
-		{
-			// Populate alpha values of the downsampled texture with luminance
-			TShared<PooledRenderTexture> luminanceTex =
-				resPool.Get(EyeAdaptationBasicSetupMaterial::GetOutputDesc(downsampledScene->Texture));
-
-			EyeAdaptationBasicSetupMaterial* setupMat = EyeAdaptationBasicSetupMaterial::Get();
-			setupMat->Prepare(
-				downsampledScene->Texture,
-				inputs.FrameInfo.Timings.TimeDelta,
-				settings.AutoExposure,
-				settings.ExposureScale);
-			setupMat->Execute(commandBuffer, luminanceTex->RenderTexture);
-
-			TShared<Texture> downsampleInput = luminanceTex->Texture;
-			luminanceTex = nullptr;
-
-			// Downsample some more
-			for(u32 i = 0; i < 5; i++)
-			{
-				DownsampleMaterial* downsampleMat = DownsampleMaterial::GetVariation(1, false);
-				TShared<PooledRenderTexture> downsampledLuminance =
-					resPool.Get(DownsampleMaterial::GetOutputDesc(downsampleInput));
-
-				downsampleMat->Execute(commandBuffer, downsampleInput, downsampledLuminance->RenderTexture);
-				downsampleInput = downsampledLuminance->Texture;
-			}
-
-			// Generate eye adaptation value
-			EyeAdaptationBasicMaterial* eyeAdaptationMat = EyeAdaptationBasicMaterial::Get();
-
-			TShared<Texture> prevFrameEyeAdaptation;
-			if(previous != nullptr)
-				prevFrameEyeAdaptation = previous->Texture;
-
-			Output = resPool.Get(EyeAdaptationBasicMaterial::GetOutputDesc());
-			eyeAdaptationMat->Prepare(
-				downsampleInput,
-				prevFrameEyeAdaptation,
-				inputs.FrameInfo.Timings.TimeDelta,
-				settings.AutoExposure,
-				settings.ExposureScale);
-			eyeAdaptationMat->Execute(commandBuffer, Output->RenderTexture);
-		}
+		// Generate eye adaptation value
+		Output = resPool.Get(EyeAdaptationMaterial::GetOutputDesc());
+		EyeAdaptationMaterial* eyeAdaptationMat = EyeAdaptationMaterial::Get();
+		eyeAdaptationMat->Prepare(
+			reducedHistogram->Texture,
+			inputs.FrameInfo.Timings.TimeDelta,
+			settings.AutoExposure,
+			settings.ExposureScale);
+		eyeAdaptationMat->Execute(commandBuffer, Output->RenderTexture);
 
 		const RendererView& view = inputs.View;
 
@@ -2005,11 +1553,6 @@ void RCNodeEyeAdaptation::Clear()
 {
 	std::swap(Output, previous);
 	Output = nullptr;
-}
-
-bool RCNodeEyeAdaptation::UseHistogramEyeAdapatation(const RenderCompositorNodeInputs& inputs)
-{
-	return inputs.FeatureSet == RenderBeastFeatureSet::Desktop;
 }
 
 RCNodeEyeAdaptation::DependencyDefinition RCNodeEyeAdaptation::GetDependencyDefinition()
@@ -2041,7 +1584,6 @@ void RCNodeTonemapping::Render(const RenderCompositorNodeInputs& inputs)
 	const bool hdr = settings.EnableHdr;
 	const bool msaa = sceneColor->GetProperties().SampleCount > 1;
 
-	const bool volumeLUT = inputs.FeatureSet == RenderBeastFeatureSet::Desktop;
 	bool gammaOnly;
 	bool autoExposure;
 	if(hdr)
@@ -2053,23 +1595,11 @@ void RCNodeTonemapping::Render(const RenderCompositorNodeInputs& inputs)
 
 			if(tonemapLUTDirty) // Rebuild LUT if PP settings changed
 			{
-				if(volumeLUT)
-				{
-					CreateTonemap3DLUTMaterial* createLUT = CreateTonemap3DLUTMaterial::Get();
-					if(mTonemapLUT == nullptr)
-						mTonemapLUT = GetGpuResourcePool().Get(createLUT->GetOutputDesc());
+				CreateTonemap3DLUTMaterial* createLUT = CreateTonemap3DLUTMaterial::Get();
+				if(mTonemapLUT == nullptr)
+					mTonemapLUT = GetGpuResourcePool().Get(createLUT->GetOutputDesc());
 
-					createLUT->Execute(commandBuffer, mTonemapLUT->Texture, settings);
-				}
-				else
-				{
-					CreateTonemap2DLUTMaterial* createLUT = CreateTonemap2DLUTMaterial::Get();
-					if(mTonemapLUT == nullptr)
-						mTonemapLUT = GetGpuResourcePool().Get(createLUT->GetOutputDesc());
-
-					createLUT->Prepare(settings);
-					createLUT->Execute(commandBuffer, mTonemapLUT->RenderTexture);
-				}
+				createLUT->Execute(commandBuffer, mTonemapLUT->Texture, settings);
 
 				mTonemapLastUpdateHash = latestHash;
 			}
@@ -2090,7 +1620,7 @@ void RCNodeTonemapping::Render(const RenderCompositorNodeInputs& inputs)
 	if(gammaOnly)
 		mTonemapLUT = nullptr;
 
-	TonemappingMaterial* tonemapping = TonemappingMaterial::GetVariation(volumeLUT, gammaOnly, autoExposure, msaa);
+	TonemappingMaterial* tonemapping = TonemappingMaterial::GetVariation(gammaOnly, autoExposure, msaa);
 
 	TShared<RenderTexture> ppOutput;
 	TShared<Texture> ppLastFrame;
@@ -2614,9 +2144,7 @@ void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 	srcRect.Width += (viewProps.Target.ViewRect.Width % 2) * (1.0f / viewProps.Target.ViewRect.Width);
 	srcRect.Height += (viewProps.Target.ViewRect.Height % 2) * (1.0f / viewProps.Target.ViewRect.Height);
 
-	bool noTextureViews = !commandBuffer.GetGpuDevice().GetCapabilities().HasCapability(RSC_TEXTURE_VIEWS);
-
-	BuildHiZMaterial* material = BuildHiZMaterial::GetVariation(noTextureViews);
+	BuildHiZMaterial* material = BuildHiZMaterial::Get();
 
 	// Generate first mip
 	RenderTextureCreateInformation rtDesc;
