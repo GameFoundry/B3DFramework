@@ -1392,7 +1392,7 @@ namespace b3d
 
 			// TODO - Calculate and set a scissor rectangle for the light
 
-			ProfileGPUBlock sampleBlock(commandBuffer, "Render shadow occlusion");
+			GpuProfilingScope sampleBlock(commandBuffer, "Render shadow occlusion");
 
 			if(light.GetType() == LightType::Radial)
 			{
@@ -1548,7 +1548,7 @@ namespace b3d
 			Quaternion lightRotation(kIdentityTag);
 			lightRotation.LookRotation(lightDir, Vector3::kUnitY);
 
-			ProfileGPUBlock profileSample(commandBuffer, "Project directional light shadow");
+			GpuProfilingScope profileSample(commandBuffer, "Project directional light shadow");
 
 			for(u32 i = 0; i < numCascades; ++i)
 			{
@@ -1660,7 +1660,7 @@ namespace b3d
 			mapInfo.UpdateNormArea(kMaxAtlasSize);
 			ShadowMapAtlas& atlas = mAtlasShadowMaps[mapInfo.TextureIdx];
 
-			ProfileGPUBlock profileSample(commandBuffer, "Project spot light shadows");
+			GpuProfilingScope profileSample(commandBuffer, "Project spot light shadows");
 
 			mapInfo.DepthNear = 0.05f;
 			mapInfo.DepthFar = light.GetAttenuationRadius();
@@ -1768,7 +1768,7 @@ namespace b3d
 			Matrix4 proj = Matrix4::ProjectionPerspective(Degree(90.0f), 1.0f, 0.05f, light.GetAttenuationRadius(), true);
 			ConvexVolume localFrustum(proj);
 
-			ProfileGPUBlock profileSample(commandBuffer, "Project radial light shadows");
+			GpuProfilingScope profileSample(commandBuffer, "Project radial light shadows");
 
 			const GpuDeviceCapabilities& caps = commandBuffer.GetGpuDevice().GetCapabilities();
 

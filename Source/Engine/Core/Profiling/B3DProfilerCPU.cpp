@@ -325,6 +325,12 @@ void ProfilerCPU::EndThread()
 	ThreadInfo::activeThread->End();
 }
 
+bool ProfilerCPU::IsThreadSampled() const
+{
+	const ThreadInfo* thread = ThreadInfo::activeThread;
+	return thread != nullptr && thread->IsActive;
+}
+
 void ProfilerCPU::BeginSample(const char* name)
 {
 	ThreadInfo* thread = ThreadInfo::activeThread;

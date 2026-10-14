@@ -67,6 +67,12 @@ namespace b3d
 		 */
 		void TestParameterHandles();
 
+		/**
+		 * The graph's GPU sample holds a sample for each surviving pass, named after the pass and in execution order, and a sample a pass
+		 * records through its context's profiler nests in the pass's sample.
+		 */
+		void TestProfiling();
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		/**
 		 * The development checks: writes to resources at rest, conflicting declarations in one pass, writes after an export, dependencies

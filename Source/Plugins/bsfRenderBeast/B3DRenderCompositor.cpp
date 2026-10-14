@@ -985,7 +985,7 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 
 	// Render shadowed lights
 	{
-		ProfileGPUBlock sampleBlock(commandBuffer, "Standard deferred shadowed lights");
+		GpuProfilingScope sampleBlock(commandBuffer, "Standard deferred shadowed lights");
 
 		const ShadowRendering& shadowRenderer = inputs.ViewGroup.GetShadowRenderer();
 		for(u32 lightTypeIndex = 0; lightTypeIndex < (u32)LightType::Count; lightTypeIndex++)

@@ -55,6 +55,14 @@ namespace b3d
 			 */
 			GpuCommandBuffer& GetCommandBuffer() const { return mCommandBuffer; }
 
+#if B3D_PROFILING_ENABLED
+			/**
+			 * Returns the profiler that records the GPU samples of the graph, or null if the device has no timer queries. Samples the pass
+			 * records with it nest in the pass's sample, and must end within the pass.
+			 */
+			const TShared<GpuCommandBufferProfiler>& GetProfiler() const { return mCommandBuffer.GetProfiler(); }
+#endif
+
 		private:
 			friend class FrameGraph;
 
@@ -246,8 +254,11 @@ namespace b3d
 		class B3D_EXPORT FrameGraph
 		{
 		public:
-			/** Creates a graph that records with @p context, and places its transients with the context's transient resource allocator. */
-			explicit FrameGraph(GpuWorkContext& context);
+			/**
+			 * Creates a graph that records with @p context, and places its transients with the context's transient resource allocator.
+			 * @p name names the graph's profiling samples and its command buffer.
+			 */
+			FrameGraph(GpuWorkContext& context, const StringView& name);
 
 			/** Unregisters the graph's resources and gives back unplaced transients. A compiled graph must have been executed. */
 			~FrameGraph();
@@ -474,6 +485,7 @@ namespace b3d
 			GpuWorkContext& mContext;
 			GpuDevice& mDevice;
 			GpuTransientResourceAllocator& mAllocator;
+			const String mName;
 			const bool mExplicitBarriers; /**< True in explicit mode, false in automatic mode. See the class description. */
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			const u32 mId; /**< Identifies the graph's resources apart from those of other live graphs. */

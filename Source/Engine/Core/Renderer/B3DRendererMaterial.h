@@ -136,18 +136,15 @@ namespace b3d
 #endif
 		};
 
-		/**
-		 * Helper class that performs GPU profiling in the current block. Profiling sample is started when the class is
-		 * constructed and ended upon destruction.
-		 */
-		struct RendererMaterialProfileBlock : ProfileGPUBlock
+		/** Measures a GPU profiler sample named after a renderer material. See GpuProfilingScope. */
+		struct RendererMaterialProfilingScope : GpuProfilingScope
 		{
-			RendererMaterialProfileBlock(GpuCommandBuffer& commandBuffer,  const RendererMaterialMetaData& metaData)
-				: ProfileGPUBlock(commandBuffer, metaData.ProfilerSampleName)
+			RendererMaterialProfilingScope(GpuCommandBuffer& commandBuffer, const RendererMaterialMetaData& metaData)
+				: GpuProfilingScope(commandBuffer, metaData.ProfilerSampleName)
 			{}
 		};
 
-#define B3D_PROFILE_RENDERER_MATERIAL RendererMaterialProfileBlock __sampleBlock(commandBuffer, GetMetaData());
+#define B3D_PROFILE_RENDERER_MATERIAL RendererMaterialProfilingScope __sampleBlock(commandBuffer, GetMetaData());
 
 		/**	Base class for all RendererMaterial instances, containing common data and methods. */
 		class B3D_EXPORT RendererMaterialBase

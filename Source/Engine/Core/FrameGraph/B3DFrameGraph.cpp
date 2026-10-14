@@ -11,6 +11,8 @@
 #include "GpuBackend/B3DGpuWorkContext.h"
 #include "GpuBackend/B3DRenderTexture.h"
 #include "GpuBackend/B3DRenderWindow.h"
+#include "Profiling/B3DProfilerCPU.h"
+#include "Profiling/B3DProfilerGPU.h"
 
 namespace b3d
 {
@@ -194,8 +196,8 @@ namespace b3d::render
 			TArrayView<const GpuExplicitRenderTargetBarrier>(RenderTargetBarriers.data(), (u32)RenderTargetBarriers.size()));
 	}
 
-	FrameGraph::FrameGraph(GpuWorkContext& context)
-		: mContext(context), mDevice(context.GetDevice()), mAllocator(context.GetTransientResourceAllocator())
+	FrameGraph::FrameGraph(GpuWorkContext& context, const StringView& name)
+		: mContext(context), mDevice(context.GetDevice()), mAllocator(context.GetTransientResourceAllocator()), mName(name)
 		, mExplicitBarriers(gGpuExplicitBarriers && mDevice.GetCapabilities().HasCapability(RSC_EXPLICIT_BARRIERS))
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		, mId(CreateFrameGraphId())
@@ -499,6 +501,8 @@ namespace b3d::render
 	{
 		B3D_ASSERT(!mIsCompiled && "A frame graph can only be compiled once.");
 		mIsCompiled = true;
+
+		const CpuProfilingScope compileSample("FrameGraph::Compile");
 
 		FrameAllocatorScope frameScope;
 
@@ -1216,6 +1220,8 @@ namespace b3d::render
 		B3D_ASSERT(mIsCompiled && !mIsExecuted && "A frame graph must be compiled before it is executed, and can only be executed once.");
 		mIsExecuted = true;
 
+		const CpuProfilingScope graphCpuSample(mName.c_str());
+
 		// The barrier mode is set before start-up, so every graph of a work context records in the same mode
 		TShared<GpuCommandBufferPool>& pool = GetContextData(mContext).CommandBufferPool;
 		if(pool == nullptr)
@@ -1228,7 +1234,7 @@ namespace b3d::render
 
 		B3D_ASSERT(pool->UsesExplicitBarriers() == mExplicitBarriers && "The barrier mode changed after a work context recorded its first frame graph.");
 
-		const TShared<GpuCommandBuffer> commandBuffer = pool->FindOrCreate(GpuCommandBufferCreateInformation::Create("Frame graph"));
+		const TShared<GpuCommandBuffer> commandBuffer = pool->FindOrCreate(GpuCommandBufferCreateInformation::Create(mName));
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		// One validator follows every resource across the passes. It keeps the parameter sets it saw alive until it is destroyed.
@@ -1251,53 +1257,68 @@ namespace b3d::render
 		}
 #endif
 
-		for(u32 batchIndex : mStartBarrierBatchIndices)
-			RecordBarriers(*commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Release, mBarrierBatches[batchIndex].SplitBarrier);
+#if B3D_PROFILING_ENABLED
+		commandBuffer->BeginProfiling(ProfilerString(mName.data(), mName.size()));
+#endif
 
-		for(u32 passIndex : mCompiledPassIndices)
 		{
-			Pass& pass = mPasses[passIndex];
-			commandBuffer->BeginLabel(pass.Name);
+			const GpuProfilingScope graphGpuSample(*commandBuffer, ProfilerString(mName.data(), mName.size()));
 
-			RecordBarriers(*commandBuffer, pass.AliasAcquireBarriers, GpuBarrierPhase::Full);
-			for(u32 batchIndex : pass.AcquiredBarrierBatchIndices)
-				RecordBarriers(*commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Acquire, mBarrierBatches[batchIndex].SplitBarrier);
-
-			RecordBarriers(*commandBuffer, pass.Barriers, GpuBarrierPhase::Full);
-
-			const bool isRaster = pass.Type == PassType::Raster && pass.Attachments.Target != nullptr;
-			if(isRaster)
-			{
-				RenderPassCreateInformation renderPassInformation(pass.Attachments.Target, pass.Attachments.ReadOnlyMask, pass.Attachments.LoadMask);
-				renderPassInformation.ClearMask = pass.Attachments.ClearMask;
-
-				// Backends prepare the descriptors of every set a render pass binds when the render pass begins
-				for(const TShared<GpuParameterSet>& parameters : pass.ParameterSets)
-					renderPassInformation.Parameters.Add(parameters);
-
-				for(const TShared<GpuParameterSet>& parameters : pass.RenderPassParameterSets)
-					renderPassInformation.Parameters.Add(parameters);
-
-				commandBuffer->BeginRenderPass(renderPassInformation);
-			}
-
-			if(pass.Execute)
-			{
-				FrameGraphPassContext passContext(*commandBuffer);
-				pass.Execute(passContext);
-			}
-
-			if(isRaster)
-				commandBuffer->EndRenderPass();
-
-			for(u32 batchIndex : pass.ReleasedBarrierBatchIndices)
+			for(u32 batchIndex : mStartBarrierBatchIndices)
 				RecordBarriers(*commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Release, mBarrierBatches[batchIndex].SplitBarrier);
 
-			RecordBarriers(*commandBuffer, pass.ExportBarriers, GpuBarrierPhase::Full);
-			commandBuffer->EndLabel();
+			for(u32 passIndex : mCompiledPassIndices)
+			{
+				Pass& pass = mPasses[passIndex];
+				commandBuffer->BeginLabel(pass.Name);
+
+				const CpuProfilingScope passCpuSample(pass.Name.c_str());
+				const GpuProfilingScope passGpuSample(*commandBuffer, ProfilerString(pass.Name.data(), pass.Name.size()));
+
+				RecordBarriers(*commandBuffer, pass.AliasAcquireBarriers, GpuBarrierPhase::Full);
+				for(u32 batchIndex : pass.AcquiredBarrierBatchIndices)
+					RecordBarriers(*commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Acquire, mBarrierBatches[batchIndex].SplitBarrier);
+
+				RecordBarriers(*commandBuffer, pass.Barriers, GpuBarrierPhase::Full);
+
+				const bool isRaster = pass.Type == PassType::Raster && pass.Attachments.Target != nullptr;
+				if(isRaster)
+				{
+					RenderPassCreateInformation renderPassInformation(pass.Attachments.Target, pass.Attachments.ReadOnlyMask, pass.Attachments.LoadMask);
+					renderPassInformation.ClearMask = pass.Attachments.ClearMask;
+
+					// Backends prepare the descriptors of every set a render pass binds when the render pass begins
+					for(const TShared<GpuParameterSet>& parameters : pass.ParameterSets)
+						renderPassInformation.Parameters.Add(parameters);
+
+					for(const TShared<GpuParameterSet>& parameters : pass.RenderPassParameterSets)
+						renderPassInformation.Parameters.Add(parameters);
+
+					commandBuffer->BeginRenderPass(renderPassInformation);
+				}
+
+				if(pass.Execute)
+				{
+					FrameGraphPassContext passContext(*commandBuffer);
+					pass.Execute(passContext);
+				}
+
+				if(isRaster)
+					commandBuffer->EndRenderPass();
+
+				for(u32 batchIndex : pass.ReleasedBarrierBatchIndices)
+					RecordBarriers(*commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Release, mBarrierBatches[batchIndex].SplitBarrier);
+
+				RecordBarriers(*commandBuffer, pass.ExportBarriers, GpuBarrierPhase::Full);
+				commandBuffer->EndLabel();
+			}
+
+			RecordBarriers(*commandBuffer, mEndBarriers, GpuBarrierPhase::Full);
 		}
 
-		RecordBarriers(*commandBuffer, mEndBarriers, GpuBarrierPhase::Full);
+#if B3D_PROFILING_ENABLED
+		commandBuffer->EndProfiling();
+#endif
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		// The validator is destroyed below, while the command buffer waits for its reset

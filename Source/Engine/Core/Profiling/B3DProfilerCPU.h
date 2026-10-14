@@ -254,6 +254,9 @@ namespace b3d
 		/**	Ends sampling for the current thread. No beginSample* \ endSample* calls after this point. */
 		void EndThread();
 
+		/** Returns true if the calling thread is being sampled, between BeginThread() and EndThread(). */
+		bool IsThreadSampled() const;
+
 		/**
 		 * Begins sample measurement. Must be followed by endSample().
 		 *
@@ -414,6 +417,39 @@ namespace b3d
 
 	/** Provides global access to ProfilerCPU instance. */
 	B3D_EXPORT ProfilerCPU& GetProfilerCPU();
+
+	/**
+	 * Measures a CPU profiler sample from its construction to its destruction, if the calling thread is being sampled (see
+	 * ProfilerCPU::IsThreadSampled()). The name must remain valid until the scope ends.
+	 */
+	struct CpuProfilingScope
+	{
+#if B3D_PROFILING_ENABLED
+		explicit CpuProfilingScope(const char* name)
+			: mName(GetProfilerCPU().IsThreadSampled() ? name : nullptr)
+		{
+			if(mName != nullptr)
+				GetProfilerCPU().BeginSample(mName);
+		}
+
+		~CpuProfilingScope()
+		{
+			if(mName != nullptr)
+				GetProfilerCPU().EndSample(mName);
+		}
+#else
+		explicit CpuProfilingScope(const char* name)
+		{}
+#endif
+
+		CpuProfilingScope(const CpuProfilingScope&) = delete;
+		CpuProfilingScope& operator=(const CpuProfilingScope&) = delete;
+
+	private:
+#if B3D_PROFILING_ENABLED
+		const char* mName;
+#endif
+	};
 
 	/** Shortcut for profiling a single function call. */
 #define PROFILE_CALL(call, name)              \
