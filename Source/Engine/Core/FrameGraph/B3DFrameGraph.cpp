@@ -1078,6 +1078,41 @@ namespace b3d::render
 			}
 		}
 
+#if 1
+		// Workaround for the Vulkan validation layer: if enabled, the depth and stencil aspects of an image use the same barrier kind. Sync
+		// validation reports a false write-after-read hazard when one aspect of an image gets a split barrier while the other aspect gets a full
+		// barrier.
+		bool anyBarrierMadeFull = true;
+		while(anyBarrierMadeFull)
+		{
+			anyBarrierMadeFull = false;
+			for(PlannedBarrier& barrier : plannedBarriers)
+			{
+				const Resource& resource = mResources[barrier.ResourceIndex];
+				if(!barrier.IsSplit || barrier.IsWholeResource || resource.Buffer != nullptr || resource.FullRange.GetAspectCount() != 2)
+					continue;
+
+				// Subresources are ordered by aspect, so the other aspect's subresource is half the subresource count away
+				const u32 aspectSubresourceCount = resource.SubresourceCount / 2;
+				const u32 otherSubresourceIndex = (barrier.SubresourceIndex + aspectSubresourceCount) % resource.SubresourceCount;
+
+				const bool hasOverlappingFullBarrier = std::any_of(plannedBarriers.begin(), plannedBarriers.end(), [&barrier, otherSubresourceIndex](const PlannedBarrier& other)
+				{
+					return other.ResourceIndex == barrier.ResourceIndex && !other.IsWholeResource && !other.IsSplit && !other.IsExport &&
+						other.SubresourceIndex == otherSubresourceIndex && other.AcquirePassIndex != ~0u &&
+						(i32)other.AcquirePassIndex > barrier.ReleasePassIndex && other.AcquirePassIndex <= barrier.AcquirePassIndex;
+				});
+
+				if(hasOverlappingFullBarrier)
+				{
+					barrier.IsSplit = false;
+					barrier.ReleasePassIndex = (i32)barrier.AcquirePassIndex - 1;
+					anyBarrierMadeFull = true;
+				}
+			}
+		}
+#endif
+
 		// Batching. Planned barriers that differ only in their subresource merge into subresource ranges. Each range goes to the list of
 		// the call that records it: a pass's alias acquires or full barriers, the barrier batch of its split release and acquire, a pass's
 		// export barriers, or the end of the graph.
