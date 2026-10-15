@@ -54,6 +54,9 @@ namespace b3d
 			/** Creates a new GpuParameterSet and assigns the provided texture. */
 			TShared<GpuParameterSet> Prepare(const TShared<Texture>& source);
 
+			/** Creates the parameter set of @p pass and assigns @p source to it. Returns the set to pass to Execute(). */
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const TShared<Texture>& source);
+
 			/**
 			 * Executes the blit operation using pre-configured GPU parameters.
 			 *
@@ -64,6 +67,18 @@ namespace b3d
 			 * @param flipUV            If true, vertical texture coordinates are flipped.
 			 */
 			void Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuParameterSet>& gpuParameters, const Area2& area, bool flipUV);
+
+			/**
+			 * Binds the material and @p set, a set from Prepare(FrameGraphPass&, const TShared<Texture>&), and draws the blit into the
+			 * current viewport.
+			 *
+			 * @param context	Context of the pass the set was prepared for.
+			 * @param set		Parameter set holding the source texture.
+			 * @param area		Area to use for UV coordinates when drawing the fullscreen quad. For unfiltered blits, this controls the
+			 *					sampled region. For filtered blits, normalized (0,1) UVs are used.
+			 * @param flipUV	If true, vertical texture coordinates are flipped.
+			 */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, const Area2& area, bool flipUV) const;
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -98,6 +113,7 @@ namespace b3d
 			static BlitMat* GetBlendVariation(bool isFiltered, bool writeAlpha, bool srgbEncode, bool output32Bit);
 
 			bool mIsFiltered = false;
+			GpuParameterSampledTexture mSourceParameter;
 		};
 
 		B3D_UNIFORM_BUFFER_BEGIN(CompositeUniformDefinition)
@@ -217,6 +233,15 @@ namespace b3d
 
 			/** Executes the material on the currently bound render target, clearing it to the value set by Prepare(). */
 			void Execute(GpuCommandBuffer& commandBuffer);
+
+			/**
+			 * Creates the parameter set of @p pass and assigns the color the target will be cleared to. Only valid on the color
+			 * variation. Returns the set to pass to Execute().
+			 */
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const Color& color);
+
+			/** Binds the material and @p set, a set from Prepare(), and clears the current viewport of the pass's target. */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set) const;
 
 			/**
 			 * Returns the material variation matching the provided parameters.

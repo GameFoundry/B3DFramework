@@ -10,6 +10,7 @@
 #include "GpuBackend/B3DGpuParameterSetPool.h"
 #include "Renderer/B3DRenderer.h"
 #include "Renderer/B3DRenderQueue.h"
+#include "FrameGraph/B3DFrameGraph.h"
 #include "Components/B3DSkybox.h"
 #include "Utility/B3DRendererTextures.h"
 
@@ -313,7 +314,7 @@ void SurfaceShaderParameterSets::SetForwardLightingInputs(const RendererView& vi
 	parameters.PreintegratedEnvBRDF.Set(RendererTextures::preintegratedEnvGF);
 }
 
-void SurfaceShaderParameterSets::DeclareSets(RenderPassCreateInformation& passInformation, const Vector<RenderQueueEntry>& entries) const
+void SurfaceShaderParameterSets::DeclareSets(FrameGraphRasterPass& pass, const Vector<RenderQueueEntry>& entries) const
 {
 	bool declared[(u32)SurfaceShaderType::Count] = {};
 	for(const RenderQueueEntry& entry : entries)
@@ -321,7 +322,7 @@ void SurfaceShaderParameterSets::DeclareSets(RenderPassCreateInformation& passIn
 		const u32 type = entry.DrawCommand->SurfaceShaderType;
 		if(!declared[type])
 		{
-			passInformation.Parameters.Add(mSets[type]);
+			pass.AddParameterSet(mSets[type]);
 			declared[type] = true;
 		}
 	}

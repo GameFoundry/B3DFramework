@@ -325,6 +325,14 @@ D3D12_TEXTURE_BARRIER D3D12BarrierUtility::GetTextureBarrier(ID3D12Resource* res
 	barrier.Subresources.NumArraySlices = range.ArrayLayerCount;
 	barrier.Subresources.FirstPlane = range.AspectMask.IsSet(GpuTextureAspectFlag::Stencil) ? 1 : 0;
 	barrier.Subresources.NumPlanes = 1;
+
+	// D3D12 rejects a barrier from or into a layout with no access, such as the present layout, unless the sync on that side is none.
+	// Work on that side is then ordered by ExecuteCommandLists() boundaries instead.
+	B3D_ASSERT((barrier.AccessBefore != D3D12_BARRIER_ACCESS_NO_ACCESS || barrier.LayoutBefore == D3D12_BARRIER_LAYOUT_UNDEFINED || barrier.SyncBefore == D3D12_BARRIER_SYNC_NONE ||
+		barrier.SyncBefore == D3D12_BARRIER_SYNC_SPLIT) && "A barrier from a layout with no access must not synchronize with earlier work.");
+	B3D_ASSERT((barrier.AccessAfter != D3D12_BARRIER_ACCESS_NO_ACCESS || barrier.LayoutAfter == D3D12_BARRIER_LAYOUT_UNDEFINED || barrier.SyncAfter == D3D12_BARRIER_SYNC_NONE ||
+		barrier.SyncAfter == D3D12_BARRIER_SYNC_SPLIT) && "A barrier into a layout with no access must not synchronize with later work.");
+
 	B3D_ASSERT((flags & D3D12_TEXTURE_BARRIER_FLAG_DISCARD) == 0 || barrier.LayoutBefore == D3D12_BARRIER_LAYOUT_UNDEFINED);
 	barrier.Flags = flags;
 

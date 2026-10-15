@@ -74,8 +74,19 @@ namespace b3d
 			SkyboxMaterial() = default;
 			void Initialize() override;
 
-			/** Binds the material for rendering and sets up any parameters. */
-			void Bind(GpuCommandBuffer& commandBuffer, const GpuBufferSuballocation& perCamera, const TShared<Texture>& texture, const Color& solidColor);
+			/**
+			 * Creates the parameter set of @p pass and assigns the sky to it.
+			 *
+			 * @param	pass		Pass that draws the sky.
+			 * @param	perCamera	Uniform buffer of the view that draws the sky.
+			 * @param	texture		Sky texture. Ignored by the solid color variation.
+			 * @param	solidColor	Color of the sky in the solid color variation.
+			 * @return				Parameter set to pass to Execute().
+			 */
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const GpuBufferSuballocation& perCamera, const TShared<Texture>& texture, const Color& solidColor);
+
+			/** Binds the material and @p set, a set from Prepare(), and draws the sky. */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set) const;
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -87,6 +98,7 @@ namespace b3d
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterUniformBuffer mPerCameraParameter;
 			GpuParameterSampledTexture mSkyTextureParameter;
 		};
 
@@ -498,8 +510,11 @@ namespace b3d
 			/** Queues a capture to be resolved the next time the view is rendered. */
 			void RequestCapture(TAsyncOp<TShared<PixelData>> asyncOp);
 
-			/** Resolves pending captures after rendering completes. Captures of a window are handed to the window, which reads it when it is presented. */
-			void ResolveCaptures(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& target) const;
+			/**
+			 * Resolves pending captures of @p target, which must be imported into @p graph, after the graph's passes that render it.
+			 * Captures of a window are handed to the window, which reads it when it is presented.
+			 */
+			void ResolveCaptures(FrameGraph& graph, const TShared<RenderTarget>& target) const;
 
 			/**
 			 * Extracts the necessary values from the projection matrix that allow you to transform device Z value (range [0, 1]
@@ -632,7 +647,7 @@ namespace b3d
 			 * and updates the render queues of each individual view. Use getVisibilityInfo() to retrieve the calculated
 			 * visibility information.
 			 */
-			void DetermineVisibility(GpuCommandBuffer& commandBuffer, const RenderBeastScene& scene);
+			void DetermineVisibility(const RenderBeastScene& scene);
 
 		private:
 			Vector<RendererView*> mViews;

@@ -18,6 +18,7 @@
 #include "Renderer/B3DIBLUtility.h"
 #include "Math/B3DAABox.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
+#include "FrameGraph/B3DFrameGraph.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "Components/B3DLight.h"
 
@@ -423,14 +424,23 @@ RendererUtility& GetRendererUtility()
 void BlitMat::Initialize()
 {
 	mIsFiltered = mVariationParameters.GetI32("MODE") == 1;
+	mGpuParameterSet->GetSampledTextureParameter("gSource", mSourceParameter);
 }
 
 TShared<GpuParameterSet> BlitMat::Prepare(const TShared<Texture>& source)
 {
 	TShared<GpuParameterSet> gpuParameters = CreateGpuParameterSet();
-	gpuParameters->SetSampledTexture("gSource", source);
+	mSourceParameter.Set(gpuParameters, source);
 
 	return gpuParameters;
+}
+
+TShared<GpuParameterSet> BlitMat::Prepare(FrameGraphPass& pass, const TShared<Texture>& source)
+{
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
+	mSourceParameter.Set(set, source);
+
+	return set;
 }
 
 void BlitMat::Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuParameterSet>& gpuParameters, const Area2& area, bool flipUV)
@@ -439,6 +449,19 @@ void BlitMat::Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuParamete
 
 	Bind(commandBuffer, false);
 	commandBuffer.SetGpuParameterSet(gpuParameters);
+
+	if(!mIsFiltered)
+		GetRendererUtility().DrawScreenQuad(commandBuffer, area, Vector2I(1, 1), 1, flipUV);
+	else
+		GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0, 0, 1, 1), Vector2I(1, 1), 1, flipUV);
+}
+
+void BlitMat::Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, const Area2& area, bool flipUV) const
+{
+	GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	Bind(commandBuffer, set);
 
 	if(!mIsFiltered)
 		GetRendererUtility().DrawScreenQuad(commandBuffer, area, Vector2I(1, 1), 1, flipUV);
@@ -538,6 +561,27 @@ void ClearMaterial::Execute(GpuCommandBuffer& commandBuffer)
 	B3D_PROFILE_RENDERER_MATERIAL
 
 	Bind(commandBuffer);
+	GetRendererUtility().DrawScreenQuad(commandBuffer);
+}
+
+TShared<GpuParameterSet> ClearMaterial::Prepare(FrameGraphPass& pass, const Color& color)
+{
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
+
+	GpuBufferMappedScope uniforms = gClearUniformDefinition.AllocateTransient().Map();
+	gClearUniformDefinition.gColorClearValue.Set(uniforms, color);
+
+	mUniformBufferParameter.Set(set, uniforms);
+
+	return set;
+}
+
+void ClearMaterial::Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set) const
+{
+	GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	Bind(commandBuffer, set);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 }
 

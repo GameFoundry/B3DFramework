@@ -152,6 +152,9 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const TShared<Vul
 	result = vkGetSwapchainImagesKHR(mDevice, mSwapChain, &imageCount, images);
 	B3D_ASSERT(result == VK_SUCCESS);
 
+	// With explicit barriers, window surfaces start at rest like textures (see GpuBackendUtility::GetRestingState())
+	const bool startsAtRest = gGpuExplicitBarriers && device.GetCapabilities().HasCapability(RSC_EXPLICIT_BARRIERS);
+
 	VulkanImageCreateInformation colorImageCreateInformation;
 	colorImageCreateInformation.Format = colorFormat;
 	colorImageCreateInformation.Usage = TextureUsageFlag::RenderTarget;
@@ -172,6 +175,9 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const TShared<Vul
 		if(mSurfaces[imageIndex].Image != nullptr)
 		{
 			mSurfaces[imageIndex].Image->SetName(StringUtility::Format("Color attachment #{0}", imageIndex));
+
+			if(startsAtRest)
+				mSurfaces[imageIndex].Image->RequestRestingTransition(GpuImageLayout::ColorAttachment);
 		}
 	}
 
@@ -223,6 +229,9 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const TShared<Vul
 		if(mDepthStencilImage != nullptr)
 		{
 			mDepthStencilImage->SetName("Depth-stencil attachment");
+
+			if(startsAtRest)
+				mDepthStencilImage->RequestRestingTransition(GpuImageLayout::DepthStencilAttachment);
 		}
 	}
 	else

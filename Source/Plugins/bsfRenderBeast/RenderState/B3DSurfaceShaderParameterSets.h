@@ -12,7 +12,7 @@ namespace b3d
 	namespace render
 	{
 		struct RenderQueueEntry;
-		struct RenderPassCreateInformation;
+		class FrameGraphRasterPass;
 
 		/** @addtogroup RenderBeast
 		 *  @{
@@ -93,8 +93,8 @@ namespace b3d
 			void SetForwardLightingInputs(const RendererView& view, const VisibleLightData& lights, const VisibleReflectionProbeData& reflectionProbes,
 				const RenderBeastScene& scene, const Skybox* skybox);
 
-			/** Adds the sets that @p entries use to @p passInformation. */
-			void DeclareSets(RenderPassCreateInformation& passInformation, const Vector<RenderQueueEntry>& entries) const;
+			/** Adds the sets that @p entries use to @p pass, which declares the graph resources they hold. */
+			void DeclareSets(FrameGraphRasterPass& pass, const Vector<RenderQueueEntry>& entries) const;
 
 			/**
 			 * Binds the set of @p entry, unless it is @p boundType.

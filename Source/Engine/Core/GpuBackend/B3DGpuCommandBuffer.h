@@ -42,8 +42,9 @@ namespace b3d
 	 * Selects explicit barriers for the whole engine. If enabled:
 	 *  - The transfer command buffers of work contexts use explicit barriers: the upload and read utilities take resources from their
 	 *    resting state and return them to it (see GpuBackendUtility::GetRestingState()).
-	 *  - New textures start at rest, brought there by the first submission that uses them (see
-	 *    IGpuImageResource::RequestRestingTransition()).
+	 *  - New textures and window surfaces start at rest, brought there by the first submission that uses them (see
+	 *    IGpuImageResource::RequestRestingTransition()). Presentation takes window color surfaces out of rest, and the next submission
+	 *    that uses them brings them back.
 	 *  - Frame graphs issue every other barrier.
 	 *
 	 * If disabled, the resource tracker derives every barrier, and frame graphs run in automatic mode (see render::FrameGraph). Explicit

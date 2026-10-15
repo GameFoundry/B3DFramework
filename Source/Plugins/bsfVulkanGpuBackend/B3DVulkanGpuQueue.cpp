@@ -8,6 +8,7 @@
 #include "B3DVulkanSwapChain.h"
 #include "B3DVulkanFramebuffer.h"
 #include "B3DVulkanTexture.h"
+#include "GpuBackend/B3DGpuBackendUtility.h"
 #include "Profiling/B3DRenderStats.h"
 
 using namespace b3d;
@@ -313,12 +314,25 @@ VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageI
 
 	// The image has a single subresource, so the image's own counters are exactly its in-flight reads
 	GpuSubmissionImageTransition transition(image, GpuTextureSubresourceRange(0, 1, 0, 1, GpuTextureAspectFlag::Color), stateResource.NativeState, GpuImageLayout::Present, GpuImageLayout::Present, GpuBarrierFlag::None, GpuSubmissionTransition::Build(stateResource.SubmissionState, GetDevice().GetSubmitThread().GetFrameIndex(), image.GetUseInfo(GpuAccessFlag::Read), GetId(), presentHazards));
+
+	// With explicit barriers the submission state does not hold the accesses of the image, which leave it at rest. The present
+	// transition takes it out of rest, and the next submission that uses the image brings it back.
+	const bool restsBetweenPresents = gGpuExplicitBarriers && GetDevice().GetCapabilities().HasCapability(RSC_EXPLICIT_BARRIERS);
+	if(restsBetweenPresents)
+	{
+		const GpuAccessState restingState = GpuBackendUtility::GetWindowColorRestingState(GetType());
+		transition.SourceAccessScope.Add(restingState.Stages, restingState.Access);
+	}
+
 	VulkanSubmissionTransitionVisitor transitionVisitor(GetDevice(), GetId(), bridgeSubmitInformation);
 	transitionVisitor.VisitImage(transition);
 	transitionVisitor.Finalize(bridgeCommandBuffer->GetVulkanHandle());
 
 	stateResource.SubmissionState = std::move(transition.PostTransitionSubmissionState);
 	bridgeCommandBuffer->End();
+
+	if(restsBetweenPresents)
+		image.RequestRestingTransition(GpuImageLayout::ColorAttachment);
 
 	bridgeSubmitInformation.PrimaryCommandBuffer = bridgeCommandBuffer;
 	bridgeSubmitInformation.WaitSemaphores.Append(waitSemaphores.begin(), waitSemaphores.end());

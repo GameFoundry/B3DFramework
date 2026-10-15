@@ -15,6 +15,7 @@
 #include "GpuBackend/B3DGpuTransientResourceAllocator.h"
 #include "GpuBackend/B3DGpuWorkContext.h"
 #include "Profiling/B3DProfilerGPU.h"
+#include "Renderer/B3DRendererUtility.h"
 #include "FileSystem/B3DDataStream.h"
 #include "Image/B3DPixelData.h"
 #include "Image/B3DTexture.h"
@@ -36,6 +37,7 @@ FrameGraphTestSuite::FrameGraphTestSuite()
 	B3D_ADD_TEST(FrameGraphTestSuite::TestReadback)
 	B3D_ADD_TEST(FrameGraphTestSuite::TestParameterHandles)
 	B3D_ADD_TEST(FrameGraphTestSuite::TestProfiling)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestRasterPass)
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	B3D_ADD_TEST(FrameGraphTestSuite::TestValidation)
@@ -843,6 +845,135 @@ void FrameGraphTestSuite::TestProfiling()
 		B3D_TEST_ASSERT(graphSample.ChildSamples[0].Name == "Write" && graphSample.ChildSamples[0].ChildSamples.Empty())
 		B3D_TEST_ASSERT(graphSample.ChildSamples[1].Name == "Read")
 		B3D_TEST_ASSERT(graphSample.ChildSamples[1].ChildSamples.Size() == 1 && graphSample.ChildSamples[1].ChildSamples[0].Name == "Copy")
+
+		device->EndFrame();
+	});
+}
+
+void FrameGraphTestSuite::TestRasterPass()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	if(device == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+
+	RunInModes("FrameGraphTestSuite::TestRasterPass", { true, false }, [this, &device]()
+	{
+		// A work context records its graphs in one barrier mode, so each mode gets its own, with its own instance of the material
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		const ShaderVariationParameters variation(TInlineArray<ShaderVariationParameter, 4>({
+			ShaderVariationParameter("MSAA_COUNT", 1),
+			ShaderVariationParameter("MODE", 0),
+			ShaderVariationParameter("BLEND", 0),
+			ShaderVariationParameter("WRITE_ALPHA", 0),
+			ShaderVariationParameter("SRGB_ENCODE", 0),
+			ShaderVariationParameter("OUTPUT_32BIT", false),
+		}));
+
+		BlitMat* const blitMaterial = BlitMat::Get(*context, variation);
+		B3D_TEST_ASSERT(blitMaterial != nullptr)
+		if(blitMaterial == nullptr)
+			return;
+
+		// Every texel of the source differs, and alpha is opaque
+		const TShared<PixelData> pixels = PixelData::Create(kSize, kSize, 1, PF_RGBA8);
+		const auto fnExpectedTexel = [](u32 row, u32 column) { return 0xFF000000 | (row << 16) | (column << 8) | (row * kSize + column); };
+		for(u32 row = 0; row < kSize; row++)
+		{
+			u32* const rowTexels = reinterpret_cast<u32*>(pixels->GetData() + row * pixels->GetRowPitch());
+			for(u32 column = 0; column < kSize; column++)
+				rowTexels[column] = fnExpectedTexel(row, column);
+		}
+
+		TextureCreateInformation information;
+		information.Name = "Blit source";
+		information.Width = kSize;
+		information.Height = kSize;
+		information.Format = PF_RGBA8;
+		information.Usage = TextureUsageFlag::Default;
+
+		// The upload takes the source from rest and returns it there
+		const TShared<render::Texture> source = device->CreateTexture(information);
+
+		GpuCommandBufferPoolCreateInformation poolInformation = GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_GRAPHICS);
+		poolInformation.ExplicitBarriers = gGpuExplicitBarriers;
+		const TShared<GpuCommandBufferPool> pool = device->CreateGpuCommandBufferPool(poolInformation);
+
+		const TShared<render::GpuCommandBuffer> uploadCommands = pool->Create(GpuCommandBufferCreateInformation::Create("Upload"));
+		TextureUtility::Write(*context, source, *pixels, 0, 0, TextureWriteFlag::Normal, uploadCommands);
+		context->SubmitCommandBuffer(uploadCommands, GpuQueueMask::kNone);
+
+		information.Usage = TextureUsageFlag::RenderTarget;
+		const Area2 sourceArea(0.0f, 0.0f, (float)kSize, (float)kSize);
+
+		TAsyncOp<TShared<PixelData>> passSetRead;
+		TAsyncOp<TShared<PixelData>> renderPassSetRead;
+		{
+			FrameGraph graph(*context, kGraphName);
+
+			// The first pass binds a set it declares
+			const TShared<render::Texture> passSetTarget = graph.CreateTexture("Pass set target", information);
+
+			FrameGraphRasterPass passSetPass;
+			passSetPass.SetColorAttachment(0, passSetTarget, FrameGraphAttachmentLoad::DontCare);
+			const TShared<render::GpuParameterSet> passSet = blitMaterial->Prepare(passSetPass, source);
+
+			graph.AddRasterPass("Blit with a pass set", std::move(passSetPass), [blitMaterial, passSet, sourceArea](FrameGraphPassContext& passContext)
+			{
+				passContext.GetCommandBuffer().SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
+				blitMaterial->Execute(passContext, passSet, sourceArea, false);
+			});
+
+			// The second binds a set that only the render pass sees, which holds the source at rest
+			const TShared<render::Texture> renderPassSetTarget = graph.CreateTexture("Render pass set target", information);
+
+			FrameGraphRasterPass renderPassSetPass;
+			renderPassSetPass.SetColorAttachment(0, renderPassSetTarget, FrameGraphAttachmentLoad::DontCare);
+			const TShared<render::GpuParameterSet> renderPassSet = blitMaterial->Prepare(source);
+			renderPassSetPass.AddRenderPassParameterSet(renderPassSet);
+
+			graph.AddRasterPass("Blit with a render pass set", std::move(renderPassSetPass), [blitMaterial, renderPassSet, sourceArea](FrameGraphPassContext& passContext)
+			{
+				passContext.GetCommandBuffer().SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
+				blitMaterial->Execute(passContext, renderPassSet, sourceArea, false);
+			});
+
+			passSetRead = TextureUtility::ReadAsync(graph, passSetTarget);
+			renderPassSetRead = TextureUtility::ReadAsync(graph, renderPassSetTarget);
+
+			graph.Compile();
+			B3D_TEST_ASSERT(graph.GetStatistics().CulledPassCount == 0)
+			graph.Execute();
+		}
+
+		// The command buffer's completion callbacks run on this thread while it waits
+		device->WaitUntilIdle();
+		B3D_TEST_ASSERT_MSG(passSetRead.HasCompleted() && renderPassSetRead.HasCompleted(), "The reads did not complete with the graph's command buffer.")
+		if(!passSetRead.HasCompleted() || !renderPassSetRead.HasCompleted())
+			return;
+
+		const auto fnHasSourceTexels = [&fnExpectedTexel](const TShared<PixelData>& data)
+		{
+			if(data == nullptr)
+				return false;
+
+			for(u32 row = 0; row < kSize; row++)
+			{
+				const u32* const rowTexels = reinterpret_cast<const u32*>(data->GetData() + row * data->GetRowPitch());
+				for(u32 column = 0; column < kSize; column++)
+				{
+					if(rowTexels[column] != fnExpectedTexel(row, column))
+						return false;
+				}
+			}
+
+			return true;
+		};
+
+		B3D_TEST_ASSERT_MSG(fnHasSourceTexels(passSetRead.GetReturnValue()), "The blit through a pass set does not hold the source's texels.")
+		B3D_TEST_ASSERT_MSG(fnHasSourceTexels(renderPassSetRead.GetReturnValue()), "The blit through a render pass set does not hold the source's texels.")
 
 		device->EndFrame();
 	});

@@ -7,6 +7,11 @@
 #include "B3DD3D12ResourceManager.h"
 #include "B3DD3D12Texture.h"
 #include "B3DD3D12Framebuffer.h"
+#include "B3DD3D12GpuCommandBuffer.h"
+#include "B3DD3D12BarrierUtility.h"
+#include "Utility/B3DD3D12BarrierBatch.h"
+#include "GpuBackend/B3DGpuCommandBuffer.h"
+#include "GpuBackend/B3DGpuSubmitThread.h"
 #include "Threading/B3DScheduler.h"
 
 using namespace b3d;
@@ -118,6 +123,9 @@ void D3D12SwapChain::Initialize()
 
 	factory->MakeWindowAssociation(mCreateInformation.WindowHandle, DXGI_MWA_NO_ALT_ENTER);
 
+	// With explicit barriers, window surfaces start at rest like textures (see GpuBackendUtility::GetRestingState())
+	const bool startsAtRest = gGpuExplicitBarriers && mDevice.GetCapabilities().HasCapability(RSC_EXPLICIT_BARRIERS);
+
 	// Create the back-buffer image wrappers.
 	for (u32 backBufferIndex = 0; backBufferIndex < mBackBufferCount; backBufferIndex++)
 	{
@@ -144,6 +152,9 @@ void D3D12SwapChain::Initialize()
 		imageCreateInformation.Name = name;
 
 		mBackBufferImages[backBufferIndex] = mDevice.GetResourceManager().Create<D3D12Image>(imageCreateInformation);
+
+		if(startsAtRest && mBackBufferImages[backBufferIndex] != nullptr)
+			mBackBufferImages[backBufferIndex]->RequestRestingTransition(GpuImageLayout::ColorAttachment);
 	}
 
 	// Create the optional depth-stencil image.
@@ -185,6 +196,9 @@ void D3D12SwapChain::Initialize()
 			imageCreateInformation.Name = "SwapChain DepthStencil Buffer";
 
 			mDepthStencilImage = mDevice.GetResourceManager().Create<D3D12Image>(imageCreateInformation);
+
+			if(startsAtRest)
+				mDepthStencilImage->RequestRestingTransition(GpuImageLayout::DepthStencilAttachment);
 		}
 	}
 
@@ -295,7 +309,37 @@ void D3D12SwapChain::Present(u32 imageIndex, GpuQueue& queue, GpuQueueMask syncM
 	// DXGI flip-model presents the swap chain's current back buffer; there is no per-image present target. No DXGI
 	// present happens between acquire and present, so the current back buffer still matches the acquired image index.
 	B3D_ASSERT(imageIndex == GetCurrentBackBufferIndex() && "Presenting an image other than the current DXGI back buffer.");
-	(void)imageIndex;
+
+	// Swap chain images rest in ColorAttachment layout, take it into Present and request transition back into rest on first use
+	D3D12Image* const image = mBackBufferImages[imageIndex];
+	if(gGpuExplicitBarriers && mDevice.GetCapabilities().HasCapability(RSC_EXPLICIT_BARRIERS) && image != nullptr)
+	{
+		const GpuTextureSubresourceRange range(0, 1, 0, 1, GpuTextureAspectFlag::Color);
+		const D3D12TextureLayout committedLayout((D3D12_BARRIER_LAYOUT)image->GetSubmissionStateResource(0, 0, GpuTextureAspectFlag::Color).NativeState.Layout);
+
+		// A back buffer that nothing used since the last present is still in the present layout
+		if(committedLayout != D3D12TextureLayout::Present())
+		{
+			D3D12BarrierBatch barriers;
+			barriers.AddTextureBarrier(D3D12BarrierUtility::GetTextureBarrier(image->GetD3D12Resource(), range, GpuBarrierScope(), GpuImageLayout::Undefined, GpuImageLayout::Undefined,
+				committedLayout, D3D12TextureLayout::Present(), D3D12_TEXTURE_BARRIER_FLAG_NONE));
+
+			GpuCommandBufferPool& commandBufferPool = mDevice.GetSubmitThread().GetCommandBufferPool(queue.GetType());
+			D3D12GpuCommandBufferSubmitInformation submitInformation;
+			submitInformation.PrimaryCommandBuffer = std::static_pointer_cast<D3D12GpuCommandBuffer>(commandBufferPool.FindOrCreate(GpuCommandBufferCreateInformation::Create("Present transition")));
+			barriers.Record(*submitInformation.PrimaryCommandBuffer->GetD3D12Handle());
+			submitInformation.PrimaryCommandBuffer->End();
+
+			d3d12Queue.ExecuteSubmitOnSubmitThread(submitInformation, syncMask, {});
+
+			GpuImageNativeState nativeState;
+			nativeState.Layout = (u32)D3D12_BARRIER_LAYOUT_PRESENT;
+			nativeState.StateQueue = queue.GetId();
+			image->SetNativeState(range, nativeState);
+		}
+
+		image->RequestRestingTransition(GpuImageLayout::ColorAttachment);
+	}
 
 	// Issue the DXGI present on the selected queue after its cross-queue dependencies.
 	d3d12Queue.Present(this, syncMask);

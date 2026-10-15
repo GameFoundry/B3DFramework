@@ -5,6 +5,7 @@
 #include "Components/B3DSkybox.h"
 #include "B3DRenderBeast.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
+#include "FrameGraph/B3DFrameGraph.h"
 
 namespace b3d {
 namespace render {
@@ -28,6 +29,7 @@ void TiledDeferredLightingMaterial::Initialize()
 		mGpuParameterSet->GetSampledTextureParameter("gMSAACoverage", mMSAACoverageTexParam);
 
 	mGpuParameterSet->GetUniformBufferParameter("Params", mUniformBufferParameter);
+	mGpuParameterSet->GetUniformBufferParameter("PerCamera", mPerCameraParameter);
 }
 
 void TiledDeferredLightingMaterial::InitDefinesInternal(ShaderDefines& defines)
@@ -35,14 +37,15 @@ void TiledDeferredLightingMaterial::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("TILE_SIZE", kTileSize);
 }
 
-void TiledDeferredLightingMaterial::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer, const TShared<Texture>& inputTexture, const TShared<Texture>& lightAccumTex, const TShared<Texture>& lightAccumTexArray, const TShared<Texture>& msaaCoverage)
+TShared<GpuParameterSet> TiledDeferredLightingMaterial::Prepare(FrameGraphPass& pass, const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer,
+	const TShared<Texture>& inputTexture, const TShared<Texture>& lightAccumTex, const TShared<Texture>& lightAccumTexArray, const TShared<Texture>& msaaCoverage)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
 
 	const RendererViewProperties& viewProps = view.GetProperties();
 	const RenderSettings& settings = view.GetRenderSettings();
 
-	mLightBufferParam.Set(lightData.GetLightBuffer());
+	mLightBufferParam.Set(set, lightData.GetLightBuffer());
 
 	u32 width = viewProps.Target.ViewRect.Width;
 	u32 height = viewProps.Target.ViewRect.Height;
@@ -95,24 +98,32 @@ void TiledDeferredLightingMaterial::Execute(GpuCommandBuffer& commandBuffer, con
 		gTiledLightingUniformDefinition.gLightStrides.Set(uniforms, lightStrides);
 	}
 
-	mUniformBufferParameter.Set(uniforms);
+	mUniformBufferParameter.Set(set, uniforms);
 
-	mGBufferParams.Bind(gbuffer);
-	mGpuParameterSet->SetUniformBuffer("PerCamera", view.GetPerViewBuffer());
-	mInColorTextureParam.Set(inputTexture);
+	mGBufferParams.Bind(set, gbuffer);
+	mPerCameraParameter.Set(set, view.GetPerViewBuffer());
+	mInColorTextureParam.Set(set, inputTexture);
 
 	if(mSampleCount > 1)
 	{
-		mOutputTextureParam.Set(lightAccumTexArray, TextureSurface::kComplete);
-		mMSAACoverageTexParam.Set(msaaCoverage);
+		mOutputTextureParam.Set(set, lightAccumTexArray, TextureSurface::kComplete);
+		mMSAACoverageTexParam.Set(set, msaaCoverage);
 	}
 	else
-		mOutputTextureParam.Set(lightAccumTex);
+		mOutputTextureParam.Set(set, lightAccumTex);
 
-	u32 numTilesX = (u32)Math::CeilToInt(width / (float)kTileSize);
-	u32 numTilesY = (u32)Math::CeilToInt(height / (float)kTileSize);
+	return set;
+}
 
-	Bind(commandBuffer);
+void TiledDeferredLightingMaterial::Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, u32 width, u32 height) const
+{
+	GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	const u32 numTilesX = (u32)Math::CeilToInt(width / (float)kTileSize);
+	const u32 numTilesY = (u32)Math::CeilToInt(height / (float)kTileSize);
+
+	Bind(commandBuffer, set);
 	commandBuffer.DispatchCompute(numTilesX, numTilesY);
 }
 

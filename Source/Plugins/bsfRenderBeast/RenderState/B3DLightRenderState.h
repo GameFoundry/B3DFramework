@@ -82,6 +82,12 @@ namespace b3d
 			/** Binds the GBuffer textures to the pipeline. */
 			void Bind(const GBufferTextures& gbuffer);
 
+			/**
+			 * Assigns the GBuffer textures, and the point sampler of the depth texture, to @p set. The set must be created for the
+			 * material whose parameter set the binding was initialized with.
+			 */
+			void Bind(const TShared<GpuParameterSet>& set, const GBufferTextures& gbuffer) const;
+
 			/** Assigns the provided GBuffer textures to the provided GPU parameters object. */
 			static void Set(GpuDevice& gpuDevice, const TShared<GpuParameterSet>& gpuParameters, const GBufferTextures& textures);
 
@@ -92,6 +98,8 @@ namespace b3d
 			GpuParameterSampledTexture mGBufferB;
 			GpuParameterSampledTexture mGBufferC;
 			GpuParameterSampledTexture mGBufferDepth;
+			GpuParameterSampler mGBufferDepthSampler;
+			TShared<SamplerState> mGBufferDepthSamplerState;
 		};
 
 		/**

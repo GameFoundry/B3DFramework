@@ -135,7 +135,6 @@ namespace b3d
 			/**
 			 * Renders all views in the provided view group. Returns true if anything has been draw to any of the views.
 			 *
-			 * @param	commandBuffer			Command buffer into which to record the render commands.
 			 * @param	scene					Owner scene of the view being drawn.
 			 * @param	viewGroup				Group of views to render. Usually there's one view per group, but e.g. when rendering cubemaps it can be 6.
 			 * @param	frameInfo				Information about the current frame.
@@ -143,12 +142,11 @@ namespace b3d
 			 *
 			 * @note	Render thread only.
 			 */
-			bool RenderViews(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, RendererViewGroup& viewGroup, const FrameInfo& frameInfo, bool forceRendering);
+			bool RenderViews(RenderBeastScene& scene, RendererViewGroup& viewGroup, const FrameInfo& frameInfo, bool forceRendering);
 
 			/**
-			 * Renders all objects visible by the provided view.
+			 * Renders all objects visible by the provided view, with a frame graph of its own that executes before this returns.
 			 *
-			 * @param	commandBuffer			Command buffer into which to record the render commands.
 			 * @param	scene					Owner scene of the view being drawn.
 			 * @param	viewGroup				Group of views that the view belong to. Usually there's one view per group, but e.g. when rendering cubemaps it can be 6.
 			 * @param	view					View being drawn.
@@ -156,12 +154,12 @@ namespace b3d
 			 *
 			 * @note	Render thread only.
 			 */
-			void RenderView(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo);
+			void RenderView(RenderBeastScene& scene, const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo);
 
 			/**
-			 * Renders all overlay callbacks of the provided view. Returns true if anything has been rendered in any of the views.
+			 * Renders all overlay callbacks of the provided view, with a frame graph of its own that executes before this returns.
+			 * Returns true if anything has been rendered in any of the views.
 			 *
-			 * @param	commandBuffer			Command buffer into which to record the render commands.
 			 * @param	scene					Owner scene of the view being drawn.
 			 * @param	view					View being drawn.
 			 * @param	frameInfo				Information about the current frame.
@@ -169,7 +167,7 @@ namespace b3d
 			 *
 			 * @note	Render thread only.
 			 */
-			bool RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, RendererView& view, const FrameInfo& frameInfo, bool forceRendering);
+			bool RenderOverlay(RenderBeastScene& scene, RendererView& view, const FrameInfo& frameInfo, bool forceRendering);
 
 			/**	Creates data used by the renderer on the render thread, when the renderer is activated. */
 			void ActivateOnRenderThread(const LoadedRendererTextures& rendererTextures);

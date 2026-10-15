@@ -594,15 +594,14 @@ namespace b3d
 		bool CanRest() const { return mCanRest; }
 
 		/**
-		 * Makes the first submission that uses the image bring every subresource of it from the undefined layout it is created in to
-		 * @p layout, the backend's resting layout of the image. Backends call it when they create an image that starts at rest (see
-		 * render::Texture::StartsAtRest()), before any command buffer uses the image.
+		 * Makes the next submission that uses the image bring every subresource of it from its native layout to @p layout, the backend's
+		 * resting layout of the image. Thread safe on submit thread, or during initial creaation of the resource.
 		 */
 		void RequestRestingTransition(render::GpuImageLayout layout) { mRestingTransitionLayout = layout; }
 
 		/**
 		 * Returns the layout requested by RequestRestingTransition() and forgets it, or GpuImageLayout::Undefined if there is none. Called
-		 * by the first submission that uses the image. Submit thread only.
+		 * by the next submission that uses the image. Submit thread only.
 		 */
 		render::GpuImageLayout ConsumeRestingTransition();
 

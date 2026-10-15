@@ -48,8 +48,25 @@ namespace b3d
 			TiledDeferredLightingMaterial() = default;
 			void Initialize() override;
 
-			/** Binds the material for rendering, sets up parameters and executes it. */
-			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer, const TShared<Texture>& inputTexture, const TShared<Texture>& lightAccumTex, const TShared<Texture>& lightAccumTexArray, const TShared<Texture>& msaaCoverage);
+			/**
+			 * Creates the parameter set of @p pass and assigns the lighting inputs of @p view to it.
+			 *
+			 * @param	pass				Pass that dispatches the material.
+			 * @param	view				View to light.
+			 * @param	lightData			Lights visible in the view.
+			 * @param	gbuffer				G-buffer of the view.
+			 * @param	inputTexture		Scene color, holding the emissive light of the G-buffer.
+			 * @param	lightAccumTex		Texture to write the lit result to, without MSAA.
+			 * @param	lightAccumTexArray	Texture array to write the lit samples to, with MSAA.
+			 * @param	msaaCoverage		Texture marking the pixels whose samples differ, with MSAA.
+			 * @return						Parameter set to pass to Execute().
+			 */
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer,
+				const TShared<Texture>& inputTexture, const TShared<Texture>& lightAccumTex, const TShared<Texture>& lightAccumTexArray,
+				const TShared<Texture>& msaaCoverage);
+
+			/** Binds the material and @p set, a set from Prepare(), and dispatches one group per tile of a @p width by @p height view. */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, u32 width, u32 height) const;
 
 			/** Returns the material variation matching the provided parameters. */
 			static TiledDeferredLightingMaterial* GetVariation(u32 msaaCount);
@@ -65,6 +82,7 @@ namespace b3d
 			GpuParameterSampledTexture mMSAACoverageTexParam;
 
 			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterUniformBuffer mPerCameraParameter;
 
 			static const u32 kTileSize;
 		};

@@ -6,6 +6,7 @@
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12ResourceManager.h"
 #include "B3DD3D12Texture.h"
+#include "GpuBackend/B3DGpuCommandBuffer.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -49,6 +50,9 @@ void D3D12HeadlessRenderWindowSurface::CreateSurfaceResources()
 	D3D12_CLEAR_VALUE colorClearValue = {};
 	colorClearValue.Format = mColorFormat;
 
+	// With explicit barriers, window surfaces start at rest like textures (see GpuBackendUtility::GetRestingState())
+	const bool startsAtRest = gGpuExplicitBarriers && mDevice.GetCapabilities().HasCapability(RSC_EXPLICIT_BARRIERS);
+
 	for (u32 imageIndex = 0; imageIndex < mBackBufferCount; imageIndex++)
 	{
 		GpuAllocation allocation;
@@ -74,6 +78,9 @@ void D3D12HeadlessRenderWindowSurface::CreateSurfaceResources()
 		imageCreateInformation.Name = name;
 
 		mColorImages[imageIndex] = mDevice.GetResourceManager().Create<D3D12Image>(imageCreateInformation);
+
+		if(startsAtRest)
+			mColorImages[imageIndex]->RequestRestingTransition(GpuImageLayout::ColorAttachment);
 	}
 
 	if (mCreateDepthBuffer)
@@ -115,6 +122,9 @@ void D3D12HeadlessRenderWindowSurface::CreateSurfaceResources()
 		imageCreateInformation.Name = "Headless DepthStencil Buffer";
 
 		mDepthStencilImage = mDevice.GetResourceManager().Create<D3D12Image>(imageCreateInformation);
+
+		if(startsAtRest)
+			mDepthStencilImage->RequestRestingTransition(GpuImageLayout::DepthStencilAttachment);
 	}
 
 	mCurrentImageIndex = 0;

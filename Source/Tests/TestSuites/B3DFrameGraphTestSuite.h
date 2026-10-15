@@ -73,6 +73,12 @@ namespace b3d
 		 */
 		void TestProfiling();
 
+		/**
+		 * A raster pass draws with a renderer material through a parameter set it declares, and through a set added with
+		 * FrameGraphRasterPass::AddRenderPassParameterSet() that holds a texture at rest.
+		 */
+		void TestRasterPass();
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		/**
 		 * The development checks: writes to resources at rest, conflicting declarations in one pass, writes after an export, dependencies

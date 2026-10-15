@@ -113,16 +113,15 @@ void GBufferParameterBinding::Initialize(GpuDevice& gpuDevice, GpuProgramType ty
 
 	if(mParams->HasSamplerState(kDepthSamplerName))
 	{
-		GpuParameterSampler samplerStateParam;
-		mParams->GetSamplerStateParameter(kDepthSamplerName, samplerStateParam);
+		mParams->GetSamplerStateParameter(kDepthSamplerName, mGBufferDepthSampler);
 
 		SamplerStateInformation desc;
 		desc.MinFilter = FO_POINT;
 		desc.MagFilter = FO_POINT;
 		desc.MipFilter = FO_POINT;
 
-		TShared<SamplerState> ss = gpuDevice.FindOrCreateSamplerState(desc);
-		samplerStateParam.Set(ss);
+		mGBufferDepthSamplerState = gpuDevice.FindOrCreateSamplerState(desc);
+		mGBufferDepthSampler.Set(mGBufferDepthSamplerState);
 	}
 }
 
@@ -132,6 +131,15 @@ void GBufferParameterBinding::Bind(const GBufferTextures& gbuffer)
 	mGBufferB.Set(gbuffer.Normals);
 	mGBufferC.Set(gbuffer.RoughMetal);
 	mGBufferDepth.Set(gbuffer.Depth);
+}
+
+void GBufferParameterBinding::Bind(const TShared<GpuParameterSet>& set, const GBufferTextures& gbuffer) const
+{
+	mGBufferA.Set(set, gbuffer.Albedo);
+	mGBufferB.Set(set, gbuffer.Normals);
+	mGBufferC.Set(set, gbuffer.RoughMetal);
+	mGBufferDepth.Set(set, gbuffer.Depth);
+	mGBufferDepthSampler.Set(set, mGBufferDepthSamplerState);
 }
 
 void GBufferParameterBinding::Set(GpuDevice& gpuDevice, const TShared<GpuParameterSet>& gpuParameters, const GBufferTextures& textures)

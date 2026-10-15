@@ -161,10 +161,17 @@ namespace b3d
 
 		/**
 		 * Returns the resting state of the single-bit @p surface of @p target, on queues of @p queueType. A render texture surface rests
-		 * like its texture. A window surface can only be accessed as an attachment: its color surface rests in GpuImageLayout::Present,
-		 * and its depth and stencil surfaces in GpuImageLayout::DepthStencilAttachment.
+		 * like its texture. A window surface can only be accessed as an attachment: its color surface rests as returned by
+		 * GetWindowColorRestingState(), and its depth and stencil surfaces in GpuImageLayout::DepthStencilAttachment.
 		 */
 		static render::GpuAccessState GetRestingState(const render::RenderTarget& target, RenderSurfaceMaskBits surface, GpuQueueType queueType);
+
+		/**
+		 * Returns the resting state of the color surface of a window on queues of @p queueType: read and written by color attachments, in
+		 * GpuImageLayout::ColorAttachment. Presentation takes the surface out of rest into GpuImageLayout::Present, and the next
+		 * submission that uses it brings it back (see IGpuImageResource::RequestRestingTransition()).
+		 */
+		static render::GpuAccessState GetWindowColorRestingState(GpuQueueType queueType);
 
 		/**
 		 * Returns the surfaces that a render pass clears when it begins, and writes the values to clear them to into @p clearValues. These

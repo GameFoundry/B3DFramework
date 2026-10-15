@@ -64,6 +64,7 @@ namespace b3d
 	namespace render
 	{
 		class FrameGraphPass;
+		class FrameGraphPassContext;
 
 		/** @addtogroup Renderer-Internal
 		 *  @{

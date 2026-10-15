@@ -79,8 +79,7 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions
 		stateResource.SubmissionState = std::move(transition.PostTransitionSubmissionState);
 	};
 
-	// Images that start at rest get there in the first submission that uses them, ahead of the command buffer. A command buffer that
-	// tracks hazards derives its transitions from the undefined layout instead, and only consumes the request.
+	// If an image is not at rest, transition it to rest before first use on the command buffer
 	for(const auto& entry : mImages)
 	{
 		IGpuImageResource* const image = entry.first;
@@ -88,9 +87,7 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions
 		if(restingLayout == GpuImageLayout::Undefined || mTracksHazards)
 			continue;
 
-		// The image is new, so nothing accessed it before, and the submission only needs to transition its layout. The command buffer does
-		// not track its accesses, so the transition makes the image available to every stage of the queue. An image with more than one
-		// aspect keeps a state per aspect, and every subresource of the aspect gets the state of its first.
+		// The command buffer does not track its accesses, so the transition makes the image available to every stage of the queue. 
 		// TODO - Make the image available only to the first access of the command buffer, rather than to every stage of the queue. This
 		// needs the command buffer to track the initial state of every resource that is not at rest yet.
 		GpuResourceHazardState commandBufferAccesses;
@@ -105,7 +102,7 @@ void TGpuResourceTracker<TDerived, TBarrierHelper>::ResolveSubmissionTransitions
 			range.AspectMask = aspect;
 
 			GpuImageSubresource& stateResource = image->GetSubmissionStateResource(0, 0, aspect);
-			fnVisitImageTransition(*image, range, stateResource, restingLayout, restingLayout, GpuBarrierFlag::DiscardContents, GpuQueueMask::kNone, commandBufferAccesses,
+			fnVisitImageTransition(*image, range, stateResource, restingLayout, restingLayout, GpuBarrierFlags(), GpuQueueMask::kNone, commandBufferAccesses,
 				TDerived::kLayoutTransitionsAreWrites);
 
 			if(!image->HasUniformSubmissionState())

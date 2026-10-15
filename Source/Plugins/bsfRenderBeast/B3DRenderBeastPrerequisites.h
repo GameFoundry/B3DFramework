@@ -4,6 +4,36 @@
 
 #include "B3DPrerequisites.h"
 
+/**
+ * Stage up to which RenderBeast compiles the code that waits for its port to frame graphs. Each stage brings back a set of renderer
+ * features, and each feature has a stage number below. Code under #if B3D_FRAME_GRAPH_PORT_PENDING(Feature) waits for the port of
+ * the feature and is compiled once this stage reaches the feature's stage. Code under #if !B3D_FRAME_GRAPH_PORT_PENDING(Feature)
+ * stands in for the feature until then.
+ *
+ * Raising the stage restores the old renderer code of the features up to it, as long as that code still compiles against the ported
+ * code around it.
+ */
+#define B3D_FRAME_GRAPH_PORT_STAGE 0
+
+#define B3D_FRAME_GRAPH_PORT_STAGE_Shadows 1
+#define B3D_FRAME_GRAPH_PORT_STAGE_IndirectLighting 2
+#define B3D_FRAME_GRAPH_PORT_STAGE_Forward 3
+#define B3D_FRAME_GRAPH_PORT_STAGE_Particles 3
+#define B3D_FRAME_GRAPH_PORT_STAGE_Decals 3
+#define B3D_FRAME_GRAPH_PORT_STAGE_PostProcessing 4
+#define B3D_FRAME_GRAPH_PORT_STAGE_ScreenSpace 5
+#define B3D_FRAME_GRAPH_PORT_STAGE_TemporalAA 5
+#define B3D_FRAME_GRAPH_PORT_STAGE_Msaa 6
+#define B3D_FRAME_GRAPH_PORT_STAGE_Extensions 7
+#define B3D_FRAME_GRAPH_PORT_STAGE_RendererTasks 8
+
+/**
+ * True if the code that waits for the port of @p feature to frame graphs is compiled. See B3D_FRAME_GRAPH_PORT_STAGE. The division
+ * rejects an unknown feature, which the preprocessor would otherwise read as stage 0.
+ */
+#define B3D_FRAME_GRAPH_PORT_PENDING(feature) \
+	(B3D_FRAME_GRAPH_PORT_STAGE >= B3D_FRAME_GRAPH_PORT_STAGE_##feature + 0 / B3D_FRAME_GRAPH_PORT_STAGE_##feature)
+
 /** @addtogroup Plugins
  *  @{
  */

@@ -484,12 +484,16 @@ GpuAccessState GpuBackendUtility::GetRestingState(const render::RenderTarget& ta
 		return GpuAccessState();
 	}
 
-	// Presentation reads the color surface after the queue's work, so it rests with nothing left to order on the queue
 	if(isColor)
-		return GpuAccessState(GpuStageFlag::None, GpuAccessFlag::None, GpuImageLayout::Present);
+		return GetWindowColorRestingState(queueType);
 
 	const GpuStageFlags depthStencilStages = GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests;
 	return GpuAccessState(depthStencilStages & GetQueueStageFlags(queueType), GpuAccessFlag::Read | GpuAccessFlag::Write, GpuImageLayout::DepthStencilAttachment);
+}
+
+GpuAccessState GpuBackendUtility::GetWindowColorRestingState(GpuQueueType queueType)
+{
+	return GpuAccessState(GpuStageFlags(GpuStageFlag::ColorAttachment) & GetQueueStageFlags(queueType), GpuAccessFlag::Read | GpuAccessFlag::Write, GpuImageLayout::ColorAttachment);
 }
 
 RenderSurfaceMask GpuBackendUtility::GetRenderPassClears(const RenderPassCreateInformation& createInformation, RenderTargetClearValues& clearValues)

@@ -8,15 +8,11 @@
 
 namespace b3d
 {
-	class GpuCommandBufferProfiler;
-}
-
-namespace b3d
-{
 	class RendererExtension;
 
 	namespace render
 	{
+		class FrameGraph;
 		class RenderBeastScene;
 		class RendererViewGroup;
 		class RenderCompositorNode;
@@ -30,14 +26,12 @@ namespace b3d
 		/** Inputs provided to each node in the render compositor hierarchy */
 		struct RenderCompositorNodeInputs
 		{
-			RenderCompositorNodeInputs(RenderBeastScene& scene, const RendererViewGroup& viewGroup, const RendererView& view, const RenderBeastOptions& options, const FrameInfo& frameInfo)
-				: Scene(scene), ViewGroup(viewGroup), View(view), Options(options), FrameInfo(frameInfo)
+			RenderCompositorNodeInputs(FrameGraph& graph, RenderBeastScene& scene, const RendererViewGroup& viewGroup, const RendererView& view, const RenderBeastOptions& options, const FrameInfo& frameInfo)
+				: Graph(graph), Scene(scene), ViewGroup(viewGroup), View(view), Options(options), FrameInfo(frameInfo)
 			{}
 
-			TShared<GpuCommandBuffer> ActiveCommandBuffer;
-#if B3D_PROFILING_ENABLED
-			TShared<GpuCommandBufferProfiler> CommandBufferProfiler;
-#endif
+			/** Graph of the view, which nodes add their passes and textures to. */
+			FrameGraph& Graph;
 
 			RenderBeastScene& Scene;
 			const RendererViewGroup& ViewGroup;
@@ -201,7 +195,10 @@ namespace b3d
 			 */
 			void Build(const RendererView& view, const TArray<StringID>& primaryNodes);
 
-			/** Performs rendering using the current render node hierarchy. This is expected to be called once per frame. */
+			/**
+			 * Adds the passes of the current render node hierarchy to the graph of @p inputs. This is expected to be called once per
+			 * frame. Allocates from the frame allocator, so the caller marks it, and frees it after the graph executes.
+			 */
 			void Execute(RenderCompositorNodeInputs& inputs) const;
 
 		private:
@@ -318,7 +315,7 @@ namespace b3d
 		{
 		public:
 			// Outputs
-			TShared<PooledRenderTexture> DepthTex;
+			TShared<Texture> DepthTex;
 
 			using DependencyDefinition = RCNodeDependencyDefinition<>;
 
@@ -339,14 +336,11 @@ namespace b3d
 		{
 		public:
 			// Outputs
-			TShared<PooledRenderTexture> AlbedoTex;
-			TShared<PooledRenderTexture> NormalTex;
-			TShared<PooledRenderTexture> RoughMetalTex;
-			TShared<PooledRenderTexture> IdTex;
-			TShared<PooledRenderTexture> VelocityTex;
-
-			TShared<RenderTexture> RenderTarget;
-			TShared<RenderTexture> RenderTargetNoMask;
+			TShared<Texture> AlbedoTex;
+			TShared<Texture> NormalTex;
+			TShared<Texture> RoughMetalTex;
+			TShared<Texture> IdTex;
+			TShared<Texture> VelocityTex;
 
 			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneDepth, RCNodeSceneColor, RCNodeParticleSort, RCNodeMSAACoverage>;
 
@@ -370,26 +364,26 @@ namespace b3d
 			 * Contains scene color. If MSAA is used this texture will be null until the texture array data is first resolved
 			 * into this texture.
 			 */
-			TShared<PooledRenderTexture> SceneColorTex;
+			TShared<Texture> SceneColorTex;
 
 			/**
 			 * Texture array version of sceneColorTex. Only available when MSAA is used, since random writes to
 			 * multisampled texture aren't supported on all render backends.
 			 */
-			TShared<PooledRenderTexture> SceneColorTexArray;
+			TShared<Texture> SceneColorTexArray;
 
-			TShared<RenderTexture> RenderTarget;
-
+#if B3D_FRAME_GRAPH_PORT_PENDING(Msaa)
 			/** Converts MSAA data from the texture array into the MSAA texture. */
 			void MsaaTexArrayToTexture(GpuCommandBuffer& commandBuffer);
+#endif
 
 			/**
 			 * Updates the internal scene color texture with the provided texture. MSAA scene color texture array must have
-			 * been resolved before this call. This will not update the render target.
+			 * been resolved before this call.
 			 */
-			void SetExternalTexture(const TShared<PooledRenderTexture>& texture);
+			void SetExternalTexture(const TShared<Texture>& texture);
 
-			/** Swaps the render textures between this node and the light accumulation nodes. */
+			/** Swaps the textures between this node and the light accumulation nodes. */
 			void Swap(RCNodeLightAccumulation* lightAccumNode);
 
 			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneDepth>;
@@ -412,7 +406,7 @@ namespace b3d
 		{
 		public:
 			// Outputs
-			TShared<PooledRenderTexture> Output;
+			TShared<Texture> Output;
 
 			using DependencyDefinition = RCNodeDependencyDefinition<>;
 
@@ -472,18 +466,18 @@ namespace b3d
 			 * Contains lighting information accumulated from multiple lights. If MSAA is used this texture will be null until
 			 * the texture array data is first resolved into this texture.
 			 */
-			TShared<PooledRenderTexture> LightAccumulationTex;
+			TShared<Texture> LightAccumulationTex;
 
 			/**
 			 * Texture array version of lightAccumulationTex. Only available when MSAA is used, since random writes to
 			 * multisampled texture aren't supported on all render backends.
 			 */
-			TShared<PooledRenderTexture> LightAccumulationTexArray;
+			TShared<Texture> LightAccumulationTexArray;
 
-			TShared<RenderTexture> RenderTarget;
-
+#if B3D_FRAME_GRAPH_PORT_PENDING(Msaa)
 			/** Converts MSAA data from the texture array into the MSAA texture. */
 			void MsaaTexArrayToTexture(GpuCommandBuffer& commandBuffer);
+#endif
 
 			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneDepth>;
 
@@ -589,7 +583,11 @@ namespace b3d
 		class RCNodeSkybox : public RenderCompositorNode
 		{
 		public:
-			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneColor, RCNodeDeferredIndirectSpecularLighting>;
+#if B3D_FRAME_GRAPH_PORT_PENDING(IndirectLighting)
+			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneColor, RCNodeSceneDepth, RCNodeDeferredIndirectSpecularLighting>;
+#else
+			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneColor, RCNodeSceneDepth, RCNodeDeferredDirectLighting>;
+#endif
 
 			static StringID GetNodeId() { return "Skybox"; }
 			static DependencyDefinition GetDependencyDefinition();
