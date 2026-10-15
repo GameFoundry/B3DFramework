@@ -337,6 +337,8 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 #endif
 
 	//// Prepare particle systems
+	// The views of a group share the draw command of a particle system, so the passes of every view draw with the inputs that the
+	// last view binds. The inputs only differ in the order that distance sorting gives the particles of each view.
 	const EvaluatedParticleData* particleData = inputs.FrameInfo.PerSceneFrameData.Particles;
 	if(particleData)
 	{
@@ -796,11 +798,6 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 
-#if B3D_FRAME_GRAPH_PORT_PENDING(Shadows)
-	if(!inputs.View.GetRenderSettings().EnableShadows)
-		mLightOcclusionRT = nullptr;
-#endif
-
 	TShared<Texture> msaaCoverage;
 	if(viewProps.Target.NumSamples > 1)
 	{
@@ -827,98 +824,57 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 		Output->MsaaTexArrayToTexture(commandBuffer);
 #endif
 
-#if B3D_FRAME_GRAPH_PORT_PENDING(Shadows)
 	// With shadows disabled, tiled deferred handles all lights
 	if(inputs.View.GetRenderSettings().EnableShadows)
 	{
-		// Standard deferred used for shadowed lights
-		u32 width = viewProps.Target.ViewRect.Width;
-		u32 height = viewProps.Target.ViewRect.Height;
-		u32 numSamples = viewProps.Target.NumSamples;
+		// Standard deferred used for shadowed lights. Each light renders its shadow occlusion, then its lighting.
+		const TShared<Texture> lightOcclusionTex = inputs.Graph.CreateTexture("LightOcclusion", CreateViewTextureInformation(inputs.View, PF_R8, TextureUsageFlag::RenderTarget));
 
-		// Allocate light occlusion
-		TShared<PooledRenderTexture> lightOcclusionTex = GetGpuResourcePool().Get(
-			PooledRenderTextureCreateInformation::Create2D(PF_R8, width, height, TextureUsageFlag::RenderTarget, numSamples, false));
+		GpuDevice& gpuDevice = inputs.Graph.GetWorkContext().GetDevice();
+		const ShadowRendering& shadowRenderer = inputs.ViewGroup.GetShadowRenderer();
+		const RendererView& view = inputs.View;
+		const RenderBeastScene& scene = inputs.Scene;
 
-		bool rebuildRT = false;
-		if(mLightOcclusionRT != nullptr)
+		for(u32 lightTypeIndex = 0; lightTypeIndex < (u32)LightType::Count; lightTypeIndex++)
 		{
-			rebuildRT |= mLightOcclusionRT->GetColorSurfaceInformation(0).Texture != lightOcclusionTex->Texture;
-			rebuildRT |= mLightOcclusionRT->GetDepthStencilSurfaceInformation().Texture != sceneDepthNode->DepthTex->Texture;
-		}
-		else
-			rebuildRT = true;
+			const LightType lightType = (LightType)lightTypeIndex;
 
-		if(rebuildRT)
-		{
-			RenderTextureCreateInformation lightOcclusionRTDesc;
-			lightOcclusionRTDesc.ColorSurfaces[0].Texture = lightOcclusionTex->Texture;
-			lightOcclusionRTDesc.ColorSurfaces[0].Face = 0;
-			lightOcclusionRTDesc.ColorSurfaces[0].FaceCount = 1;
-			lightOcclusionRTDesc.ColorSurfaces[0].MipLevel = 0;
+			auto& lights = lightData.GetLights(lightType);
+			u32 lightCount = lightData.GetShadowedLightCount(lightType);
+			u32 offset = lightData.GetUnshadowedLightCount(lightType);
 
-			lightOcclusionRTDesc.DepthStencilSurface.Texture = sceneDepthNode->DepthTex->Texture;
-			lightOcclusionRTDesc.DepthStencilSurface.Face = 0;
-			lightOcclusionRTDesc.DepthStencilSurface.FaceCount = 1;
-			lightOcclusionRTDesc.DepthStencilSurface.MipLevel = 0;
-
-			mLightOcclusionRT = RenderTexture::Create(lightOcclusionRTDesc);
-		}
-
-		// Render shadowed lights
-		{
-			GpuProfilingScope sampleBlock(commandBuffer, "Standard deferred shadowed lights");
-
-			const ShadowRendering& shadowRenderer = inputs.ViewGroup.GetShadowRenderer();
-			for(u32 lightTypeIndex = 0; lightTypeIndex < (u32)LightType::Count; lightTypeIndex++)
+			for(u32 shadowedLightIndex = 0; shadowedLightIndex < lightCount; shadowedLightIndex++)
 			{
-				const LightType lightType = (LightType)lightTypeIndex;
+				u32 visibleLightIndex = offset + shadowedLightIndex;
+				PackedRendererId packedLightId = lights[visibleLightIndex];
 
-				auto& lights = lightData.GetLights(lightType);
-				u32 lightCount = lightData.GetShadowedLightCount(lightType);
-				u32 offset = lightData.GetUnshadowedLightCount(lightType);
+				// Shadow projection samples scene depth, and writes the stencil it tests
+				FrameGraphRasterPass shadowOcclusionPass;
+				shadowOcclusionPass.SetColorAttachment(0, lightOcclusionTex, FrameGraphAttachmentLoad::Clear);
+				shadowOcclusionPass.SetDepthStencilAttachment(sceneDepthNode->DepthTex, FrameGraphDepthStencilMode::DepthReadOnly, FrameGraphAttachmentLoad::Load);
 
-				for(u32 shadowedLightIndex = 0; shadowedLightIndex < lightCount; shadowedLightIndex++)
+				ShadowRendering::ProjectedShadowRenderingBatchInformation shadowProjectionBatch =
+					shadowRenderer.PrepareParametersForRenderShadowProjection(shadowOcclusionPass, gpuDevice, view, packedLightId, scene, gbuffer);
+
+				inputs.Graph.AddRasterPass("ShadowOcclusion", std::move(shadowOcclusionPass), [&shadowRenderer, &view, &scene, packedLightId, shadowProjectionBatch = std::move(shadowProjectionBatch)](FrameGraphPassContext& context)
 				{
-					u32 visibleLightIndex = offset + shadowedLightIndex;
-					PackedRendererId packedLightId = lights[visibleLightIndex];
+					context.GetCommandBuffer().SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
+					shadowRenderer.RenderShadowProjectionBatch(context, view, packedLightId, scene, shadowProjectionBatch);
+				});
 
-					ShadowRendering::ProjectedShadowRenderingBatchInformation shadowProjectionRenderingBatch =
-						shadowRenderer.PrepareParametersForRenderShadowProjection(commandBuffer.GetGpuDevice(), inputs.View, packedLightId, inputs.Scene, gbuffer);
+				FrameGraphRasterPass lightingPass;
+				lightingPass.SetColorAttachment(0, Output->LightAccumulationTex, FrameGraphAttachmentLoad::Load);
+				lightingPass.SetDepthStencilAttachment(sceneDepthNode->DepthTex, FrameGraphDepthStencilMode::ReadOnly, FrameGraphAttachmentLoad::Load);
 
-					RenderPassCreateInformation shadowProjectionPassInfo(mLightOcclusionRT, RT_DEPTH, RT_DEPTH_STENCIL);
-					for(const auto& shadowProjectionRenderingInfo : shadowProjectionRenderingBatch.Shadows)
-					{
-						shadowProjectionPassInfo.Parameters.Add(shadowProjectionRenderingInfo.PrimaryGpuParameters);
-
-						if(shadowProjectionRenderingInfo.StencilGpuParameters != nullptr)
-							shadowProjectionPassInfo.Parameters.Add(shadowProjectionRenderingInfo.StencilGpuParameters);
-					}
-
-					shadowProjectionPassInfo.ClearMask = RT_COLOR_ALL;
-
-					commandBuffer.BeginRenderPass(shadowProjectionPassInfo);
-
-					Area2 area(0.0f, 0.0f, 1.0f, 1.0f);
-					commandBuffer.SetViewport(area);
-
-					shadowRenderer.RenderShadowProjectionBatch(commandBuffer, inputs.View, packedLightId, inputs.Scene, shadowProjectionRenderingBatch);
-					commandBuffer.EndRenderPass();
-
-					StandardDeferred::LightBatches batches = StandardDeferred::Instance().PrepareLightBatches({ &packedLightId, 1 }, inputs.Scene, inputs.View, gbuffer, lightOcclusionTex->Texture);
-
-					RenderPassCreateInformation lightingPassInfo(Output->RenderTarget, RT_DEPTH_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
-					for(const auto& [key, value] : batches.Batches)
-						lightingPassInfo.Parameters.Add(value.GpuParameters);
-
-					commandBuffer.BeginRenderPass(lightingPassInfo);
-					StandardDeferred::Instance().RenderLightBatches(commandBuffer, batches);
-					commandBuffer.EndRenderPass();
-				}
+				StandardDeferred::LightBatches batches = StandardDeferred::Instance().PrepareLightBatches(lightingPass, { &packedLightId, 1 }, scene, view, gbuffer, lightOcclusionTex);
+				inputs.Graph.AddRasterPass("StandardDeferredLighting", std::move(lightingPass), [batches = std::move(batches)](FrameGraphPassContext& context)
+				{
+					context.GetCommandBuffer().SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
+					StandardDeferred::Instance().RenderLightBatches(context, batches);
+				});
 			}
 		}
 	}
-#endif
 
 #if !B3D_FRAME_GRAPH_PORT_PENDING(IndirectLighting)
 	// Indirect specular lighting writes the lit result into scene color. Until its port, the lit result moves there directly.

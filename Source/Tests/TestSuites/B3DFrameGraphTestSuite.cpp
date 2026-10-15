@@ -38,6 +38,7 @@ FrameGraphTestSuite::FrameGraphTestSuite()
 	B3D_ADD_TEST(FrameGraphTestSuite::TestParameterHandles)
 	B3D_ADD_TEST(FrameGraphTestSuite::TestProfiling)
 	B3D_ADD_TEST(FrameGraphTestSuite::TestRasterPass)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestDepthReadOnly)
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	B3D_ADD_TEST(FrameGraphTestSuite::TestValidation)
@@ -974,6 +975,90 @@ void FrameGraphTestSuite::TestRasterPass()
 
 		B3D_TEST_ASSERT_MSG(fnHasSourceTexels(passSetRead.GetReturnValue()), "The blit through a pass set does not hold the source's texels.")
 		B3D_TEST_ASSERT_MSG(fnHasSourceTexels(renderPassSetRead.GetReturnValue()), "The blit through a render pass set does not hold the source's texels.")
+
+		device->EndFrame();
+	});
+}
+
+void FrameGraphTestSuite::TestDepthReadOnly()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	if(device == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+
+	RunInModes("FrameGraphTestSuite::TestDepthReadOnly", { true, false }, [this, &device]()
+	{
+		// A work context records its graphs in one barrier mode, so each mode gets its own, with its own instance of the material
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		const ShaderVariationParameters variation(TInlineArray<ShaderVariationParameter, 4>({
+			ShaderVariationParameter("MSAA_COUNT", 1),
+			ShaderVariationParameter("MODE", 0),
+			ShaderVariationParameter("BLEND", 0),
+			ShaderVariationParameter("WRITE_ALPHA", 0),
+			ShaderVariationParameter("SRGB_ENCODE", 0),
+			ShaderVariationParameter("OUTPUT_32BIT", false),
+		}));
+
+		BlitMat* const blitMaterial = BlitMat::Get(*context, variation);
+		B3D_TEST_ASSERT(blitMaterial != nullptr)
+		if(blitMaterial == nullptr)
+			return;
+
+		TAsyncOp<TShared<PixelData>> colorRead;
+		{
+			FrameGraph graph(*context, kGraphName);
+
+			TextureCreateInformation depthInformation;
+			depthInformation.Width = kSize;
+			depthInformation.Height = kSize;
+			depthInformation.Format = PF_D32_S8X24;
+			depthInformation.Usage = TextureUsageFlag::DepthStencil;
+			const TShared<render::Texture> depth = graph.CreateTexture("Depth", depthInformation);
+
+			FrameGraphRasterPass clearPass;
+			clearPass.SetDepthStencilAttachment(depth, FrameGraphDepthStencilMode::Write, FrameGraphAttachmentLoad::Clear);
+			graph.AddRasterPass("Clear depth", std::move(clearPass), nullptr);
+
+			TextureCreateInformation colorInformation;
+			colorInformation.Width = kSize;
+			colorInformation.Height = kSize;
+			colorInformation.Format = PF_RGBA8;
+			colorInformation.Usage = TextureUsageFlag::RenderTarget;
+			const TShared<render::Texture> color = graph.CreateTexture("Color", colorInformation);
+
+			// The depth the pass samples is the depth its depth tests read, in one layout with the stencil the pass may write
+			FrameGraphRasterPass samplePass;
+			samplePass.SetColorAttachment(0, color, FrameGraphAttachmentLoad::Clear);
+			samplePass.SetDepthStencilAttachment(depth, FrameGraphDepthStencilMode::DepthReadOnly, FrameGraphAttachmentLoad::Load);
+			blitMaterial->Prepare(samplePass, depth);
+			graph.AddRasterPass("Sample depth", std::move(samplePass), nullptr);
+
+			colorRead = TextureUtility::ReadAsync(graph, color);
+
+			graph.Compile();
+			B3D_TEST_ASSERT(graph.GetStatistics().CulledPassCount == 0)
+			graph.Execute();
+		}
+
+		// The command buffer's completion callbacks run on this thread while it waits
+		device->WaitUntilIdle();
+		B3D_TEST_ASSERT_MSG(colorRead.HasCompleted(), "The read did not complete with the graph's command buffer.")
+		if(!colorRead.HasCompleted())
+			return;
+
+		const TShared<PixelData> colorData = colorRead.GetReturnValue();
+		bool isCleared = colorData != nullptr;
+		for(u32 row = 0; row < kSize && isCleared; row++)
+		{
+			const u32* const rowTexels = reinterpret_cast<const u32*>(colorData->GetData() + row * colorData->GetRowPitch());
+			for(u32 column = 0; column < kSize; column++)
+				isCleared &= rowTexels[column] == 0;
+		}
+
+		B3D_TEST_ASSERT_MSG(isCleared, "The color attachment does not hold its clear value.")
 
 		device->EndFrame();
 	});

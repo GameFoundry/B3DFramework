@@ -15,7 +15,6 @@
  */
 #define B3D_FRAME_GRAPH_PORT_STAGE 0
 
-#define B3D_FRAME_GRAPH_PORT_STAGE_Shadows 1
 #define B3D_FRAME_GRAPH_PORT_STAGE_IndirectLighting 2
 #define B3D_FRAME_GRAPH_PORT_STAGE_Forward 3
 #define B3D_FRAME_GRAPH_PORT_STAGE_Particles 3

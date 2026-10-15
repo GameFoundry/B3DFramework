@@ -509,8 +509,6 @@ namespace b3d
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
 			void Clear() override;
-
-			TShared<RenderTexture> mLightOcclusionRT;
 		};
 
 		/**

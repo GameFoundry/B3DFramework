@@ -474,7 +474,7 @@ bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInf
 		mMainViewGroup->SetViews(views.data(), (u32)views.size());
 		PROFILE_CALL(mMainViewGroup->DetermineVisibility(scene), "Determine visibility")
 
-		// Render everything. The graph of each view has executed once this returns.
+		// Render everything. The graph of the group has executed once this returns.
 		const bool anythingDrawnForView = RenderViews(scene, *mMainViewGroup, frameInfo, forceRendering);
 		if(anythingDrawnForView)
 		{
@@ -507,12 +507,6 @@ bool RenderBeast::RenderViews(RenderBeastScene& scene, RendererViewGroup& viewGr
 	{
 		const VisibilityInfo& visibility = viewGroup.GetVisibilityInfo();
 
-#if B3D_FRAME_GRAPH_PORT_PENDING(Shadows)
-		// Render shadow maps
-		ShadowRendering& shadowRenderer = viewGroup.GetShadowRenderer();
-		shadowRenderer.RenderShadowMaps(commandBuffer,scene, viewGroup, frameInfo);
-#endif
-
 		// Update various buffers required by each renderable
 		RenderableObjectStorage& renderableStorage = scene.GetRenderableStorage();
 		u32 renderableCount = renderableStorage.GetRenderableCount();
@@ -525,7 +519,18 @@ bool RenderBeast::RenderViews(RenderBeastScene& scene, RendererViewGroup& viewGr
 		}
 	}
 
+	// Covers the graph's execution, because pass functions may read data the nodes allocated from the frame allocator
+	FrameAllocatorScope frameScope;
+
+	// Named for the profiler overlay, which shows the results of this name
+	FrameGraph graph(GetGpuContext(), "RenderScene");
+
+	// The views of the group share the shadow maps, which are computed from the views as they were before any of them began its frame
+	if(needs3DRender)
+		viewGroup.GetShadowRenderer().RenderShadowMaps(graph, scene, viewGroup, frameInfo);
+
 	bool anythingDrawn = false;
+	TInlineArray<RendererView*, 4> drawnViews;
 	for(u32 viewIndex = 0; viewIndex < viewCount; viewIndex++)
 	{
 		RendererView* view = viewGroup.GetView(viewIndex);
@@ -536,25 +541,39 @@ bool RenderBeast::RenderViews(RenderBeastScene& scene, RendererViewGroup& viewGr
 		const RenderSettings& settings = view->GetRenderSettings();
 		if(settings.OverlayOnly)
 		{
-			if(RenderOverlay(scene, *view, frameInfo, forceRendering))
+			if(RenderOverlay(graph, scene, *view, frameInfo, forceRendering))
 				anythingDrawn = true;
 		}
 		else
 		{
-			RenderView(scene, viewGroup, *view, frameInfo);
+			RenderView(graph, scene, viewGroup, *view, frameInfo);
 			anythingDrawn = true;
 		}
+
+		drawnViews.Add(view);
 	}
+
+	if(!drawnViews.Empty())
+	{
+		graph.Compile();
+		graph.Execute();
+	}
+
+#if !B3D_FRAME_GRAPH_PORT_PENDING(Forward)
+	// Forward rendering resets the particle texture pool after each view. Until its port, the group resets it once the passes of all its views read it.
+	ParticleRenderer::Instance().GetTexturePool().Clear();
+#endif
+
+	// After the graph's execution, because the pass functions read the render queues this clears
+	for(RendererView* view : drawnViews)
+		view->EndFrame();
 
 	return anythingDrawn;
 }
 
-void RenderBeast::RenderView(RenderBeastScene& scene, const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo)
+void RenderBeast::RenderView(FrameGraph& graph, RenderBeastScene& scene, RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo)
 {
 	GetProfilerCPU().BeginSample("Render view");
-
-	// Covers the graph's execution, because pass functions may read data the nodes allocated from the frame allocator
-	FrameAllocatorScope frameScope;
 
 	auto& viewProps = view.GetProperties();
 
@@ -566,8 +585,6 @@ void RenderBeast::RenderView(RenderBeastScene& scene, const RendererViewGroup& v
 
 	view.BeginFrame(frameInfo);
 
-	// Named for the profiler overlay, which shows the results of this name
-	FrameGraph graph(GetGpuContext(), "RenderScene");
 	graph.ImportRenderTarget(viewProps.Target.Target);
 
 	RenderCompositorNodeInputs inputs(graph, scene, viewGroup, view, *mRenderThreadOptions, frameInfo);
@@ -612,21 +629,10 @@ void RenderBeast::RenderView(RenderBeastScene& scene, const RendererViewGroup& v
 	const RenderCompositor& compositor = view.GetCompositor();
 	PROFILE_CALL(compositor.Execute(inputs), "Compositor")
 
-	graph.Compile();
-	graph.Execute();
-
-#if !B3D_FRAME_GRAPH_PORT_PENDING(Forward)
-	// Forward rendering resets the particle texture pool after each view. Until its port, the view resets it.
-	ParticleRenderer::Instance().GetTexturePool().Clear();
-#endif
-
-	// After the graph's execution, because the pass functions read the render queues this clears
-	view.EndFrame();
-
 	GetProfilerCPU().EndSample("Render view");
 }
 
-bool RenderBeast::RenderOverlay(RenderBeastScene& scene, RendererView& view, const FrameInfo& frameInfo, bool forceRendering)
+bool RenderBeast::RenderOverlay(FrameGraph& graph, RenderBeastScene& scene, RendererView& view, const FrameInfo& frameInfo, bool forceRendering)
 {
 	GetProfilerCPU().BeginSample("Render overlay");
 
@@ -637,7 +643,6 @@ bool RenderBeast::RenderOverlay(RenderBeastScene& scene, RendererView& view, con
 	TShared<RenderTarget> target = viewProps.Target.Target;
 	TShared<Viewport> viewport = camera->GetViewport();
 
-	FrameGraph graph(GetGpuContext(), "RenderOverlay");
 	graph.ImportRenderTarget(target);
 
 	ClearFlags clearFlags = viewport->GetClearFlags();
@@ -724,11 +729,6 @@ bool RenderBeast::RenderOverlay(RenderBeastScene& scene, RendererView& view, con
 #endif
 
 	view.ResolveCaptures(graph, target);
-
-	graph.Compile();
-	graph.Execute();
-
-	view.EndFrame();
 
 	GetProfilerCPU().EndSample("Render overlay");
 	return needsRedraw;

@@ -387,8 +387,45 @@ namespace b3d::render
 		output.RenderPassParameterSets = std::move(pass.mRenderPassParameterSets);
 		RenderPassAttachments& attachments = output.Attachments;
 
-		// Declares the subresources of an attachment texture, and adds its surfaces to the load and clear masks
-		const auto fnDeclareTexture = [this, &output, &attachments](const FrameGraphRasterPass::Attachment& attachment, RenderSurfaceMask surfaces, const GpuAccessState& state)
+		// States of the depth and stencil aspects of the depth-stencil attachment
+		const GpuStageFlags depthStencilStages = GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests;
+		GpuAccessState depthState(depthStencilStages, GpuAccessFlag::Read | GpuAccessFlag::Write, GpuImageLayout::DepthStencilAttachment);
+		GpuAccessState stencilState = depthState;
+		if(pass.mDepthStencilMode == FrameGraphDepthStencilMode::ReadOnly)
+		{
+			depthState = GpuAccessState(depthStencilStages, GpuAccessFlag::Read, GpuImageLayout::DepthStencilReadOnly);
+			stencilState = depthState;
+			attachments.ReadOnlyMask = RT_DEPTH_STENCIL;
+		}
+		else if(pass.mDepthStencilMode == FrameGraphDepthStencilMode::DepthReadOnly)
+		{
+			depthState = GpuAccessState(depthStencilStages, GpuAccessFlag::Read, GpuImageLayout::DepthReadOnlyStencilAttachment);
+			stencilState = GpuAccessState(depthStencilStages, GpuAccessFlag::Read | GpuAccessFlag::Write, GpuImageLayout::DepthReadOnlyStencilAttachment);
+			attachments.ReadOnlyMask = RT_DEPTH;
+		}
+
+		// Declares the access of a color attachment to @p range
+		const auto fnDeclareColorAttachmentAccess = [this, &output](u32 resourceIndex, const GpuTextureSubresourceRange& range, bool discardsContents)
+		{
+			DeclareAccess(output, resourceIndex, range, GetColorAttachmentState(), discardsContents);
+		};
+
+		// Declares the access of a depth-stencil attachment to @p range. The depth and stencil aspects each get their own state.
+		const auto fnDeclareDepthStencilAttachmentAccess = [this, &output, &depthState, &stencilState](u32 resourceIndex, const GpuTextureSubresourceRange& range, bool discardsContents)
+		{
+			GpuTextureSubresourceRange depthRange = range;
+			depthRange.AspectMask = range.AspectMask & GpuTextureAspectFlag::Depth;
+			if(depthRange.AspectMask != GpuTextureAspectFlags())
+				DeclareAccess(output, resourceIndex, depthRange, depthState, discardsContents);
+
+			GpuTextureSubresourceRange stencilRange = range;
+			stencilRange.AspectMask = range.AspectMask & GpuTextureAspectFlag::Stencil;
+			if(stencilRange.AspectMask != GpuTextureAspectFlags())
+				DeclareAccess(output, resourceIndex, stencilRange, stencilState, discardsContents);
+		};
+
+		// Declares the subresources of an attachment texture with @p fnDeclareAccess, and adds its surfaces to the load and clear masks
+		const auto fnDeclareTexture = [this, &output, &attachments](const FrameGraphRasterPass::Attachment& attachment, RenderSurfaceMask surfaces, const auto& fnDeclareAccess)
 		{
 			if(attachment.Texture == nullptr)
 				return;
@@ -401,17 +438,9 @@ namespace b3d::render
 			const u32 faceCount = attachment.FaceCount != 0 ? attachment.FaceCount : resource.FullRange.ArrayLayerCount - attachment.Face;
 			const GpuTextureSubresourceRange range(attachment.MipLevel, 1, attachment.Face, faceCount, resource.FullRange.AspectMask);
 
-			DeclareAccess(output, resourceIndex, range, state, attachment.Load != FrameGraphAttachmentLoad::Load);
+			fnDeclareAccess(resourceIndex, range, attachment.Load != FrameGraphAttachmentLoad::Load);
 			AddLoadMask(attachment.Load, surfaces, attachments.LoadMask, attachments.ClearMask);
 		};
-
-		const GpuStageFlags depthStencilStages = GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests;
-		GpuAccessState depthStencilState(depthStencilStages, GpuAccessFlag::Read | GpuAccessFlag::Write, GpuImageLayout::DepthStencilAttachment);
-		if(pass.mDepthStencilMode == FrameGraphDepthStencilMode::ReadOnly)
-		{
-			depthStencilState = GpuAccessState(depthStencilStages, GpuAccessFlag::Read, GpuImageLayout::DepthStencilReadOnly);
-			attachments.ReadOnlyMask = RT_DEPTH_STENCIL;
-		}
 
 		// Attachments set one by one are rendered through a render texture that Compile() builds from them
 		if(pass.mRenderTarget == nullptr)
@@ -419,11 +448,11 @@ namespace b3d::render
 			for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
 			{
 				attachments.ColorAttachments[colorIndex] = pass.mColorAttachments[colorIndex];
-				fnDeclareTexture(pass.mColorAttachments[colorIndex], (RenderSurfaceMaskBits)(RT_COLOR0 << colorIndex), GetColorAttachmentState());
+				fnDeclareTexture(pass.mColorAttachments[colorIndex], (RenderSurfaceMaskBits)(RT_COLOR0 << colorIndex), fnDeclareColorAttachmentAccess);
 			}
 
 			attachments.DepthStencilAttachment = pass.mDepthStencilAttachment;
-			fnDeclareTexture(pass.mDepthStencilAttachment, RT_DEPTH_STENCIL, depthStencilState);
+			fnDeclareTexture(pass.mDepthStencilAttachment, RT_DEPTH_STENCIL, fnDeclareDepthStencilAttachmentAccess);
 			return;
 		}
 
@@ -435,7 +464,7 @@ namespace b3d::render
 		if(!target->GetProperties().IsWindow)
 		{
 			const RenderTexture& renderTexture = static_cast<const RenderTexture&>(*target);
-			const auto fnDeclareSurface = [&fnDeclareTexture, load](const RenderSurfaceInformation& surface, RenderSurfaceMask surfaces, const GpuAccessState& state)
+			const auto fnDeclareSurface = [&fnDeclareTexture, load](const RenderSurfaceInformation& surface, RenderSurfaceMask surfaces, const auto& fnDeclareAccess)
 			{
 				FrameGraphRasterPass::Attachment attachment;
 				attachment.Texture = surface.Texture;
@@ -444,13 +473,13 @@ namespace b3d::render
 				attachment.Face = surface.Face;
 				attachment.FaceCount = surface.FaceCount;
 
-				fnDeclareTexture(attachment, surfaces, state);
+				fnDeclareTexture(attachment, surfaces, fnDeclareAccess);
 			};
 
 			for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
-				fnDeclareSurface(renderTexture.GetColorSurfaceInformation(colorIndex), (RenderSurfaceMaskBits)(RT_COLOR0 << colorIndex), GetColorAttachmentState());
+				fnDeclareSurface(renderTexture.GetColorSurfaceInformation(colorIndex), (RenderSurfaceMaskBits)(RT_COLOR0 << colorIndex), fnDeclareColorAttachmentAccess);
 
-			fnDeclareSurface(renderTexture.GetDepthStencilSurfaceInformation(), RT_DEPTH_STENCIL, depthStencilState);
+			fnDeclareSurface(renderTexture.GetDepthStencilSurfaceInformation(), RT_DEPTH_STENCIL, fnDeclareDepthStencilAttachmentAccess);
 			return;
 		}
 
@@ -461,13 +490,13 @@ namespace b3d::render
 
 		const bool discardsContents = load != FrameGraphAttachmentLoad::Load;
 		const u32 colorResourceIndex = found->second;
-		DeclareAccess(output, colorResourceIndex, mResources[colorResourceIndex].FullRange, GetColorAttachmentState(), discardsContents);
+		fnDeclareColorAttachmentAccess(colorResourceIndex, mResources[colorResourceIndex].FullRange, discardsContents);
 		AddLoadMask(load, RT_COLOR0, attachments.LoadMask, attachments.ClearMask);
 
 		const u32 depthStencilResourceIndex = colorResourceIndex + 1;
 		if(depthStencilResourceIndex < (u32)mResources.size() && mResources[depthStencilResourceIndex].Target == target)
 		{
-			DeclareAccess(output, depthStencilResourceIndex, mResources[depthStencilResourceIndex].FullRange, depthStencilState, discardsContents);
+			fnDeclareDepthStencilAttachmentAccess(depthStencilResourceIndex, mResources[depthStencilResourceIndex].FullRange, discardsContents);
 			AddLoadMask(load, RT_DEPTH_STENCIL, attachments.LoadMask, attachments.ClearMask);
 		}
 	}
@@ -1522,12 +1551,17 @@ namespace b3d::render
 			GpuImageLayout layout = existing.State.Layout;
 			if(layout != state.Layout)
 			{
+				const auto fnIsReadOnlyDepthLayout = [](GpuImageLayout candidate)
+				{
+					return candidate == GpuImageLayout::DepthStencilReadOnly || candidate == GpuImageLayout::DepthReadOnlyStencilAttachment;
+				};
+
 				const bool isReadOnly = !existing.State.Access.IsSet(GpuAccessFlag::Write) && !state.Access.IsSet(GpuAccessFlag::Write);
-				const bool isSampledAttachment = (existing.State.Layout == GpuImageLayout::DepthStencilReadOnly && state.Layout == GpuImageLayout::ShaderReadOnly) ||
-					(existing.State.Layout == GpuImageLayout::ShaderReadOnly && state.Layout == GpuImageLayout::DepthStencilReadOnly);
+				const bool isSampledAttachment = (fnIsReadOnlyDepthLayout(existing.State.Layout) && state.Layout == GpuImageLayout::ShaderReadOnly) ||
+					(existing.State.Layout == GpuImageLayout::ShaderReadOnly && fnIsReadOnlyDepthLayout(state.Layout));
 
 				if(isReadOnly && isSampledAttachment)
-					layout = GpuImageLayout::DepthStencilReadOnly;
+					layout = existing.State.Layout == GpuImageLayout::ShaderReadOnly ? state.Layout : existing.State.Layout;
 				else
 				{
 					B3D_ENSURE_LOG(false, "Pass '{0}' accesses the same subresource of '{1}' in two layouts. No barrier can separate them, so split the pass.", pass.Name, resourceName);

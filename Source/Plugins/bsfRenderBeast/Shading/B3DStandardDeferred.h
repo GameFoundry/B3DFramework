@@ -140,24 +140,24 @@ namespace b3d
 
 			/**
 			 * Groups lights using the same material together in a batch, and prepares uniform buffers so all the light rendering can happen with the same
-			 * uniform buffer (using dynamic offsets).
+			 * uniform buffer (using dynamic offsets). The parameter sets of the batches are added to @p pass.
 			 *
+			 * @param pass              Raster pass that renders the batches.
 			 * @param lights            Lights to batch.
 			 * @param view              View to render from.
 			 * @param gBufferInput      GBuffer textures.
 			 * @param lightOcclusion    Shadow occlusion texture (or Texture::kBlack if no shadows).
 			 * @return                  Prepared batch containing grouped lights and GPU resources.
 			 */
-			LightBatches PrepareLightBatches(TArrayView<const PackedRendererId> lights, const RenderBeastScene& scene, const RendererView& view, const GBufferTextures& gBufferInput, const TShared<Texture>& lightOcclusion);
+			LightBatches PrepareLightBatches(FrameGraphPass& pass, TArrayView<const PackedRendererId> lights, const RenderBeastScene& scene, const RendererView& view, const GBufferTextures& gBufferInput, const TShared<Texture>& lightOcclusion);
 
 			/**
 			 * Renders a prepared light batch using dynamic offsets.
-			 * Must be called within an active render pass.
 			 *
-			 * @param commandBuffer     Command buffer to render with.
+			 * @param context           Context of the raster pass the batches were prepared for.
 			 * @param batches           Prepared light batch.
 			 */
-			void RenderLightBatches(GpuCommandBuffer& commandBuffer, const LightBatches& batches);
+			void RenderLightBatches(FrameGraphPassContext& context, const LightBatches& batches) const;
 		};
 	} // namespace render
 } // namespace b3d

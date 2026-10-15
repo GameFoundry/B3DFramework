@@ -79,6 +79,12 @@ namespace b3d
 		 */
 		void TestRasterPass();
 
+		/**
+		 * A raster pass samples the depth of its depth-stencil attachment while its stencil tests may write the stencil
+		 * (FrameGraphDepthStencilMode::DepthReadOnly), after a pass that cleared both.
+		 */
+		void TestDepthReadOnly();
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		/**
 		 * The development checks: writes to resources at rest, conflicting declarations in one pass, writes after an export, dependencies

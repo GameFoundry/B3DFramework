@@ -125,9 +125,6 @@ void RendererView::SetRenderSettings(const TShared<RenderSettings>& settings)
 		*mRenderSettings = *settings;
 
 	// Features that wait for their port to frame graphs are off
-#if !B3D_FRAME_GRAPH_PORT_PENDING(Shadows)
-	mRenderSettings->EnableShadows = false;
-#endif
 #if !B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	mRenderSettings->EnableAutoExposure = false;
 #endif

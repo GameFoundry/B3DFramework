@@ -6,6 +6,7 @@
 #include "Renderer/B3DRendererUtility.h"
 #include "B3DRenderBeastScene.h"
 #include "B3DRendererView.h"
+#include "FrameGraph/B3DFrameGraph.h"
 
 namespace b3d {
 namespace render {
@@ -53,7 +54,7 @@ DeferredPointLightMaterial* DeferredPointLightMaterial::GetVariation(bool inside
 	}
 }
 
-StandardDeferred::LightBatches StandardDeferred::PrepareLightBatches(TArrayView<const PackedRendererId> lights, const RenderBeastScene& scene, const RendererView& view, const GBufferTextures& gBufferInput, const TShared<Texture>& lightOcclusion)
+StandardDeferred::LightBatches StandardDeferred::PrepareLightBatches(FrameGraphPass& pass, TArrayView<const PackedRendererId> lights, const RenderBeastScene& scene, const RendererView& view, const GBufferTextures& gBufferInput, const TShared<Texture>& lightOcclusion)
 {
 	LightBatches batches;
 
@@ -116,12 +117,12 @@ StandardDeferred::LightBatches StandardDeferred::PrepareLightBatches(TArrayView<
 		if(key.Type == LightType::Directional)
 		{
 			DeferredDirectionalLightMaterial* const lightMaterial = DeferredDirectionalLightMaterial::GetVariation(key.IsMSAA, true);
-			batch.GpuParameters = lightMaterial->CreateGpuParameterSet();
+			batch.GpuParameters = lightMaterial->CreateGpuParameterSet(pass);
 		}
 		else
 		{
 			DeferredPointLightMaterial* const lightMaterial = DeferredPointLightMaterial::GetVariation(key.IsInside, key.IsMSAA, true);
-			batch.GpuParameters = lightMaterial->CreateGpuParameterSet();
+			batch.GpuParameters = lightMaterial->CreateGpuParameterSet(pass);
 
 			// Cache stencil mesh
 			if(key.Type == LightType::Radial)
@@ -150,8 +151,10 @@ StandardDeferred::LightBatches StandardDeferred::PrepareLightBatches(TArrayView<
 	return batches;
 }
 
-void StandardDeferred::RenderLightBatches(GpuCommandBuffer& commandBuffer, const LightBatches& batches)
+void StandardDeferred::RenderLightBatches(FrameGraphPassContext& context, const LightBatches& batches) const
 {
+	GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
+
 	// Render each group
 	for(const auto& [key, batch] : batches.Batches)
 	{

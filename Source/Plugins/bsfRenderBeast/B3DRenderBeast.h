@@ -133,7 +133,8 @@ namespace b3d
 			bool RenderScene(RenderBeastScene& scene, const FrameInfo& frameInfo);
 
 			/**
-			 * Renders all views in the provided view group. Returns true if anything has been draw to any of the views.
+			 * Renders all views in the provided view group, with a frame graph of the group that executes before this returns. Returns
+			 * true if anything has been draw to any of the views.
 			 *
 			 * @param	scene					Owner scene of the view being drawn.
 			 * @param	viewGroup				Group of views to render. Usually there's one view per group, but e.g. when rendering cubemaps it can be 6.
@@ -145,8 +146,10 @@ namespace b3d
 			bool RenderViews(RenderBeastScene& scene, RendererViewGroup& viewGroup, const FrameInfo& frameInfo, bool forceRendering);
 
 			/**
-			 * Renders all objects visible by the provided view, with a frame graph of its own that executes before this returns.
+			 * Adds the passes that render all objects visible by the provided view to @p graph. Begins the frame of @p view, which must
+			 * end after @p graph executes, because the passes read the view's render queues.
 			 *
+			 * @param	graph					Frame graph of the view group.
 			 * @param	scene					Owner scene of the view being drawn.
 			 * @param	viewGroup				Group of views that the view belong to. Usually there's one view per group, but e.g. when rendering cubemaps it can be 6.
 			 * @param	view					View being drawn.
@@ -154,12 +157,13 @@ namespace b3d
 			 *
 			 * @note	Render thread only.
 			 */
-			void RenderView(RenderBeastScene& scene, const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo);
+			void RenderView(FrameGraph& graph, RenderBeastScene& scene, RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo);
 
 			/**
-			 * Renders all overlay callbacks of the provided view, with a frame graph of its own that executes before this returns.
-			 * Returns true if anything has been rendered in any of the views.
+			 * Adds the passes that render all overlay callbacks of the provided view to @p graph. Begins the frame of @p view, which
+			 * must end after @p graph executes. Returns true if anything has been rendered in any of the views.
 			 *
+			 * @param	graph					Frame graph of the view group.
 			 * @param	scene					Owner scene of the view being drawn.
 			 * @param	view					View being drawn.
 			 * @param	frameInfo				Information about the current frame.
@@ -167,7 +171,7 @@ namespace b3d
 			 *
 			 * @note	Render thread only.
 			 */
-			bool RenderOverlay(RenderBeastScene& scene, RendererView& view, const FrameInfo& frameInfo, bool forceRendering);
+			bool RenderOverlay(FrameGraph& graph, RenderBeastScene& scene, RendererView& view, const FrameInfo& frameInfo, bool forceRendering);
 
 			/**	Creates data used by the renderer on the render thread, when the renderer is activated. */
 			void ActivateOnRenderThread(const LoadedRendererTextures& rendererTextures);

@@ -251,6 +251,18 @@ VkRenderPass VulkanRenderPass::CreateVariant(RenderSurfaceMask loadMask, RenderS
 
 		vkAttachmentDescription.initialLayout = vkAttachmentReference.layout;
 		vkAttachmentDescription.finalLayout = vkAttachmentReference.layout;
+
+		// A read-only aspect keeps its contents without a store, which would count as a write that the barriers after the render pass
+		// do not order
+		if(readMask.IsSet(RT_DEPTH))
+			vkAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_NONE;
+		else
+			vkAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+		if(readMask.IsSet(RT_STENCIL))
+			vkAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_NONE;
+		else
+			vkAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
 	}
 
 	VkRenderPass output;

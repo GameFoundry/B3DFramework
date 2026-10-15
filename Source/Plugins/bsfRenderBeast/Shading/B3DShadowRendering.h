@@ -18,6 +18,7 @@ namespace b3d
 	{
 		struct FrameInfo;
 
+		class FrameGraph;
 		class RenderBeastScene;
 		struct ShadowInfo;
 
@@ -53,9 +54,6 @@ namespace b3d
 		public:
 			ShadowDepthNormalMaterial() = default;
 
-			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
-			void Bind(GpuCommandBuffer& commandBuffer, const TShared<GpuParameterSet>& gpuParameters);
-
 			/** Binds all the provided buffers to the provided GpuParameterSet object. */
 			static void PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms);
 
@@ -87,9 +85,6 @@ namespace b3d
 		public:
 			ShadowDepthNormalNoPSMaterial() = default;
 
-			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
-			void Bind(GpuCommandBuffer& commandBuffer, const TShared<GpuParameterSet>& gpuParameters);
-
 			/** Binds all the provided buffers to the provided GpuParameterSet object. */
 			static void PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms);
 
@@ -120,9 +115,6 @@ namespace b3d
 
 		public:
 			ShadowDepthDirectionalMaterial() = default;
-
-			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
-			void Bind(GpuCommandBuffer& commandBuffer, const TShared<GpuParameterSet>& gpuParameters);
 
 			/** Binds all the provided buffers to the provided GpuParameterSet object. */
 			static void PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms);
@@ -167,9 +159,6 @@ namespace b3d
 		public:
 			ShadowDepthCubeMaterial() = default;
 
-			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
-			void Bind(GpuCommandBuffer& commandBuffer, const TShared<GpuParameterSet>& gpuParameters);
-
 			/** Binds all the provided buffers to the provided GpuParameterSet object. */
 			static void PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const GpuBufferSuballocation& shadowCubeMatrices, const GpuBufferSuballocation& shadowCubeMasks);
 
@@ -206,9 +195,6 @@ namespace b3d
 
 		public:
 			ShadowProjectStencilMaterial() = default;
-
-			/** Binds the material to the pipeline (without binding parameters). */
-			void Bind(GpuCommandBuffer& commandBuffer);
 
 			/** Returns the material variation matching the provided parameters.
 			 *
@@ -278,9 +264,6 @@ namespace b3d
 		public:
 			ShadowProjectMaterial() = default;
 
-			/** Binds the material to the pipeline (without binding parameters). */
-			void Bind(GpuCommandBuffer& commandBuffer);
-
 			/** Returns the material variation matching the provided parameters.
 			 *
 			 * @param	quality			Quality of the shadow filtering to use. In range [1, 4].
@@ -323,9 +306,6 @@ namespace b3d
 
 		public:
 			ShadowProjectOmniMaterial() = default;
-
-			/** Binds the material to the pipeline (without binding parameters). */
-			void Bind(GpuCommandBuffer& commandBuffer);
 
 			/** Returns the material variation matching the provided parameters.
 			 *
@@ -520,7 +500,7 @@ namespace b3d
 			};
 
 		public:
-			/** Contains information that can be used for rendering a single shadows prepared via a call to PrepareParametrersForRenderShadowProjection. */
+			/** Contains information that can be used for rendering a single shadow prepared via a call to PrepareParametersForRenderShadowProjection(). */
 			struct ProjectedShadowRenderingInformation
 			{
 				const ShadowInfo* ShadowInfo; /**< Note this will be invalidated if any new shadows are rendered via RenderShadowMaps(). */
@@ -537,7 +517,7 @@ namespace b3d
 				u32 StencilVertexUniformBufferDynamicIndex;
 			};
 
-			/** Contains information that can be used for rendering all shadows prepared via a single call to PrepareParametrersForRenderShadowProjection. */
+			/** Contains information that can be used for rendering all shadows prepared via a single call to PrepareParametersForRenderShadowProjection(). */
 			struct ProjectedShadowRenderingBatchInformation
 			{
 				bool MSAA;
@@ -550,33 +530,42 @@ namespace b3d
 
 			ShadowRendering(u32 shadowMapSize);
 
-			/** For each visible shadow casting light, renders a shadow map from its point of view. */
-			void RenderShadowMaps(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, const RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
-
-			/** Prepares all the GpuParameterSet objects required for rendering projected shadows for the specified light. Should be followed by RenderShadowProjectionBatch. */
-			ProjectedShadowRenderingBatchInformation PrepareParametersForRenderShadowProjection(GpuDevice& gpuDevice, const RendererView& view, PackedRendererId lightId, const RenderBeastScene& scene, GBufferTextures gbuffer) const;
+			/**
+			 * For each visible shadow casting light, adds a pass to @p graph that renders a shadow map from its point of view. The shadow
+			 * maps are imported into @p graph, so they are at rest once it executes.
+			 */
+			void RenderShadowMaps(FrameGraph& graph, RenderBeastScene& scene, const RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
 
 			/**
-			 * Renders shadow occlusion values for the specified light, through the provided view, into the currently bound
-			 * render target. User must have started a render pass externally. The system uses shadow maps rendered by RenderShadowMaps().
+			 * Prepares all the GpuParameterSet objects required for rendering projected shadows for the specified light, and adds them to
+			 * @p pass. Should be followed by RenderShadowProjectionBatch().
 			 */
-			void RenderShadowProjectionBatch(GpuCommandBuffer& commandBuffer, const RendererView& view, PackedRendererId lightId, const RenderBeastScene& scene, const ProjectedShadowRenderingBatchInformation& batch) const;
+			ProjectedShadowRenderingBatchInformation PrepareParametersForRenderShadowProjection(FrameGraphPass& pass, GpuDevice& gpuDevice, const RendererView& view, PackedRendererId lightId, const RenderBeastScene& scene, GBufferTextures gbuffer) const;
+
+			/**
+			 * Renders shadow occlusion values for the specified light, through the provided view, into the attachments of the raster pass
+			 * that @p context records. The system uses shadow maps rendered by RenderShadowMaps().
+			 */
+			void RenderShadowProjectionBatch(FrameGraphPassContext& context, const RendererView& view, PackedRendererId lightId, const RenderBeastScene& scene, const ProjectedShadowRenderingBatchInformation& batch) const;
 
 			/** Changes the default shadow map size. Will cause all shadow maps to be rebuilt. */
 			void SetShadowMapSize(u32 size);
 
-			/** Gets or creates a shadow parameter set for the given per-object buffer. */
+			/** Gets or creates the per-object parameter set of cubemap shadow maps, which the geometry stage also reads, for the given per-object buffer. */
 			TShared<GpuParameterSet> GetOrCreateCubemapShadowParameterSet(const TShared<GpuBuffer>& perObjectBuffer);
+
+			/** Gets or creates the per-object parameter set of directional shadow maps, which only the vertex stage reads, for the given per-object buffer. */
+			TShared<GpuParameterSet> GetOrCreateDirectionalShadowParameterSet(const TShared<GpuBuffer>& perObjectBuffer);
 
 		private:
 			/** Renders cascaded shadow maps for the provided directional light viewed from the provided view. */
-			void RenderCascadedShadowMaps(GpuCommandBuffer& commandBuffer, const RendererView& view, u32 lightIdx, RenderBeastScene& scene, const FrameInfo& frameInfo);
+			void RenderCascadedShadowMaps(FrameGraph& graph, const RendererView& view, u32 lightIdx, RenderBeastScene& scene, const FrameInfo& frameInfo);
 
 			/** Renders shadow maps for the provided spot light. */
-			void RenderSpotShadowMap(GpuCommandBuffer& commandBuffer, PackedRendererId lightId, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo);
+			void RenderSpotShadowMap(FrameGraph& graph, PackedRendererId lightId, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo);
 
 			/** Renders shadow maps for the provided radial light. */
-			void RenderRadialShadowMap(GpuCommandBuffer& commandBuffer, PackedRendererId lightId, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo);
+			void RenderRadialShadowMap(FrameGraph& graph, PackedRendererId lightId, const ShadowMapOptions& options, RenderBeastScene& scene, const FrameInfo& frameInfo);
 
 			/**
 			 * Calculates optimal shadow map size, taking into account all views in the scene. Also calculates a fade value
@@ -707,16 +696,21 @@ namespace b3d
 			Vector<ShadowMapOptions> mSpotLightShadowOptions; // Transient
 			Vector<ShadowMapOptions> mRadialLightShadowOptions; // Transient
 
-			// Shadow-specific per-object parameter set management (V+F+G stages for geometry shader support)
-			TShared<GpuPipelineParameterSetLayout> mCubemapShadowPerObjectLayout;
-
-			struct CubemapShadowParameterSetEntry
+			/**
+			 * Per-object parameter sets for shadow materials whose shader stages differ from the stages of the per-object parameter set
+			 * of renderables.
+			 */
+			struct ShadowPerObjectParameterSets
 			{
-				TShared<GpuParameterSet> ParameterSet;
-				u32 RefCount = 0;
+				TShared<GpuPipelineParameterSetLayout> Layout;
+				UnorderedMap<GpuBuffer*, TShared<GpuParameterSet>> ParameterSets; // Transient
 			};
 
-			UnorderedMap<GpuBuffer*, CubemapShadowParameterSetEntry> mCubemapShadowParameterSets;
+			/** Gets or creates the parameter set of @p sets for the given per-object buffer. */
+			static TShared<GpuParameterSet> GetOrCreateShadowPerObjectParameterSet(ShadowPerObjectParameterSets& sets, const TShared<GpuBuffer>& perObjectBuffer);
+
+			ShadowPerObjectParameterSets mCubemapShadowPerObjectParameterSets;
+			ShadowPerObjectParameterSets mDirectionalShadowPerObjectParameterSets;
 		};
 
 		/* @} */

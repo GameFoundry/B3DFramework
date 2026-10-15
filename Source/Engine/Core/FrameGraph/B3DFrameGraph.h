@@ -42,7 +42,8 @@ namespace b3d
 		enum class FrameGraphDepthStencilMode
 		{
 			Write, /**< Depth and stencil tests may write the attachment. */
-			ReadOnly /**< Depth and stencil tests only read the attachment, which the pass may also sample. */
+			ReadOnly, /**< Depth and stencil tests only read the attachment, which the pass may also sample. */
+			DepthReadOnly /**< Depth tests only read the depth aspect, which the pass may also sample. Stencil tests may write the stencil aspect. */
 		};
 
 		/** Gives the execute function of a pass access to the command buffer the graph records the pass on. */
@@ -283,8 +284,7 @@ namespace b3d
 
 			/**
 			 * Registers every surface of @p target as a resource of the graph, so raster passes can render into it with
-			 * FrameGraphRasterPass::SetRenderTarget(). The color surface of a window rests in the present layout, and its depth-stencil
-			 * surface in its attachment layout.
+			 * FrameGraphRasterPass::SetRenderTarget(). The surfaces of a window rest in their attachment layouts.
 			 */
 			void ImportRenderTarget(const TShared<RenderTarget>& target);
 
