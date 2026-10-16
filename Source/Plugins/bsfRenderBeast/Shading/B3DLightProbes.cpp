@@ -13,6 +13,7 @@
 #include "Renderer/B3DRenderer.h"
 #include "Components/B3DSkybox.h"
 #include "Utility/B3DRendererTextures.h"
+#include "FrameGraph/B3DFrameGraph.h"
 
 namespace b3d { namespace render {
 
@@ -30,18 +31,21 @@ void TetrahedraRenderMaterial::Initialize()
 	pointSamplerStateCreateInformation.AddressMode.V = TAM_CLAMP;
 	pointSamplerStateCreateInformation.AddressMode.W = TAM_CLAMP;
 
-	TShared<SamplerState> pointSampState = mGpuDevice->FindOrCreateSamplerState(pointSamplerStateCreateInformation);
+	mPointSamplerState = mGpuDevice->FindOrCreateSamplerState(pointSamplerStateCreateInformation);
 
 	if(mGpuParameterSet->HasSamplerState("gDepthBufferSamp"))
-		mGpuParameterSet->SetSamplerState("gDepthBufferSamp", pointSampState);
+		mGpuParameterSet->GetSamplerStateParameter("gDepthBufferSamp", mDepthBufferSamplerParameter);
 	else if(mGpuParameterSet->HasSamplerState("gDepthBufferTex"))
-		mGpuParameterSet->SetSamplerState("gDepthBufferTex", pointSampState);
+		mGpuParameterSet->GetSamplerStateParameter("gDepthBufferTex", mDepthBufferSamplerParameter);
 
 	mGpuParameterSet->GetUniformBufferParameter("Params", mUniformBufferParameter);
+	mGpuParameterSet->GetUniformBufferParameter("PerCamera", mPerCameraParameter);
 }
 
-void TetrahedraRenderMaterial::Prepare(const RendererView& view, const TShared<Texture>& sceneDepth)
+TShared<GpuParameterSet> TetrahedraRenderMaterial::Prepare(FrameGraphPass& pass, const RendererView& view, const TShared<Texture>& sceneDepth)
 {
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
+
 	const TextureProperties& texProps = sceneDepth->GetProperties();
 
 	GpuBufferMappedScope uniforms = gTetrahedraRenderUniformDefinition.AllocateTransient().Map();
@@ -49,34 +53,21 @@ void TetrahedraRenderMaterial::Prepare(const RendererView& view, const TShared<T
 	Vector2I texSize(texProps.Width, texProps.Height);
 	gTetrahedraRenderUniformDefinition.gDepthTexSize.Set(uniforms, texSize);
 
-	mUniformBufferParameter.Set(uniforms);
-	mDepthBufferTextureParameter.Set(sceneDepth);
-	mGpuParameterSet->SetUniformBuffer("PerCamera", view.GetPerViewBuffer());
+	mUniformBufferParameter.Set(set, uniforms);
+	mDepthBufferTextureParameter.Set(set, sceneDepth);
+	mDepthBufferSamplerParameter.Set(set, mPointSamplerState);
+	mPerCameraParameter.Set(set, view.GetPerViewBuffer());
+
+	return set;
 }
 
-void TetrahedraRenderMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<Mesh>& mesh, const TShared<RenderTexture>& output)
+void TetrahedraRenderMaterial::Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, const TShared<Mesh>& mesh) const
 {
+	GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
 	B3D_PROFILE_RENDERER_MATERIAL
 
-	// Keeps the cleared contents, which the tetrahedra only partially cover
-	RenderPassCreateInformation info(output, mGpuParameterSet, RT_NONE, RT_COLOR0 | RT_DEPTH_STENCIL);
-	commandBuffer.BeginRenderPass(info);
-
-	Bind(commandBuffer);
+	Bind(commandBuffer, set);
 	GetRendererUtility().Draw(commandBuffer, mesh);
-
-	commandBuffer.EndRenderPass();
-}
-
-void TetrahedraRenderMaterial::GetOutputDesc(const RendererView& view, PooledRenderTextureCreateInformation& colorDesc, PooledRenderTextureCreateInformation& depthDesc)
-{
-	const RendererViewProperties& viewProps = view.GetProperties();
-	u32 width = viewProps.Target.ViewRect.Width;
-	u32 height = viewProps.Target.ViewRect.Height;
-	u32 numSamples = viewProps.Target.NumSamples;
-
-	colorDesc = PooledRenderTextureCreateInformation::Create2D(PF_R16U, width, height, TextureUsageFlag::RenderTarget, numSamples);
-	depthDesc = PooledRenderTextureCreateInformation::Create2D(PF_D32, width, height, TextureUsageFlag::DepthStencil, numSamples);
 }
 
 TetrahedraRenderMaterial* TetrahedraRenderMaterial::GetVariation(bool msaa, bool singleSampleMSAA)
@@ -111,15 +102,15 @@ void IrradianceEvaluateMaterial::Initialize()
 	}
 
 	mGpuParameterSet->GetUniformBufferParameter("Params", mUniformBufferParameter);
+	mGpuParameterSet->GetUniformBufferParameter("PerCamera", mPerCameraParameter);
 }
 
-void IrradianceEvaluateMaterial::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const GBufferTextures& gbuffer, const TShared<Texture>& lightProbeIndices, const LightProbesInfo& lightProbesInfo, const Skybox* skybox, const TShared<Texture>& ambientOcclusion, const TShared<RenderTexture>& output)
+TShared<GpuParameterSet> IrradianceEvaluateMaterial::Prepare(FrameGraphPass& pass, const RendererView& view, const GBufferTextures& gbuffer, const TShared<Texture>& lightProbeIndices,
+	const LightProbesInfo& lightProbesInfo, const Skybox* skybox, const TShared<Texture>& ambientOcclusion)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
 
-	const RendererViewProperties& viewProps = view.GetProperties();
-
-	mGBufferParams.Bind(gbuffer);
+	mGBufferParams.Bind(set, gbuffer);
 
 	float skyBrightness = 1.0f;
 	TShared<Texture> skyIrradiance;
@@ -137,27 +128,32 @@ void IrradianceEvaluateMaterial::Execute(GpuCommandBuffer& commandBuffer, const 
 	gIrradianceEvaluateUniformDefinition.gSkyBrightness.Set(uniforms, skyBrightness);
 	gIrradianceEvaluateUniformDefinition.gNumTetrahedra.Set(uniforms, lightProbesInfo.NumTetrahedra);
 
-	mUniformBufferParameter.Set(uniforms);
-	mSkyIrradianceTextureParameter.Set(skyIrradiance);
-	mAmbientOcclusionTextureParameter.Set(ambientOcclusion);
+	mUniformBufferParameter.Set(set, uniforms);
+	mSkyIrradianceTextureParameter.Set(set, skyIrradiance);
+	mAmbientOcclusionTextureParameter.Set(set, ambientOcclusion);
 
 	if(!mSkyOnly)
 	{
-		mInputTextureParameter.Set(lightProbeIndices);
-		mSHCoeffsTextureParameter.Set(lightProbesInfo.ShCoefficients);
-		mTetrahedraBufferParameter.Set(lightProbesInfo.Tetrahedra);
-		mTetFacesBufferParameter.Set(lightProbesInfo.Faces);
+		mInputTextureParameter.Set(set, lightProbeIndices);
+		mSHCoeffsTextureParameter.Set(set, lightProbesInfo.ShCoefficients);
+		mTetrahedraBufferParameter.Set(set, lightProbesInfo.Tetrahedra);
+		mTetFacesBufferParameter.Set(set, lightProbesInfo.Faces);
 	}
 
-	mGpuParameterSet->SetUniformBuffer("PerCamera", view.GetPerViewBuffer());
+	mPerCameraParameter.Set(set, view.GetPerViewBuffer());
 
-	// Adds onto the light accumulation, with the scene depth read-only
-	commandBuffer.BeginRenderPass(RenderPassCreateInformation(output, mGpuParameterSet, RT_DEPTH_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL));
+	return set;
+}
 
-	Bind(commandBuffer);
+void IrradianceEvaluateMaterial::Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, const RendererView& view) const
+{
+	GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	const RendererViewProperties& viewProps = view.GetProperties();
+
+	Bind(commandBuffer, set);
 	GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0.0f, 0.0f, (float)viewProps.Target.ViewRect.Width, (float)viewProps.Target.ViewRect.Height));
-
-	commandBuffer.EndRenderPass();
 }
 
 IrradianceEvaluateMaterial* IrradianceEvaluateMaterial::GetVariation(bool msaa, bool singleSampleMSAA, bool skyOnly)
@@ -266,7 +262,7 @@ void LightProbes::NotifyRemoved(LightProbeVolume* volume)
 	mTetrahedronVolumeDirty = true;
 }
 
-void LightProbes::UpdateProbes(GpuCommandBuffer& commandBuffer)
+void LightProbes::UpdateProbes(FrameGraph& graph)
 {
 	if(!mTetrahedronVolumeDirty)
 		return;
@@ -280,23 +276,43 @@ void LightProbes::UpdateProbes(GpuCommandBuffer& commandBuffer)
 	}
 
 	if(numRows > mMaxCoefficientRows)
-		ResizeCoefficientTexture(commandBuffer, numRows + 4);
+		ResizeCoefficientTexture(numRows + 4);
 
-	u32 rowIdx = 0;
-	for(auto& entry : mVolumes)
+	if(numRows > 0)
 	{
-		TextureCopyInformation copyDesc;
-		copyDesc.DestinationPosition = Vector3I(0, rowIdx, 0);
+		graph.ImportTexture(mProbeCoefficientsGPU);
 
-		TShared<Texture> localTexture = entry.Volume->GetCoefficientsTexture();
-		commandBuffer.CopyTexture(localTexture, mProbeCoefficientsGPU, copyDesc);
+		FrameGraphCopyPass copyPass;
+		copyPass.AddDestination(mProbeCoefficientsGPU);
 
-		rowIdx += localTexture->GetProperties().Height;
+		Vector<TShared<Texture>> localTextures;
+		for(auto& entry : mVolumes)
+		{
+			TShared<Texture> localTexture = entry.Volume->GetCoefficientsTexture();
+
+			graph.ImportTexture(localTexture);
+			copyPass.AddSource(localTexture);
+
+			localTextures.push_back(localTexture);
+		}
+
+		graph.AddCopyPass("LightProbeCoefficients", std::move(copyPass), [localTextures = std::move(localTextures), globalTexture = mProbeCoefficientsGPU](FrameGraphPassContext& context)
+		{
+			u32 rowIdx = 0;
+			for(const TShared<Texture>& localTexture : localTextures)
+			{
+				TextureCopyInformation copyDesc;
+				copyDesc.DestinationPosition = Vector3I(0, rowIdx, 0);
+
+				context.GetCommandBuffer().CopyTexture(localTexture, globalTexture, copyDesc);
+
+				rowIdx += localTexture->GetProperties().Height;
+			}
+		});
 	}
 
 	// Gather all positions
 	u32 bufferOffset = 0;
-	rowIdx = 0;
 	for(auto& entry : mVolumes)
 	{
 		const Vector<LightProbeInfo>& infos = entry.Volume->GetLightProbeInfos();
@@ -323,12 +339,19 @@ void LightProbes::UpdateProbes(GpuCommandBuffer& commandBuffer)
 			mTempTetrahedronBufferOffsets.push_back(offset);
 		}
 
-		TShared<Texture> localTexture = entry.Volume->GetCoefficientsTexture();
-		rowIdx += localTexture->GetProperties().Height;
 		bufferOffset += (u32)positions.size();
 	}
 
 	mTetrahedronInfos.clear();
+
+	// Without probes there is no volume to build, and nothing reads it (see HasAnyProbes())
+	if(mTempTetrahedronPositions.empty())
+	{
+		mVolumeMesh = nullptr;
+		mNumValidTetrahedra = 0;
+		mTetrahedronVolumeDirty = false;
+		return;
+	}
 
 	Vector<TetrahedronFaceData> outerFaces;
 	GenerateTetrahedronData(mTempTetrahedronPositions, mTetrahedronInfos, outerFaces, true);
@@ -655,7 +678,8 @@ void LightProbes::UpdateProbes(GpuCommandBuffer& commandBuffer)
 		ResizeTetrahedronBuffer(newSize);
 	}
 
-	TetrahedronDataGPU* dst = (TetrahedronDataGPU*)B3DStackAllocate(mTetrahedronInfosGPU->GetTotalSize());
+	TetrahedronDataGPU* const tetrahedronData = (TetrahedronDataGPU*)B3DStackAllocate(mTetrahedronInfosGPU->GetTotalSize());
+	TetrahedronDataGPU* dst = tetrahedronData;
 
 	// Write inner tetrahedron data
 	for(u32 i = 0; i < (u32)mTetrahedronInfos.size(); i++)
@@ -705,8 +729,8 @@ void LightProbes::UpdateProbes(GpuCommandBuffer& commandBuffer)
 	}
 
 	GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
-	GpuBufferUtility::Write(gpuContext, mTetrahedronInfosGPU, 0, mTetrahedronInfosGPU->GetTotalSize(), dst, GpuBufferWriteFlag::Discard);
-	B3DStackFree(dst);
+	GpuBufferUtility::Write(gpuContext, mTetrahedronInfosGPU, 0, mTetrahedronInfosGPU->GetTotalSize(), tetrahedronData, GpuBufferWriteFlag::Discard);
+	B3DStackFree(tetrahedronData);
 
 	// Write data specific to faces
 	if(numValidFaces > mMaxFaces)
@@ -715,7 +739,8 @@ void LightProbes::UpdateProbes(GpuCommandBuffer& commandBuffer)
 		ResizeTetrahedronFaceBuffer(newSize);
 	}
 
-	TetrahedronFaceDataGPU* faceDst = (TetrahedronFaceDataGPU*)B3DStackAllocate(mTetrahedronFaceInfosGPU->GetTotalSize());
+	TetrahedronFaceDataGPU* const faceData = (TetrahedronFaceDataGPU*)B3DStackAllocate(mTetrahedronFaceInfosGPU->GetTotalSize());
+	TetrahedronFaceDataGPU* faceDst = faceData;
 
 	for(u32 i = 0; i < (u32)outerFaces.size(); i++)
 	{
@@ -734,8 +759,8 @@ void LightProbes::UpdateProbes(GpuCommandBuffer& commandBuffer)
 		faceDst++;
 	}
 
-	GpuBufferUtility::Write(gpuContext, mTetrahedronFaceInfosGPU, 0, mTetrahedronFaceInfosGPU->GetTotalSize(), faceDst, GpuBufferWriteFlag::Discard);
-	B3DStackFree(faceDst);
+	GpuBufferUtility::Write(gpuContext, mTetrahedronFaceInfosGPU, 0, mTetrahedronFaceInfosGPU->GetTotalSize(), faceData, GpuBufferWriteFlag::Discard);
+	B3DStackFree(faceData);
 
 	B3DStackFree(validTets);
 
@@ -796,7 +821,7 @@ void LightProbes::ResizeTetrahedronFaceBuffer(u32 count)
 	mMaxFaces = count;
 }
 
-void LightProbes::ResizeCoefficientTexture(GpuCommandBuffer& commandBuffer, u32 numRows)
+void LightProbes::ResizeCoefficientTexture(u32 numRows)
 {
 	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
@@ -806,11 +831,7 @@ void LightProbes::ResizeCoefficientTexture(GpuCommandBuffer& commandBuffer, u32 
 	desc.Usage = TextureUsageFlag::AllowUnorderedAccessOnTheGPU | TextureUsageFlag::RenderTarget;
 	desc.Format = PF_RGBA32F;
 
-	TShared<Texture> newTexture = gpuDevice->CreateTexture(desc);
-	if (mProbeCoefficientsGPU)
-		commandBuffer.CopyTexture(mProbeCoefficientsGPU, newTexture);
-
-	mProbeCoefficientsGPU = newTexture;
+	mProbeCoefficientsGPU = gpuDevice->CreateTexture(desc);
 	mMaxCoefficientRows = numRows;
 }
 

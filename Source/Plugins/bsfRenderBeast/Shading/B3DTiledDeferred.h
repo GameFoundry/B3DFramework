@@ -218,8 +218,21 @@ namespace b3d
 			TiledDeferredImageBasedLightingMaterial() = default;
 			void Initialize() override;
 
-			/** Binds the material for rendering, sets up parameters and executes it. */
-			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const RenderBeastScene& scene, const VisibleReflectionProbeData& probeData, const Inputs& inputs);
+			/**
+			 * Creates the parameter set of @p pass and assigns the image based lighting inputs of @p view to it.
+			 *
+			 * @param	pass		Pass that dispatches the material.
+			 * @param	view		View to light.
+			 * @param	scene		Scene holding the sky and the reflection probe cubemaps.
+			 * @param	probeData	Reflection probes visible in the view.
+			 * @param	inputs		Textures to read and write.
+			 * @return				Parameter set to pass to Execute().
+			 */
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const RendererView& view, const RenderBeastScene& scene, const VisibleReflectionProbeData& probeData,
+				const Inputs& inputs);
+
+			/** Binds the material and @p set, a set from Prepare(), and dispatches one group per tile of a @p width by @p height view. */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, u32 width, u32 height) const;
 
 			/** Returns the material variation matching the provided parameters. */
 			static TiledDeferredImageBasedLightingMaterial* GetVariation(u32 msaaCount);
@@ -241,6 +254,7 @@ namespace b3d
 
 			GpuParameterUniformBuffer mUniformBufferParameter;
 			GpuParameterUniformBuffer mReflProbeParamsUniformBufferParameter;
+			GpuParameterUniformBuffer mPerCameraParameter;
 
 			static const u32 kTileSize;
 		};

@@ -23,6 +23,7 @@
 #include "Renderer/B3DRendererUtility.h"
 #include "Renderer/B3DRendererObjectStorage.h"
 #include "Utility/B3DBitwise.h"
+#include "FrameGraph/B3DFrameGraph.h"
 
 namespace b3d { namespace render {
 
@@ -1037,7 +1038,7 @@ void ReflectionProbeObjectStorage::SetReflectionProbeArrayIndex(PackedRendererId
 		renderState.ArrayDirty = false;
 }
 
-void ReflectionProbeObjectStorage::UpdateReflectionProbes(GpuCommandBuffer& commandBuffer)
+void ReflectionProbeObjectStorage::UpdateReflectionProbes(FrameGraph& graph)
 {
 	const u32 probeCount = (u32)mReflectionProbeProxies.size();
 
@@ -1069,6 +1070,15 @@ void ReflectionProbeObjectStorage::UpdateReflectionProbes(GpuCommandBuffer& comm
 		{
 			auto& cubemapArrayProps = mReflProbeCubemapsTex->GetProperties();
 
+			/** Copy of a probe's texture into its cubemap of the array. */
+			struct ProbeCopy
+			{
+				TShared<Texture> Source;
+				u32 ArrayIndex;
+				u32 MipLevelCount;
+			};
+
+			Vector<ProbeCopy> probeCopies;
 			for(u32 probeIndex = 0; probeIndex < probeCount; probeIndex++)
 			{
 				const ReflectionProbeRenderState& probeRenderState = mReflectionProbeRenderStates[probeIndex];
@@ -1098,24 +1108,45 @@ void ReflectionProbeObjectStorage::UpdateReflectionProbes(GpuCommandBuffer& comm
 						}
 					}
 					else
+						probeCopies.push_back({ texture, probeRenderState.ArrayIdx, srcProps.MipMapCount + 1 });
+
+					SetReflectionProbeArrayIndex(probeIndex, probeRenderState.ArrayIdx, true);
+				}
+			}
+
+			if(!probeCopies.empty())
+			{
+				graph.ImportTexture(mReflProbeCubemapsTex);
+
+				FrameGraphCopyPass copyPass;
+				for(const ProbeCopy& probeCopy : probeCopies)
+				{
+					graph.ImportTexture(probeCopy.Source);
+
+					copyPass.AddSource(probeCopy.Source);
+					copyPass.AddDestination(mReflProbeCubemapsTex, TextureSurface(0, probeCopy.MipLevelCount, probeCopy.ArrayIndex * 6, 6));
+				}
+
+				graph.AddCopyPass("ReflectionProbeCubemaps", std::move(copyPass), [probeCopies = std::move(probeCopies), cubemaps = mReflProbeCubemapsTex](FrameGraphPassContext& context)
+				{
+					GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
+					for(const ProbeCopy& probeCopy : probeCopies)
 					{
 						for(u32 face = 0; face < 6; face++)
 						{
-							for(u32 mip = 0; mip <= srcProps.MipMapCount; mip++)
+							for(u32 mip = 0; mip < probeCopy.MipLevelCount; mip++)
 							{
 								TextureCopyInformation copyDesc;
 								copyDesc.SourceFace = face;
 								copyDesc.SourceMip = mip;
-								copyDesc.DestinationFace = probeRenderState.ArrayIdx * 6 + face;
+								copyDesc.DestinationFace = probeCopy.ArrayIndex * 6 + face;
 								copyDesc.DestinationMip = mip;
 
-								commandBuffer.CopyTexture(texture, mReflProbeCubemapsTex, copyDesc);
+								commandBuffer.CopyTexture(probeCopy.Source, cubemaps, copyDesc);
 							}
 						}
 					}
-
-					SetReflectionProbeArrayIndex(probeIndex, probeRenderState.ArrayIdx, true);
-				}
+				});
 			}
 		}
 	}
@@ -1217,9 +1248,9 @@ void RenderBeastScene::UnregisterCamera(Camera* camera)
 }
 
 
-void RenderBeastScene::UpdateReflectionProbes(GpuCommandBuffer& commandBuffer)
+void RenderBeastScene::UpdateReflectionProbes(FrameGraph& graph)
 {
-	GetReflectionProbeStorage().UpdateReflectionProbes(commandBuffer);
+	GetReflectionProbeStorage().UpdateReflectionProbes(graph);
 }
 
 void RenderBeastScene::SetReflectionProbeArrayIndex(u32 probeIdx, u32 arrayIdx, bool markAsClean)
@@ -1242,9 +1273,9 @@ void RenderBeastScene::UnregisterLightProbeVolume(LightProbeVolume* volume)
 	mLightProbes.NotifyRemoved(volume);
 }
 
-void RenderBeastScene::UpdateLightProbes(GpuCommandBuffer& commandBuffer)
+void RenderBeastScene::UpdateLightProbes(FrameGraph& graph)
 {
-	mLightProbes.UpdateProbes(commandBuffer);
+	mLightProbes.UpdateProbes(graph);
 }
 
 void RenderBeastScene::RegisterSkybox(Skybox* skybox)

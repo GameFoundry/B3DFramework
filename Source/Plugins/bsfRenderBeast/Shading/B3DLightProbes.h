@@ -19,6 +19,7 @@ namespace b3d
 		struct GBufferTextures;
 		struct FrameInfo;
 		class LightProbeVolume;
+		class FrameGraph;
 
 		/** @addtogroup RenderBeast
 		 *  @{
@@ -54,27 +55,18 @@ namespace b3d
 			void Initialize() override;
 
 			/**
-			 * Prepares GPU parameters for rendering. Must be called before Execute().
+			 * Creates the parameter set of @p pass and assigns the inputs of @p view to it.
 			 *
+			 * @param	pass			Pass that draws the material. Renders into a single color attachment holding tetrahedron
+			 *							indices, and a depth attachment.
 			 * @param	view			View that is currently being rendered.
 			 * @param	sceneDepth		Depth of scene objects that should be lit.
+			 * @return					Parameter set to pass to Execute().
 			 */
-			void Prepare(const RendererView& view, const TShared<Texture>& sceneDepth);
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const RendererView& view, const TShared<Texture>& sceneDepth);
 
-			/**
-			 * Executes the material using the provided parameters.
-			 *
-			 * @param	commandBuffer	Command buffer to execute on.
-			 * @param	mesh			Mesh to render.
-			 * @param	output			Output texture created using the descriptor returned by getOutputDesc().
-			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Mesh>& mesh, const TShared<RenderTexture>& output);
-
-			/**
-			 * Returns the descriptors that can be used for creating the output render texture for this material. The render
-			 * texture is expected to have a single color attachment, and a depth attachment.
-			 */
-			static void GetOutputDesc(const RendererView& view, PooledRenderTextureCreateInformation& colorDesc, PooledRenderTextureCreateInformation& depthDesc);
+			/** Binds the material and @p set, a set from Prepare(), and draws @p mesh, the tetrahedra volume. */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, const TShared<Mesh>& mesh) const;
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -88,7 +80,10 @@ namespace b3d
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterUniformBuffer mPerCameraParameter;
 			GpuParameterSampledTexture mDepthBufferTextureParameter;
+			GpuParameterSampler mDepthBufferSamplerParameter;
+			TShared<SamplerState> mPointSamplerState;
 		};
 
 		B3D_UNIFORM_BUFFER_BEGIN(IrradianceEvaluateUniformDefinition)
@@ -120,9 +115,10 @@ namespace b3d
 			void Initialize() override;
 
 			/**
-			 * Executes the material using the provided parameters.
+			 * Creates the parameter set of @p pass and assigns the inputs of @p view to it.
 			 *
-			 * @param	commandBuffer		Command buffer to execute on.
+			 * @param	pass				Pass that draws the material. The evaluated radiance is added to the existing radiance
+			 *								of its color attachment, using blending.
 			 * @param	view				View that is currently being rendered.
 			 * @param	gbuffer				Previously rendered GBuffer textures.
 			 * @param	lightProbeIndices	Indices calculated by TetrahedraRenderMaterial.
@@ -130,10 +126,13 @@ namespace b3d
 			 * @param	skybox				Skybox, if available. If sky is not available, but sky rendering is enabled,
 			 *								the system will instead use a default irradiance texture.
 			 * @param	ambientOcclusion	Texture containing per-pixel ambient occlusion.
-			 * @param	output				Output texture to write the radiance to. The evaluated value will be added to
-			 *								existing radiance in the texture, using blending.
+			 * @return						Parameter set to pass to Execute().
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const GBufferTextures& gbuffer, const TShared<Texture>& lightProbeIndices, const LightProbesInfo& lightProbesInfo, const Skybox* skybox, const TShared<Texture>& ambientOcclusion, const TShared<RenderTexture>& output);
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const RendererView& view, const GBufferTextures& gbuffer, const TShared<Texture>& lightProbeIndices,
+				const LightProbesInfo& lightProbesInfo, const Skybox* skybox, const TShared<Texture>& ambientOcclusion);
+
+			/** Binds the material and @p set, a set from Prepare(), and draws a quad covering @p view. */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, const RendererView& view) const;
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -150,6 +149,7 @@ namespace b3d
 		private:
 			GBufferParameterBinding mGBufferParams;
 			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterUniformBuffer mPerCameraParameter;
 			GpuParameterSampledTexture mInputTextureParameter;
 			GpuParameterSampledTexture mSkyIrradianceTextureParameter;
 			GpuParameterSampledTexture mAmbientOcclusionTextureParameter;
@@ -234,8 +234,11 @@ namespace b3d
 			/** Notifies the manager that all the probes in the provided volume have been removed. */
 			void NotifyRemoved(LightProbeVolume* volume);
 
-			/** Updates light probe tetrahedron data after probes changed (added/removed/moved). */
-			void UpdateProbes(GpuCommandBuffer& commandBuffer);
+			/**
+			 * Updates light probe tetrahedron data after probes changed (added/removed/moved). Adds the copies of the probe coefficients
+			 * into the global texture to @p graph.
+			 */
+			void UpdateProbes(FrameGraph& graph);
 
 			/** Returns true if there are any registered light probes. */
 			bool HasAnyProbes() const;
@@ -272,9 +275,10 @@ namespace b3d
 
 			/**
 			 * Resized the GPU buffer that stores light probe SH coefficients, to the specified number of rows (each row
-			 * holds 4096 coefficients, and each volume starts in its own row.).
+			 * holds 4096 coefficients, and each volume starts in its own row.). The contents are undefined until every volume
+			 * is copied in again.
 			 */
-			void ResizeCoefficientTexture(GpuCommandBuffer& commandBuffer, u32 numRows);
+			void ResizeCoefficientTexture(u32 numRows);
 
 			TShared<GpuDevice> mGpuDevice;
 			Vector<VolumeInfo> mVolumes;

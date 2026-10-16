@@ -9,6 +9,7 @@
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuDevice.h"
 #include "Renderer/B3DIBLUtility.h"
+#include "FrameGraph/B3DFrameGraph.h"
 #include "Renderer/B3DRenderer.h"
 #include "Renderer/B3DRendererScene.h"
 #include "Scene/B3DSceneInstance.h"
@@ -142,26 +143,20 @@ void Skybox::FilterTexture()
 
 	auto fnFilterSkybox = [filteredRadianceRenderProxy, irradianceRenderProxy, skyboxRenderProxy](render::GpuCommandBufferPool& commandBufferPool)
 	{
-		const TShared<render::GpuCommandBuffer> commandBuffer = commandBufferPool.FindOrCreate(render::GpuCommandBufferCreateInformation::Create("FilterSkybox"));
-		TShared<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
-
-		commandBufferProfiler->BeginSample(*commandBuffer, "FilterSkybox");
+		render::FrameGraph graph(render::GetRenderer()->GetGpuContext(), "FilterSkybox");
 
 		// Filter radiance
-		render::GetIBLUtility().ScaleCubemap(*commandBuffer, skyboxRenderProxy->GetTexture(), 0, filteredRadianceRenderProxy, 0);
-		render::GetIBLUtility().FilterCubemapForSpecular(*commandBuffer, filteredRadianceRenderProxy, nullptr);
+		render::GetIBLUtility().ScaleCubemap(graph, skyboxRenderProxy->GetTexture(), 0, filteredRadianceRenderProxy, 0);
+		render::GetIBLUtility().FilterCubemapForSpecular(graph, filteredRadianceRenderProxy);
 
 		skyboxRenderProxy->mFilteredRadiance = filteredRadianceRenderProxy;
 
 		// Generate irradiance
-		render::GetIBLUtility().FilterCubemapForIrradiance(*commandBuffer, skyboxRenderProxy->GetTexture(), irradianceRenderProxy);
+		render::GetIBLUtility().FilterCubemapForIrradiance(graph, skyboxRenderProxy->GetTexture(), irradianceRenderProxy);
 		skyboxRenderProxy->mIrradiance = irradianceRenderProxy;
 
-		commandBufferProfiler->EndSample(*commandBuffer);
-		GetGpuProfiler().ResolveProfileWhenReady("FilterSkybox", commandBufferProfiler);
-
-		GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
-		gpuContext.SubmitCommandBuffer(commandBuffer);
+		graph.Compile();
+		graph.Execute();
 
 		return true;
 	};

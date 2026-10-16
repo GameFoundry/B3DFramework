@@ -147,15 +147,11 @@ void RendererView::SetRenderSettings(const TShared<RenderSettings>& settings)
 	// Primary rendering (base pass, lighting)
 	primaryNodes.Add(RCNodeParticleSort::GetNodeId());
 	primaryNodes.Add(RCNodeBasePass::GetNodeId());
-#if B3D_FRAME_GRAPH_PORT_PENDING(IndirectLighting)
 	primaryNodes.Add(RCNodeSSAO::GetNodeId());
-#endif
 	primaryNodes.Add(RCNodeDeferredDirectLighting::GetNodeId());
-#if B3D_FRAME_GRAPH_PORT_PENDING(IndirectLighting)
 	primaryNodes.Add(RCNodeIndirectDiffuseLighting::GetNodeId());
 	primaryNodes.Add(RCNodeSSR::GetNodeId());
 	primaryNodes.Add(RCNodeDeferredIndirectSpecularLighting::GetNodeId());
-#endif
 	primaryNodes.Add(RCNodeSkybox::GetNodeId());
 #if B3D_FRAME_GRAPH_PORT_PENDING(Particles)
 	primaryNodes.Add(RCNodeParticleSimulate::GetNodeId());

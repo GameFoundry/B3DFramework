@@ -424,11 +424,6 @@ bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInf
 	if (mIsGPUCommandCaptureRequested)
 		GpuBackend::Instance().StartGPUCommandCapture();
 
-#if B3D_FRAME_GRAPH_PORT_PENDING(IndirectLighting)
-	// If any reflection probes were updated or added, we need to copy them over in the global reflection probe array
-	scene.UpdateReflectionProbes(*commandBuffer);
-#endif
-
 	// Update per-frame data for all renderable objects
 	RenderableObjectStorage& renderableStorage = scene.GetRenderableStorage();
 	for(u32 i = 0; i < renderableStorage.GetRenderableCount(); i++)
@@ -491,6 +486,7 @@ bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInf
 bool RenderBeast::RenderViews(RenderBeastScene& scene, RendererViewGroup& viewGroup, const FrameInfo& frameInfo, bool forceRendering)
 {
 	bool needs3DRender = false;
+	bool needsLightProbes = false;
 	u32 viewCount = viewGroup.GetViewCount();
 	for(u32 viewIndex = 0; viewIndex < viewCount; viewIndex++)
 	{
@@ -499,7 +495,9 @@ bool RenderBeast::RenderViews(RenderBeastScene& scene, RendererViewGroup& viewGr
 		if(view->ShouldDraw3D())
 		{
 			needs3DRender = true;
-			break;
+
+			if(view->GetRenderSettings().EnableIndirectLighting)
+				needsLightProbes = true;
 		}
 	}
 
@@ -525,9 +523,18 @@ bool RenderBeast::RenderViews(RenderBeastScene& scene, RendererViewGroup& viewGr
 	// Named for the profiler overlay, which shows the results of this name
 	FrameGraph graph(GetGpuContext(), "RenderScene");
 
-	// The views of the group share the shadow maps, which are computed from the views as they were before any of them began its frame
 	if(needs3DRender)
+	{
+		// If any reflection probes were updated or added, we need to copy them over in the global reflection probe array
+		scene.UpdateReflectionProbes(graph);
+
+		// Make sure light probe data is up to date
+		if(needsLightProbes)
+			scene.UpdateLightProbes(graph);
+
+		// The views of the group share the shadow maps, which are computed from the views as they were before any of them began its frame
 		viewGroup.GetShadowRenderer().RenderShadowMaps(graph, scene, viewGroup, frameInfo);
+	}
 
 	bool anythingDrawn = false;
 	TInlineArray<RendererView*, 4> drawnViews;
@@ -576,12 +583,6 @@ void RenderBeast::RenderView(FrameGraph& graph, RenderBeastScene& scene, Rendere
 	GetProfilerCPU().BeginSample("Render view");
 
 	auto& viewProps = view.GetProperties();
-
-#if B3D_FRAME_GRAPH_PORT_PENDING(IndirectLighting)
-	// Make sure light probe data is up to date
-	if(view.GetRenderSettings().EnableIndirectLighting)
-		scene.UpdateLightProbes(commandBuffer);
-#endif
 
 	view.BeginFrame(frameInfo);
 

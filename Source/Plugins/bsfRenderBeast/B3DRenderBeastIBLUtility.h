@@ -31,8 +31,14 @@ namespace b3d
 			ReflectionCubeDownsampleMaterial() = default;
 			void Initialize() override;
 
-			/** Downsamples the provided texture face and outputs it to the provided target. */
-			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, u32 face, u32 mip, const TShared<RenderTarget>& target);
+			/**
+			 * Creates the parameter set of @p pass, which renders into a face of the downsampled cubemap, and assigns @p mip of
+			 * @p source as its input. Returns the set to pass to Execute().
+			 */
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const TShared<Texture>& source, u32 face, u32 mip);
+
+			/** Binds the material and @p set, a set from Prepare(), and draws a quad covering the pass's attachment. */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set) const;
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
@@ -57,8 +63,14 @@ namespace b3d
 			ReflectionCubeImportanceSampleMaterial() = default;
 			void Initialize() override;
 
-			/** Importance samples the provided texture face and outputs it to the provided target. */
-			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, u32 face, u32 mip, const TShared<RenderTarget>& target);
+			/**
+			 * Creates the parameter set of @p pass, which renders into @p face and @p mip of the filtered cubemap, and assigns
+			 * @p source as the cubemap to importance sample. Returns the set to pass to Execute().
+			 */
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const TShared<Texture>& source, u32 face, u32 mip);
+
+			/** Binds the material and @p set, a set from Prepare(), and draws a quad covering the pass's attachment. */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set) const;
 
 		private:
 			static const u32 kNumSamples;
@@ -137,14 +149,25 @@ namespace b3d
 			void Initialize() override;
 
 			/**
-			 * Computes spherical harmonic coefficients from a radiance texture and outputs a buffer containing a list of
-			 * coefficient sets (one set of coefficients for each thread group). Coefficients must be reduced and normalized
-			 * by IrradianceReduceSHMaterial before use. Output buffer should be created by calling createOutputBuffer().
+			 * Creates the parameter set of @p pass, which computes spherical harmonic coefficients from @p face of a radiance
+			 * texture and outputs a list of coefficient sets (one set of coefficients for each thread group). Coefficients must
+			 * be reduced and normalized by IrradianceReduceSHMaterial before use. Returns the set to pass to Execute().
+			 *
+			 * @param	pass		Pass that dispatches the material.
+			 * @param	source		Radiance cubemap.
+			 * @param	face		Face of @p source to compute the coefficients of.
+			 * @param	output		Buffer to write the coefficient sets to, created from GetOutputBufferInformation().
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, u32 face, const TShared<GpuBuffer>& output);
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const TShared<Texture>& source, u32 face, const TShared<GpuBuffer>& output);
 
-			/** Creates a buffer of adequate size to be used as output for this material. */
-			TShared<GpuBuffer> CreateOutputBuffer(const TShared<Texture>& source, u32& numCoeffSets);
+			/** Binds the material and @p set, a set from Prepare(), and dispatches the thread groups for a face of @p source. */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, const TShared<Texture>& source) const;
+
+			/**
+			 * Returns the information of a buffer of adequate size to be used as output for this material, and the number of
+			 * coefficient sets it holds in @p numCoeffSets.
+			 */
+			GpuBufferCreateInformation GetOutputBufferInformation(const TShared<Texture>& source, u32& numCoeffSets);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -155,6 +178,9 @@ namespace b3d
 			static IrradianceComputeSHMaterial* GetVariation(int order = 5);
 
 		private:
+			/** Returns the number of thread groups that compute the coefficients of a face of @p source. */
+			static Vector2I GetDispatchSize(const TShared<Texture>& source);
+
 			GpuParameterUniformBuffer mUniformBufferParameter;
 			GpuParameterSampledTexture mInputTextureParameter;
 			GpuParameterStorageBuffer mOutputBufferParameter;
@@ -190,14 +216,23 @@ namespace b3d
 			void Initialize() override;
 
 			/**
-			 * Sums spherical harmonic coefficients calculated by each thread group of IrradianceComputeSHMaterial and outputs a
-			 * single set of normalized coefficients. Output texture should be created by calling createOutputTexture(). The
-			 * value will be recorded at the @p outputIdx position in the texture.
+			 * Creates the parameter set of @p pass, which sums spherical harmonic coefficients calculated by each thread group of
+			 * IrradianceComputeSHMaterial and outputs a single set of normalized coefficients. Returns the set to pass to
+			 * Execute().
+			 *
+			 * @param	pass			Pass that dispatches the material.
+			 * @param	source			Coefficient sets output by IrradianceComputeSHMaterial.
+			 * @param	numCoeffSets	Number of coefficient sets in @p source.
+			 * @param	output			Texture to write the coefficients to, created from GetOutputTextureInformation().
+			 * @param	outputIdx		Position in @p output to write the coefficients at.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuBuffer>& source, u32 numCoeffSets, const TShared<Texture>& output, u32 outputIdx);
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const TShared<GpuBuffer>& source, u32 numCoeffSets, const TShared<Texture>& output, u32 outputIdx);
 
-			/** Creates a texture of adequate size to be used as output for this material. */
-			TShared<Texture> CreateOutputTexture(u32 numCoeffSets);
+			/** Binds the material and @p set, a set from Prepare(), and dispatches it. */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set) const;
+
+			/** Returns the information of a texture of adequate size to be used as output for this material. */
+			TextureCreateInformation GetOutputTextureInformation(u32 numCoeffSets);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -232,10 +267,13 @@ namespace b3d
 			void Initialize() override;
 
 			/**
-			 * Projects spherical harmonic coefficients calculated by IrradianceReduceSHMaterial and projects them onto faces of
-			 * a cubemap.
+			 * Creates the parameter set of @p pass, which renders into @p face of a cubemap, and assigns the spherical harmonic
+			 * coefficients calculated by IrradianceReduceSHMaterial to project onto it. Returns the set to pass to Execute().
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& shCoeffs, u32 face, const TShared<RenderTarget>& target);
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const TShared<Texture>& shCoeffs, u32 face);
+
+			/** Binds the material and @p set, a set from Prepare(), and draws a quad covering the pass's attachment. */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set) const;
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
@@ -246,21 +284,30 @@ namespace b3d
 		class RenderBeastIBLUtility : public IBLUtility
 		{
 		public:
-			void FilterCubemapForSpecular(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const TShared<Texture>& scratch) const override;
-			void FilterCubemapForIrradiance(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const TShared<Texture>& output) const override;
-			void FilterCubemapForIrradiance(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const TShared<Texture>& output, u32 outputIdx) const override;
-			void ScaleCubemap(GpuCommandBuffer& commandBuffer, const TShared<Texture>& src, u32 srcMip, const TShared<Texture>& dst, u32 dstMip) const override;
+			void FilterCubemapForSpecular(FrameGraph& graph, const TShared<Texture>& cubemap) const override;
+			void FilterCubemapForIrradiance(FrameGraph& graph, const TShared<Texture>& cubemap, const TShared<Texture>& output) const override;
+			void FilterCubemapForIrradiance(FrameGraph& graph, const TShared<Texture>& cubemap, const TShared<Texture>& output, u32 outputIdx) const override;
+			void ScaleCubemap(FrameGraph& graph, const TShared<Texture>& src, u32 srcMip, const TShared<Texture>& dst, u32 dstMip) const override;
 
 		private:
 			/**
-			 * Downsamples a cubemap using hardware bilinear filtering.
+			 * Downsamples a cubemap using hardware bilinear filtering. Adds a pass per face to @p graph, whose resources @p src
+			 * and @p dst must be.
 			 *
+			 * @param[in]	graph	Graph to add the passes to.
 			 * @param[in]	src		Cubemap to downsample.
 			 * @param[in]   srcMip	Determines which mip level of the source texture to downsample.
 			 * @param[in]   dst		Desination texture to output the scaled data to. Must be usable as a render target.
 			 * @param[in]   dstMip	Determines which mip level of the destination texture to scale.
 			 */
-			static void DownsampleCubemap(GpuCommandBuffer& commandBuffer, const TShared<Texture>& src, u32 srcMip, const TShared<Texture>& dst, u32 dstMip);
+			static void DownsampleCubemap(FrameGraph& graph, const TShared<Texture>& src, u32 srcMip, const TShared<Texture>& dst, u32 dstMip);
+
+			/**
+			 * Adds a pass per face of @p cubemap to @p graph, computing the spherical harmonic coefficient sets of order
+			 * @p shOrder. @p cubemap must be a resource of @p graph. Returns the transient buffer holding the sets, and their
+			 * number in @p numCoeffSets.
+			 */
+			static TShared<GpuBuffer> ComputeCoefficientSets(FrameGraph& graph, const TShared<Texture>& cubemap, int shOrder, u32& numCoeffSets);
 		};
 
 		/** @} */

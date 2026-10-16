@@ -9,6 +9,7 @@
 #include "Profiling/B3DProfilerGPU.h"
 #include "GpuBackend/B3DGpuDevice.h"
 #include "Renderer/B3DIBLUtility.h"
+#include "FrameGraph/B3DFrameGraph.h"
 #include "Renderer/B3DRenderer.h"
 #include "Renderer/B3DRendererScene.h"
 #include "Scene/B3DSceneInstance.h"
@@ -278,10 +279,10 @@ void ReflectionProbeUtility::CaptureAndFilter(ecs::Registry& registry, ecs::Enti
 			float probeRadius = proxy.GetType() == ReflectionProbeType::Sphere ? proxy.GetRadius() : proxy.GetExtents().Length();
 			Vector3 probePosition = proxy.GetWorldTransform().GetPosition();
 
-			const TShared<render::GpuCommandBuffer> commandBuffer = commandBufferPool.FindOrCreate(render::GpuCommandBufferCreateInformation::Create("RenderAndFilterReflectionProbe"));
+			const TShared<render::GpuCommandBuffer> commandBuffer = commandBufferPool.FindOrCreate(render::GpuCommandBufferCreateInformation::Create("RenderReflectionProbe"));
 			TShared<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
 
-			commandBufferProfiler->BeginSample(*commandBuffer, "RenderAndFilterReflectionProbe");
+			commandBufferProfiler->BeginSample(*commandBuffer, "RenderReflectionProbe");
 
 			render::CaptureSettings settings;
 			settings.EncodeDepth = true;
@@ -289,16 +290,22 @@ void ReflectionProbeUtility::CaptureAndFilter(ecs::Registry& registry, ecs::Enti
 			settings.DepthEncodeFar = probeRadius + 1; // + 1 arbitrary, make it a customizable value?
 
 			render::GetRenderer()->CaptureSceneCubeMap(*renderSceneProxy, *commandBuffer, textureRenderProxy, probePosition, settings);
-			render::GetIBLUtility().FilterCubemapForSpecular(*commandBuffer, textureRenderProxy, nullptr);
-
-			reflProbeStorage->UpdateFilteredTexture(probeId, textureRenderProxy);
 
 			commandBufferProfiler->EndSample(*commandBuffer);
 
-			GetGpuProfiler().ResolveProfileWhenReady("RenderAndFilterReflectionProbe", commandBufferProfiler);
+			GetGpuProfiler().ResolveProfileWhenReady("RenderReflectionProbe", commandBufferProfiler);
 
 			GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
 			gpuContext.SubmitCommandBuffer(commandBuffer);
+
+			// Filters the capture, so its graph executes after the capture's submission
+			render::FrameGraph graph(gpuContext, "FilterReflectionProbe");
+			render::GetIBLUtility().FilterCubemapForSpecular(graph, textureRenderProxy);
+
+			graph.Compile();
+			graph.Execute();
+
+			reflProbeStorage->UpdateFilteredTexture(probeId, textureRenderProxy);
 
 			return true;
 		};
@@ -310,22 +317,15 @@ void ReflectionProbeUtility::CaptureAndFilter(ecs::Registry& registry, ecs::Enti
 		TShared<render::Texture> customTextureRenderProxy = B3DGetRenderProxy(fragment.CustomTexture);
 		auto fnFilterReflectionProbe = [customTextureRenderProxy, textureRenderProxy, renderSceneProxy, probeId](render::GpuCommandBufferPool& commandBufferPool)
 		{
-			const TShared<render::GpuCommandBuffer> commandBuffer = commandBufferPool.FindOrCreate(render::GpuCommandBufferCreateInformation::Create("FilterReflectionProbe"));
-			TShared<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
+			render::FrameGraph graph(render::GetRenderer()->GetGpuContext(), "FilterReflectionProbe");
 
-			commandBufferProfiler->BeginSample(*commandBuffer, "FilterReflectionProbe");
+			render::GetIBLUtility().ScaleCubemap(graph, customTextureRenderProxy, 0, textureRenderProxy, 0);
+			render::GetIBLUtility().FilterCubemapForSpecular(graph, textureRenderProxy);
 
-			render::GetIBLUtility().ScaleCubemap(*commandBuffer, customTextureRenderProxy, 0, textureRenderProxy, 0);
-			render::GetIBLUtility().FilterCubemapForSpecular(*commandBuffer, textureRenderProxy, nullptr);
+			graph.Compile();
+			graph.Execute();
 
 			renderSceneProxy->GetReflectionProbeStorage()->UpdateFilteredTexture(probeId, textureRenderProxy);
-
-			commandBufferProfiler->EndSample(*commandBuffer);
-
-			GetGpuProfiler().ResolveProfileWhenReady("FilterReflectionProbe", commandBufferProfiler);
-
-			GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
-			gpuContext.SubmitCommandBuffer(commandBuffer);
 
 			return true;
 		};

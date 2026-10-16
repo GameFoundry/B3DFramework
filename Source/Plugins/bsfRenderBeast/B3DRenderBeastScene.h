@@ -261,8 +261,8 @@ namespace b3d
 			/** Updates the cubemap array index for the given probe and optionally marks it as clean. */
 			void SetReflectionProbeArrayIndex(PackedRendererId packedId, u32 arrayIdx, bool markAsClean);
 
-			/** Updates the cubemap array texture with changed probe textures. */
-			void UpdateReflectionProbes(GpuCommandBuffer& commandBuffer);
+			/** Updates the cubemap array texture with changed probe textures. Adds the copies of the probe textures to @p graph. */
+			void UpdateReflectionProbes(FrameGraph& graph);
 
 			/** Sets the GPU device used for texture creation. Called by RenderBeastScene::Initialize(). */
 			void SetGpuDevice(const TShared<GpuDevice>& gpuDevice) { mGpuDevice = gpuDevice; }
@@ -299,13 +299,13 @@ namespace b3d
 			void SetReflectionProbeArrayIndex(u32 probeIdx, u32 arrayIdx, bool markAsClean);
 
 			/**
-			 * Rebuilds any light probe related information. Should be called once immediately before rendering. If no change
-			 * is detected since the last call, the call does nothing.
+			 * Rebuilds any light probe related information. Should be called once immediately before rendering, with the graph that
+			 * renders. If no change is detected since the last call, the call does nothing.
 			 */
-			void UpdateLightProbes(GpuCommandBuffer& commandBuffer);
+			void UpdateLightProbes(FrameGraph& graph);
 
-			/** Updates the global reflection probe cubemap array with changed probe textures. */
-			void UpdateReflectionProbes(GpuCommandBuffer& commandBuffer);
+			/** Updates the global reflection probe cubemap array with changed probe textures, with copies added to @p graph. */
+			void UpdateReflectionProbes(FrameGraph& graph);
 
 			/** Updates scene according to the newly provided renderer options. */
 			void SetOptions(const TShared<RenderBeastOptions>& options);

@@ -540,28 +540,16 @@ void ClearMaterial::Initialize()
 	mGpuParameterSet->GetUniformBufferParameter("Params", mUniformBufferParameter);
 }
 
-void ClearMaterial::Prepare(u32 value)
+TShared<GpuParameterSet> ClearMaterial::Prepare(FrameGraphPass& pass, u32 value)
 {
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
+
 	GpuBufferMappedScope uniforms = gClearUniformDefinition.AllocateTransient().Map();
 	gClearUniformDefinition.gIntegerClearValue.Set(uniforms, Vector4UI(value, value, value, value));
 
-	mUniformBufferParameter.Set(uniforms);
-}
+	mUniformBufferParameter.Set(set, uniforms);
 
-void ClearMaterial::Prepare(const Color& color)
-{
-	GpuBufferMappedScope uniforms = gClearUniformDefinition.AllocateTransient().Map();
-	gClearUniformDefinition.gColorClearValue.Set(uniforms, color);
-
-	mUniformBufferParameter.Set(uniforms);
-}
-
-void ClearMaterial::Execute(GpuCommandBuffer& commandBuffer)
-{
-	B3D_PROFILE_RENDERER_MATERIAL
-
-	Bind(commandBuffer);
-	GetRendererUtility().DrawScreenQuad(commandBuffer);
+	return set;
 }
 
 TShared<GpuParameterSet> ClearMaterial::Prepare(FrameGraphPass& pass, const Color& color)

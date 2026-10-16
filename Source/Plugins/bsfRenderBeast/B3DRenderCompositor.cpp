@@ -875,11 +875,6 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 			}
 		}
 	}
-
-#if !B3D_FRAME_GRAPH_PORT_PENDING(IndirectLighting)
-	// Indirect specular lighting writes the lit result into scene color. Until its port, the lit result moves there directly.
-	sceneColorNode->Swap(Output);
-#endif
 }
 
 void RCNodeDeferredDirectLighting::Clear()
@@ -899,7 +894,6 @@ RCNodeDeferredDirectLighting::DependencyDefinition RCNodeDeferredDirectLighting:
 
 void RCNodeIndirectDiffuseLighting::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(IndirectLighting)
 	if(!inputs.View.GetRenderSettings().EnableIndirectLighting)
 		return;
 
@@ -909,73 +903,65 @@ void RCNodeIndirectDiffuseLighting::Render(const RenderCompositorNodeInputs& inp
 	RCNodeLightAccumulation* lightAccumNode = dependencies.Get<RCNodeLightAccumulation>();
 	RCNodeSSAO* ssaoNode = dependencies.Get<RCNodeSSAO>();
 
-	GpuCommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
-	GpuResourcePool& resPool = GetGpuResourcePool();
-	const RendererViewProperties& viewProps = inputs.View.GetProperties();
+	const RendererView& view = inputs.View;
+	const bool msaa = view.GetProperties().Target.NumSamples > 1;
 
 	const LightProbes& lightProbes = inputs.Scene.GetLightProbes();
-	LightProbesInfo lpInfo = lightProbes.GetInfo();
+	const LightProbesInfo lpInfo = lightProbes.GetInfo();
 
 	IrradianceEvaluateMaterial* evaluateMat;
-	TShared<PooledRenderTexture> volumeIndices;
+	TShared<Texture> volumeIndices;
 	if(lightProbes.HasAnyProbes())
 	{
-		PooledRenderTextureCreateInformation volumeIndicesDesc;
-		PooledRenderTextureCreateInformation depthDesc;
-		TetrahedraRenderMaterial::GetOutputDesc(inputs.View, volumeIndicesDesc, depthDesc);
+		// Pixels that no tetrahedron covers keep the cleared index
+		volumeIndices = inputs.Graph.CreateTexture("LightProbeVolumeIndices", CreateViewTextureInformation(view, PF_R16U, TextureUsageFlag::RenderTarget));
+		const TShared<Texture> volumeDepth = inputs.Graph.CreateTexture("LightProbeVolumeDepth", CreateViewTextureInformation(view, PF_D32, TextureUsageFlag::DepthStencil));
 
-		volumeIndices = resPool.Get(volumeIndicesDesc);
-		TShared<PooledRenderTexture> depthTex = resPool.Get(depthDesc);
+		FrameGraphRasterPass tetrahedraPass;
+		tetrahedraPass.SetColorAttachment(0, volumeIndices, FrameGraphAttachmentLoad::DontCare);
+		tetrahedraPass.SetDepthStencilAttachment(volumeDepth, FrameGraphDepthStencilMode::Write, FrameGraphAttachmentLoad::Clear);
 
-		RenderTextureCreateInformation rtDesc;
-		rtDesc.ColorSurfaces[0].Texture = volumeIndices->Texture;
-		rtDesc.DepthStencilSurface.Texture = depthTex->Texture;
+		ClearMaterial* clearMat = ClearMaterial::GetVariation(false);
+		const TShared<GpuParameterSet> clearSet = clearMat->Prepare(tetrahedraPass, ~0u);
 
-		TShared<RenderTexture> rt = RenderTexture::Create(rtDesc);
+		TetrahedraRenderMaterial* tetrahedraMat = TetrahedraRenderMaterial::GetVariation(msaa, true);
+		const TShared<GpuParameterSet> tetrahedraSet = tetrahedraMat->Prepare(tetrahedraPass, view, sceneDepthNode->DepthTex);
 
-		ClearMaterial* clearMaterial = ClearMaterial::GetVariation(false);
-		clearMaterial->Prepare(~0u);
+		inputs.Graph.AddRasterPass("LightProbeTetrahedra", std::move(tetrahedraPass), [clearMat, clearSet, tetrahedraMat, tetrahedraSet, volumeMesh = lpInfo.TetrahedraVolume](FrameGraphPassContext& context)
+		{
+			context.GetCommandBuffer().SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
+			clearMat->Execute(context, clearSet);
+			tetrahedraMat->Execute(context, tetrahedraSet, volumeMesh);
+		});
 
-		RenderPassCreateInformation clearRenderPassCreateInformation(rt, clearMaterial->GetGpuParameterSet());
-		clearRenderPassCreateInformation.ClearMask = RT_DEPTH;
-
-		commandBuffer.BeginRenderPass(clearRenderPassCreateInformation);
-		clearMaterial->Execute(commandBuffer);
-		commandBuffer.EndRenderPass();
-
-		TetrahedraRenderMaterial* renderTetrahedra =
-			TetrahedraRenderMaterial::GetVariation(viewProps.Target.NumSamples > 1, true);
-		renderTetrahedra->Prepare(inputs.View, sceneDepthNode->DepthTex->Texture);
-		renderTetrahedra->Execute(commandBuffer, lpInfo.TetrahedraVolume, rt);
-
-		rt = nullptr;
-		depthTex = nullptr;
-
-		evaluateMat = IrradianceEvaluateMaterial::GetVariation(viewProps.Target.NumSamples > 1, true, false);
+		evaluateMat = IrradianceEvaluateMaterial::GetVariation(msaa, true, false);
 	}
 	else // Sky only
 	{
-		evaluateMat = IrradianceEvaluateMaterial::GetVariation(viewProps.Target.NumSamples > 1, true, true);
+		evaluateMat = IrradianceEvaluateMaterial::GetVariation(msaa, true, true);
 	}
 
 	GBufferTextures gbuffer;
-	gbuffer.Albedo = gbufferNode->AlbedoTex->Texture;
-	gbuffer.Normals = gbufferNode->NormalTex->Texture;
-	gbuffer.RoughMetal = gbufferNode->RoughMetalTex->Texture;
-	gbuffer.Depth = sceneDepthNode->DepthTex->Texture;
-
-	TShared<Texture> volumeIndicesTex;
-	if(volumeIndices)
-		volumeIndicesTex = volumeIndices->Texture;
+	gbuffer.Albedo = gbufferNode->AlbedoTex;
+	gbuffer.Normals = gbufferNode->NormalTex;
+	gbuffer.RoughMetal = gbufferNode->RoughMetalTex;
+	gbuffer.Depth = sceneDepthNode->DepthTex;
 
 	Skybox* skybox = nullptr;
-	if(inputs.View.GetRenderSettings().EnableSkybox)
+	if(view.GetRenderSettings().EnableSkybox)
 		skybox = inputs.Scene.GetSkybox();
 
-	evaluateMat->Execute(commandBuffer, inputs.View, gbuffer, volumeIndicesTex, lpInfo, skybox, ssaoNode->Output, lightAccumNode->RenderTarget);
+	// Adds onto the light accumulation. The pass samples the scene depth as the G-buffer depth.
+	FrameGraphRasterPass evaluatePass;
+	evaluatePass.SetColorAttachment(0, lightAccumNode->LightAccumulationTex, FrameGraphAttachmentLoad::Load);
+	evaluatePass.SetDepthStencilAttachment(sceneDepthNode->DepthTex, FrameGraphDepthStencilMode::ReadOnly, FrameGraphAttachmentLoad::Load);
 
-	volumeIndices = nullptr;
-#endif
+	const TShared<GpuParameterSet> evaluateSet = evaluateMat->Prepare(evaluatePass, view, gbuffer, volumeIndices, lpInfo, skybox, ssaoNode->Output);
+	inputs.Graph.AddRasterPass("IrradianceEvaluate", std::move(evaluatePass), [evaluateMat, evaluateSet, &view](FrameGraphPassContext& context)
+	{
+		context.GetCommandBuffer().SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
+		evaluateMat->Execute(context, evaluateSet, view);
+	});
 }
 
 void RCNodeIndirectDiffuseLighting::Clear()
@@ -991,7 +977,6 @@ RCNodeIndirectDiffuseLighting::DependencyDefinition RCNodeIndirectDiffuseLightin
 
 void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(IndirectLighting)
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
 	RCNodeSceneColor* sceneColorNode = dependencies.Get<RCNodeSceneColor>();
 	RCNodeBasePass* gbufferNode = dependencies.Get<RCNodeBasePass>();
@@ -1000,20 +985,19 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 	RCNodeSSR* ssrNode = dependencies.Get<RCNodeSSR>();
 	RCNodeSSAO* ssaoNode = dependencies.Get<RCNodeSSAO>();
 
-	GpuCommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	GBufferTextures gbuffer;
-	gbuffer.Albedo = gbufferNode->AlbedoTex->Texture;
-	gbuffer.Normals = gbufferNode->NormalTex->Texture;
-	gbuffer.RoughMetal = gbufferNode->RoughMetalTex->Texture;
-	gbuffer.Depth = sceneDepthNode->DepthTex->Texture;
+	gbuffer.Albedo = gbufferNode->AlbedoTex;
+	gbuffer.Normals = gbufferNode->NormalTex;
+	gbuffer.RoughMetal = gbufferNode->RoughMetalTex;
+	gbuffer.Depth = sceneDepthNode->DepthTex;
 
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 
 	TShared<Texture> msaaCoverage;
 	if(viewProps.Target.NumSamples > 1)
 	{
-		RCNodeMSAACoverage* coverageNode = static_cast<RCNodeMSAACoverage*>(inputs.InputNodes[6]);
-		msaaCoverage = coverageNode->Output->Texture;
+		RCNodeMSAACoverage* coverageNode = dependencies.Get<RCNodeMSAACoverage>();
+		msaaCoverage = coverageNode->Output;
 	}
 
 	TiledDeferredImageBasedLightingMaterial* material =
@@ -1021,18 +1005,25 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 
 	TiledDeferredImageBasedLightingMaterial::Inputs iblInputs;
 	iblInputs.Gbuffer = gbuffer;
-	iblInputs.SceneColorTex = sceneColorNode->SceneColorTex->Texture;
-	iblInputs.LightAccumulation = lightAccumNode->LightAccumulationTex->Texture;
+	iblInputs.SceneColorTex = sceneColorNode->SceneColorTex;
+	iblInputs.SceneColorTexArray = sceneColorNode->SceneColorTexArray;
+	iblInputs.LightAccumulation = lightAccumNode->LightAccumulationTex;
 	iblInputs.PreIntegratedGf = RendererTextures::preintegratedEnvGF;
 	iblInputs.AmbientOcclusion = ssaoNode->Output;
 	iblInputs.Ssr = ssrNode->Output;
 	iblInputs.MsaaCoverage = msaaCoverage;
 
-	if(sceneColorNode->SceneColorTexArray)
-		iblInputs.SceneColorTexArray = sceneColorNode->SceneColorTexArray->Texture;
+	FrameGraphComputePass iblPass;
+	const TShared<GpuParameterSet> iblSet = material->Prepare(iblPass, inputs.View, inputs.Scene, inputs.ViewGroup.GetVisibleReflProbeData(), iblInputs);
 
-	material->Execute(commandBuffer, inputs.View, inputs.Scene, inputs.ViewGroup.GetVisibleReflProbeData(), iblInputs);
+	const u32 width = viewProps.Target.ViewRect.Width;
+	const u32 height = viewProps.Target.ViewRect.Height;
+	inputs.Graph.AddComputePass("TiledImageBasedLighting", std::move(iblPass), [material, iblSet, width, height](FrameGraphPassContext& context)
+	{
+		material->Execute(context, iblSet, width, height);
+	});
 
+#if B3D_FRAME_GRAPH_PORT_PENDING(Msaa)
 	if(viewProps.Target.NumSamples > 1)
 		sceneColorNode->MsaaTexArrayToTexture(commandBuffer);
 #endif
@@ -1040,9 +1031,7 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 
 void RCNodeDeferredIndirectSpecularLighting::Clear()
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(IndirectLighting)
-	Output = nullptr;
-#endif
+	// Do nothing
 }
 
 RCNodeDeferredIndirectSpecularLighting::DependencyDefinition RCNodeDeferredIndirectSpecularLighting::GetDependencyDefinition()
@@ -1996,14 +1985,14 @@ RCNodeSceneColorDownsamples::DependencyDefinition RCNodeSceneColorDownsamples::G
 
 void RCNodeResolvedSceneDepth::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(IndirectLighting)
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 	RCNodeSceneDepth* sceneDepthNode = dependencies.Get<RCNodeSceneDepth>();
 
-	GpuCommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	if(viewProps.Target.NumSamples > 1)
 	{
+#if B3D_FRAME_GRAPH_PORT_PENDING(Msaa)
+		GpuCommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 		u32 width = viewProps.Target.ViewRect.Width;
 		u32 height = viewProps.Target.ViewRect.Height;
 
@@ -2014,17 +2003,15 @@ void RCNodeResolvedSceneDepth::Render(const RenderCompositorNodeInputs& inputs)
 		blitInformation.ClearMask = RT_STENCIL;
 
 		GetRendererUtility().Blit(commandBuffer, blitInformation);
+#endif
 	}
 	else
 		Output = sceneDepthNode->DepthTex;
-#endif
 }
 
 void RCNodeResolvedSceneDepth::Clear()
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(IndirectLighting)
 	Output = nullptr;
-#endif
 }
 
 RCNodeResolvedSceneDepth::DependencyDefinition RCNodeResolvedSceneDepth::GetDependencyDefinition()
@@ -2124,11 +2111,6 @@ RCNodeHiZ::DependencyDefinition RCNodeHiZ::GetDependencyDefinition()
 
 void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(IndirectLighting)
-	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
-	/** Maximum valid depth range within samples in a sample set. In meters. */
-	static const float kDepthRange = 1.0f;
-
 	const AmbientOcclusionSettings& settings = inputs.View.GetRenderSettings().AmbientOcclusion;
 	if(!settings.Enabled)
 	{
@@ -2136,6 +2118,11 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 		mPooledOutput = nullptr;
 		return;
 	}
+
+#if B3D_FRAME_GRAPH_PORT_PENDING(ScreenSpace)
+	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
+	/** Maximum valid depth range within samples in a sample set. In meters. */
+	static const float kDepthRange = 1.0f;
 
 	GpuCommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	GpuResourcePool& resPool = GetGpuResourcePool();
@@ -2297,10 +2284,8 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 
 void RCNodeSSAO::Clear()
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(IndirectLighting)
 	mPooledOutput = nullptr;
 	Output = nullptr;
-#endif
 }
 
 RCNodeSSAO::DependencyDefinition RCNodeSSAO::GetDependencyDefinition()
@@ -2316,7 +2301,6 @@ RCNodeSSR::~RCNodeSSR()
 
 void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(IndirectLighting)
 	const ScreenSpaceReflectionsSettings& settings = inputs.View.GetRenderSettings().ScreenSpaceReflections;
 	if(!settings.Enabled)
 	{
@@ -2327,6 +2311,7 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 		return;
 	}
 
+#if B3D_FRAME_GRAPH_PORT_PENDING(ScreenSpace)
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
 	RCNodeSceneDepth* sceneDepthNode = dependencies.Get<RCNodeSceneDepth>();
 	RCNodeLightAccumulation* lightAccumNode = dependencies.Get<RCNodeLightAccumulation>();
@@ -2406,13 +2391,13 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 
 void RCNodeSSR::Clear()
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(IndirectLighting)
+#if B3D_FRAME_GRAPH_PORT_PENDING(ScreenSpace)
 	if(!mUsingTemporalAA)
 		mPrevFrame = mPooledOutput;
+#endif
 
 	mPooledOutput = nullptr;
 	Output = nullptr;
-#endif
 }
 
 void RCNodeSSR::DeallocOutputs()

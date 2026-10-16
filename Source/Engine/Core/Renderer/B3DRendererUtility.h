@@ -225,14 +225,11 @@ namespace b3d
 			ClearMaterial() = default;
 			void Initialize() override;
 
-			/** Assigns the integer value the target will be cleared to. Only valid on the integer variation. */
-			void Prepare(u32 value);
-
-			/** Assigns the color the target will be cleared to. Only valid on the color variation. */
-			void Prepare(const Color& color);
-
-			/** Executes the material on the currently bound render target, clearing it to the value set by Prepare(). */
-			void Execute(GpuCommandBuffer& commandBuffer);
+			/**
+			 * Creates the parameter set of @p pass and assigns the integer value the target will be cleared to. Only valid on the integer
+			 * variation. Returns the set to pass to Execute().
+			 */
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, u32 value);
 
 			/**
 			 * Creates the parameter set of @p pass and assigns the color the target will be cleared to. Only valid on the color

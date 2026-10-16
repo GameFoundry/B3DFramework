@@ -60,10 +60,10 @@ namespace b3d
 		class NullIBLUtility : public IBLUtility
 		{
 		public:
-			void FilterCubemapForSpecular(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const TShared<Texture>& scratch) const override {}
-			void FilterCubemapForIrradiance(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const TShared<Texture>& output) const override {}
-			void FilterCubemapForIrradiance(GpuCommandBuffer& commandBuffer, const TShared<Texture>& cubemap, const TShared<Texture>& output, u32 outputIdx) const override {}
-			void ScaleCubemap(GpuCommandBuffer& commandBuffer, const TShared<Texture>& src, u32 srcMip, const TShared<Texture>& dst, u32 dstMip) const override {}
+			void FilterCubemapForSpecular(FrameGraph& graph, const TShared<Texture>& cubemap) const override {}
+			void FilterCubemapForIrradiance(FrameGraph& graph, const TShared<Texture>& cubemap, const TShared<Texture>& output) const override {}
+			void FilterCubemapForIrradiance(FrameGraph& graph, const TShared<Texture>& cubemap, const TShared<Texture>& output, u32 outputIdx) const override {}
+			void ScaleCubemap(FrameGraph& graph, const TShared<Texture>& src, u32 srcMip, const TShared<Texture>& dst, u32 dstMip) const override {}
 		};
 
 		/**	Provides easy access to the null renderer. */

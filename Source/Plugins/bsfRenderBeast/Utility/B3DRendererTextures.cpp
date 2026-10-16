@@ -12,6 +12,7 @@
 #include "Renderer/B3DIBLUtility.h"
 #include "Image/B3DColorGradient.h"
 #include "Renderer/B3DRenderer.h"
+#include "FrameGraph/B3DFrameGraph.h"
 
 namespace b3d {
 namespace render {
@@ -196,8 +197,6 @@ TShared<render::Texture> GenerateDefaultIndirect()
 		return nullptr;
 
 	GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
-	GpuCommandBufferPool& commandBufferPool = GetRenderBeast()->GetCurrentCommandBufferPool();
-	TShared<GpuCommandBuffer> commandBuffer = commandBufferPool.FindOrCreate(GpuCommandBufferCreateInformation::Create("GenerateDefaultIndirect"));
 
 	TextureCreateInformation dummySkyDesc;
 	dummySkyDesc.Name = "Dummy Sky";
@@ -256,9 +255,12 @@ TShared<render::Texture> GenerateDefaultIndirect()
 	irradianceCubemapDesc.Usage = TextureUsageFlag::StoreOnGPU | TextureUsageFlag::RenderTarget;
 
 	TShared<render::Texture> irradiance = gpuDevice->CreateTexture(irradianceCubemapDesc);
-	GetIBLUtility().FilterCubemapForIrradiance(*commandBuffer, skyTexture, irradiance);
 
-	gpuContext.SubmitCommandBuffer(commandBuffer);
+	FrameGraph graph(gpuContext, "GenerateDefaultIndirect");
+	GetIBLUtility().FilterCubemapForIrradiance(graph, skyTexture, irradiance);
+
+	graph.Compile();
+	graph.Execute();
 
 	return irradiance;
 }

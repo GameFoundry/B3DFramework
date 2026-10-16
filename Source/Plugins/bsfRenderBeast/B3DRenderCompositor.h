@@ -519,9 +519,6 @@ namespace b3d
 		class RCNodeDeferredIndirectSpecularLighting : public RenderCompositorNode
 		{
 		public:
-			// Outputs
-			RCNodeLightAccumulation* Output;
-
 			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneColor, RCNodeBasePass, RCNodeSceneDepth, RCNodeLightAccumulation, RCNodeSSR, RCNodeSSAO, RCNodeMSAACoverage, RCNodeIndirectDiffuseLighting>;
 
 			static StringID GetNodeId() { return "DeferredIndirectSpecularLighting"; }
@@ -581,11 +578,7 @@ namespace b3d
 		class RCNodeSkybox : public RenderCompositorNode
 		{
 		public:
-#if B3D_FRAME_GRAPH_PORT_PENDING(IndirectLighting)
 			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneColor, RCNodeSceneDepth, RCNodeDeferredIndirectSpecularLighting>;
-#else
-			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneColor, RCNodeSceneDepth, RCNodeDeferredDirectLighting>;
-#endif
 
 			static StringID GetNodeId() { return "Skybox"; }
 			static DependencyDefinition GetDependencyDefinition();
@@ -797,7 +790,7 @@ namespace b3d
 		class RCNodeResolvedSceneDepth : public RenderCompositorNode
 		{
 		public:
-			TShared<PooledRenderTexture> Output;
+			TShared<Texture> Output;
 
 			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneDepth, RCNodeBasePass>;
 

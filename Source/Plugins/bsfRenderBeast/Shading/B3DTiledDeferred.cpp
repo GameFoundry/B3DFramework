@@ -342,6 +342,7 @@ void TiledDeferredImageBasedLightingMaterial::Initialize()
 	mImageBasedParams.Initialize(mGpuParameterSet);
 
 	mGpuParameterSet->TryGetUniformBufferParameter("ReflProbeParams", mReflProbeParamsUniformBufferParameter);
+	mGpuParameterSet->GetUniformBufferParameter("PerCamera", mPerCameraParameter);
 }
 
 void TiledDeferredImageBasedLightingMaterial::InitDefinesInternal(ShaderDefines& defines)
@@ -349,9 +350,10 @@ void TiledDeferredImageBasedLightingMaterial::InitDefinesInternal(ShaderDefines&
 	defines.Set("TILE_SIZE", kTileSize);
 }
 
-void TiledDeferredImageBasedLightingMaterial::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const RenderBeastScene& scene, const VisibleReflectionProbeData& probeData, const Inputs& inputs)
+TShared<GpuParameterSet> TiledDeferredImageBasedLightingMaterial::Prepare(FrameGraphPass& pass, const RendererView& view, const RenderBeastScene& scene,
+	const VisibleReflectionProbeData& probeData, const Inputs& inputs)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
 
 	const RendererViewProperties& viewProps = view.GetProperties();
 	u32 width = viewProps.Target.ViewRect.Width;
@@ -364,7 +366,7 @@ void TiledDeferredImageBasedLightingMaterial::Execute(GpuCommandBuffer& commandB
 	framebufferSize[1] = height;
 	gTiledImageBasedLightingUniformDefinition.gFramebufferSize.Set(uniforms, framebufferSize);
 
-	mUniformBufferParameter.Set(uniforms);
+	mUniformBufferParameter.Set(set, uniforms);
 
 	Skybox* skybox = nullptr;
 	if(view.GetRenderSettings().EnableSkybox)
@@ -372,39 +374,47 @@ void TiledDeferredImageBasedLightingMaterial::Execute(GpuCommandBuffer& commandB
 
 	GpuBufferSuballocation reflProbeParamsBuffer = gGlobalReflectionProbeUniformBufferDefinition.AllocateTransient();
 	ReflectionProbeRenderState::PopulateGlobalReflectionProbeUniformBuffer(reflProbeParamsBuffer, skybox, probeData.GetProbeCount(), scene.GetReflectionProbeCubemapsTex(), viewProps.CapturingReflections);
-	mReflProbeParamsUniformBufferParameter.Set(reflProbeParamsBuffer);
+	mReflProbeParamsUniformBufferParameter.Set(set, reflProbeParamsBuffer);
 
-	mGBufferA.Set(inputs.Gbuffer.Albedo);
-	mGBufferB.Set(inputs.Gbuffer.Normals);
-	mGBufferC.Set(inputs.Gbuffer.RoughMetal);
-	mGBufferDepth.Set(inputs.Gbuffer.Depth);
+	mGBufferA.Set(set, inputs.Gbuffer.Albedo);
+	mGBufferB.Set(set, inputs.Gbuffer.Normals);
+	mGBufferC.Set(set, inputs.Gbuffer.RoughMetal);
+	mGBufferDepth.Set(set, inputs.Gbuffer.Depth);
 
 	TShared<Texture> skyFilteredRadiance;
 	if(skybox)
 		skyFilteredRadiance = skybox->GetFilteredRadiance();
 
-	mImageBasedParams.PreintegratedEnvBrdfParameter.Set(inputs.PreIntegratedGf);
-	mImageBasedParams.ReflectionProbesParameter.Set(probeData.GetProbeBuffer());
-	mImageBasedParams.ReflectionProbeCubemapsTexParameter.Set(scene.GetReflectionProbeCubemapsTex());
-	mImageBasedParams.SkyReflectionsTexParam.Set(skyFilteredRadiance);
-	mImageBasedParams.AmbientOcclusionTexParam.Set(inputs.AmbientOcclusion);
-	mImageBasedParams.SsrTexParameter.Set(inputs.Ssr);
+	mImageBasedParams.PreintegratedEnvBrdfParameter.Set(set, inputs.PreIntegratedGf);
+	mImageBasedParams.ReflectionProbesParameter.Set(set, probeData.GetProbeBuffer());
+	mImageBasedParams.ReflectionProbeCubemapsTexParameter.Set(set, scene.GetReflectionProbeCubemapsTex());
+	mImageBasedParams.SkyReflectionsTexParam.Set(set, skyFilteredRadiance);
+	mImageBasedParams.AmbientOcclusionTexParam.Set(set, inputs.AmbientOcclusion);
+	mImageBasedParams.SsrTexParameter.Set(set, inputs.Ssr);
 
-	mGpuParameterSet->SetUniformBuffer("PerCamera", view.GetPerViewBuffer());
+	mPerCameraParameter.Set(set, view.GetPerViewBuffer());
 
-	mInColorTextureParam.Set(inputs.LightAccumulation);
+	mInColorTextureParam.Set(set, inputs.LightAccumulation);
 	if(mSampleCount > 1)
 	{
-		mOutputTextureParam.Set(inputs.SceneColorTexArray, TextureSurface::kComplete);
-		mMSAACoverageTexParam.Set(inputs.MsaaCoverage);
+		mOutputTextureParam.Set(set, inputs.SceneColorTexArray, TextureSurface::kComplete);
+		mMSAACoverageTexParam.Set(set, inputs.MsaaCoverage);
 	}
 	else
-		mOutputTextureParam.Set(inputs.SceneColorTex);
+		mOutputTextureParam.Set(set, inputs.SceneColorTex);
 
-	u32 numTilesX = (u32)Math::CeilToInt(width / (float)kTileSize);
-	u32 numTilesY = (u32)Math::CeilToInt(height / (float)kTileSize);
+	return set;
+}
 
-	Bind(commandBuffer);
+void TiledDeferredImageBasedLightingMaterial::Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, u32 width, u32 height) const
+{
+	GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	const u32 numTilesX = (u32)Math::CeilToInt(width / (float)kTileSize);
+	const u32 numTilesY = (u32)Math::CeilToInt(height / (float)kTileSize);
+
+	Bind(commandBuffer, set);
 	commandBuffer.DispatchCompute(numTilesX, numTilesY);
 }
 
