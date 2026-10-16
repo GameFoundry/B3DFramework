@@ -42,6 +42,7 @@ namespace b3d
 			B3D_UNIFORM_BUFFER_MEMBER(i32, gTexSize)
 			B3D_UNIFORM_BUFFER_MEMBER(Vector3, gAxisRight)
 			B3D_UNIFORM_BUFFER_MEMBER(i32, gBufferOffset)
+			B3D_UNIFORM_BUFFER_MEMBER(i32, gUseSortedIndices)
 		B3D_UNIFORM_BUFFER_END
 
 		extern ParticlesUniformDefinition gParticlesUniformDefinition;
@@ -122,19 +123,6 @@ namespace b3d
 				GpuParameterSampledTexture SizeTexture;
 			};
 
-			/** Parameters relevant for rendering the outputs of the particle GPU simulation. */
-			struct GpuSimulationParams
-			{
-				/** Binding spot for the texture containing position (.xyz) and time (.w) information. */
-				GpuParameterSampledTexture PositionTimeTexture;
-
-				/** Binding spot for the texture containing 2D size (.xy) and rotation (.z) information. */
-				GpuParameterSampledTexture SizeRotationTexture;
-
-				/** Binding spot for the texture containing quantized curves used for evaluating various particle properties. */
-				GpuParameterSampledTexture CurvesTexture;
-			};
-
 			/** Parameter for binding the particle params uniform buffer. */
 			GpuParameterUniformBuffer ParticlesUniformBufferParameter;
 
@@ -146,9 +134,6 @@ namespace b3d
 
 			/** Parameters relevant for mesh rendering of the outputs of the particle CPU simulation. */
 			CpuMeshSimulationParams ParamsCpuMesh;
-
-			/** Parameters relevant for rendering the outputs of the particle GPU simulation. */
-			GpuSimulationParams ParamsGpu;
 
 			/** Number of particles to render. */
 			u32 NumParticles = 0;
@@ -200,20 +185,21 @@ namespace b3d
 			void BindCpuSimulatedInputs(const ParticleSystemProxy& proxy, const ParticleRenderData* renderData) const;
 
 			/**
-			 * Binds all the GPU program inputs required for rendering a particle system that is being simulated by the GPU.
-			 *
-			 * @param gpuSimResources	Resources containing global data for all GPU simulated particle systems.
+			 * Binds the GPU program inputs of a particle system that is being simulated by the GPU. Does not bind the outputs of the
+			 * simulation that all such systems share: the particle state textures, the curve texture and the sorted index buffer.
 			 */
-			void BindGpuSimulatedInputs(const ParticleSystemProxy& proxy, const GpuParticleResources& gpuSimResources) const;
+			void BindGpuSimulatedInputs(const ParticleSystemProxy& proxy) const;
 
 		private:
 			/**
 			 * Allocates a transient uniform buffer and populates it with particle parameters.
 			 *
-			 * @param texSize		Size of the particle data texture.
-			 * @param bufferOffset	Offset into the particle index buffer.
+			 * @param texSize			Size of the particle data texture.
+			 * @param bufferOffset		Offset into the particle index buffer, or into the sorted index buffer if @p useSortedIndices.
+			 * @param useSortedIndices	True if the vertex shader reads the particle indices from the sorted index buffer of the GPU
+			 *							particle simulation, rather than from the index buffer of the particle system.
 			 */
-			void PopulateAndBindParticlesUniformBuffer(const ParticleSystemProxy& proxy, i32 texSize, i32 bufferOffset) const;
+			void PopulateAndBindParticlesUniformBuffer(const ParticleSystemProxy& proxy, i32 texSize, i32 bufferOffset, bool useSortedIndices) const;
 		};
 
 		/** Default material used for rendering particles, when no other is available. */

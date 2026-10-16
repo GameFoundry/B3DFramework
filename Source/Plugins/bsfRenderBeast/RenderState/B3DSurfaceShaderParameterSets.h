@@ -12,6 +12,8 @@ namespace b3d
 	namespace render
 	{
 		struct RenderQueueEntry;
+		struct LightGridOutputs;
+		struct GpuParticleDrawInputs;
 		class FrameGraphRasterPass;
 
 		/** @addtogroup RenderBeast
@@ -39,6 +41,15 @@ namespace b3d
 
 			/** Decals. UnlitParticle's inputs, plus the G-buffer mask. Multisampled when the view is. */
 			Decal,
+
+			/** GPU simulated particles that write the G-buffer. LitDeferred's inputs, plus the outputs of the GPU simulation. */
+			GpuParticleLitDeferred,
+
+			/** GPU simulated particles with forward lighting. LitForward's inputs, plus the outputs of the GPU simulation. */
+			GpuParticleLitForward,
+
+			/** Transparent GPU simulated particles without lighting. UnlitParticle's inputs, plus the outputs of the GPU simulation. */
+			GpuParticleUnlit,
 
 			Count
 		};
@@ -71,26 +82,31 @@ namespace b3d
 			/**
 			 * Creates the sets and their parameter handles on first use, and recreates the multisampled ones when the view's
 			 * sample count changes. Assigns the view's PerCamera and the scene's PerFrame buffers to every set, and the
-			 * samplers to a newly created LitForward set.
+			 * samplers to newly created LitForward and GPU particle sets.
 			 */
 			void Prepare(const RendererView& view, const RenderBeastScene& scene);
 
-			/** Assigns the scene depth that the UnlitParticle set reads. */
+			/** Assigns the scene depth that the UnlitParticle and GpuParticleUnlit sets read. */
 			void SetSceneDepth(const TShared<Texture>& depth);
+
+			/** Assigns the outputs of the GPU particle simulation that the GPU particle sets read. */
+			void SetGpuParticleInputs(const GpuParticleDrawInputs& inputs);
 
 			/** Assigns the scene depth and the G-buffer mask that the Decal set reads. */
 			void SetDecalInputs(const TShared<Texture>& depth, const TShared<Texture>& mask);
 
 			/**
-			 * Assigns the clustered forward lighting and image based lighting inputs that the LitForward set reads.
+			 * Assigns the clustered forward lighting and image based lighting inputs that the LitForward and GpuParticleLitForward sets
+			 * read.
 			 *
-			 * @param	view				View whose light grid to read.
+			 * @param	view				View to render.
+			 * @param	lightGrid			Light grid of the view.
 			 * @param	lights				Lights visible in the view.
 			 * @param	reflectionProbes	Reflection probes visible in the view.
 			 * @param	scene				Scene holding the reflection probe cubemaps.
 			 * @param	skybox				Skybox providing sky reflections, or null if the view renders none.
 			 */
-			void SetForwardLightingInputs(const RendererView& view, const VisibleLightData& lights, const VisibleReflectionProbeData& reflectionProbes,
+			void SetForwardLightingInputs(const RendererView& view, const LightGridOutputs& lightGrid, const VisibleLightData& lights, const VisibleReflectionProbeData& reflectionProbes,
 				const RenderBeastScene& scene, const Skybox* skybox);
 
 			/** Adds the sets that @p entries use to @p pass, which declares the graph resources they hold. */
@@ -124,14 +140,48 @@ namespace b3d
 				GpuParameterSampledTexture PreintegratedEnvBRDF;
 			};
 
+			/** Handles of the outputs of the GPU particle simulation in a GPU particle set. */
+			struct GpuParticleParameters
+			{
+				GpuParameterSampledTexture PositionAndTime;
+				GpuParameterSampledTexture SizeAndRotation;
+				GpuParameterSampledTexture Curves;
+				GpuParameterStorageBuffer SortedIndices;
+			};
+
+			/** Types of transparent particles, whose sets hold the scene depth. */
+			static constexpr SurfaceShaderType kUnlitParticleTypes[] = { SurfaceShaderType::UnlitParticle, SurfaceShaderType::GpuParticleUnlit };
+
+			/** Types whose sets hold the forward lighting inputs. */
+			static constexpr SurfaceShaderType kLitForwardTypes[] = { SurfaceShaderType::LitForward, SurfaceShaderType::GpuParticleLitForward };
+
+			/** Types of GPU simulated particles, whose sets hold the outputs of the GPU simulation. */
+			static constexpr SurfaceShaderType kGpuParticleTypes[] = { SurfaceShaderType::GpuParticleLitDeferred, SurfaceShaderType::GpuParticleLitForward,
+				SurfaceShaderType::GpuParticleUnlit };
+
+			/** Position of each SurfaceShaderType in kUnlitParticleTypes, or -1 for types not in it. */
+			static const Array<i8, (u32)SurfaceShaderType::Count> kUnlitParticleIndices;
+
+			/** Position of each SurfaceShaderType in kLitForwardTypes, or -1 for types not in it. */
+			static const Array<i8, (u32)SurfaceShaderType::Count> kLitForwardIndices;
+
+			/** Position of each SurfaceShaderType in kGpuParticleTypes, or -1 for types not in it. */
+			static const Array<i8, (u32)SurfaceShaderType::Count> kGpuParticleIndices;
+
 			Array<TShared<GpuParameterSet>, (u32)SurfaceShaderType::Count> mSets;
 			Array<GpuParameterUniformBuffer, (u32)SurfaceShaderType::Count> mPerCameraParameters;
 			Array<GpuParameterUniformBuffer, (u32)SurfaceShaderType::Count> mPerFrameParameters;
 
-			GpuParameterSampledTexture mUnlitParticleDepthParameter;
+			/** Scene depth handles of the transparent particle sets, in kUnlitParticleTypes order. */
+			Array<GpuParameterSampledTexture, B3DSize(kUnlitParticleTypes)> mUnlitParticleDepthParameters;
 			GpuParameterSampledTexture mDecalDepthParameter;
 			GpuParameterSampledTexture mDecalMaskParameter;
-			LitForwardParameters mLitForwardParameters;
+
+			/** Forward lighting handles of the forward lit sets, in kLitForwardTypes order. */
+			Array<LitForwardParameters, B3DSize(kLitForwardTypes)> mLitForwardParameters;
+
+			/** GPU simulation handles of the GPU particle sets, in kGpuParticleTypes order. */
+			Array<GpuParticleParameters, B3DSize(kGpuParticleTypes)> mGpuParticleParameters;
 		};
 
 		/** @} */

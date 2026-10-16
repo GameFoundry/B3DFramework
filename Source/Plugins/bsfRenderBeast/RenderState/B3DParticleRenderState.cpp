@@ -143,37 +143,23 @@ void ParticleRenderState::BindCpuSimulatedInputs(const ParticleSystemProxy& prox
 
 	DrawCommand.NumParticles = renderData->NumParticles;
 
-	PopulateAndBindParticlesUniformBuffer(proxy, texSize, 0);
+	PopulateAndBindParticlesUniformBuffer(proxy, texSize, 0, false);
 }
 
-void ParticleRenderState::BindGpuSimulatedInputs(const ParticleSystemProxy& proxy, const GpuParticleResources& gpuSimResources) const
+void ParticleRenderState::BindGpuSimulatedInputs(const ParticleSystemProxy& proxy) const
 {
-	const GpuParticleStateTextures& gpuSimStateTextures = gpuSimResources.GetCurrentState();
-	const GpuParticleStaticTextures& gpuSimStaticTextures = gpuSimResources.GetStaticTextures();
-	const GpuParticleCurves& gpuCurves = gpuSimResources.GetCurveTexture();
-	const TShared<GpuBuffer>& sortedIndices = gpuSimResources.GetSortedIndices();
+	DrawCommand.NumParticles = GpuParticleSystem->GetParticleCount();
 
-	DrawCommand.ParamsGpu.PositionTimeTexture.Set(gpuSimStateTextures.PositionAndTimeTex);
-	DrawCommand.ParamsGpu.SizeRotationTexture.Set(gpuSimStaticTextures.SizeAndRotationTex);
-	DrawCommand.ParamsGpu.CurvesTexture.Set(gpuCurves.GetTexture());
-	DrawCommand.NumParticles = GpuParticleSystem->GetTileCount() * GpuParticleConstants::kParticlesPerTile;
+	// Distance sorted systems read their indices from the sorted index buffer of the renderer inputs instead
+	DrawCommand.IndicesBuffer.Set(GpuParticleSystem->GetParticleIndices());
 
-	i32 bufferOffset;
-	if(GpuParticleSystem->HasSortInfo())
-	{
-		DrawCommand.IndicesBuffer.Set(sortedIndices);
-		bufferOffset = GpuParticleSystem->GetSortOffset();
-	}
-	else
-	{
-		DrawCommand.IndicesBuffer.Set(GpuParticleSystem->GetParticleIndices());
-		bufferOffset = 0;
-	}
+	const bool sorted = GpuParticleSystem->HasSortInfo();
+	const i32 bufferOffset = sorted ? (i32)GpuParticleSystem->GetSortOffset() : 0;
 
-	PopulateAndBindParticlesUniformBuffer(proxy, GpuParticleConstants::kTexSize, bufferOffset);
+	PopulateAndBindParticlesUniformBuffer(proxy, GpuParticleConstants::kTexSize, bufferOffset, sorted);
 }
 
-void ParticleRenderState::PopulateAndBindParticlesUniformBuffer(const ParticleSystemProxy& proxy, i32 texSize, i32 bufferOffset) const
+void ParticleRenderState::PopulateAndBindParticlesUniformBuffer(const ParticleSystemProxy& proxy, i32 texSize, i32 bufferOffset, bool useSortedIndices) const
 {
 	GpuBufferMappedScope uniforms = gParticlesUniformDefinition.AllocateTransient().Map();
 
@@ -217,6 +203,7 @@ void ParticleRenderState::PopulateAndBindParticlesUniformBuffer(const ParticleSy
 
 	gParticlesUniformDefinition.gTexSize.Set(uniforms, texSize);
 	gParticlesUniformDefinition.gBufferOffset.Set(uniforms, bufferOffset);
+	gParticlesUniformDefinition.gUseSortedIndices.Set(uniforms, useSortedIndices ? 1 : 0);
 
 	DrawCommand.ParticlesUniformBufferParameter.Set(uniforms);
 }

@@ -332,9 +332,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	const VisibilityInfo& visibility = inputs.View.GetVisibilityMasks();
 
 	mSurfaceShaderParameterSets.Prepare(inputs.View, inputs.Scene);
-#if B3D_FRAME_GRAPH_PORT_PENDING(Decals)
-	mSurfaceShaderParameterSets.SetDecalInputs(sceneDepthTex->Texture, IdTex->Texture);
-#endif
+	mSurfaceShaderParameterSets.SetDecalInputs(sceneDepthNode->DepthTex, IdTex);
 
 	//// Prepare particle systems
 	// The views of a group share the draw command of a particle system, so the passes of every view draw with the inputs that the
@@ -364,15 +362,16 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 				ParticleRenderData* renderData = iterFind->second;
 				renderState.BindCpuSimulatedInputs(proxy, renderData);
 			}
-#if B3D_FRAME_GRAPH_PORT_PENDING(Particles)
-			// Bind textures/buffers from GPU simulation
+			// Bind buffers from GPU simulation
 			else if(renderState.GpuParticleSystem)
-			{
-				renderState.BindGpuSimulatedInputs(proxy, GpuParticleSimulation::Instance().GetResources());
-			}
-#endif
+				renderState.BindGpuSimulatedInputs(proxy);
 		}
 	}
+
+	// Draws of GPU simulated particles read the outputs of the last simulation, which ParticleSimulate writes later in the graph
+	GpuParticleInputs = GpuParticleSimulation::Instance().GetResources().GetDrawInputs();
+	GpuParticleInputs.Import(inputs.Graph);
+	mSurfaceShaderParameterSets.SetGpuParticleInputs(GpuParticleInputs);
 
 #if B3D_FRAME_GRAPH_PORT_PENDING(Extensions)
 	Camera* sceneCamera = inputs.View.GetSceneCamera();
@@ -466,16 +465,36 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	}
 #endif
 
-#if B3D_FRAME_GRAPH_PORT_PENDING(Decals)
-	// Render decals after all normal objects, using a read-only depth buffer
+	// Render decals after all normal objects, using a read-only depth buffer. They sample depth and the Id texture.
 	const Vector<RenderQueueEntry>& decalEntries = inputs.View.GetDecalQueue()->GetSortedEntries();
-	RenderPassCreateInformation decalPassInfo(RenderTargetNoMask, RT_DEPTH, RT_ALL);
-	PrepareRenderQueuePass(decalPassInfo, decalEntries, mSurfaceShaderParameterSets);
+	if(!decalEntries.empty())
+	{
+		FrameGraphRasterPass decalPass;
 
-	commandBuffer.BeginRenderPass(decalPassInfo);
+		u32 decalColorIndex = 0;
+		decalPass.SetColorAttachment(decalColorIndex++, sceneColorNode->SceneColorTex, FrameGraphAttachmentLoad::Load);
+		decalPass.SetColorAttachment(decalColorIndex++, AlbedoTex, FrameGraphAttachmentLoad::Load);
+		decalPass.SetColorAttachment(decalColorIndex++, NormalTex, FrameGraphAttachmentLoad::Load);
+		decalPass.SetColorAttachment(decalColorIndex++, RoughMetalTex, FrameGraphAttachmentLoad::Load);
 
-	RenderQueueEntries(commandBuffer, decalEntries, mSurfaceShaderParameterSets);
+#if B3D_FRAME_GRAPH_PORT_PENDING(TemporalAA)
+		if(needsVelocity)
+			decalPass.SetColorAttachment(decalColorIndex++, VelocityTex, FrameGraphAttachmentLoad::Load);
+#endif
 
+		decalPass.SetDepthStencilAttachment(sceneDepthNode->DepthTex, FrameGraphDepthStencilMode::DepthReadOnly, FrameGraphAttachmentLoad::Load);
+		PrepareRenderQueuePass(decalPass, decalEntries, mSurfaceShaderParameterSets);
+
+		inputs.Graph.AddRasterPass("Decals", std::move(decalPass), [this, &decalEntries](FrameGraphPassContext& context)
+		{
+			GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
+			commandBuffer.SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
+
+			RenderQueueEntries(commandBuffer, decalEntries, mSurfaceShaderParameterSets);
+		});
+	}
+
+#if B3D_FRAME_GRAPH_PORT_PENDING(Extensions)
 	// Trigger post-base-pass callbacks
 	if(sceneCamera != nullptr)
 	{
@@ -490,9 +509,6 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 			extension->Render(*sceneCamera, context);
 		}
 	}
-
-	// Make sure that any compute shaders are able to read g-buffer by unbinding it
-	commandBuffer.EndRenderPass();
 #endif
 }
 
@@ -502,6 +518,7 @@ void RCNodeBasePass::Clear()
 	NormalTex = nullptr;
 	RoughMetalTex = nullptr;
 	IdTex = nullptr;
+	GpuParticleInputs = GpuParticleDrawInputs();
 }
 
 RCNodeBasePass::DependencyDefinition RCNodeBasePass::GetDependencyDefinition()
@@ -606,25 +623,25 @@ RCNodeMSAACoverage::DependencyDefinition RCNodeMSAACoverage::GetDependencyDefini
 
 void RCNodeParticleSimulate::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(Particles)
-	// Only simulate particles for the first view in the main render pass
-	if(inputs.ViewGroup.IsMainPass() && inputs.View.GetViewIndex() == 0)
+	GpuParticleSimulation& simulation = GpuParticleSimulation::Instance();
+
+	// The first view of the main pass that renders in a frame simulates
+	if(inputs.ViewGroup.IsMainPass())
 	{
 		auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
 		RCNodeBasePass* gbufferNode = dependencies.Get<RCNodeBasePass>();
 		RCNodeSceneDepth* sceneDepthNode = dependencies.Get<RCNodeSceneDepth>();
 
 		GBufferTextures gbuffer;
-		gbuffer.Albedo = gbufferNode->AlbedoTex->Texture;
-		gbuffer.Normals = gbufferNode->NormalTex->Texture;
-		gbuffer.RoughMetal = gbufferNode->RoughMetalTex->Texture;
-		gbuffer.Depth = sceneDepthNode->DepthTex->Texture;
+		gbuffer.Albedo = gbufferNode->AlbedoTex;
+		gbuffer.Normals = gbufferNode->NormalTex;
+		gbuffer.RoughMetal = gbufferNode->RoughMetalTex;
+		gbuffer.Depth = sceneDepthNode->DepthTex;
 
-		GpuParticleSimulation::Instance().Simulate(*inputs.ActiveCommandBuffer, inputs.Scene, inputs.FrameInfo.PerSceneFrameData.Particles, inputs.View.GetPerViewBuffer(), gbuffer, inputs.FrameInfo.Timings.TimeDelta);
+		simulation.Simulate(inputs.Graph, inputs.Scene, inputs.FrameInfo.PerSceneFrameData.Particles, inputs.View.GetPerViewBuffer(), gbuffer, inputs.FrameInfo.Timings);
 	}
 
-	GpuParticleSimulation::Instance().Sort(*inputs.ActiveCommandBuffer, inputs.Scene, inputs.View);
-#endif
+	simulation.Sort(inputs.Graph, inputs.Scene, inputs.View);
 }
 
 void RCNodeParticleSimulate::Clear()
@@ -1042,7 +1059,6 @@ RCNodeDeferredIndirectSpecularLighting::DependencyDefinition RCNodeDeferredIndir
 
 void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(Forward)
 	const RenderBeastScene& scene = inputs.Scene;
 
 	const VisibleLightData& visibleLightData = inputs.ViewGroup.GetVisibleLightData();
@@ -1052,73 +1068,63 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 	if(inputs.View.GetRenderSettings().EnableSkybox)
 		skybox = scene.GetSkybox();
 
-	// Prepare render target
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
 	auto sceneColorNode = dependencies.Get<RCNodeSceneColor>();
 	auto sceneDepthNode = dependencies.Get<RCNodeSceneDepth>();
 	auto resolvedSceneDepthNode = dependencies.Get<RCNodeResolvedSceneDepth>();
 
-	bool rebuildRT;
-	if(renderTarget != nullptr)
-	{
-		rebuildRT = renderTarget->GetColorSurfaceInformation(0).Texture != sceneColorNode->SceneColorTex->Texture;
-		rebuildRT |= renderTarget->GetDepthStencilSurfaceInformation().Texture != sceneDepthNode->DepthTex->Texture;
-	}
-	else
-		rebuildRT = true;
-
-	if(rebuildRT)
-	{
-		RenderTextureCreateInformation rtDesc;
-		rtDesc.ColorSurfaces[0].Texture = sceneColorNode->SceneColorTex->Texture;
-		rtDesc.ColorSurfaces[0].Face = 0;
-		rtDesc.ColorSurfaces[0].FaceCount = 1;
-		rtDesc.ColorSurfaces[0].MipLevel = 0;
-
-		rtDesc.DepthStencilSurface.Texture = sceneDepthNode->DepthTex->Texture;
-		rtDesc.DepthStencilSurface.Face = 0;
-		rtDesc.DepthStencilSurface.FaceCount = 1;
-		rtDesc.DepthStencilSurface.MipLevel = 0;
-
-		renderTarget = RenderTexture::Create(rtDesc);
-	}
+	// The graph culls the grid's passes if no draw reads it
+	const LightGridOutputs lightGrid = AddLightGridPasses(inputs.Graph, inputs.View, visibleLightData, visibleReflProbeData, !inputs.View.GetRenderSettings().EnableLighting);
 
 	// Prepare the renderer inputs of forward draws
 	mSurfaceShaderParameterSets.Prepare(inputs.View, inputs.Scene);
-	mSurfaceShaderParameterSets.SetSceneDepth(resolvedSceneDepthNode->Output->Texture);
-	mSurfaceShaderParameterSets.SetForwardLightingInputs(inputs.View, visibleLightData, visibleReflProbeData, scene, skybox);
+	mSurfaceShaderParameterSets.SetSceneDepth(resolvedSceneDepthNode->Output);
+	mSurfaceShaderParameterSets.SetForwardLightingInputs(inputs.View, lightGrid, visibleLightData, visibleReflProbeData, scene, skybox);
+
+	// Forward draws of GPU simulated particles read what the base pass draws read, from before the simulation swapped its state
+	mSurfaceShaderParameterSets.SetGpuParticleInputs(dependencies.Get<RCNodeBasePass>()->GpuParticleInputs);
 
 	// TODO: Forward pipeline rendering doesn't support shadows. In order to support this I'd have to render the light
 	// occlusion for all lights affecting this object into a single (or a few) textures. I can likely use texture
 	// arrays for this, or to avoid sampling many textures, perhaps just jam it all in one or few texture channels.
 
-	// Render everything
-	GpuCommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
+	// The render queues live until the view's frame ends, after the graph executes
+	const Vector<RenderQueueEntry>& opaqueEntries = inputs.View.GetOpaqueQueue(true)->GetSortedEntries();
+	if(!opaqueEntries.empty())
+	{
+		FrameGraphRasterPass opaquePass;
+		opaquePass.SetColorAttachment(0, sceneColorNode->SceneColorTex, FrameGraphAttachmentLoad::Load);
+		opaquePass.SetDepthStencilAttachment(sceneDepthNode->DepthTex, FrameGraphDepthStencilMode::Write, FrameGraphAttachmentLoad::Load);
+		PrepareRenderQueuePass(opaquePass, opaqueEntries, mSurfaceShaderParameterSets);
 
-	RenderQueue* opaqueQueue = inputs.View.GetOpaqueQueue(true).get();
-	RenderQueue* transparentQueue = inputs.View.GetTransparentQueue().get();
+		inputs.Graph.AddRasterPass("ForwardOpaque", std::move(opaquePass), [this, &opaqueEntries](FrameGraphPassContext& context)
+		{
+			GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
+			commandBuffer.SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
 
-	// Collect all GpuParameters that will be used in the opaque pass
-	const Vector<RenderQueueEntry>& opaqueElements = opaqueQueue->GetSortedEntries();
-	RenderPassCreateInformation opaquePassInfo(renderTarget, RT_NONE, RT_ALL);
-	PrepareRenderQueuePass(opaquePassInfo, opaqueElements, mSurfaceShaderParameterSets);
+			RenderQueueEntries(commandBuffer, opaqueEntries, mSurfaceShaderParameterSets);
+		});
+	}
 
-	commandBuffer.BeginRenderPass(opaquePassInfo);
-	RenderQueueEntries(commandBuffer, opaqueElements, mSurfaceShaderParameterSets);
-	commandBuffer.EndRenderPass();
+	// Transparent draws test against depth without writing it, and soft particles sample it
+	const Vector<RenderQueueEntry>& transparentEntries = inputs.View.GetTransparentQueue()->GetSortedEntries();
+	if(!transparentEntries.empty())
+	{
+		FrameGraphRasterPass transparentPass;
+		transparentPass.SetColorAttachment(0, sceneColorNode->SceneColorTex, FrameGraphAttachmentLoad::Load);
+		transparentPass.SetDepthStencilAttachment(sceneDepthNode->DepthTex, FrameGraphDepthStencilMode::DepthReadOnly, FrameGraphAttachmentLoad::Load);
+		PrepareRenderQueuePass(transparentPass, transparentEntries, mSurfaceShaderParameterSets);
 
-	// Collect all GpuParameters that will be used in the transparent pass
-	const Vector<RenderQueueEntry>& transparentElements = transparentQueue->GetSortedEntries();
-	RenderPassCreateInformation transparentPassInfo(renderTarget, RT_DEPTH, RT_ALL);
-	PrepareRenderQueuePass(transparentPassInfo, transparentElements, mSurfaceShaderParameterSets);
+		inputs.Graph.AddRasterPass("ForwardTransparent", std::move(transparentPass), [this, &transparentEntries](FrameGraphPassContext& context)
+		{
+			GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
+			commandBuffer.SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
 
-	commandBuffer.BeginRenderPass(transparentPassInfo);
-	RenderQueueEntries(commandBuffer, transparentElements, mSurfaceShaderParameterSets);
-	commandBuffer.EndRenderPass();
+			RenderQueueEntries(commandBuffer, transparentEntries, mSurfaceShaderParameterSets);
+		});
+	}
 
-	// Note: Perhaps delay clearing this one frame, so previous frame textures have a better chance of being done
-	ParticleRenderer::Instance().GetTexturePool().Clear();
-
+#if B3D_FRAME_GRAPH_PORT_PENDING(Extensions)
 	// Trigger post-lighting callbacks
 	Camera* sceneCamera = inputs.View.GetSceneCamera();
 	if(sceneCamera != nullptr)
@@ -1303,11 +1309,7 @@ RCNodeFinalResolve::DependencyDefinition RCNodeFinalResolve::GetDependencyDefini
 		.ConditionalEnable<RCNodePostProcess>(fnRunPostProcessing)
 		.ConditionalEnable<RCNodeFilmGrain>(fnRunPostProcessing)
 		.ConditionalEnable<RCNodeSceneColor>([fnRunPostProcessing](const RendererView& view) { return !fnRunPostProcessing(view); })
-#if B3D_FRAME_GRAPH_PORT_PENDING(Forward)
 		.ConditionalEnable<RCNodeClusteredForward>([fnRunPostProcessing](const RendererView& view) { return !fnRunPostProcessing(view); })
-#else
-		.ConditionalEnable<RCNodeClusteredForward>([](const RendererView&) { return false; })
-#endif
 		.ConditionalEnable<RCNodeResolvedSceneDepth>(fnEncodeDepth);
 
 	return kDependencyDefinition;

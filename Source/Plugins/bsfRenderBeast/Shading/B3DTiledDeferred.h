@@ -152,10 +152,18 @@ namespace b3d
 			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& target, const Color& clearValue = Color::kZero, const TextureSurface& surface = TextureSurface::kComplete);
 
 			/**
-			 * Binds the material for rendering, sets up parameters and executes it. Only works on variations of
-			 * this material intended for buffers.
+			 * Creates the parameter set of @p pass and assigns @p target and @p clearValue to it. Only works on variations of this material
+			 * intended for buffers.
+			 *
+			 * @param	pass		Pass that dispatches the material.
+			 * @param	target		Buffer to clear.
+			 * @param	clearValue	Value to write into every element. Integer variations read the bits of its components.
+			 * @return				Parameter set to pass to Execute().
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuBuffer>& target, const Color& clearValue = Color::kZero);
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const TShared<GpuBuffer>& target, const Color& clearValue = Color::kZero);
+
+			/** Binds the material and @p set, a set from Prepare(), and dispatches over @p elementCount elements of its buffer. */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, u32 elementCount) const;
 
 			/**
 			 * Returns the material variation matching the provided parameters.

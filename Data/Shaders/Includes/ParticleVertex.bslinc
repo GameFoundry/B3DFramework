@@ -82,18 +82,15 @@ mixin ParticleVertex
 		};
 		
 		#if GPU
-		[internal]
-		Texture2D gPositionTimeTex; // position in .xyz, time (in [0, 1] range) in .w
-		
-		[internal]
-		Texture2D gSizeRotationTex; // size in .xy, rotation in .z
-		
-		[internal]
-		Texture2D gCurvesTex;
-		
-		[internal]
+		B3D_RENDERER_PASS_INPUT(Texture2D gPositionTimeTex, t22); // position in .xyz, time (in [0, 1] range) in .w
+		B3D_RENDERER_PASS_INPUT(Texture2D gSizeRotationTex, t23); // size in .xy, rotation in .z
+		B3D_RENDERER_PASS_INPUT(Texture2D gCurvesTex, t24);
+
 		[alias(gCurvesTex)]
-		SamplerState gCurvesSampler;
+		B3D_RENDERER_PASS_INPUT(SamplerState gCurvesSampler, s25);
+
+		// Indices of the particles of distance sorted systems, at gBufferOffset
+		B3D_RENDERER_PASS_INPUT(Buffer<uint2> gSortedIndices, t26);
 		
 		[internal]
 		[dynamicOffset]
@@ -233,6 +230,7 @@ mixin ParticleVertex
 			uint gTexSize;
 			float3 gAxisRight;
 			uint gBufferOffset;
+			uint gUseSortedIndices;
 		}
 		
 		#ifdef LIGHTING_DATA
@@ -267,7 +265,17 @@ mixin ParticleVertex
 
 		VStoFS vsmain(VertexInput input)
 		{
+			#if GPU
+			uint2 particleIndex;
+			if(gUseSortedIndices != 0)
+				particleIndex = gSortedIndices[gBufferOffset + input.instanceId];
+			else
+				particleIndex = gIndices[input.instanceId];
+
+			ParticleInput pi = getParticleInput(particleIndex);
+			#else
 			ParticleInput pi = getParticleInput(gIndices[gBufferOffset + input.instanceId]);
+			#endif
 			
 			VStoFS output;
 			output.color = pi.color;

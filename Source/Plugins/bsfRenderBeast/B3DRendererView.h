@@ -7,7 +7,6 @@
 #include "Renderer/B3DRenderSettings.h"
 #include "Math/B3DBounds.h"
 #include "Math/B3DConvexVolume.h"
-#include "Shading/B3DLightGrid.h"
 #include "Shading/B3DShadowRendering.h"
 #include "RenderState/B3DRenderableRenderState.h"
 #include "B3DRenderCompositor.h"
@@ -427,15 +426,6 @@ namespace b3d
 			const GpuBufferSuballocation& GetPerViewBuffer() const { return mPerCameraBuffer; }
 
 			/**
-			 * Returns information about visible lights, in the form of a light grid, used for forward rendering. Only valid
-			 * after a call to updateLightGrid().
-			 */
-			const LightGrid& GetLightGrid() const { return mLightGrid; }
-
-			/** Updates the light grid used for forward rendering. */
-			void UpdateLightGrid(GpuCommandBuffer& commandBuffer, const VisibleLightData& visibleLightData, const VisibleReflectionProbeData& visibleReflProbeData);
-
-			/**
 			 * Returns a value that can be used for transforming x, y coordinates from NDC into UV coordinates that can be used
 			 * for sampling a texture projected on the view.
 			 *
@@ -571,7 +561,6 @@ namespace b3d
 			GpuBufferPool mPerCameraBufferPool;
 			GpuBufferSuballocation mPerCameraBuffer;
 			VisibilityInfo mVisibility;
-			LightGrid mLightGrid;
 			u32 mViewIndex;
 
 			// Temporal anti-aliasing

@@ -8,6 +8,7 @@
 #include "RenderState/B3DReflectionProbeRenderState.h"
 #include "B3DTiledDeferred.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
+#include "FrameGraph/B3DFrameGraph.h"
 
 namespace b3d {
 namespace render {
@@ -21,6 +22,9 @@ LightGridUniformDefinition gLightGridUniformDefinition;
 
 void LightGridLLCreationMaterial::Initialize()
 {
+	mGpuParameterSet->GetUniformBufferParameter("GridParams", mGridParamsParameter);
+	mGpuParameterSet->GetUniformBufferParameter("PerCamera", mPerCameraParameter);
+
 	mGpuParameterSet->GetStorageBufferParameter("gLights", mLightBufferParam);
 	mGpuParameterSet->GetStorageBufferParameter("gLightsCounter", mLightsCounterParam);
 	mGpuParameterSet->GetStorageBufferParameter("gLightsLLHeads", mLightsLLHeadsParam);
@@ -30,18 +34,6 @@ void LightGridLLCreationMaterial::Initialize()
 	mGpuParameterSet->GetStorageBufferParameter("gProbesCounter", mProbesCounterParam);
 	mGpuParameterSet->GetStorageBufferParameter("gProbesLLHeads", mProbesLLHeadsParam);
 	mGpuParameterSet->GetStorageBufferParameter("gProbesLL", mProbesLLParam);
-
-	GpuBufferCreateInformation bufferCreateInformation;
-	bufferCreateInformation.Type = GpuBufferType::StructuredStorage;
-	bufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU;
-	bufferCreateInformation.StructuredStorage.ElementSize = 4;
-	bufferCreateInformation.StructuredStorage.Count = 1;
-
-	mLightsCounter = mGpuDevice->CreateGpuBuffer(bufferCreateInformation);
-	mLightsCounterParam.Set(mLightsCounter);
-
-	mProbesCounter = mGpuDevice->CreateGpuBuffer(bufferCreateInformation);
-	mProbesCounterParam.Set(mProbesCounter);
 }
 
 void LightGridLLCreationMaterial::InitDefinesInternal(ShaderDefines& defines)
@@ -49,93 +41,44 @@ void LightGridLLCreationMaterial::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("THREADGROUP_SIZE", kThreadgroupSize);
 }
 
-void LightGridLLCreationMaterial::SetParams(GpuCommandBuffer& commandBuffer, const Vector3I& gridSize, const GpuBufferSuballocation& gridUniformBuffer, const TShared<GpuBuffer>& lightsBuffer, const TShared<GpuBuffer>& probesBuffer)
+TShared<GpuParameterSet> LightGridLLCreationMaterial::Prepare(FrameGraphPass& pass, const RendererView& view, const GpuBufferSuballocation& gridUniformBuffer,
+	const TShared<GpuBuffer>& lightsBuffer, const TShared<GpuBuffer>& probesBuffer, const LightGridLinkedLists& linkedLists)
 {
-	mGridSize = gridSize;
-	u32 numCells = gridSize[0] * gridSize[1] * gridSize[2];
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
 
-	if(numCells > mBufferCellCount || mBufferCellCount == 0)
-	{
-		GpuBufferCreateInformation bufferCreateInformation;
-		bufferCreateInformation.Type = GpuBufferType::StructuredStorage;
-		bufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU;
-		bufferCreateInformation.StructuredStorage.ElementSize = 4;
-		bufferCreateInformation.StructuredStorage.Count = numCells;
+	mGridParamsParameter.Set(set, gridUniformBuffer);
+	mPerCameraParameter.Set(set, view.GetPerViewBuffer());
 
-		mLightsLLHeads = mGpuDevice->CreateGpuBuffer(bufferCreateInformation);
-		mLightsLLHeads->SetName("LightsLLHeads");
+	mLightBufferParam.Set(set, lightsBuffer);
+	mLightsCounterParam.Set(set, linkedLists.LightsCounter);
+	mLightsLLHeadsParam.Set(set, linkedLists.LightsHeads);
+	mLightsLLParam.Set(set, linkedLists.Lights);
 
-		mLightsLLHeadsParam.Set(mLightsLLHeads);
+	mProbesBufferParam.Set(set, probesBuffer);
+	mProbesCounterParam.Set(set, linkedLists.ProbesCounter);
+	mProbesLLHeadsParam.Set(set, linkedLists.ProbesHeads);
+	mProbesLLParam.Set(set, linkedLists.Probes);
 
-		mProbesLLHeads = mGpuDevice->CreateGpuBuffer(bufferCreateInformation);
-		mProbesLLHeads->SetName("ProbesLLHeads");
-
-		mProbesLLHeadsParam.Set(mProbesLLHeads);
-
-		bufferCreateInformation.Type = GpuBufferType::SimpleStorage;
-		bufferCreateInformation.SimpleStorage.Format = BF_32X4U;
-		bufferCreateInformation.SimpleStorage.Count = numCells * kMaxLightsPerCell;
-
-		mLightsLL = mGpuDevice->CreateGpuBuffer(bufferCreateInformation);
-		mLightsLL->SetName("LightsLL");
-
-		mLightsLLParam.Set(mLightsLL);
-
-		bufferCreateInformation.SimpleStorage.Format = BF_32X2U;
-		mProbesLL = mGpuDevice->CreateGpuBuffer(bufferCreateInformation);
-		mProbesLL->SetName("ProbesLL");
-
-		mProbesLLParam.Set(mProbesLL);
-
-		mBufferCellCount = numCells;
-	}
-
-	ClearLoadStoreMaterial* clearMat = ClearLoadStoreMaterial::GetVariation(
-		ClearLoadStoreType::StructuredBuffer, ClearLoadStoreDataType::Int, 1);
-
-	clearMat->Execute(commandBuffer, mLightsCounter);
-	clearMat->Execute(commandBuffer, mProbesCounter);
-
-	u32 clearValue = 0xFFFFFFFF;
-	Color clearColor;
-	clearColor.R = *(float*)&clearValue;
-	clearColor.G = *(float*)&clearValue;
-	clearColor.B = *(float*)&clearValue;
-	clearColor.A = *(float*)&clearValue;
-
-	clearMat->Execute(commandBuffer, mLightsLLHeads, clearColor);
-	clearMat->Execute(commandBuffer, mProbesLLHeads, clearColor);
-
-	mGpuParameterSet->SetUniformBuffer("GridParams", gridUniformBuffer);
-	mLightBufferParam.Set(lightsBuffer);
-	mProbesBufferParam.Set(probesBuffer);
+	return set;
 }
 
-void LightGridLLCreationMaterial::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view)
+void LightGridLLCreationMaterial::Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, const Vector3I& gridSize) const
 {
+	GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
 	B3D_PROFILE_RENDERER_MATERIAL
 
-	mGpuParameterSet->SetUniformBuffer("PerCamera", view.GetPerViewBuffer());
+	u32 numGroupsX = (gridSize[0] + kThreadgroupSize - 1) / kThreadgroupSize;
+	u32 numGroupsY = (gridSize[1] + kThreadgroupSize - 1) / kThreadgroupSize;
+	u32 numGroupsZ = (gridSize[2] + kThreadgroupSize - 1) / kThreadgroupSize;
 
-	u32 numGroupsX = (mGridSize[0] + kThreadgroupSize - 1) / kThreadgroupSize;
-	u32 numGroupsY = (mGridSize[1] + kThreadgroupSize - 1) / kThreadgroupSize;
-	u32 numGroupsZ = (mGridSize[2] + kThreadgroupSize - 1) / kThreadgroupSize;
-
-	Bind(commandBuffer);
+	Bind(commandBuffer, set);
 	commandBuffer.DispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
-}
-
-void LightGridLLCreationMaterial::GetOutputs(TShared<GpuBuffer>& lightsLLHeads, TShared<GpuBuffer>& lightsLL, TShared<GpuBuffer>& probesLLHeads, TShared<GpuBuffer>& probesLL) const
-{
-	lightsLLHeads = mLightsLLHeads;
-	lightsLL = mLightsLL;
-	probesLLHeads = mProbesLLHeads;
-	probesLL = mProbesLL;
 }
 
 void LightGridLLReductionMaterial::Initialize()
 {
-	mBufferCellCount = 0;
+	mGpuParameterSet->GetUniformBufferParameter("GridParams", mGridParamsParameter);
+	mGpuParameterSet->TryGetUniformBufferParameter("PerCamera", mPerCameraParameter);
 
 	mGpuParameterSet->GetStorageBufferParameter("gLightsLLHeads", mLightsLLHeadsParam);
 	mGpuParameterSet->GetStorageBufferParameter("gLightsLL", mLightsLLParam);
@@ -150,17 +93,6 @@ void LightGridLLReductionMaterial::Initialize()
 
 	mGpuParameterSet->GetStorageBufferParameter("gGridProbeOffsetAndSize", mGridProbeOffsetAndSizeParam);
 	mGpuParameterSet->GetStorageBufferParameter("gGridProbeIndices", mGridProbeIndicesParam);
-
-	GpuBufferCreateInformation bufferCreateInformation;
-	bufferCreateInformation.Type = GpuBufferType::StructuredStorage;
-	bufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU;
-	bufferCreateInformation.StructuredStorage.Count = 2;
-	bufferCreateInformation.StructuredStorage.ElementSize = 4;
-
-	mGridDataCounter = mGpuDevice->CreateGpuBuffer(bufferCreateInformation);
-	mGridDataCounter->SetName("GridDataCounter");
-
-	mGridDataCounterParam.Set(mGridDataCounter);
 }
 
 void LightGridLLReductionMaterial::InitDefinesInternal(ShaderDefines& defines)
@@ -168,81 +100,68 @@ void LightGridLLReductionMaterial::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("THREADGROUP_SIZE", kThreadgroupSize);
 }
 
-void LightGridLLReductionMaterial::SetParams(GpuCommandBuffer& commandBuffer, const Vector3I& gridSize, const GpuBufferSuballocation& gridUniformBuffer, const TShared<GpuBuffer>& lightsLLHeads, const TShared<GpuBuffer>& lightsLL, const TShared<GpuBuffer>& probeLLHeads, const TShared<GpuBuffer>& probeLL)
+TShared<GpuParameterSet> LightGridLLReductionMaterial::Prepare(FrameGraphPass& pass, const RendererView& view, const LightGridLinkedLists& linkedLists,
+	const TShared<GpuBuffer>& gridDataCounter, const LightGridOutputs& outputs)
 {
-	mGridSize = gridSize;
-	u32 numCells = gridSize[0] * gridSize[1] * gridSize[2];
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
 
-	if(numCells > mBufferCellCount || mBufferCellCount == 0)
-	{
-		GpuBufferCreateInformation bufferCreateInformation;
-		bufferCreateInformation.Type = GpuBufferType::SimpleStorage;
-		bufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU;
-		bufferCreateInformation.SimpleStorage.Count = numCells;
-		bufferCreateInformation.SimpleStorage.Format = BF_32X4U;
+	mGridParamsParameter.Set(set, outputs.UniformBuffer);
+	mPerCameraParameter.Set(set, view.GetPerViewBuffer());
 
-		mGridLightOffsetAndSize = mGpuDevice->CreateGpuBuffer(bufferCreateInformation);
-		mGridLightOffsetAndSize->SetName("GridLightOffsetAndSize");
+	mLightsLLHeadsParam.Set(set, linkedLists.LightsHeads);
+	mLightsLLParam.Set(set, linkedLists.Lights);
+	mProbesLLHeadsParam.Set(set, linkedLists.ProbesHeads);
+	mProbesLLParam.Set(set, linkedLists.Probes);
 
-		mGridLightOffsetAndSizeParam.Set(mGridLightOffsetAndSize);
+	mGridDataCounterParam.Set(set, gridDataCounter);
 
-		bufferCreateInformation.SimpleStorage.Format = BF_32X2U;
+	mGridLightOffsetAndSizeParam.Set(set, outputs.GridLightOffsetsAndSize);
+	mGridLightIndicesParam.Set(set, outputs.GridLightIndices);
+	mGridProbeOffsetAndSizeParam.Set(set, outputs.GridProbeOffsetsAndSize);
+	mGridProbeIndicesParam.Set(set, outputs.GridProbeIndices);
 
-		mGridProbeOffsetAndSize = mGpuDevice->CreateGpuBuffer(bufferCreateInformation);
-		mGridProbeOffsetAndSize->SetName("GridProbeOffsetAndSize");
-
-		mGridProbeOffsetAndSizeParam.Set(mGridProbeOffsetAndSize);
-
-		bufferCreateInformation.SimpleStorage.Format = BF_32X1U;
-		bufferCreateInformation.SimpleStorage.Count = numCells * kMaxLightsPerCell;
-		mGridLightIndices = mGpuDevice->CreateGpuBuffer(bufferCreateInformation);
-		mGridLightIndices->SetName("GridLightIndices");
-
-		mGridLightIndicesParam.Set(mGridLightIndices);
-
-		mGridProbeIndices = mGpuDevice->CreateGpuBuffer(bufferCreateInformation);
-		mGridProbeIndices->SetName("GridProbeIndices");
-
-		mGridProbeIndicesParam.Set(mGridProbeIndices);
-
-		mBufferCellCount = numCells;
-	}
-
-	ClearLoadStoreMaterial* clearMat = ClearLoadStoreMaterial::GetVariation(ClearLoadStoreType::StructuredBuffer, ClearLoadStoreDataType::Int, 1);
-	clearMat->Execute(commandBuffer, mGridDataCounter);
-
-	mGpuParameterSet->SetUniformBuffer("GridParams", gridUniformBuffer);
-
-	mLightsLLHeadsParam.Set(lightsLLHeads);
-	mLightsLLParam.Set(lightsLL);
-
-	mProbesLLHeadsParam.Set(probeLLHeads);
-	mProbesLLParam.Set(probeLL);
+	return set;
 }
 
-void LightGridLLReductionMaterial::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view)
+void LightGridLLReductionMaterial::Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, const Vector3I& gridSize) const
 {
+	GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
 	B3D_PROFILE_RENDERER_MATERIAL
 
-	mGpuParameterSet->TrySetUniformBuffer("PerCamera", view.GetPerViewBuffer());
+	u32 numGroupsX = (gridSize[0] + kThreadgroupSize - 1) / kThreadgroupSize;
+	u32 numGroupsY = (gridSize[1] + kThreadgroupSize - 1) / kThreadgroupSize;
+	u32 numGroupsZ = (gridSize[2] + kThreadgroupSize - 1) / kThreadgroupSize;
 
-	u32 numGroupsX = (mGridSize[0] + kThreadgroupSize - 1) / kThreadgroupSize;
-	u32 numGroupsY = (mGridSize[1] + kThreadgroupSize - 1) / kThreadgroupSize;
-	u32 numGroupsZ = (mGridSize[2] + kThreadgroupSize - 1) / kThreadgroupSize;
-
-	Bind(commandBuffer);
+	Bind(commandBuffer, set);
 	commandBuffer.DispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
 }
 
-void LightGridLLReductionMaterial::GetOutputs(TShared<GpuBuffer>& gridLightOffsetsAndSize, TShared<GpuBuffer>& gridLightIndices, TShared<GpuBuffer>& gridProbeOffsetsAndSize, TShared<GpuBuffer>& gridProbeIndices) const
+namespace
 {
-	gridLightOffsetsAndSize = mGridLightOffsetAndSize;
-	gridLightIndices = mGridLightIndices;
-	gridProbeOffsetsAndSize = mGridProbeOffsetAndSize;
-	gridProbeIndices = mGridProbeIndices;
+	/** Creates a transient buffer of @p elementCount elements of @p elementSize bytes, structured by @p elementSize or typed by @p format. */
+	TShared<GpuBuffer> CreateGridBuffer(FrameGraph& graph, const char* name, u32 elementCount, u32 elementSize, GpuBufferFormat format = BF_UNKNOWN)
+	{
+		GpuBufferCreateInformation information;
+		information.Flags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU;
+		if(format == BF_UNKNOWN)
+		{
+			information.Type = GpuBufferType::StructuredStorage;
+			information.StructuredStorage.ElementSize = elementSize;
+			information.StructuredStorage.Count = elementCount;
+		}
+		else
+		{
+			information.Type = GpuBufferType::SimpleStorage;
+			information.SimpleStorage.Format = format;
+			information.SimpleStorage.Count = elementCount;
+		}
+
+		return graph.CreateBuffer(name, information);
+	}
 }
 
-void LightGrid::UpdateGrid(GpuCommandBuffer& commandBuffer, const RendererView& view, const VisibleLightData& lightData, const VisibleReflectionProbeData& probeData, bool noLighting)
+LightGridOutputs AddLightGridPasses(FrameGraph& graph, const RendererView& view, const VisibleLightData& lightData, const VisibleReflectionProbeData& probeData,
+	bool noLighting)
 {
 	const RendererViewProperties& viewProps = view.GetProperties();
 
@@ -279,44 +198,92 @@ void LightGrid::UpdateGrid(GpuCommandBuffer& commandBuffer, const RendererView& 
 
 	u32 numCells = gridSize[0] * gridSize[1] * gridSize[2];
 
-	mGridUniformBuffer = gLightGridUniformDefinition.AllocateTransient();
-
-	GpuBufferMappedScope lightGridUniforms = mGridUniformBuffer.Map();
-	gLightGridUniformDefinition.gLightCounts.Set(lightGridUniforms, lightCount);
-	gLightGridUniformDefinition.gLightStrides.Set(lightGridUniforms, lightStrides);
-	gLightGridUniformDefinition.gNumReflProbes.Set(lightGridUniforms, probeData.GetProbeCount());
-	gLightGridUniformDefinition.gNumCells.Set(lightGridUniforms, numCells);
-	gLightGridUniformDefinition.gGridSize.Set(lightGridUniforms, gridSize);
-	gLightGridUniformDefinition.gMaxNumLightsPerCell.Set(lightGridUniforms, kMaxLightsPerCell);
-	gLightGridUniformDefinition.gGridPixelSize.Set(lightGridUniforms, Vector2I(kCellXySize, kCellXySize));
-
-	LightGridLLCreationMaterial* creationMat = LightGridLLCreationMaterial::Get();
-	creationMat->SetParams(commandBuffer, gridSize, mGridUniformBuffer, lightData.GetLightBuffer(), probeData.GetProbeBuffer());
-	creationMat->Execute(commandBuffer, view);
-
-	TShared<GpuBuffer> lightLLHeads;
-	TShared<GpuBuffer> lightLL;
-	TShared<GpuBuffer> probeLLHeads;
-	TShared<GpuBuffer> probeLL;
-	creationMat->GetOutputs(lightLLHeads, lightLL, probeLLHeads, probeLL);
-
-	LightGridLLReductionMaterial* reductionMat = LightGridLLReductionMaterial::Get();
-	reductionMat->SetParams(commandBuffer, gridSize, mGridUniformBuffer, lightLLHeads, lightLL, probeLLHeads, probeLL);
-	reductionMat->Execute(commandBuffer, view);
-}
-
-LightGridOutputs LightGrid::GetOutputs() const
-{
 	LightGridOutputs outputs;
+	outputs.UniformBuffer = gLightGridUniformDefinition.AllocateTransient();
 
-	LightGridLLReductionMaterial* reductionMat = LightGridLLReductionMaterial::Get();
-	reductionMat->GetOutputs(
-		outputs.GridLightOffsetsAndSize,
-		outputs.GridLightIndices,
-		outputs.GridProbeOffsetsAndSize,
-		outputs.GridProbeIndices);
+	{
+		GpuBufferMappedScope lightGridUniforms = outputs.UniformBuffer.Map();
+		gLightGridUniformDefinition.gLightCounts.Set(lightGridUniforms, lightCount);
+		gLightGridUniformDefinition.gLightStrides.Set(lightGridUniforms, lightStrides);
+		gLightGridUniformDefinition.gNumReflProbes.Set(lightGridUniforms, probeData.GetProbeCount());
+		gLightGridUniformDefinition.gNumCells.Set(lightGridUniforms, numCells);
+		gLightGridUniformDefinition.gGridSize.Set(lightGridUniforms, gridSize);
+		gLightGridUniformDefinition.gMaxNumLightsPerCell.Set(lightGridUniforms, kMaxLightsPerCell);
+		gLightGridUniformDefinition.gGridPixelSize.Set(lightGridUniforms, Vector2I(kCellXySize, kCellXySize));
+	}
 
-	outputs.UniformBuffer = mGridUniformBuffer;
+	LightGridLinkedLists linkedLists;
+	linkedLists.LightsCounter = CreateGridBuffer(graph, "LightGridLightsCounter", 1, 4);
+	linkedLists.LightsHeads = CreateGridBuffer(graph, "LightGridLightsHeads", numCells, 4);
+	linkedLists.Lights = CreateGridBuffer(graph, "LightGridLights", numCells * kMaxLightsPerCell, 0, BF_32X4U);
+	linkedLists.ProbesCounter = CreateGridBuffer(graph, "LightGridProbesCounter", 1, 4);
+	linkedLists.ProbesHeads = CreateGridBuffer(graph, "LightGridProbesHeads", numCells, 4);
+	linkedLists.Probes = CreateGridBuffer(graph, "LightGridProbes", numCells * kMaxLightsPerCell, 0, BF_32X2U);
+
+	const TShared<GpuBuffer> gridDataCounter = CreateGridBuffer(graph, "LightGridDataCounter", 2, 4);
+
+	outputs.GridLightOffsetsAndSize = CreateGridBuffer(graph, "GridLightOffsetAndSize", numCells, 0, BF_32X4U);
+	outputs.GridProbeOffsetsAndSize = CreateGridBuffer(graph, "GridProbeOffsetAndSize", numCells, 0, BF_32X2U);
+	outputs.GridLightIndices = CreateGridBuffer(graph, "GridLightIndices", numCells * kMaxLightsPerCell, 0, BF_32X1U);
+	outputs.GridProbeIndices = CreateGridBuffer(graph, "GridProbeIndices", numCells * kMaxLightsPerCell, 0, BF_32X1U);
+
+	// Counters start at zero and list heads at the end-of-list marker
+	{
+		ClearLoadStoreMaterial* clearMaterial = ClearLoadStoreMaterial::GetVariation(ClearLoadStoreType::StructuredBuffer, ClearLoadStoreDataType::Int, 1);
+
+		u32 endOfList = 0xFFFFFFFF;
+		Color endOfListValue;
+		endOfListValue.R = *(float*)&endOfList;
+		endOfListValue.G = *(float*)&endOfList;
+		endOfListValue.B = *(float*)&endOfList;
+		endOfListValue.A = *(float*)&endOfList;
+
+		struct Clear
+		{
+			TShared<GpuParameterSet> Set;
+			u32 ElementCount;
+		};
+
+		FrameGraphComputePass clearPass;
+		const Array<Clear, 5> clears =
+		{{
+			{ clearMaterial->Prepare(clearPass, linkedLists.LightsCounter), 1 },
+			{ clearMaterial->Prepare(clearPass, linkedLists.ProbesCounter), 1 },
+			{ clearMaterial->Prepare(clearPass, linkedLists.LightsHeads, endOfListValue), numCells },
+			{ clearMaterial->Prepare(clearPass, linkedLists.ProbesHeads, endOfListValue), numCells },
+			{ clearMaterial->Prepare(clearPass, gridDataCounter), 2 },
+		}};
+
+		graph.AddComputePass("LightGridClear", std::move(clearPass), [clearMaterial, clears](FrameGraphPassContext& context)
+		{
+			for(const Clear& clear : clears)
+				clearMaterial->Execute(context, clear.Set, clear.ElementCount);
+		});
+	}
+
+	{
+		LightGridLLCreationMaterial* creationMaterial = LightGridLLCreationMaterial::Get();
+
+		FrameGraphComputePass creationPass;
+		const TShared<GpuParameterSet> set = creationMaterial->Prepare(creationPass, view, outputs.UniformBuffer, lightData.GetLightBuffer(), probeData.GetProbeBuffer(), linkedLists);
+
+		graph.AddComputePass("LightGridCreation", std::move(creationPass), [creationMaterial, set, gridSize](FrameGraphPassContext& context)
+		{
+			creationMaterial->Execute(context, set, gridSize);
+		});
+	}
+
+	{
+		LightGridLLReductionMaterial* reductionMaterial = LightGridLLReductionMaterial::Get();
+
+		FrameGraphComputePass reductionPass;
+		const TShared<GpuParameterSet> set = reductionMaterial->Prepare(reductionPass, view, linkedLists, gridDataCounter, outputs);
+
+		graph.AddComputePass("LightGridReduction", std::move(reductionPass), [reductionMaterial, set, gridSize](FrameGraphPassContext& context)
+		{
+			reductionMaterial->Execute(context, set, gridSize);
+		});
+	}
 
 	return outputs;
 }

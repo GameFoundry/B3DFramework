@@ -221,11 +221,11 @@ void ClearLoadStoreMaterial::Execute(GpuCommandBuffer& commandBuffer, const TSha
 	commandBuffer.DispatchCompute(numGroupsX, numGroupsY);
 }
 
-void ClearLoadStoreMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuBuffer>& target, const Color& clearValue)
+TShared<GpuParameterSet> ClearLoadStoreMaterial::Prepare(FrameGraphPass& pass, const TShared<GpuBuffer>& target, const Color& clearValue)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
 
-	mOutputBufferParam.Set(target);
+	mOutputBufferParam.Set(set, target);
 
 	const GpuBufferInformation& bufferInformation = target->GetInformation();
 
@@ -245,11 +245,19 @@ void ClearLoadStoreMaterial::Execute(GpuCommandBuffer& commandBuffer, const TSha
 	gClearLoadStoreUniformDefinition.gFloatClearVal.Set(uniforms, Vector4(clearValue.R, clearValue.G, clearValue.B, clearValue.A));
 	gClearLoadStoreUniformDefinition.gIntClearVal.Set(uniforms, Vector4I(*(i32*)&clearValue.R, *(i32*)&clearValue.G, *(i32*)&clearValue.B, *(i32*)&clearValue.A));
 
-	mUniformBufferParameter.Set(uniforms);
+	mUniformBufferParameter.Set(set, uniforms);
 
-	Bind(commandBuffer);
+	return set;
+}
 
-	u32 numGroupsX = Math::DivideAndRoundUp(width, kNumThreads * (kTileSize * kTileSize));
+void ClearLoadStoreMaterial::Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, u32 elementCount) const
+{
+	GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	Bind(commandBuffer, set);
+
+	u32 numGroupsX = Math::DivideAndRoundUp(elementCount, kNumThreads * (kTileSize * kTileSize));
 	commandBuffer.DispatchCompute(numGroupsX, 1);
 }
 

@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DGpuParticleSimulationMaterials.h"
 #include "B3DGpuParticleSimulation.h"
+#include "FrameGraph/B3DFrameGraph.h"
 #include "Renderer/B3DGpuResourcePool.h"
 #include "Renderer/B3DRenderer.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
@@ -18,20 +19,29 @@ void GpuParticleClearMaterial::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("TILES_PER_INSTANCE", GpuParticleConstants::kTilesPerInstance);
 }
 
-void GpuParticleClearMaterial::PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const TShared<GpuBuffer>& vertexInputBuffer, const TShared<GpuBuffer>& tileUVs)
+TShared<render::GpuParameterSet> GpuParticleClearMaterial::Prepare(FrameGraphPass& pass, const TShared<GpuBuffer>& vertexInputBuffer, const TShared<GpuBuffer>& tileUVs)
 {
-	gpuParameters->SetUniformBuffer("Input", vertexInputBuffer);
-	gpuParameters->SetStorageBuffer("gTileUVs", tileUVs);
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
+	set->SetUniformBuffer("Input", vertexInputBuffer);
+	set->SetStorageBuffer("gTileUVs", tileUVs);
+
+	return set;
 }
 
-void GpuParticleInjectMaterial::PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const TShared<GpuBuffer>& vertexInputBuffer)
+TShared<render::GpuParameterSet> GpuParticleInjectMaterial::Prepare(FrameGraphPass& pass, const TShared<GpuBuffer>& vertexInputBuffer)
 {
-	gpuParameters->SetUniformBuffer("Input", vertexInputBuffer);
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
+	set->SetUniformBuffer("Input", vertexInputBuffer);
+
+	return set;
 }
 
-void GpuParticleCurveInjectMaterial::Prepare(const TShared<GpuBuffer>& vertexInputBuffer)
+TShared<render::GpuParameterSet> GpuParticleCurveInjectMaterial::Prepare(FrameGraphPass& pass, const TShared<GpuBuffer>& vertexInputBuffer)
 {
-	mGpuParameterSet->SetUniformBuffer("Input", vertexInputBuffer);
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
+	set->SetUniformBuffer("Input", vertexInputBuffer);
+
+	return set;
 }
 
 void GpuParticleSimulateMaterial::InitDefinesInternal(ShaderDefines& defines)
@@ -164,23 +174,22 @@ void GpuParticleSortPrepareMaterial::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("NUM_THREADS", kNumThreads);
 }
 
-void GpuParticleSortPrepareMaterial::Bind(GpuCommandBuffer& commandBuffer, const TShared<Texture>& positionAndTime)
+namespace
 {
-	mPosAndTimeTexParam.Set(positionAndTime);
-
-	RendererMaterial::Bind(commandBuffer, false);
+	constexpr u32 kSortPrepareMaxNumGroups = 128;
 }
 
-u32 GpuParticleSortPrepareMaterial::Execute(GpuCommandBuffer& commandBuffer, const GpuParticleSystem& system, u32 systemIdx, const Vector3& localViewOrigin, u32 offset, const TShared<GpuBuffer>& outKeys, const TShared<GpuBuffer>& outIndices)
+TShared<render::GpuParameterSet> GpuParticleSortPrepareMaterial::Prepare(FrameGraphPass& pass, const TShared<Texture>& positionAndTime, const GpuParticleSystem& system,
+	u32 systemIdx, const Vector3& localViewOrigin, u32 offset, const TShared<GpuBuffer>& outKeys, const TShared<GpuBuffer>& outIndices)
 {
-	static constexpr u32 kMaxNumGroups = 128;
-
 	B3D_ASSERT(systemIdx < std::pow(2, 16));
 
-	const u32 numParticles = system.GetTileCount() * GpuParticleConstants::kParticlesPerTile;
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
+
+	const u32 numParticles = system.GetParticleCount();
 
 	const u32 numIterations = Math::DivideAndRoundUp(numParticles, kNumThreads);
-	const u32 numGroups = std::min(numIterations, kMaxNumGroups);
+	const u32 numGroups = std::min(numIterations, kSortPrepareMaxNumGroups);
 
 	const u32 iterationsPerGroup = numIterations / numGroups;
 	const u32 extraIterations = numIterations % numGroups;
@@ -194,14 +203,24 @@ u32 GpuParticleSortPrepareMaterial::Execute(GpuCommandBuffer& commandBuffer, con
 	gGpuParticleSortPrepareUniformDefinition.gSystemKey.Set(inputUniforms, systemIdx << 16);
 	gGpuParticleSortPrepareUniformDefinition.gLocalViewOrigin.Set(inputUniforms, localViewOrigin);
 
-	mInputUniformBufferParameter.Set(inputUniforms);
+	mInputUniformBufferParameter.Set(set, inputUniforms);
 
-	mInputIndicesParam.Set(system.GetParticleIndices());
-	mOutputKeysParam.Set(outKeys);
-	mOutputIndicesParam.Set(outIndices);
+	mPosAndTimeTexParam.Set(set, positionAndTime);
+	mInputIndicesParam.Set(set, system.GetParticleIndices());
+	mOutputKeysParam.Set(set, outKeys);
+	mOutputIndicesParam.Set(set, outIndices);
 
-	BindParameters(commandBuffer);
+	return set;
+}
+
+void GpuParticleSortPrepareMaterial::Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, const GpuParticleSystem& system) const
+{
+	GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
+
+	const u32 numIterations = Math::DivideAndRoundUp(system.GetParticleCount(), kNumThreads);
+	const u32 numGroups = std::min(numIterations, kSortPrepareMaxNumGroups);
+
+	Bind(commandBuffer, set);
 	commandBuffer.DispatchCompute(numGroups);
-	return numParticles;
 }
 

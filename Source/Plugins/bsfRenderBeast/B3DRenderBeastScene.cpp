@@ -848,13 +848,7 @@ void ParticleSystemObjectStorage::CreateRenderState(TArrayView<const PackedRende
 		gpuParameterSet->GetStorageBufferParameter("gIndices", drawCommand.IndicesBuffer);
 
 		if(gpu)
-		{
-			gpuParameterSet->GetSampledTextureParameter("gPositionTimeTex", drawCommand.ParamsGpu.PositionTimeTexture);
-			gpuParameterSet->GetSampledTextureParameter("gSizeRotationTex", drawCommand.ParamsGpu.SizeRotationTexture);
-			gpuParameterSet->GetSampledTextureParameter("gCurvesTex", drawCommand.ParamsGpu.CurvesTexture);
-
 			drawCommand.Is3D = false;
-		}
 		else
 		{
 			switch(settings.RenderMode)
@@ -880,14 +874,15 @@ void ParticleSystemObjectStorage::CreateRenderState(TArrayView<const PackedRende
 			}
 		}
 
-		// Unlit transparent particles read scene depth for soft particles; opaque ones write the G-buffer
+		// Unlit transparent particles read scene depth for soft particles; opaque ones write the G-buffer. GPU simulated particles also
+		// read the outputs of the simulation.
 		SurfaceShaderType shaderType;
 		if(requiresForwardLighting)
-			shaderType = SurfaceShaderType::LitForward;
+			shaderType = gpu ? SurfaceShaderType::GpuParticleLitForward : SurfaceShaderType::LitForward;
 		else if(shaderFlags.IsSet(ShaderFlag::Transparent))
-			shaderType = SurfaceShaderType::UnlitParticle;
+			shaderType = gpu ? SurfaceShaderType::GpuParticleUnlit : SurfaceShaderType::UnlitParticle;
 		else
-			shaderType = SurfaceShaderType::LitDeferred;
+			shaderType = gpu ? SurfaceShaderType::GpuParticleLitDeferred : SurfaceShaderType::LitDeferred;
 
 		drawCommand.SurfaceShaderType = (u32)shaderType;
 

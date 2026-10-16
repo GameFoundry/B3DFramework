@@ -5,6 +5,7 @@
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "Renderer/B3DRenderer.h"
 #include "Renderer/B3DRendererUtility.h"
+#include "FrameGraph/B3DFrameGraph.h"
 
 namespace b3d {
 namespace render {
@@ -92,8 +93,8 @@ const char* CheckSortBuffer(GpuBuffer& buffer)
 	return nullptr;
 }
 
-/** Creates a helper buffers used for storing intermediate information during GpuSort::sort. */
-TShared<GpuBuffer> CreateHelperBuffer()
+/** Returns the description of the helper buffers used for storing intermediate information during GpuSort::Sort(). */
+GpuBufferCreateInformation GetHelperBufferInformation()
 {
 	GpuBufferCreateInformation bufferCreateInformation;
 	bufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU;
@@ -101,13 +102,72 @@ TShared<GpuBuffer> CreateHelperBuffer()
 	bufferCreateInformation.SimpleStorage.Count = kMaxNumGroups * kNumDigits;
 	bufferCreateInformation.SimpleStorage.Format = BF_32X1U;
 
-	const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
-	return gpuDevice->CreateGpuBuffer(bufferCreateInformation);
+	return bufferCreateInformation;
+}
+
+/** Adds a pass that zeroes out @p counts to @p graph. */
+void AddRadixSortClearPass(FrameGraph& graph, const TShared<GpuBuffer>& counts)
+{
+	RadixSortClearMaterial* material = RadixSortClearMaterial::Get();
+
+	FrameGraphComputePass pass;
+	const TShared<GpuParameterSet> set = material->Prepare(pass, counts);
+
+	graph.AddComputePass("RadixSortClear", std::move(pass), [material, set](FrameGraphPassContext& context)
+	{
+		material->Execute(context, set);
+	});
+}
+
+/** Adds a pass that counts the digits of @p keys into @p counts to @p graph. */
+void AddRadixSortCountPass(FrameGraph& graph, const GpuSortProperties& props, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& keys,
+	const TShared<GpuBuffer>& counts)
+{
+	RadixSortCountMaterial* material = RadixSortCountMaterial::Get();
+
+	FrameGraphComputePass pass;
+	const TShared<GpuParameterSet> set = material->Prepare(pass, params, keys, counts);
+
+	const u32 numGroups = props.NumGroups;
+	graph.AddComputePass("RadixSortCount", std::move(pass), [material, set, numGroups](FrameGraphPassContext& context)
+	{
+		material->Execute(context, set, numGroups);
+	});
+}
+
+/** Adds a pass that turns the digit @p counts into @p offsets to @p graph. */
+void AddRadixSortPrefixScanPass(FrameGraph& graph, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& counts, const TShared<GpuBuffer>& offsets)
+{
+	RadixSortPrefixScanMaterial* material = RadixSortPrefixScanMaterial::Get();
+
+	FrameGraphComputePass pass;
+	const TShared<GpuParameterSet> set = material->Prepare(pass, params, counts, offsets);
+
+	graph.AddComputePass("RadixSortPrefixScan", std::move(pass), [material, set](FrameGraphPassContext& context)
+	{
+		material->Execute(context, set);
+	});
+}
+
+/** Adds a pass that reorders the keys and values of @p buffers at @p inputBufferIdx into the other ones by @p offsets to @p graph. */
+void AddRadixSortReorderPass(FrameGraph& graph, const GpuSortProperties& props, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& offsets,
+	const GpuSortBuffers& buffers, u32 inputBufferIdx)
+{
+	RadixSortReorderMaterial* material = RadixSortReorderMaterial::Get();
+
+	FrameGraphComputePass pass;
+	const TShared<GpuParameterSet> set = material->Prepare(pass, params, offsets, buffers, inputBufferIdx);
+
+	const u32 numGroups = props.NumGroups;
+	graph.AddComputePass("RadixSortReorder", std::move(pass), [material, set, numGroups](FrameGraphPassContext& context)
+	{
+		material->Execute(context, set, numGroups);
+	});
 }
 
 void RadixSortClearMaterial::Initialize()
 {
-	mGpuParameterSet->GetStorageBufferParameter("gOutput", MOutputParam);
+	mGpuParameterSet->GetStorageBufferParameter("gOutput", mOutputParam);
 }
 
 void RadixSortClearMaterial::InitDefinesInternal(ShaderDefines& defines)
@@ -115,20 +175,28 @@ void RadixSortClearMaterial::InitDefinesInternal(ShaderDefines& defines)
 	InitCommonDefines(defines);
 }
 
-void RadixSortClearMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuBuffer>& outputOffsets)
+TShared<GpuParameterSet> RadixSortClearMaterial::Prepare(FrameGraphPass& pass, const TShared<GpuBuffer>& outputCounts)
 {
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
+	mOutputParam.Set(set, outputCounts);
+
+	return set;
+}
+
+void RadixSortClearMaterial::Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set) const
+{
+	GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
 	B3D_PROFILE_RENDERER_MATERIAL
 
-	MOutputParam.Set(outputOffsets);
-
-	Bind(commandBuffer);
+	Bind(commandBuffer, set);
 	commandBuffer.DispatchCompute(1);
 }
 
 void RadixSortCountMaterial::Initialize()
 {
-	mGpuParameterSet->GetStorageBufferParameter("gInputKeys", MInputKeysParam);
-	mGpuParameterSet->GetStorageBufferParameter("gOutputCounts", MOutputCountsParam);
+	mGpuParameterSet->GetUniformBufferParameter("Params", mParamsParameter);
+	mGpuParameterSet->GetStorageBufferParameter("gInputKeys", mInputKeysParam);
+	mGpuParameterSet->GetStorageBufferParameter("gOutputCounts", mOutputCountsParam);
 }
 
 void RadixSortCountMaterial::InitDefinesInternal(ShaderDefines& defines)
@@ -136,23 +204,32 @@ void RadixSortCountMaterial::InitDefinesInternal(ShaderDefines& defines)
 	InitCommonDefines(defines);
 }
 
-void RadixSortCountMaterial::Execute(GpuCommandBuffer& commandBuffer, u32 numGroups, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& inputKeys, const TShared<GpuBuffer>& outputOffsets)
+TShared<GpuParameterSet> RadixSortCountMaterial::Prepare(FrameGraphPass& pass, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& inputKeys,
+	const TShared<GpuBuffer>& outputCounts)
 {
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
+
+	mParamsParameter.Set(set, params);
+	mInputKeysParam.Set(set, inputKeys);
+	mOutputCountsParam.Set(set, outputCounts);
+
+	return set;
+}
+
+void RadixSortCountMaterial::Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, u32 numGroups) const
+{
+	GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
 	B3D_PROFILE_RENDERER_MATERIAL
 
-	MInputKeysParam.Set(inputKeys);
-	MOutputCountsParam.Set(outputOffsets);
-
-	mGpuParameterSet->SetUniformBuffer("Params", params);
-
-	Bind(commandBuffer);
+	Bind(commandBuffer, set);
 	commandBuffer.DispatchCompute(numGroups);
 }
 
 void RadixSortPrefixScanMaterial::Initialize()
 {
-	mGpuParameterSet->GetStorageBufferParameter("gInputCounts", MInputCountsParam);
-	mGpuParameterSet->GetStorageBufferParameter("gOutputOffsets", MOutputOffsetsParam);
+	mGpuParameterSet->TryGetUniformBufferParameter("Params", mParamsParameter);
+	mGpuParameterSet->GetStorageBufferParameter("gInputCounts", mInputCountsParam);
+	mGpuParameterSet->GetStorageBufferParameter("gOutputOffsets", mOutputOffsetsParam);
 }
 
 void RadixSortPrefixScanMaterial::InitDefinesInternal(ShaderDefines& defines)
@@ -160,26 +237,35 @@ void RadixSortPrefixScanMaterial::InitDefinesInternal(ShaderDefines& defines)
 	InitCommonDefines(defines);
 }
 
-void RadixSortPrefixScanMaterial::Execute(GpuCommandBuffer& commandBuffer, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& inputCounts, const TShared<GpuBuffer>& outputOffsets)
+TShared<GpuParameterSet> RadixSortPrefixScanMaterial::Prepare(FrameGraphPass& pass, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& inputCounts,
+	const TShared<GpuBuffer>& outputOffsets)
 {
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
+
+	mParamsParameter.Set(set, params);
+	mInputCountsParam.Set(set, inputCounts);
+	mOutputOffsetsParam.Set(set, outputOffsets);
+
+	return set;
+}
+
+void RadixSortPrefixScanMaterial::Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set) const
+{
+	GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
 	B3D_PROFILE_RENDERER_MATERIAL
 
-	MInputCountsParam.Set(inputCounts);
-	MOutputOffsetsParam.Set(outputOffsets);
-
-	mGpuParameterSet->TrySetUniformBuffer("Params", params);
-
-	Bind(commandBuffer);
+	Bind(commandBuffer, set);
 	commandBuffer.DispatchCompute(1);
 }
 
 void RadixSortReorderMaterial::Initialize()
 {
-	mGpuParameterSet->GetStorageBufferParameter("gInputOffsets", MInputOffsetsBufferParam);
-	mGpuParameterSet->GetStorageBufferParameter("gInputKeys", MInputKeysBufferParam);
-	mGpuParameterSet->GetStorageBufferParameter("gInputValues", MInputValuesBufferParam);
-	mGpuParameterSet->GetStorageBufferParameter("gOutputKeys", MOutputKeysBufferParam);
-	mGpuParameterSet->GetStorageBufferParameter("gOutputValues", MOutputValuesBufferParam);
+	mGpuParameterSet->GetUniformBufferParameter("Params", mParamsParameter);
+	mGpuParameterSet->GetStorageBufferParameter("gInputOffsets", mInputOffsetsBufferParam);
+	mGpuParameterSet->GetStorageBufferParameter("gInputKeys", mInputKeysBufferParam);
+	mGpuParameterSet->GetStorageBufferParameter("gInputValues", mInputValuesBufferParam);
+	mGpuParameterSet->GetStorageBufferParameter("gOutputKeys", mOutputKeysBufferParam);
+	mGpuParameterSet->GetStorageBufferParameter("gOutputValues", mOutputValuesBufferParam);
 }
 
 void RadixSortReorderMaterial::InitDefinesInternal(ShaderDefines& defines)
@@ -187,31 +273,33 @@ void RadixSortReorderMaterial::InitDefinesInternal(ShaderDefines& defines)
 	InitCommonDefines(defines);
 }
 
-void RadixSortReorderMaterial::Execute(GpuCommandBuffer& commandBuffer, u32 numGroups, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& inputPrefix, const GpuSortBuffers& buffers, u32 inputBufferIdx)
+TShared<GpuParameterSet> RadixSortReorderMaterial::Prepare(FrameGraphPass& pass, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& inputPrefix,
+	const GpuSortBuffers& buffers, u32 inputBufferIdx)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
 
 	const u32 outputBufferIdx = (inputBufferIdx + 1) % 2;
 
-	MInputOffsetsBufferParam.Set(inputPrefix);
-	MInputKeysBufferParam.Set(buffers.Keys[inputBufferIdx]);
-	MInputValuesBufferParam.Set(buffers.Values[inputBufferIdx], 0, BF_32X1U);
-	MOutputKeysBufferParam.Set(buffers.Keys[outputBufferIdx]);
-	MOutputValuesBufferParam.Set(buffers.Values[outputBufferIdx], 0, BF_32X1U);
+	mParamsParameter.Set(set, params);
+	mInputOffsetsBufferParam.Set(set, inputPrefix);
+	mInputKeysBufferParam.Set(set, buffers.Keys[inputBufferIdx]);
+	mInputValuesBufferParam.Set(set, buffers.Values[inputBufferIdx], 0, BF_32X1U);
+	mOutputKeysBufferParam.Set(set, buffers.Keys[outputBufferIdx]);
+	mOutputValuesBufferParam.Set(set, buffers.Values[outputBufferIdx], 0, BF_32X1U);
 
-	mGpuParameterSet->SetUniformBuffer("Params", params);
+	return set;
+}
 
-	Bind(commandBuffer);
+void RadixSortReorderMaterial::Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, u32 numGroups) const
+{
+	GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	Bind(commandBuffer, set);
 	commandBuffer.DispatchCompute(numGroups);
 }
 
-GpuSort::GpuSort()
-{
-	mHelperBuffers[0] = CreateHelperBuffer();
-	mHelperBuffers[1] = CreateHelperBuffer();
-}
-
-u32 GpuSort::Sort(GpuCommandBuffer& commandBuffer, const GpuSortBuffers& buffers, u32 numKeys, u32 keyMask)
+u32 GpuSort::Sort(FrameGraph& graph, const GpuSortBuffers& buffers, u32 numKeys, u32 keyMask)
 {
 	// Nothing to do if no input or output key buffers
 	if(buffers.Keys[0] == nullptr || buffers.Keys[1] == nullptr)
@@ -253,6 +341,11 @@ u32 GpuSort::Sort(GpuCommandBuffer& commandBuffer, const GpuSortBuffers& buffers
 
 	const GpuSortProperties gpuSortProps(numKeys);
 
+	const GpuBufferCreateInformation helperBufferInformation = GetHelperBufferInformation();
+	const TShared<GpuBuffer> counts = graph.CreateBuffer("RadixSortCounts", helperBufferInformation);
+	const TShared<GpuBuffer> offsets = graph.CreateBuffer("RadixSortOffsets", helperBufferInformation);
+
+	// The kernels of a radix pass depend on each other's output, so each runs in its own pass
 	u32 bitOffset = 0;
 	u32 inputBufferIdx = 0;
 	for(u32 i = 0; i < kNumPasses; i++)
@@ -261,10 +354,10 @@ u32 GpuSort::Sort(GpuCommandBuffer& commandBuffer, const GpuSortBuffers& buffers
 		{
 			GpuBufferSuballocation uniformBuffer = CreateGpuSortUniformBuffer(gpuSortProps, bitOffset);
 
-			RadixSortClearMaterial::Get()->Execute(commandBuffer, mHelperBuffers[0]);
-			RadixSortCountMaterial::Get()->Execute(commandBuffer, gpuSortProps.NumGroups, uniformBuffer, buffers.Keys[inputBufferIdx], mHelperBuffers[0]);
-			RadixSortPrefixScanMaterial::Get()->Execute(commandBuffer, uniformBuffer, mHelperBuffers[0], mHelperBuffers[1]);
-			RadixSortReorderMaterial::Get()->Execute(commandBuffer, gpuSortProps.NumGroups, uniformBuffer, mHelperBuffers[1], buffers, inputBufferIdx);
+			AddRadixSortClearPass(graph, counts);
+			AddRadixSortCountPass(graph, gpuSortProps, uniformBuffer, buffers.Keys[inputBufferIdx], counts);
+			AddRadixSortPrefixScanPass(graph, uniformBuffer, counts, offsets);
+			AddRadixSortReorderPass(graph, gpuSortProps, uniformBuffer, offsets, buffers, inputBufferIdx);
 
 			inputBufferIdx = (inputBufferIdx + 1) % 2;
 		}
@@ -308,11 +401,6 @@ void RunSortTest()
 		return;
 
 	GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
-	const TShared<GpuCommandBufferPool> commandBufferPool = gpuDevice->CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread());
-
-	GpuCommandBufferCreateInformation commandBufferCreateInformation;
-	commandBufferCreateInformation.Name = "GpuSort Test";
-	TShared<GpuCommandBuffer> commandBuffer = commandBufferPool->Create(commandBufferCreateInformation);
 
 	// Generate test keys
 	static constexpr u32 kNumInputKeys = 10000;
@@ -335,8 +423,8 @@ void RunSortTest()
 	GpuBufferUtility::Write(gpuContext, sortBuffers.Keys[0], 0, sortBuffers.Keys[0]->GetTotalSize(), inputKeys.data(), GpuBufferWriteFlag::Discard);
 
 	TShared<GpuBuffer> helperBuffers[2];
-	helperBuffers[0] = CreateHelperBuffer();
-	helperBuffers[1] = CreateHelperBuffer();
+	helperBuffers[0] = gpuDevice->CreateGpuBuffer(GetHelperBufferInformation());
+	helperBuffers[1] = gpuDevice->CreateGpuBuffer(GetHelperBufferInformation());
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////// Count keys per group //////////////////////////////////////////////////
@@ -460,11 +548,17 @@ void RunSortTest()
 	}
 
 	// PARALLEL:
-	RadixSortClearMaterial::Get()->Execute(*commandBuffer, helperBuffers[0]);
-	RadixSortCountMaterial::Get()->Execute(*commandBuffer, gpuSortProps.NumGroups, uniformBuffer, sortBuffers.Keys[0], helperBuffers[0]);
-	gpuContext.SubmitCommandBuffer(commandBuffer);
+	{
+		FrameGraph graph(gpuContext, "GpuSortTestCount");
+		graph.ImportBuffer(sortBuffers.Keys[0]);
+		graph.ImportBuffer(helperBuffers[0]);
 
-	commandBuffer = commandBufferPool->Create(commandBufferCreateInformation);
+		AddRadixSortClearPass(graph, helperBuffers[0]);
+		AddRadixSortCountPass(graph, gpuSortProps, uniformBuffer, sortBuffers.Keys[0], helperBuffers[0]);
+
+		graph.Compile();
+		graph.Execute();
+	}
 
 	// Compare with GPU count
 	const u32 helperBufferLength = helperBuffers[0]->GetInformation().SimpleStorage.Count;
@@ -560,11 +654,17 @@ void RunSortTest()
 	}
 
 	// PARALLEL:
-	RadixSortPrefixScanMaterial::Get()->Execute(*commandBuffer, uniformBuffer, helperBuffers[0], helperBuffers[1]);
-	gpuContext.SubmitCommandBuffer(commandBuffer);
-	
-	commandBuffer = commandBufferPool->Create(commandBufferCreateInformation);
+	{
+		FrameGraph graph(gpuContext, "GpuSortTestPrefixScan");
+		graph.ImportBuffer(helperBuffers[0]);
+		graph.ImportBuffer(helperBuffers[1]);
 
+		AddRadixSortPrefixScanPass(graph, uniformBuffer, helperBuffers[0], helperBuffers[1]);
+
+		graph.Compile();
+		graph.Execute();
+	}
+	
 	// Compare with GPU offsets
 	Vector<u32> bufferOffsets(helperBufferLength);
 	GpuBufferUtility::Read(gpuContext, helperBuffers[1], 0, helperBufferLength * sizeof(u32), bufferOffsets.data());
@@ -793,8 +893,17 @@ void RunSortTest()
 	}
 
 	// PARALLEL:
-	RadixSortReorderMaterial::Get()->Execute(*commandBuffer, gpuSortProps.NumGroups, uniformBuffer, helperBuffers[1], sortBuffers, 0);
-	gpuContext.SubmitCommandBuffer(commandBuffer);
+	{
+		FrameGraph graph(gpuContext, "GpuSortTestReorder");
+		graph.ImportBuffer(helperBuffers[1]);
+		graph.ImportBuffer(sortBuffers.Keys[0]);
+		graph.ImportBuffer(sortBuffers.Keys[1]);
+
+		AddRadixSortReorderPass(graph, gpuSortProps, uniformBuffer, helperBuffers[1], sortBuffers, 0);
+
+		graph.Compile();
+		graph.Execute();
+	}
 
 	// Compare with GPU keys
 	Vector<u32> bufferSortedKeys(count);

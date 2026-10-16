@@ -16,7 +16,6 @@ namespace b3d
 
 	namespace render
 	{
-		class LightGrid;
 		struct LoadedRendererTextures;
 
 		/** @addtogroup RenderBeast

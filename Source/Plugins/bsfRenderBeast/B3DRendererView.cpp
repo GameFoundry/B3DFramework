@@ -153,12 +153,8 @@ void RendererView::SetRenderSettings(const TShared<RenderSettings>& settings)
 	primaryNodes.Add(RCNodeSSR::GetNodeId());
 	primaryNodes.Add(RCNodeDeferredIndirectSpecularLighting::GetNodeId());
 	primaryNodes.Add(RCNodeSkybox::GetNodeId());
-#if B3D_FRAME_GRAPH_PORT_PENDING(Particles)
 	primaryNodes.Add(RCNodeParticleSimulate::GetNodeId());
-#endif
-#if B3D_FRAME_GRAPH_PORT_PENDING(Forward)
 	primaryNodes.Add(RCNodeClusteredForward::GetNodeId());
-#endif
 
 	// Screen space
 	if (mProperties.RunPostProcessing)
@@ -669,12 +665,6 @@ void RendererView::QueueDrawCommands(const RenderBeastScene& scene)
 		if(!drawCommand.IsValid())
 			continue;
 
-#if !B3D_FRAME_GRAPH_PORT_PENDING(Particles)
-		// Nothing simulates GPU particle systems
-		if(scene.GetParticleRenderState(i).GpuParticleSystem != nullptr)
-			continue;
-#endif
-
 		const AABox& boundingBox = scene.GetParticleSystemCullInfo(i).Bounds.GetBox();
 		const float distanceToCamera = (mProperties.ViewOrigin - boundingBox.GetCenter()).Length();
 
@@ -688,7 +678,6 @@ void RendererView::QueueDrawCommands(const RenderBeastScene& scene)
 			mDeferredOpaqueQueue->Add(&drawCommand, distanceToCamera, drawCommand.DefaultVariationIndex);
 	}
 
-#if B3D_FRAME_GRAPH_PORT_PENDING(Decals)
 	// Queue decals
 	const bool isMSAA = mProperties.Target.NumSamples > 1;
 	for(u32 i = 0; i < (u32)scene.GetDecalCount(); i++)
@@ -723,7 +712,6 @@ void RendererView::QueueDrawCommands(const RenderBeastScene& scene)
 		if(isMSAA)
 			mDecalQueue->Add(&drawCommand, distanceToCamera, variationIndices[(i32)MSAAMode::Full]);
 	}
-#endif
 
 	mForwardOpaqueQueue->Sort();
 	mDeferredOpaqueQueue->Sort();
@@ -950,11 +938,6 @@ Vector4 RendererView::GetNdcToUv() const
 	return ndcToUV;
 }
 
-void RendererView::UpdateLightGrid(GpuCommandBuffer& commandBuffer, const VisibleLightData& visibleLightData, const VisibleReflectionProbeData& visibleReflProbeData)
-{
-	mLightGrid.UpdateGrid(commandBuffer, *this, visibleLightData, visibleReflProbeData, !mRenderSettings->EnableLighting);
-}
-
 RendererViewGroup::RendererViewGroup(RendererView** views, u32 numViews, bool mainPass, u32 shadowMapSize)
 	: mIsMainPass(mainPass), mShadowRenderer(shadowMapSize)
 {
@@ -1057,16 +1040,6 @@ void RendererViewGroup::DetermineVisibility(const RenderBeastScene& scene)
 	// then updated when each view group is rendered. It might be better to keep one buffer reserved per-view.
 	mVisibleLightData.Update(scene, *this);
 	mVisibleReflProbeData.Update(scene, *this);
-
-#if B3D_FRAME_GRAPH_PORT_PENDING(Forward)
-	for(u32 i = 0; i < viewCount; i++)
-	{
-		if(!mViews[i]->ShouldDraw3D())
-			continue;
-
-		mViews[i]->UpdateLightGrid(commandBuffer, mVisibleLightData, mVisibleReflProbeData);
-	}
-#endif
 }
 
 void RendererView::RequestCapture(TAsyncOp<TShared<PixelData>> asyncOp)

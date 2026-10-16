@@ -5,6 +5,7 @@
 #include "B3DRenderBeastScene.h"
 #include "B3DRendererView.h"
 #include "Shading/B3DLightGrid.h"
+#include "Shading/B3DGpuParticleSimulation.h"
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuParameterSetPool.h"
@@ -44,6 +45,11 @@ namespace
 		constexpr u32 kSSRSampler = 19;
 		constexpr u32 kPreintegratedEnvBRDFTexture = 20;
 		constexpr u32 kPreintegratedEnvBRDFSampler = 21;
+		constexpr u32 kGpuParticlePositionAndTime = 22;
+		constexpr u32 kGpuParticleSizeAndRotation = 23;
+		constexpr u32 kGpuParticleCurves = 24;
+		constexpr u32 kGpuParticleCurvesSampler = 25;
+		constexpr u32 kGpuParticleSortedIndices = 26;
 	}
 
 	/** Returns the binding of the renderer input at @p registerIndex of @p registerClass in set 2. */
@@ -151,6 +157,30 @@ namespace
 		builder.AddSampler("gPreintegratedEnvBRDFSamp", InputRegister::kPreintegratedEnvBRDFSampler);
 	}
 
+	/** Adds the outputs of the GPU particle simulation, which the GPU particle layouts add to their base layout. */
+	void AddGpuParticleInputs(InputLayoutBuilder& builder)
+	{
+		builder.AddTexture("gPositionTimeTex", InputRegister::kGpuParticlePositionAndTime, GPOT_TEXTURE2D);
+		builder.AddTexture("gSizeRotationTex", InputRegister::kGpuParticleSizeAndRotation, GPOT_TEXTURE2D);
+		builder.AddTexture("gCurvesTex", InputRegister::kGpuParticleCurves, GPOT_TEXTURE2D);
+		builder.AddSampler("gCurvesSampler", InputRegister::kGpuParticleCurvesSampler);
+		builder.AddBuffer("gSortedIndices", InputRegister::kGpuParticleSortedIndices, GPOT_BYTE_BUFFER, BF_32X2U);
+	}
+
+	/** Creates a table mapping each SurfaceShaderType to its position in @p types, or to -1 for types not in it. */
+	template<size_t N>
+	constexpr Array<i8, (u32)SurfaceShaderType::Count> CreateIndexTable(const SurfaceShaderType (&types)[N])
+	{
+		Array<i8, (u32)SurfaceShaderType::Count> table = {};
+		for(u32 i = 0; i < (u32)SurfaceShaderType::Count; i++)
+			table[i] = -1;
+
+		for(u32 i = 0; i < (u32)N; i++)
+			table[(u32)types[i]] = (i8)i;
+
+		return table;
+	}
+
 	/** Creates the Decal layout, with multisampled scene inputs if @p msaa. */
 	TShared<GpuPipelineParameterSetLayout> CreateDecalLayout(GpuDevice& device, bool msaa)
 	{
@@ -163,6 +193,10 @@ namespace
 	}
 
 }
+
+constexpr Array<i8, (u32)SurfaceShaderType::Count> SurfaceShaderParameterSets::kUnlitParticleIndices = CreateIndexTable(kUnlitParticleTypes);
+constexpr Array<i8, (u32)SurfaceShaderType::Count> SurfaceShaderParameterSets::kLitForwardIndices = CreateIndexTable(kLitForwardTypes);
+constexpr Array<i8, (u32)SurfaceShaderType::Count> SurfaceShaderParameterSets::kGpuParticleIndices = CreateIndexTable(kGpuParticleTypes);
 
 void SurfaceShaderParameterSetInfo::Initialize(GpuDevice& device)
 {
@@ -191,6 +225,29 @@ void SurfaceShaderParameterSetInfo::Initialize(GpuDevice& device)
 
 	mLayouts[(u32)SurfaceShaderType::Decal] = CreateDecalLayout(device, false);
 	mDecalMSAALayout = CreateDecalLayout(device, true);
+
+	{
+		InputLayoutBuilder builder(device);
+		AddBasicInputs(builder);
+		AddGpuParticleInputs(builder);
+		mLayouts[(u32)SurfaceShaderType::GpuParticleLitDeferred] = builder.Create();
+	}
+
+	{
+		InputLayoutBuilder builder(device);
+		AddBasicInputs(builder);
+		AddLightingInputs(builder);
+		AddGpuParticleInputs(builder);
+		mLayouts[(u32)SurfaceShaderType::GpuParticleLitForward] = builder.Create();
+	}
+
+	{
+		InputLayoutBuilder builder(device);
+		AddBasicInputs(builder);
+		AddSceneDepthInput(builder, false);
+		AddGpuParticleInputs(builder);
+		mLayouts[(u32)SurfaceShaderType::GpuParticleUnlit] = builder.Create();
+	}
 }
 
 const TShared<GpuPipelineParameterSetLayout>& SurfaceShaderParameterSetInfo::Get(SurfaceShaderType type, bool msaa) const
@@ -221,16 +278,22 @@ void SurfaceShaderParameterSets::Prepare(const RendererView& view, const RenderB
 			mPerCameraParameters[typeIndex] = GpuParameterUniformBuffer(GetInputBinding(device, ShaderRegisterClass::ConstantBuffer, InputRegister::kPerCamera), set);
 			mPerFrameParameters[typeIndex] = GpuParameterUniformBuffer(GetInputBinding(device, ShaderRegisterClass::ConstantBuffer, InputRegister::kPerFrame), set);
 
-			if(type == SurfaceShaderType::UnlitParticle)
-				mUnlitParticleDepthParameter = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kSceneDepth), set);
+			const i8 unlitParticleIndex = kUnlitParticleIndices[typeIndex];
+			const i8 litForwardIndex = kLitForwardIndices[typeIndex];
+			const i8 gpuParticleIndex = kGpuParticleIndices[typeIndex];
+
+			if(unlitParticleIndex >= 0)
+			{
+				mUnlitParticleDepthParameters[unlitParticleIndex] = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kSceneDepth), set);
+			}
 			else if(type == SurfaceShaderType::Decal)
 			{
 				mDecalDepthParameter = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kSceneDepth), set);
 				mDecalMaskParameter = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kMask), set);
 			}
-			else if(type == SurfaceShaderType::LitForward)
+			else if(litForwardIndex >= 0)
 			{
-				LitForwardParameters& parameters = mLitForwardParameters;
+				LitForwardParameters& parameters = mLitForwardParameters[litForwardIndex];
 				parameters.GridParams = GpuParameterUniformBuffer(GetInputBinding(device, ShaderRegisterClass::ConstantBuffer, InputRegister::kGridParams), set);
 				parameters.GridLightOffsetsAndSize = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kGridLightOffsetsAndSize), set);
 				parameters.GridProbeOffsetsAndSize = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kGridProbeOffsetsAndSize), set);
@@ -267,6 +330,19 @@ void SurfaceShaderParameterSets::Prepare(const RendererView& view, const RenderB
 				GpuParameterSampler(GetInputBinding(device, ShaderRegisterClass::Sampler, InputRegister::kSSRSampler), set).Set(pointClampState);
 				GpuParameterSampler(GetInputBinding(device, ShaderRegisterClass::Sampler, InputRegister::kPreintegratedEnvBRDFSampler), set).Set(linearClampState);
 			}
+
+			if(gpuParticleIndex >= 0)
+			{
+				GpuParticleParameters& parameters = mGpuParticleParameters[gpuParticleIndex];
+				parameters.PositionAndTime = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kGpuParticlePositionAndTime), set);
+				parameters.SizeAndRotation = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kGpuParticleSizeAndRotation), set);
+				parameters.Curves = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kGpuParticleCurves), set);
+				parameters.SortedIndices = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kGpuParticleSortedIndices), set);
+
+				// The shader declares no state for the curve sampler, so it is the default one
+				const TShared<SamplerState> defaultState = device.FindOrCreateSamplerState(SamplerStateCreateInformation());
+				GpuParameterSampler(GetInputBinding(device, ShaderRegisterClass::Sampler, InputRegister::kGpuParticleCurvesSampler), set).Set(defaultState);
+			}
 		}
 
 		mPerCameraParameters[typeIndex].Set(view.GetPerViewBuffer());
@@ -276,7 +352,19 @@ void SurfaceShaderParameterSets::Prepare(const RendererView& view, const RenderB
 
 void SurfaceShaderParameterSets::SetSceneDepth(const TShared<Texture>& depth)
 {
-	mUnlitParticleDepthParameter.Set(depth);
+	for(const GpuParameterSampledTexture& parameter : mUnlitParticleDepthParameters)
+		parameter.Set(depth);
+}
+
+void SurfaceShaderParameterSets::SetGpuParticleInputs(const GpuParticleDrawInputs& inputs)
+{
+	for(const GpuParticleParameters& parameters : mGpuParticleParameters)
+	{
+		parameters.PositionAndTime.Set(inputs.PositionAndTime);
+		parameters.SizeAndRotation.Set(inputs.SizeAndRotation);
+		parameters.Curves.Set(inputs.Curves);
+		parameters.SortedIndices.Set(inputs.SortedIndices);
+	}
 }
 
 void SurfaceShaderParameterSets::SetDecalInputs(const TShared<Texture>& depth, const TShared<Texture>& mask)
@@ -285,7 +373,7 @@ void SurfaceShaderParameterSets::SetDecalInputs(const TShared<Texture>& depth, c
 	mDecalMaskParameter.Set(mask);
 }
 
-void SurfaceShaderParameterSets::SetForwardLightingInputs(const RendererView& view, const VisibleLightData& lights,
+void SurfaceShaderParameterSets::SetForwardLightingInputs(const RendererView& view, const LightGridOutputs& lightGrid, const VisibleLightData& lights,
 	const VisibleReflectionProbeData& reflectionProbes, const RenderBeastScene& scene, const Skybox* skybox)
 {
 	GpuBufferSuballocation reflectionProbeParameters = gGlobalReflectionProbeUniformBufferDefinition.AllocateTransient();
@@ -296,22 +384,22 @@ void SurfaceShaderParameterSets::SetForwardLightingInputs(const RendererView& vi
 	if(skybox != nullptr)
 		skyFilteredRadiance = skybox->GetFilteredRadiance();
 
-	const LightGridOutputs lightGridOutputs = view.GetLightGrid().GetOutputs();
-
-	const LitForwardParameters& parameters = mLitForwardParameters;
-	parameters.GridParams.Set(lightGridOutputs.UniformBuffer);
-	parameters.GridLightOffsetsAndSize.Set(lightGridOutputs.GridLightOffsetsAndSize);
-	parameters.GridProbeOffsetsAndSize.Set(lightGridOutputs.GridProbeOffsetsAndSize);
-	parameters.LightIndices.Set(lightGridOutputs.GridLightIndices);
-	parameters.Lights.Set(lights.GetLightBuffer());
-	parameters.ReflectionProbeIndices.Set(lightGridOutputs.GridProbeIndices);
-	parameters.ReflectionProbes.Set(reflectionProbes.GetProbeBuffer());
-	parameters.ReflectionProbeParams.Set(reflectionProbeParameters);
-	parameters.SkyReflectionTexture.Set(skyFilteredRadiance);
-	parameters.ReflectionProbeCubemaps.Set(scene.GetReflectionProbeCubemapsTex());
-	parameters.AmbientOcclusionTexture.Set(Texture::kWhite); // Note: Add SSAO here?
-	parameters.SSRTexture.Set(Texture::kBlack); // Note: Add SSR here?
-	parameters.PreintegratedEnvBRDF.Set(RendererTextures::preintegratedEnvGF);
+	for(const LitForwardParameters& parameters : mLitForwardParameters)
+	{
+		parameters.GridParams.Set(lightGrid.UniformBuffer);
+		parameters.GridLightOffsetsAndSize.Set(lightGrid.GridLightOffsetsAndSize);
+		parameters.GridProbeOffsetsAndSize.Set(lightGrid.GridProbeOffsetsAndSize);
+		parameters.LightIndices.Set(lightGrid.GridLightIndices);
+		parameters.Lights.Set(lights.GetLightBuffer());
+		parameters.ReflectionProbeIndices.Set(lightGrid.GridProbeIndices);
+		parameters.ReflectionProbes.Set(reflectionProbes.GetProbeBuffer());
+		parameters.ReflectionProbeParams.Set(reflectionProbeParameters);
+		parameters.SkyReflectionTexture.Set(skyFilteredRadiance);
+		parameters.ReflectionProbeCubemaps.Set(scene.GetReflectionProbeCubemapsTex());
+		parameters.AmbientOcclusionTexture.Set(Texture::kWhite); // Note: Add SSAO here?
+		parameters.SSRTexture.Set(Texture::kBlack); // Note: Add SSR here?
+		parameters.PreintegratedEnvBRDF.Set(RendererTextures::preintegratedEnvGF);
+	}
 }
 
 void SurfaceShaderParameterSets::DeclareSets(FrameGraphRasterPass& pass, const Vector<RenderQueueEntry>& entries) const

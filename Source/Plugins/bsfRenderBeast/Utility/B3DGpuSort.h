@@ -42,15 +42,14 @@ namespace b3d
 			RadixSortClearMaterial() = default;
 			void Initialize() override;
 
-			/**
-			 * Executes the material, running the compute kernel.
-			 *
-			 * @param	commandBuffer	Command buffer to execute on.
-			 * @param	outputCounts	Pre-allocated buffer to zero out.
-			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuBuffer>& outputCounts);
+			/** Creates the parameter set of @p pass and assigns @p outputCounts, the buffer to zero out, to it. */
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const TShared<GpuBuffer>& outputCounts);
 
-			GpuParameterStorageBuffer MOutputParam;
+			/** Binds the material and @p set, a set from Prepare(), and runs the compute kernel. */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set) const;
+
+		private:
+			GpuParameterStorageBuffer mOutputParam;
 		};
 
 		/**
@@ -67,19 +66,24 @@ namespace b3d
 			void Initialize() override;
 
 			/**
-			 * Executes the material, running the compute kernel.
+			 * Creates the parameter set of @p pass and assigns the inputs and outputs to it.
 			 *
-			 * @param	commandBuffer	Command buffer to execute on.
-			 * @param	numGroups		Number of groups to separate the key inputs in.
+			 * @param	pass			Pass that dispatches the material.
 			 * @param	params			Allocated and initialized parameter buffer using RadixSortUniformDefinition definition.
 			 * @param	inputKeys		A set of keys to sort. @p params buffer needs to be initialized with data
 			 *							representing this buffer.
 			 * @param	outputCounts	Pre-allocated buffer to contain the resulting per-digit counts for each group.
+			 * @return					Parameter set to pass to Execute().
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, u32 numGroups, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& inputKeys, const TShared<GpuBuffer>& outputCounts);
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& inputKeys, const TShared<GpuBuffer>& outputCounts);
 
-			GpuParameterStorageBuffer MInputKeysParam;
-			GpuParameterStorageBuffer MOutputCountsParam;
+			/** Binds the material and @p set, a set from Prepare(), and runs the compute kernel over @p numGroups groups of keys. */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, u32 numGroups) const;
+
+		private:
+			GpuParameterUniformBuffer mParamsParameter;
+			GpuParameterStorageBuffer mInputKeysParam;
+			GpuParameterStorageBuffer mOutputCountsParam;
 		};
 
 		/**
@@ -95,18 +99,24 @@ namespace b3d
 			RadixSortPrefixScanMaterial() = default;
 			void Initialize() override;
 
-			/*
-			 * Executes the material, running the compute kernel.
+			/**
+			 * Creates the parameter set of @p pass and assigns the inputs and outputs to it.
 			 *
-			 * @param	commandBuffer	Command buffer to execute on.
+			 * @param	pass			Pass that dispatches the material.
 			 * @param	params			Allocated and initialized parameter buffer using RadixSortUniformDefinition definition.
 			 * @param	inputCounts		Counts as output by the RadixSortCountMaterial material.
-			 * @param	outputCounts	Pre-allocated buffer to contain the resulting per-digit counts for each group.
+			 * @param	outputOffsets	Pre-allocated buffer to contain the resulting per-digit offsets for each group.
+			 * @return					Parameter set to pass to Execute().
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& inputCounts, const TShared<GpuBuffer>& outputOffsets);
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& inputCounts, const TShared<GpuBuffer>& outputOffsets);
 
-			GpuParameterStorageBuffer MInputCountsParam;
-			GpuParameterStorageBuffer MOutputOffsetsParam;
+			/** Binds the material and @p set, a set from Prepare(), and runs the compute kernel. */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set) const;
+
+		private:
+			GpuParameterUniformBuffer mParamsParameter;
+			GpuParameterStorageBuffer mInputCountsParam;
+			GpuParameterStorageBuffer mOutputOffsetsParam;
 		};
 
 		/**
@@ -121,27 +131,31 @@ namespace b3d
 			RadixSortReorderMaterial() = default;
 			void Initialize() override;
 
-			/*
-			 * Executes the material, running the compute kernel.
+			/**
+			 * Creates the parameter set of @p pass and assigns the inputs and outputs to it.
 			 *
-			 * @param	commandBuffer	Command buffer to execute on.
-			 * @param	numGroups		Number of groups to separate the key inputs in.
+			 * @param	pass			Pass that dispatches the material.
 			 * @param	params			Allocated and initialized parameter buffer using RadixSortUniformDefinition definition.
 			 * @param	inputOffsets	Offsets as output by the RadixSortPrefixScanMaterial material.
 			 * @param	buffers			A set of input and output buffers. Key buffers are required, while value buffers
 			 *							are optional.
 			 * @param	inputBufferIdx	Determines which of the two key/value buffers are considered to be inputs. The other
 			 *							buffers are considered outputs and will contain the output data.
-			 * @return					Index of the buffer that should be used as input for the next iteration of the
-			 *							algorithm. (In case the keys were only partially sorted)
+			 * @return					Parameter set to pass to Execute().
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, u32 numGroups, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& inputOffsets, const GpuSortBuffers& buffers, u32 inputBufferIdx);
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const GpuBufferSuballocation& params, const TShared<GpuBuffer>& inputOffsets, const GpuSortBuffers& buffers,
+				u32 inputBufferIdx);
 
-			GpuParameterStorageBuffer MInputOffsetsBufferParam;
-			GpuParameterStorageBuffer MInputKeysBufferParam;
-			GpuParameterStorageBuffer MInputValuesBufferParam;
-			GpuParameterStorageBuffer MOutputKeysBufferParam;
-			GpuParameterStorageBuffer MOutputValuesBufferParam;
+			/** Binds the material and @p set, a set from Prepare(), and runs the compute kernel over @p numGroups groups of keys. */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set, u32 numGroups) const;
+
+		private:
+			GpuParameterUniformBuffer mParamsParameter;
+			GpuParameterStorageBuffer mInputOffsetsBufferParam;
+			GpuParameterStorageBuffer mInputKeysBufferParam;
+			GpuParameterStorageBuffer mInputValuesBufferParam;
+			GpuParameterStorageBuffer mOutputKeysBufferParam;
+			GpuParameterStorageBuffer mOutputValuesBufferParam;
 		};
 
 		/**
@@ -151,13 +165,11 @@ namespace b3d
 		class GpuSort : public Module<GpuSort>
 		{
 		public:
-			GpuSort();
-
 			/**
-			 * Sorts the input keys and outputs them in the provided buffer. Optionally also moves a set of values along with
-			 * the keys.
+			 * Adds the passes that sort the input keys to @p graph, and outputs them in the provided buffer. Optionally also moves a set of
+			 * values along with the keys. The helper buffers of the sort are transients of @p graph.
 			 *
-			 * @param	commandBuffer	Command buffer to execute on.
+			 * @param	graph			Graph to add the passes to. @p buffers must be resources of the graph.
 			 * @param	buffers			Buffers that contain the keys and values to sort, as well as space to put sorted keys
 			 *							and values in. Both key buffers must be provided however value buffers are optional and
 			 *							only required if you need to move values along with keys. All buffers must be be
@@ -175,7 +187,7 @@ namespace b3d
 			 *							mask).
 			 * @return					Index of the buffer in @p buffers that will contain the final sorted keys and/or values.
 			 */
-			u32 Sort(GpuCommandBuffer& commandBuffer, const GpuSortBuffers& buffers, u32 numKeys, u32 keyMask = 0xFFFFFFFF);
+			u32 Sort(FrameGraph& graph, const GpuSortBuffers& buffers, u32 numKeys, u32 keyMask = 0xFFFFFFFF);
 
 			/**
 			 * Creates a set of buffers buffer that can be used when calling the sort() method.
@@ -187,9 +199,6 @@ namespace b3d
 			 *								for the resulting sorted keys (and optionally values).
 			 */
 			static GpuSortBuffers CreateSortBuffers(u32 numElements, bool values = false);
-
-		private:
-			TShared<GpuBuffer> mHelperBuffers[2];
 		};
 
 		/* @} */

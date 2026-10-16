@@ -5,6 +5,7 @@
 #include "B3DRenderBeastPrerequisites.h"
 #include "Utility/B3DTypeList.h"
 #include "RenderState/B3DSurfaceShaderParameterSets.h"
+#include "Shading/B3DGpuParticleSimulation.h"
 
 namespace b3d
 {
@@ -342,6 +343,9 @@ namespace b3d
 			TShared<Texture> IdTex;
 			TShared<Texture> VelocityTex;
 
+			/** Outputs of the GPU particle simulation that the draws of the view read. */
+			GpuParticleDrawInputs GpuParticleInputs;
+
 			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneDepth, RCNodeSceneColor, RCNodeParticleSort, RCNodeMSAACoverage>;
 
 			static StringID GetNodeId() { return "BasePass"; }
@@ -557,7 +561,8 @@ namespace b3d
 		class RCNodeClusteredForward : public RenderCompositorNode
 		{
 		public:
-			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneColor, RCNodeSkybox, RCNodeSceneDepth, RCNodeParticleSimulate, RCNodeParticleSort, RCNodeResolvedSceneDepth>;
+			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneColor, RCNodeSkybox, RCNodeSceneDepth, RCNodeParticleSimulate, RCNodeParticleSort, RCNodeResolvedSceneDepth,
+				RCNodeBasePass>;
 
 			static StringID GetNodeId() { return "ClusteredForward"; }
 			static DependencyDefinition GetDependencyDefinition();
@@ -567,7 +572,6 @@ namespace b3d
 			void Render(const RenderCompositorNodeInputs& inputs) override;
 			void Clear() override;
 
-			TShared<RenderTexture> renderTarget;
 			SurfaceShaderParameterSets mSurfaceShaderParameterSets;
 		};
 

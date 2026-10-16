@@ -566,14 +566,13 @@ bool RenderBeast::RenderViews(RenderBeastScene& scene, RendererViewGroup& viewGr
 		graph.Execute();
 	}
 
-#if !B3D_FRAME_GRAPH_PORT_PENDING(Forward)
-	// Forward rendering resets the particle texture pool after each view. Until its port, the group resets it once the passes of all its views read it.
-	ParticleRenderer::Instance().GetTexturePool().Clear();
-#endif
-
 	// After the graph's execution, because the pass functions read the render queues this clears
 	for(RendererView* view : drawnViews)
 		view->EndFrame();
+
+	// After the graph's execution, so the views of the group draw from particle textures of their own. Once the draws are recorded, writes
+	// to a reused texture give it new memory, and the recorded draws keep reading the old.
+	ParticleRenderer::Instance().GetTexturePool().Clear();
 
 	return anythingDrawn;
 }

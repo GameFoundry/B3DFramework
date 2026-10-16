@@ -23,6 +23,7 @@ namespace b3d
 		struct GBufferTextures;
 		class RenderBeastScene;
 		class GpuParticleResources;
+		class FrameGraph;
 
 		/** @addtogroup RenderBeast
 		 *  @{
@@ -84,6 +85,9 @@ namespace b3d
 			 * freed them using freeInactiveTiles earlier.
 			 */
 			u32 GetTileCount() const { return (u32)mTiles.size(); }
+
+			/** Returns the number of particles in the tiles of this particle system, as counted by GetTileCount(). */
+			u32 GetParticleCount() const { return GetTileCount() * GpuParticleConstants::kParticlesPerTile; }
 
 			/** Rebuilds ths internal buffers that contain tile UVs and per-particle UVs. */
 			void UpdateGpuBuffers();
@@ -147,54 +151,30 @@ namespace b3d
 		{
 			struct Pimpl;
 
-			/** Context for clearing particle tiles. Contains pre-configured buffer and parameters. */
-			struct TileClearParameters
-			{
-				TShared<GpuBuffer> ScratchBuffer;
-				TShared<GpuParameterSet> GpuParameters;
-
-				/** Returns true if the buffer is not currently bound to any command buffer. */
-				bool IsAvailable() const
-				{
-					return ScratchBuffer->GetBoundCount() == 0;
-				}
-			};
-
-			/** Context for injecting new particles. Contains pre-configured buffer and parameters. */
-			struct ParticleInjectParameters
-			{
-				TShared<GpuBuffer> ScratchBuffer;
-				TShared<GpuParameterSet> GpuParameters;
-
-				/** Returns true if the buffer is not currently bound to any command buffer. */
-				bool IsAvailable() const
-				{
-					return ScratchBuffer->GetBoundCount() == 0;
-				}
-			};
-
 		public:
 			GpuParticleSimulation();
 			~GpuParticleSimulation();
 
 			/**
-			 * Performs GPU particle simulation on all registered particle systems.
+			 * Adds the passes that perform GPU particle simulation on all registered particle systems to @p graph. Simulates once per
+			 * frame: later calls in the same frame do nothing.
 			 *
-			 * @param	commandBuffer	Command buffer to execute on.
+			 * @param	graph		Graph to add the passes to.
 			 * @param	scene		Scene currently being rendered.
 			 * @param	simData		Particle simulation data output on the simulation thread.
 			 * @param	viewParams	Buffer containing properties of the view that's currently being rendered.
-			 * @param	gbuffer		Populated GBuffer with depths and normals.
-			 * @param	dt			Time step to advance the simulation by.
+			 * @param	gbuffer		Populated GBuffer with depths and normals, resources of @p graph.
+			 * @param	timings		Timings of the frame, whose time step advances the simulation.
 			 */
-			void Simulate(GpuCommandBuffer& commandBuffer, const RenderBeastScene& scene, const EvaluatedParticleData* simData, const GpuBufferSuballocation& viewParams, const GBufferTextures& gbuffer, float dt);
+			void Simulate(FrameGraph& graph, const RenderBeastScene& scene, const EvaluatedParticleData* simData, const GpuBufferSuballocation& viewParams,
+				const GBufferTextures& gbuffer, const FrameTimings& timings);
 
 			/**
-			 * Sorts the particle systems for the provided view. Only sorts systems using distance based sorting and only
-			 * works on systems supporting compute. Sort results are written to a global buffer accessible through
-			 * getResources(), with offsets into the buffer written into particle system objects in @p scene.
+			 * Adds the passes that sort the particle systems for the provided view to @p graph. Only sorts systems using distance based
+			 * sorting. Sort results are written to a global buffer accessible through GetResources(), with offsets into the buffer written
+			 * into particle system objects in @p scene.
 			 */
-			void Sort(GpuCommandBuffer& commandBuffer, const RenderBeastScene& scene, const RendererView& view);
+			void Sort(FrameGraph& graph, const RenderBeastScene& scene, const RendererView& view);
 
 			/** Returns textures used for storing particle data. */
 			GpuParticleResources& GetResources() const;
@@ -203,14 +183,15 @@ namespace b3d
 			/** Information for rendering a batch of tile clears. */
 			struct TileClearBatch
 			{
-				TileClearParameters Parameters;
+				TShared<GpuBuffer> TileUVs;
+				TShared<GpuParameterSet> GpuParameters;
 				u32 InstanceCount;
 			};
 
 			/** Information for rendering a batch of particle injections. */
 			struct ParticleInjectBatch
 			{
-				ParticleInjectParameters Parameters;
+				TShared<GpuBuffer> Particles;
 				u32 ParticleCount;
 			};
 
@@ -221,48 +202,32 @@ namespace b3d
 			TShared<GpuParameterSet> PrepareSimulateParameters(const ParticleSystemProxy& proxy, const ParticleRenderState& renderState, const GpuParticleSystem& system, float dt);
 
 			/**
-			 * Prepares scratch buffers for clearing tiles. Allocates parameters from the pool, populates buffers with tile data,
-			 * and stores batches for later rendering.
+			 * Writes the UVs of @p tiles into scratch buffers of the current frame, one per batch of tiles a single draw clears.
 			 *
 			 * @param tiles    List of tile IDs to clear.
+			 * @return         Batches that clear the tiles, without their parameter sets assigned.
 			 */
-			void PrepareClearTiles(const Vector<u32>& tiles);
+			TArray<TileClearBatch> PrepareClearTiles(const Vector<u32>& tiles);
+
+			/** Clears out all the areas in particle textures as marked by the tiles of @p batches to their default values. */
+			void DrawClearTiles(GpuCommandBuffer& commandBuffer, const TArray<TileClearBatch>& batches);
 
 			/**
-			 * Clears out all the areas in particle textures as marked by the provided tiles to their default values.
-			 * Must call PrepareClearTiles() before.
-			 */
-			void DrawClearTiles(GpuCommandBuffer& commandBuffer);
-
-			/**
-			 * Prepares scratch buffers for injecting particles. Allocates parameters from the pool, populates buffers with particle data, and stores batches for later rendering.
+			 * Writes @p particles into scratch buffers of the current frame, one per batch of particles a single draw injects.
 			 *
 			 * @param particles    List of particles to inject.
+			 * @return             Batches that inject the particles.
 			 */
-			void PrepareInjectParticles(const Vector<GpuParticle>& particles);
-
-			/** Inserts the provided set of particles into the particle textures. Must called PrepareInjectParticles() before. */
-			void DrawInjectParticles(GpuCommandBuffer& commandBuffer);
+			TArray<ParticleInjectBatch> PrepareInjectParticles(const Vector<GpuParticle>& particles);
 
 			/**
-			 * Finds an unused tile scratch parameters from the pool, or creates a new ones if all are in use.
+			 * Inserts the particles of @p batches into the particle textures.
 			 *
-			 * @return A tile scratch buffer ready to be used.
+			 * @param commandBuffer    Command buffer to record the draws to.
+			 * @param parameters       Parameter set of the inject material.
+			 * @param batches          Batches of particles to inject.
 			 */
-			TileClearParameters& FindOrCreateTileClearParameters();
-
-			/**
-			 * Finds an unused inject scratch parameters from the pool, or creates a new one if all are in use.
-			 *
-			 * @return An inject scratch buffer ready to be used.
-			 */
-			ParticleInjectParameters& FindOrCreateParticleInjectParameters();
-
-			/** Creates a new tile scratch buffer and parameters with the appropriate configuration. */
-			TileClearParameters CreateTileClearParameters();
-
-			/** Creates a new inject scratch buffer and parameters with the appropriate configuration. */
-			ParticleInjectParameters CreateParticleInjectParameters();
+			void DrawInjectParticles(GpuCommandBuffer& commandBuffer, const TShared<GpuParameterSet>& parameters, const TArray<ParticleInjectBatch>& batches);
 
 			Pimpl* m;
 		};
@@ -278,6 +243,18 @@ namespace b3d
 		struct GpuParticleStaticTextures
 		{
 			TShared<Texture> SizeAndRotationTex;
+		};
+
+		/** Outputs of the GPU particle simulation that draws of GPU simulated particle systems read. */
+		struct GpuParticleDrawInputs
+		{
+			TShared<Texture> PositionAndTime;
+			TShared<Texture> SizeAndRotation;
+			TShared<Texture> Curves;
+			TShared<GpuBuffer> SortedIndices;
+
+			/** Imports the resources into @p graph, which writes them in the passes of the simulation. */
+			void Import(FrameGraph& graph) const;
 		};
 
 		/** Contains a texture containing quantized versions of all curves used for the GPU particle system. */
@@ -304,10 +281,10 @@ namespace b3d
 			void Free(const TextureRowAllocation& alloc);
 
 			/**
-			 * Injects all the newly added pixels into the curve texture (since the last call to this method). Should be
-			 * called after alloc() has been called for all new entries, but before the texture is used for reading.
+			 * Adds a pass that injects all the newly added pixels into the curve texture (since the last call to this method) to @p graph.
+			 * Should be called after alloc() has been called for all new entries, but before the texture is used for reading.
 			 */
-			void ApplyChanges(GpuCommandBuffer& commandBuffer);
+			void ApplyChanges(FrameGraph& graph);
 
 			/** Returns the internal texture the curve data is written to. */
 			const TShared<Texture>& GetTexture() const { return mCurveTexture; }
@@ -333,14 +310,12 @@ namespace b3d
 			Vector<PendingAllocation> mPendingAllocations;
 
 			TShared<Texture> mCurveTexture;
-			TShared<RenderTexture> mRT;
 
 			TextureRowAllocator<kTexSize, kTexSize> mRowAllocator;
 
 			TShared<GpuBuffer> mInjectUV;
 			TShared<GpuBuffer> mInjectIndices;
 			TShared<VertexDescription> mInjectVertexDescription;
-			TShared<GpuBuffer> mInjectScratch;
 		};
 
 		/**
@@ -373,14 +348,14 @@ namespace b3d
 			/** @copydoc GetCurveTexture() */
 			const GpuParticleCurves& GetCurveTexture() const { return mCurveTexture; }
 
-			/** Returns the render target which can be used for injecting new particle data in the state textures. */
-			const TShared<RenderTexture>& GetInjectTarget() const { return mInjectRT[mWriteBufferIdx ^ 0x1]; }
-
-			/** Returns the render target which can be used for writing the results of the particle system simulation. */
-			const TShared<RenderTexture>& GetSimulationTarget() const { return mSimulateRT[mWriteBufferIdx]; }
-
 			/** Returns a global buffer containing particle indices for sorted particle systems. */
 			const TShared<GpuBuffer>& GetSortedIndices() const;
+
+			/** Returns the outputs of the last available simulation step that draws read. */
+			GpuParticleDrawInputs GetDrawInputs() const;
+
+			/** Imports the state and static textures, the curve texture and the sorted index buffers into @p graph. */
+			void Import(FrameGraph& graph) const;
 
 			/**
 			 * Attempts to allocate a new tile in particle textures. Returns index of the tile if successful or -1 if no more
@@ -415,12 +390,8 @@ namespace b3d
 			GpuParticleStateTextures mStateTextures[2];
 			GpuParticleStaticTextures mStaticTextures;
 			GpuParticleCurves mCurveTexture;
-			GpuSortBuffers mSortBuffers;
 			TShared<GpuBuffer> mSortedIndices[2];
 			u32 mSortedIndicesBufferIdx = 0;
-
-			TShared<RenderTexture> mSimulateRT[2];
-			TShared<RenderTexture> mInjectRT[2];
 
 			u32 mWriteBufferIdx = 0;
 
