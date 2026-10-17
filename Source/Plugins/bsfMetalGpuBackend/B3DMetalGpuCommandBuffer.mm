@@ -2517,6 +2517,10 @@ namespace b3d
 
 			for (const GpuExplicitTextureBarrier& barrier : barriers.TextureBarriers)
 			{
+				// Metal has no layouts, and the alias acquire that supersedes the texture orders the work of the memory
+				if (barrier.Flags.IsSet(GpuBarrierFlag::AliasRelease))
+					continue;
+
 				auto* const texture = static_cast<MetalTexture*>(barrier.Object.get());
 				MetalImage* const image = texture != nullptr ? texture->GetMetalResource() : nullptr;
 				if (image == nullptr)

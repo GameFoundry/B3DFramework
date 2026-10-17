@@ -71,7 +71,15 @@ namespace b3d
 			 * The barrier starts a new lifetime of the resource on memory that earlier resources used (see GpuAliasAcquire). 
 			 * On an image it is always combined with DiscardContents, as the image starts from GpuImageLayout::Undefined.
 			 */
-			AliasAcquire = 1 << 1
+			AliasAcquire = 1 << 1,
+
+			/**
+			 * The barrier ends the lifetime of a resource whose memory an alias acquire of another resource takes over (see
+			 * GpuAliasAcquire::Predecessors). Its destination has GpuImageLayout::Undefined and no access, and its destination stages are
+			 * those of the acquiring resource's first use. It is the last barrier of the resource, recorded together with the alias acquire
+			 * or before it. Backends whose alias acquires flush the earlier resources' writes record nothing for it.
+			 */
+			AliasRelease = 1 << 2
 		};
 
 		typedef Flags<GpuBarrierFlag, u8> GpuBarrierFlags;
@@ -147,13 +155,11 @@ namespace b3d
 			 */
 			GpuAccessScope Source;
 
-#if B3D_BUILD_TYPE_DEVELOPMENT
 			/**
-			 * Earlier resources on the memory. Accessing them after the acquire is invalid until they are acquired again. Validation only,
-			 * see GpuExplicitBarrierValidator::DeclareAliasAcquire().
+			 * Earlier resources on the memory. Accessing them after the acquire is invalid until they are acquired again. Their lifetimes
+			 * have to be ended using a GpuBarrierFlag::AliasRelease barrier before the memory is used on a new resource.
 			 */
 			TArrayView<IGpuResource* const> Predecessors;
-#endif
 		};
 
 		/** Describes a source and destination stage & access participating in a hazard barrier. */

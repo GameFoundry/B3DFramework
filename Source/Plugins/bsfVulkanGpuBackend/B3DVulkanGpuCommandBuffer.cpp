@@ -2326,6 +2326,10 @@ bool VulkanGpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& b
 
 	const auto fnAddImageBarrier = [&](VulkanImage& image, const GpuTextureSubresourceRange& range, const GpuExplicitBarrier& barrier, bool usesGeneralLayout)
 	{
+		// The alias acquire that supersedes the image flushes its writes through a global memory barrier, which covers images in any layout
+		if(barrier.Flags.IsSet(GpuBarrierFlag::AliasRelease))
+			return;
+
 		const bool isAliasAcquire = barrier.Flags.IsSet(GpuBarrierFlag::AliasAcquire);
 		if(isAliasAcquire && !B3D_ENSURE_LOG(barrier.Source.Layout == GpuImageLayout::Undefined && image.IsFullRange(range), "An alias acquire of an image must start from GpuImageLayout::Undefined and cover the whole image."))
 			return;

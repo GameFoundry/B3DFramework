@@ -132,15 +132,17 @@ namespace b3d
 			void Initialize() override;
 
 			/**
-			 * Executes the post-process effect with the provided parameters and writes the results to the provided
-			 * render target.
+			 * Creates the parameter set of @p pass, which blends @p source with the color attachment of the pass.
 			 *
-			 * @param	commandBuffer	Command buffer to execute on.
-			 * @param	source			Texture to blend with the target.
-			 * @param	target			Render target to blend with and write the results to.
-			 * @param	tint			Optional value to multiply all the values from @p source before blending.
+			 * @param	pass	Pass that draws the material.
+			 * @param	source	Texture to blend with the attachment.
+			 * @param	tint	Optional value to multiply all the values from @p source before blending.
+			 * @return			Parameter set to pass to Execute().
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, const TShared<RenderTarget>& target, const Color& tint = Color::kWhite);
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const TShared<Texture>& source, const Color& tint = Color::kWhite);
+
+			/** Binds the material and @p set, a set from Prepare(), and draws a full screen quad. */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set) const;
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
@@ -176,16 +178,18 @@ namespace b3d
 			void Initialize() override;
 
 			/**
-			 * Executes the post-process effect with the provided parameters and writes the results to the provided
-			 * render target.
+			 * Creates the parameter set of @p pass, which filters @p source and additively blends the result with the color attachment
+			 * of the pass.
 			 *
-			 * @param	commandBuffer	Command buffer to execute on.
-			 * @param	source			Texture to filter.
-			 * @param	target			Render target to write the results to. Results will be additively blended
-			 *								with the target.
-			 * @param	tint			Optional value to multiply all the values from @p source before blending.
+			 * @param	pass	Pass that draws the material.
+			 * @param	source	Texture to filter.
+			 * @param	tint	Optional value to multiply all the values from @p source before blending.
+			 * @return			Parameter set to pass to Execute().
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, const TShared<RenderTarget>& target, const Color& tint = Color::kWhite);
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const TShared<Texture>& source, const Color& tint = Color::kWhite);
+
+			/** Binds the material and @p set, a set from Prepare(), and draws a full screen quad. */
+			void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set) const;
 
 			/**
 			 * Returns the material variation matching the provided parameters.

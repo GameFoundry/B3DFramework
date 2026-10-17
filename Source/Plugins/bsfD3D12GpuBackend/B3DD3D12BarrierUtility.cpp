@@ -175,11 +175,14 @@ D3D12_GLOBAL_BARRIER D3D12BarrierUtility::GetGlobalBufferBarrier(D3D12_RESOURCE_
 	return barrier;
 }
 
-D3D12_GLOBAL_BARRIER D3D12BarrierUtility::GetAliasGlobalBarrier(const GpuBarrierScope& scope)
+D3D12_GLOBAL_BARRIER D3D12BarrierUtility::GetAliasGlobalBarrier(const GpuBarrierScope& scope, bool flushesTextureOnlyAccess)
 {
-	// Accesses any resource type can perform at @p stages
-	auto fnGetAccess = [](GpuStageFlags stages, GpuAccessFlags access)
+	// Accesses performed at @p stages, by any resource type unless flushesTextureOnlyAccess is true
+	auto fnGetAccess = [flushesTextureOnlyAccess](GpuStageFlags stages, GpuAccessFlags access)
 	{
+		if(!flushesTextureOnlyAccess)
+			stages &= ~(GpuStageFlag::ColorAttachment | GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests | GpuStageFlag::Resolve);
+
 		D3D12_BARRIER_ACCESS nativeAccess = D3D12_BARRIER_ACCESS_COMMON;
 		if(access.IsSet(GpuAccessFlag::Write))
 		{

@@ -51,6 +51,38 @@ namespace
 
 		return information;
 	}
+
+	/**
+	 * Adds a raster pass that draws @p material into @p output, with the parameter set from @p material's Prepare(pass, args...). The
+	 * material's Execute() takes only the set.
+	 */
+	template<class Material, class... Args>
+	void AddFullScreenPass(FrameGraph& graph, const StringView& name, Material* material, const TShared<Texture>& output, FrameGraphAttachmentLoad load, Args&&... args)
+	{
+		FrameGraphRasterPass pass;
+		pass.SetColorAttachment(0, output, load);
+
+		const TShared<GpuParameterSet> set = material->Prepare(pass, std::forward<Args>(args)...);
+		graph.AddRasterPass(name, std::move(pass), [material, set](FrameGraphPassContext& context)
+		{
+			context.GetCommandBuffer().SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
+			material->Execute(context, set);
+		});
+	}
+
+	/** Adds a raster pass that downsamples @p input into @p output, created from DownsampleMaterial::GetOutputCreateInformation(). */
+	void AddDownsamplePass(FrameGraph& graph, const StringView& name, DownsampleMaterial* material, const TShared<Texture>& input, const TShared<Texture>& output)
+	{
+		FrameGraphRasterPass pass;
+		pass.SetColorAttachment(0, output, FrameGraphAttachmentLoad::DontCare);
+
+		const TShared<GpuParameterSet> set = material->Prepare(pass, input);
+		graph.AddRasterPass(name, std::move(pass), [material, set, input](FrameGraphPassContext& context)
+		{
+			context.GetCommandBuffer().SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
+			material->Execute(context, set, input);
+		});
+	}
 } // namespace
 
 /**
@@ -1315,48 +1347,24 @@ RCNodeFinalResolve::DependencyDefinition RCNodeFinalResolve::GetDependencyDefini
 	return kDependencyDefinition;
 }
 
-void RCNodePostProcess::GetAndSwitch(const RendererView& view, TShared<RenderTexture>& output, TShared<Texture>& lastFrame) const
-{
-	const RendererViewProperties& viewProps = view.GetProperties();
-	u32 width = viewProps.Target.ViewRect.Width;
-	u32 height = viewProps.Target.ViewRect.Height;
-
-	if(!mOutput[mCurrentIdx])
-	{
-		mOutput[mCurrentIdx] = GetGpuResourcePool().Get(
-			PooledRenderTextureCreateInformation::Create2D(PF_RGBA8, width, height, TextureUsageFlag::RenderTarget, 1, false));
-	}
-
-	output = mOutput[mCurrentIdx]->RenderTexture;
-
-	u32 otherIdx = (mCurrentIdx + 1) % 2;
-	if(mOutput[otherIdx])
-		lastFrame = mOutput[otherIdx]->Texture;
-
-	mCurrentIdx = otherIdx;
-}
-
-TShared<Texture> RCNodePostProcess::GetLastOutput() const
-{
-	u32 otherIdx = (mCurrentIdx + 1) % 2;
-	if(mOutput[otherIdx])
-		return mOutput[otherIdx]->Texture;
-
-	return nullptr;
-}
-
 void RCNodePostProcess::Render(const RenderCompositorNodeInputs& inputs)
 {
 	// Do nothing, this is just a helper node
 }
 
+TShared<Texture> RCNodePostProcess::CreateOutput(FrameGraph& graph, const RendererView& view)
+{
+	const RendererViewProperties& viewProps = view.GetProperties();
+	u32 width = viewProps.Target.ViewRect.Width;
+	u32 height = viewProps.Target.ViewRect.Height;
+
+	mOutput = graph.CreateTexture("PostProcessOutput", TextureCreateInformation::Create2D(PF_RGBA8, width, height, TextureUsageFlag::RenderTarget));
+	return mOutput;
+}
+
 void RCNodePostProcess::Clear()
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
-	mOutput[0] = nullptr;
-	mOutput[1] = nullptr;
-	mCurrentIdx = 0;
-#endif
+	mOutput = nullptr;
 }
 
 RCNodePostProcess::DependencyDefinition RCNodePostProcess::GetDependencyDefinition()
@@ -1367,11 +1375,7 @@ RCNodePostProcess::DependencyDefinition RCNodePostProcess::GetDependencyDefiniti
 
 void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
-	GpuResourcePool& resPool = GetGpuResourcePool();
-
-	GpuCommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	const RenderSettings& settings = inputs.View.GetRenderSettings();
 
 	const bool hdr = settings.EnableHdr;
@@ -1380,56 +1384,45 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		// Get downsample scene
 		auto* halfSceneColorNode = dependencies.Get<RCNodeHalfSceneColor>();
-		const TShared<PooledRenderTexture>& downsampledScene = halfSceneColorNode->Output;
+		const TShared<Texture>& downsampledScene = halfSceneColorNode->Output;
 
 		// Generate histogram
-		TShared<PooledRenderTexture> eyeAdaptHistogram =
-			resPool.Get(EyeAdaptHistogramMaterial::GetOutputDesc(downsampledScene->Texture));
+		const TShared<Texture> eyeAdaptHistogram = inputs.Graph.CreateTexture("EyeAdaptationHistogram", EyeAdaptHistogramMaterial::GetOutputCreateInformation(downsampledScene));
 		EyeAdaptHistogramMaterial* eyeAdaptHistogramMat = EyeAdaptHistogramMaterial::Get();
-		eyeAdaptHistogramMat->Execute(commandBuffer, downsampledScene->Texture, eyeAdaptHistogram->Texture, settings.AutoExposure);
 
-		// Reduce histogram
-		TShared<PooledRenderTexture> reducedHistogram = resPool.Get(EyeAdaptHistogramReduceMaterial::GetOutputDesc());
+		FrameGraphComputePass histogramPass;
+		const TShared<GpuParameterSet> histogramSet = eyeAdaptHistogramMat->Prepare(histogramPass, downsampledScene, eyeAdaptHistogram, settings.AutoExposure);
+		inputs.Graph.AddComputePass("EyeAdaptationHistogram", std::move(histogramPass), [eyeAdaptHistogramMat, histogramSet, downsampledScene](FrameGraphPassContext& context)
+		{
+			eyeAdaptHistogramMat->Execute(context, histogramSet, downsampledScene);
+		});
 
-		TShared<Texture> prevFrameEyeAdaptation;
-		if(previous != nullptr)
-			prevFrameEyeAdaptation = previous->Texture;
+		// Reduce histogram, together with the previous frame's eye adaptation value
+		const TShared<Texture> reducedHistogram = inputs.Graph.CreateTexture("EyeAdaptationReducedHistogram", EyeAdaptHistogramReduceMaterial::GetOutputCreateInformation());
+		AddFullScreenPass(inputs.Graph, "EyeAdaptationHistogramReduce", EyeAdaptHistogramReduceMaterial::Get(), reducedHistogram, FrameGraphAttachmentLoad::DontCare,
+			downsampledScene, eyeAdaptHistogram, previous);
 
-		EyeAdaptHistogramReduceMaterial* eyeAdaptHistogramReduce = EyeAdaptHistogramReduceMaterial::Get();
-		eyeAdaptHistogramReduce->Prepare(downsampledScene->Texture, eyeAdaptHistogram->Texture, prevFrameEyeAdaptation);
-		eyeAdaptHistogramReduce->Execute(commandBuffer, reducedHistogram->RenderTexture);
+		// Generate eye adaptation value. Kept for the next frame, which reads it at rest.
+		Output = inputs.Graph.CreateTexture("EyeAdaptation", EyeAdaptationMaterial::GetOutputCreateInformation());
+		inputs.Graph.ExtractTexture(Output);
 
-		eyeAdaptHistogram = nullptr;
-
-		// Generate eye adaptation value
-		Output = resPool.Get(EyeAdaptationMaterial::GetOutputDesc());
-		EyeAdaptationMaterial* eyeAdaptationMat = EyeAdaptationMaterial::Get();
-		eyeAdaptationMat->Prepare(
-			reducedHistogram->Texture,
-			inputs.FrameInfo.Timings.TimeDelta,
-			settings.AutoExposure,
-			settings.ExposureScale);
-		eyeAdaptationMat->Execute(commandBuffer, Output->RenderTexture);
-
-		const RendererView& view = inputs.View;
+		AddFullScreenPass(inputs.Graph, "EyeAdaptation", EyeAdaptationMaterial::Get(), Output, FrameGraphAttachmentLoad::DontCare,
+			reducedHistogram, inputs.FrameInfo.Timings.TimeDelta, settings.AutoExposure, settings.ExposureScale);
 
 		// Notify the view eye adaptation value will change
-		view.NotifyLuminanceUpdated(inputs.FrameInfo.Timings.FrameIndex, inputs.ActiveCommandBuffer, Output);
+		inputs.View.NotifyLuminanceUpdated(inputs.FrameInfo.Timings.FrameIndex, inputs.Graph, Output);
 	}
 	else
 	{
 		previous = nullptr;
 		Output = nullptr;
 	}
-#endif
 }
 
 void RCNodeEyeAdaptation::Clear()
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	std::swap(Output, previous);
 	Output = nullptr;
-#endif
 }
 
 RCNodeEyeAdaptation::DependencyDefinition RCNodeEyeAdaptation::GetDependencyDefinition()
@@ -1448,16 +1441,14 @@ RCNodeEyeAdaptation::DependencyDefinition RCNodeEyeAdaptation::GetDependencyDefi
 
 void RCNodeTonemapping::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
 
-	GpuCommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	const RenderSettings& settings = inputs.View.GetRenderSettings();
 
 	auto* eyeAdaptationNode = dependencies.Get<RCNodeEyeAdaptation>();
 	auto* sceneColorNode = dependencies.Get<RCNodeSceneColor>();
 	auto* postProcessNode = dependencies.Get<RCNodePostProcess>();
-	const TShared<Texture>& sceneColor = sceneColorNode->SceneColorTex->Texture;
+	const TShared<Texture>& sceneColor = sceneColorNode->SceneColorTex;
 
 	const bool hdr = settings.EnableHdr;
 	const bool msaa = sceneColor->GetProperties().SampleCount > 1;
@@ -1475,9 +1466,21 @@ void RCNodeTonemapping::Render(const RenderCompositorNodeInputs& inputs)
 			{
 				CreateTonemap3DLUTMaterial* createLUT = CreateTonemap3DLUTMaterial::Get();
 				if(mTonemapLUT == nullptr)
-					mTonemapLUT = GetGpuResourcePool().Get(createLUT->GetOutputDesc());
+				{
+					TextureCreateInformation lutInformation = CreateTonemap3DLUTMaterial::GetOutputCreateInformation();
+					lutInformation.Name = "TonemapLUT";
 
-				createLUT->Execute(commandBuffer, mTonemapLUT->Texture, settings);
+					mTonemapLUT = inputs.Graph.GetWorkContext().GetDevice().CreateTexture(lutInformation);
+				}
+
+				inputs.Graph.ImportTexture(mTonemapLUT);
+
+				FrameGraphComputePass createLUTPass;
+				const TShared<GpuParameterSet> createLUTSet = createLUT->Prepare(createLUTPass, mTonemapLUT, settings);
+				inputs.Graph.AddComputePass("CreateTonemapLUT", std::move(createLUTPass), [createLUT, createLUTSet](FrameGraphPassContext& context)
+				{
+					createLUT->Execute(context, createLUTSet);
+				});
 
 				mTonemapLastUpdateHash = latestHash;
 			}
@@ -1500,18 +1503,6 @@ void RCNodeTonemapping::Render(const RenderCompositorNodeInputs& inputs)
 
 	TonemappingMaterial* tonemapping = TonemappingMaterial::GetVariation(gammaOnly, autoExposure, msaa);
 
-	TShared<RenderTexture> ppOutput;
-	TShared<Texture> ppLastFrame;
-	postProcessNode->GetAndSwitch(inputs.View, ppOutput, ppLastFrame);
-
-	TShared<Texture> eyeAdaptationTex;
-	if(eyeAdaptationNode->Output)
-		eyeAdaptationTex = eyeAdaptationNode->Output->Texture;
-
-	TShared<Texture> tonemapLUTTex;
-	if(mTonemapLUT)
-		tonemapLUTTex = mTonemapLUT->Texture;
-
 	TShared<Texture> bloomTex;
 	if(settings.Bloom.Enabled)
 	{
@@ -1519,9 +1510,8 @@ void RCNodeTonemapping::Render(const RenderCompositorNodeInputs& inputs)
 		bloomTex = bloomNode->Output;
 	}
 
-	tonemapping->Prepare(sceneColor, eyeAdaptationTex, bloomTex, tonemapLUTTex, settings);
-	tonemapping->Execute(commandBuffer, ppOutput);
-#endif
+	const TShared<Texture> output = postProcessNode->CreateOutput(inputs.Graph, inputs.View);
+	AddFullScreenPass(inputs.Graph, "Tonemapping", tonemapping, output, FrameGraphAttachmentLoad::DontCare, sceneColor, eyeAdaptationNode->Output, bloomTex, mTonemapLUT, settings);
 }
 
 void RCNodeTonemapping::Clear()
@@ -1543,13 +1533,11 @@ RCNodeTonemapping::DependencyDefinition RCNodeTonemapping::GetDependencyDefiniti
 
 void RCNodeBokehDOF::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
 	const DepthOfFieldSettings& settings = inputs.View.GetRenderSettings().DepthOfField;
 	if(!settings.Enabled || settings.Type != DepthOfFieldType::Bokeh)
 		return;
 
-	GpuCommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 	const bool msaa = viewProps.Target.NumSamples > 1;
 
@@ -1561,29 +1549,41 @@ void RCNodeBokehDOF::Render(const RenderCompositorNodeInputs& inputs)
 	BokehDOFMaterial* renderMat = BokehDOFMaterial::GetVariation(settings.BokehOcclusion);
 	BokehDOFCombineMaterial* combineMat = BokehDOFCombineMaterial::GetVariation(msaa ? MSAAMode::Full : MSAAMode::None);
 
-	TShared<Texture> depth = sceneDepthNode->DepthTex->Texture;
+	const TShared<Texture>& sceneColor = sceneColorNode->SceneColorTex;
+	const TShared<Texture>& depth = sceneDepthNode->DepthTex;
 
 	// Downsample scene and store depth in .w
-	TShared<PooledRenderTexture> halfResSceneAndDepth =
-		GetGpuResourcePool().Get(BokehDOFPrepareMaterial::GetOutputDesc(sceneColorNode->SceneColorTex->Texture));
+	const TShared<Texture> halfResSceneAndDepth = inputs.Graph.CreateTexture("BokehDOFHalfSceneAndDepth", BokehDOFPrepareMaterial::GetOutputCreateInformation(sceneColor));
 
-	prepareMat->Prepare(sceneColorNode->SceneColorTex->Texture, depth, inputs.View, settings);
-	prepareMat->Execute(commandBuffer, halfResSceneAndDepth->RenderTexture);
+	FrameGraphRasterPass preparePass;
+	preparePass.SetColorAttachment(0, halfResSceneAndDepth, FrameGraphAttachmentLoad::DontCare);
 
-	TShared<PooledRenderTexture> unfocusedTex =
-		GetGpuResourcePool().Get(BokehDOFMaterial::GetOutputDesc(halfResSceneAndDepth->Texture));
+	const TShared<GpuParameterSet> prepareSet = prepareMat->Prepare(preparePass, sceneColor, depth, inputs.View, settings);
+	inputs.Graph.AddRasterPass("BokehDOFPrepare", std::move(preparePass), [prepareMat, prepareSet, sceneColor](FrameGraphPassContext& context)
+	{
+		context.GetCommandBuffer().SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
+		prepareMat->Execute(context, prepareSet, sceneColor);
+	});
 
-	renderMat->Prepare(halfResSceneAndDepth->Texture, inputs.View, settings, unfocusedTex->RenderTexture);
-	renderMat->Execute(commandBuffer, halfResSceneAndDepth->Texture, unfocusedTex->RenderTexture);
-	halfResSceneAndDepth = nullptr;
+	// Render the sprites, blending them into the cleared unfocused texture
+	const TShared<Texture> unfocusedTex = inputs.Graph.CreateTexture("BokehDOFUnfocused", BokehDOFMaterial::GetOutputCreateInformation(halfResSceneAndDepth));
+
+	FrameGraphRasterPass renderPass;
+	renderPass.SetColorAttachment(0, unfocusedTex, FrameGraphAttachmentLoad::Clear);
+
+	const TShared<GpuParameterSet> renderSet = renderMat->Prepare(renderPass, halfResSceneAndDepth, inputs.View, settings, unfocusedTex);
+	inputs.Graph.AddRasterPass("BokehDOF", std::move(renderPass), [renderMat, renderSet, halfResSceneAndDepth](FrameGraphPassContext& context)
+	{
+		context.GetCommandBuffer().SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
+		renderMat->Execute(context, renderSet, halfResSceneAndDepth);
+	});
 
 	// Combine the unfocused and focused textures to form the final image
-	combineMat->Prepare(unfocusedTex->Texture, sceneColorNode->SceneColorTex->Texture, depth, inputs.View, settings);
-	combineMat->Execute(commandBuffer, lightAccumNode->LightAccumulationTex->RenderTexture);
+	AddFullScreenPass(inputs.Graph, "BokehDOFCombine", combineMat, lightAccumNode->LightAccumulationTex, FrameGraphAttachmentLoad::DontCare,
+		unfocusedTex, sceneColor, depth, inputs.View, settings);
 
 	// TODO - This might be incorrect when not supporting tiled deferred? As light accum is the same as scene color
 	sceneColorNode->Swap(lightAccumNode);
-#endif
 }
 
 void RCNodeBokehDOF::Clear()
@@ -1604,10 +1604,8 @@ RCNodeTemporalAA::~RCNodeTemporalAA()
 
 void RCNodeTemporalAA::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
 	auto* sceneColorNode = dependencies.Get<RCNodeSceneColor>();
-	TShared<PooledRenderTexture> sceneColor = sceneColorNode->SceneColorTex;
 
 	const TemporalAASettings& settings = inputs.View.GetRenderSettings().TemporalAa;
 	if(!settings.Enabled)
@@ -1615,10 +1613,12 @@ void RCNodeTemporalAA::Render(const RenderCompositorNodeInputs& inputs)
 		DeallocOutputs();
 
 		mPooledOutput = nullptr;
-		Output = sceneColor->Texture;
+		Output = sceneColorNode->SceneColorTex;
 		return;
 	}
 
+#if B3D_FRAME_GRAPH_PORT_PENDING(TemporalAA)
+	TShared<PooledRenderTexture> sceneColor = sceneColorNode->SceneColorTex;
 	GpuCommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 
 	// TODO - Resolve scene color MSAA (in a way that can be shared by multiple effects)
@@ -1668,11 +1668,9 @@ void RCNodeTemporalAA::Render(const RenderCompositorNodeInputs& inputs)
 
 void RCNodeTemporalAA::Clear()
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	mPrevFrame = mPooledOutput;
 	mPooledOutput = nullptr;
 	Output = nullptr;
-#endif
 }
 
 void RCNodeTemporalAA::DeallocOutputs()
@@ -1689,7 +1687,6 @@ RCNodeTemporalAA::DependencyDefinition RCNodeTemporalAA::GetDependencyDefinition
 
 void RCNodeMotionBlur::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	const MotionBlurSettings& settings = inputs.View.GetRenderSettings().MotionBlur;
 	if(!settings.Enabled)
 		return;
@@ -1710,7 +1707,6 @@ void RCNodeMotionBlur::Render(const RenderCompositorNodeInputs& inputs)
 	// motionBlurMat->Execute(commandBuffer, lightAccumNode->lightAccumulationTex->renderTexture);
 
 	// sceneColorNode->swap(lightAccumNode);
-#endif
 }
 
 void RCNodeMotionBlur::Clear()
@@ -1726,9 +1722,7 @@ RCNodeMotionBlur::DependencyDefinition RCNodeMotionBlur::GetDependencyDefinition
 
 void RCNodeGaussianDOF::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
-	GpuCommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	RCNodeSceneDepth* sceneDepthNode = dependencies.Get<RCNodeSceneDepth>();
 	RCNodePostProcess* postProcessNode = dependencies.Get<RCNodePostProcess>();
 
@@ -1742,63 +1736,52 @@ void RCNodeGaussianDOF::Render(const RenderCompositorNodeInputs& inputs)
 
 	GaussianDOFSeparateMaterial* separateMat = GaussianDOFSeparateMaterial::GetVariation(near, far);
 	GaussianDOFCombineMaterial* combineMat = GaussianDOFCombineMaterial::GetVariation(near, far);
-	GaussianBlurMaterial* blurMat = GaussianBlurMaterial::Get();
 
-	TShared<RenderTexture> ppOutput;
-	TShared<Texture> ppLastFrame;
-	postProcessNode->GetAndSwitch(inputs.View, ppOutput, ppLastFrame);
+	const TShared<Texture> input = postProcessNode->GetLastOutput();
+	const TShared<Texture>& depth = sceneDepthNode->DepthTex;
 
-	separateMat->Prepare(ppLastFrame, sceneDepthNode->DepthTex->Texture, inputs.View, settings);
-	separateMat->Execute(commandBuffer, ppLastFrame);
+	// Separate the unfocused pixels, near into the first attachment if both planes are present
+	const TextureCreateInformation separateOutputInformation = GaussianDOFSeparateMaterial::GetOutputCreateInformation(input);
 
-	TShared<PooledRenderTexture> nearTex, farTex;
-	if(near && far)
+	TShared<Texture> nearTex, farTex;
+	FrameGraphRasterPass separatePass;
+	if(near)
 	{
-		nearTex = separateMat->GetOutput(0);
-		farTex = separateMat->GetOutput(1);
+		nearTex = inputs.Graph.CreateTexture("GaussianDOFNear", separateOutputInformation);
+		separatePass.SetColorAttachment(0, nearTex, FrameGraphAttachmentLoad::DontCare);
 	}
-	else
+
+	if(far)
 	{
-		if(near)
-			nearTex = separateMat->GetOutput(0);
-		else
-			farTex = separateMat->GetOutput(0);
+		farTex = inputs.Graph.CreateTexture("GaussianDOFFar", separateOutputInformation);
+		separatePass.SetColorAttachment(near ? 1 : 0, farTex, FrameGraphAttachmentLoad::DontCare);
 	}
+
+	const TShared<GpuParameterSet> separateSet = separateMat->Prepare(separatePass, input, depth, inputs.View, settings);
+	inputs.Graph.AddRasterPass("GaussianDOFSeparate", std::move(separatePass), [separateMat, separateSet](FrameGraphPassContext& context)
+	{
+		context.GetCommandBuffer().SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
+		separateMat->Execute(context, separateSet);
+	});
 
 	// Blur the out of focus pixels
 	// Note: Perhaps set up stencil so I can avoid performing blur on unused parts of the textures?
-	const TextureProperties& texProps = nearTex ? nearTex->Texture->GetProperties() : farTex->Texture->GetProperties();
-	PooledRenderTextureCreateInformation tempTexDesc = PooledRenderTextureCreateInformation::Create2D(texProps.Format, texProps.Width, texProps.Height, TextureUsageFlag::RenderTarget);
-	TShared<PooledRenderTexture> tempTexture = GetGpuResourcePool().Get(tempTexDesc);
-
 	TShared<Texture> blurredNearTex;
 	if(nearTex)
 	{
-		blurMat->Execute(commandBuffer, nearTex->Texture, settings.NearBlurAmount, tempTexture->RenderTexture);
-		blurredNearTex = tempTexture->Texture;
+		blurredNearTex = inputs.Graph.CreateTexture("GaussianDOFBlurredNear", separateOutputInformation);
+		AddGaussianBlurPasses(inputs.Graph, nearTex, settings.NearBlurAmount, blurredNearTex);
 	}
 
 	TShared<Texture> blurredFarTex;
 	if(farTex)
 	{
-		// If temporary texture is used up, re-use the original near texture for the blurred result
-		if(blurredNearTex)
-		{
-			blurMat->Execute(commandBuffer, farTex->Texture, settings.FarBlurAmount, nearTex->RenderTexture);
-			blurredFarTex = nearTex->Texture;
-		}
-		else // Otherwise just use the temporary
-		{
-			blurMat->Execute(commandBuffer, farTex->Texture, settings.FarBlurAmount, tempTexture->RenderTexture);
-			blurredFarTex = tempTexture->Texture;
-		}
+		blurredFarTex = inputs.Graph.CreateTexture("GaussianDOFBlurredFar", separateOutputInformation);
+		AddGaussianBlurPasses(inputs.Graph, farTex, settings.FarBlurAmount, blurredFarTex);
 	}
 
-	combineMat->Prepare(ppLastFrame, blurredNearTex, blurredFarTex, sceneDepthNode->DepthTex->Texture, inputs.View, settings);
-	combineMat->Execute(commandBuffer, ppOutput);
-
-	separateMat->Release();
-#endif
+	const TShared<Texture> output = postProcessNode->CreateOutput(inputs.Graph, inputs.View);
+	AddFullScreenPass(inputs.Graph, "GaussianDOFCombine", combineMat, output, FrameGraphAttachmentLoad::DontCare, input, blurredNearTex, blurredFarTex, depth, inputs.View, settings);
 }
 
 void RCNodeGaussianDOF::Clear()
@@ -1814,7 +1797,6 @@ RCNodeGaussianDOF::DependencyDefinition RCNodeGaussianDOF::GetDependencyDefiniti
 
 void RCNodeFXAA::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
 	const RenderSettings& settings = inputs.View.GetRenderSettings();
 	if(!settings.EnableFxaa)
@@ -1822,15 +1804,11 @@ void RCNodeFXAA::Render(const RenderCompositorNodeInputs& inputs)
 
 	RCNodePostProcess* postProcessNode = dependencies.Get<RCNodePostProcess>();
 
-	TShared<RenderTexture> ppOutput;
-	TShared<Texture> ppLastFrame;
-	postProcessNode->GetAndSwitch(inputs.View, ppOutput, ppLastFrame);
+	const TShared<Texture> input = postProcessNode->GetLastOutput();
+	const TShared<Texture> output = postProcessNode->CreateOutput(inputs.Graph, inputs.View);
 
 	// Note: I could skip executing FXAA over DOF and motion blurred pixels
-	FXAAMaterial* fxaa = FXAAMaterial::Get();
-	fxaa->Prepare(ppLastFrame);
-	fxaa->Execute(*inputs.ActiveCommandBuffer, ppOutput);
-#endif
+	AddFullScreenPass(inputs.Graph, "FXAA", FXAAMaterial::Get(), output, FrameGraphAttachmentLoad::DontCare, input);
 }
 
 void RCNodeFXAA::Clear()
@@ -1846,7 +1824,6 @@ RCNodeFXAA::DependencyDefinition RCNodeFXAA::GetDependencyDefinition()
 
 void RCNodeChromaticAberration::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
 	const RenderSettings& settings = inputs.View.GetRenderSettings();
 	if(!settings.ChromaticAberration.Enabled)
@@ -1854,14 +1831,11 @@ void RCNodeChromaticAberration::Render(const RenderCompositorNodeInputs& inputs)
 
 	auto* postProcessNode = dependencies.Get<RCNodePostProcess>();
 
-	TShared<RenderTexture> ppOutput;
-	TShared<Texture> ppLastFrame;
-	postProcessNode->GetAndSwitch(inputs.View, ppOutput, ppLastFrame);
+	const TShared<Texture> input = postProcessNode->GetLastOutput();
+	const TShared<Texture> output = postProcessNode->CreateOutput(inputs.Graph, inputs.View);
 
 	ChromaticAberrationMaterial* chromaticAberration = ChromaticAberrationMaterial::GetVariation(settings.ChromaticAberration.Type);
-	chromaticAberration->Prepare(ppLastFrame, settings.ChromaticAberration);
-	chromaticAberration->Execute(*inputs.ActiveCommandBuffer, ppOutput);
-#endif
+	AddFullScreenPass(inputs.Graph, "ChromaticAberration", chromaticAberration, output, FrameGraphAttachmentLoad::DontCare, input, settings.ChromaticAberration);
 }
 
 void RCNodeChromaticAberration::Clear()
@@ -1877,7 +1851,6 @@ RCNodeChromaticAberration::DependencyDefinition RCNodeChromaticAberration::GetDe
 
 void RCNodeFilmGrain::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
 	const RenderSettings& settings = inputs.View.GetRenderSettings();
 	if(!settings.FilmGrain.Enabled)
@@ -1885,14 +1858,10 @@ void RCNodeFilmGrain::Render(const RenderCompositorNodeInputs& inputs)
 
 	auto* postProcessNode = dependencies.Get<RCNodePostProcess>();
 
-	TShared<RenderTexture> ppOutput;
-	TShared<Texture> ppLastFrame;
-	postProcessNode->GetAndSwitch(inputs.View, ppOutput, ppLastFrame);
+	const TShared<Texture> input = postProcessNode->GetLastOutput();
+	const TShared<Texture> output = postProcessNode->CreateOutput(inputs.Graph, inputs.View);
 
-	FilmGrainMaterial* filmGrain = FilmGrainMaterial::Get();
-	filmGrain->Prepare(ppLastFrame, inputs.FrameInfo.Timings.Time, settings.FilmGrain);
-	filmGrain->Execute(*inputs.ActiveCommandBuffer, ppOutput);
-#endif
+	AddFullScreenPass(inputs.Graph, "FilmGrain", FilmGrainMaterial::Get(), output, FrameGraphAttachmentLoad::DontCare, input, inputs.FrameInfo.Timings.Time, settings.FilmGrain);
 }
 
 void RCNodeFilmGrain::Clear()
@@ -1908,28 +1877,23 @@ RCNodeFilmGrain::DependencyDefinition RCNodeFilmGrain::GetDependencyDefinition()
 
 void RCNodeHalfSceneColor::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 
 	auto* sceneColorNode = dependencies.Get<RCNodeSceneColor>();
-	const TShared<Texture>& input = sceneColorNode->SceneColorTex->Texture;
+	const TShared<Texture>& input = sceneColorNode->SceneColorTex;
 
 	// Downsample scene
 	const bool msaa = viewProps.Target.NumSamples > 1;
 	DownsampleMaterial* downsampleMat = DownsampleMaterial::GetVariation(1, msaa);
 
-	Output = GetGpuResourcePool().Get(DownsampleMaterial::GetOutputDesc(input));
-
-	downsampleMat->Execute(*inputs.ActiveCommandBuffer, input, Output->RenderTexture);
-#endif
+	Output = inputs.Graph.CreateTexture("HalfSceneColor", DownsampleMaterial::GetOutputCreateInformation(input));
+	AddDownsamplePass(inputs.Graph, "HalfSceneColor", downsampleMat, input, Output);
 }
 
 void RCNodeHalfSceneColor::Clear()
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	Output = nullptr;
-#endif
 }
 
 RCNodeHalfSceneColor::DependencyDefinition RCNodeHalfSceneColor::GetDependencyDefinition()
@@ -1942,12 +1906,10 @@ constexpr u32 RCNodeSceneColorDownsamples::kMaxNumDownsamples;
 
 void RCNodeSceneColorDownsamples::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
-	GpuResourcePool& resPool = GetGpuResourcePool();
 
 	auto* halfSceneColorNode = dependencies.Get<RCNodeHalfSceneColor>();
-	const TextureProperties& halfSceneProps = halfSceneColorNode->Output->Texture->GetProperties();
+	const TextureProperties& halfSceneProps = halfSceneColorNode->Output->GetProperties();
 
 	const u32 totalDownsampleLevels = PixelUtility::GetMipmapCount(
 										  halfSceneProps.Width,
@@ -1964,19 +1926,16 @@ void RCNodeSceneColorDownsamples::Render(const RenderCompositorNodeInputs& input
 		DownsampleMaterial* downsampleMat = DownsampleMaterial::GetVariation(1, false);
 		for(u32 i = 1; i < AvailableDownsamples; i++)
 		{
-			Output[i] = resPool.Get(DownsampleMaterial::GetOutputDesc(Output[i - 1]->Texture));
-			downsampleMat->Execute(*inputs.ActiveCommandBuffer, Output[i - 1]->Texture, Output[i]->RenderTexture);
+			Output[i] = inputs.Graph.CreateTexture("SceneColorDownsample", DownsampleMaterial::GetOutputCreateInformation(Output[i - 1]));
+			AddDownsamplePass(inputs.Graph, "SceneColorDownsample", downsampleMat, Output[i - 1], Output[i]);
 		}
 	}
-#endif
 }
 
 void RCNodeSceneColorDownsamples::Clear()
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	for(u32 i = 0; i < kMaxNumDownsamples; i++)
 		Output[i] = nullptr;
-#endif
 }
 
 RCNodeSceneColorDownsamples::DependencyDefinition RCNodeSceneColorDownsamples::GetDependencyDefinition()
@@ -2434,7 +2393,6 @@ RCNodeSSR::DependencyDefinition RCNodeSSR::GetDependencyDefinition()
 
 void RCNodeBloom::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
 	const RenderSettings& settings = inputs.View.GetRenderSettings();
 
@@ -2450,8 +2408,6 @@ void RCNodeBloom::Render(const RenderCompositorNodeInputs& inputs)
 	const u32 quality = Math::Clamp(settings.Bloom.Quality, 0U, 3U);
 	constexpr u32 NUM_STEPS_PER_QUALITY[] = { 3, 4, 5, 6 };
 
-	GaussianBlurMaterial* filterMat = GaussianBlurMaterial::GetVariation(true);
-
 	const bool autoExposure = settings.EnableHdr && settings.EnableAutoExposure;
 	BloomClipMaterial* clipMat = BloomClipMaterial::GetVariation(autoExposure);
 
@@ -2459,58 +2415,41 @@ void RCNodeBloom::Render(const RenderCompositorNodeInputs& inputs)
 	if(autoExposure)
 	{
 		auto* eyeAdapatationNode = dependencies.Get<RCNodeEyeAdaptation>();
-
-		if(eyeAdapatationNode->Output)
-			eyeAdaptationTex = eyeAdapatationNode->Output->Texture;
+		eyeAdaptationTex = eyeAdapatationNode->Output;
 	}
 
 	const u32 numSteps = NUM_STEPS_PER_QUALITY[quality];
-	TShared<PooledRenderTexture> prevOutput;
+	TShared<Texture> prevOutput;
 	for(u32 i = 0; i < numSteps; i++)
 	{
 		const u32 srcIdx = numDownsamples - i - 1;
-		const TShared<PooledRenderTexture> downsampledTex = sceneDownsamplesNode->Output[srcIdx];
+		const TShared<Texture>& downsampledTex = sceneDownsamplesNode->Output[srcIdx];
 
-		const TextureProperties& inputProps = downsampledTex->Texture->GetProperties();
+		const TextureProperties& inputProps = downsampledTex->GetProperties();
 
-		TShared<PooledRenderTexture> filterOutput = GetGpuResourcePool().Get(
-			PooledRenderTextureCreateInformation::Create2D(
-				inputProps.Format,
-				inputProps.Width,
-				inputProps.Height,
-				TextureUsageFlag::RenderTarget));
+		const TShared<Texture> filterOutput = inputs.Graph.CreateTexture("BloomFilterOutput", TextureCreateInformation::Create2D(inputProps.Format, inputProps.Width, inputProps.Height, TextureUsageFlag::RenderTarget));
 
-		TShared<PooledRenderTexture> blurInput = downsampledTex;
-		TShared<PooledRenderTexture> blurOutput = filterOutput;
+		TShared<Texture> blurInput = downsampledTex;
+		TShared<Texture> blurOutput = filterOutput;
 		if(settings.Bloom.Threshold > 0.0f)
 		{
-			clipMat->Prepare(downsampledTex->Texture, settings.Bloom.Threshold, eyeAdaptationTex, settings);
-			clipMat->Execute(*inputs.ActiveCommandBuffer, filterOutput->RenderTexture);
+			AddFullScreenPass(inputs.Graph, "BloomClip", clipMat, filterOutput, FrameGraphAttachmentLoad::DontCare, downsampledTex, settings.Bloom.Threshold, eyeAdaptationTex, settings);
 
 			blurOutput = blurInput;
 			blurInput = filterOutput;
 		}
 
-		TShared<Texture> additiveInput;
-		if(prevOutput)
-			additiveInput = prevOutput->Texture;
-
 		const Color tint = Color::kWhite * (settings.Bloom.Intensity / (float)numSteps);
-		filterMat->Execute(*inputs.ActiveCommandBuffer, blurInput->Texture, settings.Bloom.FilterSize, blurOutput->RenderTexture, tint, additiveInput);
+		AddGaussianBlurPasses(inputs.Graph, blurInput, settings.Bloom.FilterSize, blurOutput, tint, prevOutput);
 		prevOutput = blurOutput;
 	}
 
-	mPooledOutput = prevOutput;
-	Output = mPooledOutput->Texture;
-#endif
+	Output = prevOutput;
 }
 
 void RCNodeBloom::Clear()
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
-	mPooledOutput = nullptr;
 	Output = nullptr;
-#endif
 }
 
 RCNodeBloom::DependencyDefinition RCNodeBloom::GetDependencyDefinition()
@@ -2521,10 +2460,7 @@ RCNodeBloom::DependencyDefinition RCNodeBloom::GetDependencyDefinition()
 
 void RCNodeScreenSpaceLensFlare::Render(const RenderCompositorNodeInputs& inputs)
 {
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
-	GpuCommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
-	GpuResourcePool& resPool = GpuResourcePool::Instance();
 	const RenderSettings& settings = inputs.View.GetRenderSettings();
 	const ScreenSpaceLensFlareSettings& lensFlareSettings = settings.ScreenSpaceLensFlare;
 
@@ -2535,48 +2471,36 @@ void RCNodeScreenSpaceLensFlare::Render(const RenderCompositorNodeInputs& inputs
 	const u32 numDownsamples = Math::Clamp(settings.ScreenSpaceLensFlare.DownsampleCount, 1U, availableDownsamples);
 	B3D_ASSERT(numDownsamples >= 1);
 
-	TShared<PooledRenderTexture> downsampledTex = sceneDownsamplesNode->Output[numDownsamples - 1];
-	const TextureProperties& sceneTexProps = downsampledTex->Texture->GetProperties();
+	const TShared<Texture>& downsampledTex = sceneDownsamplesNode->Output[numDownsamples - 1];
+	const TextureProperties& sceneTexProps = downsampledTex->GetProperties();
 
 	// Ghost features
-	TShared<PooledRenderTexture> featureTex = resPool.Get(
-		PooledRenderTextureCreateInformation::Create2D(
-			sceneTexProps.Format,
-			sceneTexProps.Width,
-			sceneTexProps.Height,
-			TextureUsageFlag::RenderTarget));
+	const TShared<Texture> featureTex = inputs.Graph.CreateTexture("LensFlareFeatures", TextureCreateInformation::Create2D(sceneTexProps.Format, sceneTexProps.Width, sceneTexProps.Height, TextureUsageFlag::RenderTarget));
 
 	bool haloAspect = lensFlareSettings.HaloAspectRatio != 1.0f;
 	ScreenSpaceLensFlareMaterial* lensFlareMat = ScreenSpaceLensFlareMaterial::GetVariation(
 		lensFlareSettings.Halo,
 		haloAspect,
 		lensFlareSettings.ChromaticAberration);
-	lensFlareMat->Prepare(downsampledTex->Texture, lensFlareSettings);
-	lensFlareMat->Execute(commandBuffer, featureTex->RenderTexture);
+	AddFullScreenPass(inputs.Graph, "ScreenSpaceLensFlare", lensFlareMat, featureTex, FrameGraphAttachmentLoad::DontCare, downsampledTex, lensFlareSettings);
 
 	// Blur
-	GaussianBlurMaterial* filterMat = GaussianBlurMaterial::Get();
-	filterMat->Execute(commandBuffer, featureTex->Texture, lensFlareSettings.FilterSize, downsampledTex->RenderTexture, Color::kWhite);
+	AddGaussianBlurPasses(inputs.Graph, featureTex, lensFlareSettings.FilterSize, downsampledTex);
 
-	auto* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.InputNodes[1]);
+	// Add to scene color
+	auto* sceneColorNode = dependencies.Get<RCNodeSceneColor>();
+	const Color tint = Color::kWhite * lensFlareSettings.Brightness;
 
 	if(lensFlareSettings.BicubicUpsampling)
 	{
 		BicubicUpsampleMaterial* upsampleMat = BicubicUpsampleMaterial::GetVariation(false);
-		upsampleMat->Execute(commandBuffer, 
-			downsampledTex->Texture,
-			sceneColorNode->RenderTarget,
-			Color::kWhite * lensFlareSettings.Brightness);
+		AddFullScreenPass(inputs.Graph, "LensFlareUpsample", upsampleMat, sceneColorNode->SceneColorTex, FrameGraphAttachmentLoad::Load, downsampledTex, tint);
 	}
 	else
 	{
 		CompositeMaterial* upsampleMat = CompositeMaterial::Get();
-		upsampleMat->Execute(commandBuffer, 
-			downsampledTex->Texture,
-			sceneColorNode->RenderTarget,
-			Color::kWhite * lensFlareSettings.Brightness);
+		AddFullScreenPass(inputs.Graph, "LensFlareUpsample", upsampleMat, sceneColorNode->SceneColorTex, FrameGraphAttachmentLoad::Load, downsampledTex, tint);
 	}
-#endif
 }
 
 void RCNodeScreenSpaceLensFlare::Clear()

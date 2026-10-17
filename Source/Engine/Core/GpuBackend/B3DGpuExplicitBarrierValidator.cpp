@@ -201,13 +201,13 @@ namespace b3d::render
 		TInlineArray<const IGpuResource*, 8> barrierResources;
 		for(const GpuExplicitBufferBarrier& barrier : barriers.BufferBarriers)
 		{
-			if(barrier.Object != nullptr && barrier.Object->GetGpuResource() != nullptr)
+			if(barrier.Object != nullptr && barrier.Object->GetGpuResource() != nullptr && !barrier.Flags.IsSet(GpuBarrierFlag::AliasRelease))
 				barrierResources.Add(barrier.Object->GetGpuResource());
 		}
 
 		for(const GpuExplicitTextureBarrier& barrier : barriers.TextureBarriers)
 		{
-			if(barrier.Object != nullptr && barrier.Object->GetGpuResource() != nullptr)
+			if(barrier.Object != nullptr && barrier.Object->GetGpuResource() != nullptr && !barrier.Flags.IsSet(GpuBarrierFlag::AliasRelease))
 				barrierResources.Add(barrier.Object->GetGpuResource());
 		}
 
@@ -421,7 +421,8 @@ namespace b3d::render
 		const auto declaredAcquire = mAliasAcquires.find(gpuResource);
 		if(!isAliasAcquire)
 		{
-			if(mSupersededResources.find(gpuResource) != mSupersededResources.end())
+			const bool isAliasRelease = barrier != nullptr && barrier->Flags.IsSet(GpuBarrierFlag::AliasRelease);
+			if(!isAliasRelease && mSupersededResources.find(gpuResource) != mSupersededResources.end())
 				return "The resource was used after an alias acquire of another resource took over its memory.";
 
 			if(declaredAcquire != mAliasAcquires.end())
@@ -453,6 +454,8 @@ namespace b3d::render
 		}
 		else if(barrier.Flags.IsSet(GpuBarrierFlag::AliasAcquire) && (state.IsDeclared || state.UsedAccess != GpuAccessFlag::None))
 			error = "An alias acquire must precede every other use of the resource.";
+		else if(barrier.Flags.IsSet(GpuBarrierFlag::AliasRelease) && ((isImage && barrier.Destination.Layout != GpuImageLayout::Undefined) || barrier.Destination.Access != GpuAccessFlag::None))
+			error = "An alias release must leave the resource in GpuImageLayout::Undefined, without access.";
 		else if(isImage && state.IsDeclared && source.Layout != GpuImageLayout::Undefined && source.Layout != state.Declared.Layout)
 			error = "The source layout of an explicit barrier differs from the destination layout of the previous barrier of the resource.";
 		else if(!source.Stages.IsSetAll(state.UsedStages))

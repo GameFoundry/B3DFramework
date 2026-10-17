@@ -44,7 +44,8 @@ namespace b3d
 	 *    resting state and return them to it (see GpuBackendUtility::GetRestingState()).
 	 *  - New textures and window surfaces start at rest, brought there by the first submission that uses them (see
 	 *    IGpuImageResource::RequestRestingTransition()). Presentation takes window color surfaces out of rest, and the next submission
-	 *    that uses them brings them back.
+	 *    that uses them brings them back. Textures that frame graphs create do not start at rest, the graph's first barrier of
+	 *    each brings it out of its creation layout.
 	 *  - Frame graphs issue every other barrier.
 	 *
 	 * If disabled, the resource tracker derives every barrier, and frame graphs run in automatic mode (see render::FrameGraph). Explicit
@@ -471,11 +472,7 @@ namespace b3d
 			GpuAccessState Source; /**< Accesses before the barrier. The barrier makes their writes visible to the destination. */
 			GpuAccessState Destination; /**< Accesses after the barrier. */
 
-			/**
-			 * Additional behavior. GpuBarrierFlag::AliasAcquire starts a new lifetime of the resource on memory that earlier resources used.
-			 * Source then describes the last accesses of those resources (see GpuAliasAcquire::Source), an image source must be in
-			 * GpuImageLayout::Undefined, and the barrier must cover the whole resource.
-			 */
+			/** Additional behavior. */
 			GpuBarrierFlags Flags;
 		};
 

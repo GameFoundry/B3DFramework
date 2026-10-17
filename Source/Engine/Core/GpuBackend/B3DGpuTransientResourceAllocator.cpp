@@ -556,6 +556,7 @@ void GpuTransientResourceAllocator::NotifyResourcePlaced(Resource& resource, con
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	SetUnplaced(resource, false);
+#endif
 
 	// A cached resource may be placed over memory it released itself, and an acquire must not supersede the resource it acquires
 	IGpuResource* gpuResource = GetGpuResource(resource);
@@ -568,9 +569,6 @@ void GpuTransientResourceAllocator::NotifyResourcePlaced(Resource& resource, con
 	}
 
 	acquire.Predecessors = TArrayView<IGpuResource* const>(resource.Predecessors.Data(), resource.Predecessors.Size());
-#else
-	(void)acquire;
-#endif
 }
 
 void GpuTransientResourceAllocator::ReleaseResource(const void* resourceKey, TArrayView<const GpuTransientLastUse> lastUses)

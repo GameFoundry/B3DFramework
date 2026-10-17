@@ -612,21 +612,18 @@ namespace b3d
 		/* 							POST PROCESS NODES                			*/
 		/************************************************************************/
 
-		/**
-		 * Helper node used for post-processing. Takes care of allocating and switching between textures used for post process
-		 * effects.
-		 */
+		/** Helper node used for post-processing. Creates the textures post-process effects write their results to. */
 		class RCNodePostProcess : public RenderCompositorNode
 		{
 		public:
 			/**
-			 * Returns a texture that can be used for rendering a post-process effect, and the result of the previous
-			 * output. Switches these textures so the next call they are returned in the opposite parameters.
+			 * Creates a transient texture of @p graph for a post-process effect to write its results to, and makes it the last output. The
+			 * effect reads the previous output from GetLastOutput() before calling this.
 			 */
-			void GetAndSwitch(const RendererView& view, TShared<RenderTexture>& output, TShared<Texture>& lastFrame) const;
+			TShared<Texture> CreateOutput(FrameGraph& graph, const RendererView& view);
 
-			/** Returns a texture that contains the last rendererd post process output. */
-			TShared<Texture> GetLastOutput() const;
+			/** Returns the texture that contains the last rendered post process output. */
+			TShared<Texture> GetLastOutput() const { return mOutput; }
 
 			using DependencyDefinition = RCNodeDependencyDefinition<>;
 
@@ -638,15 +635,14 @@ namespace b3d
 			void Render(const RenderCompositorNodeInputs& inputs) override;
 			void Clear() override;
 
-			mutable TShared<PooledRenderTexture> mOutput[2];
-			mutable u32 mCurrentIdx = 0;
+			TShared<Texture> mOutput;
 		};
 
 		/** Calculates the eye adaptation values used for automatic exposure. */
 		class RCNodeEyeAdaptation : public RenderCompositorNode
 		{
 		public:
-			TShared<PooledRenderTexture> Output;
+			TShared<Texture> Output;
 
 			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeClusteredForward, RCNodeHalfSceneColor>;
 
@@ -658,7 +654,7 @@ namespace b3d
 			void Render(const RenderCompositorNodeInputs& inputs) override;
 			void Clear() override;
 
-			TShared<PooledRenderTexture> previous;
+			TShared<Texture> previous;
 		};
 
 		/**
@@ -678,7 +674,7 @@ namespace b3d
 			void Render(const RenderCompositorNodeInputs& inputs) override;
 			void Clear() override;
 
-			TShared<PooledRenderTexture> mTonemapLUT;
+			TShared<Texture> mTonemapLUT;
 			u64 mTonemapLastUpdateHash = -1;
 		};
 
@@ -754,7 +750,7 @@ namespace b3d
 		class RCNodeHalfSceneColor : public RenderCompositorNode
 		{
 		public:
-			TShared<PooledRenderTexture> Output;
+			TShared<Texture> Output;
 
 			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneColor>;
 
@@ -776,7 +772,7 @@ namespace b3d
 		public:
 			static constexpr u32 kMaxNumDownsamples = 6;
 
-			TShared<PooledRenderTexture> Output[kMaxNumDownsamples];
+			TShared<Texture> Output[kMaxNumDownsamples];
 			u32 AvailableDownsamples = 0;
 
 			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeHalfSceneColor>;
@@ -915,8 +911,6 @@ namespace b3d
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
 			void Clear() override;
-
-			TShared<PooledRenderTexture> mPooledOutput;
 		};
 
 		/** Renders the screen-space lens flare effect. */

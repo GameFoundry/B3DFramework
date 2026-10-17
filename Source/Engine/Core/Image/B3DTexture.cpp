@@ -45,6 +45,18 @@ TextureCreateInformation TextureCreateInformation::CreateFromPixelData(const TSh
 	return createInformation;
 }
 
+TextureCreateInformation TextureCreateInformation::Create2D(PixelFormat format, u32 width, u32 height, TextureUsageFlags usage)
+{
+	TextureCreateInformation createInformation;
+	createInformation.Format = format;
+	createInformation.Width = width;
+	createInformation.Height = height;
+	createInformation.Usage = usage;
+	createInformation.SampleCount = 1;
+
+	return createInformation;
+}
+
 const TextureCopyInformation TextureCopyInformation::kDefault = TextureCopyInformation();
 const TextureBlitInformation TextureBlitInformation::kDefault = TextureBlitInformation();
 
@@ -377,7 +389,7 @@ void Texture::SetAllocation(const GpuAllocation& allocation, GpuObjectCreateFlag
 
 bool Texture::StartsAtRest() const
 {
-	return gGpuExplicitBarriers && !mIsAliased && GetDevice().GetCapabilities().HasCapability(RSC_EXPLICIT_BARRIERS);
+	return gGpuExplicitBarriers && !mIsAliased && mFrameGraphResourceIndex == ~0u && GetDevice().GetCapabilities().HasCapability(RSC_EXPLICIT_BARRIERS);
 }
 
 void Texture::Initialize()

@@ -57,7 +57,10 @@ void D3D12BarrierBatch::ReplaceGlobalBarrier(u32 barrierIndex, const D3D12_GLOBA
 
 void D3D12BarrierBatch::AddToGroup(D3D12_BARRIER_TYPE type, u32 barrierIndex)
 {
-	if(!mBarrierGroups.Empty() && mBarrierGroups.Back().Type == type)
+	const bool extendsGroup = !mBarrierGroups.Empty() && mBarrierGroups.Back().Type == type && !mIsGroupEnded;
+	mIsGroupEnded = false;
+
+	if(extendsGroup)
 	{
 		mBarrierGroups.Back().BarrierCount++;
 		return;
@@ -105,4 +108,5 @@ void D3D12BarrierBatch::Clear()
 	mGlobalBarriers.Clear();
 	mBufferBarriers.Clear();
 	mTextureBarriers.Clear();
+	mIsGroupEnded = false;
 }

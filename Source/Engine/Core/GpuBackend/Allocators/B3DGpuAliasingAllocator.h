@@ -93,7 +93,7 @@ namespace b3d
 		 * @param	outAllocation		Non-owning allocation referencing the memory. Identifies the memory to Release() and
 		 *								TryAllocateAt().
 		 * @param	outAcquire			Accesses on the queue of @p firstSubmission that the first use of the resource must be
-		 *								ordered after. In development builds also lists the earlier resources on the memory,
+		 *								ordered after. Also lists the earlier resources on the memory,
 		 *								valid until the next call to TryAllocate() or TryAllocateAt().
 		 * @param	outLatestSourcePass	If not null, receives the latest pass among the accesses of @p outAcquire, as reported by
 		 *								GpuTransientLastUse::Pass when the earlier resources were released. Empty if
@@ -117,7 +117,7 @@ namespace b3d
 		 * @param	lastUses	Last accesses of the resource placed on the memory, at most one per queue, in the scope's timeline.
 		 *						Empty if the resource was never accessed, in which case the memory keeps the accesses of the
 		 *						resources released on it before.
-		 * @param	owner		Resource placed on the memory. Reported to later allocations of the memory in development builds.
+		 * @param	owner		Resource placed on the memory. Reported to later allocations of the memory.
 		 */
 		void Release(const GpuAllocation& allocation, TArrayView<const GpuTransientLastUse> lastUses, IGpuResource* owner);
 
@@ -147,9 +147,7 @@ namespace b3d
 			u32 FirstUse = 0; /**< Index of the tag's first use in mTagUses. */
 			u32 UseCount = 0; /**< At most one use per queue. */
 
-#if B3D_BUILD_TYPE_DEVELOPMENT
 			IGpuResource* Owner = nullptr; /**< Resource released on the memory. */
-#endif
 		};
 
 		/** Range of heap memory, tagged with its last uses. */
@@ -235,9 +233,7 @@ namespace b3d
 		u64 mPeakUsedBytes = 0;
 		u64 mRequestedBytes = 0;
 
-#if B3D_BUILD_TYPE_DEVELOPMENT
 		TInlineArray<IGpuResource*, 4> mPredecessors; /**< Earlier resources on the memory of the last allocation. */
-#endif
 	};
 
 	/** @} */

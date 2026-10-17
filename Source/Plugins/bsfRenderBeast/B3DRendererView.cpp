@@ -125,9 +125,6 @@ void RendererView::SetRenderSettings(const TShared<RenderSettings>& settings)
 		*mRenderSettings = *settings;
 
 	// Features that wait for their port to frame graphs are off
-#if !B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
-	mRenderSettings->EnableAutoExposure = false;
-#endif
 #if !B3D_FRAME_GRAPH_PORT_PENDING(ScreenSpace)
 	mRenderSettings->AmbientOcclusion.Enabled = false;
 	mRenderSettings->ScreenSpaceReflections.Enabled = false;
@@ -415,16 +412,10 @@ float RendererView::GetCurrentExposure() const
 	return Math::RaiseToPower(2.0f, mRenderSettings->ExposureScale);
 }
 
-void RendererView::NotifyLuminanceUpdated(u64 frameIdx, TShared<GpuCommandBuffer> cb, TShared<PooledRenderTexture> texture) const
+void RendererView::NotifyLuminanceUpdated(u64 frameIdx, FrameGraph& graph, const TShared<Texture>& texture) const
 {
-	if(cb == nullptr)
-	{
-		B3D_LOG(Error, LogRenderer, "Cannot queue luminance update. (Null command buffer provided.)");
-		return;
-	}
-
-	TAsyncOp<TShared<PixelData>> readbackAsyncOp = TextureUtility::ReadAsync(GetRenderer()->GetGpuContext(), texture->Texture, *cb);
-	mLuminanceUpdates.emplace_back(frameIdx, std::move(readbackAsyncOp), std::move(texture));
+	TAsyncOp<TShared<PixelData>> readbackAsyncOp = TextureUtility::ReadAsync(graph, texture);
+	mLuminanceUpdates.emplace_back(frameIdx, std::move(readbackAsyncOp));
 }
 
 void RendererView::DetermineVisible(const TChunkedArray<RenderableRenderState*>& renderables, const TChunkedArray<CullInfo>& cullInfos, Vector<bool>* visibility)

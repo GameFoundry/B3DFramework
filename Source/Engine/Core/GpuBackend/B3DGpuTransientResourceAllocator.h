@@ -256,9 +256,7 @@ namespace b3d
 			/** True from the moment the resource is returned to a caller until the end of the scope it was placed in. See GpuTransientResourceAllocator. */
 			bool IsHeld = false;
 
-#if B3D_BUILD_TYPE_DEVELOPMENT
 			TInlineArray<IGpuResource*, 4> Predecessors; /**< Earlier resources on the memory, as of the last placement. */
-#endif
 		};
 
 		/**

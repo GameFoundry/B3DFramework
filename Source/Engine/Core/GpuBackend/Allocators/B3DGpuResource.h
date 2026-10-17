@@ -595,7 +595,7 @@ namespace b3d
 
 		/**
 		 * Makes the next submission that uses the image bring every subresource of it from its native layout to @p layout, the backend's
-		 * resting layout of the image. Thread safe on submit thread, or during initial creaation of the resource.
+		 * resting layout of the image. Thread safe on submit thread, or during initial creation of the resource.
 		 */
 		void RequestRestingTransition(render::GpuImageLayout layout) { mRestingTransitionLayout = layout; }
 

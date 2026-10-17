@@ -58,7 +58,8 @@ namespace b3d::render
 		 * Declares that @p buffer starts a new lifetime on memory that earlier resources used, as @p acquire describes. The first barrier
 		 * of the buffer must be an alias acquire whose source covers GpuAliasAcquire::Source, and must precede every access. Once it is
 		 * recorded, the resources in GpuAliasAcquire::Predecessors must not be accessed or barriered, nor barriered together with it,
-		 * until their own alias acquire. The buffer must be placed.
+		 * until their own alias acquire. Their GpuBarrierFlag::AliasRelease barriers are the exception: they may be recorded together
+		 * with the alias acquire, or after it as the acquire half of a split barrier. The buffer must be placed.
 		 */
 		void DeclareAliasAcquire(const GpuBuffer& buffer, const GpuAliasAcquire& acquire);
 

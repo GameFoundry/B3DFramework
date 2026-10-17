@@ -202,10 +202,7 @@ void GpuAliasingAllocator::Release(const GpuAllocation& allocation, TArrayView<c
 	{
 		Tag tag;
 		tag.FirstUse = (u32)mTagUses.Size();
-
-#if B3D_BUILD_TYPE_DEVELOPMENT
 		tag.Owner = owner;
-#endif
 
 		for(const GpuTransientLastUse& lastUse : lastUses)
 		{
@@ -326,9 +323,7 @@ void GpuAliasingAllocator::Place(u32 heapIndex, u32 firstSegmentIndex, u32 lastS
 	outAcquire = render::GpuAliasAcquire();
 	TOptional<u32> latestSourcePass;
 
-#if B3D_BUILD_TYPE_DEVELOPMENT
 	mPredecessors.Clear();
-#endif
 
 	const GpuQueueId firstQueue = mTimeline->GetQueue(firstSubmission);
 	const u64 allocationEnd = offset + size;
@@ -353,15 +348,11 @@ void GpuAliasingAllocator::Place(u32 heapIndex, u32 firstSegmentIndex, u32 lastS
 			latestSourcePass = std::max(latestSourcePass.value_or(0), use.LastPass);
 		}
 
-#if B3D_BUILD_TYPE_DEVELOPMENT
 		if(tag.Owner != nullptr && !mPredecessors.Contains(tag.Owner))
 			mPredecessors.Add(tag.Owner);
-#endif
 	}
 
-#if B3D_BUILD_TYPE_DEVELOPMENT
 	outAcquire.Predecessors = TArrayView<IGpuResource* const>(mPredecessors.Data(), mPredecessors.Size());
-#endif
 
 	if(outLatestSourcePass != nullptr)
 		*outLatestSourcePass = latestSourcePass;

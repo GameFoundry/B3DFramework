@@ -2073,8 +2073,9 @@ bool D3D12GpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& ba
 		bufferBarriers.Add(nativeBarrier);
 	};
 
-	// Texture barriers
+	// Texture barriers. Alias releases go to their own list, recorded before the activations of the textures that take over their memory.
 	TInlineArray<D3D12_TEXTURE_BARRIER, 8> textureBarriers;
+	TInlineArray<D3D12_TEXTURE_BARRIER, 8> aliasReleaseBarriers;
 	const auto fnAddImageBarrier = [&](D3D12Image& image, const GpuTextureSubresourceRange& range, const GpuExplicitBarrier& barrier)
 	{
 		const bool isAliasAcquire = barrier.Flags.IsSet(GpuBarrierFlag::AliasAcquire);
@@ -2160,7 +2161,10 @@ bool D3D12GpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& ba
 			else if(barrierCase == BarrierCase::SplitAcquire)
 				nativeBarrier.SyncBefore = D3D12_BARRIER_SYNC_SPLIT;
 
-			textureBarriers.Add(nativeBarrier);
+			if(barrier.Flags.IsSet(GpuBarrierFlag::AliasRelease))
+				aliasReleaseBarriers.Add(nativeBarrier);
+			else
+				textureBarriers.Add(nativeBarrier);
 		}
 	};
 
@@ -2209,11 +2213,15 @@ bool D3D12GpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& ba
 		fnAddImageBarrier(static_cast<D3D12Image&>(*attachment->Image), range, barrier);
 	}
 
-	// Recording. Global barriers go first, in their own Barrier() call: a discard and an access of overlapping memory in one call break the
-	// enhanced-barrier rules. A buffer barrier without work on either side orders nothing.
+	// Recording. Alias releases and global barriers go first, each in their own Barrier() call: a discard and an access of overlapping memory
+	// in one call break the enhanced-barrier rules. A buffer barrier without work on either side orders nothing.
 	D3D12BarrierBatch batch;
+	for(const D3D12_TEXTURE_BARRIER& textureBarrier : aliasReleaseBarriers)
+		batch.AddTextureBarrier(textureBarrier);
+
+	batch.EndGroup();
 	if(aliasScope.SourceStages != GpuStageFlag::None)
-		batch.AddGlobalBarrier(D3D12BarrierUtility::GetAliasGlobalBarrier(aliasScope));
+		batch.AddGlobalBarrier(D3D12BarrierUtility::GetAliasGlobalBarrier(aliasScope, false));
 
 	if(bufferGlobalBarrier.SyncBefore != D3D12_BARRIER_SYNC_NONE && bufferGlobalBarrier.SyncAfter != D3D12_BARRIER_SYNC_NONE)
 		batch.AddGlobalBarrier(bufferGlobalBarrier);

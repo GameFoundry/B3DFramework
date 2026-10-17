@@ -492,10 +492,10 @@ namespace b3d
 			TShared<RenderTarget> GetCompositorRenderTarget() const { return mCurrentRenderTarget; }
 
 			/**
-			 * Notifies the view that a new average luminance is being calculated on the provided command buffer. The results
-			 * will be read from the provided texture when the command buffer finishes executing.
+			 * Notifies the view that a new average luminance is being calculated into @p texture, a resource of @p graph. Adds a pass that
+			 * reads it back after the passes that write it, and the view picks up the value once the graph's GPU work completes.
 			 */
-			void NotifyLuminanceUpdated(u64 frameIdx, TShared<GpuCommandBuffer> cb, TShared<PooledRenderTexture> texture) const;
+			void NotifyLuminanceUpdated(u64 frameIdx, FrameGraph& graph, const TShared<Texture>& texture) const;
 
 			/** Queues a capture to be resolved the next time the view is rendered. */
 			void RequestCapture(TAsyncOp<TShared<PixelData>> asyncOp);
@@ -535,13 +535,11 @@ namespace b3d
 		private:
 			struct LuminanceUpdate
 			{
-				LuminanceUpdate(u64 frameIdx, TAsyncOp<TShared<PixelData>> readbackAsyncOp, TShared<PooledRenderTexture> outputTexture)
-					: FrameIdx(frameIdx), OutputTexture(std::move(outputTexture)), ReadbackAsyncOp(std::move(readbackAsyncOp))
+				LuminanceUpdate(u64 frameIdx, TAsyncOp<TShared<PixelData>> readbackAsyncOp)
+					: FrameIdx(frameIdx), ReadbackAsyncOp(std::move(readbackAsyncOp))
 				{}
 
 				u64 FrameIdx;
-				TShared<GpuCommandBuffer> CommandBuffer;
-				TShared<PooledRenderTexture> OutputTexture;
 				TAsyncOp<TShared<PixelData>> ReadbackAsyncOp;
 			};
 

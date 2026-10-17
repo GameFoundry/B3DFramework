@@ -282,6 +282,10 @@ namespace b3d::render
 			return;
 		}
 
+		// The graph takes imports to be at rest, and a texture initialized while it is a graph resource does not start at rest (See Texture::StartsAtRest())
+		if(!B3D_ENSURE_LOG(texture->IsInitialized(), "Texture '{0}' must be initialized before it is imported into a frame graph.", texture->GetName()))
+			return;
+
 		const TextureProperties& properties = texture->GetProperties();
 
 		Resource resource;
@@ -885,6 +889,21 @@ namespace b3d::render
 
 		FrameVector<PlannedBarrier> plannedBarriers;
 
+		// True for each resource whose lifetime an alias release ended. Index into mResources.
+		FrameVector<bool> isAliasReleased(mResources.size(), false);
+
+		// Index into mResources of each aliased texture, by its GPU resource. Alias acquires name their predecessors by GPU resource.
+		FrameUnorderedMap<const IGpuResource*, u32> aliasedTextureIndices;
+		if(mExplicitBarriers)
+		{
+			for(u32 resourceIndex = 0; resourceIndex < (u32)mResources.size(); resourceIndex++)
+			{
+				const Resource& resource = mResources[resourceIndex];
+				if(resource.Type == ResourceType::Transient && !resource.IsExtracted && resource.Texture != nullptr && resource.Texture->GetGpuResource() != nullptr)
+					aliasedTextureIndices[resource.Texture->GetGpuResource()] = resourceIndex;
+			}
+		}
+
 		// Plans a barrier of one subresource from its current state into @p destination, before the compiled pass at @p compiledIndex
 		const auto fnPlanBarrier = [&](u32 resourceIndex, u32 subresourceIndex, const GpuAccessState& destination, u32 compiledIndex, bool discardsContents, bool isExport)
 		{
@@ -998,6 +1017,36 @@ namespace b3d::render
 						mStatistics.AliasAcquireCount++;
 						if(barrier.IsSplit)
 							mStatistics.SplitAliasAcquireCount++;
+
+						// The textures on the memory before end their lifetimes with the acquire, in the same call or split, so backends can
+						// flush their writes before the memory is discarded. A texture that several acquires supersede ends it with the first.
+						const GpuAccessState releaseDestination(barrier.Destination.Stages, GpuAccessFlag::None, GpuImageLayout::Undefined);
+						for(IGpuResource* predecessor : resource.Placement.Acquire.Predecessors)
+						{
+							const auto found = aliasedTextureIndices.find(predecessor);
+							if(found == aliasedTextureIndices.end() || isAliasReleased[found->second])
+								continue;
+
+							const u32 predecessorIndex = found->second;
+							const Resource& predecessorResource = mResources[predecessorIndex];
+
+							isAliasReleased[predecessorIndex] = true;
+							mStatistics.AliasReleaseCount++;
+
+							for(u32 subresourceIndex = 0; subresourceIndex < predecessorResource.SubresourceCount; subresourceIndex++)
+							{
+								if(!states[predecessorResource.FirstSubresourceIndex + subresourceIndex].HasState)
+									continue;
+
+								fnPlanBarrier(predecessorIndex, subresourceIndex, releaseDestination, compiledIndex, false, false);
+
+								PlannedBarrier& release = plannedBarriers.back();
+								release.Flags = GpuBarrierFlag::AliasRelease;
+								release.IsSplit = barrier.IsSplit;
+								release.ReleasePassIndex = barrier.ReleasePassIndex;
+								release.AcquirePassIndex = barrier.AcquirePassIndex;
+							}
+						}
 					}
 				}
 
@@ -1173,7 +1222,7 @@ namespace b3d::render
 			}
 
 			Pass& pass = mPasses[mCompiledPassIndices[barrier.AcquirePassIndex]];
-			return barrier.Flags.IsSet(GpuBarrierFlag::AliasAcquire) ? pass.AliasAcquireBarriers : pass.Barriers;
+			return barrier.Flags.IsSetAny(GpuBarrierFlag::AliasAcquire | GpuBarrierFlag::AliasRelease) ? pass.AliasAcquireBarriers : pass.Barriers;
 		};
 
 		for(u32 runStart = 0; runStart < (u32)order.size();)

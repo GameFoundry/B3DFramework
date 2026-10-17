@@ -226,6 +226,7 @@ namespace b3d
 			u32 BarrierBatchCount = 0; /**< Number of barrier batches: GpuSplitBarrier objects that record the split barriers. */
 			u32 AliasAcquireCount = 0; /**< Number of alias acquires, full and split. */
 			u32 SplitAliasAcquireCount = 0; /**< Number of alias acquires released after an earlier pass, as split barriers. */
+			u32 AliasReleaseCount = 0; /**< Number of textures whose lifetimes an alias release ended, see GpuBarrierFlag::AliasRelease. */
 		};
 
 		/**

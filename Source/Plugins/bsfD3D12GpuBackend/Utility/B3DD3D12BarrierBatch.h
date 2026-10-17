@@ -29,6 +29,9 @@ namespace b3d::render
 		/** Adds an subresource texture barrier and returns its storage index. */
 		u32 AddTextureBarrier(const D3D12_TEXTURE_BARRIER& barrier);
 
+		/** Ends the latest group, so the next barrier is recorded in a new Barrier() call even if it has the same native type. */
+		void EndGroup() { mIsGroupEnded = true; }
+
 		/** Returns whether the batch contains no barriers. */
 		bool IsEmpty() const;
 
@@ -63,6 +66,7 @@ namespace b3d::render
 		TInlineArray<D3D12_GLOBAL_BARRIER, 8> mGlobalBarriers; /**< Barriers that cannot be represented for a specific resource. */
 		TInlineArray<D3D12_BUFFER_BARRIER, 8> mBufferBarriers; /**< Whole-resource buffer barriers. */
 		TInlineArray<D3D12_TEXTURE_BARRIER, 8> mTextureBarriers; /**< Image layout and access barriers. */
+		bool mIsGroupEnded = false; /**< True if EndGroup() ended the latest group. */
 	};
 
 	/** @} */

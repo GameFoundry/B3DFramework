@@ -137,7 +137,7 @@ void D3D12BarrierHelper::AddAliasGlobalBarrier(const GpuBarrierScope& barrier)
 	if(mAliasGlobalBarrierIndex == ~0u)
 	{
 		mAliasGlobalBarrierScope = barrier;
-		mAliasGlobalBarrierIndex = mBarriers.AddGlobalBarrier(D3D12BarrierUtility::GetAliasGlobalBarrier(mAliasGlobalBarrierScope));
+		mAliasGlobalBarrierIndex = mBarriers.AddGlobalBarrier(D3D12BarrierUtility::GetAliasGlobalBarrier(mAliasGlobalBarrierScope, true));
 		return;
 	}
 
@@ -145,7 +145,7 @@ void D3D12BarrierHelper::AddAliasGlobalBarrier(const GpuBarrierScope& barrier)
 	mAliasGlobalBarrierScope.SourceAccess |= barrier.SourceAccess;
 	mAliasGlobalBarrierScope.DestinationStages |= barrier.DestinationStages;
 	mAliasGlobalBarrierScope.DestinationAccess |= barrier.DestinationAccess;
-	mBarriers.ReplaceGlobalBarrier(mAliasGlobalBarrierIndex, D3D12BarrierUtility::GetAliasGlobalBarrier(mAliasGlobalBarrierScope));
+	mBarriers.ReplaceGlobalBarrier(mAliasGlobalBarrierIndex, D3D12BarrierUtility::GetAliasGlobalBarrier(mAliasGlobalBarrierScope, true));
 }
 
 GpuStageFlags D3D12BarrierHelper::GetPrecedingBarrierDestinationStages(IGpuBufferResource* buffer) const

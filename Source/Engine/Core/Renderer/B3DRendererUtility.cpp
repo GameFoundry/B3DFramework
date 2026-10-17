@@ -589,23 +589,26 @@ void CompositeMaterial::Initialize()
 	mGpuParameterSet->GetSampledTextureParameter("gSource", mSourceTextureParameter);
 }
 
-void CompositeMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, const TShared<RenderTarget>& target, const Color& tint)
+TShared<GpuParameterSet> CompositeMaterial::Prepare(FrameGraphPass& pass, const TShared<Texture>& source, const Color& tint)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
 
 	GpuBufferMappedScope uniforms = gCompositeUniformDefinition.AllocateTransient().Map();
 	gCompositeUniformDefinition.gTint.Set(uniforms, tint);
 
-	mUniformBufferParameter.Set(uniforms);
-	mSourceTextureParameter.Set(source);
+	mUniformBufferParameter.Set(set, uniforms);
+	mSourceTextureParameter.Set(set, source);
 
-	// Render
-	commandBuffer.BeginRenderPass(RenderPassCreateInformation(target, mGpuParameterSet));
+	return set;
+}
 
-	Bind(commandBuffer);
+void CompositeMaterial::Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set) const
+{
+	GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	Bind(commandBuffer, set);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
-
-	commandBuffer.EndRenderPass();
 }
 
 BicubicUpsampleUniformDefinition gBicubicUpsampleUniformDefinition;
@@ -616,9 +619,9 @@ void BicubicUpsampleMaterial::Initialize()
 	mGpuParameterSet->GetSampledTextureParameter("gSource", mSourceTextureParameter);
 }
 
-void BicubicUpsampleMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<Texture>& source, const TShared<RenderTarget>& target, const Color& tint)
+TShared<GpuParameterSet> BicubicUpsampleMaterial::Prepare(FrameGraphPass& pass, const TShared<Texture>& source, const Color& tint)
 {
-	B3D_PROFILE_RENDERER_MATERIAL
+	const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
 
 	const TextureProperties& sourceProps = source->GetProperties();
 
@@ -632,16 +635,19 @@ void BicubicUpsampleMaterial::Execute(GpuCommandBuffer& commandBuffer, const TSh
 	gBicubicUpsampleUniformDefinition.gInvPixel.Set(uniforms, invPixelSize);
 	gBicubicUpsampleUniformDefinition.gInvTwoPixels.Set(uniforms, invTwoPixelSize);
 
-	mUniformBufferParameter.Set(uniforms);
-	mSourceTextureParameter.Set(source);
+	mUniformBufferParameter.Set(set, uniforms);
+	mSourceTextureParameter.Set(set, source);
 
-	// Render
-	commandBuffer.BeginRenderPass(RenderPassCreateInformation(target, mGpuParameterSet));
+	return set;
+}
 
-	Bind(commandBuffer);
+void BicubicUpsampleMaterial::Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set) const
+{
+	GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
+	B3D_PROFILE_RENDERER_MATERIAL
+
+	Bind(commandBuffer, set);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
-
-	commandBuffer.EndRenderPass();
 }
 
 BicubicUpsampleMaterial* BicubicUpsampleMaterial::GetVariation(bool hermite)

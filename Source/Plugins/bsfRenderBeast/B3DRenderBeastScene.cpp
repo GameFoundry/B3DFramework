@@ -1384,11 +1384,7 @@ RendererViewCreateInformation RenderBeastScene::CreateViewDesc(Camera* camera) c
 
 	viewDesc.MainView = camera->IsMain();
 	viewDesc.TriggerCallbacks = true;
-#if B3D_FRAME_GRAPH_PORT_PENDING(PostProcessing)
 	viewDesc.RunPostProcessing = true;
-#else
-	viewDesc.RunPostProcessing = false;
-#endif
 	viewDesc.CapturingReflections = false;
 	viewDesc.OnDemand = camera->GetFlags().IsSet(CameraFlag::OnDemand);
 
