@@ -147,12 +147,6 @@ namespace b3d::render
 		mRenderTargetLoad = load;
 	}
 
-	void FrameGraphRasterPass::AddRenderPassParameterSet(const TShared<GpuParameterSet>& parameters)
-	{
-		if(parameters != nullptr)
-			mRenderPassParameterSets.push_back(parameters);
-	}
-
 	void FrameGraphCopyPass::AddSource(const TShared<Texture>& texture, const TextureSurface& surface)
 	{
 		CopyResource resource;
@@ -387,7 +381,6 @@ namespace b3d::render
 	void FrameGraph::AddRasterPass(const StringView& name, FrameGraphRasterPass&& pass, Function<void(FrameGraphPassContext&)> execute)
 	{
 		Pass& output = AddPass(name, PassType::Raster, pass, std::move(execute));
-		output.RenderPassParameterSets = std::move(pass.mRenderPassParameterSets);
 		RenderPassAttachments& attachments = output.Attachments;
 
 		// States of the depth and stencil aspects of the depth-stencil attachment
@@ -1419,14 +1412,6 @@ namespace b3d::render
 				{
 					RenderPassCreateInformation renderPassInformation(pass.Attachments.Target, pass.Attachments.ReadOnlyMask, pass.Attachments.LoadMask);
 					renderPassInformation.ClearMask = pass.Attachments.ClearMask;
-
-					// Backends prepare the descriptors of every set a render pass binds when the render pass begins
-					for(const TShared<GpuParameterSet>& parameters : pass.ParameterSets)
-						renderPassInformation.Parameters.Add(parameters);
-
-					for(const TShared<GpuParameterSet>& parameters : pass.RenderPassParameterSets)
-						renderPassInformation.Parameters.Add(parameters);
-
 					commandBuffer->BeginRenderPass(renderPassInformation);
 				}
 

@@ -226,7 +226,6 @@ A render pass is started with the render target and the target is cleared. The s
 ~~~~~~~~~~~~~{.cpp}
 render::RenderPassCreateInformation renderPassInformation(renderTarget);
 renderPassInformation.ClearMask = RT_COLOR_ALL | RT_DEPTH;
-renderPassInformation.Parameters.Add(parameterSet);
 commandBuffer->BeginRenderPass(renderPassInformation);
 ~~~~~~~~~~~~~
 

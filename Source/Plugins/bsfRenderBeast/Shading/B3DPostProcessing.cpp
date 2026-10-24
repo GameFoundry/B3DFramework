@@ -1470,19 +1470,6 @@ void MotionBlurMaterial::Prepare(const TShared<Texture>& input, const TShared<Te
 	mGpuParameterSet->SetUniformBuffer("PerCamera", perView);
 }
 
-void MotionBlurMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output)
-{
-	B3D_PROFILE_RENDERER_MATERIAL
-
-	RenderPassCreateInformation info(output, mGpuParameterSet);
-	commandBuffer.BeginRenderPass(info);
-
-	Bind(commandBuffer);
-	GetRendererUtility().DrawScreenQuad(commandBuffer);
-
-	commandBuffer.EndRenderPass();
-}
-
 void BuildHiZMaterial::Initialize()
 {
 	mGpuParameterSet->GetSampledTextureParameter("gDepthTex", mInputTexture);

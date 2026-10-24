@@ -32,8 +32,8 @@ namespace b3d::render
 	 *  - Draws and dispatches access the bindings of the bound pipeline in the shader stages that use them. Sampled textures are in
 	 *    GpuImageLayout::ShaderReadOnly, unless they are attachments of the render pass, and storage textures in GpuImageLayout::General.
 	 *    A draw or dispatch must not access a subresource that an earlier draw or dispatch wrote since its last barrier.
-	 *  - Render pass attachments access in GpuStageFlag::ColorAttachment, or the early and late fragment tests. See GetAttachmentLayout()
-	 *    for their layouts.
+	 *  - Render pass attachments access in GpuStageFlag::ColorAttachment, or the early and late fragment tests. See
+	 *    GpuBackendUtility::GetRenderPassAttachmentLayout() for their layouts.
 	 *  - Resources must not be accessed or barriered while they are unplaced (see render::Texture::SetUnplaced()). A resource with a
 	 *    declared alias acquire must not be accessed or barriered before it, and the resources it supersedes not after it.
 	 */
@@ -108,14 +108,6 @@ namespace b3d::render
 
 		/** Forgets every state, declaration and binding. */
 		void Clear();
-
-		/**
-		 * Returns the layout explicit barriers must declare for an attachment of a render pass, given its surfaces that are read-only:
-		 *  - Color: GpuImageLayout::ColorAttachment, or GpuImageLayout::General if read-only.
-		 *  - Depth and stencil: GpuImageLayout::DepthStencilAttachment, GpuImageLayout::DepthReadOnlyStencilAttachment,
-		 *    GpuImageLayout::DepthAttachmentStencilReadOnly or GpuImageLayout::DepthStencilReadOnly, depending on which aspects are read-only.
-		 */
-		static GpuImageLayout GetAttachmentLayout(RenderSurfaceMaskBits surface, RenderSurfaceMask readOnlyMask);
 
 	private:
 		/** State of a buffer or an image subresource. */

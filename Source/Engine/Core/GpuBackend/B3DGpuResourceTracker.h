@@ -53,20 +53,17 @@ namespace b3d
 			 */
 
 			/**
-			 * Starts collecting resource usage for a render pass. The attachment list is copied into inline tracker storage, and shader reads of the
-			 * attachments recorded before BeginRenderPass() make the render pass use the attachment's shader read layout.
+			 * Starts tracking the attachments of a render pass, and tracks their image uses. Until EndRenderPass(), shaders may only read
+			 * attachments that are read-only (see TrackShaderImageUsage()).
 			 */
-			void PrepareRenderPass(TArrayView<const GpuRenderPassAttachmentUsage> attachments);
-
-			/** Resolves attachment and shader usage collected since PrepareRenderPass(), and tracks the attachment image uses. */
-			TArrayView<const GpuResolvedRenderPassAttachmentUsage> BeginRenderPass();
+			void BeginRenderPass(TArrayView<const GpuRenderPassAttachmentUsage> attachments);
 
 			/** Clears the active attachment tracking scope. */
 			void EndRenderPass();
 
 			/**
-			 * Returns the layout a shader read of the specified image range is performed in. Reads of a read-only attachment of the pending or active
-			 * render pass use the attachment's layout, all other reads use @p requestedLayout.
+			 * Returns the layout a shader read of the specified image range is performed in. Reads of an attachment of the active render pass use
+			 * the attachment's layout, all other reads use @p requestedLayout.
 			 */
 			GpuImageLayout ResolveShaderImageLayout(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout requestedLayout) const;
 
@@ -95,8 +92,8 @@ namespace b3d
 			void TrackImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuAccessFlags access);
 
 			/**
-			 * Tracks an image used by a shader binding of a draw or dispatch. Validates that attachments of the pending or active render pass are
-			 * only read, and makes the pending render pass use the attachment's shader read layout. Returns false for unsupported overlap.
+			 * Tracks an image used by a shader binding of a draw or dispatch. Validates that attachments of the active render pass are read-only
+			 * and only read. Returns false for unsupported overlap.
 			 */
 			bool TrackShaderImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuAccessFlags access);
 
@@ -152,30 +149,11 @@ namespace b3d
 			/** @} */
 
 		private:
-			enum class RenderPassTrackingPhase
-			{
-				Inactive,
-				Preparing,
-				Active
-			};
-
-			/** Attachment description plus shader usage accumulated while preparing a render pass. */
-			struct PendingRenderPassAttachmentUsage
-			{
-				PendingRenderPassAttachmentUsage() = default;
-				explicit PendingRenderPassAttachmentUsage(const GpuRenderPassAttachmentUsage& usage)
-					: Usage(usage)
-				{ }
-
-				GpuRenderPassAttachmentUsage Usage;
-				bool IsShaderRead = false; /**< True if a shader binding of the render pass reads the attachment. */
-			};
-
 			/** Creates a new tracking state for the buffer (if this is the first time the buffer has been used on the command buffer), or returns existing tracking state. */
 			GpuBufferTrackingState& GetOrCreateBufferTrackingState(IGpuBufferResource* buffer);
 
 			/** Finds the render-pass attachment overlapping @p range, or returns null. */
-			const GpuResolvedRenderPassAttachmentUsage* FindRenderPassAttachment(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const;
+			const GpuRenderPassAttachmentUsage* FindRenderPassAttachment(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const;
 
 			/** Maps images to their use handles. */
 			TDenseMap<IGpuImageResource*, GpuResourceUseHandle> mImages;
@@ -189,14 +167,11 @@ namespace b3d
 			/** Maps swap chains to their use handles. */
 			TDenseMap<IGpuSwapChainResource*, GpuResourceUseHandle> mSwapChains;
 
-			/** Attachments and shader usage being collected before the native render pass begins. */
-			TInlineArray<PendingRenderPassAttachmentUsage, B3D_MAXIMUM_RENDER_TARGET_COUNT + 2> mPendingRenderPassAttachments;
+			/** Attachments of the active render pass. */
+			TInlineArray<GpuRenderPassAttachmentUsage, B3D_MAXIMUM_RENDER_TARGET_COUNT + 2> mRenderPassAttachments;
 
-			/** Resolved attachments retained until the native render pass ends. */
-			TInlineArray<GpuResolvedRenderPassAttachmentUsage, B3D_MAXIMUM_RENDER_TARGET_COUNT + 2> mActiveRenderPassAttachments;
-
-			/** Current lifecycle state of the render-pass attachment tracker. */
-			RenderPassTrackingPhase mRenderPassTrackingPhase = RenderPassTrackingPhase::Inactive;
+			/** True between BeginRenderPass() and EndRenderPass(). */
+			bool mIsInRenderPass = false;
 		};
 
 		/** @} */

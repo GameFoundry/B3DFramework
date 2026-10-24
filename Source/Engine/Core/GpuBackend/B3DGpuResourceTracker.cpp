@@ -55,71 +55,34 @@ void GpuResourceTracker::TrackBufferSuballocation(IGpuBufferResource* buffer, u3
 }
 #endif
 
-void GpuResourceTracker::PrepareRenderPass(TArrayView<const GpuRenderPassAttachmentUsage> attachments)
+void GpuResourceTracker::BeginRenderPass(TArrayView<const GpuRenderPassAttachmentUsage> attachments)
 {
-	if(!B3D_ENSURE(mRenderPassTrackingPhase == RenderPassTrackingPhase::Inactive))
+	if(!B3D_ENSURE(!mIsInRenderPass))
 		return;
 
-	mRenderPassTrackingPhase = RenderPassTrackingPhase::Preparing;
+	mIsInRenderPass = true;
 	for(const GpuRenderPassAttachmentUsage& attachment : attachments)
 	{
-		if(attachment.Image != nullptr)
-			mPendingRenderPassAttachments.Add(PendingRenderPassAttachmentUsage(attachment));
-	}
-}
+		if(attachment.Image == nullptr)
+			continue;
 
-TArrayView<const GpuResolvedRenderPassAttachmentUsage> GpuResourceTracker::BeginRenderPass()
-{
-	if(!B3D_ENSURE(mRenderPassTrackingPhase == RenderPassTrackingPhase::Preparing))
-		return TArrayView<const GpuResolvedRenderPassAttachmentUsage>();
-
-	for(const PendingRenderPassAttachmentUsage& pendingAttachment : mPendingRenderPassAttachments)
-	{
-		const GpuRenderPassAttachmentUsage& attachment = pendingAttachment.Usage;
-
-		GpuResolvedRenderPassAttachmentUsage resolvedAttachment;
-		resolvedAttachment.Image = attachment.Image;
-		resolvedAttachment.Range = attachment.Range;
-		resolvedAttachment.Surface = attachment.Surface;
-		resolvedAttachment.Access = attachment.Access;
-		resolvedAttachment.BarrierFlags = attachment.BarrierFlags;
-		resolvedAttachment.Layout = attachment.Layout;
-
-		if(pendingAttachment.IsShaderRead)
-		{
-			B3D_ASSERT(attachment.Access == GpuAccessFlag::Read);
-			B3D_ASSERT(attachment.ShaderReadLayout.has_value());
-
-			resolvedAttachment.Access |= GpuAccessFlag::Read;
-			resolvedAttachment.Layout = *attachment.ShaderReadLayout;
-		}
-
-		resolvedAttachment.FinalLayout = attachment.FinalLayout.value_or(resolvedAttachment.Layout);
-
-		mActiveRenderPassAttachments.Add(std::move(resolvedAttachment));
-	}
-
-	mPendingRenderPassAttachments.Clear();
-	mRenderPassTrackingPhase = RenderPassTrackingPhase::Active;
-
-	for(const GpuResolvedRenderPassAttachmentUsage& attachment : mActiveRenderPassAttachments)
+		mRenderPassAttachments.Add(attachment);
 		TrackImageUsage(attachment.Image, attachment.Range, attachment.Access);
-
-	return mActiveRenderPassAttachments;
+	}
 }
 
 void GpuResourceTracker::EndRenderPass()
 {
-	if(!B3D_ENSURE(mRenderPassTrackingPhase == RenderPassTrackingPhase::Active))
+	if(!B3D_ENSURE(mIsInRenderPass))
 		return;
 
-	mActiveRenderPassAttachments.Clear();
-	mRenderPassTrackingPhase = RenderPassTrackingPhase::Inactive;
+	mRenderPassAttachments.Clear();
+	mIsInRenderPass = false;
 }
 
-const GpuResolvedRenderPassAttachmentUsage* GpuResourceTracker::FindRenderPassAttachment(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const
+const GpuRenderPassAttachmentUsage* GpuResourceTracker::FindRenderPassAttachment(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const
 {
-	for(const GpuResolvedRenderPassAttachmentUsage& attachment : mActiveRenderPassAttachments)
+	for(const GpuRenderPassAttachmentUsage& attachment : mRenderPassAttachments)
 	{
 		if(attachment.Image == image && GpuBackendUtility::RangeOverlaps(attachment.Range, range))
 			return &attachment;
@@ -130,13 +93,7 @@ const GpuResolvedRenderPassAttachmentUsage* GpuResourceTracker::FindRenderPassAt
 
 GpuImageLayout GpuResourceTracker::ResolveShaderImageLayout(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout requestedLayout) const
 {
-	for(const PendingRenderPassAttachmentUsage& pendingAttachment : mPendingRenderPassAttachments)
-	{
-		if(pendingAttachment.Usage.Image == image && pendingAttachment.Usage.ShaderReadLayout.has_value() && GpuBackendUtility::RangeOverlaps(pendingAttachment.Usage.Range, subresourceRange))
-			return *pendingAttachment.Usage.ShaderReadLayout;
-	}
-
-	const GpuResolvedRenderPassAttachmentUsage* const renderPassAttachment = FindRenderPassAttachment(image, subresourceRange);
+	const GpuRenderPassAttachmentUsage* const renderPassAttachment = FindRenderPassAttachment(image, subresourceRange);
 	if(renderPassAttachment != nullptr)
 		return renderPassAttachment->Layout;
 
@@ -149,32 +106,11 @@ bool GpuResourceTracker::TrackShaderImageUsage(IGpuImageResource* image, const G
 		return true;
 
 	const GpuTextureSubresourceRange range = GpuBackendUtility::ClampRange(subresourceRange, image->GetRange());
-	if(mRenderPassTrackingPhase == RenderPassTrackingPhase::Preparing)
+	const GpuRenderPassAttachmentUsage* const attachment = FindRenderPassAttachment(image, range);
+	if(attachment != nullptr && (attachment->Access != GpuAccessFlag::Read || access.IsSet(GpuAccessFlag::Write)))
 	{
-		// A shader read of an attachment of the pending render pass makes the render pass use the attachment's shader read layout
-		for(PendingRenderPassAttachmentUsage& pendingAttachment : mPendingRenderPassAttachments)
-		{
-			const GpuRenderPassAttachmentUsage& attachment = pendingAttachment.Usage;
-			if(attachment.Image != image || !GpuBackendUtility::RangeOverlaps(attachment.Range, range))
-				continue;
-
-			if(attachment.Access != GpuAccessFlag::Read || access.IsSet(GpuAccessFlag::Write) || !attachment.ShaderReadLayout.has_value())
-			{
-				B3D_LOG(Error, LogRenderBackend, "Framebuffer attachments sampled during a render pass must be marked read-only.");
-				return false;
-			}
-
-			pendingAttachment.IsShaderRead = true;
-		}
-	}
-	else
-	{
-		const GpuResolvedRenderPassAttachmentUsage* const attachment = FindRenderPassAttachment(image, range);
-		if(attachment != nullptr && (attachment->Access != GpuAccessFlag::Read || access.IsSet(GpuAccessFlag::Write)))
-		{
-			B3D_LOG(Error, LogRenderBackend, "Framebuffer attachments sampled during a render pass must be marked read-only.");
-			return false;
-		}
+		B3D_LOG(Error, LogRenderBackend, "Framebuffer attachments sampled during a render pass must be marked read-only.");
+		return false;
 	}
 
 	TrackImageUsage(image, range, access);
@@ -398,7 +334,6 @@ void GpuResourceTracker::Clear()
 	mImages.clear();
 	mBuffers.clear();
 	mSwapChains.clear();
-	mPendingRenderPassAttachments.Clear();
-	mActiveRenderPassAttachments.Clear();
-	mRenderPassTrackingPhase = RenderPassTrackingPhase::Inactive;
+	mRenderPassAttachments.Clear();
+	mIsInRenderPass = false;
 }

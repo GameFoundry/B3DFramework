@@ -70,20 +70,6 @@ VulkanFramebuffer::~VulkanFramebuffer()
 	vkDestroyFramebuffer(device, mVkFramebuffer, gVulkanAllocator);
 }
 
-const GpuFramebufferLayoutPolicy& VulkanFramebuffer::GetLayoutPolicy()
-{
-	static const GpuFramebufferLayoutPolicy policy(
-		GpuRenderPassAttachmentLayout(GpuImageLayout::ColorAttachment),
-		GpuRenderPassAttachmentLayout(GpuImageLayout::General, GpuImageLayout::General),
-		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthStencilAttachment),
-		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthReadOnlyStencilAttachment, GpuImageLayout::DepthReadOnlyStencilAttachment),
-		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthAttachmentStencilReadOnly, GpuImageLayout::DepthAttachmentStencilReadOnly),
-		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthStencilReadOnly, GpuImageLayout::DepthStencilReadOnly));
-
-	return policy;
-}
-
-
 VulkanFramebufferCache::~VulkanFramebufferCache()
 {
 	for(auto& entry : mCache)

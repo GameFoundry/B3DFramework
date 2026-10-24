@@ -999,38 +999,27 @@ void GpuBackendTestSuite::TestFramebufferAttachmentUsage()
 	B3D_TEST_ASSERT(framebuffer.FindAttachment(RT_DEPTH)->Range.AspectMask == GpuTextureAspectFlag::Depth)
 	B3D_TEST_ASSERT(framebuffer.FindAttachment(RT_STENCIL)->Range.AspectMask == GpuTextureAspectFlag::Stencil)
 
-	const GpuFramebufferLayoutPolicy layoutPolicy(
-		GpuRenderPassAttachmentLayout(GpuImageLayout::ColorAttachment),
-		GpuRenderPassAttachmentLayout(GpuImageLayout::General, GpuImageLayout::ShaderReadOnly),
-		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthStencilAttachment),
-		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthReadOnlyStencilAttachment, GpuImageLayout::DepthStencilReadOnly),
-		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthAttachmentStencilReadOnly, GpuImageLayout::DepthStencilReadOnly),
-		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthStencilReadOnly, GpuImageLayout::DepthStencilReadOnly),
-		GpuImageLayout::Undefined);
 	const RenderSurfaceMask readOnlyMask = RT_COLOR3 | RT_DEPTH;
 	const RenderSurfaceMask loadMask = RT_COLOR3 | RT_STENCIL;
-	const GpuRenderPassAttachmentUsageArray attachmentUsages = framebuffer.BuildRenderPassAttachmentUsages(readOnlyMask, loadMask, layoutPolicy);
+	const GpuRenderPassAttachmentUsageArray attachmentUsages = framebuffer.BuildRenderPassAttachmentUsages(readOnlyMask, loadMask);
 
 	B3D_TEST_ASSERT(attachmentUsages.Size() == 3)
 	B3D_TEST_ASSERT(attachmentUsages[0].Surface == RT_COLOR3)
 	B3D_TEST_ASSERT(attachmentUsages[0].Access == GpuAccessFlag::Read)
 	B3D_TEST_ASSERT(attachmentUsages[0].BarrierFlags == GpuBarrierFlag::None)
 	B3D_TEST_ASSERT(attachmentUsages[0].Layout == GpuImageLayout::General)
-	B3D_TEST_ASSERT(attachmentUsages[0].ShaderReadLayout == GpuImageLayout::ShaderReadOnly)
 	B3D_TEST_ASSERT(attachmentUsages[0].FinalLayout == GpuImageLayout::TransferSource)
 	B3D_TEST_ASSERT(attachmentUsages[1].Surface == RT_DEPTH)
 	B3D_TEST_ASSERT(attachmentUsages[1].Access == GpuAccessFlag::Read)
 	B3D_TEST_ASSERT(attachmentUsages[1].BarrierFlags == GpuBarrierFlag::None)
-	B3D_TEST_ASSERT(attachmentUsages[1].Layout == GpuImageLayout::Undefined)
-	B3D_TEST_ASSERT(attachmentUsages[1].ShaderReadLayout == GpuImageLayout::DepthStencilReadOnly)
+	B3D_TEST_ASSERT(attachmentUsages[1].Layout == GpuImageLayout::DepthReadOnlyStencilAttachment)
 	B3D_TEST_ASSERT(attachmentUsages[2].Surface == RT_STENCIL)
 	B3D_TEST_ASSERT(attachmentUsages[2].Access == (GpuAccessFlag::Read | GpuAccessFlag::Write))
 	B3D_TEST_ASSERT(attachmentUsages[2].BarrierFlags == GpuBarrierFlag::None)
 	B3D_TEST_ASSERT(attachmentUsages[2].Layout == GpuImageLayout::DepthReadOnlyStencilAttachment)
-	B3D_TEST_ASSERT(!attachmentUsages[2].ShaderReadLayout.has_value())
 	B3D_TEST_ASSERT(attachmentUsages[2].FinalLayout == GpuImageLayout::General)
 
-	const GpuRenderPassAttachmentUsageArray discardAttachmentUsages = framebuffer.BuildRenderPassAttachmentUsages(RT_NONE, RT_NONE, layoutPolicy);
+	const GpuRenderPassAttachmentUsageArray discardAttachmentUsages = framebuffer.BuildRenderPassAttachmentUsages(RT_NONE, RT_NONE);
 	for(const GpuRenderPassAttachmentUsage& attachmentUsage : discardAttachmentUsages)
 		B3D_TEST_ASSERT(attachmentUsage.BarrierFlags == GpuBarrierFlag::DiscardContents)
 }
@@ -1062,26 +1051,21 @@ void GpuBackendTestSuite::TestResourceUseTracking()
 	B3D_TEST_ASSERT(image.GetSubresource(0, 1, GpuTextureAspectFlag::Color)->GetBoundCount() == 1)
 	B3D_TEST_ASSERT(image.GetSubresource(0, 0, GpuTextureAspectFlag::Color)->GetBoundCount() == 0)
 
-	// A sampled read-only attachment makes the render pass use its shader read layout
+	// Shaders read a read-only attachment of the render pass in the attachment's layout
 	TrackedTestImage attachmentImage(1, 1, GpuTextureAspectFlag::Color);
 	GpuRenderPassAttachmentUsage attachmentUsage;
 	attachmentUsage.Image = &attachmentImage;
 	attachmentUsage.Range = attachmentImage.GetRange();
 	attachmentUsage.Surface = RT_COLOR0;
 	attachmentUsage.Access = GpuAccessFlag::Read;
-	attachmentUsage.Layout = GpuImageLayout::ColorAttachment;
-	attachmentUsage.ShaderReadLayout = GpuImageLayout::ShaderReadOnly;
+	attachmentUsage.Layout = GpuImageLayout::General;
 
 	TInlineArray<GpuRenderPassAttachmentUsage, 1> attachments;
 	attachments.Add(attachmentUsage);
-	tracker.PrepareRenderPass(attachments);
+	tracker.BeginRenderPass(attachments);
 
-	B3D_TEST_ASSERT(tracker.ResolveShaderImageLayout(&attachmentImage, attachmentImage.GetRange(), GpuImageLayout::General) == GpuImageLayout::ShaderReadOnly)
+	B3D_TEST_ASSERT(tracker.ResolveShaderImageLayout(&attachmentImage, attachmentImage.GetRange(), GpuImageLayout::ShaderReadOnly) == GpuImageLayout::General)
 	B3D_TEST_ASSERT(tracker.TrackShaderImageUsage(&attachmentImage, attachmentImage.GetRange(), GpuAccessFlag::Read))
-
-	const TArrayView<const GpuResolvedRenderPassAttachmentUsage> resolvedAttachments = tracker.BeginRenderPass();
-	B3D_TEST_ASSERT(resolvedAttachments.Size() == 1)
-	B3D_TEST_ASSERT(resolvedAttachments[0].Layout == GpuImageLayout::ShaderReadOnly)
 
 	// Writes to a sampled attachment are rejected while the render pass is active
 	{

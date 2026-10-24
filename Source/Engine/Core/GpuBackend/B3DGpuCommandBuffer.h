@@ -481,25 +481,11 @@ namespace b3d
 			 */
 			RenderSurfaceMask ClearMask = RT_NONE;
 
-			/**
-			 * Set of all GPU parameters that will be bound during this render pass. The command buffer will pre-register all resources
-			 * from these parameters, allowing barriers and layout transitions to be issued before the render pass begins.
-			 * Parameter resources must remain unchanged until the pass ends; bind another declared set to change resources.
-			 */
-			TInlineArray<TShared<GpuParameterSet>, 4> Parameters;
-
 			RenderPassCreateInformation() = default;
 
 			RenderPassCreateInformation(const TShared<RenderTarget>& target, RenderSurfaceMask readOnlyMask = RT_NONE, RenderSurfaceMask loadMask = RT_NONE)
 				: Target(target), ReadOnlyMask(readOnlyMask), LoadMask(loadMask)
 			{ }
-
-			RenderPassCreateInformation(const TShared<RenderTarget>& target, const TShared<GpuParameterSet>& parameters, RenderSurfaceMask readOnlyMask = RT_NONE, RenderSurfaceMask loadMask = RT_NONE)
-				: Target(target), ReadOnlyMask(readOnlyMask), LoadMask(loadMask)
-			{
-				if(parameters != nullptr)
-					Parameters.Add(parameters);
-			}
 		};
 
 #if B3D_BUILD_TYPE_DEVELOPMENT

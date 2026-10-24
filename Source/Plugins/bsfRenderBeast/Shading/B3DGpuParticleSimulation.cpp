@@ -771,20 +771,6 @@ void GpuParticleSimulation::Simulate(FrameGraph& graph, const RenderBeastScene& 
 	if(simulateDraws.Empty())
 		return;
 
-	// The per-object sets hold only the uniform buffer pools, which are at rest
-	TInlineArray<TShared<GpuParameterSet>, 4> perObjectParameterSets;
-	for(const SimulateDraw& draw : simulateDraws)
-	{
-		if(draw.PerObjectParameters == nullptr)
-			continue;
-
-		if(std::find(perObjectParameterSets.begin(), perObjectParameterSets.end(), draw.PerObjectParameters) == perObjectParameterSets.end())
-		{
-			simulatePass.AddRenderPassParameterSet(draw.PerObjectParameters);
-			perObjectParameterSets.Add(draw.PerObjectParameters);
-		}
-	}
-
 	const GpuParticleStateTextures& simulateState = resources.GetCurrentState();
 	simulatePass.SetColorAttachment(0, simulateState.PositionAndTimeTex, FrameGraphAttachmentLoad::Load);
 	simulatePass.SetColorAttachment(1, simulateState.VelocityTex, FrameGraphAttachmentLoad::Load);

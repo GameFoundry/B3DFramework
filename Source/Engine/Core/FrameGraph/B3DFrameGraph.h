@@ -84,9 +84,9 @@ namespace b3d
 		{
 		public:
 			/**
-			 * Adds @p parameters to the parameter sets of the pass. Sets added here are the only sets the pass may bind. The graph resources
-			 * they hold when the pass is added to the graph are what the pass declares. See RendererMaterialBase::CreateGpuParameterSet() for
-			 * a helper that creates a set for a material and adds it.
+			 * Adds @p parameters to the parameter sets of the pass. The graph resources they hold when the pass is added to the graph are what
+			 * the pass declares. Sets that hold no graph resources may be bound without being added. See
+			 * RendererMaterialBase::CreateGpuParameterSet() for a helper that creates a set for a material and adds it.
 			 */
 			void AddParameterSet(const TShared<GpuParameterSet>& parameters);
 
@@ -145,15 +145,6 @@ namespace b3d
 			 */
 			void SetRenderTarget(const TShared<RenderTarget>& target, FrameGraphAttachmentLoad load);
 
-			/**
-			 * Lets draws of the pass bind @p parameters without adding it with AddParameterSet(). The graph declares nothing for the
-			 * resources it holds, so they must be at rest and only read, such as the parameter sets of render queue draws. The graph
-			 * passes the set to the render pass in RenderPassCreateInformation::Parameters, where backends prepare its descriptors.
-			 *
-			 * TODO - Remove together with RenderPassCreateInformation::Parameters.
-			 */
-			void AddRenderPassParameterSet(const TShared<GpuParameterSet>& parameters);
-
 		private:
 			friend class FrameGraph;
 
@@ -173,8 +164,6 @@ namespace b3d
 
 			TShared<RenderTarget> mRenderTarget;
 			FrameGraphAttachmentLoad mRenderTargetLoad = FrameGraphAttachmentLoad::Load;
-
-			Vector<TShared<GpuParameterSet>> mRenderPassParameterSets;
 		};
 
 		/** Describes a pass of a FrameGraph that dispatches compute work. */
@@ -444,7 +433,6 @@ namespace b3d
 				Vector<SubresourceAccess> Accesses; /**< Sorted by resource and subresource, one entry per subresource. */
 				TInlineArray<u32, 2> ExportedResourceIndices; /**< Indices into mResources of the resources exported after the pass. */
 				RenderPassAttachments Attachments; /**< Only valid for raster passes. */
-				Vector<TShared<GpuParameterSet>> RenderPassParameterSets; /**< See FrameGraphRasterPass::AddRenderPassParameterSet(). */
 
 				// Compile results
 				bool IsCulled = false;

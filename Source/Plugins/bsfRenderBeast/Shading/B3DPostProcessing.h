@@ -994,14 +994,6 @@ namespace b3d
 			 */
 			void Prepare(const TShared<Texture>& input, const TShared<Texture>& depth, const RendererView& view, const MotionBlurSettings& settings);
 
-			/**
-			 * Renders the post-process effect with the provided parameters.
-			 *
-			 * @param	commandBuffer	Command buffer to execute on.
-			 * @param	output			Texture to output the results to.
-			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const TShared<RenderTarget>& output);
-
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
 			GpuParameterSampledTexture mInputTexture;

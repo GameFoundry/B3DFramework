@@ -506,21 +506,11 @@ namespace b3d
 			if (!parameters)
 				return;
 
-			if (!BindParameterSet(parameters))
-				return;
-
-			// Pending writes are committed and argument buffers bound at draw / dispatch, so binding a set several times
-			// before a draw only does that work once
-			mGraphicsResourcesRequireTracking = true;
-		}
-
-		bool MetalGpuCommandBuffer::BindParameterSet(const TShared<GpuParameterSet>& parameters)
-		{
 			const u32 setIndex = parameters->GetSet();
 			if (setIndex >= kMetalVertexBufferSlotBase)
 			{
 				B3D_LOG(Error, LogRenderBackend, "Metal parameter set index {0} collides with reserved vertex-buffer slots.", setIndex);
-				return false;
+				return;
 			}
 
 			if (setIndex >= (u32)mBoundParameterSets.Size())
@@ -531,7 +521,10 @@ namespace b3d
 
 			mBoundParameterSets[setIndex] = parameters;
 			ResetDynamicOffsetOverrides(setIndex);
-			return true;
+
+			// Pending writes are committed and argument buffers bound at draw / dispatch, so binding a set several times
+			// before a draw only does that work once
+			mGraphicsResourcesRequireTracking = true;
 		}
 
 		void MetalGpuCommandBuffer::ResetDynamicOffsetOverrides(u32 setIndex)
@@ -1253,7 +1246,7 @@ namespace b3d
 					return;
 
 				framebuffer->ApplyAttachments(descriptor);
-				renderPassAttachmentUsages = framebuffer->BuildRenderPassAttachmentUsages(readOnlyMask, loadMask, MetalFramebuffer::GetLayoutPolicy());
+				renderPassAttachmentUsages = framebuffer->BuildRenderPassAttachmentUsages(readOnlyMask, loadMask);
 			}
 
 			ConfigureAttachmentActions(descriptor, loadMask, clearMask, renderPassStartClearValues);
@@ -1263,19 +1256,18 @@ namespace b3d
 			mDrawAccessValidator.BeginRenderPass();
 #endif
 			mGraphicsResourcesRequireTracking = true;
-			mResourceTracker.PrepareRenderPass(renderPassAttachmentUsages);
-			const TArrayView<const GpuResolvedRenderPassAttachmentUsage> resolvedAttachments = mResourceTracker.BeginRenderPass();
+			mResourceTracker.BeginRenderPass(renderPassAttachmentUsages);
 			mRenderPassTrackingActive = true;
 
-			// Pipelines bound in this pass mask off writes to whatever resolved as read-only.
-			RenderSurfaceMask resolvedReadOnlyMask = RT_NONE;
-			for (const GpuResolvedRenderPassAttachmentUsage& attachment : resolvedAttachments)
+			// Pipelines bound in this pass mask off writes to the read-only attachments
+			RenderSurfaceMask attachmentReadOnlyMask = RT_NONE;
+			for (const GpuRenderPassAttachmentUsage& attachment : renderPassAttachmentUsages)
 			{
 				if (attachment.Access == GpuAccessFlag::Read)
-					resolvedReadOnlyMask.Set(attachment.Surface);
+					attachmentReadOnlyMask.Set(attachment.Surface);
 			}
 
-			mRenderPassPipelineKey.ReadOnlyMask = (u32)resolvedReadOnlyMask;
+			mRenderPassPipelineKey.ReadOnlyMask = (u32)attachmentReadOnlyMask;
 
 			if (mRecordingFailed)
 				return;
@@ -1323,13 +1315,6 @@ namespace b3d
 				mAcquiredWindowSurface->MarkDrawableAsRendered();
 
 			ApplyViewportToRenderEncoder();
-
-			// Binds the pass's parameter sets like SetGpuParameterSet() would, they are bound to the argument tables at the first draw
-			for (const TShared<GpuParameterSet>& parameterSet : createInformation.Parameters)
-			{
-				if (parameterSet)
-					BindParameterSet(parameterSet);
-			}
 		}
 
 		void MetalGpuCommandBuffer::EndRenderPass()

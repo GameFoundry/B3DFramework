@@ -44,9 +44,6 @@ namespace b3d
 			/** Assigns the attachment textures and subresources to @p descriptor. Load and store actions are left to the caller. */
 			void ApplyAttachments(MTL4RenderPassDescriptor* descriptor) const;
 
-			/** Returns the layout policy used for Metal render-pass tracking. */
-			static const GpuFramebufferLayoutPolicy& GetLayoutPolicy();
-
 		private:
 			/** Depth slice rendered to, per color attachment of a 3D texture. Zero for other texture types. */
 			u32 mColorDepthPlanes[B3D_MAXIMUM_RENDER_TARGET_COUNT] = {};

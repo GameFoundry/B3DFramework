@@ -961,7 +961,7 @@ void FrameGraphTestSuite::TestRasterPass()
 		const Area2 sourceArea(0.0f, 0.0f, (float)kSize, (float)kSize);
 
 		TAsyncOp<TShared<PixelData>> passSetRead;
-		TAsyncOp<TShared<PixelData>> renderPassSetRead;
+		TAsyncOp<TShared<PixelData>> undeclaredSetRead;
 		{
 			FrameGraph graph(*context, kGraphName);
 
@@ -978,22 +978,21 @@ void FrameGraphTestSuite::TestRasterPass()
 				blitMaterial->Execute(passContext, passSet, sourceArea, false);
 			});
 
-			// The second binds a set that only the render pass sees, which holds the source at rest
-			const TShared<render::Texture> renderPassSetTarget = graph.CreateTexture("Render pass set target", information);
+			// The second binds a set the graph does not declare, which holds the source at rest
+			const TShared<render::Texture> undeclaredSetTarget = graph.CreateTexture("Undeclared set target", information);
 
-			FrameGraphRasterPass renderPassSetPass;
-			renderPassSetPass.SetColorAttachment(0, renderPassSetTarget, FrameGraphAttachmentLoad::DontCare);
-			const TShared<render::GpuParameterSet> renderPassSet = blitMaterial->Prepare(source);
-			renderPassSetPass.AddRenderPassParameterSet(renderPassSet);
+			FrameGraphRasterPass undeclaredSetPass;
+			undeclaredSetPass.SetColorAttachment(0, undeclaredSetTarget, FrameGraphAttachmentLoad::DontCare);
+			const TShared<render::GpuParameterSet> undeclaredSet = blitMaterial->Prepare(source);
 
-			graph.AddRasterPass("Blit with a render pass set", std::move(renderPassSetPass), [blitMaterial, renderPassSet, sourceArea](FrameGraphPassContext& passContext)
+			graph.AddRasterPass("Blit with an undeclared set", std::move(undeclaredSetPass), [blitMaterial, undeclaredSet, sourceArea](FrameGraphPassContext& passContext)
 			{
 				passContext.GetCommandBuffer().SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
-				blitMaterial->Execute(passContext, renderPassSet, sourceArea, false);
+				blitMaterial->Execute(passContext, undeclaredSet, sourceArea, false);
 			});
 
 			passSetRead = TextureUtility::ReadAsync(graph, passSetTarget);
-			renderPassSetRead = TextureUtility::ReadAsync(graph, renderPassSetTarget);
+			undeclaredSetRead = TextureUtility::ReadAsync(graph, undeclaredSetTarget);
 
 			graph.Compile();
 			B3D_TEST_ASSERT(graph.GetStatistics().CulledPassCount == 0)
@@ -1002,8 +1001,8 @@ void FrameGraphTestSuite::TestRasterPass()
 
 		// The command buffer's completion callbacks run on this thread while it waits
 		device->WaitUntilIdle();
-		B3D_TEST_ASSERT_MSG(passSetRead.HasCompleted() && renderPassSetRead.HasCompleted(), "The reads did not complete with the graph's command buffer.")
-		if(!passSetRead.HasCompleted() || !renderPassSetRead.HasCompleted())
+		B3D_TEST_ASSERT_MSG(passSetRead.HasCompleted() && undeclaredSetRead.HasCompleted(), "The reads did not complete with the graph's command buffer.")
+		if(!passSetRead.HasCompleted() || !undeclaredSetRead.HasCompleted())
 			return;
 
 		const auto fnHasSourceTexels = [&fnExpectedTexel](const TShared<PixelData>& data)
@@ -1025,7 +1024,7 @@ void FrameGraphTestSuite::TestRasterPass()
 		};
 
 		B3D_TEST_ASSERT_MSG(fnHasSourceTexels(passSetRead.GetReturnValue()), "The blit through a pass set does not hold the source's texels.")
-		B3D_TEST_ASSERT_MSG(fnHasSourceTexels(renderPassSetRead.GetReturnValue()), "The blit through a render pass set does not hold the source's texels.")
+		B3D_TEST_ASSERT_MSG(fnHasSourceTexels(undeclaredSetRead.GetReturnValue()), "The blit through an undeclared set does not hold the source's texels.")
 
 		device->EndFrame();
 	});

@@ -53,9 +53,6 @@ namespace b3d
 			/** Returns the sample count of the framebuffer attachments. */
 			u32 GetSampleCount() const { return mSampleCount; }
 
-			/** Returns the layout policy used for D3D12 render-pass tracking. */
-			static const GpuFramebufferLayoutPolicy& GetLayoutPolicy();
-
 		private:
 			/** Creates a render-target view for @p attachment in the packed native slot @p attachmentIndex. */
 			bool CreateRenderTargetView(u32 attachmentIndex, const D3D12FramebufferAttachmentCreateInformation& attachment);

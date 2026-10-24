@@ -134,35 +134,6 @@ namespace
 	}
 } // namespace
 
-/**
- * Lets the draws of @p pass bind the parameter sets of the render queue elements. The per-pass renderer inputs are added as pass
- * sets, the material and per-object sets as render pass sets, which hold only resources at rest.
- */
-void PrepareRenderQueuePass(FrameGraphRasterPass& pass, const Vector<RenderQueueEntry>& entries, const SurfaceShaderParameterSets& surfaceShaderParameterSets)
-{
-	surfaceShaderParameterSets.DeclareSets(pass, entries);
-
-	TInlineArray<TShared<GpuParameterSet>, 4> perObjectParameterSets;
-
-	for(const auto& entry : entries)
-	{
-		TShared<GpuParameterSet> parameterSet0 = entry.DrawCommand->ParameterAdapter->GetGpuParameterSet(entry.PassIndex);
-		if(parameterSet0 != nullptr)
-			pass.AddRenderPassParameterSet(parameterSet0);
-
-		const TShared<GpuParameterSet>& parameterSet1 = entry.DrawCommand->SharedPerObjectParameterSet;
-		if(parameterSet1 == nullptr)
-			continue;
-
-		auto found = std::find(perObjectParameterSets.begin(), perObjectParameterSets.end(), parameterSet1);
-		if(found == perObjectParameterSets.end())
-		{
-			pass.AddRenderPassParameterSet(parameterSet1);
-			perObjectParameterSets.Add(parameterSet1);
-		}
-	}
-}
-
 /** Renders all elements in a render queue. */
 void RenderQueueEntries(GpuCommandBuffer& commandBuffer, const Vector<RenderQueueEntry>& entries, const SurfaceShaderParameterSets& surfaceShaderParameterSets)
 {
@@ -484,7 +455,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 
 	// The render queue lives until the view's frame ends, after the graph executes
 	const Vector<RenderQueueEntry>& opaqueEntries = inputs.View.GetOpaqueQueue(false)->GetSortedEntries();
-	PrepareRenderQueuePass(basePass, opaqueEntries, mSurfaceShaderParameterSets);
+	mSurfaceShaderParameterSets.DeclareSets(basePass, opaqueEntries);
 
 	inputs.Graph.AddRasterPass("BasePass", std::move(basePass), [this, &opaqueEntries](FrameGraphPassContext& context)
 	{
@@ -546,7 +517,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 		decalPass.SetColorAttachment(decalColorIndex++, RoughMetalTex, FrameGraphAttachmentLoad::Load);
 
 		decalPass.SetDepthStencilAttachment(sceneDepthNode->DepthTex, FrameGraphDepthStencilMode::DepthReadOnly, FrameGraphAttachmentLoad::Load);
-		PrepareRenderQueuePass(decalPass, decalEntries, mSurfaceShaderParameterSets);
+		mSurfaceShaderParameterSets.DeclareSets(decalPass, decalEntries);
 
 		inputs.Graph.AddRasterPass("Decals", std::move(decalPass), [this, &decalEntries](FrameGraphPassContext& context)
 		{
@@ -1180,7 +1151,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 		FrameGraphRasterPass opaquePass;
 		opaquePass.SetColorAttachment(0, sceneColorNode->SceneColorTex, FrameGraphAttachmentLoad::Load);
 		opaquePass.SetDepthStencilAttachment(sceneDepthNode->DepthTex, FrameGraphDepthStencilMode::Write, FrameGraphAttachmentLoad::Load);
-		PrepareRenderQueuePass(opaquePass, opaqueEntries, mSurfaceShaderParameterSets);
+		mSurfaceShaderParameterSets.DeclareSets(opaquePass, opaqueEntries);
 
 		inputs.Graph.AddRasterPass("ForwardOpaque", std::move(opaquePass), [this, &opaqueEntries](FrameGraphPassContext& context)
 		{
@@ -1198,7 +1169,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 		FrameGraphRasterPass transparentPass;
 		transparentPass.SetColorAttachment(0, sceneColorNode->SceneColorTex, FrameGraphAttachmentLoad::Load);
 		transparentPass.SetDepthStencilAttachment(sceneDepthNode->DepthTex, FrameGraphDepthStencilMode::DepthReadOnly, FrameGraphAttachmentLoad::Load);
-		PrepareRenderQueuePass(transparentPass, transparentEntries, mSurfaceShaderParameterSets);
+		mSurfaceShaderParameterSets.DeclareSets(transparentPass, transparentEntries);
 
 		inputs.Graph.AddRasterPass("ForwardTransparent", std::move(transparentPass), [this, &transparentEntries](FrameGraphPassContext& context)
 		{

@@ -214,19 +214,6 @@ const D3D12_CPU_DESCRIPTOR_HANDLE* D3D12Framebuffer::GetDepthStencilView(RenderS
 	return &mDepthStencilViews[viewIndex];
 }
 
-const GpuFramebufferLayoutPolicy& D3D12Framebuffer::GetLayoutPolicy()
-{
-	static const GpuFramebufferLayoutPolicy policy(
-		GpuRenderPassAttachmentLayout(GpuImageLayout::ColorAttachment),
-		GpuRenderPassAttachmentLayout(GpuImageLayout::ShaderReadOnly, GpuImageLayout::ShaderReadOnly),
-		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthStencilAttachment),
-		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthStencilAttachment, GpuImageLayout::DepthStencilReadOnly),
-		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthStencilAttachment, GpuImageLayout::DepthStencilReadOnly),
-		GpuRenderPassAttachmentLayout(GpuImageLayout::DepthStencilAttachment, GpuImageLayout::DepthStencilReadOnly));
-
-	return policy;
-}
-
 bool D3D12Framebuffer::CreateRenderTargetView(u32 attachmentIndex, const D3D12FramebufferAttachmentCreateInformation& attachment)
 {
 	D3D12GpuDevice& device = *GetD3D12GpuBackend().GetPrimaryDevice();

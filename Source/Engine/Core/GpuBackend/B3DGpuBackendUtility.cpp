@@ -487,6 +487,19 @@ GpuAccessState GpuBackendUtility::GetWindowColorRestingState(GpuQueueType queueT
 	return GpuAccessState(GpuStageFlags(GpuStageFlag::ColorAttachment) & GetQueueStageFlags(queueType), GpuAccessFlag::Read | GpuAccessFlag::Write, GpuImageLayout::ColorAttachment);
 }
 
+GpuImageLayout GpuBackendUtility::GetRenderPassAttachmentLayout(RenderSurfaceMaskBits surface, RenderSurfaceMask readOnlyMask)
+{
+	if(((u32)surface & (u32)RT_COLOR_ALL) != 0)
+		return readOnlyMask.IsSet(surface) ? GpuImageLayout::General : GpuImageLayout::ColorAttachment;
+
+	const bool depthReadOnly = readOnlyMask.IsSet(RT_DEPTH);
+	const bool stencilReadOnly = readOnlyMask.IsSet(RT_STENCIL);
+	if(depthReadOnly)
+		return stencilReadOnly ? GpuImageLayout::DepthStencilReadOnly : GpuImageLayout::DepthReadOnlyStencilAttachment;
+
+	return stencilReadOnly ? GpuImageLayout::DepthAttachmentStencilReadOnly : GpuImageLayout::DepthStencilAttachment;
+}
+
 RenderSurfaceMask GpuBackendUtility::GetRenderPassClears(const RenderPassCreateInformation& createInformation, RenderTargetClearValues& clearValues)
 {
 	clearValues = createInformation.Target != nullptr ? createInformation.Target->GetClearValues() : RenderTargetClearValues();

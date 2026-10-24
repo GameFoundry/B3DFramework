@@ -489,8 +489,6 @@ namespace b3d
 				kVariationLookup[2] = &GetVertexInputVariation<false, true, false>(false);
 				kVariationLookup[3] = &GetVertexInputVariation<true, true, false>(false);
 
-				TInlineArray<TShared<GpuParameterSet>, 4> perObjectParameterSets;
-
 				// Make a list of relevant renderables and prepare them for rendering
 				for(u32 renderableIndex = 0; renderableIndex < renderableStorage.GetRenderableCount(); renderableIndex++)
 				{
@@ -502,14 +500,7 @@ namespace b3d
 
 					RenderableRenderState* renderable = renderableStorage.GetRenderable(renderableIndex);
 
-					// Register per-object shadow parameter set if not already registered
 					const TShared<GpuParameterSet>& perObjectParameterSet = options.GetShadowParameterSet(renderable);
-					auto found = std::find(perObjectParameterSets.begin(), perObjectParameterSets.end(), perObjectParameterSet);
-					if(found == perObjectParameterSets.end())
-					{
-						pass.AddRenderPassParameterSet(perObjectParameterSet);
-						perObjectParameterSets.Add(perObjectParameterSet);
-					}
 
 					Command renderableCommand;
 					renderableCommand.IsDrawCommand = false;
@@ -526,7 +517,6 @@ namespace b3d
 						if(!renderableBound[animationTypeIndex])
 						{
 							options.Prepare(renderableCommand, bounds, *kVariationLookup[animationTypeIndex]);
-							pass.AddRenderPassParameterSet(renderableCommand.GpuParameterSet);
 
 							commandsPerAnimationType[animationTypeIndex].push_back(renderableCommand);
 							renderableBound[animationTypeIndex] = true;

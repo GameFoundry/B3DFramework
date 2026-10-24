@@ -300,20 +300,11 @@ void VulkanBarrierTestSuite::TestRenderPassAttachmentTransitions()
 			const ImageSubresourcePitch pitch = texture->GetStagingBufferPitchForSubresource(0, 0);
 			const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(pitch.RowPitch * pitch.SliceHeight * sizeof(u32)));
 
-			// Returns the state of the attachment in a render pass with @p readOnlyMask, in the layouts Vulkan render passes use (see
-			// VulkanFramebuffer::GetLayoutPolicy())
+			// Returns the state of the attachment in a render pass with @p readOnlyMask
 			const GpuStageFlags attachmentStages = depth ? GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests : GpuStageFlags(GpuStageFlag::ColorAttachment);
 			const auto fnGetAttachmentState = [depth, surfaces, attachmentStages](RenderSurfaceMask readOnlyMask)
 			{
-				GpuImageLayout layout = readOnlyMask.IsSet(RT_COLOR0) ? GpuImageLayout::General : GpuImageLayout::ColorAttachment;
-				if(depth)
-				{
-					if(readOnlyMask.IsSet(RT_DEPTH))
-						layout = readOnlyMask.IsSet(RT_STENCIL) ? GpuImageLayout::DepthStencilReadOnly : GpuImageLayout::DepthReadOnlyStencilAttachment;
-					else
-						layout = readOnlyMask.IsSet(RT_STENCIL) ? GpuImageLayout::DepthAttachmentStencilReadOnly : GpuImageLayout::DepthStencilAttachment;
-				}
-
+				const GpuImageLayout layout = GpuBackendUtility::GetRenderPassAttachmentLayout(depth ? RT_DEPTH : RT_COLOR0, readOnlyMask);
 				const bool isReadOnly = (readOnlyMask & surfaces) == surfaces;
 				return GpuAccessState(attachmentStages, isReadOnly ? GpuAccessFlags(GpuAccessFlag::Read) : GpuAccessFlag::Read | GpuAccessFlag::Write, layout);
 			};

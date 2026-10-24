@@ -315,39 +315,22 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 	mResourceTracker.TrackResourceUsage(mFramebuffer, GpuAccessFlag::Write);
 
 	VulkanRenderPass* renderPass = mFramebuffer->GetRenderPass();
-	const GpuRenderPassAttachmentUsageArray renderPassAttachmentUsages = mFramebuffer->BuildRenderPassAttachmentUsages(readOnlyMask, loadMask, VulkanFramebuffer::GetLayoutPolicy());
+	const GpuRenderPassAttachmentUsageArray renderPassAttachmentUsages = mFramebuffer->BuildRenderPassAttachmentUsages(readOnlyMask, loadMask);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	mDrawAccessValidator.BeginRenderPass();
 #endif
-	mResourceTracker.PrepareRenderPass(renderPassAttachmentUsages);
+	mResourceTracker.BeginRenderPass(renderPassAttachmentUsages);
 
-	// Pre-register all GPU parameters before the render pass, so we can automatically issue barriers
-	for(const TShared<GpuParameterSet>& parameters : createInformation.Parameters)
-	{
-		if(parameters == nullptr)
-			continue;
-
-		// Cache the preparation results for later use by SetGpuParameterSet
-		CachedGpuParameterData& cacheData = mRenderPassGpuParameterSetCache[parameters.get()];
-		cacheData.DynamicOffsets.clear();
-
-		VulkanGpuParameterSet* vkParams = static_cast<VulkanGpuParameterSet*>(parameters.get());
-		if(!vkParams->PrepareForBind(mResourceTracker, cacheData.DynamicOffsets, cacheData.DescriptorSet))
-			return;
-	}
-
-	const TArrayView<const GpuResolvedRenderPassAttachmentUsage> resolvedAttachments = mResourceTracker.BeginRenderPass();
-	B3D_ASSERT(resolvedAttachments.size() == renderPassAttachmentUsages.size());
-
-	RenderSurfaceMask resolvedReadOnlyMask = RT_NONE;
-	for(const GpuResolvedRenderPassAttachmentUsage& attachment : resolvedAttachments)
+	// Surfaces the target does not have are not read-only
+	RenderSurfaceMask attachmentReadOnlyMask = RT_NONE;
+	for(const GpuRenderPassAttachmentUsage& attachment : renderPassAttachmentUsages)
 	{
 		if(attachment.Access == GpuAccessFlag::Read)
-			resolvedReadOnlyMask.Set(attachment.Surface);
+			attachmentReadOnlyMask.Set(attachment.Surface);
 	}
 
-	mRenderTargetReadOnlyMask = resolvedReadOnlyMask;
+	mRenderTargetReadOnlyMask = attachmentReadOnlyMask;
 
 	// Re-set the params as they will need to be re-bound
 	for(const auto& entry : mBoundGpuParameterSets) // TODO - Can likely be removed
@@ -1238,12 +1221,8 @@ void VulkanGpuCommandBuffer::EndRenderPass()
 	mRenderTargetReadOnlyMask = RT_NONE;
 	mFramebuffer = nullptr;
 
-	mRenderPassGpuParameterSetCache.clear();
-
-	// In case the same GPU params from last pass get used, this makes sure the states we reset above, get re-applied
+	// Sets that stay bound are bound again for the commands that follow the render pass
 	mBoundParamsDirty = true;
-
-	// TODO - Probably best to clear mBoundParams since I cleared the cache above
 }
 
 VulkanGpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubmitThread(GpuQueueType queueType)
@@ -1708,31 +1687,10 @@ bool VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParamete
 				mDrawAccessValidator.AddParameterSet(*boundGpuParameterSet, *pipelineParameterLayout->GetSet(set));
 #endif
 
+			// Compute accesses are tracked on every dispatch, even if descriptor contents are unchanged.
 			TInlineArray<u32, 4> setDynamicOffsets;
-
-			auto it = mRenderPassGpuParameterSetCache.find(boundGpuParameterSet.get());
-			if(it != mRenderPassGpuParameterSetCache.end())
-			{
-				// Reuse the descriptor set and offsets prepared at render-pass begin.
-				const CachedGpuParameterData& cacheData = it->second;
-
-				mDescriptorSetsTemp[set] = cacheData.DescriptorSet;
-				setDynamicOffsets = cacheData.DynamicOffsets;
-			}
-			else
-			{
-				// Render pass GPU resources must all be predeclared before render pass starts otherwise we cannot issue barriers & layout transitions
-				if(IsInRenderPass())
-				{
-					B3D_ENSURE(false);
-					B3D_LOG(Warning, LogRenderBackend, "SetGpuParameterSet() called with parameters not declared in RenderPassCreateInformation. Automatic resource barriers and layout transitions may not execute correctly.");
-					return false;
-				}
-
-				// Compute accesses are tracked on every dispatch, even if descriptor contents are unchanged.
-				if(!boundGpuParameterSet->PrepareForBind(mResourceTracker, setDynamicOffsets, mDescriptorSetsTemp[set]))
-					return false;
-			}
+			if(!boundGpuParameterSet->PrepareForBind(mResourceTracker, setDynamicOffsets, mDescriptorSetsTemp[set]))
+				return false;
 
 			// Apply per-set dynamic offset overrides
 			for(const auto& [index, offsetVal] : mDynamicOffsetsOverridesPerSet[set])
@@ -1742,7 +1700,7 @@ bool VulkanGpuCommandBuffer::BindGpuParameters(const TShared<GpuPipelineParamete
 			}
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-			// Render-pass access was declared before the pass; offset changes only select another suballocation.
+			// Offset overrides only select other suballocations of the buffers the set tracked
 			boundGpuParameterSet->TrackDynamicUniformBufferOffsets(mResourceTracker, setDynamicOffsets);
 #endif
 

@@ -216,12 +216,6 @@ namespace b3d
 			/** Tracks graphics resources when bindings change and compute resources before each dispatch. */
 			bool TrackShaderResources(bool compute);
 
-			/**
-			 * Binds @p parameters at the slot of its set index. Returns false if the set index collides with the reserved
-			 * vertex buffer slots.
-			 */
-			bool BindParameterSet(const TShared<GpuParameterSet>& parameters);
-
 			/** Resets the dynamic offset overrides of the parameter set bound at @p setIndex, so every buffer uses the offset it was bound with. */
 			void ResetDynamicOffsetOverrides(u32 setIndex);
 

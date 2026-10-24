@@ -16,7 +16,7 @@ namespace b3d
 		 *  @{
 		 */
 
-		/** Describes how one image subresource range is used as a render-pass attachment (mainly detecting if a render attachment is also sampled in a shader). */
+		/** Describes how one image subresource range is used as a render-pass attachment. */
 		struct GpuRenderPassAttachmentUsage
 		{
 			GpuRenderPassAttachmentUsage() = default;
@@ -26,23 +26,8 @@ namespace b3d
 			RenderSurfaceMaskBits Surface = RT_NONE; /**< Logical render-target surface represented by this entry. */
 			GpuAccessFlags Access; /**< Access performed through the attachment. */
 			GpuBarrierFlags BarrierFlags; /**< Behavior requested from the barrier preceding attachment access. */
-			GpuImageLayout Layout = GpuImageLayout::Undefined; /**< Layout used when the attachment isn't sampled. */
-			TOptional<GpuImageLayout> ShaderReadLayout; /**< Layout supporting simultaneous attachment and shader reads, if available. */
-			TOptional<GpuImageLayout> FinalLayout; /**< Layout established when the render pass ends, or empty to retain the resolved access layout. */
-		};
-
-		/** Render-pass attachment usage combined with any potential shader accesses. */
-		struct GpuResolvedRenderPassAttachmentUsage
-		{
-			GpuResolvedRenderPassAttachmentUsage() = default;
-
-			IGpuImageResource* Image = nullptr; /**< Image bound by the attachment. */
-			GpuTextureSubresourceRange Range; /**< Subresources covered by this attachment aspect. */
-			RenderSurfaceMaskBits Surface = RT_NONE; /**< Logical render-target surface represented by this entry. */
-			GpuAccessFlags Access; /**< Combined access performed during the render pass. */
-			GpuBarrierFlags BarrierFlags; /**< Behavior requested from the barrier preceding attachment access. */
-			GpuImageLayout Layout = GpuImageLayout::Undefined; /**< Layout selected for the render pass. */
-			GpuImageLayout FinalLayout = GpuImageLayout::Undefined; /**< Layout established when the render pass ends. */
+			GpuImageLayout Layout = GpuImageLayout::Undefined; /**< Layout of the attachment during the render pass. */
+			TOptional<GpuImageLayout> FinalLayout; /**< Layout established when the render pass ends, or empty to retain Layout. */
 		};
 
 		/** Inline storage for every color, depth, and stencil attachment aspect in one render pass. */
@@ -64,35 +49,6 @@ namespace b3d
 			GpuTextureSubresourceRange Range; /**< Exact aspect-specific subresource range. */
 			RenderSurfaceMaskBits Surface; /**< Logical render-target surface represented by this entry. */
 			TOptional<GpuImageLayout> FinalLayout; /**< Layout established when the render pass ends, or empty to retain the access layout. */
-		};
-
-		/** Attachment-only and optional attachment + sampled-read layout for one attachment. */
-		struct B3D_EXPORT GpuRenderPassAttachmentLayout
-		{
-			GpuRenderPassAttachmentLayout(GpuImageLayout attachmentOnly = GpuImageLayout::Undefined, TOptional<GpuImageLayout> attachmentAndShaderRead = TOptional<GpuImageLayout>());
-
-			GpuImageLayout AttachmentOnly; /**< Layout used for attachment access without shader reads. */
-			TOptional<GpuImageLayout> AttachmentAndShaderRead; /**< Layout supporting simultaneous attachment and shader reads. */
-		};
-
-		/** Defines backend layout choices used when building render-pass attachment usage. */
-		struct B3D_EXPORT GpuFramebufferLayoutPolicy
-		{
-			GpuFramebufferLayoutPolicy(const GpuRenderPassAttachmentLayout& writableColor, const GpuRenderPassAttachmentLayout& readOnlyColor, const GpuRenderPassAttachmentLayout& writableDepthStencil, const GpuRenderPassAttachmentLayout& depthReadOnly, const GpuRenderPassAttachmentLayout& stencilReadOnly, const GpuRenderPassAttachmentLayout& readOnlyDepthStencil, TOptional<GpuImageLayout> unloadedLayout = TOptional<GpuImageLayout>());
-
-			/** Returns the preferred color layout matching @p readOnly. */
-			const GpuRenderPassAttachmentLayout& GetColorLayout(bool readOnly) const;
-
-			/** Returns the preferred combined depth/stencil layout matching @p readOnlyMask. */
-			const GpuRenderPassAttachmentLayout& GetDepthStencilLayout(RenderSurfaceMask readOnlyMask) const;
-
-			GpuRenderPassAttachmentLayout WritableColor; /**< Writable color attachment layout. */
-			GpuRenderPassAttachmentLayout ReadOnlyColor; /**< Read-only color attachment layout. */
-			GpuRenderPassAttachmentLayout WritableDepthStencil; /**< Writable depth and stencil layout. */
-			GpuRenderPassAttachmentLayout DepthReadOnly; /**< Read-only depth with writable stencil layout. */
-			GpuRenderPassAttachmentLayout StencilReadOnly; /**< Writable depth with read-only stencil layout. */
-			GpuRenderPassAttachmentLayout ReadOnlyDepthStencil; /**< Read-only depth and stencil layout. */
-			TOptional<GpuImageLayout> UnloadedLayout; /**< Layout used for surfaces whose contents aren't preserved, or empty to retain their layout. */
 		};
 
 		/** Stores backend-neutral framebuffer attachment metadata without defining native lifetime semantics. */
@@ -123,8 +79,11 @@ namespace b3d
 			/** Finds the attachment associated with the render-target surface, or returns null. */
 			const GpuFramebufferAttachment* FindAttachment(RenderSurfaceMaskBits surface) const;
 
-			/** Builds the attachment usage array that can be used for tracking attachment usage in the resource tracker. */
-			GpuRenderPassAttachmentUsageArray BuildRenderPassAttachmentUsages(RenderSurfaceMask readOnlyMask, RenderSurfaceMask loadMask, const GpuFramebufferLayoutPolicy& layoutPolicy) const;
+			/**
+			 * Builds the attachment usage array that can be used for tracking attachment usage in the resource tracker. Attachments are in the
+			 * layouts returned by GpuBackendUtility::GetRenderPassAttachmentLayout().
+			 */
+			GpuRenderPassAttachmentUsageArray BuildRenderPassAttachmentUsages(RenderSurfaceMask readOnlyMask, RenderSurfaceMask loadMask) const;
 
 		protected:
 			GpuFramebuffer(u32 width, u32 height, u32 layerCount = 1);

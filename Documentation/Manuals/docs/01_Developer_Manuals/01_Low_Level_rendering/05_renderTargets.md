@@ -32,41 +32,10 @@ commandBuffer->SetViewport(Area2(0.25f, 0.25f, 0.5f, 0.5f));
 **render::GpuCommandBuffer::BeginRenderPass()** accepts a @b3d::RenderPassCreateInformation structure with parameters to control more advanced behaviour:
  - `ReadOnlyMask` - Combination of one or more elements of @b3d::RenderSurfaceMaskBits denoting which surfaces will be bound for read-only operations. This is useful for depth or stencil surfaces which might need to be bound both for depth/stencil tests, as well as shader reads. If you don't specify this the render backend will assume you will be writing to the render target which will result in undefined behaviour if you also try reading from that same texture.
  - `LoadMask` - Mask described by @b3d::RenderSurfaceMaskBits which controls if current contents of any of the render target surfaces should be preserved. By default the system doesn't guarantee the contents will be preserved and data is instead undefined. In certain cases (like blending operations) you want to preserve the contents, in which case specify the necessary flags to tell the system which surfaces need their contents preserved.
- - `Parameters` - Array of @b3d::GpuParameterSet objects that will be bound during this render pass. You must pre-declare all GPU parameter sets you plan to use within the render pass. This allows the render backend to inspect the resources referenced by those parameter sets (textures, buffers) and issue the correct resource transitions and barriers before the render pass begins. Failing to declare a parameter set that is later bound during the render pass can lead to incorrect resource states and undefined behaviour.
 
 ~~~~~~~~~~~~~{.cpp}
 // Bind a render target with read-only depth/stencil, and preserve the existing contents of depth-stencil buffer on bind
 RenderPassCreateInformation renderPassInfo(target, RT_DEPTH_STENCIL, RT_DEPTH_STENCIL);
-commandBuffer->BeginRenderPass(renderPassInfo);
-~~~~~~~~~~~~~
-
-## Declaring GPU parameter sets
-
-When beginning a render pass you should declare all @b3d::GpuParameterSet objects that will be used during the pass. This is done through the `Parameters` field of @b3d::RenderPassCreateInformation. The render backend uses this information to transition resources (textures, buffers) into the correct layout and insert any necessary pipeline barriers before the render pass starts.
-
-~~~~~~~~~~~~~{.cpp}
-TShared<GpuParameterSet> materialParams = ...;
-TShared<GpuParameterSet> lightingParams = ...;
-
-RenderPassCreateInformation renderPassInfo(target);
-renderPassInfo.Parameters.Add(materialParams);
-renderPassInfo.Parameters.Add(lightingParams);
-
-commandBuffer->BeginRenderPass(renderPassInfo);
-
-// Now safe to bind and use these parameter sets during the render pass
-commandBuffer->SetGpuParameterSet(materialParams);
-// ... draw calls ...
-commandBuffer->SetGpuParameterSet(lightingParams);
-// ... more draw calls ...
-
-commandBuffer->EndRenderPass();
-~~~~~~~~~~~~~
-
-You can also pass a single parameter set using the convenience constructor:
-
-~~~~~~~~~~~~~{.cpp}
-RenderPassCreateInformation renderPassInfo(target, parameterSet);
 commandBuffer->BeginRenderPass(renderPassInfo);
 ~~~~~~~~~~~~~
 

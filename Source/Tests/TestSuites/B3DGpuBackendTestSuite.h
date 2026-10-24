@@ -45,8 +45,8 @@ namespace b3d
 		void TestFramebufferAttachmentUsage();
 
 		/**
-		 * Verifies the tracker binds every used resource and subresource once and accumulates their access, folds shader reads of attachments
-		 * into the render pass, and unbinds everything when cleared.
+		 * Verifies the tracker binds every used resource and subresource once and accumulates their access, lets shaders read read-only
+		 * attachments of the render pass in the attachment's layout, and unbinds everything when cleared.
 		 */
 		void TestResourceUseTracking();
 

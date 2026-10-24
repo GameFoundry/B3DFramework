@@ -1,6 +1,7 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GpuBackend/B3DGpuFramebuffer.h"
+#include "GpuBackend/B3DGpuBackendUtility.h"
 #include "Utility/B3DBitwise.h"
 
 namespace b3d::render
@@ -17,29 +18,6 @@ namespace b3d::render
 	u32 GpuFramebufferAttachment::GetIndex() const
 	{
 		return IsColor() ? Bitwise::LeastSignificantBit((u32)Surface) : 0;
-	}
-
-	GpuRenderPassAttachmentLayout::GpuRenderPassAttachmentLayout(GpuImageLayout attachmentOnly, TOptional<GpuImageLayout> attachmentAndShaderRead)
-		: AttachmentOnly(attachmentOnly), AttachmentAndShaderRead(attachmentAndShaderRead)
-	{ }
-
-	GpuFramebufferLayoutPolicy::GpuFramebufferLayoutPolicy(const GpuRenderPassAttachmentLayout& writableColor, const GpuRenderPassAttachmentLayout& readOnlyColor, const GpuRenderPassAttachmentLayout& writableDepthStencil, const GpuRenderPassAttachmentLayout& depthReadOnly, const GpuRenderPassAttachmentLayout& stencilReadOnly, const GpuRenderPassAttachmentLayout& readOnlyDepthStencil, TOptional<GpuImageLayout> unloadedLayout)
-		: WritableColor(writableColor), ReadOnlyColor(readOnlyColor), WritableDepthStencil(writableDepthStencil), DepthReadOnly(depthReadOnly), StencilReadOnly(stencilReadOnly), ReadOnlyDepthStencil(readOnlyDepthStencil), UnloadedLayout(unloadedLayout)
-	{ }
-
-	const GpuRenderPassAttachmentLayout& GpuFramebufferLayoutPolicy::GetColorLayout(bool readOnly) const
-	{
-		return readOnly ? ReadOnlyColor : WritableColor;
-	}
-
-	const GpuRenderPassAttachmentLayout& GpuFramebufferLayoutPolicy::GetDepthStencilLayout(RenderSurfaceMask readOnlyMask) const
-	{
-		const bool depthReadOnly = readOnlyMask.IsSet(RT_DEPTH);
-		const bool stencilReadOnly = readOnlyMask.IsSet(RT_STENCIL);
-		if(depthReadOnly)
-			return stencilReadOnly ? ReadOnlyDepthStencil : DepthReadOnly;
-
-		return stencilReadOnly ? StencilReadOnly : WritableDepthStencil;
 	}
 
 	GpuFramebuffer::GpuFramebuffer(u32 width, u32 height, u32 layerCount)
@@ -62,13 +40,12 @@ namespace b3d::render
 		return nullptr;
 	}
 
-	GpuRenderPassAttachmentUsageArray GpuFramebuffer::BuildRenderPassAttachmentUsages(RenderSurfaceMask readOnlyMask, RenderSurfaceMask loadMask, const GpuFramebufferLayoutPolicy& layoutPolicy) const
+	GpuRenderPassAttachmentUsageArray GpuFramebuffer::BuildRenderPassAttachmentUsages(RenderSurfaceMask readOnlyMask, RenderSurfaceMask loadMask) const
 	{
 		GpuRenderPassAttachmentUsageArray output;
 		for(const GpuFramebufferAttachment& attachment : mAttachments)
 		{
 			const bool readOnly = readOnlyMask.IsSet(attachment.Surface);
-			const GpuRenderPassAttachmentLayout& layout = attachment.IsColor() ? layoutPolicy.GetColorLayout(readOnly) : layoutPolicy.GetDepthStencilLayout(readOnlyMask);
 
 			GpuRenderPassAttachmentUsage usage;
 			usage.Image = attachment.Image;
@@ -78,14 +55,8 @@ namespace b3d::render
 			if(!readOnly && !loadMask.IsSet(attachment.Surface))
 				usage.BarrierFlags.Set(GpuBarrierFlag::DiscardContents);
 
-			usage.Layout = layout.AttachmentOnly;
+			usage.Layout = GpuBackendUtility::GetRenderPassAttachmentLayout(attachment.Surface, readOnlyMask);
 			usage.FinalLayout = attachment.FinalLayout;
-
-			if(layoutPolicy.UnloadedLayout.has_value() && !loadMask.IsSet(attachment.Surface))
-				usage.Layout = *layoutPolicy.UnloadedLayout;
-
-			if(readOnly)
-				usage.ShaderReadLayout = layout.AttachmentAndShaderRead;
 
 			output.Add(std::move(usage));
 		}

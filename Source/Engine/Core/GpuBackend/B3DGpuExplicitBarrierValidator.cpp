@@ -113,7 +113,7 @@ namespace b3d::render
 			// Writable attachments also read, through loads, blending and depth/stencil tests
 			const bool readOnly = createInformation.ReadOnlyMask.IsSet(surface);
 			const GpuAccessFlags access = readOnly ? GpuAccessFlags(GpuAccessFlag::Read) : GpuAccessFlag::Read | GpuAccessFlag::Write;
-			ValidateImageAccess(image, GetAttachmentLayout(surface, createInformation.ReadOnlyMask), stages, access);
+			ValidateImageAccess(image, GpuBackendUtility::GetRenderPassAttachmentLayout(surface, createInformation.ReadOnlyMask), stages, access);
 
 			mRenderPassAttachments.Add(image);
 		};
@@ -243,19 +243,6 @@ namespace b3d::render
 			if(barrier.Object != nullptr)
 				fnStartLifetime(barrier.Object->GetGpuResource(), barrier, barrier.Object->GetName());
 		}
-	}
-
-	GpuImageLayout GpuExplicitBarrierValidator::GetAttachmentLayout(RenderSurfaceMaskBits surface, RenderSurfaceMask readOnlyMask)
-	{
-		if(((u32)surface & (u32)RT_COLOR_ALL) != 0)
-			return readOnlyMask.IsSet(surface) ? GpuImageLayout::General : GpuImageLayout::ColorAttachment;
-
-		const bool depthReadOnly = readOnlyMask.IsSet(RT_DEPTH);
-		const bool stencilReadOnly = readOnlyMask.IsSet(RT_STENCIL);
-		if(depthReadOnly)
-			return stencilReadOnly ? GpuImageLayout::DepthStencilReadOnly : GpuImageLayout::DepthReadOnlyStencilAttachment;
-
-		return stencilReadOnly ? GpuImageLayout::DepthAttachmentStencilReadOnly : GpuImageLayout::DepthStencilAttachment;
 	}
 
 	GpuExplicitBarrierValidator::ImageSubresources GpuExplicitBarrierValidator::GetTextureSubresources(const Texture& texture, const GpuTextureSubresourceRange& range) const

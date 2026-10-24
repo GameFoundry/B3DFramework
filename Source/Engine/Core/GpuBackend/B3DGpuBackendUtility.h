@@ -172,6 +172,15 @@ namespace b3d
 		static render::GpuAccessState GetWindowColorRestingState(GpuQueueType queueType);
 
 		/**
+		 * Returns the layout of an attachment during a render pass, given the surfaces of the render pass that are read-only. Explicit
+		 * barriers transition attachments to it before the render pass:
+		 *  - Color: GpuImageLayout::ColorAttachment, or GpuImageLayout::General if read-only.
+		 *  - Depth and stencil: GpuImageLayout::DepthStencilAttachment, GpuImageLayout::DepthReadOnlyStencilAttachment,
+		 *    GpuImageLayout::DepthAttachmentStencilReadOnly or GpuImageLayout::DepthStencilReadOnly, depending on which aspects are read-only.
+		 */
+		static render::GpuImageLayout GetRenderPassAttachmentLayout(RenderSurfaceMaskBits surface, RenderSurfaceMask readOnlyMask);
+
+		/**
 		 * Returns the surfaces that a render pass clears when it begins, and writes the values to clear them to into @p clearValues. These
 		 * are the surfaces in RenderPassCreateInformation::ClearMask, with the clear values of the render target. If
 		 * gGpuPoisonUnloadedAttachments is enabled, development builds also clear every surface the render pass neither loads nor clears:

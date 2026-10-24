@@ -72,9 +72,6 @@ namespace b3d
 			/** Returns the render pass that this framebuffer is tied to. */
 			VulkanRenderPass* GetRenderPass() const { return mRenderPass; }
 
-			/** Returns the layout policy used for Vulkan render-pass tracking. */
-			static const GpuFramebufferLayoutPolicy& GetLayoutPolicy();
-
 		private:
 			u32 mId;
 			VkFramebuffer mVkFramebuffer;

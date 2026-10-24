@@ -47,7 +47,7 @@ namespace b3d
 			 * Tracks the resources consumed by the active pipeline.
 			 *
 			 * @param	pipelineSetLayout	Active pipeline's layout for this set. Resources are matched against this
-			 *								layout by slot and tracked only in the shader stages that consume each binding.
+			 *								layout by slot.
 			 * @param	resourceTracker		Tracker retaining resources and recording their accesses.
 			 * @return						False if shader accesses overlap a writable attachment.
 			 */

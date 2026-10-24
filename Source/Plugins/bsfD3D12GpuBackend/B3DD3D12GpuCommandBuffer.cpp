@@ -612,6 +612,9 @@ void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& c
 	mFramebuffer = nullptr;
 	mGraphicsPipelineRequiresBind = true;
 
+	// Sets that stay bound are tracked again, against the attachments of the new render pass
+	mGraphicsParametersRequireBind = true;
+
 	// Get framebuffer for the render target
 	if (target->GetProperties().IsWindow)
 		mFramebuffer = AcquireWindowFramebuffer(static_cast<RenderWindow&>(*target));
@@ -634,7 +637,7 @@ void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& c
 	GpuRenderPassAttachmentUsageArray renderPassAttachmentUsages;
 	if(mFramebuffer != nullptr)
 	{
-		renderPassAttachmentUsages = mFramebuffer->BuildRenderPassAttachmentUsages(mRenderTargetReadOnlyMask, createInformation.LoadMask, D3D12Framebuffer::GetLayoutPolicy());
+		renderPassAttachmentUsages = mFramebuffer->BuildRenderPassAttachmentUsages(mRenderTargetReadOnlyMask, createInformation.LoadMask);
 
 		for(GpuRenderPassAttachmentUsage& attachmentUsage : renderPassAttachmentUsages)
 			attachmentUsage.FinalLayout.reset();
@@ -643,21 +646,7 @@ void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& c
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	mDrawAccessValidator.BeginRenderPass();
 #endif
-	mResourceTracker.PrepareRenderPass(renderPassAttachmentUsages);
-
-	// Register parameter resources once, collecting shader reads that overlap attachments before their transitions are resolved.
-	for (const TShared<GpuParameterSet>& parameterSet : createInformation.Parameters)
-	{
-		if (parameterSet == nullptr)
-			continue;
-
-		const TShared<GpuPipelineParameterSetLayout>& setLayout = parameterSet->GetLayout();
-		if (setLayout != nullptr)
-			if(!static_cast<D3D12GpuParameters*>(parameterSet.get())->TrackResources(*setLayout, mResourceTracker))
-				return;
-	}
-
-	mResourceTracker.BeginRenderPass();
+	mResourceTracker.BeginRenderPass(renderPassAttachmentUsages);
 
 	// Set render targets if framebuffer exists
 	if (mFramebuffer)
@@ -1136,7 +1125,8 @@ bool D3D12GpuCommandBuffer::BindGpuParameterSets(bool isGraphics)
 			mDrawAccessValidator.AddParameterSet(*parameters, *pipelineSetLayout);
 #endif
 
-		if(!isGraphics && !parameters->TrackResources(*pipelineSetLayout, mResourceTracker))
+		// Compute sets are tracked on every dispatch, graphics sets whenever they are bound
+		if(!parameters->TrackResources(*pipelineSetLayout, mResourceTracker))
 			return false;
 
 		if(requiresBind)

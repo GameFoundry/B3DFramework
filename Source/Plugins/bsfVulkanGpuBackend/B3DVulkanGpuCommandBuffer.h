@@ -358,13 +358,6 @@ namespace b3d
 				u64 PoolIdentifier = 0;
 			};
 
-			/** Cached data from GpuParameterSet that were registered during render pass start. */
-			struct CachedGpuParameterData
-			{
-				VkDescriptorSet DescriptorSet;
-				TInlineArray<u32, 4> DynamicOffsets;
-			};
-
 			VulkanGpuCommandBuffer(VulkanGpuDevice& device, VulkanGpuCommandBufferPool& pool, u32 id, VkCommandBuffer commandBufferHandle, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
 
 			/** Returns the pool the command buffer was allocated from. */
@@ -490,7 +483,6 @@ namespace b3d
 			Vector<IVulkanRenderWindowSurface*> mAcquiredSurfaces;
 			TInlineArray<TInlineArray<u32, 4>, 4> mDynamicOffsetsPerSet;
 			TInlineArray<UnorderedMap<u32, u32>, 4> mDynamicOffsetsOverridesPerSet;
-			UnorderedMap<GpuParameterSet*, CachedGpuParameterData> mRenderPassGpuParameterSetCache;
 
 			TShared<RenderTarget> mRenderTarget;
 

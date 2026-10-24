@@ -65,19 +65,5 @@ namespace b3d
 				}
 			}
 		}
-
-		const GpuFramebufferLayoutPolicy& MetalFramebuffer::GetLayoutPolicy()
-		{
-			// Metal has no image layouts, these are only bookkeeping for the resource tracker
-			static const GpuFramebufferLayoutPolicy policy(
-				GpuRenderPassAttachmentLayout(GpuImageLayout::ColorAttachment),
-				GpuRenderPassAttachmentLayout(GpuImageLayout::General, GpuImageLayout::General),
-				GpuRenderPassAttachmentLayout(GpuImageLayout::DepthStencilAttachment),
-				GpuRenderPassAttachmentLayout(GpuImageLayout::DepthReadOnlyStencilAttachment, GpuImageLayout::DepthReadOnlyStencilAttachment),
-				GpuRenderPassAttachmentLayout(GpuImageLayout::DepthAttachmentStencilReadOnly, GpuImageLayout::DepthAttachmentStencilReadOnly),
-				GpuRenderPassAttachmentLayout(GpuImageLayout::DepthStencilReadOnly, GpuImageLayout::DepthStencilReadOnly));
-
-			return policy;
-		}
 	} // namespace render
 } // namespace b3d
