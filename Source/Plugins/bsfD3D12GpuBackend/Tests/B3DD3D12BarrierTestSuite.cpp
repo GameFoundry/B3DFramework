@@ -307,8 +307,8 @@ void D3D12BarrierTestSuite::TestTextureBarrierBatch()
 
 	const TShared<GpuCommandBufferPool> graphicsPool = GpuBarrierTestUtility::CreateCommandBufferPool(*device, GQT_GRAPHICS);
 	const TShared<GpuCommandBuffer> commandBuffer = graphicsPool->Create(GpuCommandBufferCreateInformation::Create("D3D12 sequential texture barrier validation"));
-	commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(texture, GpuBarrierTestUtility::GetDiscardedRestingState(*texture), colorAttachmentWrite, topMip));
-	commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(texture, colorAttachmentWrite, fragmentShaderRead, topMip));
+	commandBuffer->IssueBarriers(GpuTextureBarrier(texture, GpuBarrierTestUtility::GetDiscardedRestingState(*texture), colorAttachmentWrite, topMip));
+	commandBuffer->IssueBarriers(GpuTextureBarrier(texture, colorAttachmentWrite, fragmentShaderRead, topMip));
 	commandBuffer->End();
 }
 
@@ -660,18 +660,18 @@ void D3D12BarrierTestSuite::TestRestingTransitionSubmission()
 	const GpuAccessState transferRead(GpuStageFlag::Transfer, GpuAccessFlag::Read, GpuImageLayout::TransferSource);
 	const TShared<GpuCommandBufferPool> commandBufferPool = GpuBarrierTestUtility::CreateCommandBufferPool(*device, GQT_GRAPHICS);
 	const TShared<GpuCommandBuffer> commandBuffer = commandBufferPool->Create(GpuCommandBufferCreateInformation::Create("D3D12 resting transition test"));
-	commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(texture, GpuBarrierTestUtility::GetDiscardedRestingState(*texture), transferWrite));
+	commandBuffer->IssueBarriers(GpuTextureBarrier(texture, GpuBarrierTestUtility::GetDiscardedRestingState(*texture), transferWrite));
 	commandBuffer->CopyBufferToTexture(upload, texture, 0, 0, 0);
 
-	const GpuExplicitBufferBarrier readbackBarrier(readback, GpuAccessState(), transferWrite);
-	const GpuExplicitTextureBarrier copyBarrier(texture, transferWrite, transferRead);
-	commandBuffer->IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(&readbackBarrier, 1), TArrayView<const GpuExplicitTextureBarrier>(&copyBarrier, 1)));
+	const GpuBufferBarrier readbackBarrier(readback, GpuAccessState(), transferWrite);
+	const GpuTextureBarrier copyBarrier(texture, transferWrite, transferRead);
+	commandBuffer->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&readbackBarrier, 1), TArrayView<const GpuTextureBarrier>(&copyBarrier, 1)));
 	commandBuffer->CopyTextureToBuffer(texture, readback, 0, 0, 0);
 
 	// The texture returns to rest, and the copy becomes visible to the host
-	const GpuExplicitBufferBarrier hostReadBarrier(readback, transferWrite, GpuAccessState(GpuStageFlag::Host, GpuAccessFlag::Read));
-	const GpuExplicitTextureBarrier restBarrier(texture, transferRead, GpuBackendUtility::GetRestingState(*texture, GQT_GRAPHICS));
-	commandBuffer->IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(&hostReadBarrier, 1), TArrayView<const GpuExplicitTextureBarrier>(&restBarrier, 1)));
+	const GpuBufferBarrier hostReadBarrier(readback, transferWrite, GpuAccessState(GpuStageFlag::Host, GpuAccessFlag::Read));
+	const GpuTextureBarrier restBarrier(texture, transferRead, GpuBackendUtility::GetRestingState(*texture, GQT_GRAPHICS));
+	commandBuffer->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&hostReadBarrier, 1), TArrayView<const GpuTextureBarrier>(&restBarrier, 1)));
 
 	const TShared<GpuWorkContext> workContext = GpuWorkContext::Create(*device);
 	workContext->SubmitCommandBuffer(commandBuffer, GpuQueueMask::kNone);
@@ -714,12 +714,12 @@ void D3D12BarrierTestSuite::TestMultisampleResolve()
 	const TShared<GpuCommandBuffer> commandBuffer = commandBufferPool->Create(GpuCommandBufferCreateInformation::Create("D3D12 MSAA resolve test"));
 
 	// The new textures start at rest. The resolve overwrites the destination, and reads the undefined contents of the source.
-	const GpuExplicitTextureBarrier resolveBarriers[] =
+	const GpuTextureBarrier resolveBarriers[] =
 	{
-		GpuExplicitTextureBarrier(source, GpuBarrierTestUtility::GetDiscardedRestingState(*source), GpuAccessState(GpuStageFlag::Resolve, GpuAccessFlag::Read, GpuImageLayout::ResolveSource)),
-		GpuExplicitTextureBarrier(destination, GpuBarrierTestUtility::GetDiscardedRestingState(*destination), GpuAccessState(GpuStageFlag::Resolve, GpuAccessFlag::Write, GpuImageLayout::ResolveDestination))
+		GpuTextureBarrier(source, GpuBarrierTestUtility::GetDiscardedRestingState(*source), GpuAccessState(GpuStageFlag::Resolve, GpuAccessFlag::Read, GpuImageLayout::ResolveSource)),
+		GpuTextureBarrier(destination, GpuBarrierTestUtility::GetDiscardedRestingState(*destination), GpuAccessState(GpuStageFlag::Resolve, GpuAccessFlag::Write, GpuImageLayout::ResolveDestination))
 	};
-	commandBuffer->IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(), TArrayView<const GpuExplicitTextureBarrier>(resolveBarriers, 2)));
+	commandBuffer->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(), TArrayView<const GpuTextureBarrier>(resolveBarriers, 2)));
 	B3D_TEST_ASSERT(commandBuffer->CopyTexture(source, destination))
 
 	const TShared<GpuWorkContext> workContext = GpuWorkContext::Create(*device);

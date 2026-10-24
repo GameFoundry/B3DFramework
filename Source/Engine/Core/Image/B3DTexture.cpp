@@ -682,9 +682,9 @@ void TextureUtility::Write(GpuWorkContext& gpuContext, const TShared<Texture>& t
 	GpuAccessState discardedRestingState = restingState;
 	discardedRestingState.Layout = GpuImageLayout::Undefined;
 
-	commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(texture, discardedRestingState, transferWrite, range));
+	commandBuffer->IssueBarriers(GpuTextureBarrier(texture, discardedRestingState, transferWrite, range));
 	commandBuffer->CopyBufferToTexture(stagingBuffer, texture, 0, mipLevel, arrayLayer);
-	commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(texture, transferWrite, restingState, range));
+	commandBuffer->IssueBarriers(GpuTextureBarrier(texture, transferWrite, restingState, range));
 
 	commandBuffer->AddQueueSyncMask(syncMask);
 }
@@ -739,7 +739,7 @@ void TextureUtility::Read(GpuWorkContext& gpuContext, const TShared<Texture>& te
 				const GpuTextureSubresourceRange range(mipLevel, 1, arrayLayer, 1, GpuBackendUtility::GetFormatAspects(textureProperties.Format));
 
 				const GpuAccessState hostRead(GpuStageFlag::Host, GpuAccessFlag::Read, restingState.Layout);
-				commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(texture, restingState, hostRead, range));
+				commandBuffer->IssueBarriers(GpuTextureBarrier(texture, restingState, hostRead, range));
 			}
 
 			// Submit the command buffer and wait until it finishes

@@ -20,7 +20,7 @@ namespace b3d
 
 	namespace render
 	{
-		class GpuExplicitBarrierValidator;
+		class GpuBarrierValidator;
 		class RenderWindow;
 	}
 
@@ -294,11 +294,11 @@ namespace b3d
 
 		/**
 		 * Describes common fields of explicit buffer and texture barriers. The caller provides the source as well as the destination, and
-		 * the command buffer derives nothing from earlier use of the resource. See GpuCommandBuffer::IssueExplicitBarriers().
+		 * the command buffer derives nothing from earlier use of the resource. See GpuCommandBuffer::IssueBarriers().
 		 */
-		struct GpuExplicitBarrier
+		struct GpuBarrier
 		{
-			GpuExplicitBarrier(const GpuAccessState& source, const GpuAccessState& destination, GpuBarrierFlags flags = GpuBarrierFlag::None)
+			GpuBarrier(const GpuAccessState& source, const GpuAccessState& destination, GpuBarrierFlags flags = GpuBarrierFlag::None)
 				: Source(source), Destination(destination), Flags(flags)
 			{ }
 
@@ -321,10 +321,10 @@ namespace b3d
 		};
 
 		/** Describes an explicit barrier for a GpuBuffer. */
-		struct GpuExplicitBufferBarrier : GpuExplicitBarrier
+		struct GpuBufferBarrier : GpuBarrier
 		{
-			GpuExplicitBufferBarrier(const TShared<GpuBuffer>& object, const GpuAccessState& source, const GpuAccessState& destination, GpuBarrierFlags flags = GpuBarrierFlag::None)
-				: GpuExplicitBarrier(source, destination, flags), Object(object)
+			GpuBufferBarrier(const TShared<GpuBuffer>& object, const GpuAccessState& source, const GpuAccessState& destination, GpuBarrierFlags flags = GpuBarrierFlag::None)
+				: GpuBarrier(source, destination, flags), Object(object)
 			{ }
 
 			/** Returns a hash value for the barrier. Identifies the buffer by its address. */
@@ -332,7 +332,7 @@ namespace b3d
 			{
 				size_t hash = 0;
 				B3DCombineHash(hash, Object.get());
-				B3DCombineHash(hash, GpuExplicitBarrier::GenerateHash());
+				B3DCombineHash(hash, GpuBarrier::GenerateHash());
 
 				return hash;
 			}
@@ -341,11 +341,11 @@ namespace b3d
 		};
 
 		/** Describes an explicit barrier for a range of Texture subresources. */
-		struct GpuExplicitTextureBarrier : GpuExplicitBarrier
+		struct GpuTextureBarrier : GpuBarrier
 		{
-			GpuExplicitTextureBarrier(const TShared<Texture>& object, const GpuAccessState& source, const GpuAccessState& destination,
+			GpuTextureBarrier(const TShared<Texture>& object, const GpuAccessState& source, const GpuAccessState& destination,
 				const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources(), GpuBarrierFlags flags = GpuBarrierFlag::None)
-				: GpuExplicitBarrier(source, destination, flags), Object(object), SubresourceRange(subresourceRange)
+				: GpuBarrier(source, destination, flags), Object(object), SubresourceRange(subresourceRange)
 			{ }
 
 			/** Returns a hash value for the barrier. Identifies the texture by its address. */
@@ -354,7 +354,7 @@ namespace b3d
 				size_t hash = 0;
 				B3DCombineHash(hash, Object.get());
 				B3DCombineHash(hash, SubresourceRange.GenerateHash());
-				B3DCombineHash(hash, GpuExplicitBarrier::GenerateHash());
+				B3DCombineHash(hash, GpuBarrier::GenerateHash());
 
 				return hash;
 			}
@@ -367,11 +367,11 @@ namespace b3d
 		 * Describes an explicit barrier for one surface of a RenderTarget. Necessary for swap chain images, which cannot be accessed as
 		 * standalone textures. SurfaceMask must specify a single surface bit.
 		 */
-		struct GpuExplicitRenderTargetBarrier : GpuExplicitBarrier
+		struct GpuRenderTargetBarrier : GpuBarrier
 		{
-			GpuExplicitRenderTargetBarrier(const TShared<RenderTarget>& object, RenderSurfaceMaskBits surfaceMask, const GpuAccessState& source, const GpuAccessState& destination,
+			GpuRenderTargetBarrier(const TShared<RenderTarget>& object, RenderSurfaceMaskBits surfaceMask, const GpuAccessState& source, const GpuAccessState& destination,
 				const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources(), GpuBarrierFlags flags = GpuBarrierFlag::None)
-				: GpuExplicitBarrier(source, destination, flags), Object(object), SurfaceMask(surfaceMask), SubresourceRange(subresourceRange)
+				: GpuBarrier(source, destination, flags), Object(object), SurfaceMask(surfaceMask), SubresourceRange(subresourceRange)
 			{ }
 
 			/** Returns a hash value for the barrier. Identifies the render target by its address. */
@@ -381,7 +381,7 @@ namespace b3d
 				B3DCombineHash(hash, Object.get());
 				B3DCombineHash(hash, SurfaceMask);
 				B3DCombineHash(hash, SubresourceRange.GenerateHash());
-				B3DCombineHash(hash, GpuExplicitBarrier::GenerateHash());
+				B3DCombineHash(hash, GpuBarrier::GenerateHash());
 
 				return hash;
 			}
@@ -393,33 +393,33 @@ namespace b3d
 
 		/**
 		 * A list of explicit buffer, texture and render target barriers. Refers to the barriers without copying them, so they must remain
-		 * valid until GpuCommandBuffer::IssueExplicitBarriers() returns.
+		 * valid until GpuCommandBuffer::IssueBarriers() returns.
 		 */
-		struct GpuExplicitBarriers
+		struct GpuBarriers
 		{
-			GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier> bufferBarriers = TArrayView<const GpuExplicitBufferBarrier>(),
-				TArrayView<const GpuExplicitTextureBarrier> textureBarriers = TArrayView<const GpuExplicitTextureBarrier>(),
-				TArrayView<const GpuExplicitRenderTargetBarrier> renderTargetBarriers = TArrayView<const GpuExplicitRenderTargetBarrier>())
+			GpuBarriers(TArrayView<const GpuBufferBarrier> bufferBarriers = TArrayView<const GpuBufferBarrier>(),
+				TArrayView<const GpuTextureBarrier> textureBarriers = TArrayView<const GpuTextureBarrier>(),
+				TArrayView<const GpuRenderTargetBarrier> renderTargetBarriers = TArrayView<const GpuRenderTargetBarrier>())
 				: BufferBarriers(bufferBarriers), TextureBarriers(textureBarriers), RenderTargetBarriers(renderTargetBarriers)
 			{ }
 
-			GpuExplicitBarriers(TArrayView<const GpuExplicitTextureBarrier> textureBarriers)
+			GpuBarriers(TArrayView<const GpuTextureBarrier> textureBarriers)
 				: TextureBarriers(textureBarriers)
 			{ }
 
-			GpuExplicitBarriers(TArrayView<const GpuExplicitRenderTargetBarrier> renderTargetBarriers)
+			GpuBarriers(TArrayView<const GpuRenderTargetBarrier> renderTargetBarriers)
 				: RenderTargetBarriers(renderTargetBarriers)
 			{ }
 
-			GpuExplicitBarriers(const GpuExplicitBufferBarrier& bufferBarrier)
+			GpuBarriers(const GpuBufferBarrier& bufferBarrier)
 				: BufferBarriers(&bufferBarrier, 1)
 			{ }
 
-			GpuExplicitBarriers(const GpuExplicitTextureBarrier& textureBarrier)
+			GpuBarriers(const GpuTextureBarrier& textureBarrier)
 				: TextureBarriers(&textureBarrier, 1)
 			{ }
 
-			GpuExplicitBarriers(const GpuExplicitRenderTargetBarrier& renderTargetBarrier)
+			GpuBarriers(const GpuRenderTargetBarrier& renderTargetBarrier)
 				: RenderTargetBarriers(&renderTargetBarrier, 1)
 			{ }
 
@@ -427,27 +427,27 @@ namespace b3d
 			u64 GenerateHash() const
 			{
 				size_t hash = 0;
-				for(const GpuExplicitBufferBarrier& barrier : BufferBarriers)
+				for(const GpuBufferBarrier& barrier : BufferBarriers)
 					B3DCombineHash(hash, barrier.GenerateHash());
 
-				for(const GpuExplicitTextureBarrier& barrier : TextureBarriers)
+				for(const GpuTextureBarrier& barrier : TextureBarriers)
 					B3DCombineHash(hash, barrier.GenerateHash());
 
-				for(const GpuExplicitRenderTargetBarrier& barrier : RenderTargetBarriers)
+				for(const GpuRenderTargetBarrier& barrier : RenderTargetBarriers)
 					B3DCombineHash(hash, barrier.GenerateHash());
 
 				return hash;
 			}
 
-			TArrayView<const GpuExplicitBufferBarrier> BufferBarriers;
-			TArrayView<const GpuExplicitTextureBarrier> TextureBarriers;
-			TArrayView<const GpuExplicitRenderTargetBarrier> RenderTargetBarriers;
+			TArrayView<const GpuBufferBarrier> BufferBarriers;
+			TArrayView<const GpuTextureBarrier> TextureBarriers;
+			TArrayView<const GpuRenderTargetBarrier> RenderTargetBarriers;
 		};
 
 		/** Determines which part of an explicit barrier a command buffer records. */
 		enum class GpuBarrierPhase : u8
 		{
-			Full, /**< The complete barrier, at one point in the command buffer. See GpuCommandBuffer::IssueExplicitBarriers(). */
+			Full, /**< The complete barrier, at one point in the command buffer. See GpuCommandBuffer::IssueBarriers(). */
 			Release, /**< The first half of a split barrier. See GpuCommandBuffer::ReleaseBarriers(). */
 			Acquire /**< The second half of a split barrier. See GpuCommandBuffer::AcquireBarriers(). */
 		};
@@ -660,7 +660,7 @@ namespace b3d
 			 * Issues barriers whose source and destination the caller provides. Command buffers issue no barriers of their own, so the
 			 * caller issues every barrier the recorded work needs. Only valid outside of a render pass.
 			 */
-			void IssueExplicitBarriers(const GpuExplicitBarriers& barriers);
+			void IssueBarriers(const GpuBarriers& barriers);
 
 			/**
 			 * Records the first half of a split barrier, after the source accesses. The release starts making the source writes available
@@ -677,7 +677,7 @@ namespace b3d
 			 * @param	split		Split barrier created by GpuDevice::CreateSplitBarrier(). Each split barrier is released once. The
 			 *						command buffer keeps it alive until it is reset.
 			 */
-			void ReleaseBarriers(const GpuExplicitBarriers& barriers, const TShared<GpuSplitBarrier>& split);
+			void ReleaseBarriers(const GpuBarriers& barriers, const TShared<GpuSplitBarrier>& split);
 
 			/**
 			 * Records the second half of a split barrier, before the destination accesses. Only valid outside of a render pass. See
@@ -687,7 +687,7 @@ namespace b3d
 			 * @param	split		Split barrier the release received. Each split barrier is acquired once. The command buffer keeps
 			 *						it alive until it is reset.
 			 */
-			void AcquireBarriers(const GpuExplicitBarriers& barriers, const TShared<GpuSplitBarrier>& split);
+			void AcquireBarriers(const GpuBarriers& barriers, const TShared<GpuSplitBarrier>& split);
 
 			/**
 			 * Sets the active viewport that will be used for all following render operations.
@@ -895,7 +895,7 @@ namespace b3d
 			 * at a time, in the order the GPU executes them. The caller keeps the validator alive until the command buffer is reset, which
 			 * clears it. Must be called before the command buffer records anything. Development builds only.
 			 */
-			void SetValidator(GpuExplicitBarrierValidator* validator);
+			void SetValidator(GpuBarrierValidator* validator);
 #endif
 
 			/** Returns the shared pointer to the current object. */
@@ -932,7 +932,7 @@ namespace b3d
 			 * @param	split		Split barrier connecting the halves. Null for GpuBarrierPhase::Full.
 			 * @return				True if the barriers were recorded. False if the command buffer cannot record them.
 			 */
-			virtual bool RecordExplicitBarriers(const GpuExplicitBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split);
+			virtual bool RecordBarriers(const GpuBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split);
 
 			/**
 			 * Releases the split barriers recorded since the last reset, and forgets the state validated in development builds. Backends
@@ -940,13 +940,13 @@ namespace b3d
 			 *
 			 * @param	wasSubmitted	True if the recording was submitted. Otherwise the release halves it recorded never execute.
 			 */
-			void ClearExplicitBarrierState(bool wasSubmitted);
+			void ClearBarrierState(bool wasSubmitted);
 
 			/**
 			 * Remembers that an explicit barrier leaves @p range of @p image in @p nativeLayout once the command buffer executes. Backends call
 			 * it for full barriers and acquires.
 			 */
-			void AddExplicitImageLayout(IGpuImageResource& image, const GpuTextureSubresourceRange& range, u32 nativeLayout);
+			void AddImageLayout(IGpuImageResource& image, const GpuTextureSubresourceRange& range, u32 nativeLayout);
 
 			/**
 			 * Stores the layouts explicit barriers leave images in as their native layouts, so later resting transitions and presentation
@@ -954,10 +954,10 @@ namespace b3d
 			 *
 			 * Submit thread only.
 			 */
-			void PublishExplicitImageLayouts();
+			void PublishImageLayouts();
 
 			/** Layout that explicit barriers leave image subresources in once the command buffer executes. */
-			struct ExplicitImageLayout
+			struct ImageLayout
 			{
 				IGpuImageResource* Image = nullptr;
 				GpuTextureSubresourceRange Range;
@@ -1023,10 +1023,10 @@ namespace b3d
 			bool mIsDestroyed = false;
 
 			TInlineArray<RecordedSplitBarrier, 4> mSplitBarriers;
-			TInlineArray<ExplicitImageLayout, 4> mExplicitImageLayouts;
+			TInlineArray<ImageLayout, 4> mImageLayouts;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-			GpuExplicitBarrierValidator* mExplicitBarrierValidator = nullptr; /**< Set by SetValidator(). Null if the command buffer does not validate. */
+			GpuBarrierValidator* mBarrierValidator = nullptr; /**< Set by SetValidator(). Null if the command buffer does not validate. */
 #endif
 
 #if B3D_PROFILING_ENABLED

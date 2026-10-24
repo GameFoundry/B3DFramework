@@ -495,9 +495,9 @@ namespace b3d::render
 		const GpuAccessState restingState = GpuBackendUtility::GetRestingState(*buffer, commandBuffer->GetQueueType());
 		const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
 
-		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(buffer, restingState, transferWrite));
+		commandBuffer->IssueBarriers(GpuBufferBarrier(buffer, restingState, transferWrite));
 		commandBuffer->CopyBufferToBuffer(stagingBuffer, buffer, 0, offset, length);
-		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(buffer, transferWrite, restingState));
+		commandBuffer->IssueBarriers(GpuBufferBarrier(buffer, transferWrite, restingState));
 
 		commandBuffer->AddQueueSyncMask(syncMask);
 
@@ -543,7 +543,7 @@ namespace b3d::render
 					const GpuAccessState restingState = GpuBackendUtility::GetRestingState(*buffer, commandBuffer->GetQueueType());
 					const GpuAccessState hostRead(GpuStageFlag::Host, GpuAccessFlag::Read);
 
-					commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(buffer, restingState, hostRead));
+					commandBuffer->IssueBarriers(GpuBufferBarrier(buffer, restingState, hostRead));
 				}
 
 				// Submit the command buffer and wait until it finishes

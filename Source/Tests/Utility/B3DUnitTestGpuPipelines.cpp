@@ -51,7 +51,7 @@ namespace b3d
 	TShared<GpuComputePipelineState> CreateTestDispatchPipeline(GpuDevice& device)
 	{
 		const String source = R"(
-shader ExplicitBarrierDispatch
+shader BarrierDispatch
 {
 	code
 	{
@@ -67,13 +67,13 @@ shader ExplicitBarrierDispatch
 	};
 };
 )";
-		return CreateComputePipeline(device, "ExplicitBarrierDispatch", source);
+		return CreateComputePipeline(device, "BarrierDispatch", source);
 	}
 
 	TShared<GpuComputePipelineState> CreateTestSamplePipeline(GpuDevice& device)
 	{
 		const String source = R"(
-shader ExplicitBarrierSample
+shader BarrierSample
 {
 	code
 	{
@@ -87,7 +87,7 @@ shader ExplicitBarrierSample
 	};
 };
 )";
-		return CreateComputePipeline(device, "ExplicitBarrierSample", source);
+		return CreateComputePipeline(device, "BarrierSample", source);
 	}
 
 	TShared<GpuComputePipelineState> CreateTestSlowWritePipeline(GpuDevice& device)

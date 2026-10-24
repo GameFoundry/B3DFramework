@@ -394,13 +394,13 @@ void GpuBackendUtility::CopyToStagingBuffer(GpuCommandBuffer& commandBuffer, con
 	const GpuAccessState stagingRestingState = GetRestingState(*stagingBuffer, commandBuffer.GetQueueType());
 	const GpuTextureSubresourceRange range(mipLevel, 1, arrayLayer, 1, GetFormatAspects(texture->GetProperties().Format));
 
-	commandBuffer.IssueExplicitBarriers(GpuExplicitBarriers(
-		{ GpuExplicitBufferBarrier(stagingBuffer, stagingRestingState, transferWrite) },
-		{ GpuExplicitTextureBarrier(texture, restingState, transferRead, range) }));
+	commandBuffer.IssueBarriers(GpuBarriers(
+		{ GpuBufferBarrier(stagingBuffer, stagingRestingState, transferWrite) },
+		{ GpuTextureBarrier(texture, restingState, transferRead, range) }));
 	commandBuffer.CopyTextureToBuffer(texture, stagingBuffer, mipLevel, arrayLayer, 0);
-	commandBuffer.IssueExplicitBarriers(GpuExplicitBarriers(
-		{ GpuExplicitBufferBarrier(stagingBuffer, transferWrite, stagingRestingState) },
-		{ GpuExplicitTextureBarrier(texture, transferRead, restingState, range) }));
+	commandBuffer.IssueBarriers(GpuBarriers(
+		{ GpuBufferBarrier(stagingBuffer, transferWrite, stagingRestingState) },
+		{ GpuTextureBarrier(texture, transferRead, restingState, range) }));
 }
 
 void GpuBackendUtility::CopyToStagingBuffer(GpuCommandBuffer& commandBuffer, const TShared<render::GpuBuffer>& buffer, u32 offset, u32 length, const TShared<render::GpuBuffer>& stagingBuffer)
@@ -410,13 +410,13 @@ void GpuBackendUtility::CopyToStagingBuffer(GpuCommandBuffer& commandBuffer, con
 	const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
 	const GpuAccessState stagingRestingState = GetRestingState(*stagingBuffer, commandBuffer.GetQueueType());
 
-	commandBuffer.IssueExplicitBarriers(GpuExplicitBarriers({
-		GpuExplicitBufferBarrier(buffer, restingState, transferRead),
-		GpuExplicitBufferBarrier(stagingBuffer, stagingRestingState, transferWrite) }, {}));
+	commandBuffer.IssueBarriers(GpuBarriers({
+		GpuBufferBarrier(buffer, restingState, transferRead),
+		GpuBufferBarrier(stagingBuffer, stagingRestingState, transferWrite) }, {}));
 	commandBuffer.CopyBufferToBuffer(buffer, stagingBuffer, offset, 0, length);
-	commandBuffer.IssueExplicitBarriers(GpuExplicitBarriers({
-		GpuExplicitBufferBarrier(buffer, transferRead, restingState),
-		GpuExplicitBufferBarrier(stagingBuffer, transferWrite, stagingRestingState) }, {}));
+	commandBuffer.IssueBarriers(GpuBarriers({
+		GpuBufferBarrier(buffer, transferRead, restingState),
+		GpuBufferBarrier(stagingBuffer, transferWrite, stagingRestingState) }, {}));
 }
 
 void GpuBackendUtility::CopyToStagingBuffer(GpuCommandBuffer& commandBuffer, const TShared<render::RenderWindow>& window, const TShared<render::GpuBuffer>& stagingBuffer)
@@ -427,13 +427,13 @@ void GpuBackendUtility::CopyToStagingBuffer(GpuCommandBuffer& commandBuffer, con
 	const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
 	const GpuAccessState stagingRestingState = GetRestingState(*stagingBuffer, commandBuffer.GetQueueType());
 
-	commandBuffer.IssueExplicitBarriers(GpuExplicitBarriers(
-		{ GpuExplicitBufferBarrier(stagingBuffer, stagingRestingState, transferWrite) }, {},
-		{ GpuExplicitRenderTargetBarrier(target, RT_COLOR0, restingState, transferRead) }));
+	commandBuffer.IssueBarriers(GpuBarriers(
+		{ GpuBufferBarrier(stagingBuffer, stagingRestingState, transferWrite) }, {},
+		{ GpuRenderTargetBarrier(target, RT_COLOR0, restingState, transferRead) }));
 	commandBuffer.CopyWindowToBuffer(window, stagingBuffer);
-	commandBuffer.IssueExplicitBarriers(GpuExplicitBarriers(
-		{ GpuExplicitBufferBarrier(stagingBuffer, transferWrite, stagingRestingState) }, {},
-		{ GpuExplicitRenderTargetBarrier(target, RT_COLOR0, transferRead, restingState) }));
+	commandBuffer.IssueBarriers(GpuBarriers(
+		{ GpuBufferBarrier(stagingBuffer, transferWrite, stagingRestingState) }, {},
+		{ GpuRenderTargetBarrier(target, RT_COLOR0, transferRead, restingState) }));
 }
 
 GpuAccessState GpuBackendUtility::GetRestingState(const render::GpuBuffer& buffer, GpuQueueType queueType)

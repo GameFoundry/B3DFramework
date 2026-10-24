@@ -1245,7 +1245,7 @@ D3D12GpuCommandBufferSubmitInformation D3D12GpuCommandBuffer::PrepareForSubmitOn
 	if(!graphicsRestingTransitions.IsEmpty())
 		submitInformation.GraphicsTransitionCommandBuffer = fnRecordBarriers(GQT_GRAPHICS, graphicsRestingTransitions);
 
-	PublishExplicitImageLayouts();
+	PublishImageLayouts();
 
 	submitInformation.PrimaryCommandBuffer = std::static_pointer_cast<D3D12GpuCommandBuffer>(GetShared());
 	return submitInformation;
@@ -1301,7 +1301,7 @@ void D3D12GpuCommandBuffer::Reset()
 	mResourceTracker.Clear();
 	mQueueSyncMask = GpuQueueMask();
 
-	ClearExplicitBarrierState(wasSubmitted);
+	ClearBarrierState(wasSubmitted);
 
 	OnDidComplete.Clear();
 	OnDestroyed.Clear();
@@ -1731,7 +1731,7 @@ D3D12Framebuffer* D3D12GpuCommandBuffer::AcquireWindowFramebuffer(RenderWindow& 
 	return surface->GetActiveFramebuffer();
 }
 
-bool D3D12GpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split)
+bool D3D12GpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split)
 {
 	// What the barriers of each case record:
 	//
@@ -1774,7 +1774,7 @@ bool D3D12GpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& ba
 
 	// Global barriers
 	GpuBarrierScope aliasScope;
-	const auto fnAddAliasScope = [&aliasScope](const GpuExplicitBarrier& barrier)
+	const auto fnAddAliasScope = [&aliasScope](const GpuBarrier& barrier)
 	{
 		aliasScope.SourceStages |= barrier.Source.Stages;
 		aliasScope.SourceAccess |= barrier.Source.Access;
@@ -1786,7 +1786,7 @@ bool D3D12GpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& ba
 
 	// Buffer barriers
 	TInlineArray<D3D12_BUFFER_BARRIER, 8> bufferBarriers;
-	const auto fnAddBufferBarrier = [&](D3D12Buffer& buffer, const GpuExplicitBarrier& barrier)
+	const auto fnAddBufferBarrier = [&](D3D12Buffer& buffer, const GpuBarrier& barrier)
 	{
 		mResourceTracker.TrackBufferUsage(&buffer, barrier.Destination.Access | GpuAccessFlag::Read);
 
@@ -1837,7 +1837,7 @@ bool D3D12GpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& ba
 	// Texture barriers. Alias releases go to their own list, recorded before the activations of the textures that take over their memory.
 	TInlineArray<D3D12_TEXTURE_BARRIER, 8> textureBarriers;
 	TInlineArray<D3D12_TEXTURE_BARRIER, 8> aliasReleaseBarriers;
-	const auto fnAddImageBarrier = [&](D3D12Image& image, const GpuTextureSubresourceRange& range, const GpuExplicitBarrier& barrier)
+	const auto fnAddImageBarrier = [&](D3D12Image& image, const GpuTextureSubresourceRange& range, const GpuBarrier& barrier)
 	{
 		const bool isAliasAcquire = barrier.Flags.IsSet(GpuBarrierFlag::AliasAcquire);
 		if(isAliasAcquire && !B3D_ENSURE_LOG(barrier.Source.Layout == GpuImageLayout::Undefined && image.IsFullRange(range), "An alias acquire of an image must start from GpuImageLayout::Undefined and cover the whole image."))
@@ -1907,7 +1907,7 @@ bool D3D12GpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& ba
 			aspectRange.AspectMask = aspect;
 
 			if(writesBackLayouts)
-				AddExplicitImageLayout(image, aspectRange, (u32)destinationLayout.GetLayout(aspect));
+				AddImageLayout(image, aspectRange, (u32)destinationLayout.GetLayout(aspect));
 
 			// Transfer halves synchronize nothing on one side, so they are only needed for layout transitions
 			if(transfersQueue && beforeLayout.GetLayout(aspect) == afterLayout.GetLayout(aspect))
@@ -1930,7 +1930,7 @@ bool D3D12GpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& ba
 	};
 
 	// Resource resolution
-	for(const GpuExplicitBufferBarrier& barrier : barriers.BufferBarriers)
+	for(const GpuBufferBarrier& barrier : barriers.BufferBarriers)
 	{
 		auto* const gpuBuffer = static_cast<D3D12GpuBuffer*>(barrier.Object.get());
 		D3D12Buffer* const buffer = gpuBuffer != nullptr ? gpuBuffer->GetD3D12Buffer() : nullptr;
@@ -1940,7 +1940,7 @@ bool D3D12GpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& ba
 		fnAddBufferBarrier(*buffer, barrier);
 	}
 
-	for(const GpuExplicitTextureBarrier& barrier : barriers.TextureBarriers)
+	for(const GpuTextureBarrier& barrier : barriers.TextureBarriers)
 	{
 		auto* const texture = static_cast<D3D12Texture*>(barrier.Object.get());
 		D3D12Image* const image = texture != nullptr ? texture->GetD3D12Image() : nullptr;
@@ -1950,7 +1950,7 @@ bool D3D12GpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& ba
 		fnAddImageBarrier(*image, GpuBackendUtility::ClampRange(barrier.SubresourceRange, image->GetRange()), barrier);
 	}
 
-	for(const GpuExplicitRenderTargetBarrier& barrier : barriers.RenderTargetBarriers)
+	for(const GpuRenderTargetBarrier& barrier : barriers.RenderTargetBarriers)
 	{
 		RenderTarget* const renderTarget = barrier.Object.get();
 		if(renderTarget == nullptr)

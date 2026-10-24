@@ -14,7 +14,7 @@
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DGpuSplitBarrier.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
-#include "GpuBackend/B3DGpuExplicitBarrierValidator.h"
+#include "GpuBackend/B3DGpuBarrierValidator.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuParameterSetPool.h"
 #include "GpuBackend/B3DGpuPipelineState.h"
@@ -105,13 +105,13 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestTransientResourcePlacement)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestFramebufferAttachmentUsage)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestResourceUseTracking)
-	B3D_ADD_TEST(GpuBackendTestSuite::TestExplicitBarriers)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestBarriers)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestSplitBarrierExecution)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestBarrierAcrossPasses)
-	B3D_ADD_TEST(GpuBackendTestSuite::TestTransientExplicitAliasing)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestTransientAliasing)
 #if B3D_BUILD_TYPE_DEVELOPMENT
-	B3D_ADD_TEST(GpuBackendTestSuite::TestExplicitBarrierValidation)
-	B3D_ADD_TEST(GpuBackendTestSuite::TestExplicitBarrierResourceValidation)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestBarrierValidation)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestBarrierResourceValidation)
 #endif
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantMetadata)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantWrites)
@@ -202,16 +202,16 @@ void GpuBackendTestSuite::TestResourceLocations()
 	const TShared<render::GpuBuffer> copyChain[] = { upload, ownedBuffer, nonOwningBuffer, pendingBuffer, readback };
 	for(u32 destinationIndex = 1; destinationIndex < 5; destinationIndex++)
 	{
-		TInlineArray<GpuExplicitBufferBarrier, 2> barriers;
+		TInlineArray<GpuBufferBarrier, 2> barriers;
 		if(destinationIndex > 1)
-			barriers.Add(GpuExplicitBufferBarrier(copyChain[destinationIndex - 1], transferWrite, transferRead));
+			barriers.Add(GpuBufferBarrier(copyChain[destinationIndex - 1], transferWrite, transferRead));
 
-		barriers.Add(GpuExplicitBufferBarrier(copyChain[destinationIndex], GpuAccessState(), transferWrite));
-		commands->IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(barriers.Data(), barriers.Size())));
+		barriers.Add(GpuBufferBarrier(copyChain[destinationIndex], GpuAccessState(), transferWrite));
+		commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(barriers.Data(), barriers.Size())));
 		commands->CopyBufferToBuffer(copyChain[destinationIndex - 1], copyChain[destinationIndex], 0, 0, sizeof(expected));
 	}
 
-	commands->IssueExplicitBarriers(GpuBarrierTestUtility::CreateReadbackBarrier(readback));
+	commands->IssueBarriers(GpuBarrierTestUtility::CreateReadbackBarrier(readback));
 	context->SubmitCommandBuffer(commands);
 	device->WaitUntilIdle();
 	{
@@ -447,7 +447,7 @@ shader DynamicUniformBufferOffsets
 	{
 		firstSet->SetUniformBuffer("StaticParameters", values, 0, stride);
 		const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Dynamic uniform offsets"));
-		commands->IssueExplicitBarriers(GpuExplicitBufferBarrier(output, iteration == 0 ? GpuAccessState() : transferRead, computeWrite));
+		commands->IssueBarriers(GpuBufferBarrier(output, iteration == 0 ? GpuAccessState() : transferRead, computeWrite));
 		commands->SetGpuComputePipelineState(pipeline);
 		commands->SetGpuParameterSet(firstSet);
 		commands->SetGpuParameterSet(secondSet);
@@ -472,11 +472,11 @@ shader DynamicUniformBufferOffsets
 			commands->DispatchCompute(1);
 		}
 
-		const GpuExplicitBufferBarrier copyBarriers[] = { GpuExplicitBufferBarrier(output, computeWrite, transferRead),
-			GpuExplicitBufferBarrier(readback, iteration == 0 ? GpuAccessState() : hostRead, transferWrite) };
-		commands->IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(copyBarriers, 2)));
+		const GpuBufferBarrier copyBarriers[] = { GpuBufferBarrier(output, computeWrite, transferRead),
+			GpuBufferBarrier(readback, iteration == 0 ? GpuAccessState() : hostRead, transferWrite) };
+		commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(copyBarriers, 2)));
 		commands->CopyBufferToBuffer(output, readback, 0, 0, sizeof(expected));
-		commands->IssueExplicitBarriers(GpuExplicitBufferBarrier(readback, transferWrite, hostRead));
+		commands->IssueBarriers(GpuBufferBarrier(readback, transferWrite, hostRead));
 		context->SubmitCommandBuffer(commands);
 		device->WaitUntilIdle();
 
@@ -1087,7 +1087,7 @@ void GpuBackendTestSuite::TestResourceUseTracking()
 	B3D_TEST_ASSERT(tracker.FindImageUseHandle(&image) == nullptr)
 }
 
-void GpuBackendTestSuite::TestExplicitBarriers()
+void GpuBackendTestSuite::TestBarriers()
 {
 	GpuBackend& backend = GpuBackend::Instance();
 	if(backend.GetDeviceCount() == 0)
@@ -1157,26 +1157,26 @@ void GpuBackendTestSuite::TestExplicitBarriers()
 		{
 			CaseBarriers(const CaseResources& resources, const GpuAccessState& source, const GpuAccessState& destination)
 				: Buffer(resources.Buffer, source, destination),
-				Textures{ GpuExplicitTextureBarrier(resources.Textures[0], source, destination), GpuExplicitTextureBarrier(resources.Textures[1], source, destination) }
+				Textures{ GpuTextureBarrier(resources.Textures[0], source, destination), GpuTextureBarrier(resources.Textures[1], source, destination) }
 			{ }
 
-			GpuExplicitBarriers Get() const { return GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(&Buffer, 1), TArrayView<const GpuExplicitTextureBarrier>(Textures, 2)); }
+			GpuBarriers Get() const { return GpuBarriers(TArrayView<const GpuBufferBarrier>(&Buffer, 1), TArrayView<const GpuTextureBarrier>(Textures, 2)); }
 
-			GpuExplicitBufferBarrier Buffer;
-			GpuExplicitTextureBarrier Textures[2];
+			GpuBufferBarrier Buffer;
+			GpuTextureBarrier Textures[2];
 		};
 
 		// Writes the buffer and the textures with copies, discarding their contents. The new textures start at rest.
 		auto fnWrite = [&upload, &transferWrite](render::GpuCommandBuffer& commands, const CaseResources& resources)
 		{
 			CaseBarriers barriers(resources, GpuAccessState(), transferWrite);
-			for(GpuExplicitTextureBarrier& barrier : barriers.Textures)
+			for(GpuTextureBarrier& barrier : barriers.Textures)
 			{
 				barrier.Source = GpuBackendUtility::GetRestingState(*barrier.Object, commands.GetQueueType());
 				barrier.Source.Layout = GpuImageLayout::Undefined;
 			}
 
-			commands.IssueExplicitBarriers(barriers.Get());
+			commands.IssueBarriers(barriers.Get());
 			commands.CopyBufferToBuffer(upload, resources.Buffer, 0, 0, bufferBytes);
 			for(const TShared<render::Texture>& texture : resources.Textures)
 				commands.CopyBufferToTexture(upload, texture, 0, 0, 0);
@@ -1187,9 +1187,9 @@ void GpuBackendTestSuite::TestExplicitBarriers()
 		{
 			const auto fnIssueReadbackBarriers = [&commands, &resources](const GpuAccessState& source, const GpuAccessState& destination)
 			{
-				const GpuExplicitBufferBarrier barriers[] = { GpuExplicitBufferBarrier(resources.Readbacks[0], source, destination),
-					GpuExplicitBufferBarrier(resources.Readbacks[1], source, destination), GpuExplicitBufferBarrier(resources.Readbacks[2], source, destination) };
-				commands.IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(barriers, 3)));
+				const GpuBufferBarrier barriers[] = { GpuBufferBarrier(resources.Readbacks[0], source, destination),
+					GpuBufferBarrier(resources.Readbacks[1], source, destination), GpuBufferBarrier(resources.Readbacks[2], source, destination) };
+				commands.IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(barriers, 3)));
 			};
 
 			fnIssueReadbackBarriers(GpuAccessState(), transferWrite);
@@ -1234,13 +1234,13 @@ void GpuBackendTestSuite::TestExplicitBarriers()
 		// Each command buffer validates its barriers on its own, which must not report errors for any of them. The validators keep the
 		// last bound parameter sets alive, so they must be destroyed before the context that allocated them.
 #if B3D_BUILD_TYPE_DEVELOPMENT
-		Vector<TUnique<GpuExplicitBarrierValidator>> validators;
+		Vector<TUnique<GpuBarrierValidator>> validators;
 #endif
 		auto fnCreateCommands = [&](const TShared<GpuCommandBufferPool>& pool, const char* name)
 		{
 			const TShared<GpuCommandBuffer> commands = pool->Create(GpuCommandBufferCreateInformation::Create(name));
 #if B3D_BUILD_TYPE_DEVELOPMENT
-			validators.push_back(B3DMakeUnique<GpuExplicitBarrierValidator>());
+			validators.push_back(B3DMakeUnique<GpuBarrierValidator>());
 			commands->SetValidator(validators.back().get());
 #endif
 			return commands;
@@ -1251,7 +1251,7 @@ void GpuBackendTestSuite::TestExplicitBarriers()
 			const CaseResources resources = fnCreateResources();
 			const TShared<GpuCommandBuffer> commands = fnCreateCommands(graphicsPool, "Explicit full barriers");
 			fnWrite(*commands, resources);
-			commands->IssueExplicitBarriers(CaseBarriers(resources, transferWrite, transferRead).Get());
+			commands->IssueBarriers(CaseBarriers(resources, transferWrite, transferRead).Get());
 			fnRead(*commands, resources);
 			context->SubmitCommandBuffer(commands, GpuQueueMask::kNone);
 			device->WaitUntilIdle();
@@ -1268,7 +1268,7 @@ void GpuBackendTestSuite::TestExplicitBarriers()
 			const TShared<GpuCommandBuffer> commands = fnCreateCommands(graphicsPool, "Explicit split barriers");
 			fnWrite(*commands, resources);
 			commands->ReleaseBarriers(barriers.Get(), split);
-			commands->IssueExplicitBarriers(GpuExplicitBufferBarrier(unrelated, GpuAccessState(), transferWrite));
+			commands->IssueBarriers(GpuBufferBarrier(unrelated, GpuAccessState(), transferWrite));
 			commands->CopyBufferToBuffer(upload, unrelated, 0, 0, bufferBytes);
 			commands->AcquireBarriers(barriers.Get(), split);
 			fnRead(*commands, resources);
@@ -1337,10 +1337,10 @@ void GpuBackendTestSuite::TestExplicitBarriers()
 			const TShared<GpuCommandBuffer> commands = fnCreateCommands(graphicsPool, "Explicit barriers around a dispatch");
 			const auto fnIssueBarriers = [&](const GpuAccessState& source, const GpuAccessState& textureSource, const GpuAccessState& destination, const GpuAccessState& readbackSource, const GpuAccessState& readbackDestination)
 			{
-				const GpuExplicitBufferBarrier bufferBarriers[] = { GpuExplicitBufferBarrier(buffer, source, destination),
-					GpuExplicitBufferBarrier(bufferReadback, readbackSource, readbackDestination), GpuExplicitBufferBarrier(textureReadback, readbackSource, readbackDestination) };
-				const GpuExplicitTextureBarrier textureBarrier(texture, textureSource, destination);
-				commands->IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(bufferBarriers, 3), TArrayView<const GpuExplicitTextureBarrier>(&textureBarrier, 1)));
+				const GpuBufferBarrier bufferBarriers[] = { GpuBufferBarrier(buffer, source, destination),
+					GpuBufferBarrier(bufferReadback, readbackSource, readbackDestination), GpuBufferBarrier(textureReadback, readbackSource, readbackDestination) };
+				const GpuTextureBarrier textureBarrier(texture, textureSource, destination);
+				commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(bufferBarriers, 3), TArrayView<const GpuTextureBarrier>(&textureBarrier, 1)));
 			};
 
 			// The new texture starts at rest, and the dispatch overwrites it
@@ -1377,7 +1377,7 @@ void GpuBackendTestSuite::TestExplicitBarriers()
 		}
 		else
 			B3D_TEST_ASSERT(String(GpuBackend::Instance().GetBackendName()) != "bsfVulkanGpuBackend")
-	}, "GpuBackendTestSuite::TestExplicitBarriers", true);
+	}, "GpuBackendTestSuite::TestBarriers", true);
 }
 
 void GpuBackendTestSuite::TestSplitBarrierExecution()
@@ -1423,23 +1423,23 @@ void GpuBackendTestSuite::TestSplitBarrierExecution()
 			const TShared<GpuCommandBuffer> writeCommands = pool->Create(GpuCommandBufferCreateInformation::Create("Split barrier slow write"));
 			const TShared<GpuCommandBuffer> readCommands = separateCommandBuffers ? otherPool->Create(GpuCommandBufferCreateInformation::Create("Split barrier read")) : writeCommands;
 
-			const GpuExplicitBufferBarrier writeBarriers[] = { GpuExplicitBufferBarrier(buffer, GpuAccessState(), computeReadWrite), GpuExplicitBufferBarrier(readback, GpuAccessState(), transferWrite),
-				GpuExplicitBufferBarrier(unrelatedSource, GpuAccessState(), transferRead), GpuExplicitBufferBarrier(unrelatedDestination, GpuAccessState(), transferWrite) };
-			writeCommands->IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(writeBarriers, 4)));
+			const GpuBufferBarrier writeBarriers[] = { GpuBufferBarrier(buffer, GpuAccessState(), computeReadWrite), GpuBufferBarrier(readback, GpuAccessState(), transferWrite),
+				GpuBufferBarrier(unrelatedSource, GpuAccessState(), transferRead), GpuBufferBarrier(unrelatedDestination, GpuAccessState(), transferWrite) };
+			writeCommands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(writeBarriers, 4)));
 			writeCommands->SetGpuComputePipelineState(pipeline);
 			writeCommands->SetGpuParameterSet(parameters);
 			writeCommands->DispatchCompute(kThreadCount / 64, 1, 1);
 
-			const GpuExplicitBufferBarrier splitBarrier(buffer, computeReadWrite, transferRead);
-			const GpuExplicitBarriers splitBarriers(TArrayView<const GpuExplicitBufferBarrier>(&splitBarrier, 1));
+			const GpuBufferBarrier splitBarrier(buffer, computeReadWrite, transferRead);
+			const GpuBarriers splitBarriers(TArrayView<const GpuBufferBarrier>(&splitBarrier, 1));
 			writeCommands->ReleaseBarriers(splitBarriers, split);
 			writeCommands->CopyBufferToBuffer(unrelatedSource, unrelatedDestination, 0, 0, 256 * sizeof(u32));
 
 			readCommands->AcquireBarriers(splitBarriers, split);
 			readCommands->CopyBufferToBuffer(buffer, readback, 0, 0, kBufferBytes);
 
-			const GpuExplicitBufferBarrier readbackBarrier(readback, transferWrite, hostRead);
-			readCommands->IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(&readbackBarrier, 1)));
+			const GpuBufferBarrier readbackBarrier(readback, transferWrite, hostRead);
+			readCommands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&readbackBarrier, 1)));
 
 			context->SubmitCommandBuffer(writeCommands, GpuQueueMask::kNone);
 			if(separateCommandBuffers)
@@ -1511,12 +1511,12 @@ void GpuBackendTestSuite::TestBarrierAcrossPasses()
 			const TShared<GpuCommandBuffer> writeCommands = pool->Create(GpuCommandBufferCreateInformation::Create("Barrier across passes write"));
 			const TShared<GpuCommandBuffer> readCommands = separateCommandBuffers ? pool->Create(GpuCommandBufferCreateInformation::Create("Barrier across passes read")) : writeCommands;
 
-			const GpuExplicitBufferBarrier writeBarriers[] = { GpuExplicitBufferBarrier(buffer, GpuAccessState(), computeReadWrite), GpuExplicitBufferBarrier(readback, GpuAccessState(), transferWrite) };
-			writeCommands->IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(writeBarriers, 2)));
+			const GpuBufferBarrier writeBarriers[] = { GpuBufferBarrier(buffer, GpuAccessState(), computeReadWrite), GpuBufferBarrier(readback, GpuAccessState(), transferWrite) };
+			writeCommands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(writeBarriers, 2)));
 			writeCommands->SetGpuComputePipelineState(pipeline);
 			writeCommands->SetGpuParameterSet(parameters);
 			writeCommands->DispatchCompute(kThreadCount / 64, 1, 1);
-			writeCommands->IssueExplicitBarriers(GpuExplicitBufferBarrier(buffer, computeReadWrite, transferRead));
+			writeCommands->IssueBarriers(GpuBufferBarrier(buffer, computeReadWrite, transferRead));
 
 			if(!separateCommandBuffers)
 			{
@@ -1529,13 +1529,13 @@ void GpuBackendTestSuite::TestBarrierAcrossPasses()
 				// The new texture starts at rest, and the clear discards its contents
 				const GpuAccessState discardedRest = GpuBarrierTestUtility::GetDiscardedRestingState(*renderTextureInformation.ColorSurfaces[0].Texture);
 
-				writeCommands->IssueExplicitBarriers(GpuExplicitTextureBarrier(renderTextureInformation.ColorSurfaces[0].Texture, discardedRest, colorAttachment));
+				writeCommands->IssueBarriers(GpuTextureBarrier(renderTextureInformation.ColorSurfaces[0].Texture, discardedRest, colorAttachment));
 				writeCommands->BeginRenderPass(pass);
 				writeCommands->EndRenderPass();
 			}
 
 			readCommands->CopyBufferToBuffer(buffer, readback, 0, 0, kBufferBytes);
-			readCommands->IssueExplicitBarriers(GpuExplicitBufferBarrier(readback, transferWrite, hostRead));
+			readCommands->IssueBarriers(GpuBufferBarrier(readback, transferWrite, hostRead));
 
 			context->SubmitCommandBuffer(writeCommands, GpuQueueMask::kNone);
 			if(separateCommandBuffers)
@@ -1562,7 +1562,7 @@ void GpuBackendTestSuite::TestBarrierAcrossPasses()
 }
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-void GpuBackendTestSuite::TestExplicitBarrierValidation()
+void GpuBackendTestSuite::TestBarrierValidation()
 {
 	GpuBackend& backend = GpuBackend::Instance();
 	if(backend.GetDeviceCount() == 0)
@@ -1654,7 +1654,7 @@ void GpuBackendTestSuite::TestExplicitBarrierValidation()
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 
 		const TShared<GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
-		GpuExplicitBarrierValidator validator;
+		GpuBarrierValidator validator;
 		const TShared<GpuCommandBuffer> commandBuffer = pool->Create(GpuCommandBufferCreateInformation::Create("Explicit barrier validation"));
 		commandBuffer->SetValidator(&validator);
 
@@ -1663,9 +1663,9 @@ void GpuBackendTestSuite::TestExplicitBarrierValidation()
 		const ImageSubresourcePitch pitch = sourceTexture->GetStagingBufferPitchForSubresource(0, 0);
 		const u32 stagingSize = pitch.RowPitch * pitch.SliceHeight * 4;
 		const TShared<render::GpuBuffer> upload = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(stagingSize));
-		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(source, GpuAccessState(), transferRead));
-		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(upload, GpuAccessState(), transferRead));
-		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(sourceTexture, GpuAccessState(), transferRead));
+		commandBuffer->IssueBarriers(GpuBufferBarrier(source, GpuAccessState(), transferRead));
+		commandBuffer->IssueBarriers(GpuBufferBarrier(upload, GpuAccessState(), transferRead));
+		commandBuffer->IssueBarriers(GpuTextureBarrier(sourceTexture, GpuAccessState(), transferRead));
 		const auto fnCopy = [&commandBuffer, &source](const TShared<render::GpuBuffer>& destination) { commandBuffer->CopyBufferToBuffer(source, destination, 0, 0, sizeof(u32)); };
 
 		// Each case reads back into its own buffer, as copies into one buffer would need barriers between them. The validator identifies
@@ -1681,83 +1681,83 @@ void GpuBackendTestSuite::TestExplicitBarrierValidation()
 		if(recordsMisdeclaredLayouts)
 		{
 			const TShared<render::Texture> sourceLayout = fnCreateTexture("SourceLayout");
-			commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(sourceLayout, GpuAccessState(), transferWrite));
-			commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(sourceLayout, transferRead, colorAttachment));
+			commandBuffer->IssueBarriers(GpuTextureBarrier(sourceLayout, GpuAccessState(), transferWrite));
+			commandBuffer->IssueBarriers(GpuTextureBarrier(sourceLayout, transferRead, colorAttachment));
 		}
 
 		// The source must include the stages and the writes since the previous barrier
 		const TShared<render::GpuBuffer> missingStages = fnCreateBuffer("MissingStages");
 		fnCopy(missingStages);
-		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(missingStages, GpuAccessState(GpuStageFlag::VertexShaderNonUniform, GpuAccessFlag::Write), transferRead));
+		commandBuffer->IssueBarriers(GpuBufferBarrier(missingStages, GpuAccessState(GpuStageFlag::VertexShaderNonUniform, GpuAccessFlag::Write), transferRead));
 
 		const TShared<render::GpuBuffer> missingWrites = fnCreateBuffer("MissingWrites");
 		fnCopy(missingWrites);
-		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(missingWrites, transferRead, transferRead));
+		commandBuffer->IssueBarriers(GpuBufferBarrier(missingWrites, transferRead, transferRead));
 
 		// Accesses must be declared by the last barrier
 		const TShared<render::GpuBuffer> undeclaredWrite = fnCreateBuffer("UndeclaredWrite");
-		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(undeclaredWrite, GpuAccessState(), transferRead));
+		commandBuffer->IssueBarriers(GpuBufferBarrier(undeclaredWrite, GpuAccessState(), transferRead));
 		fnCopy(undeclaredWrite);
 
 		// The resource must not be accessed, or given another barrier, between the halves of a split barrier
 		const TShared<render::GpuBuffer> accessBetweenHalves = fnCreateBuffer("AccessBetweenHalves");
 		const TShared<GpuSplitBarrier> accessedSplit = device->CreateSplitBarrier();
-		const GpuExplicitBufferBarrier accessedBarrier(accessBetweenHalves, transferWrite, transferRead);
+		const GpuBufferBarrier accessedBarrier(accessBetweenHalves, transferWrite, transferRead);
 		commandBuffer->ReleaseBarriers(accessedBarrier, accessedSplit);
 		commandBuffer->CopyBufferToBuffer(accessBetweenHalves, fnCreateReadback(), 0, 0, sizeof(u32));
 		commandBuffer->AcquireBarriers(accessedBarrier, accessedSplit);
 
 		const TShared<render::GpuBuffer> barrierBetweenHalves = fnCreateBuffer("BarrierBetweenHalves");
 		const TShared<GpuSplitBarrier> interruptedSplit = device->CreateSplitBarrier();
-		const GpuExplicitBufferBarrier interruptedBarrier(barrierBetweenHalves, transferWrite, transferRead);
+		const GpuBufferBarrier interruptedBarrier(barrierBetweenHalves, transferWrite, transferRead);
 		commandBuffer->ReleaseBarriers(interruptedBarrier, interruptedSplit);
-		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(barrierBetweenHalves, transferWrite, transferRead));
+		commandBuffer->IssueBarriers(GpuBufferBarrier(barrierBetweenHalves, transferWrite, transferRead));
 		commandBuffer->AcquireBarriers(interruptedBarrier, interruptedSplit);
 
 		// An alias acquire must be the first use of the resource
 		const TShared<render::GpuBuffer> lateAliasAcquire = fnCreateBuffer("LateAliasAcquire");
 		fnCopy(lateAliasAcquire);
-		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(lateAliasAcquire, GpuAccessState(), transferWrite, GpuBarrierFlag::AliasAcquire));
+		commandBuffer->IssueBarriers(GpuBufferBarrier(lateAliasAcquire, GpuAccessState(), transferWrite, GpuBarrierFlag::AliasAcquire));
 
 		// Both halves of a split barrier must be given the same barriers
 		const TShared<render::GpuBuffer> mismatchedHalves = fnCreateBuffer("MismatchedHalves");
 		const TShared<GpuSplitBarrier> mismatchedSplit = device->CreateSplitBarrier();
-		commandBuffer->ReleaseBarriers(GpuExplicitBufferBarrier(mismatchedHalves, transferWrite, transferRead), mismatchedSplit);
-		commandBuffer->AcquireBarriers(GpuExplicitBufferBarrier(mismatchedHalves, transferWrite, GpuAccessState(GpuStageFlag::Host, GpuAccessFlag::Read)), mismatchedSplit);
+		commandBuffer->ReleaseBarriers(GpuBufferBarrier(mismatchedHalves, transferWrite, transferRead), mismatchedSplit);
+		commandBuffer->AcquireBarriers(GpuBufferBarrier(mismatchedHalves, transferWrite, GpuAccessState(GpuStageFlag::Host, GpuAccessFlag::Read)), mismatchedSplit);
 
 		// Each half must be recorded on the queue type the split barrier was created for. Nothing is recorded otherwise.
 		const TShared<GpuSplitBarrier> otherQueueSplit = device->CreateSplitBarrier(GQT_COMPUTE, GQT_GRAPHICS);
-		commandBuffer->ReleaseBarriers(GpuExplicitBufferBarrier(fnCreateBuffer("OtherQueue"), transferWrite, transferRead), otherQueueSplit);
+		commandBuffer->ReleaseBarriers(GpuBufferBarrier(fnCreateBuffer("OtherQueue"), transferWrite, transferRead), otherQueueSplit);
 
 		// Each command validates its accesses
 		const TShared<render::GpuBuffer> copyBufferToBuffer = fnCreateBuffer("CopyBufferToBuffer");
-		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(copyBufferToBuffer, GpuAccessState(), host));
+		commandBuffer->IssueBarriers(GpuBufferBarrier(copyBufferToBuffer, GpuAccessState(), host));
 		commandBuffer->CopyBufferToBuffer(copyBufferToBuffer, fnCreateReadback(), 0, 0, sizeof(u32));
 
 		const TShared<render::Texture> copyBufferToTexture = fnCreateTexture("CopyBufferToTexture");
-		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(copyBufferToTexture, GpuAccessState(), host));
+		commandBuffer->IssueBarriers(GpuTextureBarrier(copyBufferToTexture, GpuAccessState(), host));
 		commandBuffer->CopyBufferToTexture(upload, copyBufferToTexture, 0, 0, 0);
 
 		const TShared<render::Texture> copyTextureToBuffer = fnCreateTexture("CopyTextureToBuffer");
-		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(copyTextureToBuffer, GpuAccessState(), host));
+		commandBuffer->IssueBarriers(GpuTextureBarrier(copyTextureToBuffer, GpuAccessState(), host));
 		commandBuffer->CopyTextureToBuffer(copyTextureToBuffer, fnCreateReadback(), 0, 0);
 
 		const TShared<render::Texture> copyTexture = fnCreateTexture("CopyTexture");
-		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(copyTexture, GpuAccessState(), host));
+		commandBuffer->IssueBarriers(GpuTextureBarrier(copyTexture, GpuAccessState(), host));
 		commandBuffer->CopyTexture(sourceTexture, copyTexture);
 
 		const TShared<render::Texture> blitTexture = fnCreateTexture("BlitTexture");
-		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(blitTexture, GpuAccessState(), host));
+		commandBuffer->IssueBarriers(GpuTextureBarrier(blitTexture, GpuAccessState(), host));
 		commandBuffer->BlitTexture(sourceTexture, blitTexture);
 
 		// Attachments must be declared for the attachment stages, in the attachment layout
 		const TShared<render::Texture> renderPass = fnCreateTexture("RenderPass");
-		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(renderPass, GpuAccessState(), GpuAccessState(GpuStageFlag::FragmentShaderNonUniform, readWrite, GpuImageLayout::ColorAttachment)));
+		commandBuffer->IssueBarriers(GpuTextureBarrier(renderPass, GpuAccessState(), GpuAccessState(GpuStageFlag::FragmentShaderNonUniform, readWrite, GpuImageLayout::ColorAttachment)));
 		commandBuffer->BeginRenderPass(RenderPassCreateInformation(fnCreateTarget(renderPass)));
 		commandBuffer->EndRenderPass();
 
 		const TShared<render::Texture> renderPassLayout = fnCreateTexture("RenderPassLayout");
-		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(renderPassLayout, GpuAccessState(), GpuAccessState(GpuStageFlag::ColorAttachment, readWrite, GpuImageLayout::TransferDestination)));
+		commandBuffer->IssueBarriers(GpuTextureBarrier(renderPassLayout, GpuAccessState(), GpuAccessState(GpuStageFlag::ColorAttachment, readWrite, GpuImageLayout::TransferDestination)));
 		commandBuffer->BeginRenderPass(RenderPassCreateInformation(fnCreateTarget(renderPassLayout)));
 		commandBuffer->EndRenderPass();
 
@@ -1768,7 +1768,7 @@ void GpuBackendTestSuite::TestExplicitBarrierValidation()
 
 			const TShared<render::GpuBuffer> dispatchCompute = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
 			dispatchCompute->SetName("DispatchCompute");
-			commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(dispatchCompute, GpuAccessState(), host));
+			commandBuffer->IssueBarriers(GpuBufferBarrier(dispatchCompute, GpuAccessState(), host));
 
 			TextureCreateInformation storageInformation;
 			storageInformation.Name = "DispatchComputeTexture";
@@ -1777,7 +1777,7 @@ void GpuBackendTestSuite::TestExplicitBarrierValidation()
 			storageInformation.Format = PF_R32U;
 			storageInformation.Usage = TextureUsageFlag::AllowUnorderedAccessOnTheGPU;
 			const TShared<render::Texture> storageTexture = device->CreateTexture(storageInformation);
-			commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(storageTexture, GpuAccessState(), computeReadWrite));
+			commandBuffer->IssueBarriers(GpuTextureBarrier(storageTexture, GpuAccessState(), computeReadWrite));
 
 			const TShared<render::GpuParameterSet> parameters = context->GetParameterSetPool().Create(pipeline->GetParameterLayout()->GetSet(0), 0);
 			parameters->SetStorageBuffer("OutputBuffer", dispatchCompute);
@@ -1790,12 +1790,12 @@ void GpuBackendTestSuite::TestExplicitBarrierValidation()
 
 		// Correctly declared accesses report nothing
 		const TShared<render::Texture> declared = fnCreateTexture("Declared");
-		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(declared, GpuAccessState(), transferWrite));
+		commandBuffer->IssueBarriers(GpuTextureBarrier(declared, GpuAccessState(), transferWrite));
 		commandBuffer->CopyTexture(sourceTexture, declared);
-		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(declared, transferWrite, colorAttachment));
+		commandBuffer->IssueBarriers(GpuTextureBarrier(declared, transferWrite, colorAttachment));
 		commandBuffer->BeginRenderPass(RenderPassCreateInformation(fnCreateTarget(declared)));
 		commandBuffer->EndRenderPass();
-		commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(declared, colorAttachment, transferRead));
+		commandBuffer->IssueBarriers(GpuTextureBarrier(declared, colorAttachment, transferRead));
 		commandBuffer->CopyTextureToBuffer(declared, fnCreateReadback(), 0, 0);
 
 		// The command buffer is never submitted
@@ -1805,7 +1805,7 @@ void GpuBackendTestSuite::TestExplicitBarrierValidation()
 
 		// Backends may only report their validation messages when the device next goes idle, which must happen within the logging scope
 		device->WaitUntilIdle();
-	}, "GpuBackendTestSuite::TestExplicitBarrierValidation", true);
+	}, "GpuBackendTestSuite::TestBarrierValidation", true);
 }
 #endif
 
@@ -1919,15 +1919,15 @@ namespace
 	}
 
 	/** Returns an explicit alias acquire of @p buffer, placed with @p acquire, into @p destination. */
-	GpuExplicitBufferBarrier CreateAliasAcquire(const TShared<render::GpuBuffer>& buffer, const render::GpuAliasAcquire& acquire, const GpuAccessState& destination)
+	GpuBufferBarrier CreateAliasAcquire(const TShared<render::GpuBuffer>& buffer, const render::GpuAliasAcquire& acquire, const GpuAccessState& destination)
 	{
-		return GpuExplicitBufferBarrier(buffer, GetAliasAcquireSource(acquire), destination, GpuBarrierFlag::AliasAcquire);
+		return GpuBufferBarrier(buffer, GetAliasAcquireSource(acquire), destination, GpuBarrierFlag::AliasAcquire);
 	}
 
 	/** Returns an explicit alias acquire of @p texture, placed with @p acquire, into @p destination. */
-	GpuExplicitTextureBarrier CreateAliasAcquire(const TShared<render::Texture>& texture, const render::GpuAliasAcquire& acquire, const GpuAccessState& destination)
+	GpuTextureBarrier CreateAliasAcquire(const TShared<render::Texture>& texture, const render::GpuAliasAcquire& acquire, const GpuAccessState& destination)
 	{
-		return GpuExplicitTextureBarrier(texture, GetAliasAcquireSource(acquire), destination, GpuTextureSubresourceRange::AllSubresources(), GpuBarrierFlag::AliasAcquire);
+		return GpuTextureBarrier(texture, GetAliasAcquireSource(acquire), destination, GpuTextureSubresourceRange::AllSubresources(), GpuBarrierFlag::AliasAcquire);
 	}
 } // namespace
 
@@ -2261,25 +2261,25 @@ void GpuBackendTestSuite::TestTransientResourceExecution()
 		// Starts a new lifetime of a buffer, writes it with the resource's pattern and copies it to the resource's readback
 		auto fnWriteAndReadBuffer = [&](render::GpuCommandBuffer& commands, const GpuTransientBuffer& buffer, u32 resourceIndex)
 		{
-			const GpuExplicitBufferBarrier acquireBarriers[] = { GpuExplicitBufferBarrier(buffer.Buffer, fnGetAcquireSource(commands, buffer.Acquire), transferWrite, GpuBarrierFlag::AliasAcquire),
-				GpuExplicitBufferBarrier(readbacks[resourceIndex], GpuAccessState(), transferWrite) };
-			commands.IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(acquireBarriers, 2)));
+			const GpuBufferBarrier acquireBarriers[] = { GpuBufferBarrier(buffer.Buffer, fnGetAcquireSource(commands, buffer.Acquire), transferWrite, GpuBarrierFlag::AliasAcquire),
+				GpuBufferBarrier(readbacks[resourceIndex], GpuAccessState(), transferWrite) };
+			commands.IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(acquireBarriers, 2)));
 			commands.CopyBufferToBuffer(uploads[resourceIndex], buffer.Buffer, 0, 0, bufferBytes);
-			commands.IssueExplicitBarriers(GpuExplicitBufferBarrier(buffer.Buffer, transferWrite, transferRead));
+			commands.IssueBarriers(GpuBufferBarrier(buffer.Buffer, transferWrite, transferRead));
 			commands.CopyBufferToBuffer(buffer.Buffer, readbacks[resourceIndex], 0, 0, bufferBytes);
-			commands.IssueExplicitBarriers(GpuExplicitBufferBarrier(readbacks[resourceIndex], transferWrite, hostRead));
+			commands.IssueBarriers(GpuBufferBarrier(readbacks[resourceIndex], transferWrite, hostRead));
 		};
 
 		// The same for a texture
 		auto fnWriteAndReadTexture = [&](render::GpuCommandBuffer& commands, const GpuTransientTexture& texture, u32 resourceIndex)
 		{
-			commands.IssueExplicitBarriers(GpuExplicitTextureBarrier(texture.Texture, fnGetAcquireSource(commands, texture.Acquire), transferWrite, GpuTextureSubresourceRange::AllSubresources(),
+			commands.IssueBarriers(GpuTextureBarrier(texture.Texture, fnGetAcquireSource(commands, texture.Acquire), transferWrite, GpuTextureSubresourceRange::AllSubresources(),
 				GpuBarrierFlag::AliasAcquire));
-			commands.IssueExplicitBarriers(GpuExplicitBufferBarrier(readbacks[resourceIndex], GpuAccessState(), transferWrite));
+			commands.IssueBarriers(GpuBufferBarrier(readbacks[resourceIndex], GpuAccessState(), transferWrite));
 			commands.CopyBufferToTexture(uploads[resourceIndex], texture.Texture, 0, 0, 0);
-			commands.IssueExplicitBarriers(GpuExplicitTextureBarrier(texture.Texture, transferWrite, transferRead));
+			commands.IssueBarriers(GpuTextureBarrier(texture.Texture, transferWrite, transferRead));
 			commands.CopyTextureToBuffer(texture.Texture, readbacks[resourceIndex], 0, 0);
-			commands.IssueExplicitBarriers(GpuExplicitBufferBarrier(readbacks[resourceIndex], transferWrite, hostRead));
+			commands.IssueBarriers(GpuBufferBarrier(readbacks[resourceIndex], transferWrite, hostRead));
 		};
 
 		GpuAccessScope transferAccess;
@@ -2614,7 +2614,7 @@ void GpuBackendTestSuite::TestTransientResourcePlacement()
 }
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-void GpuBackendTestSuite::TestExplicitBarrierResourceValidation()
+void GpuBackendTestSuite::TestBarrierResourceValidation()
 {
 	GpuBackend& backend = GpuBackend::Instance();
 	if(backend.GetDeviceCount() == 0)
@@ -2665,7 +2665,7 @@ void GpuBackendTestSuite::TestExplicitBarrierResourceValidation()
 		const TShared<GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
 
 		// The command buffers share one validator, as a frame graph's do, so resource states carry over from one to the next
-		GpuExplicitBarrierValidator validator;
+		GpuBarrierValidator validator;
 		const TShared<GpuCommandBuffer> commandBuffer = pool->Create(GpuCommandBufferCreateInformation::Create("Explicit barrier resource validation"));
 		commandBuffer->SetValidator(&validator);
 
@@ -2768,26 +2768,26 @@ void GpuBackendTestSuite::TestExplicitBarrierResourceValidation()
 		}
 
 		const TShared<render::GpuBuffer> source = fnCreateBuffer("Source");
-		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(source, GpuAccessState(), transferRead));
+		commandBuffer->IssueBarriers(GpuBufferBarrier(source, GpuAccessState(), transferRead));
 
 		// An alias acquire ends the lifetime of the earlier resources on the memory, and must cover the accesses they were released with
 		if(hasAliasedBuffers)
 		{
-			commandBuffer->IssueExplicitBarriers(CreateAliasAcquire(superseded.Buffer, superseded.Acquire, transferWrite));
+			commandBuffer->IssueBarriers(CreateAliasAcquire(superseded.Buffer, superseded.Acquire, transferWrite));
 			commandBuffer->CopyBufferToBuffer(source, superseded.Buffer, 0, 0, sizeof(u32));
-			commandBuffer->IssueExplicitBarriers(CreateAliasAcquire(acquired.Buffer, acquired.Acquire, transferWrite));
+			commandBuffer->IssueBarriers(CreateAliasAcquire(acquired.Buffer, acquired.Acquire, transferWrite));
 			commandBuffer->CopyBufferToBuffer(source, acquired.Buffer, 0, 0, sizeof(u32));
 			commandBuffer->CopyBufferToBuffer(source, superseded.Buffer, 0, 0, sizeof(u32));
 
-			commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(misacquired.Buffer, GpuAccessState(), transferWrite, GpuBarrierFlag::AliasAcquire));
+			commandBuffer->IssueBarriers(GpuBufferBarrier(misacquired.Buffer, GpuAccessState(), transferWrite, GpuBarrierFlag::AliasAcquire));
 		}
 
 		// The barriers of one call are not ordered against each other, so an alias acquire must not share a call with a barrier of a
 		// resource it supersedes
 		{
-			const GpuExplicitBufferBarrier barriers[] = { GpuExplicitBufferBarrier(predecessor, GpuAccessState(), transferWrite),
-				GpuExplicitBufferBarrier(successor, GpuAccessState(), transferWrite, GpuBarrierFlag::AliasAcquire) };
-			commandBuffer->IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(barriers, 2)));
+			const GpuBufferBarrier barriers[] = { GpuBufferBarrier(predecessor, GpuAccessState(), transferWrite),
+				GpuBufferBarrier(successor, GpuAccessState(), transferWrite, GpuBarrierFlag::AliasAcquire) };
+			commandBuffer->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(barriers, 2)));
 		}
 
 		// A resource with a declared alias acquire must not be used before it
@@ -2795,7 +2795,7 @@ void GpuBackendTestSuite::TestExplicitBarrierResourceValidation()
 
 		// An unplaced texture must be placed before its first use
 		if(unplaced != nullptr)
-			commandBuffer->IssueExplicitBarriers(GpuExplicitTextureBarrier(unplaced, GpuAccessState(), transferWrite));
+			commandBuffer->IssueBarriers(GpuTextureBarrier(unplaced, GpuAccessState(), transferWrite));
 
 		// With resting state validation, resources that no barrier covers must be accessed within their resting state. The
 		// validator identifies resources by address, so every resource must outlive the recording.
@@ -2804,7 +2804,7 @@ void GpuBackendTestSuite::TestExplicitBarrierResourceValidation()
 		const ImageSubresourcePitch pitch = restingTexture->GetStagingBufferPitchForSubresource(0, 0);
 		const TShared<render::GpuBuffer> upload = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(pitch.RowPitch * pitch.SliceHeight * sizeof(u32)));
 		upload->SetName("Upload");
-		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(upload, GpuAccessState(), transferRead));
+		commandBuffer->IssueBarriers(GpuBufferBarrier(upload, GpuAccessState(), transferRead));
 
 		const bool validateRestingStates = gGpuValidateRestingStates;
 		gGpuValidateRestingStates.Set(true);
@@ -2822,9 +2822,9 @@ void GpuBackendTestSuite::TestExplicitBarrierResourceValidation()
 			const TShared<render::Texture> hazardTexture = fnCreateTexture("InPassHazardTexture");
 			const auto fnIssueBarriers = [&commandBuffer, &hazardBuffer, &hazardTexture](const GpuAccessState& source, const GpuAccessState& textureSource, const GpuAccessState& destination)
 			{
-				const GpuExplicitBufferBarrier bufferBarrier(hazardBuffer, source, destination);
-				const GpuExplicitTextureBarrier textureBarrier(hazardTexture, textureSource, destination);
-				commandBuffer->IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(&bufferBarrier, 1), TArrayView<const GpuExplicitTextureBarrier>(&textureBarrier, 1)));
+				const GpuBufferBarrier bufferBarrier(hazardBuffer, source, destination);
+				const GpuTextureBarrier textureBarrier(hazardTexture, textureSource, destination);
+				commandBuffer->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&bufferBarrier, 1), TArrayView<const GpuTextureBarrier>(&textureBarrier, 1)));
 			};
 
 			// The new texture starts at rest, and the dispatches overwrite it
@@ -2847,13 +2847,13 @@ void GpuBackendTestSuite::TestExplicitBarrierResourceValidation()
 
 		// A barrier on the next command buffer must cover the accesses on the previous one
 		const TShared<render::GpuBuffer> carried = fnCreateBuffer("CarriedState");
-		commandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(carried, GpuAccessState(), transferWrite));
+		commandBuffer->IssueBarriers(GpuBufferBarrier(carried, GpuAccessState(), transferWrite));
 		commandBuffer->CopyBufferToBuffer(source, carried, 0, 0, sizeof(u32));
 		commandBuffer->End();
 
 		const TShared<GpuCommandBuffer> nextCommandBuffer = pool->Create(GpuCommandBufferCreateInformation::Create("Explicit barrier resource validation, continued"));
 		nextCommandBuffer->SetValidator(&validator);
-		nextCommandBuffer->IssueExplicitBarriers(GpuExplicitBufferBarrier(carried, host, transferRead));
+		nextCommandBuffer->IssueBarriers(GpuBufferBarrier(carried, host, transferRead));
 		nextCommandBuffer->End();
 
 		// The command buffers are never submitted
@@ -2865,11 +2865,11 @@ void GpuBackendTestSuite::TestExplicitBarrierResourceValidation()
 
 		// Backends may only report their validation messages when the device next goes idle, which must happen within the logging scope
 		device->WaitUntilIdle();
-	}, "GpuBackendTestSuite::TestExplicitBarrierResourceValidation", true);
+	}, "GpuBackendTestSuite::TestBarrierResourceValidation", true);
 }
 #endif
 
-void GpuBackendTestSuite::TestTransientExplicitAliasing()
+void GpuBackendTestSuite::TestTransientAliasing()
 {
 	GpuBackend& backend = GpuBackend::Instance();
 	if(backend.GetDeviceCount() == 0)
@@ -2946,9 +2946,9 @@ void GpuBackendTestSuite::TestTransientExplicitAliasing()
 
 		const auto fnIssueReadbackBarriers = [&readbacks](render::GpuCommandBuffer& commands, const GpuAccessState& source, const GpuAccessState& destination)
 		{
-			GpuExplicitBufferBarrier barriers[] = { GpuExplicitBufferBarrier(readbacks[0], source, destination), GpuExplicitBufferBarrier(readbacks[1], source, destination),
-				GpuExplicitBufferBarrier(readbacks[2], source, destination), GpuExplicitBufferBarrier(readbacks[3], source, destination) };
-			commands.IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(barriers, kResourceCount)));
+			GpuBufferBarrier barriers[] = { GpuBufferBarrier(readbacks[0], source, destination), GpuBufferBarrier(readbacks[1], source, destination),
+				GpuBufferBarrier(readbacks[2], source, destination), GpuBufferBarrier(readbacks[3], source, destination) };
+			commands.IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(barriers, kResourceCount)));
 		};
 
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
@@ -3012,7 +3012,7 @@ void GpuBackendTestSuite::TestTransientExplicitAliasing()
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		// Development builds validate the alias acquires as a frame graph does, with one validator per scope
-		GpuExplicitBarrierValidator validator;
+		GpuBarrierValidator validator;
 		commands->SetValidator(&validator);
 		validator.DeclareAliasAcquire(*firstBuffer.Buffer, firstBuffer.Acquire);
 		validator.DeclareAliasAcquire(*secondBuffer.Buffer, secondBuffer.Acquire);
@@ -3021,14 +3021,14 @@ void GpuBackendTestSuite::TestTransientExplicitAliasing()
 #endif
 
 		fnIssueReadbackBarriers(*commands, GpuAccessState(), transferWrite);
-		commands->IssueExplicitBarriers(GpuExplicitBufferBarrier(unrelated, GpuAccessState(), transferWrite));
+		commands->IssueBarriers(GpuBufferBarrier(unrelated, GpuAccessState(), transferWrite));
 
 		// Full alias acquires of the buffers
 		const auto fnWriteAndReadBuffer = [&](const GpuTransientBuffer& buffer, u32 resourceIndex)
 		{
-			commands->IssueExplicitBarriers(CreateAliasAcquire(buffer.Buffer, buffer.Acquire, transferWrite));
+			commands->IssueBarriers(CreateAliasAcquire(buffer.Buffer, buffer.Acquire, transferWrite));
 			commands->CopyBufferToBuffer(uploads[resourceIndex], buffer.Buffer, 0, 0, kBufferBytes);
-			commands->IssueExplicitBarriers(GpuExplicitBufferBarrier(buffer.Buffer, transferWrite, transferRead));
+			commands->IssueBarriers(GpuBufferBarrier(buffer.Buffer, transferWrite, transferRead));
 			commands->CopyBufferToBuffer(buffer.Buffer, readbacks[resourceIndex], 0, 0, kBufferBytes);
 		};
 
@@ -3036,19 +3036,19 @@ void GpuBackendTestSuite::TestTransientExplicitAliasing()
 		fnWriteAndReadBuffer(secondBuffer, 1);
 
 		// A full alias acquire of the first texture, which may be placed over the buffers
-		commands->IssueExplicitBarriers(CreateAliasAcquire(firstTexture.Texture, firstTexture.Acquire, transferWrite));
+		commands->IssueBarriers(CreateAliasAcquire(firstTexture.Texture, firstTexture.Acquire, transferWrite));
 		commands->CopyBufferToTexture(uploads[2], firstTexture.Texture, 0, 0, 0);
-		commands->IssueExplicitBarriers(GpuExplicitTextureBarrier(firstTexture.Texture, transferWrite, transferRead));
+		commands->IssueBarriers(GpuTextureBarrier(firstTexture.Texture, transferWrite, transferRead));
 		commands->CopyTextureToBuffer(firstTexture.Texture, readbacks[2], 0, 0);
 
 		// A split alias acquire of the second texture, with unrelated work between the halves
-		const GpuExplicitTextureBarrier splitAcquire = CreateAliasAcquire(secondTexture.Texture, secondTexture.Acquire, transferWrite);
+		const GpuTextureBarrier splitAcquire = CreateAliasAcquire(secondTexture.Texture, secondTexture.Acquire, transferWrite);
 		const TShared<GpuSplitBarrier> split = device->CreateSplitBarrier();
 		commands->ReleaseBarriers(splitAcquire, split);
 		commands->CopyBufferToBuffer(uploads[3], unrelated, 0, 0, kBufferBytes);
 		commands->AcquireBarriers(splitAcquire, split);
 		commands->CopyBufferToTexture(uploads[3], secondTexture.Texture, 0, 0, 0);
-		commands->IssueExplicitBarriers(GpuExplicitTextureBarrier(secondTexture.Texture, transferWrite, transferRead));
+		commands->IssueBarriers(GpuTextureBarrier(secondTexture.Texture, transferWrite, transferRead));
 		commands->CopyTextureToBuffer(secondTexture.Texture, readbacks[3], 0, 0);
 
 		fnIssueReadbackBarriers(*commands, transferWrite, hostRead);
@@ -3108,27 +3108,27 @@ void GpuBackendTestSuite::TestTransientExplicitAliasing()
 			movedScope.Release(*movedBuffer, TArrayView<const GpuTransientLastUse>(&dispatchLastUse, 1));
 			movedScope.Release(*movedTexture, TArrayView<const GpuTransientLastUse>(&dispatchLastUse, 1));
 
-			const GpuExplicitBufferBarrier bufferAcquire = CreateAliasAcquire(movedBuffer, bufferPlacement.Acquire, computeReadWrite);
-			const GpuExplicitTextureBarrier textureAcquire = CreateAliasAcquire(movedTexture, texturePlacement.Acquire, computeReadWrite);
+			const GpuBufferBarrier bufferAcquire = CreateAliasAcquire(movedBuffer, bufferPlacement.Acquire, computeReadWrite);
+			const GpuTextureBarrier textureAcquire = CreateAliasAcquire(movedTexture, texturePlacement.Acquire, computeReadWrite);
 
 			const TShared<GpuCommandBuffer> dispatchCommands = pool->Create(GpuCommandBufferCreateInformation::Create("Transient dispatch after placement"));
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-			GpuExplicitBarrierValidator dispatchValidator;
+			GpuBarrierValidator dispatchValidator;
 			dispatchCommands->SetValidator(&dispatchValidator);
 			dispatchValidator.DeclareAliasAcquire(*movedBuffer, bufferPlacement.Acquire);
 			dispatchValidator.DeclareAliasAcquire(*movedTexture, texturePlacement.Acquire);
 #endif
 
 			fnIssueReadbackBarriers(*dispatchCommands, GpuAccessState(), transferWrite);
-			dispatchCommands->IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(&bufferAcquire, 1), TArrayView<const GpuExplicitTextureBarrier>(&textureAcquire, 1)));
+			dispatchCommands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&bufferAcquire, 1), TArrayView<const GpuTextureBarrier>(&textureAcquire, 1)));
 			dispatchCommands->SetGpuComputePipelineState(pipeline);
 			dispatchCommands->SetGpuParameterSet(parameters);
 			dispatchCommands->DispatchCompute(1, 1, 1);
 
-			const GpuExplicitBufferBarrier bufferRead(movedBuffer, computeReadWrite, transferRead);
-			const GpuExplicitTextureBarrier textureRead(movedTexture, computeReadWrite, transferRead);
-			dispatchCommands->IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(&bufferRead, 1), TArrayView<const GpuExplicitTextureBarrier>(&textureRead, 1)));
+			const GpuBufferBarrier bufferRead(movedBuffer, computeReadWrite, transferRead);
+			const GpuTextureBarrier textureRead(movedTexture, computeReadWrite, transferRead);
+			dispatchCommands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&bufferRead, 1), TArrayView<const GpuTextureBarrier>(&textureRead, 1)));
 			dispatchCommands->CopyBufferToBuffer(movedBuffer, readbacks[0], 0, 0, kBufferBytes);
 			dispatchCommands->CopyTextureToBuffer(movedTexture, readbacks[2], 0, 0);
 			fnIssueReadbackBarriers(*dispatchCommands, transferWrite, hostRead);
@@ -3144,5 +3144,5 @@ void GpuBackendTestSuite::TestTransientExplicitAliasing()
 
 			device->EndFrame();
 		}
-	}, "GpuBackendTestSuite::TestTransientExplicitAliasing", true);
+	}, "GpuBackendTestSuite::TestTransientAliasing", true);
 }

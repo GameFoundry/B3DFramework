@@ -159,12 +159,12 @@ void VulkanBarrierTestSuite::TestMultisampleResolve()
 		const GpuAccessState sourceRest = GpuBarrierTestUtility::GetDiscardedRestingState(*source);
 		const GpuAccessState destinationRest = GpuBarrierTestUtility::GetDiscardedRestingState(*destination);
 
-		const GpuExplicitTextureBarrier resolveBarriers[] =
+		const GpuTextureBarrier resolveBarriers[] =
 		{
-			GpuExplicitTextureBarrier(source, sourceRest, GpuAccessState(GpuStageFlag::Resolve, GpuAccessFlag::Read, GpuImageLayout::ResolveSource)),
-			GpuExplicitTextureBarrier(destination, destinationRest, GpuAccessState(GpuStageFlag::Resolve, GpuAccessFlag::Write, GpuImageLayout::ResolveDestination))
+			GpuTextureBarrier(source, sourceRest, GpuAccessState(GpuStageFlag::Resolve, GpuAccessFlag::Read, GpuImageLayout::ResolveSource)),
+			GpuTextureBarrier(destination, destinationRest, GpuAccessState(GpuStageFlag::Resolve, GpuAccessFlag::Write, GpuImageLayout::ResolveDestination))
 		};
-		commandBuffer->IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(), TArrayView<const GpuExplicitTextureBarrier>(resolveBarriers, 2)));
+		commandBuffer->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(), TArrayView<const GpuTextureBarrier>(resolveBarriers, 2)));
 		resolveRecorded = commandBuffer->CopyTexture(source, destination);
 		if(!resolveRecorded)
 			return;
@@ -232,22 +232,22 @@ void main()
 		const GpuAccessState transferRead(GpuStageFlag::Transfer, GpuAccessFlag::Read, GpuImageLayout::TransferSource);
 		const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
 
-		commands->IssueExplicitBarriers(GpuExplicitTextureBarrier(texture, discardedRest, computeReadWrite));
+		commands->IssueBarriers(GpuTextureBarrier(texture, discardedRest, computeReadWrite));
 		commands->SetGpuComputePipelineState(pipeline);
 		commands->SetGpuParameterSet(parameters);
 		u32 increment = 0;
 		commands->SetPushConstants(0, sizeof(increment), &increment);
 		commands->DispatchCompute(8, 8, 1);
-		commands->IssueExplicitBarriers(GpuExplicitTextureBarrier(texture, computeReadWrite, computeReadWrite));
+		commands->IssueBarriers(GpuTextureBarrier(texture, computeReadWrite, computeReadWrite));
 		increment = 1;
 		commands->SetPushConstants(0, sizeof(increment), &increment);
 		commands->DispatchCompute(8, 8, 1);
 
-		const GpuExplicitBufferBarrier readbackBarrier(readback, GpuAccessState(), transferWrite);
-		const GpuExplicitTextureBarrier copyBarrier(texture, computeReadWrite, transferRead);
-		commands->IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(&readbackBarrier, 1), TArrayView<const GpuExplicitTextureBarrier>(&copyBarrier, 1)));
+		const GpuBufferBarrier readbackBarrier(readback, GpuAccessState(), transferWrite);
+		const GpuTextureBarrier copyBarrier(texture, computeReadWrite, transferRead);
+		commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&readbackBarrier, 1), TArrayView<const GpuTextureBarrier>(&copyBarrier, 1)));
 		commands->CopyTextureToBuffer(texture, readback, 0, 0);
-		commands->IssueExplicitBarriers(GpuBarrierTestUtility::CreateReadbackBarrier(readback));
+		commands->IssueBarriers(GpuBarrierTestUtility::CreateReadbackBarrier(readback));
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 		context->SubmitCommandBuffer(commands, GpuQueueMask::kNone);
 		device->WaitUntilIdle();
@@ -324,7 +324,7 @@ void VulkanBarrierTestSuite::TestRenderPassAttachmentTransitions()
 				const GpuAccessState writeState = fnGetAttachmentState(RT_NONE);
 				GpuAccessState discardedState = textureState;
 				discardedState.Layout = GpuImageLayout::Undefined;
-				commands->IssueExplicitBarriers(GpuExplicitTextureBarrier(texture, discardedState, writeState));
+				commands->IssueBarriers(GpuTextureBarrier(texture, discardedState, writeState));
 				commands->BeginRenderPass(pass);
 				commands->EndRenderPass();
 				pass.ClearMask = surfaces;
@@ -332,7 +332,7 @@ void VulkanBarrierTestSuite::TestRenderPassAttachmentTransitions()
 				commands->EndRenderPass();
 
 				const GpuAccessState readOnlyState = fnGetAttachmentState(readOnlyMask);
-				commands->IssueExplicitBarriers(GpuExplicitTextureBarrier(texture, writeState, readOnlyState));
+				commands->IssueBarriers(GpuTextureBarrier(texture, writeState, readOnlyState));
 				pass.ClearMask = RT_NONE;
 				pass.LoadMask = surfaces;
 				pass.ReadOnlyMask = readOnlyMask;
@@ -343,11 +343,11 @@ void VulkanBarrierTestSuite::TestRenderPassAttachmentTransitions()
 				commands->BeginRenderPass(pass);
 				commands->EndRenderPass();
 
-				const GpuExplicitBufferBarrier readbackBarrier(readback, readbackState, transferWrite);
-				const GpuExplicitTextureBarrier copyBarrier(texture, readOnlyState, transferRead);
-				commands->IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(&readbackBarrier, 1), TArrayView<const GpuExplicitTextureBarrier>(&copyBarrier, 1)));
+				const GpuBufferBarrier readbackBarrier(readback, readbackState, transferWrite);
+				const GpuTextureBarrier copyBarrier(texture, readOnlyState, transferRead);
+				commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&readbackBarrier, 1), TArrayView<const GpuTextureBarrier>(&copyBarrier, 1)));
 				commands->CopyTextureToBuffer(texture, readback, 0, 0);
-				commands->IssueExplicitBarriers(GpuExplicitBufferBarrier(readback, transferWrite, hostRead));
+				commands->IssueBarriers(GpuBufferBarrier(readback, transferWrite, hostRead));
 				textureState = transferRead;
 				readbackState = hostRead;
 				context->SubmitCommandBuffer(commands, GpuQueueMask::kNone);
@@ -404,7 +404,7 @@ void VulkanBarrierTestSuite::TestSwapChainTransitions()
 				const TShared<render::GpuCommandBuffer> commands = graphicsPool->Create(GpuCommandBufferCreateInformation::Create("Swapchain clear and load"));
 				GpuAccessState discardedRest = restingState;
 				discardedRest.Layout = GpuImageLayout::Undefined;
-				commands->IssueExplicitBarriers(GpuExplicitRenderTargetBarrier(target, RT_COLOR0, discardedRest, colorAttachment));
+				commands->IssueBarriers(GpuRenderTargetBarrier(target, RT_COLOR0, discardedRest, colorAttachment));
 
 				RenderPassCreateInformation pass(window);
 				pass.ClearMask = RT_COLOR0;
@@ -414,7 +414,7 @@ void VulkanBarrierTestSuite::TestSwapChainTransitions()
 				pass.LoadMask = RT_COLOR0;
 				commands->BeginRenderPass(pass);
 				commands->EndRenderPass();
-				commands->IssueExplicitBarriers(GpuExplicitRenderTargetBarrier(target, RT_COLOR0, colorAttachment, restingState));
+				commands->IssueBarriers(GpuRenderTargetBarrier(target, RT_COLOR0, colorAttachment, restingState));
 				context->SubmitCommandBuffer(commands, GpuQueueMask::kNone);
 
 				const TOptional<RenderWindowImageLayout> imageLayout = surface.GetImageLayout();

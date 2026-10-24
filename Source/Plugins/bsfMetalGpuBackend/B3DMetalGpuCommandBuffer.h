@@ -152,7 +152,7 @@ namespace b3d
 			friend class MetalGpuCommandBufferPool;
 			friend class MetalGpuQueue;
 
-			bool RecordExplicitBarriers(const GpuExplicitBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split) override;
+			bool RecordBarriers(const GpuBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split) override;
 
 			/** Number of buffer slots of the argument tables, the maximum Metal supports. */
 			static constexpr u32 kArgumentTableBufferCount = 31;

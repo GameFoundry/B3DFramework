@@ -1,6 +1,6 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "GpuBackend/B3DGpuExplicitBarrierValidator.h"
+#include "GpuBackend/B3DGpuBarrierValidator.h"
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 
@@ -15,27 +15,27 @@
 
 namespace b3d::render
 {
-	void GpuExplicitBarrierValidator::BeginCommandBuffer(GpuQueueType queueType)
+	void GpuBarrierValidator::BeginCommandBuffer(GpuQueueType queueType)
 	{
 		mQueueType = queueType;
 		ClearBindings();
 	}
 
-	void GpuExplicitBarrierValidator::ValidateBarriers(const GpuExplicitBarriers& barriers, GpuBarrierPhase phase, const GpuSplitBarrier* split)
+	void GpuBarrierValidator::ValidateBarriers(const GpuBarriers& barriers, GpuBarrierPhase phase, const GpuSplitBarrier* split)
 	{
-		for(const GpuExplicitBufferBarrier& barrier : barriers.BufferBarriers)
+		for(const GpuBufferBarrier& barrier : barriers.BufferBarriers)
 		{
 			if(barrier.Object != nullptr)
 				ValidateBufferBarrier(*barrier.Object, barrier, phase, split);
 		}
 
-		for(const GpuExplicitTextureBarrier& barrier : barriers.TextureBarriers)
+		for(const GpuTextureBarrier& barrier : barriers.TextureBarriers)
 		{
 			if(barrier.Object != nullptr)
 				ValidateImageBarrier(GetTextureSubresources(*barrier.Object, barrier.SubresourceRange), barrier, phase, split);
 		}
 
-		for(const GpuExplicitRenderTargetBarrier& barrier : barriers.RenderTargetBarriers)
+		for(const GpuRenderTargetBarrier& barrier : barriers.RenderTargetBarriers)
 		{
 			if(barrier.Object == nullptr)
 				continue;
@@ -52,17 +52,17 @@ namespace b3d::render
 			StartAliasLifetimes(barriers);
 	}
 
-	void GpuExplicitBarrierValidator::DeclareAliasAcquire(const GpuBuffer& buffer, const GpuAliasAcquire& acquire)
+	void GpuBarrierValidator::DeclareAliasAcquire(const GpuBuffer& buffer, const GpuAliasAcquire& acquire)
 	{
 		DeclareAliasAcquire(buffer.GetGpuResource(), acquire, buffer.GetName());
 	}
 
-	void GpuExplicitBarrierValidator::DeclareAliasAcquire(const Texture& texture, const GpuAliasAcquire& acquire)
+	void GpuBarrierValidator::DeclareAliasAcquire(const Texture& texture, const GpuAliasAcquire& acquire)
 	{
 		DeclareAliasAcquire(texture.GetGpuResource(), acquire, texture.GetName());
 	}
 
-	void GpuExplicitBarrierValidator::DeclareAliasAcquire(const IGpuResource* gpuResource, const GpuAliasAcquire& acquire, StringView name)
+	void GpuBarrierValidator::DeclareAliasAcquire(const IGpuResource* gpuResource, const GpuAliasAcquire& acquire, StringView name)
 	{
 		if(!B3D_ENSURE_LOG(gpuResource != nullptr, "An alias acquire can only be declared for a placed resource. Resource: '{0}'.", name))
 			return;
@@ -75,7 +75,7 @@ namespace b3d::render
 			declared.Predecessors.Add(predecessor);
 	}
 
-	void GpuExplicitBarrierValidator::SetParameterSet(const TShared<GpuParameterSet>& parameters)
+	void GpuBarrierValidator::SetParameterSet(const TShared<GpuParameterSet>& parameters)
 	{
 		if(parameters == nullptr)
 			return;
@@ -87,7 +87,7 @@ namespace b3d::render
 		mParameterSets[set] = parameters;
 	}
 
-	void GpuExplicitBarrierValidator::SetVertexBuffers(u32 index, const TShared<GpuBuffer>* buffers, u32 bufferCount)
+	void GpuBarrierValidator::SetVertexBuffers(u32 index, const TShared<GpuBuffer>* buffers, u32 bufferCount)
 	{
 		if(index + bufferCount > mVertexBuffers.size())
 			mVertexBuffers.resize(index + bufferCount);
@@ -96,7 +96,7 @@ namespace b3d::render
 			mVertexBuffers[index + bufferIndex] = buffers[bufferIndex];
 	}
 
-	void GpuExplicitBarrierValidator::ValidateRenderPass(const RenderPassCreateInformation& createInformation)
+	void GpuBarrierValidator::ValidateRenderPass(const RenderPassCreateInformation& createInformation)
 	{
 		mRenderPassAttachments.Clear();
 		if(createInformation.Target == nullptr)
@@ -126,7 +126,7 @@ namespace b3d::render
 		fnValidateAttachment(RT_STENCIL, GpuTextureAspectFlag::Stencil, kDepthStencilStages);
 	}
 
-	void GpuExplicitBarrierValidator::ValidateDraw(bool indexed)
+	void GpuBarrierValidator::ValidateDraw(bool indexed)
 	{
 		mOperation = ++mOperationCount;
 
@@ -145,7 +145,7 @@ namespace b3d::render
 		mOperation = 0;
 	}
 
-	void GpuExplicitBarrierValidator::ValidateDispatch()
+	void GpuBarrierValidator::ValidateDispatch()
 	{
 		mOperation = ++mOperationCount;
 
@@ -155,7 +155,7 @@ namespace b3d::render
 		mOperation = 0;
 	}
 
-	void GpuExplicitBarrierValidator::ValidateBufferAccess(const GpuBuffer& buffer, GpuStageFlags stages, GpuAccessFlags access)
+	void GpuBarrierValidator::ValidateBufferAccess(const GpuBuffer& buffer, GpuStageFlags stages, GpuAccessFlags access)
 	{
 		const char* error = GetLifetimeError(buffer.IsUnplaced(), buffer.GetGpuResource(), nullptr, GpuBarrierPhase::Full);
 		if(error == nullptr)
@@ -164,19 +164,19 @@ namespace b3d::render
 		B3D_ENSURE_LOG(error == nullptr, "{0} Buffer: '{1}'.", error, buffer.GetName());
 	}
 
-	void GpuExplicitBarrierValidator::ValidateTextureAccess(const Texture& texture, const GpuTextureSubresourceRange& range, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags access)
+	void GpuBarrierValidator::ValidateTextureAccess(const Texture& texture, const GpuTextureSubresourceRange& range, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags access)
 	{
 		ValidateImageAccess(GetTextureSubresources(texture, range), layout, stages, access);
 	}
 
-	void GpuExplicitBarrierValidator::ValidateRenderTargetAccess(const RenderTarget& target, RenderSurfaceMaskBits surface, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags access)
+	void GpuBarrierValidator::ValidateRenderTargetAccess(const RenderTarget& target, RenderSurfaceMaskBits surface, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags access)
 	{
 		const ImageSubresources image = GetSurfaceSubresources(target, surface);
 		if(image.Key.Object != nullptr)
 			ValidateImageAccess(image, layout, stages, access);
 	}
 
-	void GpuExplicitBarrierValidator::Clear()
+	void GpuBarrierValidator::Clear()
 	{
 		mBuffers.clear();
 		mImages.clear();
@@ -185,7 +185,7 @@ namespace b3d::render
 		ClearBindings();
 	}
 
-	void GpuExplicitBarrierValidator::ClearBindings()
+	void GpuBarrierValidator::ClearBindings()
 	{
 		mParameterSets.clear();
 		mGraphicsPipeline = nullptr;
@@ -196,22 +196,22 @@ namespace b3d::render
 		mOperation = 0;
 	}
 
-	void GpuExplicitBarrierValidator::StartAliasLifetimes(const GpuExplicitBarriers& barriers)
+	void GpuBarrierValidator::StartAliasLifetimes(const GpuBarriers& barriers)
 	{
 		TInlineArray<const IGpuResource*, 8> barrierResources;
-		for(const GpuExplicitBufferBarrier& barrier : barriers.BufferBarriers)
+		for(const GpuBufferBarrier& barrier : barriers.BufferBarriers)
 		{
 			if(barrier.Object != nullptr && barrier.Object->GetGpuResource() != nullptr && !barrier.Flags.IsSet(GpuBarrierFlag::AliasRelease))
 				barrierResources.Add(barrier.Object->GetGpuResource());
 		}
 
-		for(const GpuExplicitTextureBarrier& barrier : barriers.TextureBarriers)
+		for(const GpuTextureBarrier& barrier : barriers.TextureBarriers)
 		{
 			if(barrier.Object != nullptr && barrier.Object->GetGpuResource() != nullptr && !barrier.Flags.IsSet(GpuBarrierFlag::AliasRelease))
 				barrierResources.Add(barrier.Object->GetGpuResource());
 		}
 
-		const auto fnStartLifetime = [this, &barrierResources](const IGpuResource* gpuResource, const GpuExplicitBarrier& barrier, StringView name)
+		const auto fnStartLifetime = [this, &barrierResources](const IGpuResource* gpuResource, const GpuBarrier& barrier, StringView name)
 		{
 			if(gpuResource == nullptr || !barrier.Flags.IsSet(GpuBarrierFlag::AliasAcquire))
 				return;
@@ -232,20 +232,20 @@ namespace b3d::render
 			mAliasAcquires.erase(found);
 		};
 
-		for(const GpuExplicitBufferBarrier& barrier : barriers.BufferBarriers)
+		for(const GpuBufferBarrier& barrier : barriers.BufferBarriers)
 		{
 			if(barrier.Object != nullptr)
 				fnStartLifetime(barrier.Object->GetGpuResource(), barrier, barrier.Object->GetName());
 		}
 
-		for(const GpuExplicitTextureBarrier& barrier : barriers.TextureBarriers)
+		for(const GpuTextureBarrier& barrier : barriers.TextureBarriers)
 		{
 			if(barrier.Object != nullptr)
 				fnStartLifetime(barrier.Object->GetGpuResource(), barrier, barrier.Object->GetName());
 		}
 	}
 
-	GpuExplicitBarrierValidator::ImageSubresources GpuExplicitBarrierValidator::GetTextureSubresources(const Texture& texture, const GpuTextureSubresourceRange& range) const
+	GpuBarrierValidator::ImageSubresources GpuBarrierValidator::GetTextureSubresources(const Texture& texture, const GpuTextureSubresourceRange& range) const
 	{
 		const TextureProperties& properties = texture.GetProperties();
 
@@ -260,7 +260,7 @@ namespace b3d::render
 		return image;
 	}
 
-	GpuExplicitBarrierValidator::ImageSubresources GpuExplicitBarrierValidator::GetSurfaceSubresources(const RenderTarget& target, RenderSurfaceMaskBits surface) const
+	GpuBarrierValidator::ImageSubresources GpuBarrierValidator::GetSurfaceSubresources(const RenderTarget& target, RenderSurfaceMaskBits surface) const
 	{
 		const bool isColor = ((u32)surface & (u32)RT_COLOR_ALL) != 0;
 		if(target.GetProperties().IsWindow)
@@ -292,7 +292,7 @@ namespace b3d::render
 		return image;
 	}
 
-	void GpuExplicitBarrierValidator::ValidateBindings(const GpuPipelineParameterLayout& pipelineLayout, bool isDraw)
+	void GpuBarrierValidator::ValidateBindings(const GpuPipelineParameterLayout& pipelineLayout, bool isDraw)
 	{
 		for(u32 set = 0; set < std::min(pipelineLayout.GetSetCount(), (u32)mParameterSets.size()); set++)
 		{
@@ -341,7 +341,7 @@ namespace b3d::render
 		}
 	}
 
-	void GpuExplicitBarrierValidator::ValidateImageBarrier(const ImageSubresources& image, const GpuExplicitBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split)
+	void GpuBarrierValidator::ValidateImageBarrier(const ImageSubresources& image, const GpuBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split)
 	{
 		// A texture outside a frame graph is at rest. So its first barrier starts from the resting state. An alias acquire starts the lifetime of its memory instead.
 		const bool isAtRest = gGpuValidateRestingStates && image.Texture != nullptr && image.Texture->GetFrameGraphResourceIndex() == ~0u &&
@@ -365,7 +365,7 @@ namespace b3d::render
 		B3D_ENSURE_LOG(error == nullptr, "{0} Image: '{1}'.", error, image.Name);
 	}
 
-	void GpuExplicitBarrierValidator::ValidateBufferBarrier(const GpuBuffer& buffer, const GpuExplicitBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split)
+	void GpuBarrierValidator::ValidateBufferBarrier(const GpuBuffer& buffer, const GpuBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split)
 	{
 		const char* error = GetLifetimeError(buffer.IsUnplaced(), buffer.GetGpuResource(), &barrier, phase);
 		if(error == nullptr)
@@ -377,7 +377,7 @@ namespace b3d::render
 		B3D_ENSURE_LOG(error == nullptr, "{0} Buffer: '{1}'.", error, buffer.GetName());
 	}
 
-	void GpuExplicitBarrierValidator::ValidateImageAccess(const ImageSubresources& image, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags access)
+	void GpuBarrierValidator::ValidateImageAccess(const ImageSubresources& image, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags access)
 	{
 		const char* error = image.Texture != nullptr ? GetLifetimeError(image.Texture->IsUnplaced(), image.Texture->GetGpuResource(), nullptr, GpuBarrierPhase::Full) : nullptr;
 		if(error == nullptr)
@@ -392,7 +392,7 @@ namespace b3d::render
 		B3D_ENSURE_LOG(error == nullptr, "{0} Image: '{1}'.", error, image.Name);
 	}
 
-	bool GpuExplicitBarrierValidator::IsRenderPassAttachment(const ImageSubresources& image) const
+	bool GpuBarrierValidator::IsRenderPassAttachment(const ImageSubresources& image) const
 	{
 		return std::any_of(mRenderPassAttachments.begin(), mRenderPassAttachments.end(), [&image](const ImageSubresources& attachment)
 		{
@@ -400,12 +400,12 @@ namespace b3d::render
 		});
 	}
 
-	const GpuAccessState* GpuExplicitBarrierValidator::GetUndeclaredState(const GpuAccessState& restingState)
+	const GpuAccessState* GpuBarrierValidator::GetUndeclaredState(const GpuAccessState& restingState)
 	{
 		return gGpuValidateRestingStates ? &restingState : nullptr;
 	}
 
-	const char* GpuExplicitBarrierValidator::GetLifetimeError(bool isUnplaced, const IGpuResource* gpuResource, const GpuExplicitBarrier* barrier, GpuBarrierPhase phase) const
+	const char* GpuBarrierValidator::GetLifetimeError(bool isUnplaced, const IGpuResource* gpuResource, const GpuBarrier* barrier, GpuBarrierPhase phase) const
 	{
 		if(isUnplaced)
 			return "The resource was used while it is unplaced, without memory from its transient resource allocator. Place it first.";
@@ -439,7 +439,7 @@ namespace b3d::render
 		return nullptr;
 	}
 
-	const char* GpuExplicitBarrierValidator::ApplyBarrier(ResourceState& state, const GpuExplicitBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split, bool isImage)
+	const char* GpuBarrierValidator::ApplyBarrier(ResourceState& state, const GpuBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split, bool isImage)
 	{
 		const char* error = nullptr;
 		const GpuAccessState& source = barrier.Source;
@@ -475,7 +475,7 @@ namespace b3d::render
 		return error;
 	}
 
-	const char* GpuExplicitBarrierValidator::ApplyAccess(ResourceState& state, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags access, const GpuAccessState* undeclaredState, u32 operation)
+	const char* GpuBarrierValidator::ApplyAccess(ResourceState& state, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags access, const GpuAccessState* undeclaredState, u32 operation)
 	{
 		const GpuAccessState* const declared = state.IsDeclared ? &state.Declared : undeclaredState;
 
@@ -501,7 +501,7 @@ namespace b3d::render
 	}
 
 	template<class TFunction>
-	const char* GpuExplicitBarrierValidator::ForEachSubresourceState(const ImageSubresources& image, TFunction&& function)
+	const char* GpuBarrierValidator::ForEachSubresourceState(const ImageSubresources& image, TFunction&& function)
 	{
 		const GpuTextureSubresourceRange& fullRange = image.FullRange;
 		const GpuTextureSubresourceRange& clampedRange = image.Range;

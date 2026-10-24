@@ -57,15 +57,15 @@ namespace b3d::render
 		}
 
 		/** Returns a barrier that makes the host writes of @p buffer visible to copies that read it. */
-		static GpuExplicitBufferBarrier CreateUploadBarrier(const TShared<GpuBuffer>& buffer)
+		static GpuBufferBarrier CreateUploadBarrier(const TShared<GpuBuffer>& buffer)
 		{
-			return GpuExplicitBufferBarrier(buffer, GpuAccessState(GpuStageFlag::Host, GpuAccessFlag::Write), GpuAccessState(GpuStageFlag::Transfer, GpuAccessFlag::Read));
+			return GpuBufferBarrier(buffer, GpuAccessState(GpuStageFlag::Host, GpuAccessFlag::Write), GpuAccessState(GpuStageFlag::Transfer, GpuAccessFlag::Read));
 		}
 
 		/** Returns a barrier that makes the copy writes of @p buffer visible to host reads. */
-		static GpuExplicitBufferBarrier CreateReadbackBarrier(const TShared<GpuBuffer>& buffer)
+		static GpuBufferBarrier CreateReadbackBarrier(const TShared<GpuBuffer>& buffer)
 		{
-			return GpuExplicitBufferBarrier(buffer, GpuAccessState(GpuStageFlag::Transfer, GpuAccessFlag::Write), GpuAccessState(GpuStageFlag::Host, GpuAccessFlag::Read));
+			return GpuBufferBarrier(buffer, GpuAccessState(GpuStageFlag::Transfer, GpuAccessFlag::Write), GpuAccessState(GpuStageFlag::Host, GpuAccessFlag::Read));
 		}
 	};
 } // namespace b3d::render

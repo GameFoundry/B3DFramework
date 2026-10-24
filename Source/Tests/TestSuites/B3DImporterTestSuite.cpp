@@ -898,9 +898,9 @@ namespace
 		const render::GpuAccessState computeWrite(render::GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write, render::GpuImageLayout::General);
 
 		render::TextureUtility::Write(gpuContext, inputTexture, *compressed, 0, 0, render::TextureWriteFlag::Normal, commandBuffer);
-		commandBuffer->IssueExplicitBarriers(render::GpuExplicitTextureBarrier(outputTexture, discardedOutputRest, computeWrite));
+		commandBuffer->IssueBarriers(render::GpuTextureBarrier(outputTexture, discardedOutputRest, computeWrite));
 		material->Execute(*commandBuffer, inputTexture, outputTexture, parameters, size);
-		commandBuffer->IssueExplicitBarriers(render::GpuExplicitTextureBarrier(outputTexture, computeWrite, outputRest));
+		commandBuffer->IssueBarriers(render::GpuTextureBarrier(outputTexture, computeWrite, outputRest));
 
 		gpuContext.SubmitCommandBuffer(commandBuffer);
 		gpuDevice->WaitUntilIdle();

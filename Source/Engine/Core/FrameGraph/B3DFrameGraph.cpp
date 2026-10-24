@@ -6,7 +6,7 @@
 #include "GpuBackend/B3DGpuBackendUtility.h"
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
-#include "GpuBackend/B3DGpuExplicitBarrierValidator.h"
+#include "GpuBackend/B3DGpuBarrierValidator.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuWorkContext.h"
 #include "GpuBackend/B3DRenderTexture.h"
@@ -183,11 +183,11 @@ namespace b3d::render
 		mResources.Add(resource);
 	}
 
-	GpuExplicitBarriers FrameGraph::BarrierList::GetBarriers() const
+	GpuBarriers FrameGraph::BarrierList::GetBarriers() const
 	{
-		return GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(BufferBarriers.data(), (u32)BufferBarriers.size()),
-			TArrayView<const GpuExplicitTextureBarrier>(TextureBarriers.data(), (u32)TextureBarriers.size()),
-			TArrayView<const GpuExplicitRenderTargetBarrier>(RenderTargetBarriers.data(), (u32)RenderTargetBarriers.size()));
+		return GpuBarriers(TArrayView<const GpuBufferBarrier>(BufferBarriers.data(), (u32)BufferBarriers.size()),
+			TArrayView<const GpuTextureBarrier>(TextureBarriers.data(), (u32)TextureBarriers.size()),
+			TArrayView<const GpuRenderTargetBarrier>(RenderTargetBarriers.data(), (u32)RenderTargetBarriers.size()));
 	}
 
 	FrameGraph::FrameGraph(GpuWorkContext& context, const StringView& name)
@@ -1364,10 +1364,10 @@ namespace b3d::render
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		// One validator follows every resource across the passes. It keeps the parameter sets it saw alive until it is destroyed.
-		TUnique<GpuExplicitBarrierValidator> validator;
+		TUnique<GpuBarrierValidator> validator;
 		if(gFrameGraphSerialRecording)
 		{
-			validator = B3DMakeUnique<GpuExplicitBarrierValidator>();
+			validator = B3DMakeUnique<GpuBarrierValidator>();
 			commandBuffer->SetValidator(validator.get());
 
 			for(const Resource& resource : mResources)
@@ -1715,7 +1715,7 @@ namespace b3d::render
 		switch(phase)
 		{
 		case GpuBarrierPhase::Full:
-			commandBuffer.IssueExplicitBarriers(list.GetBarriers());
+			commandBuffer.IssueBarriers(list.GetBarriers());
 			break;
 		case GpuBarrierPhase::Release:
 			commandBuffer.ReleaseBarriers(list.GetBarriers(), split);

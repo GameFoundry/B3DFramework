@@ -1277,7 +1277,7 @@ VulkanGpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmit
 		submitInformation.RestingTransitionCommandBuffer = transitionCommandBuffer;
 	}
 
-	PublishExplicitImageLayouts();
+	PublishImageLayouts();
 
 	// Wait on present (i.e. until the back buffer becomes available) for any surfaces
 	for(IVulkanRenderWindowSurface* surface : mAcquiredSurfaces)
@@ -1366,7 +1366,7 @@ void VulkanGpuCommandBuffer::ClearRecordingState()
 	mGraphicsPushConstantsRequireBind = false;
 	mComputePushConstantsRequireBind = false;
 
-	ClearExplicitBarrierState(wasSubmitted);
+	ClearBarrierState(wasSubmitted);
 
 	OnDidComplete.Clear();
 	OnDestroyed.Clear();
@@ -1936,7 +1936,7 @@ VulkanSplitBarrier::~VulkanSplitBarrier()
 		vkDestroyEvent(mDevice, mEvent, gVulkanAllocator);
 }
 
-bool VulkanGpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split)
+bool VulkanGpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split)
 {
 	VulkanGpuDevice& device = GetVulkanGpuDevice();
 
@@ -1949,7 +1949,7 @@ bool VulkanGpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& b
 
 	// Halves of an ownership transfer each record their own side of the dependency. Only writes require memory availability, source
 	// reads are ordered through the stage mask.
-	const auto fnGetTransferScope = [isRelease](const GpuExplicitBarrier& barrier, VkPipelineStageFlags& outStages, VkAccessFlags& outAccess)
+	const auto fnGetTransferScope = [isRelease](const GpuBarrier& barrier, VkPipelineStageFlags& outStages, VkAccessFlags& outAccess)
 	{
 		if(isRelease)
 		{
@@ -1962,13 +1962,13 @@ bool VulkanGpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& b
 
 	// Read->read barrier needs to be issued due to stage chaining that Vulkan does. It makes prior writes visible to the new read stages, e.g.:
 	// Some stage writes -> Stage A reads -> Stage B reads. The read->read barrier from stage A to stage B makes the write visible to stage B.
-	const auto fnIsReadToRead = [](const GpuExplicitBarrier& barrier)
+	const auto fnIsReadToRead = [](const GpuBarrier& barrier)
 	{
 		return barrier.Source.Access == GpuAccessFlag::Read && barrier.Destination.Access == GpuAccessFlag::Read;
 	};
 
 	VulkanBarrierBatch batch;
-	for(const GpuExplicitBufferBarrier& barrier : barriers.BufferBarriers)
+	for(const GpuBufferBarrier& barrier : barriers.BufferBarriers)
 	{
 		auto* const gpuBuffer = static_cast<VulkanGpuBuffer*>(barrier.Object.get());
 		VulkanBuffer* const buffer = gpuBuffer != nullptr ? gpuBuffer->GetVulkanResource() : nullptr;
@@ -1995,7 +1995,7 @@ bool VulkanGpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& b
 		}
 	}
 
-	const auto fnAddImageBarrier = [&](VulkanImage& image, const GpuTextureSubresourceRange& range, const GpuExplicitBarrier& barrier, bool usesGeneralLayout)
+	const auto fnAddImageBarrier = [&](VulkanImage& image, const GpuTextureSubresourceRange& range, const GpuBarrier& barrier, bool usesGeneralLayout)
 	{
 		// The alias acquire that supersedes the image flushes its writes through a global memory barrier, which covers images in any layout
 		if(barrier.Flags.IsSet(GpuBarrierFlag::AliasRelease))
@@ -2062,10 +2062,10 @@ bool VulkanGpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& b
 
 		// The release leaves the transition in flight until the acquire
 		if(!isRelease)
-			AddExplicitImageLayout(image, range, (u32)destinationLayout);
+			AddImageLayout(image, range, (u32)destinationLayout);
 	};
 
-	for(const GpuExplicitTextureBarrier& barrier : barriers.TextureBarriers)
+	for(const GpuTextureBarrier& barrier : barriers.TextureBarriers)
 	{
 		auto* const texture = static_cast<VulkanTexture*>(barrier.Object.get());
 		VulkanImage* const image = texture != nullptr ? texture->GetVulkanResource() : nullptr;
@@ -2075,7 +2075,7 @@ bool VulkanGpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& b
 		fnAddImageBarrier(*image, GpuBackendUtility::ClampRange(barrier.SubresourceRange, image->GetRange()), barrier, texture->UsesGeneralLayout());
 	}
 
-	for(const GpuExplicitRenderTargetBarrier& barrier : barriers.RenderTargetBarriers)
+	for(const GpuRenderTargetBarrier& barrier : barriers.RenderTargetBarriers)
 	{
 		RenderTarget* const renderTarget = barrier.Object.get();
 		if(renderTarget == nullptr)

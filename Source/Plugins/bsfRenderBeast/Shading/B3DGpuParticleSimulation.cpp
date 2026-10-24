@@ -756,7 +756,10 @@ void GpuParticleSimulation::Simulate(FrameGraph& graph, const RenderBeastScene& 
 				continue;
 
 			const u32 tileCount = entry->GetTileCount();
-			SimulateDraw draw = { simulateMaterial, entry->GetSimulateParameters(), Math::DivideAndRoundUp(tileCount, GpuParticleConstants::kTilesPerInstance) };
+			SimulateDraw draw;
+			draw.Material = simulateMaterial;
+			draw.Parameters = entry->GetSimulateParameters();
+			draw.InstanceCount = Math::DivideAndRoundUp(tileCount, GpuParticleConstants::kTilesPerInstance);
 			if(currentDepthCollisions)
 			{
 				draw.PerObjectParameters = renderState.PerObjectParameterSet;

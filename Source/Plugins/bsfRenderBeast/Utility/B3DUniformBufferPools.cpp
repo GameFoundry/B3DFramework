@@ -338,8 +338,8 @@ void UniformBufferPools::Flush(const TShared<GpuCommandBuffer>& commandBuffer)
 	// Take the destination buffers from their resting state for the copies
 	const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
 
-	FrameVector<GpuExplicitBufferBarrier> transferWriteBarriers;
-	FrameVector<GpuExplicitBufferBarrier> restBarriers;
+	FrameVector<GpuBufferBarrier> transferWriteBarriers;
+	FrameVector<GpuBufferBarrier> restBarriers;
 	FrameUnorderedSet<GpuBuffer*> destinationBuffers;
 	for (const PendingCopy& copy : mPendingCopies)
 	{
@@ -348,11 +348,11 @@ void UniformBufferPools::Flush(const TShared<GpuCommandBuffer>& commandBuffer)
 			continue;
 
 		const GpuAccessState restingState = GpuBackendUtility::GetRestingState(*buffer, actualCommandBuffer->GetQueueType());
-		transferWriteBarriers.push_back(GpuExplicitBufferBarrier(buffer, restingState, transferWrite));
-		restBarriers.push_back(GpuExplicitBufferBarrier(buffer, transferWrite, restingState));
+		transferWriteBarriers.push_back(GpuBufferBarrier(buffer, restingState, transferWrite));
+		restBarriers.push_back(GpuBufferBarrier(buffer, transferWrite, restingState));
 	}
 
-	actualCommandBuffer->IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(transferWriteBarriers.data(), (u32)transferWriteBarriers.size())));
+	actualCommandBuffer->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(transferWriteBarriers.data(), (u32)transferWriteBarriers.size())));
 
 	for (const PendingCopy& copy : mPendingCopies)
 	{
@@ -361,7 +361,7 @@ void UniformBufferPools::Flush(const TShared<GpuCommandBuffer>& commandBuffer)
 	}
 
 	// And return them to rest after the copies
-	actualCommandBuffer->IssueExplicitBarriers(GpuExplicitBarriers(TArrayView<const GpuExplicitBufferBarrier>(restBarriers.data(), (u32)restBarriers.size())));
+	actualCommandBuffer->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(restBarriers.data(), (u32)restBarriers.size())));
 
 	mPendingCopies.clear();
 	mPendingCopyIndices.clear();

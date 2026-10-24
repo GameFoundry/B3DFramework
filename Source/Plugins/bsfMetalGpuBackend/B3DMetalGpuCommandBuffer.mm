@@ -2209,7 +2209,7 @@ namespace b3d
 			mState = GpuCommandBufferState::RecordingDone;
 		}
 
-		bool MetalGpuCommandBuffer::RecordExplicitBarriers(const GpuExplicitBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split)
+		bool MetalGpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split)
 		{
 			// What the barriers of each case record:
 			//
@@ -2247,7 +2247,7 @@ namespace b3d
 			GpuStageFlags sourceStages = GpuStageFlag::None;
 			GpuAccessFlags destinationAccess = GpuAccessFlag::None;
 			bool hasRenderTargetBarriers = false;
-			const auto fnAddBarrier = [&](const GpuExplicitBarrier& barrier)
+			const auto fnAddBarrier = [&](const GpuBarrier& barrier)
 			{
 				if (!recordsBarrier)
 					return;
@@ -2257,7 +2257,7 @@ namespace b3d
 				destinationAccess |= barrier.Destination.Access;
 			};
 
-			for (const GpuExplicitBufferBarrier& barrier : barriers.BufferBarriers)
+			for (const GpuBufferBarrier& barrier : barriers.BufferBarriers)
 			{
 				auto* const gpuBuffer = static_cast<MetalGpuBuffer*>(barrier.Object.get());
 				MetalBuffer* const buffer = gpuBuffer != nullptr ? gpuBuffer->GetMetalResource() : nullptr;
@@ -2268,13 +2268,13 @@ namespace b3d
 				fnAddBarrier(barrier);
 			}
 
-			const auto fnAddImageBarrier = [&](MetalImage& image, const GpuTextureSubresourceRange& range, const GpuExplicitBarrier& barrier)
+			const auto fnAddImageBarrier = [&](MetalImage& image, const GpuTextureSubresourceRange& range, const GpuBarrier& barrier)
 			{
 				mResourceTracker.TrackImageUsage(&image, range, barrier.Destination.Access | GpuAccessFlag::Read);
 				fnAddBarrier(barrier);
 			};
 
-			for (const GpuExplicitTextureBarrier& barrier : barriers.TextureBarriers)
+			for (const GpuTextureBarrier& barrier : barriers.TextureBarriers)
 			{
 				// Metal has no layouts, and the alias acquire that supersedes the texture orders the work of the memory
 				if (barrier.Flags.IsSet(GpuBarrierFlag::AliasRelease))
@@ -2288,7 +2288,7 @@ namespace b3d
 				fnAddImageBarrier(*image, GpuBackendUtility::ClampRange(barrier.SubresourceRange, image->GetRange()), barrier);
 			}
 
-			for (const GpuExplicitRenderTargetBarrier& barrier : barriers.RenderTargetBarriers)
+			for (const GpuRenderTargetBarrier& barrier : barriers.RenderTargetBarriers)
 			{
 				RenderTarget* const renderTarget = barrier.Object.get();
 				if (renderTarget == nullptr)
@@ -2494,7 +2494,7 @@ namespace b3d
 			else
 				mResourceTracker.NotifyUnbound();
 
-			ClearExplicitBarrierState(mResourcesSubmitted);
+			ClearBarrierState(mResourcesSubmitted);
 
 			mResourceTracker.Clear();
 			mResourcesSubmitted = false;

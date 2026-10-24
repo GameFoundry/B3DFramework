@@ -61,7 +61,7 @@ namespace b3d
 			friend class NullGpuQueue;
 
 			/** Accepts every barrier, since nothing executes. */
-			bool RecordExplicitBarriers(const GpuExplicitBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split) override { return true; }
+			bool RecordBarriers(const GpuBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split) override { return true; }
 
 			/** Sets the command buffer state. Only accessible by friends (pool and queue). */
 			void SetState(GpuCommandBufferState state) { mState = state; }

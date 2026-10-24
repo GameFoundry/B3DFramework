@@ -17,7 +17,7 @@ namespace b3d
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	/**
 	 * If enabled, frame graphs record their passes one at a time, in the order the GPU executes them, and validate every command buffer
-	 * of an execution with one shared GpuExplicitBarrierValidator. If disabled, frame graphs validate nothing. Development builds only.
+	 * of an execution with one shared GpuBarrierValidator. If disabled, frame graphs validate nothing. Development builds only.
 	 */
 	extern B3D_EXPORT TConfigVariable<bool> gFrameGraphSerialRecording;
 #endif
@@ -25,7 +25,7 @@ namespace b3d
 	namespace render
 	{
 		class FrameGraph;
-		class GpuExplicitBarrierValidator;
+		class GpuBarrierValidator;
 
 		/** @addtogroup Renderer
 		 *  @{
@@ -400,18 +400,18 @@ namespace b3d
 				RenderSurfaceMask ReadOnlyMask = RT_NONE;
 			};
 
-			/** Barriers of one call to GpuCommandBuffer::IssueExplicitBarriers(), ReleaseBarriers() or AcquireBarriers(). */
+			/** Barriers of one call to GpuCommandBuffer::IssueBarriers(), ReleaseBarriers() or AcquireBarriers(). */
 			struct BarrierList
 			{
 				/** Returns a view of the barriers, which remains valid while the list is unchanged. */
-				GpuExplicitBarriers GetBarriers() const;
+				GpuBarriers GetBarriers() const;
 
 				/** Returns true if the list has no barriers. */
 				bool IsEmpty() const { return BufferBarriers.empty() && TextureBarriers.empty() && RenderTargetBarriers.empty(); }
 
-				Vector<GpuExplicitBufferBarrier> BufferBarriers;
-				Vector<GpuExplicitTextureBarrier> TextureBarriers;
-				Vector<GpuExplicitRenderTargetBarrier> RenderTargetBarriers;
+				Vector<GpuBufferBarrier> BufferBarriers;
+				Vector<GpuTextureBarrier> TextureBarriers;
+				Vector<GpuRenderTargetBarrier> RenderTargetBarriers;
 			};
 
 			/** Split barriers released at one point and acquired at another, recorded with one GpuSplitBarrier. */

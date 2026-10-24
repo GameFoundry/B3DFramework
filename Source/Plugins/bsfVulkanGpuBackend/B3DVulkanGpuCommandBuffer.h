@@ -327,7 +327,7 @@ namespace b3d
 			friend class VulkanGpuBuffer;
 			friend class VulkanTexture;
 
-			bool RecordExplicitBarriers(const GpuExplicitBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split) override;
+			bool RecordBarriers(const GpuBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split) override;
 
 			/** Contains information about a single Vulkan resource bound/used on this command buffer. */
 			struct ResourceUseHandle

@@ -54,7 +54,7 @@ namespace b3d
 		 * Verifies that explicit barriers order GPU writes before later reads: full barriers, split barriers within a command buffer,
 		 * across command buffers in both recording orders, and across queues. Runs only on devices that support explicit barriers.
 		 */
-		void TestExplicitBarriers();
+		void TestBarriers();
 
 		/**
 		 * Verifies that split barriers order a long-running compute write before a copy that reads it, within a command buffer and
@@ -78,7 +78,7 @@ namespace b3d
 		 * and as split barriers. Then binds resources before they are placed, recreates them at other memory and writes them with a dispatch.
 		 * Verifies the contents each resource reads back. Runs only on devices that support explicit barriers.
 		 */
-		void TestTransientExplicitAliasing();
+		void TestTransientAliasing();
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		/**
@@ -86,7 +86,7 @@ namespace b3d
 		 * declared. Each method is checked on its own resource, so the test fails if a backend override skips the validating base
 		 * implementation. Runs only on devices that support explicit barriers.
 		 */
-		void TestExplicitBarrierValidation();
+		void TestBarrierValidation();
 
 		/**
 		 * Verifies the errors of a validator shared by two command buffers: resources used outside of their lifetime on the memory, alias
@@ -94,7 +94,7 @@ namespace b3d
 		 * the next command buffer, accesses outside of the resting state and dispatches that access what an earlier dispatch wrote
 		 * without a barrier. Runs only on devices that support explicit barriers.
 		 */
-		void TestExplicitBarrierResourceValidation();
+		void TestBarrierResourceValidation();
 #endif
 
 		/** Verifies push-constant metadata merging and carrier separation across program stages. */

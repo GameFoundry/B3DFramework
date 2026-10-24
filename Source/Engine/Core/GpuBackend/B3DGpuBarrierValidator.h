@@ -37,7 +37,7 @@ namespace b3d::render
 	 *  - Resources must not be accessed or barriered while they are unplaced (see render::Texture::SetUnplaced()). A resource with a
 	 *    declared alias acquire must not be accessed or barriered before it, and the resources it supersedes not after it.
 	 */
-	class B3D_EXPORT GpuExplicitBarrierValidator
+	class B3D_EXPORT GpuBarrierValidator
 	{
 	public:
 		/**
@@ -53,7 +53,7 @@ namespace b3d::render
 		 * @param	phase		Part of the barriers the command buffer records.
 		 * @param	split		Split barrier connecting the halves. Null for GpuBarrierPhase::Full.
 		 */
-		void ValidateBarriers(const GpuExplicitBarriers& barriers, GpuBarrierPhase phase, const GpuSplitBarrier* split);
+		void ValidateBarriers(const GpuBarriers& barriers, GpuBarrierPhase phase, const GpuSplitBarrier* split);
 
 		/**
 		 * Declares that @p buffer starts a new lifetime on memory that earlier resources used, as @p acquire describes. The first barrier
@@ -168,7 +168,7 @@ namespace b3d::render
 		void DeclareAliasAcquire(const IGpuResource* gpuResource, const GpuAliasAcquire& acquire, StringView name);
 
 		/** Starts the lifetimes of the resources that @p barriers alias acquire, which supersedes their predecessors. */
-		void StartAliasLifetimes(const GpuExplicitBarriers& barriers);
+		void StartAliasLifetimes(const GpuBarriers& barriers);
 
 		/** Returns the subresources of a texture in @p range, clamped to the texture. */
 		ImageSubresources GetTextureSubresources(const Texture& texture, const GpuTextureSubresourceRange& range) const;
@@ -180,10 +180,10 @@ namespace b3d::render
 		void ValidateBindings(const GpuPipelineParameterLayout& pipelineLayout, bool isDraw);
 
 		/** Checks an explicit barrier of an image. */
-		void ValidateImageBarrier(const ImageSubresources& image, const GpuExplicitBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split);
+		void ValidateImageBarrier(const ImageSubresources& image, const GpuBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split);
 
 		/** Checks an explicit barrier of a buffer. */
-		void ValidateBufferBarrier(const GpuBuffer& buffer, const GpuExplicitBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split);
+		void ValidateBufferBarrier(const GpuBuffer& buffer, const GpuBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split);
 
 		/** Checks an access of an image. */
 		void ValidateImageAccess(const ImageSubresources& image, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags access);
@@ -199,10 +199,10 @@ namespace b3d::render
 		 * transient resource allocator returned the resource without memory, and @p gpuResource is its native resource, if any.
 		 * @p barrier is the barrier that uses the resource, or null for an access.
 		 */
-		const char* GetLifetimeError(bool isUnplaced, const IGpuResource* gpuResource, const GpuExplicitBarrier* barrier, GpuBarrierPhase phase) const;
+		const char* GetLifetimeError(bool isUnplaced, const IGpuResource* gpuResource, const GpuBarrier* barrier, GpuBarrierPhase phase) const;
 
 		/** Checks @p barrier against @p state and applies it. Returns an error message, or null if the barrier is valid. */
-		static const char* ApplyBarrier(ResourceState& state, const GpuExplicitBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split, bool isImage);
+		static const char* ApplyBarrier(ResourceState& state, const GpuBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split, bool isImage);
 
 		/**
 		 * Checks an access against @p state and records it. Returns an error message, or null if the access is valid.
