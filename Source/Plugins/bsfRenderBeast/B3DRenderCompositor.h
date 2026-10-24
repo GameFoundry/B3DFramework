@@ -156,16 +156,16 @@ namespace b3d
 			virtual void Render(const RenderCompositorNodeInputs& inputs) = 0;
 
 			/**
-			 * Cleans up any temporary resources allocated in a render() call. Any resources lasting longer than one frame
-			 * should be kept alive and released in some other manner.
+			 * Called at the end of every frame, after every node rendered. Drops the node's references to the resources of the frame, which
+			 * the frame graph owns, and moves resources kept for the next frame into the node's history.
 			 */
 			virtual void Clear() = 0;
 		};
 
 		/**
 		 * Performs rendering by iterating over a hierarchy of render nodes. Each node in the hierarchy performs a specific
-		 * rendering tasks and passes its output to the dependant node. The system takes care of initializing, rendering and
-		 * cleaning up nodes automatically depending on their dependencies.
+		 * rendering tasks and passes its output to the dependant node. The system takes care of initializing nodes and rendering
+		 * them in the order of their dependencies, and clears every node at the end of the frame.
 		 */
 		class RenderCompositor
 		{
@@ -178,7 +178,6 @@ namespace b3d
 			{
 				RenderCompositorNode* Node;
 				const NodeDescriptor* NodeDescriptor;
-				u32 LastUsedByNodeIndex;
 				TInlineArray<RenderCompositorNode*, 4> Inputs;
 			};
 

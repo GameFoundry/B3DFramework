@@ -230,7 +230,6 @@ void RenderCompositor::Build(const RendererView& view, const TArray<StringID>& p
 			NodeInfo& nodeInfo = mRegisteredNodes.back();
 			nodeInfo.Node = nodeDescriptor->Create();
 			nodeInfo.NodeDescriptor = nodeDescriptor;
-			nodeInfo.LastUsedByNodeIndex = -1;
 
 			// Pad Inputs array with nulls for disabled dependencies
 			for(const auto& entry : allDependencyIds)
@@ -272,18 +271,6 @@ void RenderCompositor::Build(const RendererView& view, const TArray<StringID>& p
 			}
 		}
 
-		// Update dependency last use counters
-		for(const auto& entry : nodeDependencyIds)
-		{
-			foundNodeInstance = processedNodes.find(entry);
-
-			NodeInfo& depNodeInfo = mRegisteredNodes[foundNodeInstance->second];
-			if(depNodeInfo.LastUsedByNodeIndex == ~0u)
-				depNodeInfo.LastUsedByNodeIndex = currentNodeIndex;
-			else
-				depNodeInfo.LastUsedByNodeIndex = std::max(depNodeInfo.LastUsedByNodeIndex, currentNodeIndex);
-		}
-
 		return true;
 	};
 
@@ -306,33 +293,14 @@ void RenderCompositor::Execute(RenderCompositorNodeInputs& inputs) const
 	if(!mIsValid)
 		return;
 
-	FrameVector<const NodeInfo*> activeNodes;
-
-	u32 idx = 0;
-	for(auto& entry : mRegisteredNodes)
+	for(const NodeInfo& entry : mRegisteredNodes)
 	{
 		inputs.InputNodes = entry.Inputs;
 		entry.Node->Render(inputs);
-
-		activeNodes.push_back(&entry);
-
-		for(u32 i = 0; i < (u32)activeNodes.size(); ++i)
-		{
-			if(activeNodes[i] == nullptr)
-				continue;
-
-			if(activeNodes[i]->LastUsedByNodeIndex <= idx)
-			{
-				activeNodes[i]->Node->Clear();
-				activeNodes[i] = nullptr;
-			}
-		}
-
-		idx++;
 	}
 
-	if(!mRegisteredNodes.empty())
-		mRegisteredNodes.back().Node->Clear();
+	for(const NodeInfo& entry : mRegisteredNodes)
+		entry.Node->Clear();
 }
 
 void RenderCompositor::Clear()
