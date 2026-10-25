@@ -524,6 +524,12 @@ namespace b3d
 		GQT_UNKNOWN
 	};
 
+	/** Maximum number of GPU queues of one type. */
+	constexpr u32 kMaximumGpuQueuesPerType = 1;
+
+	/** Maximum number of GPU queues of all types. Identifies each queue by GpuQueueId::Id, and gives it one bit of a GpuQueueMask. */
+	constexpr u32 kMaximumGpuQueueCount = kMaximumGpuQueuesPerType * GQT_COUNT;
+
 	/** Flags that control creation of GPU objects via GpuDevice and GpuParameterSetPool factory methods. */
 	enum class GpuObjectCreateFlag
 	{

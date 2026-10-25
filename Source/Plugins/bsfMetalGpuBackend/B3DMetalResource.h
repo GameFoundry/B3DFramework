@@ -25,8 +25,6 @@ namespace b3d::render
 	class TMetalResource : public TBase
 	{
 	public:
-		static constexpr u32 kMaximumUniqueQueueCount = B3D_MAX_QUEUES_PER_TYPE * GQT_COUNT;
-
 		template<class... TBaseArgs>
 		TMetalResource(MetalResourceManager* owner, TBaseArgs&&... baseArgs)
 			: TBase(owner, std::forward<TBaseArgs>(baseArgs)...), mOwner(owner)
@@ -57,8 +55,8 @@ namespace b3d::render
 		 */
 		MetalResourceManager* mOwner;
 
-		u8 mReadUses[kMaximumUniqueQueueCount];
-		u8 mWriteUses[kMaximumUniqueQueueCount];
+		u8 mReadUses[kMaximumGpuQueueCount];
+		u8 mWriteUses[kMaximumGpuQueueCount];
 	};
 
 	/** Standard Metal resource with no specialized generic role. */

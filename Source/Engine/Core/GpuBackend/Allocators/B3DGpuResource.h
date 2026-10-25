@@ -211,8 +211,6 @@ namespace b3d
 	class B3D_EXPORT IGpuResource
 	{
 	public:
-		static constexpr u32 kMaximumUniqueQueueCount = B3D_MAX_QUEUES_PER_TYPE * GQT_COUNT;
-
 		/**
 		 * Constructs a manager-owned resource.
 		 *
@@ -410,10 +408,10 @@ namespace b3d
 		u32 mBountCount = 0;
 
 		/** Per-queue in-flight read counts. Guarded by mMutex. */
-		u8 mReadUses[kMaximumUniqueQueueCount] = {};
+		u8 mReadUses[kMaximumGpuQueueCount] = {};
 
 		/** Per-queue in-flight write counts. Guarded by mMutex. */
-		u8 mWriteUses[kMaximumUniqueQueueCount] = {};
+		u8 mWriteUses[kMaximumGpuQueueCount] = {};
 
 	private:
 		/** Deletes the resource. Caller must ensure resource is not being used on the GPU or bound to a command buffer. */

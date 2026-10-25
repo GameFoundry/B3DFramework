@@ -167,6 +167,8 @@ void GpuCommandBuffer::SetIndexBuffer([[maybe_unused]] const TShared<GpuBuffer>&
 void GpuCommandBuffer::Draw(u32 /*vertexOffset*/, u32 /*vertexCount*/, u32 /*instanceCount*/, u32 /*firstInstance*/)
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
+	B3D_ENSURE_LOG(mQueueType == GQT_GRAPHICS, "Draws can only be recorded on graphics queue command buffers.");
+
 	if(mBarrierValidator != nullptr)
 		mBarrierValidator->ValidateDraw(false);
 #endif
@@ -175,6 +177,8 @@ void GpuCommandBuffer::Draw(u32 /*vertexOffset*/, u32 /*vertexCount*/, u32 /*ins
 void GpuCommandBuffer::DrawIndexed(u32 /*startIndex*/, u32 /*indexCount*/, u32 /*vertexOffset*/, u32 /*vertexCount*/, u32 /*instanceCount*/, u32 /*firstInstance*/)
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
+	B3D_ENSURE_LOG(mQueueType == GQT_GRAPHICS, "Draws can only be recorded on graphics queue command buffers.");
+
 	if(mBarrierValidator != nullptr)
 		mBarrierValidator->ValidateDraw(true);
 #endif
@@ -183,6 +187,8 @@ void GpuCommandBuffer::DrawIndexed(u32 /*startIndex*/, u32 /*indexCount*/, u32 /
 void GpuCommandBuffer::DispatchCompute(u32 /*groupCountX*/, u32 /*groupCountY*/, u32 /*groupCountZ*/)
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
+	B3D_ENSURE_LOG(mQueueType == GQT_GRAPHICS || mQueueType == GQT_COMPUTE, "Dispatches can only be recorded on graphics or compute queue command buffers.");
+
 	if(mBarrierValidator != nullptr)
 		mBarrierValidator->ValidateDispatch();
 #endif
@@ -191,6 +197,8 @@ void GpuCommandBuffer::DispatchCompute(u32 /*groupCountX*/, u32 /*groupCountY*/,
 void GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& createInformation)
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
+	B3D_ENSURE_LOG(mQueueType == GQT_GRAPHICS, "Render passes, and the draws and clears in them, can only be recorded on graphics queue command buffers.");
+
 	if(mBarrierValidator != nullptr)
 		mBarrierValidator->ValidateRenderPass(createInformation);
 #endif
@@ -643,6 +651,12 @@ bool GpuCommandBuffer::BlitTexture(const TShared<Texture>& source, const TShared
 	if(source == nullptr || destination == nullptr)
 	{
 		B3D_LOG(Error, LogTexture, "Blit operation failed. Source or destination texture is null.");
+		return false;
+	}
+
+	if(mQueueType != GQT_GRAPHICS)
+	{
+		B3D_LOG(Error, LogTexture, "Blit operation failed. Blits can only be recorded on graphics queue command buffers.");
 		return false;
 	}
 

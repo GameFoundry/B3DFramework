@@ -112,7 +112,7 @@ namespace b3d
 		const TShared<GpuTimelineFence>& GetOrCreateFence(GpuQueueId queue);
 
 		GpuDevice& mDevice;
-		TShared<GpuTimelineFence> mQueueFences[B3D_MAX_UNIQUE_QUEUES]; /**< Indexed by GpuQueueId::Id; null until first use. */
+		TShared<GpuTimelineFence> mQueueFences[kMaximumGpuQueueCount]; /**< Indexed by GpuQueueId::Id; null until first use. */
 		TInlineArray<PendingSubmission, 16> mPending; /**< Ascending by Value; pruned of signaled entries on submit and wait. */
 		u64 mNextValue = 1;
 		u64 mLastSubmitted = 0;

@@ -98,7 +98,7 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &numQueueFamilies, queueFamilyProperties.data());
 
 	// Create queues
-	const float defaultQueuePriorities[B3D_MAX_QUEUES_PER_TYPE] = { 0.0f };
+	const float defaultQueuePriorities[kMaximumGpuQueuesPerType] = { 0.0f };
 	Vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 
 	auto fnPopulateQueueInfo = [&](GpuQueueType type, uint32_t familyIdx)
@@ -110,7 +110,7 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 		createInfo.pNext = nullptr;
 		createInfo.flags = 0;
 		createInfo.queueFamilyIndex = familyIdx;
-		createInfo.queueCount = std::min(queueFamilyProperties[familyIdx].queueCount, (uint32_t)B3D_MAX_QUEUES_PER_TYPE);
+		createInfo.queueCount = std::min(queueFamilyProperties[familyIdx].queueCount, (uint32_t)kMaximumGpuQueuesPerType);
 		createInfo.pQueuePriorities = defaultQueuePriorities;
 
 		mQueueInfos[type].FamilyIndex = familyIdx;

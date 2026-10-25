@@ -33,7 +33,7 @@ namespace b3d
 	{
 		Lock lock(mMutex);
 		B3D_ASSERT(useFlags != GpuAccessFlag::None);
-		B3D_ASSERT(queueId.Id < kMaximumUniqueQueueCount);
+		B3D_ASSERT(queueId.Id < kMaximumGpuQueueCount);
 		mUsedCount++;
 
 		if(useFlags.IsSet(GpuAccessFlag::Read))
@@ -89,7 +89,7 @@ namespace b3d
 		GpuQueueMask mask = GpuQueueMask::kNone;
 		Lock lock(mMutex);
 
-		for(u32 queueIndex = 0; queueIndex < kMaximumUniqueQueueCount; queueIndex++)
+		for(u32 queueIndex = 0; queueIndex < kMaximumGpuQueueCount; queueIndex++)
 		{
 			if(useFlags.IsSet(GpuAccessFlag::Read) && mReadUses[queueIndex] > 0)
 				mask |= GpuQueueId(queueIndex);

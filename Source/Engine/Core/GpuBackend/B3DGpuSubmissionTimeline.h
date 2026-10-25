@@ -62,11 +62,11 @@ namespace b3d
 			 * Index of the latest submission of each queue that the submission is ordered after, or kNotCovered.
 			 * Indexed by GpuQueueId::Id. The entry of the submission's own queue is the submission's index.
 			 */
-			i32 Covered[B3D_MAX_UNIQUE_QUEUES];
+			i32 Covered[kMaximumGpuQueueCount];
 		};
 
 		TInlineArray<Submission, 16> mSubmissions;
-		i32 mLatestSubmissions[B3D_MAX_UNIQUE_QUEUES]; /**< Latest submission of each queue, or -1 if none. Indexed by GpuQueueId::Id. */
+		i32 mLatestSubmissions[kMaximumGpuQueueCount]; /**< Latest submission of each queue, or -1 if none. Indexed by GpuQueueId::Id. */
 	};
 
 	/** @} */

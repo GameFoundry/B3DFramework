@@ -766,8 +766,10 @@ void D3D12BarrierTestSuite::TestFrameFence()
 	GetRenderThread().PostCommand([this]()
 	{
 		GpuDevice* const device = GetActiveD3D12Device();
-		if(device == nullptr || device->GetQueueCount(GQT_GRAPHICS) == 0 || device->GetQueueCount(GQT_COMPUTE) == 0)
+		if(device == nullptr)
 			return;
+
+		B3D_TEST_ASSERT(device->GetQueueCount(GQT_COMPUTE) > 0)
 
 		const GpuQueue& graphicsQueue = *device->GetQueue(GQT_GRAPHICS, 0);
 		const GpuQueue& computeQueue = *device->GetQueue(GQT_COMPUTE, 0);

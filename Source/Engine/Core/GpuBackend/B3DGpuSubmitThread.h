@@ -95,7 +95,7 @@ namespace b3d::render
 			 * next frame's first submission on every queue waits on all of them (see ConsumeFrameFence()), and frame
 			 * pacing waits until every queue reaches its value before the frame's resources are reused.
 			 */
-			Array<u64, B3D_MAX_UNIQUE_QUEUES> LastFenceValues = {};
+			Array<u64, kMaximumGpuQueueCount> LastFenceValues = {};
 
 			/** Event signalled when this frame has been completely processed by the submit thread. */
 			SignalEvent CompletionEvent;
@@ -235,7 +235,7 @@ namespace b3d::render
 		 * submissions are known to be complete. WaitUntilFence() looks up the submission that signals a value here.
 		 * Submit thread only.
 		 */
-		Array<Deque<FenceSignal>, B3D_MAX_UNIQUE_QUEUES> mFenceSignals;
+		Array<Deque<FenceSignal>, kMaximumGpuQueueCount> mFenceSignals;
 	};
 
 	/** Asserts if the current thread isn't the submit thread. */

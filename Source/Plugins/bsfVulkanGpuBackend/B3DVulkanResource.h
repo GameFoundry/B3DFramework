@@ -38,8 +38,6 @@ namespace b3d
 			};
 
 		public:
-			static constexpr u32 kMaximumUniqueQueueCount = B3D_MAX_QUEUES_PER_TYPE * GQT_COUNT;
-
 			template<class... TBaseArgs>
 			TVulkanResource(VulkanResourceManager* owner, bool concurrency, TBaseArgs&&... baseArgs)
 				: TBase(owner, std::forward<TBaseArgs>(baseArgs)...), mOwner(owner), mState(concurrency ? State::Shared : State::Normal)

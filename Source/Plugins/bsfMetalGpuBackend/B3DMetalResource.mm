@@ -10,7 +10,7 @@ namespace b3d::render
 	void TMetalResource<TBase>::OnNotifyUsed(GpuQueueId queueId, GpuAccessFlags useFlags)
 	{
 		// Called under IGpuResource::mMutex from inside NotifyUsed, after the aggregate use counter has been incremented.
-		B3D_ASSERT(queueId.Id < kMaximumUniqueQueueCount);
+		B3D_ASSERT(queueId.Id < kMaximumGpuQueueCount);
 
 		if(useFlags.IsSet(GpuAccessFlag::Read))
 		{
@@ -51,7 +51,7 @@ namespace b3d::render
 
 		if(useFlags.IsSet(GpuAccessFlag::Read))
 		{
-			for(u32 i = 0; i < kMaximumUniqueQueueCount; i++)
+			for(u32 i = 0; i < kMaximumGpuQueueCount; i++)
 			{
 				if(mReadUses[i] > 0)
 					mask |= GpuQueueId(i);
@@ -60,7 +60,7 @@ namespace b3d::render
 
 		if(useFlags.IsSet(GpuAccessFlag::Write))
 		{
-			for(u32 i = 0; i < kMaximumUniqueQueueCount; i++)
+			for(u32 i = 0; i < kMaximumGpuQueueCount; i++)
 			{
 				if(mWriteUses[i] > 0)
 					mask |= GpuQueueId(i);

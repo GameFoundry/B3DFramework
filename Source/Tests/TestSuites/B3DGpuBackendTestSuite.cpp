@@ -1309,12 +1309,11 @@ void GpuBackendTestSuite::TestBarriers()
 		fnTestSplitAcrossCommandBuffers(writePool, GQT_GRAPHICS, GQT_GRAPHICS, false, "Split barriers across command buffers");
 		fnTestSplitAcrossCommandBuffers(writePool, GQT_GRAPHICS, GQT_GRAPHICS, true, "Split barriers across command buffers, acquire recorded first");
 
-		if(device->GetQueueCount(GQT_COMPUTE) > 0)
-		{
-			const TShared<GpuCommandBufferPool> computePool = GpuBarrierTestUtility::CreateCommandBufferPool(*device, GQT_COMPUTE);
-			fnTestSplitAcrossCommandBuffers(computePool, GQT_COMPUTE, GQT_GRAPHICS, false, "Split barriers across queues");
-			fnTestSplitAcrossCommandBuffers(computePool, GQT_COMPUTE, GQT_GRAPHICS, true, "Split barriers across queues, acquire recorded first");
-		}
+		// Every supported device has a compute queue
+		B3D_TEST_ASSERT(device->GetQueueCount(GQT_COMPUTE) > 0)
+		const TShared<GpuCommandBufferPool> computePool = GpuBarrierTestUtility::CreateCommandBufferPool(*device, GQT_COMPUTE);
+		fnTestSplitAcrossCommandBuffers(computePool, GQT_COMPUTE, GQT_GRAPHICS, false, "Split barriers across queues");
+		fnTestSplitAcrossCommandBuffers(computePool, GQT_COMPUTE, GQT_GRAPHICS, true, "Split barriers across queues, acquire recorded first");
 
 		// Compute shader writes to a storage buffer and a storage texture, on backends that compile shaders on the host
 		if(pipeline != nullptr)
@@ -2180,7 +2179,7 @@ void GpuBackendTestSuite::TestTransientResourceExecution()
 		static constexpr u32 kSize = 64;
 		const GpuQueueId graphics(GQT_GRAPHICS, 0);
 		const GpuQueueId compute(GQT_COMPUTE, 0);
-		const bool hasComputeQueue = device->GetQueueCount(GQT_COMPUTE) > 0;
+		B3D_TEST_ASSERT(device->GetQueueCount(GQT_COMPUTE) > 0)
 
 		TextureCreateInformation textureInformation;
 		textureInformation.Name = "Transient storage texture";
@@ -2287,13 +2286,13 @@ void GpuBackendTestSuite::TestTransientResourceExecution()
 
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 		const TShared<render::GpuCommandBufferPool> graphicsPool = GpuBarrierTestUtility::CreateCommandBufferPool(*device, GQT_GRAPHICS);
-		const TShared<render::GpuCommandBufferPool> producerPool = hasComputeQueue ? GpuBarrierTestUtility::CreateCommandBufferPool(*device, GQT_COMPUTE) : graphicsPool;
+		const TShared<render::GpuCommandBufferPool> producerPool = GpuBarrierTestUtility::CreateCommandBufferPool(*device, GQT_COMPUTE);
 
 		// The producer scope uses the compute queue first, then the graphics queue after a wait for the compute queue. The consumer scope
 		// uses the graphics queue only.
 		GpuSubmissionTimeline producerTimeline;
-		producerTimeline.AddSubmission(hasComputeQueue ? compute : graphics, GpuQueueMask::kNone);
-		producerTimeline.AddSubmission(graphics, hasComputeQueue ? GpuQueueMask(compute) : GpuQueueMask::kNone);
+		producerTimeline.AddSubmission(compute, GpuQueueMask::kNone);
+		producerTimeline.AddSubmission(graphics, GpuQueueMask(compute));
 
 		GpuSubmissionTimeline consumerTimeline;
 		consumerTimeline.AddSubmission(graphics, GpuQueueMask::kNone);
@@ -2336,7 +2335,7 @@ void GpuBackendTestSuite::TestTransientResourceExecution()
 			B3D_TEST_ASSERT(first.Buffer != second.Buffer)
 
 			// Accesses on the compute queue are ordered by the queue wait, so they are not part of the acquire's source
-			if(isBufferAliased && hasComputeQueue)
+			if(isBufferAliased)
 				B3D_TEST_ASSERT(second.Acquire.Source.GetStages() == GpuStageFlag::None)
 
 			// A texture in the same pool as the buffers is placed over the second buffer, after its transfers on the same queue
@@ -2350,7 +2349,7 @@ void GpuBackendTestSuite::TestTransientResourceExecution()
 			const TShared<render::GpuCommandBuffer> graphicsCommands = graphicsPool->Create(GpuCommandBufferCreateInformation::Create("Transient producer on graphics"));
 			fnWriteAndReadBuffer(*graphicsCommands, second, 1);
 			fnWriteAndReadTexture(*graphicsCommands, texture, 2);
-			context->SubmitCommandBuffer(graphicsCommands, hasComputeQueue ? GpuQueueMask(compute) : GpuQueueMask::kNone);
+			context->SubmitCommandBuffer(graphicsCommands, GpuQueueMask(compute));
 			allocator.EndScope();
 
 			// Aliasing keeps the peak memory use of the scope below the total size of its allocations. The second frame reuses every cached

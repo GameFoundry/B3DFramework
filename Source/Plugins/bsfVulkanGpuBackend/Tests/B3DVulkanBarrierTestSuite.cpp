@@ -221,8 +221,9 @@ void main()
 		B3D_TEST_ASSERT(parameters->SetStorageTexture(0, texture, TextureSurface(0, 1, 0, 1)))
 
 		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(64 * 64 * sizeof(u32)));
-		// Devices without a separate compute queue family dispatch on the graphics queue
-		const GpuQueueType queueType = device->GetQueueCount(GQT_COMPUTE) > 0 ? GQT_COMPUTE : GQT_GRAPHICS;
+		// Every supported device has a compute queue
+		B3D_TEST_ASSERT(device->GetQueueCount(GQT_COMPUTE) > 0)
+		const GpuQueueType queueType = GQT_COMPUTE;
 		const TShared<render::GpuCommandBufferPool> commandPool = GpuBarrierTestUtility::CreateCommandBufferPool(*device, queueType);
 		const TShared<render::GpuCommandBuffer> commands = commandPool->Create(GpuCommandBufferCreateInformation::Create("Repeated storage-image dispatch"));
 
@@ -390,7 +391,8 @@ void VulkanBarrierTestSuite::TestSwapChainTransitions()
 		const TShared<GpuQueue> queue = device->GetQueue(GQT_GRAPHICS, 0);
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 		const TShared<render::GpuCommandBufferPool> graphicsPool = GpuBarrierTestUtility::CreateCommandBufferPool(*device, GQT_GRAPHICS);
-		const TShared<render::GpuCommandBufferPool> computePool = device->GetQueueCount(GQT_COMPUTE) > 0 ? GpuBarrierTestUtility::CreateCommandBufferPool(*device, GQT_COMPUTE) : graphicsPool;
+		B3D_TEST_ASSERT(device->GetQueueCount(GQT_COMPUTE) > 0)
+		const TShared<render::GpuCommandBufferPool> computePool = GpuBarrierTestUtility::CreateCommandBufferPool(*device, GQT_COMPUTE);
 		const TShared<render::RenderTarget> target = window;
 		const GpuAccessState restingState = GpuBackendUtility::GetRestingState(*window, RT_COLOR0, GQT_GRAPHICS);
 		const GpuAccessState colorAttachment(GpuStageFlag::ColorAttachment, GpuAccessFlag::Read | GpuAccessFlag::Write, GpuImageLayout::ColorAttachment);
@@ -462,8 +464,10 @@ void VulkanBarrierTestSuite::TestFrameFence()
 	GetRenderThread().PostCommand([this]()
 	{
 		VulkanGpuDevice* const device = GetActiveVulkanDevice();
-		if(device == nullptr || device->GetQueueCount(GQT_GRAPHICS) == 0 || device->GetQueueCount(GQT_COMPUTE) == 0)
+		if(device == nullptr)
 			return;
+
+		B3D_TEST_ASSERT(device->GetQueueCount(GQT_COMPUTE) > 0)
 
 		const GpuQueue& graphicsQueue = *device->GetQueue(GQT_GRAPHICS, 0);
 		const GpuQueue& computeQueue = *device->GetQueue(GQT_COMPUTE, 0);

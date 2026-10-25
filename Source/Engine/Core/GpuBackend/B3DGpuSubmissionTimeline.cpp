@@ -23,7 +23,7 @@ u32 GpuSubmissionTimeline::AddSubmission(GpuQueueId queue, GpuQueueMask waitQueu
 
 	auto fnCover = [&submission](const Submission& other)
 	{
-		for(u32 queueId = 0; queueId < B3D_MAX_UNIQUE_QUEUES; queueId++)
+		for(u32 queueId = 0; queueId < kMaximumGpuQueueCount; queueId++)
 			submission.Covered[queueId] = std::max(submission.Covered[queueId], other.Covered[queueId]);
 	};
 
@@ -31,7 +31,7 @@ u32 GpuSubmissionTimeline::AddSubmission(GpuQueueId queue, GpuQueueMask waitQueu
 	if(mLatestSubmissions[queue.Id] >= 0)
 		fnCover(mSubmissions[mLatestSubmissions[queue.Id]]);
 
-	for(u32 queueId = 0; queueId < B3D_MAX_UNIQUE_QUEUES; queueId++)
+	for(u32 queueId = 0; queueId < kMaximumGpuQueueCount; queueId++)
 	{
 		if(queueId == queue.Id || !waitQueues.IsSet(GpuQueueId(queueId)))
 			continue;
