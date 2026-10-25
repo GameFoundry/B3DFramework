@@ -299,8 +299,8 @@ void SurfaceShaderParameterSets::Prepare(const RendererView& view, const RenderB
 		{
 			set = pool.Create(layout, GpuPipelineSet::kSurfaceShaderInputSetIndex);
 
-			mPerCameraParameters[typeIndex] = GpuParameterUniformBuffer(GetInputBinding(device, ShaderRegisterClass::ConstantBuffer, InputRegister::kPerCamera), set);
-			mPerFrameParameters[typeIndex] = GpuParameterUniformBuffer(GetInputBinding(device, ShaderRegisterClass::ConstantBuffer, InputRegister::kPerFrame), set);
+			mPerCameraParameters[typeIndex] = GpuParameterUniformBuffer(GetInputBinding(device, ShaderRegisterClass::ConstantBuffer, InputRegister::kPerCamera), layout.get());
+			mPerFrameParameters[typeIndex] = GpuParameterUniformBuffer(GetInputBinding(device, ShaderRegisterClass::ConstantBuffer, InputRegister::kPerFrame), layout.get());
 
 			const i8 unlitParticleIndex = kUnlitParticleIndices[typeIndex];
 			const i8 litForwardIndex = kLitForwardIndices[typeIndex];
@@ -309,29 +309,29 @@ void SurfaceShaderParameterSets::Prepare(const RendererView& view, const RenderB
 
 			if(unlitParticleIndex >= 0)
 			{
-				mUnlitParticleDepthParameters[unlitParticleIndex] = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kSceneDepth), set);
+				mUnlitParticleDepthParameters[unlitParticleIndex] = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kSceneDepth), layout.get());
 			}
 			else if(type == SurfaceShaderType::Decal)
 			{
-				mDecalDepthParameter = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kSceneDepth), set);
-				mDecalMaskParameter = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kMask), set);
+				mDecalDepthParameter = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kSceneDepth), layout.get());
+				mDecalMaskParameter = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kMask), layout.get());
 			}
 			else if(litForwardIndex >= 0)
 			{
 				LitForwardParameters& parameters = mLitForwardParameters[litForwardIndex];
-				parameters.GridParams = GpuParameterUniformBuffer(GetInputBinding(device, ShaderRegisterClass::ConstantBuffer, InputRegister::kGridParams), set);
-				parameters.GridLightOffsetsAndSize = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kGridLightOffsetsAndSize), set);
-				parameters.GridProbeOffsetsAndSize = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kGridProbeOffsetsAndSize), set);
-				parameters.LightIndices = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kLightIndices), set);
-				parameters.Lights = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kLights), set);
-				parameters.ReflectionProbeIndices = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kReflectionProbeIndices), set);
-				parameters.ReflectionProbes = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kReflectionProbes), set);
-				parameters.ReflectionProbeParams = GpuParameterUniformBuffer(GetInputBinding(device, ShaderRegisterClass::ConstantBuffer, InputRegister::kReflectionProbeParams), set);
-				parameters.SkyReflectionTexture = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kSkyReflectionTexture), set);
-				parameters.ReflectionProbeCubemaps = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kReflectionProbeCubemaps), set);
-				parameters.AmbientOcclusionTexture = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kAmbientOcclusionTexture), set);
-				parameters.SSRTexture = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kSSRTexture), set);
-				parameters.PreintegratedEnvBRDF = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kPreintegratedEnvBRDFTexture), set);
+				parameters.GridParams = GpuParameterUniformBuffer(GetInputBinding(device, ShaderRegisterClass::ConstantBuffer, InputRegister::kGridParams), layout.get());
+				parameters.GridLightOffsetsAndSize = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kGridLightOffsetsAndSize), layout.get());
+				parameters.GridProbeOffsetsAndSize = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kGridProbeOffsetsAndSize), layout.get());
+				parameters.LightIndices = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kLightIndices), layout.get());
+				parameters.Lights = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kLights), layout.get());
+				parameters.ReflectionProbeIndices = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kReflectionProbeIndices), layout.get());
+				parameters.ReflectionProbes = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kReflectionProbes), layout.get());
+				parameters.ReflectionProbeParams = GpuParameterUniformBuffer(GetInputBinding(device, ShaderRegisterClass::ConstantBuffer, InputRegister::kReflectionProbeParams), layout.get());
+				parameters.SkyReflectionTexture = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kSkyReflectionTexture), layout.get());
+				parameters.ReflectionProbeCubemaps = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kReflectionProbeCubemaps), layout.get());
+				parameters.AmbientOcclusionTexture = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kAmbientOcclusionTexture), layout.get());
+				parameters.SSRTexture = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kSSRTexture), layout.get());
+				parameters.PreintegratedEnvBRDF = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kPreintegratedEnvBRDFTexture), layout.get());
 
 				// Set 2 has no material to apply the sampler states the shader include declares, so assign matching ones
 				SamplerStateCreateInformation pointClamp;
@@ -349,62 +349,77 @@ void SurfaceShaderParameterSets::Prepare(const RendererView& view, const RenderB
 
 				const TShared<SamplerState> defaultState = device.FindOrCreateSamplerState(SamplerStateCreateInformation());
 
-				GpuParameterSampler(GetInputBinding(device, ShaderRegisterClass::Sampler, InputRegister::kSkyReflectionSampler), set).Set(defaultState);
-				GpuParameterSampler(GetInputBinding(device, ShaderRegisterClass::Sampler, InputRegister::kReflectionProbeSampler), set).Set(defaultState);
-				GpuParameterSampler(GetInputBinding(device, ShaderRegisterClass::Sampler, InputRegister::kAmbientOcclusionSampler), set).Set(pointClampState);
-				GpuParameterSampler(GetInputBinding(device, ShaderRegisterClass::Sampler, InputRegister::kSSRSampler), set).Set(pointClampState);
-				GpuParameterSampler(GetInputBinding(device, ShaderRegisterClass::Sampler, InputRegister::kPreintegratedEnvBRDFSampler), set).Set(linearClampState);
+				GpuParameterSampler(GetInputBinding(device, ShaderRegisterClass::Sampler, InputRegister::kSkyReflectionSampler), layout.get()).Set(set, defaultState);
+				GpuParameterSampler(GetInputBinding(device, ShaderRegisterClass::Sampler, InputRegister::kReflectionProbeSampler), layout.get()).Set(set, defaultState);
+				GpuParameterSampler(GetInputBinding(device, ShaderRegisterClass::Sampler, InputRegister::kAmbientOcclusionSampler), layout.get()).Set(set, pointClampState);
+				GpuParameterSampler(GetInputBinding(device, ShaderRegisterClass::Sampler, InputRegister::kSSRSampler), layout.get()).Set(set, pointClampState);
+				GpuParameterSampler(GetInputBinding(device, ShaderRegisterClass::Sampler, InputRegister::kPreintegratedEnvBRDFSampler), layout.get()).Set(set, linearClampState);
 			}
 
 			if(cpuParticleIndex >= 0)
-				mCpuParticleIndicesParameters[cpuParticleIndex] = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kParticleIndices), set);
+				mCpuParticleIndicesParameters[cpuParticleIndex] = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kParticleIndices), layout.get());
 
 			if(gpuParticleIndex >= 0)
 			{
 				GpuParticleParameters& parameters = mGpuParticleParameters[gpuParticleIndex];
-				parameters.PositionAndTime = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kGpuParticlePositionAndTime), set);
-				parameters.SizeAndRotation = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kGpuParticleSizeAndRotation), set);
-				parameters.Curves = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kGpuParticleCurves), set);
-				parameters.SortedIndices = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kGpuParticleSortedIndices), set);
+				parameters.PositionAndTime = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kGpuParticlePositionAndTime), layout.get());
+				parameters.SizeAndRotation = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kGpuParticleSizeAndRotation), layout.get());
+				parameters.Curves = GpuParameterSampledTexture(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kGpuParticleCurves), layout.get());
+				parameters.SortedIndices = GpuParameterStorageBuffer(GetInputBinding(device, ShaderRegisterClass::ShaderResource, InputRegister::kGpuParticleSortedIndices), layout.get());
 
 				// The shader declares no state for the curve sampler, so it is the default one
 				const TShared<SamplerState> defaultState = device.FindOrCreateSamplerState(SamplerStateCreateInformation());
-				GpuParameterSampler(GetInputBinding(device, ShaderRegisterClass::Sampler, InputRegister::kGpuParticleCurvesSampler), set).Set(defaultState);
+				GpuParameterSampler(GetInputBinding(device, ShaderRegisterClass::Sampler, InputRegister::kGpuParticleCurvesSampler), layout.get()).Set(set, defaultState);
 			}
 		}
 
-		mPerCameraParameters[typeIndex].Set(view.GetPerViewBuffer());
-		mPerFrameParameters[typeIndex].Set(scene.GetPerFrameSuballocation());
+		mPerCameraParameters[typeIndex].Set(set, view.GetPerViewBuffer());
+		mPerFrameParameters[typeIndex].Set(set, scene.GetPerFrameSuballocation());
 	}
 }
 
 void SurfaceShaderParameterSets::SetSceneDepth(const TShared<Texture>& depth)
 {
-	for(const GpuParameterSampledTexture& parameter : mUnlitParticleDepthParameters)
-		parameter.Set(depth);
+	for(u32 typeIndex = 0; typeIndex < (u32)SurfaceShaderType::Count; typeIndex++)
+	{
+		const i8 unlitParticleIndex = kUnlitParticleIndices[typeIndex];
+		if(unlitParticleIndex >= 0)
+			mUnlitParticleDepthParameters[unlitParticleIndex].Set(mSets[typeIndex], depth);
+	}
 }
 
 void SurfaceShaderParameterSets::SetGpuParticleInputs(const GpuParticleDrawInputs& inputs)
 {
-	for(const GpuParticleParameters& parameters : mGpuParticleParameters)
+	for(u32 typeIndex = 0; typeIndex < (u32)SurfaceShaderType::Count; typeIndex++)
 	{
-		parameters.PositionAndTime.Set(inputs.PositionAndTime);
-		parameters.SizeAndRotation.Set(inputs.SizeAndRotation);
-		parameters.Curves.Set(inputs.Curves);
-		parameters.SortedIndices.Set(inputs.SortedIndices);
+		const i8 gpuParticleIndex = kGpuParticleIndices[typeIndex];
+		if(gpuParticleIndex < 0)
+			continue;
+
+		const TShared<GpuParameterSet>& set = mSets[typeIndex];
+		const GpuParticleParameters& parameters = mGpuParticleParameters[gpuParticleIndex];
+		parameters.PositionAndTime.Set(set, inputs.PositionAndTime);
+		parameters.SizeAndRotation.Set(set, inputs.SizeAndRotation);
+		parameters.Curves.Set(set, inputs.Curves);
+		parameters.SortedIndices.Set(set, inputs.SortedIndices);
 	}
 }
 
 void SurfaceShaderParameterSets::SetCpuParticleIndices(const TShared<GpuBuffer>& indices)
 {
-	for(const GpuParameterStorageBuffer& parameter : mCpuParticleIndicesParameters)
-		parameter.Set(indices);
+	for(u32 typeIndex = 0; typeIndex < (u32)SurfaceShaderType::Count; typeIndex++)
+	{
+		const i8 cpuParticleIndex = kCpuParticleIndices[typeIndex];
+		if(cpuParticleIndex >= 0)
+			mCpuParticleIndicesParameters[cpuParticleIndex].Set(mSets[typeIndex], indices);
+	}
 }
 
 void SurfaceShaderParameterSets::SetDecalInputs(const TShared<Texture>& depth, const TShared<Texture>& mask)
 {
-	mDecalDepthParameter.Set(depth);
-	mDecalMaskParameter.Set(mask);
+	const TShared<GpuParameterSet>& set = mSets[(u32)SurfaceShaderType::Decal];
+	mDecalDepthParameter.Set(set, depth);
+	mDecalMaskParameter.Set(set, mask);
 }
 
 void SurfaceShaderParameterSets::SetForwardLightingInputs(const RendererView& view, const LightGridOutputs& lightGrid, const VisibleLightData& lights,
@@ -418,21 +433,27 @@ void SurfaceShaderParameterSets::SetForwardLightingInputs(const RendererView& vi
 	if(skybox != nullptr)
 		skyFilteredRadiance = skybox->GetFilteredRadiance();
 
-	for(const LitForwardParameters& parameters : mLitForwardParameters)
+	for(u32 typeIndex = 0; typeIndex < (u32)SurfaceShaderType::Count; typeIndex++)
 	{
-		parameters.GridParams.Set(lightGrid.UniformBuffer);
-		parameters.GridLightOffsetsAndSize.Set(lightGrid.GridLightOffsetsAndSize);
-		parameters.GridProbeOffsetsAndSize.Set(lightGrid.GridProbeOffsetsAndSize);
-		parameters.LightIndices.Set(lightGrid.GridLightIndices);
-		parameters.Lights.Set(lights.GetLightBuffer());
-		parameters.ReflectionProbeIndices.Set(lightGrid.GridProbeIndices);
-		parameters.ReflectionProbes.Set(reflectionProbes.GetProbeBuffer());
-		parameters.ReflectionProbeParams.Set(reflectionProbeParameters);
-		parameters.SkyReflectionTexture.Set(skyFilteredRadiance);
-		parameters.ReflectionProbeCubemaps.Set(scene.GetReflectionProbeCubemapsTex());
-		parameters.AmbientOcclusionTexture.Set(Texture::kWhite); // Note: Add SSAO here?
-		parameters.SSRTexture.Set(Texture::kBlack); // Note: Add SSR here?
-		parameters.PreintegratedEnvBRDF.Set(RendererTextures::preintegratedEnvGF);
+		const i8 litForwardIndex = kLitForwardIndices[typeIndex];
+		if(litForwardIndex < 0)
+			continue;
+
+		const TShared<GpuParameterSet>& set = mSets[typeIndex];
+		const LitForwardParameters& parameters = mLitForwardParameters[litForwardIndex];
+		parameters.GridParams.Set(set, lightGrid.UniformBuffer);
+		parameters.GridLightOffsetsAndSize.Set(set, lightGrid.GridLightOffsetsAndSize);
+		parameters.GridProbeOffsetsAndSize.Set(set, lightGrid.GridProbeOffsetsAndSize);
+		parameters.LightIndices.Set(set, lightGrid.GridLightIndices);
+		parameters.Lights.Set(set, lights.GetLightBuffer());
+		parameters.ReflectionProbeIndices.Set(set, lightGrid.GridProbeIndices);
+		parameters.ReflectionProbes.Set(set, reflectionProbes.GetProbeBuffer());
+		parameters.ReflectionProbeParams.Set(set, reflectionProbeParameters);
+		parameters.SkyReflectionTexture.Set(set, skyFilteredRadiance);
+		parameters.ReflectionProbeCubemaps.Set(set, scene.GetReflectionProbeCubemapsTex());
+		parameters.AmbientOcclusionTexture.Set(set, Texture::kWhite); // Note: Add SSAO here?
+		parameters.SSRTexture.Set(set, Texture::kBlack); // Note: Add SSR here?
+		parameters.PreintegratedEnvBRDF.Set(set, RendererTextures::preintegratedEnvGF);
 	}
 }
 

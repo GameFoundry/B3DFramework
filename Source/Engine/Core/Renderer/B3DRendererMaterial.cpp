@@ -18,7 +18,7 @@ TShared<render::GpuParameterSet> RendererMaterialBase::CreateGpuParameterSet(Fra
 	return parameters;
 }
 
-void RendererMaterialBase::Bind(GpuCommandBuffer& commandBuffer, bool bindParameters) const
+void RendererMaterialBase::Bind(GpuCommandBuffer& commandBuffer) const
 {
 	if(mGraphicsPipeline)
 	{
@@ -27,20 +27,12 @@ void RendererMaterialBase::Bind(GpuCommandBuffer& commandBuffer, bool bindParame
 	}
 	else
 		commandBuffer.SetGpuComputePipelineState(mComputePipeline);
-
-	if(bindParameters)
-		commandBuffer.SetGpuParameterSet(mGpuParameterSet);
 }
 
 void RendererMaterialBase::Bind(GpuCommandBuffer& commandBuffer, const TShared<GpuParameterSet>& parameters) const
 {
-	Bind(commandBuffer, false);
+	Bind(commandBuffer);
 	commandBuffer.SetGpuParameterSet(parameters);
-}
-
-void RendererMaterialBase::BindParameters(GpuCommandBuffer& commandBuffer) const
-{
-	commandBuffer.SetGpuParameterSet(mGpuParameterSet);
 }
 
 void RendererMaterialBase::ApplyShaderDefaults(GpuParameterSet& parameters) const

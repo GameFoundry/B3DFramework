@@ -76,12 +76,12 @@ namespace b3d
 			static constexpr const char* kDepthTextureName = "gDepthBufferTex";
 			static constexpr const char* kDepthSamplerName = "gDepthBufferSamp";
 
-			/** Initializes the required parameters. To be called once before use. */
-			void Initialize(GpuDevice& gpuDevice, GpuProgramType type, const TShared<GpuParameterSet>& gpuParams);
+			/** Looks the parameters up on set 0 of @p parameterLayout. To be called once before use. */
+			void Initialize(GpuDevice& gpuDevice, GpuProgramType type, const GpuPipelineParameterLayout& parameterLayout);
 
 			/**
-			 * Assigns the GBuffer textures, and the point sampler of the depth texture, to @p set. The set must be created for the
-			 * material whose parameter set the binding was initialized with.
+			 * Assigns the GBuffer textures, and the point sampler of the depth texture, to @p set. The set must be set 0 of the pipeline
+			 * whose parameter layout the binding was initialized with.
 			 */
 			void Bind(const TShared<GpuParameterSet>& set, const GBufferTextures& gbuffer) const;
 
@@ -89,8 +89,6 @@ namespace b3d
 			static void Set(GpuDevice& gpuDevice, const TShared<GpuParameterSet>& gpuParameters, const GBufferTextures& textures);
 
 		private:
-			TShared<GpuParameterSet> mParams;
-
 			GpuParameterSampledTexture mGBufferA;
 			GpuParameterSampledTexture mGBufferB;
 			GpuParameterSampledTexture mGBufferC;

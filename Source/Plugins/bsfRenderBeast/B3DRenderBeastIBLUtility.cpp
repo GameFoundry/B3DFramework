@@ -15,8 +15,8 @@ ReflectionCubeDownsampleUniformDefinition gReflectionCubeDownsampleUniformDefini
 
 void ReflectionCubeDownsampleMaterial::Initialize()
 {
-	mGpuParameterSet->GetUniformBufferParameter("Input", mUniformBufferParameter);
-	mGpuParameterSet->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
+	mParameterLayout->GetUniformBufferParameter("Input", mUniformBufferParameter);
+	mParameterLayout->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
 }
 
 TShared<GpuParameterSet> ReflectionCubeDownsampleMaterial::Prepare(FrameGraphPass& pass, const TShared<Texture>& source, u32 face, u32 mip)
@@ -48,8 +48,8 @@ ReflectionCubeImportanceSampleUniformDefinition gReflectionCubeImportanceSampleU
 
 void ReflectionCubeImportanceSampleMaterial::Initialize()
 {
-	mGpuParameterSet->GetUniformBufferParameter("Input", mUniformBufferParameter);
-	mGpuParameterSet->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
+	mParameterLayout->GetUniformBufferParameter("Input", mUniformBufferParameter);
+	mParameterLayout->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
 }
 
 void ReflectionCubeImportanceSampleMaterial::InitDefinesInternal(ShaderDefines& defines)
@@ -101,9 +101,9 @@ const static u32 kPixelsPerThread = 4;
 
 void IrradianceComputeSHMaterial::Initialize()
 {
-	mGpuParameterSet->GetUniformBufferParameter("Params", mUniformBufferParameter);
-	mGpuParameterSet->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
-	mGpuParameterSet->GetStorageBufferParameter("gOutput", mOutputBufferParameter);
+	mParameterLayout->GetUniformBufferParameter("Params", mUniformBufferParameter);
+	mParameterLayout->GetSampledTextureParameter("gInputTex", mInputTextureParameter);
+	mParameterLayout->GetStorageBufferParameter("gOutput", mOutputBufferParameter);
 }
 
 void IrradianceComputeSHMaterial::InitDefinesInternal(ShaderDefines& defines)
@@ -184,9 +184,9 @@ IrradianceReduceSHUniformDefinition gIrradianceReduceSHUniformDefinition;
 
 void IrradianceReduceSHMaterial::Initialize()
 {
-	mGpuParameterSet->GetUniformBufferParameter("Params", mUniformBufferParameter);
-	mGpuParameterSet->GetStorageBufferParameter("gInput", mInputBufferParameter);
-	mGpuParameterSet->GetStorageTextureParameter("gOutput", mOutputTextureParameter);
+	mParameterLayout->GetUniformBufferParameter("Params", mUniformBufferParameter);
+	mParameterLayout->GetStorageBufferParameter("gInput", mInputBufferParameter);
+	mParameterLayout->GetStorageTextureParameter("gOutput", mOutputTextureParameter);
 }
 
 TShared<GpuParameterSet> IrradianceReduceSHMaterial::Prepare(FrameGraphPass& pass, const TShared<GpuBuffer>& source, u32 numCoeffSets, const TShared<Texture>& output, u32 outputIdx)
@@ -243,8 +243,8 @@ IrradianceProjectSHUniformDefinition gIrradianceProjectSHUniformDefinition;
 
 void IrradianceProjectSHMaterial::Initialize()
 {
-	mGpuParameterSet->GetUniformBufferParameter("Params", mUniformBufferParameter);
-	mGpuParameterSet->GetSampledTextureParameter("gSHCoeffs", mInputTextureParameter);
+	mParameterLayout->GetUniformBufferParameter("Params", mUniformBufferParameter);
+	mParameterLayout->GetSampledTextureParameter("gSHCoeffs", mInputTextureParameter);
 }
 
 TShared<GpuParameterSet> IrradianceProjectSHMaterial::Prepare(FrameGraphPass& pass, const TShared<Texture>& shCoeffs, u32 face)

@@ -16,7 +16,7 @@ namespace b3d::render
 	 */
 
 	/**
-	 * Development-only shadow of the resource states that explicit barriers declare. Checks the source of each explicit barrier against
+	 * Development-only shadow of the resource states that barriers declare. Checks the source of each barrier against
 	 * the destination of the previous barrier and the accesses since, and checks each access against the destination of the last barrier.
 	 *
 	 * A command buffer validates only with a validator set by GpuCommandBuffer::SetValidator(). Command buffers that share one carry the
@@ -47,7 +47,7 @@ namespace b3d::render
 		void BeginCommandBuffer(GpuQueueType queueType);
 
 		/**
-		 * Checks explicit barriers, and declares their destination.
+		 * Checks barriers, and declares their destination.
 		 *
 		 * @param	barriers	Barriers to check.
 		 * @param	phase		Part of the barriers the command buffer records.
@@ -179,10 +179,10 @@ namespace b3d::render
 		/** Checks the accesses of the bindings of @p layout. Draws pass @p isDraw, so sampled attachments of the render pass skip the layout check. */
 		void ValidateBindings(const GpuPipelineParameterLayout& pipelineLayout, bool isDraw);
 
-		/** Checks an explicit barrier of an image. */
+		/** Checks a barrier of an image. */
 		void ValidateImageBarrier(const ImageSubresources& image, const GpuBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split);
 
-		/** Checks an explicit barrier of a buffer. */
+		/** Checks a barrier of a buffer. */
 		void ValidateBufferBarrier(const GpuBuffer& buffer, const GpuBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split);
 
 		/** Checks an access of an image. */

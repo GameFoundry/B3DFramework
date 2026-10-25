@@ -172,28 +172,28 @@ void StandardDeferred::RenderLightBatches(FrameGraphPassContext& context, const 
 			if(key.Type == LightType::Directional)
 			{
 				DeferredDirectionalLightMaterial* const lightMaterial = DeferredDirectionalLightMaterial::GetVariation(key.IsMSAA, true);
-				lightMaterial->Bind(commandBuffer, false);
+				lightMaterial->Bind(commandBuffer);
 				GetRendererUtility().DrawScreenQuad(commandBuffer);
 
 				// MSAA second pass
 				if(key.IsMSAA)
 				{
 					DeferredDirectionalLightMaterial* const multiSampleLightMaterial = DeferredDirectionalLightMaterial::GetVariation(true, false);
-					multiSampleLightMaterial->Bind(commandBuffer, false);
+					multiSampleLightMaterial->Bind(commandBuffer);
 					GetRendererUtility().DrawScreenQuad(commandBuffer);
 				}
 			}
 			else // Point or Spot
 			{
 				DeferredPointLightMaterial* const lightMaterial = DeferredPointLightMaterial::GetVariation(key.IsInside, key.IsMSAA, true);
-				lightMaterial->Bind(commandBuffer, false);
+				lightMaterial->Bind(commandBuffer);
 				GetRendererUtility().Draw(commandBuffer, batch.StencilMesh);
 
 				// MSAA second pass
 				if(key.IsMSAA)
 				{
 					DeferredPointLightMaterial* multiSampleLightMaterial = DeferredPointLightMaterial::GetVariation(key.IsInside, true, false);
-					multiSampleLightMaterial->Bind(commandBuffer, false);
+					multiSampleLightMaterial->Bind(commandBuffer);
 					GetRendererUtility().Draw(commandBuffer, batch.StencilMesh);
 				}
 			}

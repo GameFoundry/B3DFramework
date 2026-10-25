@@ -16,20 +16,20 @@ const u32 TiledDeferredLightingMaterial::kTileSize = 16;
 
 void TiledDeferredLightingMaterial::Initialize()
 {
-	mGBufferParams.Initialize(*mGpuDevice, GPT_COMPUTE_PROGRAM, mGpuParameterSet);
+	mGBufferParams.Initialize(*mGpuDevice, GPT_COMPUTE_PROGRAM, *mParameterLayout);
 	mSampleCount = mVariationParameters.GetUI32("MSAA_COUNT");
 
-	mGpuParameterSet->GetStorageBufferParameter("gLights", mLightBufferParam);
-	mGpuParameterSet->GetSampledTextureParameter("gInColor", mInColorTextureParam);
+	mParameterLayout->GetStorageBufferParameter("gLights", mLightBufferParam);
+	mParameterLayout->GetSampledTextureParameter("gInColor", mInColorTextureParam);
 
-	if(mGpuParameterSet->HasStorageTexture("gOutput"))
-		mGpuParameterSet->GetStorageTextureParameter("gOutput", mOutputTextureParam);
+	if(mParameterLayout->HasStorageTexture("gOutput"))
+		mParameterLayout->GetStorageTextureParameter("gOutput", mOutputTextureParam);
 
 	if(mSampleCount > 1)
-		mGpuParameterSet->GetSampledTextureParameter("gMSAACoverage", mMSAACoverageTexParam);
+		mParameterLayout->GetSampledTextureParameter("gMSAACoverage", mMSAACoverageTexParam);
 
-	mGpuParameterSet->GetUniformBufferParameter("Params", mUniformBufferParameter);
-	mGpuParameterSet->GetUniformBufferParameter("PerCamera", mPerCameraParameter);
+	mParameterLayout->GetUniformBufferParameter("Params", mUniformBufferParameter);
+	mParameterLayout->GetUniformBufferParameter("PerCamera", mPerCameraParameter);
 }
 
 void TiledDeferredLightingMaterial::InitDefinesInternal(ShaderDefines& defines)
@@ -145,7 +145,7 @@ TiledDeferredLightingMaterial* TiledDeferredLightingMaterial::GetVariation(u32 m
 
 void TextureArrayToMSAATexture::Initialize()
 {
-	mGpuParameterSet->GetSampledTextureParameter("gInput", mInputParam);
+	mParameterLayout->GetSampledTextureParameter("gInput", mInputParam);
 }
 
 TShared<GpuParameterSet> TextureArrayToMSAATexture::Prepare(FrameGraphPass& pass, const TShared<Texture>& inputArray, const TShared<Texture>& target)
@@ -183,11 +183,11 @@ void ClearLoadStoreMaterial::Initialize()
 	i32 objType = mVariationParameters.GetI32("OBJ_TYPE");
 
 	if(objType == 0 || objType == 1)
-		mGpuParameterSet->GetStorageTextureParameter("gOutput", mOutputTextureParam);
+		mParameterLayout->GetStorageTextureParameter("gOutput", mOutputTextureParam);
 	else
-		mGpuParameterSet->GetStorageBufferParameter("gOutput", mOutputBufferParam);
+		mParameterLayout->GetStorageBufferParameter("gOutput", mOutputBufferParam);
 
-	mGpuParameterSet->GetUniformBufferParameter("Params", mUniformBufferParameter);
+	mParameterLayout->GetUniformBufferParameter("Params", mUniformBufferParameter);
 }
 
 void ClearLoadStoreMaterial::InitDefinesInternal(ShaderDefines& defines)
@@ -341,23 +341,23 @@ void TiledDeferredImageBasedLightingMaterial::Initialize()
 {
 	mSampleCount = mVariationParameters.GetUI32("MSAA_COUNT");
 
-	mGpuParameterSet->GetSampledTextureParameter("gGBufferATex", mGBufferA);
-	mGpuParameterSet->GetSampledTextureParameter("gGBufferBTex", mGBufferB);
-	mGpuParameterSet->GetSampledTextureParameter("gGBufferCTex", mGBufferC);
-	mGpuParameterSet->GetSampledTextureParameter("gDepthBufferTex", mGBufferDepth);
+	mParameterLayout->GetSampledTextureParameter("gGBufferATex", mGBufferA);
+	mParameterLayout->GetSampledTextureParameter("gGBufferBTex", mGBufferB);
+	mParameterLayout->GetSampledTextureParameter("gGBufferCTex", mGBufferC);
+	mParameterLayout->GetSampledTextureParameter("gDepthBufferTex", mGBufferDepth);
 
-	mGpuParameterSet->GetSampledTextureParameter("gInColor", mInColorTextureParam);
-	mGpuParameterSet->GetStorageTextureParameter("gOutput", mOutputTextureParam);
+	mParameterLayout->GetSampledTextureParameter("gInColor", mInColorTextureParam);
+	mParameterLayout->GetStorageTextureParameter("gOutput", mOutputTextureParam);
 
 	if(mSampleCount > 1)
-		mGpuParameterSet->GetSampledTextureParameter("gMSAACoverage", mMSAACoverageTexParam);
+		mParameterLayout->GetSampledTextureParameter("gMSAACoverage", mMSAACoverageTexParam);
 
-	mGpuParameterSet->GetUniformBufferParameter("Params", mUniformBufferParameter);
+	mParameterLayout->GetUniformBufferParameter("Params", mUniformBufferParameter);
 
-	mImageBasedParams.Initialize(mGpuParameterSet);
+	mImageBasedParams.Initialize(*mParameterLayout);
 
-	mGpuParameterSet->TryGetUniformBufferParameter("ReflProbeParams", mReflProbeParamsUniformBufferParameter);
-	mGpuParameterSet->GetUniformBufferParameter("PerCamera", mPerCameraParameter);
+	mParameterLayout->TryGetUniformBufferParameter("ReflProbeParams", mReflProbeParamsUniformBufferParameter);
+	mParameterLayout->GetUniformBufferParameter("PerCamera", mPerCameraParameter);
 }
 
 void TiledDeferredImageBasedLightingMaterial::InitDefinesInternal(ShaderDefines& defines)

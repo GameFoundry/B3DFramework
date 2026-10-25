@@ -51,15 +51,15 @@ namespace b3d
 		void TestResourceUseTracking();
 
 		/**
-		 * Verifies that explicit barriers order GPU writes before later reads: full barriers, split barriers within a command buffer,
-		 * across command buffers in both recording orders, and across queues. Runs only on devices that support explicit barriers.
+		 * Verifies that barriers order GPU writes before later reads: full barriers, split barriers within a command buffer,
+		 * across command buffers in both recording orders, and across queues.
 		 */
 		void TestBarriers();
 
 		/**
 		 * Verifies that split barriers order a long-running compute write before a copy that reads it, within a command buffer and
 		 * across command buffers on one queue. The write runs long enough that, within a command buffer, a backend that drops the
-		 * barrier lets the copy read stale data. Runs only on devices that support explicit barriers, with backends that compile
+		 * barrier lets the copy read stale data. Runs only with backends that compile
 		 * shaders on the host.
 		 */
 		void TestSplitBarrierExecution();
@@ -68,23 +68,23 @@ namespace b3d
 		 * Verifies that a barrier orders a long-running compute write before a copy recorded after a render pass that follows the
 		 * barrier, and before a copy in a later command buffer on the same queue. On backends that record passes as separate
 		 * encoders the copy runs in a later pass than the barrier, so a backend that only orders the pass the barrier was issued in
-		 * lets the copy read stale data. Runs only on devices that support explicit barriers, with backends that compile shaders on
+		 * lets the copy read stale data. Runs only with backends that compile shaders on
 		 * the host.
 		 */
 		void TestBarrierAcrossPasses();
 
 		/**
-		 * Places transient resources over each other's memory and hands the memory between them with explicit alias acquires, issued as full
+		 * Places transient resources over each other's memory and hands the memory between them with alias acquires, issued as full
 		 * and as split barriers. Then binds resources before they are placed, recreates them at other memory and writes them with a dispatch.
-		 * Verifies the contents each resource reads back. Runs only on devices that support explicit barriers.
+		 * Verifies the contents each resource reads back.
 		 */
 		void TestTransientAliasing();
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		/**
-		 * Verifies the errors for explicit barriers and command buffer methods that do not match the state earlier explicit barriers
+		 * Verifies the errors for barriers and command buffer methods that do not match the state earlier barriers
 		 * declared. Each method is checked on its own resource, so the test fails if a backend override skips the validating base
-		 * implementation. Runs only on devices that support explicit barriers.
+		 * implementation.
 		 */
 		void TestBarrierValidation();
 
@@ -92,7 +92,7 @@ namespace b3d
 		 * Verifies the errors of a validator shared by two command buffers: resources used outside of their lifetime on the memory, alias
 		 * acquires that do not cover their source or share a call with a barrier of a resource they supersede, states carried over to
 		 * the next command buffer, accesses outside of the resting state and dispatches that access what an earlier dispatch wrote
-		 * without a barrier. Runs only on devices that support explicit barriers.
+		 * without a barrier.
 		 */
 		void TestBarrierResourceValidation();
 #endif

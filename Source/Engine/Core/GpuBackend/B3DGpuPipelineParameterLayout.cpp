@@ -6,6 +6,7 @@
 #include "GpuBackend/B3DGpuPushConstants.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DGpuProgram.h"
+#include "GpuBackend/B3DGpuParameter.h"
 #include "Debug/B3DDebug.h"
 #include "Math/B3DMath.h"
 #include "Utility/B3DResult.h"
@@ -476,3 +477,52 @@ GpuPipelineParameterLayout::GpuPipelineParameterLayout(GpuDevice& device, const 
 		mSets.Add(device.CreateGpuPipelineParameterSetLayout(perSetParameterDescriptions[set], reflectedLayout, reflectedTableIndex));
 	}
 }
+
+template <bool IsRenderProxy>
+void GpuPipelineParameterLayout::GetSampledTextureParameter(const StringView& name, TGpuParameterSampledTexture<IsRenderProxy>& output, u32 set) const
+{
+	if(!TryGetSampledTextureParameter(name, output, set))
+		B3D_LOG(Warning, LogRenderBackend, "Cannot find texture parameter with the name: '{0}'", name);
+}
+
+template <bool IsRenderProxy>
+void GpuPipelineParameterLayout::GetStorageTextureParameter(const StringView& name, TGpuParameterStorageTexture<IsRenderProxy>& output, u32 set) const
+{
+	if(!TryGetStorageTextureParameter(name, output, set))
+		B3D_LOG(Warning, LogRenderBackend, "Cannot find storage texture parameter with the name: '{0}'", name);
+}
+
+template <bool IsRenderProxy>
+void GpuPipelineParameterLayout::GetStorageBufferParameter(const StringView& name, TGpuParameterStorageBuffer<IsRenderProxy>& output, u32 set) const
+{
+	if(!TryGetStorageBufferParameter(name, output, set))
+		B3D_LOG(Warning, LogRenderBackend, "Cannot find storage buffer parameter with the name: '{0}'", name);
+}
+
+template <bool IsRenderProxy>
+void GpuPipelineParameterLayout::GetUniformBufferParameter(const StringView& name, TGpuParameterUniformBuffer<IsRenderProxy>& output, u32 set) const
+{
+	if(!TryGetUniformBufferParameter(name, output, set))
+		B3D_LOG(Warning, LogRenderBackend, "Cannot find uniform buffer parameter with the name: '{0}'", name);
+}
+
+template <bool IsRenderProxy>
+void GpuPipelineParameterLayout::GetSamplerStateParameter(const StringView& name, TGpuParameterSampler<IsRenderProxy>& output, u32 set) const
+{
+	if(!TryGetSamplerStateParameter(name, output, set))
+		B3D_LOG(Warning, LogRenderBackend, "Cannot find sampler parameter with the name: '{0}'", name);
+}
+
+namespace b3d
+{
+	template B3D_EXPORT void GpuPipelineParameterLayout::GetSampledTextureParameter<false>(const StringView&, TGpuParameterSampledTexture<false>&, u32) const;
+	template B3D_EXPORT void GpuPipelineParameterLayout::GetSampledTextureParameter<true>(const StringView&, TGpuParameterSampledTexture<true>&, u32) const;
+	template B3D_EXPORT void GpuPipelineParameterLayout::GetStorageTextureParameter<false>(const StringView&, TGpuParameterStorageTexture<false>&, u32) const;
+	template B3D_EXPORT void GpuPipelineParameterLayout::GetStorageTextureParameter<true>(const StringView&, TGpuParameterStorageTexture<true>&, u32) const;
+	template B3D_EXPORT void GpuPipelineParameterLayout::GetStorageBufferParameter<false>(const StringView&, TGpuParameterStorageBuffer<false>&, u32) const;
+	template B3D_EXPORT void GpuPipelineParameterLayout::GetStorageBufferParameter<true>(const StringView&, TGpuParameterStorageBuffer<true>&, u32) const;
+	template B3D_EXPORT void GpuPipelineParameterLayout::GetUniformBufferParameter<false>(const StringView&, TGpuParameterUniformBuffer<false>&, u32) const;
+	template B3D_EXPORT void GpuPipelineParameterLayout::GetUniformBufferParameter<true>(const StringView&, TGpuParameterUniformBuffer<true>&, u32) const;
+	template B3D_EXPORT void GpuPipelineParameterLayout::GetSamplerStateParameter<false>(const StringView&, TGpuParameterSampler<false>&, u32) const;
+	template B3D_EXPORT void GpuPipelineParameterLayout::GetSamplerStateParameter<true>(const StringView&, TGpuParameterSampler<true>&, u32) const;
+} // namespace b3d

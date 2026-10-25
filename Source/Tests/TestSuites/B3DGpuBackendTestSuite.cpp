@@ -1107,14 +1107,14 @@ void GpuBackendTestSuite::TestBarriers()
 
 		// Render targets are exclusive to one queue family on Vulkan, while sampleable-only textures are shared between them
 		TextureCreateInformation exclusiveInformation;
-		exclusiveInformation.Name = "Explicit barrier exclusive texture";
+		exclusiveInformation.Name = "Barrier exclusive texture";
 		exclusiveInformation.Width = kSize;
 		exclusiveInformation.Height = kSize;
 		exclusiveInformation.Format = PF_RGBA8;
 		exclusiveInformation.Usage = TextureUsageFlag::RenderTarget;
 
 		TextureCreateInformation sharedInformation = exclusiveInformation;
-		sharedInformation.Name = "Explicit barrier shared texture";
+		sharedInformation.Name = "Barrier shared texture";
 		sharedInformation.Usage = TextureUsageFlag::Default;
 
 		const ImageSubresourcePitch pitch = device->CreateTexture(exclusiveInformation)->GetStagingBufferPitchForSubresource(0, 0);
@@ -1320,7 +1320,7 @@ void GpuBackendTestSuite::TestBarriers()
 		if(pipeline != nullptr)
 		{
 			TextureCreateInformation storageInformation = exclusiveInformation;
-			storageInformation.Name = "Explicit barrier storage texture";
+			storageInformation.Name = "Barrier storage texture";
 			storageInformation.Format = PF_R32U;
 			storageInformation.Usage = TextureUsageFlag::AllowUnorderedAccessOnTheGPU;
 
@@ -1334,7 +1334,7 @@ void GpuBackendTestSuite::TestBarriers()
 			parameters->SetStorageBuffer("OutputBuffer", buffer);
 			parameters->SetStorageTexture("OutputTexture", texture, TextureSurface());
 
-			const TShared<GpuCommandBuffer> commands = fnCreateCommands(graphicsPool, "Explicit barriers around a dispatch");
+			const TShared<GpuCommandBuffer> commands = fnCreateCommands(graphicsPool, "Barriers around a dispatch");
 			const auto fnIssueBarriers = [&](const GpuAccessState& source, const GpuAccessState& textureSource, const GpuAccessState& destination, const GpuAccessState& readbackSource, const GpuAccessState& readbackDestination)
 			{
 				const GpuBufferBarrier bufferBarriers[] = { GpuBufferBarrier(buffer, source, destination),
@@ -1569,22 +1569,22 @@ void GpuBackendTestSuite::TestBarrierValidation()
 		return;
 
 	// Each case uses its own resource, named after the case, so the errors do not cascade and each one identifies its case
-	const String undeclaredStages = "The resource was accessed in stages that its last explicit barrier does not declare.";
+	const String undeclaredStages = "The resource was accessed in stages that its last barrier does not declare.";
 	// The D3D12 debug layer tracks layouts natively and fails to close a command list with a misdeclared layout
 	const bool recordsMisdeclaredLayouts = String(backend.GetBackendName()) != "bsfD3D12GpuBackend";
 
 	LoggingScope logs(*this);
 	if(recordsMisdeclaredLayouts)
-		logs.ExpectError("The source layout of an explicit barrier differs from the destination layout of the previous barrier of the resource. Image: 'SourceLayout'.");
+		logs.ExpectError("The source layout of a barrier differs from the destination layout of the previous barrier of the resource. Image: 'SourceLayout'.");
 
-	logs.ExpectError("The source of an explicit barrier is missing stages that accessed the resource since the previous barrier. Buffer: 'MissingStages'.");
-	logs.ExpectError("The source of an explicit barrier is missing the writes of the resource since the previous barrier. Buffer: 'MissingWrites'.");
-	logs.ExpectError("The resource was accessed with reads or writes that its last explicit barrier does not declare. Buffer: 'UndeclaredWrite'.");
+	logs.ExpectError("The source of a barrier is missing stages that accessed the resource since the previous barrier. Buffer: 'MissingStages'.");
+	logs.ExpectError("The source of a barrier is missing the writes of the resource since the previous barrier. Buffer: 'MissingWrites'.");
+	logs.ExpectError("The resource was accessed with reads or writes that its last barrier does not declare. Buffer: 'UndeclaredWrite'.");
 	logs.ExpectError("The resource was accessed between the release and the acquire of a split barrier. Buffer: 'AccessBetweenHalves'.");
-	logs.ExpectError("An explicit barrier was recorded between the release and the acquire of a split barrier of the same resource. Buffer: 'BarrierBetweenHalves'.");
+	logs.ExpectError("A barrier was recorded between the release and the acquire of a split barrier of the same resource. Buffer: 'BarrierBetweenHalves'.");
 	logs.ExpectError("An alias acquire must precede every other use of the resource. Buffer: 'LateAliasAcquire'.");
 	logs.ExpectError("The release and the acquire of a split barrier must be given the same barriers, in the same order.");
-	logs.ExpectError("The image was accessed in a different layout than its last explicit barrier declares. Image: 'RenderPassLayout'.");
+	logs.ExpectError("The image was accessed in a different layout than its last barrier declares. Image: 'RenderPassLayout'.");
 	logs.ExpectError("The release of a split barrier was recorded on a queue type other than the one the split barrier was created for.");
 	for(const char* name : { "Buffer: 'CopyBufferToBuffer'.", "Image: 'CopyBufferToTexture'.", "Image: 'CopyTextureToBuffer'.", "Image: 'CopyTexture'.", "Image: 'BlitTexture'.", "Image: 'RenderPass'." })
 		logs.ExpectError(undeclaredStages + " " + name);
@@ -1655,7 +1655,7 @@ void GpuBackendTestSuite::TestBarrierValidation()
 
 		const TShared<GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
 		GpuBarrierValidator validator;
-		const TShared<GpuCommandBuffer> commandBuffer = pool->Create(GpuCommandBufferCreateInformation::Create("Explicit barrier validation"));
+		const TShared<GpuCommandBuffer> commandBuffer = pool->Create(GpuCommandBufferCreateInformation::Create("Barrier validation"));
 		commandBuffer->SetValidator(&validator);
 
 		const TShared<render::GpuBuffer> source = fnCreateBuffer("Source");
@@ -2666,7 +2666,7 @@ void GpuBackendTestSuite::TestBarrierResourceValidation()
 
 		// The command buffers share one validator, as a frame graph's do, so resource states carry over from one to the next
 		GpuBarrierValidator validator;
-		const TShared<GpuCommandBuffer> commandBuffer = pool->Create(GpuCommandBufferCreateInformation::Create("Explicit barrier resource validation"));
+		const TShared<GpuCommandBuffer> commandBuffer = pool->Create(GpuCommandBufferCreateInformation::Create("Barrier resource validation"));
 		commandBuffer->SetValidator(&validator);
 
 		GpuSubmissionTimeline timeline;
@@ -2755,10 +2755,10 @@ void GpuBackendTestSuite::TestBarrierResourceValidation()
 		if(unplaced != nullptr)
 			logs.ExpectError("The resource was used while it is unplaced, without memory from its transient resource allocator. Place it first. Image: 'Unplaced'.");
 
-		logs.ExpectError("The source of an explicit barrier is missing stages that accessed the resource since the previous barrier. Buffer: 'CarriedState'.");
-		logs.ExpectError("The resource was accessed in stages its resting state does not allow, without an explicit barrier. Buffer: 'RestingBuffer'.");
+		logs.ExpectError("The source of a barrier is missing stages that accessed the resource since the previous barrier. Buffer: 'CarriedState'.");
+		logs.ExpectError("The resource was accessed in stages its resting state does not allow, without a barrier. Buffer: 'RestingBuffer'.");
 		if(recordsMisdeclaredLayouts)
-			logs.ExpectError("The resource was accessed in stages its resting state does not allow, without an explicit barrier. Image: 'RestingTexture'.");
+			logs.ExpectError("The resource was accessed in stages its resting state does not allow, without a barrier. Image: 'RestingTexture'.");
 
 		if(pipeline != nullptr)
 		{
@@ -2851,7 +2851,7 @@ void GpuBackendTestSuite::TestBarrierResourceValidation()
 		commandBuffer->CopyBufferToBuffer(source, carried, 0, 0, sizeof(u32));
 		commandBuffer->End();
 
-		const TShared<GpuCommandBuffer> nextCommandBuffer = pool->Create(GpuCommandBufferCreateInformation::Create("Explicit barrier resource validation, continued"));
+		const TShared<GpuCommandBuffer> nextCommandBuffer = pool->Create(GpuCommandBufferCreateInformation::Create("Barrier resource validation, continued"));
 		nextCommandBuffer->SetValidator(&validator);
 		nextCommandBuffer->IssueBarriers(GpuBufferBarrier(carried, host, transferRead));
 		nextCommandBuffer->End();

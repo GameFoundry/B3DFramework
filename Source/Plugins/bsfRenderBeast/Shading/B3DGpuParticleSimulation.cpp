@@ -798,7 +798,7 @@ void GpuParticleSimulation::Simulate(FrameGraph& graph, const RenderBeastScene& 
 		{
 			if(draw.Material != boundMaterial)
 			{
-				draw.Material->Bind(commandBuffer, false);
+				draw.Material->Bind(commandBuffer);
 				boundMaterial = draw.Material;
 			}
 
@@ -924,7 +924,7 @@ void GpuParticleSimulation::DrawClearTiles(GpuCommandBuffer& commandBuffer, cons
 		return;
 
 	GpuParticleClearMaterial* const clearMaterial = GpuParticleClearMaterial::Get();
-	clearMaterial->Bind(commandBuffer, false);
+	clearMaterial->Bind(commandBuffer);
 
 	commandBuffer.SetVertexDescription(m->HelperBuffers.TileVertexDescription);
 

@@ -75,6 +75,13 @@ namespace b3d
 		u32 SequentialSamplerResourceIndex = ~0u; /**< Similar to SequentialSamplerBindingIndex, but accounts for array size of each entry of the same type prior to this entry. */
 	};
 
+	template <bool IsRenderProxy> class TGpuParameterSet;
+	template <bool IsRenderProxy> class TGpuParameterSampledTexture;
+	template <bool IsRenderProxy> class TGpuParameterStorageTexture;
+	template <bool IsRenderProxy> class TGpuParameterStorageBuffer;
+	template <bool IsRenderProxy> class TGpuParameterUniformBuffer;
+	template <bool IsRenderProxy> class TGpuParameterSampler;
+
 	/**
 	 * Contains information about a single GPU program parameter set.
 	 *
@@ -170,6 +177,43 @@ namespace b3d
 		/** Returns information about a member of a uniform buffer by the specified name, or null if not found. */
 		const GpuUniformBufferMemberInformation* TryGetUniformBufferMemberInformation(const StringView& name) const;
 
+	private:
+		template <bool IsRenderProxy> friend class TGpuParameterSet;
+		friend class GpuPipelineParameterLayout;
+
+		/**
+		 * Looks up the handle of the resource parameter @p name of @p type, in this layout used as set @p set. Returns false and resets
+		 * @p output if the layout has no such parameter.
+		 */
+		template <class HandleType>
+		bool TryGetResourceParameter(const StringView& name, GpuParameterType type, u32 set, HandleType& output) const
+		{
+			const u32 slot = GetSlot(name, type);
+			if(slot == ~0u)
+			{
+				output = HandleType();
+				return false;
+			}
+
+			output = HandleType(GpuParameterBinding(set, slot), this);
+			return true;
+		}
+
+		/** Looks up the handle of the uniform buffer member @p name. Returns false and resets @p output if the layout has no such member. */
+		template <class HandleType>
+		bool TryGetDataParameter(const StringView& name, HandleType& output) const
+		{
+			const GpuUniformBufferMemberInformation* information = TryGetUniformBufferMemberInformation(name);
+			if(information == nullptr)
+			{
+				output = HandleType();
+				return false;
+			}
+
+			output = HandleType(information, this);
+			return true;
+		}
+
 	protected:
 		GpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription);
 
@@ -201,6 +245,79 @@ namespace b3d
 
 		/** Returns the push-constant buffer size required by the pipeline, or zero when it is unused. */
 		u32 GetPushConstantBufferSize() const { return mPushConstantBufferSize; }
+
+		/** Checks if set @p set has a sampled texture parameter with the specified name. */
+		bool HasSampledTexture(const StringView& name, u32 set = 0) const { return mSets[set]->HasUniformOfType(name, GpuParameterType::SampledTexture); }
+
+		/** Checks if set @p set has a storage texture parameter with the specified name. */
+		bool HasStorageTexture(const StringView& name, u32 set = 0) const { return mSets[set]->HasUniformOfType(name, GpuParameterType::StorageTexture); }
+
+		/** Checks if set @p set has a storage buffer parameter with the specified name. */
+		bool HasStorageBuffer(const StringView& name, u32 set = 0) const { return mSets[set]->HasUniformOfType(name, GpuParameterType::StorageBuffer); }
+
+		/** Checks if set @p set has a uniform buffer with the specified name. */
+		bool HasUniformBuffer(const StringView& name, u32 set = 0) const { return mSets[set]->HasUniformOfType(name, GpuParameterType::UniformBuffer); }
+
+		/** Checks if set @p set has a sampler state parameter with the specified name. */
+		bool HasSamplerState(const StringView& name, u32 set = 0) const { return mSets[set]->HasUniformOfType(name, GpuParameterType::Sampler); }
+
+		/**
+		 * Returns a handle for the parameter with the specified name in set @p set. The handle writes and reads the parameter in any
+		 * parameter set created with that set's layout, without further lookups. Logs a warning if the parameter cannot be found.
+		 */
+		template <bool IsRenderProxy>
+		void GetSampledTextureParameter(const StringView& name, TGpuParameterSampledTexture<IsRenderProxy>& output, u32 set = 0) const;
+
+		/** @copydoc GetSampledTextureParameter */
+		template <bool IsRenderProxy>
+		void GetStorageTextureParameter(const StringView& name, TGpuParameterStorageTexture<IsRenderProxy>& output, u32 set = 0) const;
+
+		/** @copydoc GetSampledTextureParameter */
+		template <bool IsRenderProxy>
+		void GetStorageBufferParameter(const StringView& name, TGpuParameterStorageBuffer<IsRenderProxy>& output, u32 set = 0) const;
+
+		/** @copydoc GetSampledTextureParameter */
+		template <bool IsRenderProxy>
+		void GetUniformBufferParameter(const StringView& name, TGpuParameterUniformBuffer<IsRenderProxy>& output, u32 set = 0) const;
+
+		/** @copydoc GetSampledTextureParameter */
+		template <bool IsRenderProxy>
+		void GetSamplerStateParameter(const StringView& name, TGpuParameterSampler<IsRenderProxy>& output, u32 set = 0) const;
+
+		/** Equivalent to GetSampledTextureParameter(), but doesn't warn if the parameter cannot be found. Returns true if it was found. */
+		template <bool IsRenderProxy>
+		bool TryGetSampledTextureParameter(const StringView& name, TGpuParameterSampledTexture<IsRenderProxy>& output, u32 set = 0) const
+		{
+			return mSets[set]->TryGetResourceParameter(name, GpuParameterType::SampledTexture, set, output);
+		}
+
+		/** @copydoc TryGetSampledTextureParameter */
+		template <bool IsRenderProxy>
+		bool TryGetStorageTextureParameter(const StringView& name, TGpuParameterStorageTexture<IsRenderProxy>& output, u32 set = 0) const
+		{
+			return mSets[set]->TryGetResourceParameter(name, GpuParameterType::StorageTexture, set, output);
+		}
+
+		/** @copydoc TryGetSampledTextureParameter */
+		template <bool IsRenderProxy>
+		bool TryGetStorageBufferParameter(const StringView& name, TGpuParameterStorageBuffer<IsRenderProxy>& output, u32 set = 0) const
+		{
+			return mSets[set]->TryGetResourceParameter(name, GpuParameterType::StorageBuffer, set, output);
+		}
+
+		/** @copydoc TryGetSampledTextureParameter */
+		template <bool IsRenderProxy>
+		bool TryGetUniformBufferParameter(const StringView& name, TGpuParameterUniformBuffer<IsRenderProxy>& output, u32 set = 0) const
+		{
+			return mSets[set]->TryGetResourceParameter(name, GpuParameterType::UniformBuffer, set, output);
+		}
+
+		/** @copydoc TryGetSampledTextureParameter */
+		template <bool IsRenderProxy>
+		bool TryGetSamplerStateParameter(const StringView& name, TGpuParameterSampler<IsRenderProxy>& output, u32 set = 0) const
+		{
+			return mSets[set]->TryGetResourceParameter(name, GpuParameterType::Sampler, set, output);
+		}
 
 	protected:
 		GpuPipelineParameterLayout(GpuDevice& device, const GpuPipelineParameterLayoutCreateInformation& createInformation);

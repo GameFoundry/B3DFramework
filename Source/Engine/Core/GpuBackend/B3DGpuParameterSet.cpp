@@ -240,99 +240,43 @@ template <bool IsRenderProxy>
 template <class T>
 bool TGpuParameterSet<IsRenderProxy>::TryGetParameter(const StringView& name, TGpuParameterPrimitive<T, IsRenderProxy>& output) const
 {
-	const GpuUniformBufferMemberInformation* parameterInformation = mParameterSetLayout->TryGetUniformBufferMemberInformation(name);
-	if(parameterInformation == nullptr)
-	{
-		output = TGpuParameterPrimitive<T, IsRenderProxy>();
-		return false;
-	}
-
-	output = TGpuParameterPrimitive<T, IsRenderProxy>(parameterInformation, GetSelf());
-	return true;
+	return mParameterSetLayout->TryGetDataParameter(name, output);
 }
 
 template <bool IsRenderProxy>
 bool TGpuParameterSet<IsRenderProxy>::TryGetStructParameter(const StringView& name, TGpuParameterStruct<IsRenderProxy>& output) const
 {
-	const GpuUniformBufferMemberInformation* parameterInformation = mParameterSetLayout->TryGetUniformBufferMemberInformation(name);
-	if (parameterInformation == nullptr)
-	{
-		output = TGpuParameterStruct<IsRenderProxy>();
-		return false;
-	}
-
-	output = TGpuParameterStruct<IsRenderProxy>(parameterInformation, GetSelf());
-	return true;
+	return mParameterSetLayout->TryGetDataParameter(name, output);
 }
 
 template <bool IsRenderProxy>
 bool TGpuParameterSet<IsRenderProxy>::TryGetSampledTextureParameter(const StringView& name, TGpuParameterSampledTexture<IsRenderProxy>& output) const
 {
-	const u32 slot = mParameterSetLayout->GetSlot(name, GpuParameterType::SampledTexture);
-	if (slot == ~0u)
-	{
-		output = TGpuParameterSampledTexture<IsRenderProxy>();
-		return false;
-	}
-
-	output = TGpuParameterSampledTexture<IsRenderProxy>(GpuParameterBinding(mSet, slot), GetSelf());
-	return true;
+	return mParameterSetLayout->TryGetResourceParameter(name, GpuParameterType::SampledTexture, mSet, output);
 }
 
 template <bool IsRenderProxy>
 bool TGpuParameterSet<IsRenderProxy>::TryGetStorageTextureParameter(const StringView& name, TGpuParameterStorageTexture<IsRenderProxy>& output) const
 {
-	const u32 slot = mParameterSetLayout->GetSlot(name, GpuParameterType::StorageTexture);
-	if (slot == ~0u)
-	{
-		output = TGpuParameterStorageTexture<IsRenderProxy>();
-		return false;
-	}
-
-	output = TGpuParameterStorageTexture<IsRenderProxy>(GpuParameterBinding(mSet, slot), GetSelf());
-	return true;
+	return mParameterSetLayout->TryGetResourceParameter(name, GpuParameterType::StorageTexture, mSet, output);
 }
 
 template <bool IsRenderProxy>
 bool TGpuParameterSet<IsRenderProxy>::TryGetStorageBufferParameter(const StringView& name, TGpuParameterStorageBuffer<IsRenderProxy>& output) const
 {
-	const u32 slot = mParameterSetLayout->GetSlot(name, GpuParameterType::StorageBuffer);
-	if (slot == ~0u)
-	{
-		output = TGpuParameterStorageBuffer<IsRenderProxy>();
-		return false;
-	}
-
-	output = TGpuParameterStorageBuffer<IsRenderProxy>(GpuParameterBinding(mSet, slot), GetSelf());
-	return true;
+	return mParameterSetLayout->TryGetResourceParameter(name, GpuParameterType::StorageBuffer, mSet, output);
 }
 
 template <bool IsRenderProxy>
 bool TGpuParameterSet<IsRenderProxy>::TryGetUniformBufferParameter(const StringView& name, TGpuParameterUniformBuffer<IsRenderProxy>& output) const
 {
-	const u32 slot = mParameterSetLayout->GetSlot(name, GpuParameterType::UniformBuffer);
-	if (slot == ~0u)
-	{
-		output = TGpuParameterUniformBuffer<IsRenderProxy>();
-		return false;
-	}
-
-	output = TGpuParameterUniformBuffer<IsRenderProxy>(GpuParameterBinding(mSet, slot), GetSelf());
-	return true;
+	return mParameterSetLayout->TryGetResourceParameter(name, GpuParameterType::UniformBuffer, mSet, output);
 }
 
 template <bool IsRenderProxy>
 bool TGpuParameterSet<IsRenderProxy>::TryGetSamplerStateParameter(const StringView& name, TGpuParameterSampler<IsRenderProxy>& output) const
 {
-	const u32 slot = mParameterSetLayout->GetSlot(name, GpuParameterType::Sampler);
-	if (slot == ~0u)
-	{
-		output = TGpuParameterSampler<IsRenderProxy>();
-		return false;
-	}
-
-	output = TGpuParameterSampler<IsRenderProxy>(GpuParameterBinding(mSet, slot), GetSelf());
-	return true;
+	return mParameterSetLayout->TryGetResourceParameter(name, GpuParameterType::Sampler, mSet, output);
 }
 
 template <bool IsRenderProxy>

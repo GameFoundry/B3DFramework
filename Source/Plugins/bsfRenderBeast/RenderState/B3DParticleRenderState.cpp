@@ -84,6 +84,7 @@ void ParticlesDrawCommand::Draw(GpuCommandBuffer& commandBuffer) const
 void ParticleRenderState::BindCpuSimulatedInputs(const ParticleSystemProxy& proxy, const ParticleRenderData* renderData) const
 {
 	ParticleTexturePool& particlesTexPool = ParticleRenderer::Instance().GetTexturePool();
+	const TShared<GpuParameterSet>& set = DrawCommand.ParameterAdapter->GetGpuParameterSet();
 
 	const ParticleSystemSettings& settings = proxy.GetSettings();
 	u32 texSize;
@@ -95,9 +96,9 @@ void ParticleRenderState::BindCpuSimulatedInputs(const ParticleSystemProxy& prox
 			const auto billboardRenderData = static_cast<const ParticleBillboardRenderData*>(renderData);
 			const ParticleBillboardTextures* textures = particlesTexPool.Alloc(*billboardRenderData);
 
-			DrawCommand.ParamsCpuBillboard.PositionAndRotTexture.Set(textures->PositionAndRotation);
-			DrawCommand.ParamsCpuBillboard.ColorTexture.Set(textures->Color);
-			DrawCommand.ParamsCpuBillboard.SizeAndFrameIdxTexture.Set(textures->SizeAndFrameIdx);
+			DrawCommand.ParamsCpuBillboard.PositionAndRotTexture.Set(set, textures->PositionAndRotation);
+			DrawCommand.ParamsCpuBillboard.ColorTexture.Set(set, textures->Color);
+			DrawCommand.ParamsCpuBillboard.SizeAndFrameIdxTexture.Set(set, textures->SizeAndFrameIdx);
 
 			texSize = textures->PositionAndRotation->GetProperties().Width;
 		}
@@ -107,10 +108,10 @@ void ParticleRenderState::BindCpuSimulatedInputs(const ParticleSystemProxy& prox
 			const auto meshRenderData = static_cast<const ParticleMeshRenderData*>(renderData);
 			const ParticleMeshTextures* textures = particlesTexPool.Alloc(*meshRenderData);
 
-			DrawCommand.ParamsCpuMesh.PositionTexture.Set(textures->Position);
-			DrawCommand.ParamsCpuMesh.ColorTexture.Set(textures->Color);
-			DrawCommand.ParamsCpuMesh.RotationTexture.Set(textures->Rotation);
-			DrawCommand.ParamsCpuMesh.SizeTexture.Set(textures->Size);
+			DrawCommand.ParamsCpuMesh.PositionTexture.Set(set, textures->Position);
+			DrawCommand.ParamsCpuMesh.ColorTexture.Set(set, textures->Color);
+			DrawCommand.ParamsCpuMesh.RotationTexture.Set(set, textures->Rotation);
+			DrawCommand.ParamsCpuMesh.SizeTexture.Set(set, textures->Size);
 
 			texSize = textures->Position->GetProperties().Width;
 		}
@@ -127,7 +128,7 @@ void ParticleRenderState::BindGpuSimulatedInputs(const ParticleSystemProxy& prox
 	DrawCommand.NumParticles = GpuParticleSystem->GetParticleCount();
 
 	// Distance sorted systems read their indices from the sorted index buffer of the renderer inputs instead
-	DrawCommand.IndicesBuffer.Set(GpuParticleSystem->GetParticleIndices());
+	DrawCommand.IndicesBuffer.Set(DrawCommand.ParameterAdapter->GetGpuParameterSet(), GpuParticleSystem->GetParticleIndices());
 
 	const bool sorted = GpuParticleSystem->HasSortInfo();
 	const i32 bufferOffset = sorted ? (i32)GpuParticleSystem->GetSortOffset() : 0;
@@ -181,7 +182,7 @@ void ParticleRenderState::PopulateAndBindParticlesUniformBuffer(const ParticleSy
 	gParticlesUniformDefinition.gBufferOffset.Set(uniforms, bufferOffset);
 	gParticlesUniformDefinition.gUseSortedIndices.Set(uniforms, useSortedIndices ? 1 : 0);
 
-	DrawCommand.ParticlesUniformBufferParameter.Set(uniforms);
+	DrawCommand.ParticlesUniformBufferParameter.Set(DrawCommand.ParameterAdapter->GetGpuParameterSet(), uniforms);
 }
 
 ParticleTexturePool::~ParticleTexturePool()

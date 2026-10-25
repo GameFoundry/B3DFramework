@@ -262,7 +262,7 @@ namespace b3d
 			FastCleared /**< The image may contain fast-clear markers, such as after a clear while it was an attachment. */
 		};
 
-		/** One side of an explicit barrier: how a resource is accessed before (source) or after (destination) the barrier. */
+		/** One side of a barrier: how a resource is accessed before (source) or after (destination) the barrier. */
 		struct GpuAccessState
 		{
 			GpuAccessState() = default;
@@ -293,7 +293,7 @@ namespace b3d
 		};
 
 		/**
-		 * Describes common fields of explicit buffer and texture barriers. The caller provides the source as well as the destination, and
+		 * Describes common fields of buffer, texture and render target barriers. The caller provides the source as well as the destination, and
 		 * the command buffer derives nothing from earlier use of the resource. See GpuCommandBuffer::IssueBarriers().
 		 */
 		struct GpuBarrier
@@ -302,7 +302,7 @@ namespace b3d
 				: Source(source), Destination(destination), Flags(flags)
 			{ }
 
-			/** Returns a hash value for the fields common to all explicit barriers. */
+			/** Returns a hash value for the fields common to all barriers. */
 			u64 GenerateHash() const
 			{
 				size_t hash = 0;
@@ -320,7 +320,7 @@ namespace b3d
 			GpuBarrierFlags Flags;
 		};
 
-		/** Describes an explicit barrier for a GpuBuffer. */
+		/** Describes a barrier for a GpuBuffer. */
 		struct GpuBufferBarrier : GpuBarrier
 		{
 			GpuBufferBarrier(const TShared<GpuBuffer>& object, const GpuAccessState& source, const GpuAccessState& destination, GpuBarrierFlags flags = GpuBarrierFlag::None)
@@ -340,7 +340,7 @@ namespace b3d
 			TShared<GpuBuffer> Object;
 		};
 
-		/** Describes an explicit barrier for a range of Texture subresources. */
+		/** Describes a barrier for a range of Texture subresources. */
 		struct GpuTextureBarrier : GpuBarrier
 		{
 			GpuTextureBarrier(const TShared<Texture>& object, const GpuAccessState& source, const GpuAccessState& destination,
@@ -364,7 +364,7 @@ namespace b3d
 		};
 
 		/**
-		 * Describes an explicit barrier for one surface of a RenderTarget. Necessary for swap chain images, which cannot be accessed as
+		 * Describes a barrier for one surface of a RenderTarget. Necessary for swap chain images, which cannot be accessed as
 		 * standalone textures. SurfaceMask must specify a single surface bit.
 		 */
 		struct GpuRenderTargetBarrier : GpuBarrier
@@ -392,7 +392,7 @@ namespace b3d
 		};
 
 		/**
-		 * A list of explicit buffer, texture and render target barriers. Refers to the barriers without copying them, so they must remain
+		 * A list of buffer, texture and render target barriers. Refers to the barriers without copying them, so they must remain
 		 * valid until GpuCommandBuffer::IssueBarriers() returns.
 		 */
 		struct GpuBarriers
@@ -444,7 +444,7 @@ namespace b3d
 			TArrayView<const GpuRenderTargetBarrier> RenderTargetBarriers;
 		};
 
-		/** Determines which part of an explicit barrier a command buffer records. */
+		/** Determines which part of a barrier a command buffer records. */
 		enum class GpuBarrierPhase : u8
 		{
 			Full, /**< The complete barrier, at one point in the command buffer. See GpuCommandBuffer::IssueBarriers(). */
@@ -638,15 +638,12 @@ namespace b3d
 			virtual void DispatchCompute(u32 groupCountX, u32 groupCountY = 1, u32 groupCountZ = 1);
 
 			/**
-			 * Begins a new render pass, allowing rendering commands to be recorded.
-			 * All resources referenced by the provided GPU parameters will be registered with the
-			 * command buffer and necessary barriers/layout transitions will be issued before the
-			 * render pass begins.
+			 * Begins a new render pass, allowing rendering commands to be recorded. Barriers must first transition the surfaces of the
+			 * render target to the layouts of the render pass (see GpuBackendUtility::GetRenderPassAttachmentLayout()).
 			 *
 			 * Ticks the update count of the render target (RenderTarget::GetUpdateCount()) unless every surface is read-only.
 			 *
-			 * @param createInformation    Structure containing render target, masks, and all parameters
-			 *                            that will be used during the render pass.
+			 * @param createInformation    Render target to render to, and which of its surfaces are read-only, loaded and cleared.
 			 */
 			virtual void BeginRenderPass(const RenderPassCreateInformation& createInformation);
 
@@ -890,7 +887,7 @@ namespace b3d
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			/**
-			 * Sets the validator that checks the explicit barriers and accesses the command buffer records. A command buffer without one
+			 * Sets the validator that checks the barriers and accesses the command buffer records. A command buffer without one
 			 * validates nothing. Resource states carry over between the command buffers that share a validator, so they must be recorded one
 			 * at a time, in the order the GPU executes them. The caller keeps the validator alive until the command buffer is reset, which
 			 * clears it. Must be called before the command buffer records anything. Development builds only.
@@ -924,8 +921,8 @@ namespace b3d
 			GpuCommandBuffer(GpuDevice& gpuDevice, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
 
 			/**
-			 * Records explicit barriers, or one half of split barriers. The base implementation reports that the backend does not
-			 * support explicit barriers. Only called outside of a render pass.
+			 * Records barriers, or one half of split barriers. The base implementation reports that the backend does not
+			 * support barriers. Only called outside of a render pass.
 			 *
 			 * @param	barriers	Barriers to record.
 			 * @param	phase		Part of the barriers to record.
@@ -943,20 +940,20 @@ namespace b3d
 			void ClearBarrierState(bool wasSubmitted);
 
 			/**
-			 * Remembers that an explicit barrier leaves @p range of @p image in @p nativeLayout once the command buffer executes. Backends call
+			 * Remembers that a barrier leaves @p range of @p image in @p nativeLayout once the command buffer executes. Backends call
 			 * it for full barriers and acquires.
 			 */
 			void AddImageLayout(IGpuImageResource& image, const GpuTextureSubresourceRange& range, u32 nativeLayout);
 
 			/**
-			 * Stores the layouts explicit barriers leave images in as their native layouts, so later resting transitions and presentation
+			 * Stores the layouts barriers leave images in as their native layouts, so later resting transitions and presentation
 			 * start from the actual layouts. Backends call it when preparing the submission.
 			 *
 			 * Submit thread only.
 			 */
 			void PublishImageLayouts();
 
-			/** Layout that explicit barriers leave image subresources in once the command buffer executes. */
+			/** Layout that barriers leave image subresources in once the command buffer executes. */
 			struct ImageLayout
 			{
 				IGpuImageResource* Image = nullptr;

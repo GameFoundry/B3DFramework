@@ -396,7 +396,6 @@ void RenderBeast::RenderAllOnRenderThread(FrameTimings timings, PerFrameData per
 	}
 
 	GpuUniformBufferManager::Instance().AdvanceFrame();
-	mCommandBufferPoolRing->AdvanceFrame();
 	mRendererExtensionsDirty = false;
 }
 

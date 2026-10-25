@@ -379,8 +379,9 @@ void RenderableObjectStorage::PrepareVisibleRenderable(PackedRendererId id, cons
 		// Note: If renderable is not writing to velocity, then these buffer don't have to be rebound every frame. Potential optimization for future.
 		if(isAnimated)
 		{
-			element.BoneMatrixBufferParameter.Set(boneMatrixBuffer);
-			element.PreviousBoneMatrixBufferParameter.Set(previousBoneMatrixBuffer);
+			const TShared<GpuParameterSet>& set = element.ParameterAdapter->GetGpuParameterSet();
+			element.BoneMatrixBufferParameter.Set(set, boneMatrixBuffer);
+			element.PreviousBoneMatrixBufferParameter.Set(set, previousBoneMatrixBuffer);
 		}
 	}
 

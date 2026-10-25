@@ -71,7 +71,6 @@ void render::NullRenderer::RenderAll(PerFrameData perFrameData)
 		EndFrame();
 
 		GpuUniformBufferManager::Instance().AdvanceFrame();
-		mCommandBufferPoolRing->AdvanceFrame();
 	}, "NullRenderer::RenderAll");
 }
 

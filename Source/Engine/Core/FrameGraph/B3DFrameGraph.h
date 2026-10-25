@@ -221,7 +221,7 @@ namespace b3d
 
 		/**
 		 * Describes the GPU work of a frame, or a part of it, as passes and the resources they read and write, then records it with
-		 * explicit barriers. Passes are declared first with AddRasterPass(), AddComputePass() and AddCopyPass(), then Compile() plans the
+		 * barriers. Passes are declared first with AddRasterPass(), AddComputePass() and AddCopyPass(), then Compile() plans the
 		 * work and Execute() records and submits it.
 		 *
 		 * Resources:

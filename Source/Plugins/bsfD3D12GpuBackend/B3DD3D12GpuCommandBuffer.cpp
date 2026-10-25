@@ -1889,7 +1889,7 @@ bool D3D12GpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarri
 		}
 
 		if(!B3D_ENSURE_LOG(D3D12BarrierUtility::CanTransitionTextureLayoutOnQueue(beforeLayout, afterLayout, range.AspectMask, transitionQueueType),
-			"The explicit barrier transitions the layout of image '{0}', which its queue type cannot do.", image.GetDebugName()))
+			"The barrier transitions the layout of image '{0}', which its queue type cannot do.", image.GetDebugName()))
 		{
 			return;
 		}

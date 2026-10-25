@@ -162,9 +162,6 @@ namespace b3d
 			/** Returns the shader used by the material. */
 			TShared<Shader> GetShader() const { return mShader; }
 
-			/** Returns the internal parameter set containing GPU bindable parameters. */
-			TShared<GpuParameterSet> GetGpuParameterSet() const { return mGpuParameterSet; }
-
 			/**
 			 * Creates a new instance of GPU parameters for this material, with the default textures and samplers of the material's shader
 			 * assigned.
@@ -189,18 +186,11 @@ namespace b3d
 			/** Returns the material's compute pipeline state. This will be null if the material is a graphics material. */
 			TShared<GpuComputePipelineState> GetComputePipeline() const { return mComputePipeline; }
 
-			/**
-			 * Binds the materials and its parameters to the pipeline. This material will be used for rendering any subsequent
-			 * draw calls, or executing dispatch calls. If @p bindParameters is false you need to call BindParameters() separately
-			 * to bind material parameters (if any).
-			 */
-			void Bind(GpuCommandBuffer& commandBuffer, bool bindParameters = true) const;
+			/** Bind(GpuCommandBuffer&, const TShared<GpuParameterSet>&). */
+			void Bind(GpuCommandBuffer& commandBuffer) const;
 
 			/** Binds the material's pipeline and @p parameters, a parameter set created for this material. */
 			void Bind(GpuCommandBuffer& commandBuffer, const TShared<GpuParameterSet>& parameters) const;
-
-			/** Binds the material parameters to the pipeline. */
-			void BindParameters(GpuCommandBuffer& commandBuffer) const;
 
 		protected:
 			friend class b3d::RendererMaterialManager;
@@ -208,9 +198,11 @@ namespace b3d
 			/** Assigns the default textures and samplers of the material's shader to @p parameters. */
 			void ApplyShaderDefaults(GpuParameterSet& parameters) const;
 
-			TShared<GpuParameterSet> mGpuParameterSet;
 			TShared<GpuGraphicsPipelineState> mGraphicsPipeline;
 			TShared<GpuComputePipelineState> mComputePipeline;
+
+			/** Parameter layout of the material's pipeline. Initialize() looks the handles of the material's parameters up on it. */
+			TShared<GpuPipelineParameterLayout> mParameterLayout;
 			u32 mStencilReferenceValue = 0;
 
 			ShaderVariationParameters mVariationParameters;
@@ -232,8 +224,7 @@ namespace b3d
 		 * and the same instance. Accessed only on the context's owning thread/fiber - GetAsync()'s continuations
 		 * are SameThread-pinned there, and the cache operations never yield mid-update, so cooperative scheduling
 		 * serializes all access and no locking is needed. Destroyed with its context, on the context's owning
-		 * thread, after the context's GPU work has drained - so each instance's parameter set frees immediately
-		 * into the still-alive context pool.
+		 * thread, after the context's GPU work has drained.
 		 */
 		template <class T>
 		class RendererMaterialContextCache final : public IGpuWorkContextLocal
@@ -345,8 +336,7 @@ namespace b3d
 
 			/**
 			 * Initializes a freshly constructed instance for @p variationIndex against @p gpuContext: copies the
-			 * shared compile products, allocates the parameter set from the context's pool and assigns shader
-			 * defaults. The variation must already be compiled. To be called right after construction.
+			 * shared compile products. The variation must already be compiled. To be called right after construction.
 			 */
 			void InitializeInternal(GpuWorkContext& gpuContext, u32 variationIndex);
 
@@ -957,7 +947,7 @@ namespace b3d
 
 			B3D_ASSERT(mGraphicsPipeline != nullptr || mComputePipeline != nullptr);
 
-			mGpuParameterSet = CreateGpuParameterSet();
+			mParameterLayout = mGraphicsPipeline != nullptr ? mGraphicsPipeline->GetParameterLayout() : mComputePipeline->GetParameterLayout();
 
 			Initialize();
 		}

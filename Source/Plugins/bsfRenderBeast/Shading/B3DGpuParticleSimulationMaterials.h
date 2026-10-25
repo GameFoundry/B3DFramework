@@ -133,45 +133,6 @@ namespace b3d { namespace render
 		static GpuParticleSimulateMaterial* GetVariation(bool depthCollisions, bool localSpace);
 	};
 
-	B3D_UNIFORM_BUFFER_BEGIN(GpuParticleBoundsUniformDefinition)
-		B3D_UNIFORM_BUFFER_MEMBER(u32, gIterationsPerGroup)
-		B3D_UNIFORM_BUFFER_MEMBER(u32, gNumExtraIterations)
-		B3D_UNIFORM_BUFFER_MEMBER(u32, gNumParticles)
-	B3D_UNIFORM_BUFFER_END
-
-	inline GpuParticleBoundsUniformDefinition gGpuParticleBoundsUniformDefinition;
-
-	/** Material used for calculating particle system bounds. */
-	class GpuParticleBoundsMaterial : public RendererMaterial<GpuParticleBoundsMaterial>
-	{
-		static constexpr u32 kNumThreads = 64;
-
-		RMAT_DEF_CUSTOMIZED("GpuParticleBounds.bsl");
-
-	public:
-		GpuParticleBoundsMaterial() = default;
-		void Initialize() override;
-
-		/** Binds the material to the pipeline along with the global input texture containing particle positions and times. */
-		void Bind(GpuCommandBuffer& commandBuffer, const TShared<Texture>& positionAndTime);
-
-		/**
-		 * Executes the material, calculating the bounds. Note that this function reads back from the GPU and should not
-		 * be called at runtime.
-		 *
-		 * @param		commandBuffer	Command buffer to execute on.
-		 * @param		indices			Buffer containing offsets into the position texture for each particle.
-		 * @param		numParticles	Number of particle in the provided indices buffer.
-		 */
-		AABox Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuBuffer>& indices, u32 numParticles);
-
-	private:
-		GpuParameterUniformBuffer mInputUniformBufferParameter;
-		GpuParameterStorageBuffer mParticleIndicesParam;
-		GpuParameterStorageBuffer mOutputParam;
-		GpuParameterSampledTexture mPosAndTimeTexParam;
-	};
-
 	B3D_UNIFORM_BUFFER_BEGIN(GpuParticleSortPrepareUniformDefinition)
 		B3D_UNIFORM_BUFFER_MEMBER(i32, gIterationsPerGroup)
 		B3D_UNIFORM_BUFFER_MEMBER(i32, gNumExtraIterations)

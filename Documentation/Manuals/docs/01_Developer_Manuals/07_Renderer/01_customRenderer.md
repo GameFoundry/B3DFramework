@@ -188,54 +188,69 @@ Once defined the renderer material can be accessed through the static @b3d::rend
 DownsampleMat* renderMat = DownsampleMat::Get();
 ~~~~~~~~~~~~~
 
-Once retrieved the object will contain the instance of the shader in the path you provided. Internally the material will provide you with a reference to either a graphics or compute pipeline state as *mGfxPipeline* and *mComputePipeline*, depending on the type of shader that was loaded. It will also provide you with **GpuParameterSet** in the *mParams* field.
+Once retrieved the object will contain the instance of the shader in the path you provided. Internally the material will provide you with a reference to either a graphics or compute pipeline state as *mGraphicsPipeline* and *mComputePipeline*, depending on the type of shader that was loaded, and with the parameter layout of that pipeline as *mParameterLayout*.
 
-When the material is first created you will likely want to add a constructor in which you look up any necessary parameters the material might require, so they can be set more easily when rendering.
+Override @b3d::render::RendererMaterialBase::Initialize to look up the handles of the parameters the material uses, so they can be set without name lookups when rendering. Handles are looked up on the parameter layout, and write any parameter set created with it.
 ~~~~~~~~~~~~~{.cpp}
 class DownsampleMat : public RendererMaterial<DownsampleMat>
 {
 	RMAT_DEF("Downsample.bsl");
 
 public:
-	DownsampleMat()
+	void Initialize() override
 	{
 		// Retrieve material parameters, and optionally perform other set-up
-		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+		mParameterLayout->GetSampledTextureParameter("gInputTex", mInputTexture);
 	}
 
-	GpuParamTexture mInputTexture;
+	GpuParameterSampledTexture mInputTexture;
 };
 ~~~~~~~~~~~~~
 
-Often you can also create a method that binds the parameters, binds the material and executes the material all in one. This way external code doesn't need to do anything but to call it.
+The material has no parameter set of its own. A frame graph pass that uses the material creates a set with @b3d::render::RendererMaterialBase::CreateGpuParameterSet(FrameGraphPass&, u32), which also adds the set to the pass, and writes the parameters into it. Rendering then binds the material together with that set. A common pattern splits this into a **Prepare** method, called when the pass is added, and an **Execute** method, called when the pass records.
 
 ~~~~~~~~~~~~~{.cpp}
 class DownsampleMat : public RendererMaterial<DownsampleMat>
 {
 	// ... other DownsampleMat code ...
-	
-	// Set up parameters and render a full screen quad using the material
-	void execute(GpuCommandBuffer& cmdBuffer, const TShared<Texture>& input)
+
+	// Creates the parameter set of the pass and assigns the parameters
+	TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const TShared<Texture>& input)
 	{
-		// Assign parameters before rendering
-		mInputTexture.Set(input);
-		
-		Bind(cmdBuffer);
-		GetRendererUtility().DrawScreenQuad(cmdBuffer);
+		const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
+		mInputTexture.Set(set, input);
+
+		return set;
+	}
+
+	// Binds the material and its set, and renders a full screen quad
+	void Execute(FrameGraphPassContext& context, const TShared<GpuParameterSet>& set) const
+	{
+		GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
+
+		Bind(commandBuffer, set);
+		GetRendererUtility().DrawScreenQuad(commandBuffer);
 	}
 
 	// ... other DownsampleMat code ...
 };
 ~~~~~~~~~~~~~
 
-Note that a helper method @b3d::render::RendererMaterial::Bind() is provided, which will bind both the GPU pipeline and parameters.
+@b3d::render::RendererMaterialBase::Bind(GpuCommandBuffer&, const TShared<GpuParameterSet>&) binds both the GPU pipeline and the parameter set. **Bind()** without a set binds only the pipeline, for callers that bind their sets themselves.
 
 ~~~~~~~~~~~~~{.cpp}
-// External code wanting to run the material
+// External code wanting to run the material, while building a frame graph
 TShared<Texture> inputTex = ...;
-
 DownsampleMat* renderMat = DownsampleMat::Get();
-renderMat->Execute(inputTex);
+
+FrameGraphRasterPass pass;
+// ... set the attachments of the pass ...
+const TShared<GpuParameterSet> set = renderMat->Prepare(pass, inputTex);
+
+graph.AddRasterPass("Downsample", std::move(pass), [renderMat, set](FrameGraphPassContext& context)
+{
+	renderMat->Execute(context, set);
+});
 ~~~~~~~~~~~~~
 
 ### Variations
@@ -252,7 +267,7 @@ ShaderVariation variation = ShaderVariation({
 });
 
 DownsampleMat* renderMat = DownsampleMat::Get(variation);
-renderMat->Execute(inputTex);
+// ... use renderMat in a pass as above ...
 ~~~~~~~~~~~~~
 
 Normally you will want to handle creation of various @b3d::ShaderVariations structures through a templated method, like so:
@@ -299,7 +314,7 @@ Now the calling code can simply retrieve the variation it requires.
 TShared<Texture> inputTex = ...;
 
 DownsampleMat* renderMat = DownsampleMat::GetVariation(true);
-renderMat->Execute(inputTex);
+// ... use renderMat in a pass as above ...
 ~~~~~~~~~~~~~
 
 ### Defines

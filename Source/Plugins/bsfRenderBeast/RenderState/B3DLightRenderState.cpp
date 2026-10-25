@@ -102,18 +102,16 @@ Vector3 GetShiftedLightPosition(const LightProxy& proxy)
 		return tfrm.GetPosition();
 }
 
-void GBufferParameterBinding::Initialize(GpuDevice& gpuDevice, GpuProgramType type, const TShared<GpuParameterSet>& gpuParams)
+void GBufferParameterBinding::Initialize(GpuDevice& gpuDevice, GpuProgramType type, const GpuPipelineParameterLayout& parameterLayout)
 {
-	mParams = gpuParams;
+	parameterLayout.TryGetSampledTextureParameter(kAlbedoTextureName, mGBufferA);
+	parameterLayout.TryGetSampledTextureParameter(kNormalsTextureName, mGBufferB);
+	parameterLayout.TryGetSampledTextureParameter(kRoughMetalTextureName, mGBufferC);
+	parameterLayout.TryGetSampledTextureParameter(kDepthTextureName, mGBufferDepth);
 
-	mParams->TryGetSampledTextureParameter(kAlbedoTextureName, mGBufferA);
-	mParams->TryGetSampledTextureParameter(kNormalsTextureName, mGBufferB);
-	mParams->TryGetSampledTextureParameter(kRoughMetalTextureName, mGBufferC);
-	mParams->TryGetSampledTextureParameter(kDepthTextureName, mGBufferDepth);
-
-	if(mParams->HasSamplerState(kDepthSamplerName))
+	if(parameterLayout.HasSamplerState(kDepthSamplerName))
 	{
-		mParams->GetSamplerStateParameter(kDepthSamplerName, mGBufferDepthSampler);
+		parameterLayout.GetSamplerStateParameter(kDepthSamplerName, mGBufferDepthSampler);
 
 		SamplerStateInformation desc;
 		desc.MinFilter = FO_POINT;
@@ -121,7 +119,6 @@ void GBufferParameterBinding::Initialize(GpuDevice& gpuDevice, GpuProgramType ty
 		desc.MipFilter = FO_POINT;
 
 		mGBufferDepthSamplerState = gpuDevice.FindOrCreateSamplerState(desc);
-		mGBufferDepthSampler.Set(mGBufferDepthSamplerState);
 	}
 }
 
@@ -159,7 +156,7 @@ void GBufferParameterBinding::Set(GpuDevice& gpuDevice, const TShared<GpuParamet
 		samplerStateInformation.MipFilter = FO_POINT;
 
 		TShared<SamplerState> sampleState = gpuDevice.FindOrCreateSamplerState(samplerStateInformation);
-		samplerStateParam.Set(sampleState);
+		samplerStateParam.Set(gpuParameters, sampleState);
 	}
 }
 

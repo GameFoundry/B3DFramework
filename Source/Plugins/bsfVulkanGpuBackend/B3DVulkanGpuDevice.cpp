@@ -576,7 +576,7 @@ void VulkanGpuDevice::RunDefragPass(GpuWorkContext& gpuContext)
 	if (transferCb == nullptr)
 		return;
 
-	// TODO - Relocation copies need explicit barriers around them, and resting transitions of the new resources (task-kvET9Lvc)
+	// TODO - Relocation copies need barriers around them, and resting transitions of the new resources (task-kvET9Lvc)
 	B3D_ASSERT(false && "Defragmentation is not supported.");
 
 	typename TGpuTlsfAllocator<VulkanHeapBackend>::DefragmentationInfo info;

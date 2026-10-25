@@ -18,7 +18,7 @@ namespace b3d
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	TConfigVariable<bool> gFrameGraphSerialRecording("gpu.FrameGraphSerialRecording",
-		"If enabled, frame graphs record their passes one at a time, in GPU execution order, and validate them with one shared explicit barrier validator.", true);
+		"If enabled, frame graphs record their passes one at a time, in GPU execution order, and validate them with one shared barrier validator.", true);
 #endif
 } // namespace b3d
 

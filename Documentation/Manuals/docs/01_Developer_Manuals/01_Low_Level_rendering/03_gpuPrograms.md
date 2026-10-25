@@ -229,7 +229,7 @@ If parameters are modified often you can use *parameter handles* for faster acce
  - @b3d::render::GpuParameterSet::GetSamplerStateParameter - Outputs a handle that can be used for reading & writing the parameter value.
  - @b3d::render::GpuParameterSet::GetParameter<T> - Outputs a handle that can be used for reading & writing the parameter value.
 
-Each method accepts the parameter name and outputs a handle. Handles provide **Set()** and **Get()** methods for reading and writing parameter values. They can be retrieved once and reused, avoiding repeated name lookups.
+Each method accepts the parameter name and outputs a handle. A handle refers to the parameter by its location: its **Set()** and **Get()** methods take the set to write or read, which may be any set created with the same layout. Retrieve handles once and reuse them for every set of that layout, avoiding repeated name lookups. @b3d::GpuPipelineParameterLayout provides the same lookups for the resource parameters of each set of a pipeline, for code that has the pipeline but no set yet.
 
 ~~~~~~~~~~~~~{.cpp}
 // Retrieve parameter handles
@@ -239,12 +239,12 @@ TGpuParameterSampledTexture<false> textureParameter;
 parameterSet->GetParameter("viewProjMatrix", matrixParameter);
 parameterSet->GetSampledTextureParameter("mainTexture", textureParameter);
 
-// Later in performance-critical code, use handles to set values quickly
+// Later in performance-critical code, use handles to set values quickly, in this set or another set with the same layout
 Matrix4 viewProjectionMatrix = ...;
 TShared<Texture> someTexture = ...;
 
-matrixParameter.Set(viewProjectionMatrix);
-textureParameter.Set(someTexture);
+matrixParameter.Set(parameterSet, viewProjectionMatrix);
+textureParameter.Set(parameterSet, someTexture);
 ~~~~~~~~~~~~~
 
 For cases where a parameter may not exist, use the **Try*** variants which return *false* instead of logging warnings:
@@ -253,7 +253,7 @@ For cases where a parameter may not exist, use the **Try*** variants which retur
 TGpuParameterPrimitive<Matrix4, false> optionalParameter;
 if(parameterSet->TryGetParameter("optionalMatrix", optionalParameter))
 {
-	optionalParameter.Set(myMatrix);
+	optionalParameter.Set(parameterSet, myMatrix);
 }
 ~~~~~~~~~~~~~
 

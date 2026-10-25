@@ -108,8 +108,8 @@ namespace b3d
 			static constexpr const char* kSSRTexName = "gSSRTex";
 			static constexpr const char* kReflectionProbesBufferName = "gReflectionProbes";
 
-			/** Looks up the parameters in @p parameters. */
-			void Initialize(const TShared<GpuParameterSet>& parameters);
+			/** Looks the parameters up on set 0 of @p parameterLayout. */
+			void Initialize(const GpuPipelineParameterLayout& parameterLayout);
 
 			GpuParameterSampledTexture SkyReflectionsTexParam;
 			GpuParameterSampledTexture AmbientOcclusionTexParam;

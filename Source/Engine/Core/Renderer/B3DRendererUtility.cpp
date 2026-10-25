@@ -369,7 +369,7 @@ RendererUtility& GetRendererUtility()
 void BlitMat::Initialize()
 {
 	mIsFiltered = mVariationParameters.GetI32("MODE") == 1;
-	mGpuParameterSet->GetSampledTextureParameter("gSource", mSourceParameter);
+	mParameterLayout->GetSampledTextureParameter("gSource", mSourceParameter);
 }
 
 TShared<GpuParameterSet> BlitMat::Prepare(const TShared<Texture>& source)
@@ -469,7 +469,7 @@ ClearUniformDefinition gClearUniformDefinition;
 
 void ClearMaterial::Initialize()
 {
-	mGpuParameterSet->GetUniformBufferParameter("Params", mUniformBufferParameter);
+	mParameterLayout->GetUniformBufferParameter("Params", mUniformBufferParameter);
 }
 
 TShared<GpuParameterSet> ClearMaterial::Prepare(FrameGraphPass& pass, u32 value)
@@ -517,8 +517,8 @@ CompositeUniformDefinition gCompositeUniformDefinition;
 
 void CompositeMaterial::Initialize()
 {
-	mGpuParameterSet->GetUniformBufferParameter("Input", mUniformBufferParameter);
-	mGpuParameterSet->GetSampledTextureParameter("gSource", mSourceTextureParameter);
+	mParameterLayout->GetUniformBufferParameter("Input", mUniformBufferParameter);
+	mParameterLayout->GetSampledTextureParameter("gSource", mSourceTextureParameter);
 }
 
 TShared<GpuParameterSet> CompositeMaterial::Prepare(FrameGraphPass& pass, const TShared<Texture>& source, const Color& tint)
@@ -547,8 +547,8 @@ BicubicUpsampleUniformDefinition gBicubicUpsampleUniformDefinition;
 
 void BicubicUpsampleMaterial::Initialize()
 {
-	mGpuParameterSet->GetUniformBufferParameter("Input", mUniformBufferParameter);
-	mGpuParameterSet->GetSampledTextureParameter("gSource", mSourceTextureParameter);
+	mParameterLayout->GetUniformBufferParameter("Input", mUniformBufferParameter);
+	mParameterLayout->GetSampledTextureParameter("gSource", mSourceTextureParameter);
 }
 
 TShared<GpuParameterSet> BicubicUpsampleMaterial::Prepare(FrameGraphPass& pass, const TShared<Texture>& source, const Color& tint)

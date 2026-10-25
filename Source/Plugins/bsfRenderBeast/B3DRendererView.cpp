@@ -28,11 +28,11 @@ SkyboxUniformDefinition gSkyboxUniformDefinition;
 
 void SkyboxMaterial::Initialize()
 {
-	if(mGpuParameterSet->HasSampledTexture("gSkyTex"))
-		mGpuParameterSet->GetSampledTextureParameter("gSkyTex", mSkyTextureParameter);
+	if(mParameterLayout->HasSampledTexture("gSkyTex"))
+		mParameterLayout->GetSampledTextureParameter("gSkyTex", mSkyTextureParameter);
 
-	mGpuParameterSet->TryGetUniformBufferParameter("Params", mUniformBufferParameter);
-	mGpuParameterSet->GetUniformBufferParameter("PerCamera", mPerCameraParameter);
+	mParameterLayout->TryGetUniformBufferParameter("Params", mUniformBufferParameter);
+	mParameterLayout->GetUniformBufferParameter("PerCamera", mPerCameraParameter);
 }
 
 TShared<GpuParameterSet> SkyboxMaterial::Prepare(FrameGraphPass& pass, const GpuBufferSuballocation& perCamera, const TShared<Texture>& texture, const Color& solidColor)

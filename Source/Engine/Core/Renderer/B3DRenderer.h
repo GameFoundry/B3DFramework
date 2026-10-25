@@ -8,7 +8,6 @@
 #include "Renderer/B3DRendererMeshData.h"
 #include "Material/B3DShaderVariation.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
-#include "GpuBackend/B3DGpuCommandBufferPoolRing.h"
 #include "GpuBackend/B3DGpuCompletionTracker.h"
 #include "GpuBackend/B3DGpuParameterSetPool.h"
 #include "FrameGraph/B3DFrameGraph.h"
@@ -39,7 +38,6 @@ namespace b3d
 	namespace render
 	{
 		class RendererScene;
-		class GpuCommandBufferPool;
 		class RendererTask;
 		class LightProbeVolume;
 		class Decal;
@@ -198,9 +196,6 @@ namespace b3d
 		public:
 			Renderer() = default;
 			virtual ~Renderer() = default;
-
-			/** Returns the command buffer pool for the current frame. */
-			GpuCommandBufferPool& GetCurrentCommandBufferPool() { return mCommandBufferPoolRing->GetCurrentPool(); }
 
 			/**
 			 * Returns the GPU work context intended for use explicitly on the render thread, for primary
@@ -398,8 +393,6 @@ namespace b3d
 			 * Borrows the renderer's frame completion tracker.
 			 */
 			TShared<GpuWorkContext> mGpuContext;
-
-			TUnique<GpuCommandBufferPoolRing> mCommandBufferPoolRing;
 
 			Set<RendererExtension*, RendererExtension::SortFunction> mRendererExtensions;
 			bool mRendererExtensionsDirty = true;

@@ -167,7 +167,7 @@ void AddRadixSortReorderPass(FrameGraph& graph, const GpuSortProperties& props, 
 
 void RadixSortClearMaterial::Initialize()
 {
-	mGpuParameterSet->GetStorageBufferParameter("gOutput", mOutputParam);
+	mParameterLayout->GetStorageBufferParameter("gOutput", mOutputParam);
 }
 
 void RadixSortClearMaterial::InitDefinesInternal(ShaderDefines& defines)
@@ -194,9 +194,9 @@ void RadixSortClearMaterial::Execute(FrameGraphPassContext& context, const TShar
 
 void RadixSortCountMaterial::Initialize()
 {
-	mGpuParameterSet->GetUniformBufferParameter("Params", mParamsParameter);
-	mGpuParameterSet->GetStorageBufferParameter("gInputKeys", mInputKeysParam);
-	mGpuParameterSet->GetStorageBufferParameter("gOutputCounts", mOutputCountsParam);
+	mParameterLayout->GetUniformBufferParameter("Params", mParamsParameter);
+	mParameterLayout->GetStorageBufferParameter("gInputKeys", mInputKeysParam);
+	mParameterLayout->GetStorageBufferParameter("gOutputCounts", mOutputCountsParam);
 }
 
 void RadixSortCountMaterial::InitDefinesInternal(ShaderDefines& defines)
@@ -227,9 +227,9 @@ void RadixSortCountMaterial::Execute(FrameGraphPassContext& context, const TShar
 
 void RadixSortPrefixScanMaterial::Initialize()
 {
-	mGpuParameterSet->TryGetUniformBufferParameter("Params", mParamsParameter);
-	mGpuParameterSet->GetStorageBufferParameter("gInputCounts", mInputCountsParam);
-	mGpuParameterSet->GetStorageBufferParameter("gOutputOffsets", mOutputOffsetsParam);
+	mParameterLayout->TryGetUniformBufferParameter("Params", mParamsParameter);
+	mParameterLayout->GetStorageBufferParameter("gInputCounts", mInputCountsParam);
+	mParameterLayout->GetStorageBufferParameter("gOutputOffsets", mOutputOffsetsParam);
 }
 
 void RadixSortPrefixScanMaterial::InitDefinesInternal(ShaderDefines& defines)
@@ -260,12 +260,12 @@ void RadixSortPrefixScanMaterial::Execute(FrameGraphPassContext& context, const 
 
 void RadixSortReorderMaterial::Initialize()
 {
-	mGpuParameterSet->GetUniformBufferParameter("Params", mParamsParameter);
-	mGpuParameterSet->GetStorageBufferParameter("gInputOffsets", mInputOffsetsBufferParam);
-	mGpuParameterSet->GetStorageBufferParameter("gInputKeys", mInputKeysBufferParam);
-	mGpuParameterSet->GetStorageBufferParameter("gInputValues", mInputValuesBufferParam);
-	mGpuParameterSet->GetStorageBufferParameter("gOutputKeys", mOutputKeysBufferParam);
-	mGpuParameterSet->GetStorageBufferParameter("gOutputValues", mOutputValuesBufferParam);
+	mParameterLayout->GetUniformBufferParameter("Params", mParamsParameter);
+	mParameterLayout->GetStorageBufferParameter("gInputOffsets", mInputOffsetsBufferParam);
+	mParameterLayout->GetStorageBufferParameter("gInputKeys", mInputKeysBufferParam);
+	mParameterLayout->GetStorageBufferParameter("gInputValues", mInputValuesBufferParam);
+	mParameterLayout->GetStorageBufferParameter("gOutputKeys", mOutputKeysBufferParam);
+	mParameterLayout->GetStorageBufferParameter("gOutputValues", mOutputValuesBufferParam);
 }
 
 void RadixSortReorderMaterial::InitDefinesInternal(ShaderDefines& defines)

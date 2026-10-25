@@ -325,18 +325,18 @@ namespace b3d::render
 			return false;
 
 		// One stage class serves every kernel, so the parameters a kernel doesn't declare are left unset
-		const TShared<GpuParameterSet>& parameterSet = mMaterial->GetGpuParameterSet();
-		parameterSet->GetSampledTextureParameter("gInput", mInputParameter);
-		parameterSet->TryGetStorageTextureParameter("gOutput", mOutputParameter);
-		parameterSet->TryGetStorageTextureParameter("gBestErr", mBestErrorParameter);
+		const GpuPipelineParameterLayout& parameterLayout = *mMaterial->GetComputePipeline()->GetParameterLayout();
+		parameterLayout.GetSampledTextureParameter("gInput", mInputParameter);
+		parameterLayout.TryGetStorageTextureParameter("gOutput", mOutputParameter);
+		parameterLayout.TryGetStorageTextureParameter("gBestErr", mBestErrorParameter);
 
 		for(u32 bufferIndex = 0; bufferIndex < (u32)TextureCompressScratchBuffer::Count; ++bufferIndex)
-			parameterSet->TryGetStorageBufferParameter(kScratchBufferNames[bufferIndex], mScratchBufferParameters[bufferIndex]);
+			parameterLayout.TryGetStorageBufferParameter(kScratchBufferNames[bufferIndex], mScratchBufferParameters[bufferIndex]);
 
 		for(u32 tableIndex = 0; tableIndex < (u32)TextureCompressTable::Count; ++tableIndex)
-			parameterSet->TryGetStorageBufferParameter(kTableNames[tableIndex], mTableParameters[tableIndex]);
+			parameterLayout.TryGetStorageBufferParameter(kTableNames[tableIndex], mTableParameters[tableIndex]);
 
-		parameterSet->TryGetUniformBufferParameter("Parameters", mParametersBuffer);
+		parameterLayout.TryGetUniformBufferParameter("Parameters", mParametersBuffer);
 		return true;
 	}
 

@@ -55,9 +55,9 @@ namespace b3d
 
 			void Initialize() override
 			{
-				mGpuParameterSet->GetStorageBufferParameter("gInput", mInputParameter);
-				mGpuParameterSet->GetStorageBufferParameter("gOutput", mOutputParameter);
-				mGpuParameterSet->TryGetUniformBufferParameter("Parameters", mParametersBuffer);
+				mParameterLayout->GetStorageBufferParameter("gInput", mInputParameter);
+				mParameterLayout->GetStorageBufferParameter("gOutput", mOutputParameter);
+				mParameterLayout->TryGetUniformBufferParameter("Parameters", mParametersBuffer);
 			}
 
 			/** Creates the parameter set of @p pass, which downsamples @p input into @p output. Returns the set to pass to Execute(). */

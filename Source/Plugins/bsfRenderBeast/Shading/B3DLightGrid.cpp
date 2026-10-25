@@ -22,18 +22,18 @@ LightGridUniformDefinition gLightGridUniformDefinition;
 
 void LightGridLLCreationMaterial::Initialize()
 {
-	mGpuParameterSet->GetUniformBufferParameter("GridParams", mGridParamsParameter);
-	mGpuParameterSet->GetUniformBufferParameter("PerCamera", mPerCameraParameter);
+	mParameterLayout->GetUniformBufferParameter("GridParams", mGridParamsParameter);
+	mParameterLayout->GetUniformBufferParameter("PerCamera", mPerCameraParameter);
 
-	mGpuParameterSet->GetStorageBufferParameter("gLights", mLightBufferParam);
-	mGpuParameterSet->GetStorageBufferParameter("gLightsCounter", mLightsCounterParam);
-	mGpuParameterSet->GetStorageBufferParameter("gLightsLLHeads", mLightsLLHeadsParam);
-	mGpuParameterSet->GetStorageBufferParameter("gLightsLL", mLightsLLParam);
+	mParameterLayout->GetStorageBufferParameter("gLights", mLightBufferParam);
+	mParameterLayout->GetStorageBufferParameter("gLightsCounter", mLightsCounterParam);
+	mParameterLayout->GetStorageBufferParameter("gLightsLLHeads", mLightsLLHeadsParam);
+	mParameterLayout->GetStorageBufferParameter("gLightsLL", mLightsLLParam);
 
-	mGpuParameterSet->GetStorageBufferParameter("gReflectionProbes", mProbesBufferParam);
-	mGpuParameterSet->GetStorageBufferParameter("gProbesCounter", mProbesCounterParam);
-	mGpuParameterSet->GetStorageBufferParameter("gProbesLLHeads", mProbesLLHeadsParam);
-	mGpuParameterSet->GetStorageBufferParameter("gProbesLL", mProbesLLParam);
+	mParameterLayout->GetStorageBufferParameter("gReflectionProbes", mProbesBufferParam);
+	mParameterLayout->GetStorageBufferParameter("gProbesCounter", mProbesCounterParam);
+	mParameterLayout->GetStorageBufferParameter("gProbesLLHeads", mProbesLLHeadsParam);
+	mParameterLayout->GetStorageBufferParameter("gProbesLL", mProbesLLParam);
 }
 
 void LightGridLLCreationMaterial::InitDefinesInternal(ShaderDefines& defines)
@@ -77,22 +77,22 @@ void LightGridLLCreationMaterial::Execute(FrameGraphPassContext& context, const 
 
 void LightGridLLReductionMaterial::Initialize()
 {
-	mGpuParameterSet->GetUniformBufferParameter("GridParams", mGridParamsParameter);
-	mGpuParameterSet->TryGetUniformBufferParameter("PerCamera", mPerCameraParameter);
+	mParameterLayout->GetUniformBufferParameter("GridParams", mGridParamsParameter);
+	mParameterLayout->TryGetUniformBufferParameter("PerCamera", mPerCameraParameter);
 
-	mGpuParameterSet->GetStorageBufferParameter("gLightsLLHeads", mLightsLLHeadsParam);
-	mGpuParameterSet->GetStorageBufferParameter("gLightsLL", mLightsLLParam);
+	mParameterLayout->GetStorageBufferParameter("gLightsLLHeads", mLightsLLHeadsParam);
+	mParameterLayout->GetStorageBufferParameter("gLightsLL", mLightsLLParam);
 
-	mGpuParameterSet->GetStorageBufferParameter("gProbesLLHeads", mProbesLLHeadsParam);
-	mGpuParameterSet->GetStorageBufferParameter("gProbesLL", mProbesLLParam);
+	mParameterLayout->GetStorageBufferParameter("gProbesLLHeads", mProbesLLHeadsParam);
+	mParameterLayout->GetStorageBufferParameter("gProbesLL", mProbesLLParam);
 
-	mGpuParameterSet->GetStorageBufferParameter("gGridDataCounter", mGridDataCounterParam);
+	mParameterLayout->GetStorageBufferParameter("gGridDataCounter", mGridDataCounterParam);
 
-	mGpuParameterSet->GetStorageBufferParameter("gGridLightOffsetAndSize", mGridLightOffsetAndSizeParam);
-	mGpuParameterSet->GetStorageBufferParameter("gGridLightIndices", mGridLightIndicesParam);
+	mParameterLayout->GetStorageBufferParameter("gGridLightOffsetAndSize", mGridLightOffsetAndSizeParam);
+	mParameterLayout->GetStorageBufferParameter("gGridLightIndices", mGridLightIndicesParam);
 
-	mGpuParameterSet->GetStorageBufferParameter("gGridProbeOffsetAndSize", mGridProbeOffsetAndSizeParam);
-	mGpuParameterSet->GetStorageBufferParameter("gGridProbeIndices", mGridProbeIndicesParam);
+	mParameterLayout->GetStorageBufferParameter("gGridProbeOffsetAndSize", mGridProbeOffsetAndSizeParam);
+	mParameterLayout->GetStorageBufferParameter("gGridProbeIndices", mGridProbeIndicesParam);
 }
 
 void LightGridLLReductionMaterial::InitDefinesInternal(ShaderDefines& defines)

@@ -89,82 +89,13 @@ GpuParticleSimulateMaterial* GpuParticleSimulateMaterial::GetVariation(bool dept
 	return Get(GetVariation<0>());
 }
 
-void GpuParticleBoundsMaterial::Initialize()
-{
-	mGpuParameterSet->GetUniformBufferParameter("Input", mInputUniformBufferParameter);
-	mGpuParameterSet->GetStorageBufferParameter("gParticleIndices", mParticleIndicesParam);
-	mGpuParameterSet->GetStorageBufferParameter("gOutput", mOutputParam);
-	mGpuParameterSet->GetSampledTextureParameter("gPosAndTimeTex", mPosAndTimeTexParam);
-}
-
-void GpuParticleBoundsMaterial::InitDefinesInternal(ShaderDefines& defines)
-{
-	defines.Set("NUM_THREADS", kNumThreads);
-}
-
-void GpuParticleBoundsMaterial::Bind(GpuCommandBuffer& commandBuffer, const TShared<Texture>& positionAndTime)
-{
-	mPosAndTimeTexParam.Set(positionAndTime);
-
-	RendererMaterial::Bind(commandBuffer);
-}
-
-AABox GpuParticleBoundsMaterial::Execute(GpuCommandBuffer& commandBuffer, const TShared<GpuBuffer>& indices, u32 numParticles)
-{
-	static constexpr u32 kMaxNumGroups = 128;
-
-	const u32 numIterations = Math::DivideAndRoundUp(numParticles, kNumThreads);
-	const u32 numGroups = std::min(numIterations, kMaxNumGroups);
-
-	const u32 iterationsPerGroup = numIterations / numGroups;
-	const u32 extraIterations = numIterations % numGroups;
-
-	GpuBufferMappedScope inputUniforms = gGpuParticleBoundsUniformDefinition.AllocateTransient().Map();
-
-	gGpuParticleBoundsUniformDefinition.gIterationsPerGroup.Set(inputUniforms, iterationsPerGroup);
-	gGpuParticleBoundsUniformDefinition.gNumExtraIterations.Set(inputUniforms, extraIterations);
-	gGpuParticleBoundsUniformDefinition.gNumParticles.Set(inputUniforms, numParticles);
-
-	mInputUniformBufferParameter.Set(inputUniforms);
-
-	GpuBufferCreateInformation outputBufferCreateInformation;
-	outputBufferCreateInformation.Type = GpuBufferType::SimpleStorage;
-	outputBufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
-	outputBufferCreateInformation.SimpleStorage.Format = BF_32X2U;
-	outputBufferCreateInformation.SimpleStorage.Count = numGroups * 2;
-
-	TShared<GpuBuffer> output = mGpuDevice->CreateGpuBuffer(outputBufferCreateInformation);
-
-	mParticleIndicesParam.Set(indices);
-	mOutputParam.Set(output);
-
-	commandBuffer.DispatchCompute(numGroups);
-
-	Vector3 min = Vector3::kInfinite;
-	Vector3 max = -Vector3::kInfinite;
-
-	Vector3* data = (Vector3*)B3DStackAllocate(output->GetTotalSize());
-	GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
-	GpuBufferUtility::Read(gpuContext, output, 0, output->GetTotalSize(), data);
-
-	for(u32 i = 0; i < numGroups; i++)
-	{
-		min = Vector3::Min(min, data[i * 2 + 0]);
-		max = Vector3::Min(max, data[i * 2 + 1]);
-	}
-
-	B3DStackFree(data);
-
-	return AABox(min, max);
-}
-
 void GpuParticleSortPrepareMaterial::Initialize()
 {
-	mGpuParameterSet->GetUniformBufferParameter("Input", mInputUniformBufferParameter);
-	mGpuParameterSet->GetStorageBufferParameter("gInputIndices", mInputIndicesParam);
-	mGpuParameterSet->GetStorageBufferParameter("gOutputKeys", mOutputKeysParam);
-	mGpuParameterSet->GetStorageBufferParameter("gOutputIndices", mOutputIndicesParam);
-	mGpuParameterSet->GetSampledTextureParameter("gPosAndTimeTex", mPosAndTimeTexParam);
+	mParameterLayout->GetUniformBufferParameter("Input", mInputUniformBufferParameter);
+	mParameterLayout->GetStorageBufferParameter("gInputIndices", mInputIndicesParam);
+	mParameterLayout->GetStorageBufferParameter("gOutputKeys", mOutputKeysParam);
+	mParameterLayout->GetStorageBufferParameter("gOutputIndices", mOutputIndicesParam);
+	mParameterLayout->GetSampledTextureParameter("gPosAndTimeTex", mPosAndTimeTexParam);
 }
 
 void GpuParticleSortPrepareMaterial::InitDefinesInternal(ShaderDefines& defines)

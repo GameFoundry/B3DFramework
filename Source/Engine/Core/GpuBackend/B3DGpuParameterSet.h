@@ -314,12 +314,10 @@ namespace b3d
 		virtual ~TGpuParameterSet();
 
 		/**
-		 * Returns a handle for the parameter with the specified name. Handle may then be stored and used for quickly
-		 * setting or retrieving values to/from that parameter.
+		 * Returns a handle for the parameter with the specified name. The handle writes and reads the parameter in this set, or in any
+		 * other set with the same layout, without further lookups.
 		 *
-		 * Throws exception if parameter with that name and type doesn't exist.
-		 *
-		 * Parameter handles will be invalidated when their parent GpuParameterSet object changes.
+		 * Logs a warning if a parameter with that name and type doesn't exist.
 		 */
 		template <class T>
 		void GetParameter(const StringView& name, TGpuParameterPrimitive<T, IsRenderProxy>& output) const;
@@ -445,7 +443,7 @@ namespace b3d
 		{
 			TGpuParameterPrimitive<T, IsRenderProxy> param;
 			GetParameter(name, param);
-			param.Set(value);
+			param.Set(GetSelf(), value);
 		}
 
 		/**	Assigns a texture to the parameter with the specified name. */
@@ -453,7 +451,7 @@ namespace b3d
 		{
 			TGpuParameterSampledTexture<IsRenderProxy> param;
 			GetSampledTextureParameter(name, param);
-			param.Set(texture, surface);
+			param.Set(GetSelf(), texture, surface);
 		}
 
 		/**	Assigns a load/store texture to the parameter with the specified name. */
@@ -461,7 +459,7 @@ namespace b3d
 		{
 			TGpuParameterStorageTexture<IsRenderProxy> param;
 			GetStorageTextureParameter(name, param);
-			param.Set(texture, surface);
+			param.Set(GetSelf(), texture, surface);
 		}
 
 		/**
@@ -476,7 +474,7 @@ namespace b3d
 		{
 			TGpuParameterStorageBuffer<IsRenderProxy> param;
 			GetStorageBufferParameter(name, param);
-			param.Set(buffer, arrayIndex, view);
+			param.Set(GetSelf(), buffer, arrayIndex, view);
 		}
 
 		/**	Assigns a sampler state to the parameter with the specified name. */
@@ -484,7 +482,7 @@ namespace b3d
 		{
 			TGpuParameterSampler<IsRenderProxy> param;
 			GetSamplerStateParameter(name, param);
-			param.Set(sampler);
+			param.Set(GetSelf(), sampler);
 		}
 
 	protected:

@@ -356,7 +356,7 @@ namespace b3d::render
 				const bool isFirstBarrier = !state.IsDeclared && state.UsedAccess == GpuAccessFlag::None;
 				const char* const barrierError = ApplyBarrier(state, barrier, phase, split, true);
 				if(barrierError == nullptr && isAtRest && isFirstBarrier && declaresNoAccess)
-					return "The first explicit barrier of a texture at rest declares no source. Start it from the resting state (see GpuBackendUtility::GetRestingState()), with GpuImageLayout::Undefined to discard the contents.";
+					return "The first barrier of a texture at rest declares no source. Start it from the resting state (see GpuBackendUtility::GetRestingState()), with GpuImageLayout::Undefined to discard the contents.";
 
 				return barrierError;
 			});
@@ -447,18 +447,18 @@ namespace b3d::render
 		{
 			// The release already checked the source
 			if(phase != GpuBarrierPhase::Acquire || state.PendingAcquire != split)
-				error = "An explicit barrier was recorded between the release and the acquire of a split barrier of the same resource.";
+				error = "A barrier was recorded between the release and the acquire of a split barrier of the same resource.";
 		}
 		else if(barrier.Flags.IsSet(GpuBarrierFlag::AliasAcquire) && (state.IsDeclared || state.UsedAccess != GpuAccessFlag::None))
 			error = "An alias acquire must precede every other use of the resource.";
 		else if(barrier.Flags.IsSet(GpuBarrierFlag::AliasRelease) && ((isImage && barrier.Destination.Layout != GpuImageLayout::Undefined) || barrier.Destination.Access != GpuAccessFlag::None))
 			error = "An alias release must leave the resource in GpuImageLayout::Undefined, without access.";
 		else if(isImage && state.IsDeclared && source.Layout != GpuImageLayout::Undefined && source.Layout != state.Declared.Layout)
-			error = "The source layout of an explicit barrier differs from the destination layout of the previous barrier of the resource.";
+			error = "The source layout of a barrier differs from the destination layout of the previous barrier of the resource.";
 		else if(!source.Stages.IsSetAll(state.UsedStages))
-			error = "The source of an explicit barrier is missing stages that accessed the resource since the previous barrier.";
+			error = "The source of a barrier is missing stages that accessed the resource since the previous barrier.";
 		else if(state.UsedAccess.IsSet(GpuAccessFlag::Write) && !source.Access.IsSet(GpuAccessFlag::Write))
-			error = "The source of an explicit barrier is missing the writes of the resource since the previous barrier.";
+			error = "The source of a barrier is missing the writes of the resource since the previous barrier.";
 
 		if(phase == GpuBarrierPhase::Release)
 			state.PendingAcquire = split;
@@ -483,11 +483,11 @@ namespace b3d::render
 		if(state.PendingAcquire != nullptr)
 			error = "The resource was accessed between the release and the acquire of a split barrier.";
 		else if(declared != nullptr && !declared->Stages.IsSetAll(stages))
-			error = state.IsDeclared ? "The resource was accessed in stages that its last explicit barrier does not declare." : "The resource was accessed in stages its resting state does not allow, without an explicit barrier.";
+			error = state.IsDeclared ? "The resource was accessed in stages that its last barrier does not declare." : "The resource was accessed in stages its resting state does not allow, without a barrier.";
 		else if(declared != nullptr && !declared->Access.IsSetAll(access))
-			error = state.IsDeclared ? "The resource was accessed with reads or writes that its last explicit barrier does not declare." : "The resource was accessed with reads or writes its resting state does not allow, without an explicit barrier.";
+			error = state.IsDeclared ? "The resource was accessed with reads or writes that its last barrier does not declare." : "The resource was accessed with reads or writes its resting state does not allow, without a barrier.";
 		else if(declared != nullptr && layout != GpuImageLayout::Undefined && layout != declared->Layout)
-			error = state.IsDeclared ? "The image was accessed in a different layout than its last explicit barrier declares." : "The image was accessed in a different layout than its resting state, without an explicit barrier.";
+			error = state.IsDeclared ? "The image was accessed in a different layout than its last barrier declares." : "The image was accessed in a different layout than its resting state, without a barrier.";
 		else if(operation != 0 && state.WriterOperation != 0 && state.WriterOperation != operation)
 			error = "The resource was accessed by a draw or dispatch after another draw or dispatch wrote it, without a barrier in between.";
 

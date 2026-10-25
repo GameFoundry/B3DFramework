@@ -1202,7 +1202,7 @@ void FrameGraphTestSuite::TestParameterHandles()
 		const FrameGraphTestContext test(*device, pipeline);
 		const TShared<GpuPipelineParameterSetLayout> layout = pipeline->GetParameterLayout()->GetSet(0);
 
-		// The handles come from one set, as a material's do, and write the set of the pass
+		// The handles are looked up on one set and write the set of the pass
 		const TShared<render::GpuParameterSet> handleParameters = test.Context->GetParameterSetPool().Create(layout, 0);
 		render::GpuParameterStorageBuffer bufferParameter;
 		render::GpuParameterStorageTexture textureParameter;
@@ -1223,7 +1223,8 @@ void FrameGraphTestSuite::TestParameterHandles()
 			textureParameter.Set(parameters, texture);
 			pass.AddParameterSet(parameters);
 
-			B3D_TEST_ASSERT_MSG(bufferParameter.Get() == nullptr && textureParameter.Get() == nullptr, "Setting another set changed the handles' own set.")
+			B3D_TEST_ASSERT_MSG(bufferParameter.Get(handleParameters) == nullptr && textureParameter.Get(handleParameters) == nullptr,
+				"Setting another set changed the set the handles were looked up on.")
 
 			graph.AddComputePass("Write", std::move(pass), [pipeline, parameters](FrameGraphPassContext& passContext)
 			{
@@ -1333,7 +1334,7 @@ void FrameGraphTestSuite::TestValidation()
 	logs.ExpectError(drawDependency + " Image: 'Twice texture'.");
 	logs.ExpectError(drawDependency + " Buffer: 'Undeclared buffer'.");
 	logs.ExpectError(drawDependency + " Image: 'Undeclared texture'.");
-	logs.ExpectError("The image was accessed in a different layout than its last explicit barrier declares. Image: 'Unexported texture'.");
+	logs.ExpectError("The image was accessed in a different layout than its last barrier declares. Image: 'Unexported texture'.");
 	logs.ExpectError("The resource was used while it is unplaced, without memory from its transient resource allocator. Place it first. Image: 'Held texture'.");
 
 	RunOnRenderThread("FrameGraphTestSuite::TestValidation", [&device, &pipeline, &samplePipeline]()

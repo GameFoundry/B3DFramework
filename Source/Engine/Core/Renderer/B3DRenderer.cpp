@@ -90,11 +90,6 @@ void Renderer::InitializeOnRenderThread()
 
 void Renderer::ActivateOnRenderThread()
 {
-	GpuCommandBufferPoolCreateInformation createInformation = GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_GRAPHICS);
-	createInformation.UsePoolReset = true;
-
-	mCommandBufferPoolRing = B3DMakeUnique<GpuCommandBufferPoolRing>(*mDevice, createInformation);
-
 	GpuUniformBufferManager::StartUp();
 }
 
@@ -111,9 +106,6 @@ void Renderer::DestroyOnRenderThread()
 		mGpuContext->WaitAndReclaim();
 		mGpuContext = nullptr;
 	}
-
-	mCommandBufferPoolRing->Destroy();
-	mCommandBufferPoolRing = nullptr;
 }
 
 TShared<RendererMeshData> Renderer::CreateMeshDataInternal(u32 numVertices, u32 numIndices, VertexLayout layout, IndexType indexType)

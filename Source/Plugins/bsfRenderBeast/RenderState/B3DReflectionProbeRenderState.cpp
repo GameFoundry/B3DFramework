@@ -100,24 +100,24 @@ void ReflectionProbeRenderState::GetParameters(const ReflectionProbeProxy& proxy
 	output.InvBoxTransform.SetInverseTrs(output.Position, proxy.GetWorldTransform().GetRotation(), output.BoxExtents);
 }
 
-void ImageBasedLightingParameterBinding::Initialize(const TShared<GpuParameterSet>& parameters)
+void ImageBasedLightingParameterBinding::Initialize(const GpuPipelineParameterLayout& parameterLayout)
 {
 	// Sky
-	parameters->GetSampledTextureParameter(kSkyReflectionTextureName, SkyReflectionsTexParam);
+	parameterLayout.GetSampledTextureParameter(kSkyReflectionTextureName, SkyReflectionsTexParam);
 
 	// Reflections
-	parameters->GetSampledTextureParameter(kReflectionProbeCubemapsTextureName, ReflectionProbeCubemapsTexParameter);
-	parameters->GetStorageBufferParameter(kReflectionProbesBufferName, ReflectionProbesParameter);
+	parameterLayout.GetSampledTextureParameter(kReflectionProbeCubemapsTextureName, ReflectionProbeCubemapsTexParameter);
+	parameterLayout.GetStorageBufferParameter(kReflectionProbesBufferName, ReflectionProbesParameter);
 
-	parameters->GetSampledTextureParameter(kPreintegratedEnvBRDFTextureName, PreintegratedEnvBrdfParameter);
+	parameterLayout.GetSampledTextureParameter(kPreintegratedEnvBRDFTextureName, PreintegratedEnvBrdfParameter);
 
 	// AO
-	if(parameters->HasSampledTexture(kAmbientOcclusionTextureName))
-		parameters->GetSampledTextureParameter(kAmbientOcclusionTextureName, AmbientOcclusionTexParam);
+	if(parameterLayout.HasSampledTexture(kAmbientOcclusionTextureName))
+		parameterLayout.GetSampledTextureParameter(kAmbientOcclusionTextureName, AmbientOcclusionTexParam);
 
 	// SSR
-	if(parameters->HasSampledTexture(kSSRTexName))
-		parameters->GetSampledTextureParameter(kSSRTexName, SsrTexParameter);
+	if(parameterLayout.HasSampledTexture(kSSRTexName))
+		parameterLayout.GetSampledTextureParameter(kSSRTexName, SsrTexParameter);
 }
 
 void ReflectionProbeRenderState::PopulateGlobalReflectionProbeUniformBuffer(const GpuBufferSuballocation& uniformBuffer, const Skybox* sky, u32 probeCount, const TShared<Texture>& reflectionCubemaps, bool capturingReflections)

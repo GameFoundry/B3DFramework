@@ -70,7 +70,7 @@
 * __Low-level GPU API__
 	* Fully featured, thread safe, backend-agnostic wrapper
 	* Command buffers with explicit render passes
-	* Automatic barriers — no manual layout transitions required
+	* Full and split barriers
 	* GPU buffer pooling (permanent and transient) with frame-lifetime allocations
 	* Descriptor / parameter set pools with automatic multi-pool allocation
 	* Persistent memory-mapped regions for efficient CPU writes

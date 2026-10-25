@@ -17,6 +17,8 @@
 
 namespace b3d
 {
+	class GpuParametersSetBase;
+
 	/** @addtogroup Implementation-Internal
 	 *  @{
 	 */
@@ -85,28 +87,27 @@ namespace b3d
 		GpuBufferFormat Format = BF_UNKNOWN; /**< Format to interpret the buffer contents as. If not specified, default buffer format will be used. Only relevant for simple storage buffers. */
 	};
 
-	// TODO - Refactor all parameter handle types so they only write a set the caller passes in, and never store one. The handle would keep
-	// only its binding (and the layout, to validate the set against). Today every handle stores its parent set, and only the resource
-	// handles accept an external one.
+	/** Common part of all parameter handles. In development builds, remembers the layout the handle was looked up on. */
+	class B3D_EXPORT GpuParameterHandleBase
+	{
+	protected:
+		GpuParameterHandleBase() = default;
+		GpuParameterHandleBase(const GpuPipelineParameterSetLayout* layout);
+
+		/** Checks, in development builds, that @p set has the layout the handle was looked up on, and that it is set @p setIndex. */
+		void CheckSet(const GpuParametersSetBase& set, u32 setIndex) const;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		const GpuPipelineParameterSetLayout* mLayout = nullptr;
+#endif
+	};
 
 	/**
-	 * A handle that allows you to set a GpuProgram parameter. Internally keeps a reference to the GPU parameter buffer and
-	 * the necessary offsets. You should specialize this type for specific parameter types.
-	 *
-	 * Object of this type must be returned by a Material. Setting/Getting parameter values will internally access a GPU
-	 * parameter buffer attached to the Material this parameter was created from. Anything rendered with that material will
-	 * then use those set values.
-	 *
-	 * @note
-	 * Normally you can set a GpuProgram parameter by calling various set/get methods on a Material. This class primarily
-	 * used an as optimization in performance critical bits of code where it is important to locate and set parameters
-	 * quickly without any lookups (Mentioned set/get methods expect a parameter name). You just retrieve the handle once
-	 * and then set the parameter value many times with minimal performance impact.
-	 *
-	 * @see		Material
+	 * A handle to a single GPU program parameter of a parameter set layout. Look it up once by name, on the pipeline's parameter layout
+	 * (GpuPipelineParameterLayout) or on a set, then write and read the parameter in any set with that layout without further lookups.
 	 */
 	template <class T, bool IsRenderProxy>
-	class B3D_EXPORT TGpuParameterPrimitive
+	class B3D_EXPORT TGpuParameterPrimitive : public GpuParameterHandleBase
 	{
 	private:
 		using GpuParamBufferType = TShared<CoreVariantType<GpuBuffer, IsRenderProxy>>;
@@ -114,24 +115,21 @@ namespace b3d
 
 	public:
 		TGpuParameterPrimitive();
-		TGpuParameterPrimitive(const GpuUniformBufferMemberInformation* parameterInformation, const GpuParamsType& parent);
+		TGpuParameterPrimitive(const GpuUniformBufferMemberInformation* parameterInformation, const GpuPipelineParameterSetLayout* layout);
 
 		/**
-		 * Sets a parameter value at the specified array index. If parameter does not contain an array leave the index at 0.
-		 *
-		 * @note
-		 * Like with all GPU parameters, the actual GPU buffer will not be updated until rendering with material this
-		 * parameter was created from starts on the render thread.
+		 * Sets the value of the parameter in @p set, at the specified array index. If the parameter is not an array leave the index at 0.
+		 * @p set must have the layout the handle was looked up on, such as another set created for the same material and set index.
 		 */
-		void Set(const T& value, u32 arrayIdx = 0) const;
+		void Set(const GpuParamsType& set, const T& value, u32 arrayIdx = 0) const;
 
 		/**
-		 * Returns a value of a parameter at the specified array index. If parameter does not contain an array leave the
-		 * index at 0.
+		 * Returns the value of the parameter in @p set, at the specified array index. If the parameter is not an array leave the index
+		 * at 0.
 		 *
 		 * @note	No GPU reads are done. Data returned was cached when it was written.
 		 */
-		T Get(u32 arrayIdx = 0) const;
+		T Get(const GpuParamsType& set, u32 arrayIdx = 0) const;
 
 		/** Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const
@@ -140,26 +138,25 @@ namespace b3d
 		}
 
 	protected:
-		GpuParamsType mParent;
 		const GpuUniformBufferMemberInformation* mParameterInformation = nullptr;
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_EXPORT TGpuParameterStruct
+	class B3D_EXPORT TGpuParameterStruct : public GpuParameterHandleBase
 	{
 	public:
 		using GpuParamBufferType = TShared<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 		using GpuParamsType = TShared<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
 
 		TGpuParameterStruct();
-		TGpuParameterStruct(const GpuUniformBufferMemberInformation* parameterInformation, const GpuParamsType& parent);
+		TGpuParameterStruct(const GpuUniformBufferMemberInformation* parameterInformation, const GpuPipelineParameterSetLayout* layout);
 
-		/** @copydoc TGpuDataParam::Set */
-		void Set(const void* value, u32 sizeBytes, u32 arrayIdx = 0) const;
+		/** @copydoc TGpuParameterPrimitive::Set */
+		void Set(const GpuParamsType& set, const void* value, u32 sizeBytes, u32 arrayIdx = 0) const;
 
-		/** @copydoc TGpuDataParam::Get */
-		void Get(void* value, u32 sizeBytes, u32 arrayIdx = 0) const;
+		/** @copydoc TGpuParameterPrimitive::Get */
+		void Get(const GpuParamsType& set, void* value, u32 sizeBytes, u32 arrayIdx = 0) const;
 
 		/**	Returns the size of the struct in bytes. */
 		u32 GetElementSize() const;
@@ -171,33 +168,26 @@ namespace b3d
 		}
 
 	protected:
-		GpuParamsType mParent;
 		const GpuUniformBufferMemberInformation* mParameterInformation = nullptr;
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_EXPORT TGpuParameterSampledTexture
+	class B3D_EXPORT TGpuParameterSampledTexture : public GpuParameterHandleBase
 	{
 	private:
-		friend class GpuParameterSet;
-		friend class render::GpuParameterSet;
-
 		using GpuParamsType = TShared<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 
 	public:
 		TGpuParameterSampledTexture();
-		TGpuParameterSampledTexture(const GpuParameterBinding& binding, const GpuParamsType& parent);
+		TGpuParameterSampledTexture(const GpuParameterBinding& binding, const GpuPipelineParameterSetLayout* layout);
 
-		/** @copydoc TGpuDataParam::Set */
-		void Set(const TextureType& texture, const TextureSurface& surface = TextureSurface::kComplete, u32 arrayIndex = 0) const;
-
-		/* Sets the parameter in @p set. @p set must have the same layout, such as another set created for the same material and set index. */
+		/** Sets the parameter in @p set. @p set must have the layout the handle was looked up on, such as another set created for the same material and set index. */
 		void Set(const GpuParamsType& set, const TextureType& texture, const TextureSurface& surface = TextureSurface::kComplete, u32 arrayIndex = 0) const;
 
-		/** @copydoc TGpuDataParam::Get */
-		TextureType Get(u32 arrayIndex = 0) const;
+		/** Returns the value of the parameter in @p set. */
+		TextureType Get(const GpuParamsType& set, u32 arrayIndex = 0) const;
 
 		/** Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const
@@ -206,33 +196,26 @@ namespace b3d
 		}
 
 	protected:
-		GpuParamsType mParent;
 		GpuParameterBinding mBinding;
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_EXPORT TGpuParameterStorageTexture
+	class B3D_EXPORT TGpuParameterStorageTexture : public GpuParameterHandleBase
 	{
 	private:
-		friend class GpuParameterSet;
-		friend class render::GpuParameterSet;
-
 		using GpuParamsType = TShared<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 
 	public:
 		TGpuParameterStorageTexture();
-		TGpuParameterStorageTexture(const GpuParameterBinding& binding, const GpuParamsType& parent);
+		TGpuParameterStorageTexture(const GpuParameterBinding& binding, const GpuPipelineParameterSetLayout* layout);
 
-		/** @copydoc TGpuDataParam::Set */
-		void Set(const TextureType& texture, const TextureSurface& surface = TextureSurface(), u32 arrayIndex = 0) const;
-
-		/** Sets the parameter in @p set instead. @p set must have the same layout, such as another set created for the same material and set index. */
+		/** @copydoc TGpuParameterSampledTexture::Set */
 		void Set(const GpuParamsType& set, const TextureType& texture, const TextureSurface& surface = TextureSurface(), u32 arrayIndex = 0) const;
 
-		/** @copydoc TGpuDataParam::Get */
-		TextureType Get(u32 arrayIndex = 0) const;
+		/** @copydoc TGpuParameterSampledTexture::Get */
+		TextureType Get(const GpuParamsType& set, u32 arrayIndex = 0) const;
 
 		/**	Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const
@@ -241,33 +224,26 @@ namespace b3d
 		}
 
 	protected:
-		GpuParamsType mParent;
 		GpuParameterBinding mBinding;
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_EXPORT TGpuParameterStorageBuffer
+	class B3D_EXPORT TGpuParameterStorageBuffer : public GpuParameterHandleBase
 	{
 	private:
-		friend class GpuParameterSet;
-		friend class render::GpuParameterSet;
-
 		using GpuParamsType = TShared<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
 		using BufferType = TShared<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 
 	public:
 		TGpuParameterStorageBuffer();
-		TGpuParameterStorageBuffer(const GpuParameterBinding& binding, const GpuParamsType& parent);
+		TGpuParameterStorageBuffer(const GpuParameterBinding& binding, const GpuPipelineParameterSetLayout* layout);
 
-		/** @copydoc TGpuDataParam::Set */
-		void Set(const BufferType& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation()) const;
-
-		/** Sets the parameter in @p set. @p set must have the same layout, such as another set created for the same material and set index. */
+		/** @copydoc TGpuParameterSampledTexture::Set */
 		void Set(const GpuParamsType& set, const BufferType& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation()) const;
 
-		/** @copydoc TGpuDataParam::Get */
-		BufferType Get(u32 arrayIndex = 0) const;
+		/** @copydoc TGpuParameterSampledTexture::Get */
+		BufferType Get(const GpuParamsType& set, u32 arrayIndex = 0) const;
 
 		/** Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const
@@ -276,41 +252,30 @@ namespace b3d
 		}
 
 	protected:
-		GpuParamsType mParent;
 		GpuParameterBinding mBinding;
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_EXPORT TGpuParameterUniformBuffer
+	class B3D_EXPORT TGpuParameterUniformBuffer : public GpuParameterHandleBase
 	{
 	private:
-		friend class GpuParameterSet;
-		friend class render::GpuParameterSet;
-
 		using GpuParamsType = TShared<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
 		using BufferType = TShared<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 
 	public:
 		TGpuParameterUniformBuffer();
-		TGpuParameterUniformBuffer(const GpuParameterBinding& binding, const GpuParamsType& parent);
+		TGpuParameterUniformBuffer(const GpuParameterBinding& binding, const GpuPipelineParameterSetLayout* layout);
 
-		/** @copydoc TGpuDataParam::Set */
-		void Set(const BufferType& buffer) const;
-
-		/** @copydoc TGpuDataParam::Set */
-		template<bool Condition = IsRenderProxy, std::enable_if_t<Condition, i32> = 0>
-		void Set(const render::GpuBufferSuballocation& bufferSuballocation) const;
-
-		/** Sets the parameter in @p set. @p set must have the same layout, such as another set created for the same material and set index. */
+		/** @copydoc TGpuParameterSampledTexture::Set */
 		void Set(const GpuParamsType& set, const BufferType& buffer) const;
 
-		/** Sets the parameter in @p set instead. @p set must have the same layout, such as another set created for the same material and set index. */
+		/** @copydoc TGpuParameterSampledTexture::Set */
 		template<bool Condition = IsRenderProxy, std::enable_if_t<Condition, i32> = 0>
 		void Set(const GpuParamsType& set, const render::GpuBufferSuballocation& bufferSuballocation) const;
 
-		/** @copydoc TGpuDataParam::Get */
-		BufferType Get() const;
+		/** @copydoc TGpuParameterSampledTexture::Get */
+		BufferType Get(const GpuParamsType& set) const;
 
 		/** Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const
@@ -319,32 +284,25 @@ namespace b3d
 		}
 
 	protected:
-		GpuParamsType mParent;
 		GpuParameterBinding mBinding;
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_EXPORT TGpuParameterSampler
+	class B3D_EXPORT TGpuParameterSampler : public GpuParameterHandleBase
 	{
 	private:
-		friend class GpuParameterSet;
-		friend class render::GpuParameterSet;
-
 		using GpuParamsType = TShared<CoreVariantType<GpuParameterSet, IsRenderProxy>>;
 
 	public:
 		TGpuParameterSampler();
-		TGpuParameterSampler(const GpuParameterBinding& binding, const GpuParamsType& parent);
+		TGpuParameterSampler(const GpuParameterBinding& binding, const GpuPipelineParameterSetLayout* layout);
 
-		/** @copydoc TGpuDataParam::Set */
-		void Set(const TShared<SamplerState>& samplerState, u32 arrayIndex = 0) const;
-
-		/** Sets the parameter in @p set. @p set must have the same layout, such as another set created for the same material and set index. */
+		/** @copydoc TGpuParameterSampledTexture::Set */
 		void Set(const GpuParamsType& set, const TShared<SamplerState>& samplerState, u32 arrayIndex = 0) const;
 
-		/** @copydoc TGpuDataParam::Get */
-		TShared<SamplerState> Get(u32 arrayIndex = 0) const;
+		/** @copydoc TGpuParameterSampledTexture::Get */
+		TShared<SamplerState> Get(const GpuParamsType& set, u32 arrayIndex = 0) const;
 
 		/**	Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const
@@ -353,7 +311,6 @@ namespace b3d
 		}
 
 	protected:
-		GpuParamsType mParent;
 		GpuParameterBinding mBinding;
 	};
 

@@ -985,19 +985,25 @@ namespace b3d
 			void Initialize() override;
 
 			/**
-			 * Prepares GPU parameters for rendering.
+			 * Creates the material's parameter set for @p pass, and fills it.
 			 *
+			 * @param	pass			Pass the material draws in.
 			 * @param	input			Input texture to blur.
 			 * @param	depth			Input depth buffer texture that will be used for determining pixel depth.
 			 * @param	view			View through which the depth of field effect is viewed.
 			 * @param	settings		Settings used to control the motion blur effect.
+			 * @return					Parameter set to bind when drawing.
 			 */
-			void Prepare(const TShared<Texture>& input, const TShared<Texture>& depth, const RendererView& view, const MotionBlurSettings& settings);
+			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const TShared<Texture>& input, const TShared<Texture>& depth, const RendererView& view,
+				const MotionBlurSettings& settings);
 
 		private:
 			GpuParameterUniformBuffer mUniformBufferParameter;
+			GpuParameterUniformBuffer mPerCameraParameter;
 			GpuParameterSampledTexture mInputTexture;
 			GpuParameterSampledTexture mDepthTexture;
+			GpuParameterSampler mDepthSamplerParameter;
+			TShared<SamplerState> mDepthSamplerState;
 		};
 
 		/** Shader that calculates a single level of the hierarchical Z mipmap chain. */
@@ -1537,6 +1543,8 @@ namespace b3d
 			GpuParameterUniformBuffer mUniformBufferParameter;
 			GpuParameterUniformBuffer mPerCameraParameter;
 			GpuParameterSampledTexture mInputTextureParameter;
+			GpuParameterSampler mInputSamplerParameter;
+			TShared<SamplerState> mInputSamplerState;
 		};
 
 		/**

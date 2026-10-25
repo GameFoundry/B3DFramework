@@ -88,7 +88,7 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter) : mAdapter(adapter)
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	// Split barriers whose halves are in different ExecuteCommandLists() calls only transition layouts, and the debug layer warns about
-	// them. Explicit barriers order such halves with queue fences instead, so the warning is expected.
+	// them. Barriers order such halves with queue fences instead, so the warning is expected.
 	// TODO - Replace split barriers with SignalBarrier()/WaitBarrier() fence barriers once they are out of preview (they also split global barriers)
 	ComPtr<ID3D12InfoQueue> infoQueue;
 	if(SUCCEEDED(mDevice.As(&infoQueue)))

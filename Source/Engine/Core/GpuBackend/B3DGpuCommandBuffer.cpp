@@ -321,7 +321,7 @@ void GpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 {
 	EnsureValidThread();
 
-	if(!B3D_ENSURE_LOG(!IsInRenderPass(), "Explicit barriers can only be recorded outside of a render pass."))
+	if(!B3D_ENSURE_LOG(!IsInRenderPass(), "Barriers can only be recorded outside of a render pass."))
 		return;
 
 	if(!RecordBarriers(barriers, GpuBarrierPhase::Full, nullptr))
@@ -340,7 +340,7 @@ void GpuCommandBuffer::ReleaseBarriers(const GpuBarriers& barriers, const TShare
 	if(!B3D_ENSURE_LOG(split != nullptr, "A split barrier must be created by GpuDevice::CreateSplitBarrier()."))
 		return;
 
-	if(!B3D_ENSURE_LOG(!IsInRenderPass(), "Explicit barriers can only be recorded outside of a render pass."))
+	if(!B3D_ENSURE_LOG(!IsInRenderPass(), "Barriers can only be recorded outside of a render pass."))
 		return;
 
 	if(!split->ValidateQueueType(true, mQueueType))
@@ -382,7 +382,7 @@ void GpuCommandBuffer::AcquireBarriers(const GpuBarriers& barriers, const TShare
 	if(!B3D_ENSURE_LOG(split != nullptr, "A split barrier must be created by GpuDevice::CreateSplitBarrier()."))
 		return;
 
-	if(!B3D_ENSURE_LOG(!IsInRenderPass(), "Explicit barriers can only be recorded outside of a render pass."))
+	if(!B3D_ENSURE_LOG(!IsInRenderPass(), "Barriers can only be recorded outside of a render pass."))
 		return;
 
 	if(!split->ValidateQueueType(false, mQueueType))
@@ -422,7 +422,7 @@ void GpuCommandBuffer::SetValidator(GpuBarrierValidator* validator)
 
 bool GpuCommandBuffer::RecordBarriers(const GpuBarriers& /*barriers*/, GpuBarrierPhase /*phase*/, GpuSplitBarrier* /*split*/)
 {
-	B3D_LOG(Error, LogRenderBackend, "Explicit barriers are unsupported by this GPU backend.");
+	B3D_LOG(Error, LogRenderBackend, "Barriers are unsupported by this GPU backend.");
 	return false;
 }
 

@@ -787,22 +787,24 @@ namespace
 
 		void Initialize() override
 		{
-			mGpuParameterSet->TryGetUniformBufferParameter("Parameters", mParametersBuffer);
+			mParameterLayout->TryGetUniformBufferParameter("Parameters", mParametersBuffer);
+			mParameterSet = CreateGpuParameterSet();
 		}
 
 		/** Records the dispatch that decodes input (compressed, sampled) into output (RGBA32F UAV). Render thread only. */
 		void Execute(render::GpuCommandBuffer& commandBuffer, const TShared<render::Texture>& input, const TShared<render::Texture>& output, const render::GpuBufferMappedScope& parameters, const Vector2I& size)
 		{
-			mGpuParameterSet->SetSampledTexture("gInput", input);
-			mGpuParameterSet->SetStorageTexture("gOutput", output, TextureSurface::kComplete);
-			mParametersBuffer.Set(parameters);
+			mParameterSet->SetSampledTexture("gInput", input);
+			mParameterSet->SetStorageTexture("gOutput", output, TextureSurface::kComplete);
+			mParametersBuffer.Set(mParameterSet, parameters);
 
-			Bind(commandBuffer);
+			Bind(commandBuffer, mParameterSet);
 			commandBuffer.DispatchCompute((u32)Math::DivideAndRoundUp(size.X, 8), (u32)Math::DivideAndRoundUp(size.Y, 8));
 		}
 
 	private:
 		render::GpuParameterUniformBuffer mParametersBuffer;
+		TShared<render::GpuParameterSet> mParameterSet; /**< Lives as long as the material, so it outlives the decode work recorded with it. */
 	};
 
 	/**
