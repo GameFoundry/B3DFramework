@@ -75,6 +75,13 @@ namespace b3d
 		 */
 		static bool IsSampleableOnly(TextureUsageFlags usage);
 
+		/**
+		 * Returns true if textures created with @p usage can be read on several queues at once: they allow concurrent queue reads, or are
+		 * sampleable only. Backends create such textures so that no queue owns them. Other textures rest on the graphics queue, and must
+		 * be transferred to be accessed on another queue.
+		 */
+		static bool IsConcurrentlyReadable(TextureUsageFlags usage);
+
 		/** Converts a single GpuStageFlag into a readable string representing the access and stage. */
 		static const char* GetAccessStageName(render::GpuStageFlag flag);
 

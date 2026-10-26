@@ -208,6 +208,11 @@ bool GpuBackendUtility::IsSampleableOnly(TextureUsageFlags usage)
 	return !usage.IsSetAny(TextureUsageFlag::RenderTarget | TextureUsageFlag::DepthStencil | TextureUsageFlag::AllowUnorderedAccessOnTheGPU | TextureUsageFlag::StoreOnCPUWithGPUAccess);
 }
 
+bool GpuBackendUtility::IsConcurrentlyReadable(TextureUsageFlags usage)
+{
+	return usage.IsSet(TextureUsageFlag::AllowConcurrentQueueReads) || IsSampleableOnly(usage);
+}
+
 const char* GpuBackendUtility::GetAccessStageName(GpuStageFlag flag)
 {
 	switch(flag)

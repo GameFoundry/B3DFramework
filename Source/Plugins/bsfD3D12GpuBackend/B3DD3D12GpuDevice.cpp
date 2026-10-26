@@ -134,6 +134,15 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter) : mAdapter(adapter)
 
 	mQueueInfos[GQT_GRAPHICS].Queues[0]->GetD3D12Handle()->GetTimestampFrequency(&mTimestampFrequency);
 
+	// GPU samples of every queue convert ticks with the graphics queue's frequency
+	if (!mQueueInfos[GQT_COMPUTE].Queues.empty())
+	{
+		u64 computeTimestampFrequency = 0;
+		mQueueInfos[GQT_COMPUTE].Queues[0]->GetD3D12Handle()->GetTimestampFrequency(&computeTimestampFrequency);
+		B3D_ENSURE_LOG(computeTimestampFrequency == mTimestampFrequency, "The compute queue's timestamp frequency ({0}) differs from the graphics queue's ({1}). GPU samples of compute work report wrong times.",
+			computeTimestampFrequency, mTimestampFrequency);
+	}
+
 	InitializeCapabilities();
 
 	mDescriptorManager = B3DNew<D3D12DescriptorManager>(*this);

@@ -21,6 +21,13 @@ namespace b3d
 	TShared<GpuComputePipelineState> CreateTestSamplePipeline(GpuDevice& device);
 
 	/**
+	 * Creates a compute pipeline whose thread (x, y) of a 16 x 16 dispatch reads the depth of texel (x, y) of the sampled depth texture
+	 * InputTexture, and writes its bits into element y * 16 + x of the storage buffer OutputBuffer. Returns null on backends that cannot
+	 * compile shaders on the host.
+	 */
+	TShared<GpuComputePipelineState> CreateTestDepthSamplePipeline(GpuDevice& device);
+
+	/**
 	 * Creates a compute pipeline whose thread x runs a long serial loop, then writes 0x5A000000 | x into element 2 * x of the storage
 	 * buffer OutputBuffer, and the loop's result into element 2 * x + 1, so the loop cannot be optimized away. Dispatched in groups
 	 * of 64 threads. Returns null on backends that cannot compile shaders on the host.

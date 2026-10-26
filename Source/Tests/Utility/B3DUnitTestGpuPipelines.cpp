@@ -90,6 +90,26 @@ shader BarrierSample
 		return CreateComputePipeline(device, "BarrierSample", source);
 	}
 
+	TShared<GpuComputePipelineState> CreateTestDepthSamplePipeline(GpuDevice& device)
+	{
+		const String source = R"(
+shader BarrierDepthSample
+{
+	code
+	{
+		Texture2D<float> InputTexture;
+		RWStructuredBuffer<uint> OutputBuffer;
+		[numthreads(16, 16, 1)]
+		void csmain(uint3 threadId : SV_DispatchThreadID)
+		{
+			OutputBuffer[threadId.y * 16 + threadId.x] = asuint(InputTexture.Load(int3(threadId.xy, 0)));
+		}
+	};
+};
+)";
+		return CreateComputePipeline(device, "BarrierDepthSample", source);
+	}
+
 	TShared<GpuComputePipelineState> CreateTestSlowWritePipeline(GpuDevice& device)
 	{
 		const String source = R"(

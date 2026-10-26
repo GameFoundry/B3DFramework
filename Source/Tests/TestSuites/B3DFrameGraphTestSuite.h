@@ -6,7 +6,7 @@
 
 namespace b3d
 {
-	/** Tests render::FrameGraph: culling, transient placement, barrier planning and the development checks. */
+	/** Tests render::FrameGraph: culling, transient placement, barrier planning, the async compute queue and the development checks. */
 	class FrameGraphTestSuite : public TestSuite
 	{
 	public:
@@ -72,7 +72,9 @@ namespace b3d
 
 		/**
 		 * The graph's GPU sample holds a sample for each surviving pass, named after the pass and in execution order, and a sample a pass
-		 * records through its context's profiler nests in the pass's sample.
+		 * records through its context's profiler nests in the pass's sample. A graph that uses the async compute queue records one sample
+		 * for each of its command buffers, named after the graph, the queue and the command buffer's position on it, with the passes of
+		 * the command buffer in it.
 		 */
 		void TestProfiling();
 
@@ -101,6 +103,72 @@ namespace b3d
 		 */
 		void TestExecuteCallbacks();
 
+		/**
+		 * An async compute pass writes a buffer and a texture that a graphics pass reads. A prologue on the graphics queue releases the
+		 * imports to the compute queue, and both go back to the graphics queue for the reader.
+		 */
+		void TestAsyncComputeProducer();
+
+		/**
+		 * Async compute passes sample a texture a graphics dispatch wrote, and the depth of a depth-stencil texture a raster pass cleared.
+		 * Both are transferred to the compute queue, and the texture back to the graphics queue at the end of the graph.
+		 */
+		void TestAsyncComputeConsumer();
+
+		/**
+		 * A graphics pass reads what an earlier graphics pass wrote, in a later graphics submission that waits for an async compute pass.
+		 * The barrier between them is a split barrier on the graphics queue, released in one submission and acquired in the next.
+		 */
+		void TestSplitAcrossSubmissions();
+
+		/**
+		 * A transient whose memory a transient of an earlier submission on the same queue used gets its alias acquire released at the start
+		 * of its own submission. Repeated with transient aliasing disabled, with the same results.
+		 */
+		void TestAliasAcquireAcrossSubmissions();
+
+		/**
+		 * A texture that both queues can read is read by a graphics pass and an async compute pass in one state, with no barrier and no
+		 * transfer between them. Repeated with a graphics write after the reads, which waits for the async read and is a full barrier on
+		 * the graphics queue.
+		 */
+		void TestSharedReaders();
+
+		/**
+		 * A render target texture that rests on the graphics queue is written on graphics and sampled on async compute. The graph ends with
+		 * a graphics epilogue that returns it, and a buffer the async pass wrote, to rest on the graphics queue, where a later graph reads
+		 * them at rest.
+		 */
+		void TestOwnershipTransfer();
+
+		/**
+		 * Async compute work that depends on no graphics work of the graph is submitted first, and waits for no submission of the graph.
+		 * The graphics pass that reads its results waits for it.
+		 */
+		void TestIndependentCompute();
+
+		/**
+		 * Transients of both queues, used in submissions that are and are not ordered after each other, hold their values with transient
+		 * aliasing enabled and disabled.
+		 */
+		void TestTransientAliasingAcrossQueues();
+
+		/** A transient written on the async compute queue and extracted is at rest on the graphics queue for a later graph that imports it. */
+		void TestAsyncComputeExtract();
+
+		/** The producer graph of TestAsyncComputeProducer() is one graphics submission with gFrameGraphAsyncCompute disabled, with the same results. */
+		void TestAsyncComputeDisabled();
+
+		/**
+		 * Async compute passes export a buffer and a texture that both queues can read, which a later async compute pass and a graphics
+		 * pass read without declaring them. Another exports a texture that rests on the graphics queue, which returns there through a split
+		 * barrier acquired where the graphics queue waits for the export, before a graphics pass reads it without declaring it.
+		 */
+		void TestAsyncComputeExport();
+
+		/** A copy pass with FrameGraphPassFlag::AsyncCompute copies what a graphics dispatch wrote on the async compute queue. */
+		void TestAsyncCopy();
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		/**
 		 * The development checks: writes to resources at rest, conflicting declarations in one pass, writes after an export, dependencies
@@ -108,6 +176,15 @@ namespace b3d
 		 * that was not exported, and use of a transient that was returned unplaced.
 		 */
 		void TestValidation();
+
+		/** An async compute pass that samples a texture at rest that only the graphics queue can read reports it when it is added. */
+		void TestAsyncComputeResting();
+
+		/** A graph executed from a pass of another graph that executes reports the overlap. */
+		void TestInterleavedGraphs();
+
+		/** A raster pass created with FrameGraphPassFlag::AsyncCompute reports it, and runs on the graphics queue. */
+		void TestAsyncRasterPass();
 #endif
 	};
 } // namespace b3d

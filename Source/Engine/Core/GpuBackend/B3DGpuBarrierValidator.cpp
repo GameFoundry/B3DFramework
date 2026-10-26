@@ -159,7 +159,7 @@ namespace b3d::render
 	{
 		const char* error = GetLifetimeError(buffer.IsUnplaced(), buffer.GetGpuResource(), nullptr, GpuBarrierPhase::Full);
 		if(error == nullptr)
-			error = ApplyAccess(mBuffers[&buffer], GpuImageLayout::Undefined, stages, access, GetUndeclaredState(GpuBackendUtility::GetRestingState(buffer, mQueueType)), mOperation);
+			error = ApplyAccess(mBuffers[&buffer], mQueueType, GpuImageLayout::Undefined, stages, access, GetUndeclaredState(GpuBackendUtility::GetRestingState(buffer, mQueueType)), mOperation);
 
 		B3D_ENSURE_LOG(error == nullptr, "{0} Buffer: '{1}'.", error, buffer.GetName());
 	}
@@ -348,15 +348,22 @@ namespace b3d::render
 			!barrier.Flags.IsSet(GpuBarrierFlag::AliasAcquire) && phase != GpuBarrierPhase::Acquire;
 		const bool declaresNoAccess = barrier.Source.Stages == GpuStageFlag::None && barrier.Source.Access == GpuAccessFlag::None;
 
+		// A texture that rests on the graphics queue leaves its rest there. Barriers that discard the contents take it from no queue.
+		const bool leavesRestOnOtherQueue = mQueueType != GQT_GRAPHICS && image.Texture != nullptr && !GpuBackendUtility::IsConcurrentlyReadable(image.Texture->GetProperties().Usage) &&
+			!barrier.Flags.IsSet(GpuBarrierFlag::AliasAcquire) && phase != GpuBarrierPhase::Acquire && barrier.Source.Layout != GpuImageLayout::Undefined;
+
 		const char* error = image.Texture != nullptr ? GetLifetimeError(image.Texture->IsUnplaced(), image.Texture->GetGpuResource(), &barrier, phase) : nullptr;
 		if(error == nullptr)
 		{
 			error = ForEachSubresourceState(image, [&](ResourceState& state)
 			{
-				const bool isFirstBarrier = !state.IsDeclared && state.UsedAccess == GpuAccessFlag::None;
-				const char* const barrierError = ApplyBarrier(state, barrier, phase, split, true);
+				const bool isFirstBarrier = !state.IsDeclared && !state.IsUsed();
+				const char* const barrierError = ApplyBarrier(state, mQueueType, barrier, phase, split, true);
 				if(barrierError == nullptr && isAtRest && isFirstBarrier && declaresNoAccess)
 					return "The first barrier of a texture at rest declares no source. Start it from the resting state (see GpuBackendUtility::GetRestingState()), with GpuImageLayout::Undefined to discard the contents.";
+
+				if(barrierError == nullptr && isFirstBarrier && leavesRestOnOtherQueue)
+					return "The first barrier of a texture at rest is recorded on a queue other than graphics, which the texture rests on. Release it on the graphics queue, or import it into a frame graph.";
 
 				return barrierError;
 			});
@@ -371,7 +378,7 @@ namespace b3d::render
 		if(error == nullptr)
 		{
 			ResourceState& state = mBuffers[&buffer];
-			error = ApplyBarrier(state, barrier, phase, split, false);
+			error = ApplyBarrier(state, mQueueType, barrier, phase, split, false);
 		}
 
 		B3D_ENSURE_LOG(error == nullptr, "{0} Buffer: '{1}'.", error, buffer.GetName());
@@ -383,9 +390,14 @@ namespace b3d::render
 		if(error == nullptr)
 		{
 			const GpuAccessState* const undeclaredState = GetUndeclaredState(image.RestingState);
+			const bool restsOnGraphicsQueue = mQueueType != GQT_GRAPHICS && image.Texture != nullptr && !GpuBackendUtility::IsConcurrentlyReadable(image.Texture->GetProperties().Usage);
 			error = ForEachSubresourceState(image, [&](ResourceState& state)
 			{
-				return ApplyAccess(state, layout, stages, access, undeclaredState, mOperation);
+				const char* const accessError = ApplyAccess(state, mQueueType, layout, stages, access, undeclaredState, mOperation);
+				if(accessError == nullptr && restsOnGraphicsQueue && !state.IsDeclared)
+					return "The texture rests on the graphics queue, and was accessed on another queue without a barrier. Import it into the frame graph.";
+
+				return accessError;
 			});
 		}
 
@@ -439,8 +451,14 @@ namespace b3d::render
 		return nullptr;
 	}
 
-	const char* GpuBarrierValidator::ApplyBarrier(ResourceState& state, const GpuBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split, bool isImage)
+	const char* GpuBarrierValidator::ApplyBarrier(ResourceState& state, GpuQueueType queueType, const GpuBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split, bool isImage)
 	{
+		// Another queue's accesses are ordered before the barrier by a queue wait, which makes writes visible to this queue but does not
+		// order them against the barrier's layout transition. Its reads are fine.
+		bool isWrittenOnOtherQueue = false;
+		for(u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
+			isWrittenOnOtherQueue |= queueTypeIndex != (u32)queueType && state.UsedAccess[queueTypeIndex].IsSet(GpuAccessFlag::Write);
+
 		const char* error = nullptr;
 		const GpuAccessState& source = barrier.Source;
 		if(state.PendingAcquire != nullptr)
@@ -449,16 +467,18 @@ namespace b3d::render
 			if(phase != GpuBarrierPhase::Acquire || state.PendingAcquire != split)
 				error = "A barrier was recorded between the release and the acquire of a split barrier of the same resource.";
 		}
-		else if(barrier.Flags.IsSet(GpuBarrierFlag::AliasAcquire) && (state.IsDeclared || state.UsedAccess != GpuAccessFlag::None))
+		else if(barrier.Flags.IsSet(GpuBarrierFlag::AliasAcquire) && (state.IsDeclared || state.IsUsed()))
 			error = "An alias acquire must precede every other use of the resource.";
 		else if(barrier.Flags.IsSet(GpuBarrierFlag::AliasRelease) && ((isImage && barrier.Destination.Layout != GpuImageLayout::Undefined) || barrier.Destination.Access != GpuAccessFlag::None))
 			error = "An alias release must leave the resource in GpuImageLayout::Undefined, without access.";
 		else if(isImage && state.IsDeclared && source.Layout != GpuImageLayout::Undefined && source.Layout != state.Declared.Layout)
 			error = "The source layout of a barrier differs from the destination layout of the previous barrier of the resource.";
-		else if(!source.Stages.IsSetAll(state.UsedStages))
+		else if(!source.Stages.IsSetAll(state.UsedStages[queueType]))
 			error = "The source of a barrier is missing stages that accessed the resource since the previous barrier.";
-		else if(state.UsedAccess.IsSet(GpuAccessFlag::Write) && !source.Access.IsSet(GpuAccessFlag::Write))
+		else if(state.UsedAccess[queueType].IsSet(GpuAccessFlag::Write) && !source.Access.IsSet(GpuAccessFlag::Write))
 			error = "The source of a barrier is missing the writes of the resource since the previous barrier.";
+		else if(isWrittenOnOtherQueue)
+			error = "The resource was written on another queue since the previous barrier. Bring it to this queue with a split barrier between the queues first.";
 
 		if(phase == GpuBarrierPhase::Release)
 			state.PendingAcquire = split;
@@ -466,23 +486,34 @@ namespace b3d::render
 		{
 			state.PendingAcquire = nullptr;
 			state.Declared = barrier.Destination;
+			state.DeclaredQueueType = queueType;
 			state.IsDeclared = true;
 		}
 
-		state.UsedStages = GpuStageFlag::None;
-		state.UsedAccess = GpuAccessFlag::None;
+		for(u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
+		{
+			state.UsedStages[queueTypeIndex] = GpuStageFlag::None;
+			state.UsedAccess[queueTypeIndex] = GpuAccessFlag::None;
+		}
+
 		state.WriterOperation = 0;
 		return error;
 	}
 
-	const char* GpuBarrierValidator::ApplyAccess(ResourceState& state, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags access, const GpuAccessState* undeclaredState, u32 operation)
+	const char* GpuBarrierValidator::ApplyAccess(ResourceState& state, GpuQueueType queueType, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags access, const GpuAccessState* undeclaredState,
+		u32 operation)
 	{
 		const GpuAccessState* const declared = state.IsDeclared ? &state.Declared : undeclaredState;
+
+		// A queue wait orders accesses on another queue than the last barrier's after it, so the barrier's stages do not apply to them
+		const bool isOnOtherQueue = state.IsDeclared && queueType != state.DeclaredQueueType;
 
 		const char* error = nullptr;
 		if(state.PendingAcquire != nullptr)
 			error = "The resource was accessed between the release and the acquire of a split barrier.";
-		else if(declared != nullptr && !declared->Stages.IsSetAll(stages))
+		else if(isOnOtherQueue && (state.Declared.Queues & GpuQueueMask(GpuQueueId(queueType, 0))).IsEmpty())
+			error = "The resource was accessed on a queue that its last barrier does not declare in GpuAccessState::Queues.";
+		else if(declared != nullptr && !isOnOtherQueue && !declared->Stages.IsSetAll(stages))
 			error = state.IsDeclared ? "The resource was accessed in stages that its last barrier does not declare." : "The resource was accessed in stages its resting state does not allow, without a barrier.";
 		else if(declared != nullptr && !declared->Access.IsSetAll(access))
 			error = state.IsDeclared ? "The resource was accessed with reads or writes that its last barrier does not declare." : "The resource was accessed with reads or writes its resting state does not allow, without a barrier.";
@@ -491,8 +522,8 @@ namespace b3d::render
 		else if(operation != 0 && state.WriterOperation != 0 && state.WriterOperation != operation)
 			error = "The resource was accessed by a draw or dispatch after another draw or dispatch wrote it, without a barrier in between.";
 
-		state.UsedStages |= stages;
-		state.UsedAccess |= access;
+		state.UsedStages[queueType] |= stages;
+		state.UsedAccess[queueType] |= access;
 
 		if(operation != 0 && access.IsSet(GpuAccessFlag::Write))
 			state.WriterOperation = operation;

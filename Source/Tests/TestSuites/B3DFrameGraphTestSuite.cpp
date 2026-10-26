@@ -5,6 +5,7 @@
 #include "Utility/B3DGpuBarrierTestUtility.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "FrameGraph/B3DFrameGraph.h"
+#include "GpuBackend/Allocators/B3DGpuAliasingAllocator.h"
 #include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
@@ -43,9 +44,24 @@ FrameGraphTestSuite::FrameGraphTestSuite()
 	B3D_ADD_TEST(FrameGraphTestSuite::TestDepthReadOnly)
 	B3D_ADD_TEST(FrameGraphTestSuite::TestTwoAspectAliasAcquire)
 	B3D_ADD_TEST(FrameGraphTestSuite::TestExecuteCallbacks)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestAsyncComputeProducer)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestAsyncComputeConsumer)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestSplitAcrossSubmissions)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestAliasAcquireAcrossSubmissions)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestSharedReaders)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestOwnershipTransfer)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestIndependentCompute)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestTransientAliasingAcrossQueues)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestAsyncComputeExtract)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestAsyncComputeDisabled)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestAsyncComputeExport)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestAsyncCopy)
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	B3D_ADD_TEST(FrameGraphTestSuite::TestValidation)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestAsyncComputeResting)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestInterleavedGraphs)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestAsyncRasterPass)
 #endif
 }
 
@@ -103,10 +119,14 @@ namespace
 			return Device.CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(size));
 		}
 
-		/** Adds a pass that dispatches the test pipeline into @p buffer and @p texture, and exports both after it if @p exports is true. */
-		void AddDispatch(FrameGraph& graph, const char* name, const TShared<render::GpuBuffer>& buffer, const TShared<render::Texture>& texture, bool exports = false) const
+		/**
+		 * Adds a pass with @p flags that dispatches the test pipeline into @p buffer and @p texture, and exports both after it if @p exports
+		 * is true.
+		 */
+		void AddDispatch(FrameGraph& graph, const char* name, const TShared<render::GpuBuffer>& buffer, const TShared<render::Texture>& texture, bool exports = false,
+			FrameGraphPassFlags flags = FrameGraphPassFlag::None) const
 		{
-			FrameGraphComputePass pass;
+			FrameGraphComputePass pass(flags);
 			const TShared<render::GpuParameterSet> parameters = Context->GetParameterSetPool().Create(Pipeline->GetParameterLayout()->GetSet(0), 0);
 			pass.AddParameterSet(parameters);
 			parameters->SetStorageBuffer("OutputBuffer", buffer);
@@ -128,10 +148,11 @@ namespace
 			});
 		}
 
-		/** Adds a pass that samples @p texture with the test sample pipeline, and writes its texels into @p buffer. */
-		void AddSample(FrameGraph& graph, const char* name, const TShared<render::Texture>& texture, const TShared<render::GpuBuffer>& buffer) const
+		/** Adds a pass with @p flags that samples @p texture with the test sample pipeline, and writes its texels into @p buffer. */
+		void AddSample(FrameGraph& graph, const char* name, const TShared<render::Texture>& texture, const TShared<render::GpuBuffer>& buffer,
+			FrameGraphPassFlags flags = FrameGraphPassFlag::None) const
 		{
-			FrameGraphComputePass pass;
+			FrameGraphComputePass pass(flags);
 			const TShared<render::GpuParameterSet> parameters = Context->GetParameterSetPool().Create(SamplePipeline->GetParameterLayout()->GetSet(0), 0);
 			pass.AddParameterSet(parameters);
 			parameters->SetSampledTexture("InputTexture", texture);
@@ -143,6 +164,34 @@ namespace
 				render::GpuCommandBuffer& commands = passContext.GetCommandBuffer();
 				commands.SetGpuComputePipelineState(pipeline);
 				commands.SetGpuParameterSet(parameters);
+				commands.DispatchCompute(1, 1, 1);
+			});
+		}
+
+		/**
+		 * Adds a pass with @p flags that samples @p texture with the test sample pipeline through a parameter set it does not declare, so
+		 * the texture is read at rest, and writes its texels into @p buffer, which it declares.
+		 */
+		void AddUndeclaredSample(FrameGraph& graph, const char* name, const TShared<render::Texture>& texture, const TShared<render::GpuBuffer>& buffer, FrameGraphPassFlags flags) const
+		{
+			FrameGraphComputePass pass(flags);
+
+			// The declared set holds the buffer, and a texture both queues can read that the pass never binds
+			const TShared<render::GpuParameterSet> declared = Context->GetParameterSetPool().Create(SamplePipeline->GetParameterLayout()->GetSet(0), 0);
+			pass.AddParameterSet(declared);
+			declared->SetSampledTexture("InputTexture", CreateTexture("Unbound texture", TextureUsageFlag::Default));
+			declared->SetStorageBuffer("OutputBuffer", buffer);
+
+			const TShared<render::GpuParameterSet> undeclared = Context->GetParameterSetPool().Create(SamplePipeline->GetParameterLayout()->GetSet(0), 0);
+			undeclared->SetSampledTexture("InputTexture", texture);
+			undeclared->SetStorageBuffer("OutputBuffer", buffer);
+
+			const TShared<GpuComputePipelineState> pipeline = SamplePipeline;
+			graph.AddComputePass(name, std::move(pass), [pipeline, undeclared](FrameGraphPassContext& passContext)
+			{
+				render::GpuCommandBuffer& commands = passContext.GetCommandBuffer();
+				commands.SetGpuComputePipelineState(pipeline);
+				commands.SetGpuParameterSet(undeclared);
 				commands.DispatchCompute(1, 1, 1);
 			});
 		}
@@ -162,14 +211,17 @@ namespace
 			});
 		}
 
-		/** Adds a pass that copies @p buffer and @p texture into @p bufferReadback and @p textureReadback, which the graph imports. */
+		/**
+		 * Adds a pass with @p flags that copies @p buffer and @p texture into @p bufferReadback and @p textureReadback, which the graph
+		 * imports.
+		 */
 		void AddReadback(FrameGraph& graph, const char* name, const TShared<render::GpuBuffer>& buffer, const TShared<render::Texture>& texture, const TShared<render::GpuBuffer>& bufferReadback,
-			const TShared<render::GpuBuffer>& textureReadback) const
+			const TShared<render::GpuBuffer>& textureReadback, FrameGraphPassFlags flags = FrameGraphPassFlag::None) const
 		{
 			graph.ImportBuffer(bufferReadback);
 			graph.ImportBuffer(textureReadback);
 
-			FrameGraphCopyPass pass;
+			FrameGraphCopyPass pass(flags);
 			pass.AddSource(buffer);
 			pass.AddSource(texture);
 			pass.AddDestination(bufferReadback);
@@ -229,6 +281,18 @@ namespace
 			return nullptr;
 
 		return backend.GetDevice(0);
+	}
+
+	/** Returns true if @p device has a compute queue, which the async compute tests need. */
+	bool HasComputeQueue(GpuDevice& device)
+	{
+		return device.GetQueueCount(GQT_COMPUTE) > 0;
+	}
+
+	/** Returns a buffer the test dispatch can write, created by @p graph as a transient. */
+	TShared<render::GpuBuffer> CreateTransientBuffer(FrameGraph& graph, const char* name)
+	{
+		return graph.CreateBuffer(name, GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
 	}
 
 	/** Runs @p test on the render thread and waits for it to finish. */
@@ -902,6 +966,52 @@ void FrameGraphTestSuite::TestProfiling()
 		B3D_TEST_ASSERT(graphSample.ChildSamples[1].ChildSamples.Size() == 1 && graphSample.ChildSamples[1].ChildSamples[0].Name == "Copy")
 
 		device->EndFrame();
+		if(!HasComputeQueue(*device))
+			return;
+
+		// The async pass's command buffer is submitted first, then the graphics pass that does not depend on it, then the reader of its
+		// results, each with a sample of its own
+		constexpr const char* kAsyncGraphName = "Async profiled frame graph";
+		const TShared<render::GpuBuffer> asyncReadback = test.CreateReadback(kSize * kSize * sizeof(u32));
+		{
+			FrameGraph graph(*test.Context, kAsyncGraphName);
+			const TShared<render::GpuBuffer> asyncBuffer = CreateTransientBuffer(graph, "Async buffer");
+			test.AddDispatch(graph, "Async write", asyncBuffer, graph.CreateTexture("Async texture", test.TextureInformation), false, FrameGraphPassFlag::AsyncCompute);
+
+			graph.ImportBuffer(buffer);
+			graph.ImportTexture(texture);
+			test.AddDispatch(graph, "Graphics write", buffer, texture);
+			test.AddReadback(graph, "Async read", asyncBuffer, asyncReadback);
+
+			graph.Compile();
+			B3D_TEST_ASSERT(graph.GetStatistics().SubmissionCount == 3)
+			graph.Execute();
+		}
+
+		device->WaitUntilIdle();
+		GetGpuProfiler().Update();
+
+		const auto fnCheckCommandBufferSample = [this](const String& name, const char* passName)
+		{
+			const TOptional<GpuProfilerResults> commandBufferResults = GetGpuProfiler().GetResults(name.c_str());
+			B3D_TEST_ASSERT_MSG(commandBufferResults.has_value(), "The GPU profiler did not resolve the samples of a command buffer of the graph.")
+			if(!commandBufferResults.has_value())
+				return;
+
+			B3D_TEST_ASSERT(commandBufferResults->Samples.Size() == 1)
+			if(commandBufferResults->Samples.Size() != 1)
+				return;
+
+			const GpuProfilerSample& commandBufferSample = commandBufferResults->Samples[0];
+			B3D_TEST_ASSERT(commandBufferSample.Name == name.c_str())
+			B3D_TEST_ASSERT(commandBufferSample.ChildSamples.Size() == 1 && commandBufferSample.ChildSamples[0].Name == passName)
+		};
+
+		fnCheckCommandBufferSample(String(kAsyncGraphName) + " Compute 0", "Async write");
+		fnCheckCommandBufferSample(String(kAsyncGraphName) + " Graphics 0", "Graphics write");
+		fnCheckCommandBufferSample(String(kAsyncGraphName) + " Graphics 1", "Async read");
+
+		device->EndFrame();
 	});
 }
 
@@ -1313,6 +1423,740 @@ void FrameGraphTestSuite::TestExecuteCallbacks()
 	});
 }
 
+void FrameGraphTestSuite::TestAsyncComputeProducer()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	const TShared<GpuComputePipelineState> pipeline = device != nullptr && HasComputeQueue(*device) ? CreateTestDispatchPipeline(*device) : nullptr;
+	if(pipeline == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+
+	RunOnRenderThread("FrameGraphTestSuite::TestAsyncComputeProducer", [this, &device, &pipeline]()
+	{
+		const FrameGraphTestContext test(*device, pipeline);
+		const TShared<render::GpuBuffer> buffer = test.CreateBuffer("Async buffer");
+		const TShared<render::Texture> texture = test.CreateTexture("Async texture");
+		const TShared<render::GpuBuffer> bufferReadback = test.CreateReadback(kSize * kSize * sizeof(u32));
+		const TShared<render::GpuBuffer> textureReadback = test.CreateReadback(test.TextureReadbackSize);
+
+		{
+			FrameGraph graph(*test.Context, kGraphName);
+			graph.ImportBuffer(buffer);
+			graph.ImportTexture(texture);
+			test.AddDispatch(graph, "Producer", buffer, texture, false, FrameGraphPassFlag::AsyncCompute);
+			test.AddReadback(graph, "Consumer", buffer, texture, bufferReadback, textureReadback);
+			graph.Compile();
+
+			// The prologue releases both resources to the compute queue, and the producer releases them back to the consumer. Each
+			// submission waits for the one before it.
+			const FrameGraphStatistics& statistics = graph.GetStatistics();
+			B3D_TEST_ASSERT(statistics.SubmissionCount == 3)
+			B3D_TEST_ASSERT(statistics.QueueWaitCount == 2)
+			B3D_TEST_ASSERT(statistics.QueueTransferCount == 4)
+			B3D_TEST_ASSERT(statistics.BarrierBatchCount == 2)
+
+			graph.Execute();
+		}
+
+		device->WaitUntilIdle();
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(bufferReadback, false), "The graphics pass does not read what the async compute pass wrote into the buffer.")
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(textureReadback, true), "The graphics pass does not read what the async compute pass wrote into the texture.")
+
+		device->EndFrame();
+	});
+}
+
+void FrameGraphTestSuite::TestAsyncComputeConsumer()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	const bool hasComputeQueue = device != nullptr && HasComputeQueue(*device);
+	const TShared<GpuComputePipelineState> pipeline = hasComputeQueue ? CreateTestDispatchPipeline(*device) : nullptr;
+	const TShared<GpuComputePipelineState> samplePipeline = hasComputeQueue ? CreateTestSamplePipeline(*device) : nullptr;
+	const TShared<GpuComputePipelineState> depthSamplePipeline = hasComputeQueue ? CreateTestDepthSamplePipeline(*device) : nullptr;
+	if(pipeline == nullptr || samplePipeline == nullptr || depthSamplePipeline == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+
+	RunOnRenderThread("FrameGraphTestSuite::TestAsyncComputeConsumer", [this, &device, &pipeline, &samplePipeline, &depthSamplePipeline]()
+	{
+		constexpr float kClearDepth = 0.5f;
+
+		const FrameGraphTestContext test(*device, pipeline, samplePipeline);
+		const TShared<render::GpuBuffer> buffer = test.CreateBuffer("Rendered buffer");
+		const TShared<render::Texture> rendered = test.CreateTexture("Rendered texture", TextureUsageFlag::RenderTarget | TextureUsageFlag::AllowUnorderedAccessOnTheGPU);
+		const TShared<render::GpuBuffer> colorReadback = test.CreateReadback(kSize * kSize * sizeof(u32));
+		const TShared<render::GpuBuffer> depthReadback = test.CreateReadback(kSize * kSize * sizeof(u32));
+
+		{
+			FrameGraph graph(*test.Context, kGraphName);
+			graph.ImportBuffer(buffer);
+			graph.ImportTexture(rendered);
+			test.AddDispatch(graph, "Render", buffer, rendered);
+
+			TextureCreateInformation depthInformation;
+			depthInformation.Width = kSize;
+			depthInformation.Height = kSize;
+			depthInformation.Format = PF_D32_S8X24;
+			depthInformation.Usage = TextureUsageFlag::DepthStencil;
+			depthInformation.ClearDepth = kClearDepth;
+			const TShared<render::Texture> depth = graph.CreateTexture("Depth", depthInformation);
+
+			FrameGraphRasterPass clearPass;
+			clearPass.SetDepthStencilAttachment(depth, FrameGraphDepthStencilMode::Write, FrameGraphAttachmentLoad::Clear);
+			graph.AddRasterPass("Clear depth", std::move(clearPass), nullptr);
+
+			const TShared<render::GpuBuffer> colorValues = CreateTransientBuffer(graph, "Color values");
+			test.AddSample(graph, "Sample color", rendered, colorValues, FrameGraphPassFlag::AsyncCompute);
+
+			const TShared<render::GpuBuffer> depthValues = CreateTransientBuffer(graph, "Depth values");
+			FrameGraphComputePass depthPass(FrameGraphPassFlag::AsyncCompute);
+			const TShared<render::GpuParameterSet> depthParameters = test.Context->GetParameterSetPool().Create(depthSamplePipeline->GetParameterLayout()->GetSet(0), 0);
+			depthPass.AddParameterSet(depthParameters);
+			depthParameters->SetSampledTexture("InputTexture", depth);
+			depthParameters->SetStorageBuffer("OutputBuffer", depthValues);
+
+			graph.AddComputePass("Sample depth", std::move(depthPass), [&depthSamplePipeline, depthParameters](FrameGraphPassContext& passContext)
+			{
+				render::GpuCommandBuffer& commands = passContext.GetCommandBuffer();
+				commands.SetGpuComputePipelineState(depthSamplePipeline);
+				commands.SetGpuParameterSet(depthParameters);
+				commands.DispatchCompute(1, 1, 1);
+			});
+
+			test.AddReadback(graph, "Read color", colorValues, colorReadback);
+			test.AddReadback(graph, "Read depth", depthValues, depthReadback);
+			graph.Compile();
+
+			// The rendered texture and the depth go to the compute queue, the values back to the graphics queue, and the rendered
+			// texture back to rest on the graphics queue at the end
+			const FrameGraphStatistics& statistics = graph.GetStatistics();
+			B3D_TEST_ASSERT(statistics.CulledPassCount == 0)
+			B3D_TEST_ASSERT(statistics.SubmissionCount == 3)
+			B3D_TEST_ASSERT(statistics.QueueTransferCount == 5)
+
+			graph.Execute();
+		}
+
+		device->WaitUntilIdle();
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(colorReadback, false), "The async compute pass does not sample what the graphics dispatch wrote.")
+
+		const render::GpuBufferMappedScope mapping = depthReadback->Map(GpuMapOption::Read);
+		B3D_TEST_ASSERT(mapping.IsValid())
+		if(mapping.IsValid())
+		{
+			u32 clearDepthBits = 0;
+			std::memcpy(&clearDepthBits, &kClearDepth, sizeof(clearDepthBits));
+
+			bool isCleared = true;
+			const u32* const depthBits = static_cast<const u32*>(mapping.GetMappedMemory());
+			for(u32 element = 0; element < kSize * kSize; element++)
+				isCleared &= depthBits[element] == clearDepthBits;
+
+			B3D_TEST_ASSERT_MSG(isCleared, "The async compute pass does not sample the depth the raster pass cleared.")
+		}
+
+		device->EndFrame();
+	});
+}
+
+void FrameGraphTestSuite::TestSplitAcrossSubmissions()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	const TShared<GpuComputePipelineState> pipeline = device != nullptr && HasComputeQueue(*device) ? CreateTestDispatchPipeline(*device) : nullptr;
+	if(pipeline == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+
+	RunOnRenderThread("FrameGraphTestSuite::TestSplitAcrossSubmissions", [this, &device, &pipeline]()
+	{
+		const FrameGraphTestContext test(*device, pipeline);
+		const TShared<render::GpuBuffer> buffer = test.CreateBuffer("Graphics buffer");
+		const TShared<render::Texture> texture = test.CreateTexture("Graphics texture");
+
+		TShared<render::GpuBuffer> readbacks[4];
+		for(u32 readbackIndex = 0; readbackIndex < 4; readbackIndex++)
+			readbacks[readbackIndex] = test.CreateReadback(readbackIndex % 2 == 0 ? kSize * kSize * (u32)sizeof(u32) : test.TextureReadbackSize);
+
+		{
+			FrameGraph graph(*test.Context, kGraphName);
+			graph.ImportBuffer(buffer);
+			graph.ImportTexture(texture);
+			test.AddDispatch(graph, "Graphics write", buffer, texture);
+
+			const TShared<render::GpuBuffer> asyncBuffer = CreateTransientBuffer(graph, "Async buffer");
+			const TShared<render::Texture> asyncTexture = graph.CreateTexture("Async texture", test.TextureInformation);
+			test.AddDispatch(graph, "Async write", asyncBuffer, asyncTexture, false, FrameGraphPassFlag::AsyncCompute);
+
+			// The first read waits for the async pass, which starts a graphics submission. The second read's barrier is released in the
+			// submission before it.
+			test.AddReadback(graph, "Async read", asyncBuffer, asyncTexture, readbacks[2], readbacks[3]);
+			test.AddReadback(graph, "Graphics read", buffer, texture, readbacks[0], readbacks[1]);
+			graph.Compile();
+
+			const FrameGraphStatistics& statistics = graph.GetStatistics();
+			B3D_TEST_ASSERT(statistics.SubmissionCount == 3)
+			B3D_TEST_ASSERT(statistics.QueueWaitCount == 1)
+			B3D_TEST_ASSERT(statistics.QueueTransferCount == 2)
+			B3D_TEST_ASSERT(statistics.SplitBarrierCount >= 4)
+
+			graph.Execute();
+		}
+
+		device->WaitUntilIdle();
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(readbacks[0], false), "The graphics buffer does not hold its values after a split barrier across submissions.")
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(readbacks[1], true), "The graphics texture does not hold its values after a split barrier across submissions.")
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(readbacks[2], false), "The async buffer does not hold its values.")
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(readbacks[3], true), "The async texture does not hold its values.")
+
+		device->EndFrame();
+	});
+}
+
+void FrameGraphTestSuite::TestAliasAcquireAcrossSubmissions()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	const TShared<GpuComputePipelineState> pipeline = device != nullptr && HasComputeQueue(*device) ? CreateTestDispatchPipeline(*device) : nullptr;
+	if(pipeline == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+
+	const bool isAliasingEnabled = gGpuTransientAliasing;
+	for(const bool isAliasing : { true, false })
+	{
+		gGpuTransientAliasing.Set(isAliasing);
+		RunOnRenderThread("FrameGraphTestSuite::TestAliasAcquireAcrossSubmissions", [this, &device, &pipeline, isAliasing]()
+		{
+			const FrameGraphTestContext test(*device, pipeline);
+
+			TShared<render::GpuBuffer> buffers[3];
+			for(u32 bufferIndex = 0; bufferIndex < 3; bufferIndex++)
+				buffers[bufferIndex] = test.CreateBuffer("Buffer");
+
+			const TShared<render::Texture> asyncTexture = test.CreateTexture("Async texture");
+
+			TShared<render::GpuBuffer> readbacks[6];
+			for(u32 readbackIndex = 0; readbackIndex < 6; readbackIndex++)
+				readbacks[readbackIndex] = test.CreateReadback(readbackIndex % 2 == 0 ? kSize * kSize * (u32)sizeof(u32) : test.TextureReadbackSize);
+
+			{
+				FrameGraph graph(*test.Context, kGraphName);
+				for(const TShared<render::GpuBuffer>& buffer : buffers)
+					graph.ImportBuffer(buffer);
+
+				graph.ImportTexture(asyncTexture);
+
+				const TShared<render::Texture> firstTexture = graph.CreateTexture("First texture", test.TextureInformation);
+				test.AddDispatch(graph, "First write", buffers[0], firstTexture);
+				test.AddReadback(graph, "First read", buffers[0], firstTexture, readbacks[0], readbacks[1]);
+
+				// The read of the async pass's results starts a graphics submission
+				test.AddDispatch(graph, "Async write", buffers[1], asyncTexture, false, FrameGraphPassFlag::AsyncCompute);
+				test.AddReadback(graph, "Async read", buffers[1], asyncTexture, readbacks[2], readbacks[3]);
+
+				// The second texture takes the memory of the first one, which the previous graphics submission released
+				const TShared<render::Texture> secondTexture = graph.CreateTexture("Second texture", test.TextureInformation);
+				test.AddDispatch(graph, "Second write", buffers[2], secondTexture);
+				test.AddReadback(graph, "Second read", buffers[2], secondTexture, readbacks[4], readbacks[5]);
+
+				graph.Compile();
+				B3D_TEST_ASSERT(graph.GetStatistics().SubmissionCount == 4)
+				if(isAliasing)
+				{
+					B3D_TEST_ASSERT(graph.GetStatistics().AliasAcquireCount == 2u)
+					B3D_TEST_ASSERT(graph.GetStatistics().SplitAliasAcquireCount == 1u)
+				}
+
+				graph.Execute();
+			}
+
+			device->WaitUntilIdle();
+			for(u32 readbackIndex = 0; readbackIndex < 6; readbackIndex++)
+				B3D_TEST_ASSERT_MSG(test.HasDispatchValues(readbacks[readbackIndex], readbackIndex % 2 == 1), "A resource does not hold its values.")
+
+			device->EndFrame();
+		});
+	}
+
+	gGpuTransientAliasing.Set(isAliasingEnabled);
+}
+
+void FrameGraphTestSuite::TestSharedReaders()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	const bool hasComputeQueue = device != nullptr && HasComputeQueue(*device);
+	const TShared<GpuComputePipelineState> pipeline = hasComputeQueue ? CreateTestDispatchPipeline(*device) : nullptr;
+	const TShared<GpuComputePipelineState> samplePipeline = hasComputeQueue ? CreateTestSamplePipeline(*device) : nullptr;
+	if(pipeline == nullptr || samplePipeline == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+
+	RunOnRenderThread("FrameGraphTestSuite::TestSharedReaders", [this, &device, &pipeline, &samplePipeline]()
+	{
+		const FrameGraphTestContext test(*device, pipeline, samplePipeline);
+		for(const bool isWrittenAfter : { false, true })
+		{
+			const TShared<render::GpuBuffer> buffer = test.CreateBuffer("Shared buffer");
+			const TShared<render::Texture> texture = test.CreateTexture("Shared texture", TextureUsageFlag::AllowUnorderedAccessOnTheGPU | TextureUsageFlag::AllowConcurrentQueueReads);
+			const TShared<render::GpuBuffer> graphicsReadback = test.CreateReadback(kSize * kSize * sizeof(u32));
+			const TShared<render::GpuBuffer> asyncReadback = test.CreateReadback(kSize * kSize * sizeof(u32));
+
+			{
+				FrameGraph graph(*test.Context, kGraphName);
+				graph.ImportBuffer(buffer);
+				graph.ImportTexture(texture);
+				test.AddDispatch(graph, "Write", buffer, texture);
+
+				// Both reads share the read state the barrier before the graphics read establishes
+				const TShared<render::GpuBuffer> graphicsValues = CreateTransientBuffer(graph, "Graphics values");
+				const TShared<render::GpuBuffer> asyncValues = CreateTransientBuffer(graph, "Async values");
+				test.AddSample(graph, "Graphics read", texture, graphicsValues);
+				test.AddSample(graph, "Async read", texture, asyncValues, FrameGraphPassFlag::AsyncCompute);
+
+				// The write waits for the async read, and its barrier orders the graphics read
+				if(isWrittenAfter)
+					test.AddDispatch(graph, "Write after reads", buffer, texture);
+
+				test.AddReadback(graph, "Read async values", asyncValues, asyncReadback);
+				test.AddReadback(graph, "Read graphics values", graphicsValues, graphicsReadback);
+				graph.Compile();
+
+				// Only the async values are transferred, from the compute queue to the graphics queue
+				const FrameGraphStatistics& statistics = graph.GetStatistics();
+				B3D_TEST_ASSERT(statistics.SubmissionCount == 3)
+				B3D_TEST_ASSERT(statistics.QueueWaitCount == 2)
+				B3D_TEST_ASSERT(statistics.QueueTransferCount == 1)
+
+				graph.Execute();
+			}
+
+			device->WaitUntilIdle();
+			B3D_TEST_ASSERT_MSG(test.HasDispatchValues(graphicsReadback, false), "The graphics read of the shared texture does not see the write.")
+			B3D_TEST_ASSERT_MSG(test.HasDispatchValues(asyncReadback, false), "The async compute read of the shared texture does not see the write.")
+
+			device->EndFrame();
+		}
+	});
+}
+
+void FrameGraphTestSuite::TestOwnershipTransfer()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	const bool hasComputeQueue = device != nullptr && HasComputeQueue(*device);
+	const TShared<GpuComputePipelineState> pipeline = hasComputeQueue ? CreateTestDispatchPipeline(*device) : nullptr;
+	const TShared<GpuComputePipelineState> samplePipeline = hasComputeQueue ? CreateTestSamplePipeline(*device) : nullptr;
+	if(pipeline == nullptr || samplePipeline == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+
+	// The later graph's undeclared reads are checked against the resting state
+	const bool validateRestingStates = gGpuValidateRestingStates;
+	gGpuValidateRestingStates.Set(true);
+
+	RunOnRenderThread("FrameGraphTestSuite::TestOwnershipTransfer", [this, &device, &pipeline, &samplePipeline]()
+	{
+		const FrameGraphTestContext test(*device, pipeline, samplePipeline);
+		const TShared<render::GpuBuffer> buffer = test.CreateBuffer("Rendered buffer");
+		const TShared<render::Texture> rendered = test.CreateTexture("Rendered texture", TextureUsageFlag::RenderTarget | TextureUsageFlag::AllowUnorderedAccessOnTheGPU);
+		const TShared<render::GpuBuffer> asyncValues = test.CreateBuffer("Async values");
+
+		{
+			FrameGraph graph(*test.Context, kGraphName);
+			graph.ImportBuffer(buffer);
+			graph.ImportTexture(rendered);
+			graph.ImportBuffer(asyncValues);
+			test.AddDispatch(graph, "Render", buffer, rendered);
+			test.AddSample(graph, "Async sample", rendered, asyncValues, FrameGraphPassFlag::AsyncCompute);
+			graph.Compile();
+
+			// A prologue releases the values to the compute queue, and an epilogue acquires both resources back at the end
+			const FrameGraphStatistics& statistics = graph.GetStatistics();
+			B3D_TEST_ASSERT(statistics.SubmissionCount == 4)
+			B3D_TEST_ASSERT(statistics.QueueWaitCount == 2)
+			B3D_TEST_ASSERT(statistics.QueueTransferCount == 4)
+
+			graph.Execute();
+		}
+
+		device->EndFrame();
+
+		// A later frame samples the texture at rest without importing it, and reads the values
+		const TShared<render::GpuBuffer> sampledValues = test.CreateBuffer("Sampled values");
+		const TShared<render::GpuBuffer> asyncReadback = test.CreateReadback(kSize * kSize * sizeof(u32));
+		const TShared<render::GpuBuffer> sampledReadback = test.CreateReadback(kSize * kSize * sizeof(u32));
+		{
+			FrameGraph graph(*test.Context, kGraphName);
+			graph.ImportBuffer(asyncValues);
+			graph.ImportBuffer(sampledValues);
+			test.AddSample(graph, "Sample at rest", rendered, sampledValues);
+			test.AddReadback(graph, "Read async values", asyncValues, asyncReadback);
+			test.AddReadback(graph, "Read sampled values", sampledValues, sampledReadback);
+
+			graph.Compile();
+			graph.Execute();
+		}
+
+		device->WaitUntilIdle();
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(asyncReadback, false), "The async compute pass does not sample what the graphics dispatch wrote.")
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(sampledReadback, false), "The texture is not at rest on the graphics queue after the graph.")
+
+		device->EndFrame();
+	});
+
+	gGpuValidateRestingStates.Set(validateRestingStates);
+}
+
+void FrameGraphTestSuite::TestIndependentCompute()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	const TShared<GpuComputePipelineState> pipeline = device != nullptr && HasComputeQueue(*device) ? CreateTestDispatchPipeline(*device) : nullptr;
+	if(pipeline == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+
+	RunOnRenderThread("FrameGraphTestSuite::TestIndependentCompute", [this, &device, &pipeline]()
+	{
+		const FrameGraphTestContext test(*device, pipeline);
+		const TShared<render::GpuBuffer> buffer = test.CreateBuffer("Graphics buffer");
+		const TShared<render::Texture> texture = test.CreateTexture("Graphics texture");
+		const TShared<render::GpuBuffer> bufferReadback = test.CreateReadback(kSize * kSize * sizeof(u32));
+		const TShared<render::GpuBuffer> textureReadback = test.CreateReadback(test.TextureReadbackSize);
+
+		{
+			FrameGraph graph(*test.Context, kGraphName);
+			graph.ImportBuffer(buffer);
+			graph.ImportTexture(texture);
+			test.AddDispatch(graph, "Graphics write", buffer, texture);
+
+			const TShared<render::GpuBuffer> asyncBuffer = CreateTransientBuffer(graph, "Async buffer");
+			const TShared<render::Texture> asyncTexture = graph.CreateTexture("Async texture", test.TextureInformation);
+			test.AddDispatch(graph, "Async write", asyncBuffer, asyncTexture, false, FrameGraphPassFlag::AsyncCompute);
+			test.AddReadback(graph, "Async read", asyncBuffer, asyncTexture, bufferReadback, textureReadback);
+			graph.Compile();
+
+			// Only the reader waits for a submission of the graph
+			const FrameGraphStatistics& statistics = graph.GetStatistics();
+			B3D_TEST_ASSERT(statistics.SubmissionCount == 3)
+			B3D_TEST_ASSERT(statistics.QueueWaitCount == 1)
+			B3D_TEST_ASSERT(statistics.QueueTransferCount == 2)
+
+			graph.Execute();
+		}
+
+		device->WaitUntilIdle();
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(bufferReadback, false), "The async buffer does not hold its values.")
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(textureReadback, true), "The async texture does not hold its values.")
+
+		device->EndFrame();
+	});
+}
+
+void FrameGraphTestSuite::TestTransientAliasingAcrossQueues()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	const TShared<GpuComputePipelineState> pipeline = device != nullptr && HasComputeQueue(*device) ? CreateTestDispatchPipeline(*device) : nullptr;
+	if(pipeline == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+
+	const bool isAliasingEnabled = gGpuTransientAliasing;
+	for(const bool isAliasing : { true, false })
+	{
+		gGpuTransientAliasing.Set(isAliasing);
+		RunOnRenderThread("FrameGraphTestSuite::TestTransientAliasingAcrossQueues", [this, &device, &pipeline]()
+		{
+			const FrameGraphTestContext test(*device, pipeline);
+
+			TShared<render::GpuBuffer> readbacks[6];
+			for(u32 readbackIndex = 0; readbackIndex < 6; readbackIndex++)
+				readbacks[readbackIndex] = test.CreateReadback(readbackIndex % 2 == 0 ? kSize * kSize * (u32)sizeof(u32) : test.TextureReadbackSize);
+
+			{
+				FrameGraph graph(*test.Context, kGraphName);
+
+				// The first async and graphics transients overlap in time on different queues. The second async transients come after
+				// the graphics reads on the compute queue, but nothing orders them after those reads.
+				const TShared<render::GpuBuffer> firstAsyncBuffer = CreateTransientBuffer(graph, "First async buffer");
+				const TShared<render::Texture> firstAsyncTexture = graph.CreateTexture("First async texture", test.TextureInformation);
+				test.AddDispatch(graph, "First async write", firstAsyncBuffer, firstAsyncTexture, false, FrameGraphPassFlag::AsyncCompute);
+
+				const TShared<render::GpuBuffer> graphicsBuffer = CreateTransientBuffer(graph, "Graphics buffer");
+				const TShared<render::Texture> graphicsTexture = graph.CreateTexture("Graphics texture", test.TextureInformation);
+				test.AddDispatch(graph, "Graphics write", graphicsBuffer, graphicsTexture);
+
+				test.AddReadback(graph, "First async read", firstAsyncBuffer, firstAsyncTexture, readbacks[0], readbacks[1]);
+				test.AddReadback(graph, "Graphics read", graphicsBuffer, graphicsTexture, readbacks[2], readbacks[3]);
+
+				const TShared<render::GpuBuffer> secondAsyncBuffer = CreateTransientBuffer(graph, "Second async buffer");
+				const TShared<render::Texture> secondAsyncTexture = graph.CreateTexture("Second async texture", test.TextureInformation);
+				test.AddDispatch(graph, "Second async write", secondAsyncBuffer, secondAsyncTexture, false, FrameGraphPassFlag::AsyncCompute);
+				test.AddReadback(graph, "Second async read", secondAsyncBuffer, secondAsyncTexture, readbacks[4], readbacks[5]);
+
+				graph.Compile();
+				B3D_TEST_ASSERT(graph.GetStatistics().CulledPassCount == 0)
+				graph.Execute();
+			}
+
+			device->WaitUntilIdle();
+			for(u32 readbackIndex = 0; readbackIndex < 6; readbackIndex++)
+				B3D_TEST_ASSERT_MSG(test.HasDispatchValues(readbacks[readbackIndex], readbackIndex % 2 == 1), "A transient does not hold its values.")
+
+			device->EndFrame();
+		});
+	}
+
+	gGpuTransientAliasing.Set(isAliasingEnabled);
+}
+
+void FrameGraphTestSuite::TestAsyncComputeExtract()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	const TShared<GpuComputePipelineState> pipeline = device != nullptr && HasComputeQueue(*device) ? CreateTestDispatchPipeline(*device) : nullptr;
+	if(pipeline == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+
+	RunOnRenderThread("FrameGraphTestSuite::TestAsyncComputeExtract", [this, &device, &pipeline]()
+	{
+		const FrameGraphTestContext test(*device, pipeline);
+
+		TShared<render::GpuBuffer> extractedBuffer;
+		TShared<render::Texture> extractedTexture;
+		{
+			FrameGraph graph(*test.Context, kGraphName);
+			extractedBuffer = CreateTransientBuffer(graph, "Extracted buffer");
+			extractedTexture = graph.CreateTexture("Extracted texture", test.TextureInformation);
+			test.AddDispatch(graph, "Async write", extractedBuffer, extractedTexture, false, FrameGraphPassFlag::AsyncCompute);
+			graph.ExtractBuffer(extractedBuffer);
+			graph.ExtractTexture(extractedTexture);
+			graph.Compile();
+
+			// The epilogue acquires both back to rest on the graphics queue
+			const FrameGraphStatistics& statistics = graph.GetStatistics();
+			B3D_TEST_ASSERT(statistics.SubmissionCount == 2)
+			B3D_TEST_ASSERT(statistics.QueueWaitCount == 1)
+			B3D_TEST_ASSERT(statistics.QueueTransferCount == 2)
+
+			graph.Execute();
+		}
+
+		device->EndFrame();
+
+		const TShared<render::GpuBuffer> bufferReadback = test.CreateReadback(kSize * kSize * sizeof(u32));
+		const TShared<render::GpuBuffer> textureReadback = test.CreateReadback(test.TextureReadbackSize);
+		{
+			FrameGraph graph(*test.Context, kGraphName);
+			graph.ImportBuffer(extractedBuffer);
+			graph.ImportTexture(extractedTexture);
+			test.AddReadback(graph, "Read", extractedBuffer, extractedTexture, bufferReadback, textureReadback);
+			graph.Compile();
+			graph.Execute();
+		}
+
+		device->WaitUntilIdle();
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(bufferReadback, false), "The extracted buffer does not hold the values the async compute pass wrote.")
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(textureReadback, true), "The extracted texture does not hold the values the async compute pass wrote.")
+
+		device->EndFrame();
+	});
+}
+
+void FrameGraphTestSuite::TestAsyncComputeDisabled()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	const TShared<GpuComputePipelineState> pipeline = device != nullptr ? CreateTestDispatchPipeline(*device) : nullptr;
+	if(pipeline == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+
+	const bool isAsyncComputeEnabled = gFrameGraphAsyncCompute;
+	gFrameGraphAsyncCompute.Set(false);
+
+	RunOnRenderThread("FrameGraphTestSuite::TestAsyncComputeDisabled", [this, &device, &pipeline]()
+	{
+		const FrameGraphTestContext test(*device, pipeline);
+		const TShared<render::GpuBuffer> buffer = test.CreateBuffer("Async buffer");
+		const TShared<render::Texture> texture = test.CreateTexture("Async texture");
+		const TShared<render::GpuBuffer> bufferReadback = test.CreateReadback(kSize * kSize * sizeof(u32));
+		const TShared<render::GpuBuffer> textureReadback = test.CreateReadback(test.TextureReadbackSize);
+
+		{
+			FrameGraph graph(*test.Context, kGraphName);
+			graph.ImportBuffer(buffer);
+			graph.ImportTexture(texture);
+			test.AddDispatch(graph, "Producer", buffer, texture, false, FrameGraphPassFlag::AsyncCompute);
+			test.AddReadback(graph, "Consumer", buffer, texture, bufferReadback, textureReadback);
+			graph.Compile();
+
+			const FrameGraphStatistics& statistics = graph.GetStatistics();
+			B3D_TEST_ASSERT(statistics.SubmissionCount == 1)
+			B3D_TEST_ASSERT(statistics.QueueWaitCount == 0)
+			B3D_TEST_ASSERT(statistics.QueueTransferCount == 0)
+
+			graph.Execute();
+		}
+
+		device->WaitUntilIdle();
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(bufferReadback, false), "The consumer does not read what the producer wrote into the buffer.")
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(textureReadback, true), "The consumer does not read what the producer wrote into the texture.")
+
+		device->EndFrame();
+	});
+
+	gFrameGraphAsyncCompute.Set(isAsyncComputeEnabled);
+}
+
+void FrameGraphTestSuite::TestAsyncComputeExport()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	const bool hasComputeQueue = device != nullptr && HasComputeQueue(*device);
+	const TShared<GpuComputePipelineState> pipeline = hasComputeQueue ? CreateTestDispatchPipeline(*device) : nullptr;
+	const TShared<GpuComputePipelineState> samplePipeline = hasComputeQueue ? CreateTestSamplePipeline(*device) : nullptr;
+	if(pipeline == nullptr || samplePipeline == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+
+	RunOnRenderThread("FrameGraphTestSuite::TestAsyncComputeExport", [this, &device, &pipeline, &samplePipeline]()
+	{
+		const FrameGraphTestContext test(*device, pipeline, samplePipeline);
+
+		// Resources both queues can read rest the same way on either queue after the export
+		const TShared<render::GpuBuffer> sharedBuffer = test.CreateBuffer("Exported buffer");
+		const TShared<render::Texture> sharedTexture = test.CreateTexture("Exported shared texture", TextureUsageFlag::AllowUnorderedAccessOnTheGPU | TextureUsageFlag::AllowConcurrentQueueReads);
+		const TShared<render::GpuBuffer> asyncValues = test.CreateBuffer("Async values");
+		const TShared<render::GpuBuffer> graphicsValues = test.CreateBuffer("Graphics values");
+		const TShared<render::GpuBuffer> asyncReadback = test.CreateReadback(kSize * kSize * sizeof(u32));
+		const TShared<render::GpuBuffer> graphicsReadback = test.CreateReadback(kSize * kSize * sizeof(u32));
+		{
+			FrameGraph graph(*test.Context, kGraphName);
+			graph.ImportBuffer(sharedBuffer);
+			graph.ImportTexture(sharedTexture);
+			graph.ImportBuffer(asyncValues);
+			graph.ImportBuffer(graphicsValues);
+			test.AddDispatch(graph, "Async export", sharedBuffer, sharedTexture, true, FrameGraphPassFlag::AsyncCompute);
+			test.AddUndeclaredSample(graph, "Async read", sharedTexture, asyncValues, FrameGraphPassFlag::AsyncCompute);
+
+			// The read of the async values waits for the async passes, so the graphics read after it sees the export
+			test.AddReadback(graph, "Read async values", asyncValues, asyncReadback);
+			test.AddUndeclaredSample(graph, "Graphics read", sharedTexture, graphicsValues, FrameGraphPassFlag::None);
+			test.AddReadback(graph, "Read graphics values", graphicsValues, graphicsReadback);
+
+			graph.Compile();
+			graph.Execute();
+		}
+
+		device->WaitUntilIdle();
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(asyncReadback, false), "The async compute read of the exported shared texture does not see the export.")
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(graphicsReadback, false), "The graphics read of the exported shared texture does not see the export.")
+
+		device->EndFrame();
+
+		// A texture that rests on the graphics queue returns there before the first graphics pass after the wait for the export
+		const TShared<render::Texture> exclusiveTexture = test.CreateTexture("Exported texture");
+		const TShared<render::GpuBuffer> sampledValues = test.CreateBuffer("Sampled values");
+		const TShared<render::GpuBuffer> bufferReadback = test.CreateReadback(kSize * kSize * sizeof(u32));
+		const TShared<render::GpuBuffer> sampledReadback = test.CreateReadback(kSize * kSize * sizeof(u32));
+		{
+			FrameGraph graph(*test.Context, kGraphName);
+			graph.ImportTexture(exclusiveTexture);
+			graph.ImportBuffer(sampledValues);
+
+			const TShared<render::GpuBuffer> asyncBuffer = CreateTransientBuffer(graph, "Async buffer");
+			FrameGraphComputePass pass(FrameGraphPassFlag::AsyncCompute);
+			const TShared<render::GpuParameterSet> parameters = test.Context->GetParameterSetPool().Create(pipeline->GetParameterLayout()->GetSet(0), 0);
+			pass.AddParameterSet(parameters);
+			parameters->SetStorageBuffer("OutputBuffer", asyncBuffer);
+			parameters->SetStorageTexture("OutputTexture", exclusiveTexture, TextureSurface());
+			pass.Export(exclusiveTexture);
+
+			const TShared<GpuComputePipelineState> dispatchPipeline = pipeline;
+			graph.AddComputePass("Async export", std::move(pass), [dispatchPipeline, parameters](FrameGraphPassContext& passContext)
+			{
+				render::GpuCommandBuffer& commands = passContext.GetCommandBuffer();
+				commands.SetGpuComputePipelineState(dispatchPipeline);
+				commands.SetGpuParameterSet(parameters);
+				commands.DispatchCompute(1, 1, 1);
+			});
+
+			test.AddReadback(graph, "Read async buffer", asyncBuffer, bufferReadback);
+			test.AddUndeclaredSample(graph, "Graphics read", exclusiveTexture, sampledValues, FrameGraphPassFlag::None);
+			test.AddReadback(graph, "Read sampled values", sampledValues, sampledReadback);
+
+			graph.Compile();
+			graph.Execute();
+		}
+
+		device->WaitUntilIdle();
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(bufferReadback, false), "The async buffer does not hold its values.")
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(sampledReadback, false), "The graphics read of the exported texture does not see the export.")
+
+		device->EndFrame();
+	});
+}
+
+void FrameGraphTestSuite::TestAsyncCopy()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	const TShared<GpuComputePipelineState> pipeline = device != nullptr && HasComputeQueue(*device) ? CreateTestDispatchPipeline(*device) : nullptr;
+	if(pipeline == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+
+	RunOnRenderThread("FrameGraphTestSuite::TestAsyncCopy", [this, &device, &pipeline]()
+	{
+		const FrameGraphTestContext test(*device, pipeline);
+		const TShared<render::GpuBuffer> buffer = test.CreateBuffer("Copied buffer");
+		const TShared<render::Texture> texture = test.CreateTexture("Copied texture");
+		const TShared<render::GpuBuffer> bufferReadback = test.CreateReadback(kSize * kSize * sizeof(u32));
+		const TShared<render::GpuBuffer> textureReadback = test.CreateReadback(test.TextureReadbackSize);
+
+		{
+			FrameGraph graph(*test.Context, kGraphName);
+			graph.ImportBuffer(buffer);
+			graph.ImportTexture(texture);
+			test.AddDispatch(graph, "Graphics write", buffer, texture);
+			test.AddReadback(graph, "Async copy", buffer, texture, bufferReadback, textureReadback, FrameGraphPassFlag::AsyncCompute);
+			graph.Compile();
+
+			// A prologue releases the readbacks to the compute queue, and an epilogue returns them to rest after the copy
+			const FrameGraphStatistics& statistics = graph.GetStatistics();
+			B3D_TEST_ASSERT(statistics.SubmissionCount == 4)
+			B3D_TEST_ASSERT(statistics.QueueTransferCount >= 4)
+
+			graph.Execute();
+		}
+
+		device->WaitUntilIdle();
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(bufferReadback, false), "The async copy does not read what the graphics dispatch wrote into the buffer.")
+		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(textureReadback, true), "The async copy does not read what the graphics dispatch wrote into the texture.")
+
+		device->EndFrame();
+	});
+}
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 void FrameGraphTestSuite::TestValidation()
 {
@@ -1530,6 +2374,139 @@ void FrameGraphTestSuite::TestValidation()
 		}
 
 		device->WaitUntilIdle();
+		device->EndFrame();
+	});
+}
+
+void FrameGraphTestSuite::TestAsyncComputeResting()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	const TShared<GpuComputePipelineState> pipeline = device != nullptr ? CreateTestDispatchPipeline(*device) : nullptr;
+	const TShared<GpuComputePipelineState> samplePipeline = device != nullptr ? CreateTestSamplePipeline(*device) : nullptr;
+	if(pipeline == nullptr || samplePipeline == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.ExpectError("Pass 'Async resting read' reads 'Resting texture' through slot 'InputTexture' on the async compute queue, but 'Resting texture' rests on the graphics queue. Import it first.");
+
+	RunOnRenderThread("FrameGraphTestSuite::TestAsyncComputeResting", [&device, &pipeline, &samplePipeline]()
+	{
+		const FrameGraphTestContext test(*device, pipeline, samplePipeline);
+
+		// The check uses the pass's preference, so it reports the same with the async compute queue disabled. The graph is never
+		// compiled, so nothing reads the texture.
+		FrameGraph graph(*test.Context, kGraphName);
+		const TShared<render::GpuBuffer> values = test.CreateBuffer("Values");
+		graph.ImportBuffer(values);
+		test.AddSample(graph, "Async resting read", test.CreateTexture("Resting texture"), values, FrameGraphPassFlag::AsyncCompute);
+		test.AddSample(graph, "Shared resting read", test.CreateTexture("Shared texture", TextureUsageFlag::Default), values, FrameGraphPassFlag::AsyncCompute);
+	});
+}
+
+void FrameGraphTestSuite::TestInterleavedGraphs()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	const TShared<GpuComputePipelineState> pipeline = device != nullptr ? CreateTestDispatchPipeline(*device) : nullptr;
+	if(pipeline == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+	logs.ExpectError("Frame graph 'Inner frame graph' executes while another frame graph executes. Execute frame graphs one at a time, so their submissions do not interleave.");
+
+	RunOnRenderThread("FrameGraphTestSuite::TestInterleavedGraphs", [&device, &pipeline]()
+	{
+		const FrameGraphTestContext test(*device, pipeline);
+		const TShared<render::GpuBuffer> buffer = test.CreateBuffer("Buffer");
+		const TShared<render::GpuBuffer> readback = test.CreateReadback(kSize * kSize * sizeof(u32));
+		const TShared<GpuWorkContext> innerContext = GpuWorkContext::Create(*device);
+
+		{
+			FrameGraph graph(*test.Context, kGraphName);
+			graph.ImportBuffer(buffer);
+			graph.ImportBuffer(readback);
+
+			FrameGraphCopyPass pass;
+			pass.AddSource(buffer);
+			pass.AddDestination(readback);
+			graph.AddCopyPass("Copy", std::move(pass), [buffer, readback, &innerContext](FrameGraphPassContext& passContext)
+			{
+				passContext.GetCommandBuffer().CopyBufferToBuffer(buffer, readback, 0, 0, kSize * kSize * sizeof(u32));
+
+				FrameGraph innerGraph(*innerContext, "Inner frame graph");
+				innerGraph.Compile();
+				innerGraph.Execute();
+			});
+
+			graph.Compile();
+			graph.Execute();
+		}
+
+		// The outer graph's execution ended, so a later graph executes without a report
+		{
+			FrameGraph graph(*test.Context, kGraphName);
+			graph.Compile();
+			graph.Execute();
+		}
+
+		device->WaitUntilIdle();
+		device->EndFrame();
+	});
+}
+
+void FrameGraphTestSuite::TestAsyncRasterPass()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	if(device == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+	logs.ExpectError("Raster pass 'Async clear' is created with FrameGraphPassFlag::AsyncCompute, which raster passes do not support. It runs on the graphics queue.");
+
+	RunOnRenderThread("FrameGraphTestSuite::TestAsyncRasterPass", [this, &device]()
+	{
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+
+		TextureCreateInformation colorInformation;
+		colorInformation.Width = kSize;
+		colorInformation.Height = kSize;
+		colorInformation.Format = PF_RGBA8;
+		colorInformation.Usage = TextureUsageFlag::RenderTarget;
+		colorInformation.ClearColor = Color(1.0f, 0.0f, 0.0f, 1.0f);
+
+		TAsyncOp<TShared<PixelData>> colorRead;
+		{
+			FrameGraph graph(*context, kGraphName);
+			const TShared<render::Texture> color = graph.CreateTexture("Color", colorInformation);
+
+			FrameGraphRasterPass pass(FrameGraphPassFlag::AsyncCompute);
+			pass.SetColorAttachment(0, color, FrameGraphAttachmentLoad::Clear);
+			graph.AddRasterPass("Async clear", std::move(pass), nullptr);
+			colorRead = TextureUtility::ReadAsync(graph, color);
+
+			graph.Compile();
+			B3D_TEST_ASSERT(graph.GetStatistics().SubmissionCount == 1)
+			graph.Execute();
+		}
+
+		// The command buffer's completion callbacks run on this thread while it waits
+		device->WaitUntilIdle();
+		B3D_TEST_ASSERT_MSG(colorRead.HasCompleted(), "The read did not complete with the graph's command buffer.")
+		if(!colorRead.HasCompleted())
+			return;
+
+		const TShared<PixelData> colorData = colorRead.GetReturnValue();
+		bool isCleared = colorData != nullptr;
+		for(u32 row = 0; row < kSize && isCleared; row++)
+		{
+			const u32* const rowTexels = reinterpret_cast<const u32*>(colorData->GetData() + row * colorData->GetRowPitch());
+			for(u32 column = 0; column < kSize; column++)
+				isCleared &= rowTexels[column] == 0xFF0000FF;
+		}
+
+		B3D_TEST_ASSERT_MSG(isCleared, "The raster pass does not clear its attachment on the graphics queue.")
+
 		device->EndFrame();
 	});
 }

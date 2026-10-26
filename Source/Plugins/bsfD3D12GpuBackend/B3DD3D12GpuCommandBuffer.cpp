@@ -1196,7 +1196,7 @@ D3D12GpuCommandBufferSubmitInformation D3D12GpuCommandBuffer::PrepareForSubmitOn
 		if(restingLayout == GpuImageLayout::Undefined)
 			continue;
 
-		const D3D12TextureLayout restingTextureLayout = image.GetTextureLayout(restingLayout, queueType);
+		const D3D12TextureLayout restingTextureLayout = image.GetTextureLayout(restingLayout, queueType, GpuQueueMask::kNone);
 		for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
 		{
 			if(!image.GetRange().AspectMask.IsSet(aspect))
@@ -1844,11 +1844,11 @@ bool D3D12GpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarri
 			return;
 
 		// Copy queues cannot transition layouts, so their textures stay in the common layout even before their first use
-		D3D12TextureLayout sourceLayout = image.GetTextureLayout(barrier.Source.Layout, releaseQueueType);
+		D3D12TextureLayout sourceLayout = image.GetTextureLayout(barrier.Source.Layout, releaseQueueType, barrier.Source.Queues);
 		if(releaseQueueType == GQT_TRANSFER && barrier.Source.Layout == GpuImageLayout::Undefined)
 			sourceLayout = D3D12TextureLayout::Common();
 
-		const D3D12TextureLayout destinationLayout = image.GetTextureLayout(barrier.Destination.Layout, acquireQueueType);
+		const D3D12TextureLayout destinationLayout = image.GetTextureLayout(barrier.Destination.Layout, acquireQueueType, barrier.Destination.Queues);
 
 		// Layout transitions write the image
 		GpuAccessFlags trackedAccess = barrier.Destination.Access | GpuAccessFlag::Read;

@@ -54,8 +54,11 @@ namespace b3d
 			/** Returns whether this image is owned by a presentation swap chain. */
 			bool IsPresentable() const { return mIsPresentable; }
 
-			/** Returns the native layout for @p layout, including resource-specific presentation constraints. */
-			D3D12TextureLayout GetTextureLayout(GpuImageLayout layout, GpuQueueType queueType) const;
+			/**
+			 * Returns the native layout for @p layout on queues of @p queueType, including resource-specific presentation constraints.
+			 * @p queues are the queues that access the image in the layout (see GpuAccessState::Queues).
+			 */
+			D3D12TextureLayout GetTextureLayout(GpuImageLayout layout, GpuQueueType queueType, GpuQueueMask queues) const;
 
 			/** Returns the D3D12 subresource index (mip-major, as used by native transition barriers) for a face/mip pair. */
 			u32 GetNativeSubresourceIndex(u32 face, u32 mipLevel) const { return face * mMipLevelCount + mipLevel; }

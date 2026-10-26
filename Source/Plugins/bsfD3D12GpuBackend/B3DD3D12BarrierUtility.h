@@ -27,6 +27,9 @@ namespace b3d
 		struct D3D12TextureLayoutOptions
 		{
 			bool AllowConcurrentQueueReads = false; /**< Whether shader reads may overlap on graphics and compute queues. */
+
+			/** Whether queues of more than one type access the texture in the layout, so it must be a layout that every queue type can use. */
+			bool IsAccessedOnSeveralQueueTypes = false;
 			bool IsPresentable = false; /**< Whether the texture is a swap-chain image that can remain in COMMON for copies. */
 		};
 

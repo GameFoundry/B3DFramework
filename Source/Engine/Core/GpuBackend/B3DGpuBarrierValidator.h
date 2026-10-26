@@ -36,6 +36,13 @@ namespace b3d::render
 	 *    GpuBackendUtility::GetRenderPassAttachmentLayout() for their layouts.
 	 *  - Resources must not be accessed or barriered while they are unplaced (see render::Texture::SetUnplaced()). A resource with a
 	 *    declared alias acquire must not be accessed or barriered before it, and the resources it supersedes not after it.
+	 *
+	 * Command buffers of different queues may share a validator, if they are validated in an order their queue waits allow. Accesses
+	 * on the queue of the last barrier are checked against its destination. Accesses on another queue only need the queue in the
+	 * destination's GpuAccessState::Queues, and its access and layout, because a queue wait orders them after the barrier. A barrier
+	 * must cover the accesses of its own queue since the previous barrier, and other queues must only have read the resource since. A
+	 * texture that cannot be read on several queues at once (see GpuBackendUtility::IsConcurrentlyReadable()) rests on the graphics
+	 * queue: other queues must not access it, or record its first barrier, before a barrier brings it to their queue.
 	 */
 	class B3D_EXPORT GpuBarrierValidator
 	{
@@ -113,9 +120,16 @@ namespace b3d::render
 		/** State of a buffer or an image subresource. */
 		struct ResourceState
 		{
+			/** Returns true if a queue accessed the resource since the last barrier. */
+			bool IsUsed() const
+			{
+				return std::any_of(std::begin(UsedAccess), std::end(UsedAccess), [](GpuAccessFlags access) { return access != GpuAccessFlag::None; });
+			}
+
 			GpuAccessState Declared; /**< Destination of the last barrier. Valid if IsDeclared is true. */
-			GpuStageFlags UsedStages; /**< Stages that accessed the resource since the last barrier. */
-			GpuAccessFlags UsedAccess; /**< How the resource was accessed since the last barrier. */
+			GpuQueueType DeclaredQueueType = GQT_GRAPHICS; /**< Queue of the command buffer that recorded the last barrier, or its acquire. Valid if IsDeclared is true. */
+			GpuStageFlags UsedStages[GQT_COUNT]; /**< Stages of each queue type that accessed the resource since the last barrier. */
+			GpuAccessFlags UsedAccess[GQT_COUNT]; /**< How each queue type accessed the resource since the last barrier. */
 			const GpuSplitBarrier* PendingAcquire = nullptr; /**< Split barrier released, but not acquired yet. */
 			u32 WriterOperation = 0; /**< Draw or dispatch that wrote the resource since the last barrier, or 0 if none did. */
 			bool IsDeclared = false;
@@ -201,20 +215,25 @@ namespace b3d::render
 		 */
 		const char* GetLifetimeError(bool isUnplaced, const IGpuResource* gpuResource, const GpuBarrier* barrier, GpuBarrierPhase phase) const;
 
-		/** Checks @p barrier against @p state and applies it. Returns an error message, or null if the barrier is valid. */
-		static const char* ApplyBarrier(ResourceState& state, const GpuBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split, bool isImage);
+		/**
+		 * Checks @p barrier, recorded on a command buffer of @p queueType, against @p state and applies it. Returns an error message, or
+		 * null if the barrier is valid.
+		 */
+		static const char* ApplyBarrier(ResourceState& state, GpuQueueType queueType, const GpuBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split, bool isImage);
 
 		/**
 		 * Checks an access against @p state and records it. Returns an error message, or null if the access is valid.
 		 *
 		 * @param	state				State of the accessed resource.
+		 * @param	queueType			Queue type of the command buffer that records the access.
 		 * @param	layout				Layout of the access, or GpuImageLayout::Undefined if it is not checked.
 		 * @param	stages				Stages of the access.
 		 * @param	access				Reads and writes of the access.
 		 * @param	undeclaredState		State to check the access against if no barrier declared the resource's state. Null to skip the check.
 		 * @param	operation			Draw or dispatch performing the access, or 0 for other accesses.
 		 */
-		static const char* ApplyAccess(ResourceState& state, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags access, const GpuAccessState* undeclaredState, u32 operation);
+		static const char* ApplyAccess(ResourceState& state, GpuQueueType queueType, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags access, const GpuAccessState* undeclaredState,
+			u32 operation);
 
 		/** Calls @p function with the state of each subresource of @p image. Returns the first error message it returns. */
 		template<class TFunction>

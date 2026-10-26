@@ -34,10 +34,11 @@ namespace b3d
 			GetDevice().FreeMemory(mAllocation);
 		}
 
-		D3D12TextureLayout D3D12Image::GetTextureLayout(GpuImageLayout layout, GpuQueueType queueType) const
+		D3D12TextureLayout D3D12Image::GetTextureLayout(GpuImageLayout layout, GpuQueueType queueType, GpuQueueMask queues) const
 		{
 			D3D12TextureLayoutOptions options;
 			options.AllowConcurrentQueueReads = mAllowConcurrentQueueReads;
+			options.IsAccessedOnSeveralQueueTypes = !(queues & ~GpuQueueMask(GpuQueueId(queueType, 0))).IsEmpty();
 			options.IsPresentable = mIsPresentable;
 
 			return D3D12BarrierUtility::TranslateTextureLayout(layout, queueType, options);
@@ -178,7 +179,7 @@ namespace b3d
 				optimizedClearValue = &clearValue;
 			}
 
-			const bool allowConcurrentQueueReads = properties.Usage.IsSet(TextureUsageFlag::AllowConcurrentQueueReads) || GpuBackendUtility::IsSampleableOnly(properties.Usage);
+			const bool allowConcurrentQueueReads = GpuBackendUtility::IsConcurrentlyReadable(properties.Usage);
 
 			D3D12TextureLayout initialLayout = D3D12TextureLayout::Undefined();
 			// A texture that starts at rest is created in its resting layout, so it needs no transition. Textures that are not shared between

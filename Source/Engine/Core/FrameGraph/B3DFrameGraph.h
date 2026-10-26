@@ -14,6 +14,12 @@ namespace b3d
 {
 	class GpuWorkContext;
 
+	/**
+	 * If enabled, passes created with render::FrameGraphPassFlag::AsyncCompute run on the async compute queue. If disabled, every pass
+	 * runs on the graphics queue.
+	 */
+	extern B3D_EXPORT TConfigVariable<bool> gFrameGraphAsyncCompute;
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	/**
 	 * If enabled, frame graphs record their passes one at a time, in the order the GPU executes them, and validate every command buffer
@@ -30,6 +36,23 @@ namespace b3d
 		/** @addtogroup Renderer
 		 *  @{
 		 */
+
+		/** Options of a pass of a FrameGraph. */
+		enum class FrameGraphPassFlag : u8
+		{
+			None = 0,
+
+			/**
+			 * The pass prefers the async compute queue, so it may overlap graphics work. Compute and copy passes only: a raster pass reports
+			 * it and runs on the graphics queue. The pass runs on the graphics queue too if gFrameGraphAsyncCompute is disabled or the device
+			 * has no compute queue. A pass that prefers the async compute queue may only read resources at rest that can be read on several
+			 * queues at once (see GpuBackendUtility::IsConcurrentlyReadable()). Others must be imported.
+			 */
+			AsyncCompute = 1 << 0
+		};
+
+		typedef Flags<FrameGraphPassFlag, u8> FrameGraphPassFlags;
+		B3D_FLAGS_OPERATORS_EXT(FrameGraphPassFlag, u8)
 
 		/** Determines what a raster pass does with the existing contents of an attachment. */
 		enum class FrameGraphAttachmentLoad
@@ -102,8 +125,11 @@ namespace b3d
 		protected:
 			friend class FrameGraph;
 
-			FrameGraphPass() = default;
+			explicit FrameGraphPass(FrameGraphPassFlags flags)
+				: mFlags(flags)
+			{ }
 
+			FrameGraphPassFlags mFlags;
 			TInlineArray<TShared<GpuParameterSet>, 4> mParameterSets;
 			TInlineArray<TShared<Texture>, 2> mExportedTextures;
 			TInlineArray<TShared<GpuBuffer>, 2> mExportedBuffers;
@@ -113,7 +139,10 @@ namespace b3d
 		class B3D_EXPORT FrameGraphRasterPass : public FrameGraphPass
 		{
 		public:
-			FrameGraphRasterPass() = default;
+			/** Creates a pass with @p flags. Raster passes support none: FrameGraphPassFlag::AsyncCompute is reported and ignored. */
+			explicit FrameGraphRasterPass(FrameGraphPassFlags flags = FrameGraphPassFlag::None)
+				: FrameGraphPass(flags)
+			{ }
 
 			/**
 			 * Renders into @p texture as color attachment @p index.
@@ -170,14 +199,20 @@ namespace b3d
 		class B3D_EXPORT FrameGraphComputePass : public FrameGraphPass
 		{
 		public:
-			FrameGraphComputePass() = default;
+			/** Creates a pass with @p flags. */
+			explicit FrameGraphComputePass(FrameGraphPassFlags flags = FrameGraphPassFlag::None)
+				: FrameGraphPass(flags)
+			{ }
 		};
 
 		/** Describes a pass of a FrameGraph that copies between resources with transfer operations, such as GpuCommandBuffer::CopyTexture(). */
 		class B3D_EXPORT FrameGraphCopyPass : public FrameGraphPass
 		{
 		public:
-			FrameGraphCopyPass() = default;
+			/** Creates a pass with @p flags. */
+			explicit FrameGraphCopyPass(FrameGraphPassFlags flags = FrameGraphPassFlag::None)
+				: FrameGraphPass(flags)
+			{ }
 
 			/** Declares that the pass copies from @p surface of @p texture, which must be a resource of the graph. */
 			void AddSource(const TShared<Texture>& texture, const TextureSurface& surface = TextureSurface::kComplete);
@@ -217,6 +252,14 @@ namespace b3d
 			u32 AliasAcquireCount = 0; /**< Number of alias acquires, full and split. */
 			u32 SplitAliasAcquireCount = 0; /**< Number of alias acquires released after an earlier pass, as split barriers. */
 			u32 AliasReleaseCount = 0; /**< Number of textures whose lifetimes an alias release ended, see GpuBarrierFlag::AliasRelease. */
+			u32 SubmissionCount = 0; /**< Number of command buffers the graph submits. */
+			u32 QueueTransferCount = 0; /**< Number of barriers issued as split barriers between queues. Also counted by SplitBarrierCount. */
+
+			/**
+			 * Number of queues the submissions wait on for earlier submissions of the graph, summed over the submissions. Waits for work
+			 * submitted before the graph are not counted.
+			 */
+			u32 QueueWaitCount = 0;
 		};
 
 		/**
@@ -234,9 +277,14 @@ namespace b3d
 		 * A pass reads whatever the pass declared before it wrote. Passes whose writes nothing observes are culled, along with their
 		 * transients. Barriers are split whenever other passes run between the accesses they order.
 		 *
+		 * Passes run on the graphics queue, unless a compute or copy pass prefers the async compute queue (FrameGraphPassFlag::AsyncCompute).
+		 * The graph then submits its passes as several command buffers on both queues, with the queue waits their accesses require, and
+		 * ends with the graphics queue waiting on the compute queue.
+		 *
 		 * @note	Not thread safe. Only the thread that owns the work context may use the graph. Graphs of different work contexts share
-		 *			the device's transient heaps, so their GPU work must follow the scope contract of GpuTransientResourceAllocator. Executes
-		 *			on the graphics queue, as one submission.
+		 *			the device's transient heaps, so their GPU work must follow the scope contract of GpuTransientResourceAllocator. The
+		 *			submissions of one graph must reach the queues without another graph's submissions between them: execute graphs one at
+		 *			a time. Development builds assert when executions overlap.
 		 */
 		class B3D_EXPORT FrameGraph
 		{
@@ -311,8 +359,8 @@ namespace b3d
 			void AddExecuteCallback(Function<void()> callback);
 
 			/**
-			 * Makes the submission of Execute() signal @p fence with @p value once the graph's work completes on the GPU. Wait for it with
-			 * GpuQueue::WaitUntilFence() on the first graphics queue, which the graph submits to.
+			 * Makes the last submission of Execute() signal @p fence with @p value once the graph's work completes on the GPU. Wait for it
+			 * with GpuQueue::WaitUntilFence() on the first graphics queue, which the graph's last submission is on.
 			 */
 			void AddSignalFence(const TShared<GpuTimelineFence>& fence, u64 value);
 
@@ -350,6 +398,12 @@ namespace b3d
 			/** Texture, buffer or render target surface the graph tracks. */
 			struct Resource
 			{
+				/** Returns true if the queues can read the resource at the same time, without transferring it between them. */
+				bool IsShared() const;
+
+				/** Returns the resting state of the texture or buffer on @p queueType. Not for surfaces. RestingState is the one of the graphics queue. */
+				GpuAccessState GetQueueRestingState(GpuQueueType queueType) const;
+
 				ResourceType Type = ResourceType::Transient;
 				TShared<render::Texture> Texture; /**< Set for textures. */
 				TShared<GpuBuffer> Buffer; /**< Set for buffers. */
@@ -417,10 +471,25 @@ namespace b3d
 			/** Split barriers released at one point and acquired at another, recorded with one GpuSplitBarrier. */
 			struct BarrierBatch
 			{
-				i32 ReleasePassIndex = -1; /**< Index into mCompiledPassIndices of the pass the batch is released after, or -1 for the start of the graph. */
-				u32 AcquirePassIndex = 0; /**< Index into mCompiledPassIndices of the pass the batch is acquired before. */
+				/** Index into mCompiledPassIndices of the pass the batch is released after, or -1 for the start of submission ReleaseSubmissionIndex. */
+				i32 ReleasePassIndex = -1;
+				u32 ReleaseSubmissionIndex = 0; /**< Index into mSubmissions of the submission the batch is released at the start of. Only used if ReleasePassIndex is -1. */
+				u32 AcquirePassIndex = 0; /**< Index into mCompiledPassIndices of the pass the batch is acquired before, or ~0u for the end of the graph. */
+				GpuQueueType ReleaseQueueType = GQT_GRAPHICS; /**< Queue the release is recorded on. */
+				GpuQueueType AcquireQueueType = GQT_GRAPHICS; /**< Queue the acquire is recorded on. The batch transfers its resources if it differs from ReleaseQueueType. */
 				TShared<GpuSplitBarrier> SplitBarrier;
 				BarrierList Barriers;
+			};
+
+			/** Command buffer of the graph, submitted to one queue. */
+			struct Submission
+			{
+				GpuQueueType QueueType = GQT_GRAPHICS;
+				Vector<u32> PassIndices; /**< Indices into mCompiledPassIndices of the passes the submission records, in execution order. */
+				GpuQueueMask SyncMask; /**< Queues the submission waits for. */
+				TInlineArray<u32, 2> StartBarrierBatchIndices; /**< Indices into mBarrierBatches of the barrier batches released at the start of the submission. */
+				TInlineArray<u32, 2> EndBarrierBatchIndices; /**< Indices into mBarrierBatches of the barrier batches acquired at the end of the graph. Last submission only. */
+				BarrierList EndBarriers; /**< Barriers to rest at the end of the graph. Last submission only. */
 			};
 
 			/** Pass added to the graph. */
@@ -428,6 +497,7 @@ namespace b3d
 			{
 				String Name;
 				PassType Type = PassType::Compute;
+				FrameGraphPassFlags Flags; /**< Flags of the pass's description, without those its type does not support. */
 				Function<void(FrameGraphPassContext&)> Execute;
 				TInlineArray<TShared<GpuParameterSet>, 4> ParameterSets;
 				Vector<SubresourceAccess> Accesses; /**< Sorted by resource and subresource, one entry per subresource. */
@@ -436,6 +506,8 @@ namespace b3d
 
 				// Compile results
 				bool IsCulled = false;
+				GpuQueueType QueueType = GQT_GRAPHICS; /**< Queue the pass runs on. */
+				u32 SubmissionIndex = 0; /**< Index into mSubmissions of the submission that records the pass. */
 				BarrierList AliasAcquireBarriers; /**< Full alias acquires, issued first in the pass's prologue. */
 
 				/** Indices into mBarrierBatches of the barrier batches acquired in the pass's prologue, after the alias acquires. */
@@ -470,6 +542,69 @@ namespace b3d
 			 */
 			void DeclareAccess(Pass& pass, u32 resourceIndex, const GpuTextureSubresourceRange& range, const GpuAccessState& state, bool discardsContents = false);
 
+			/** State the stages of Compile() pass on to each other. */
+			struct CompileContext;
+
+			/** Returns the surviving pass at @p compiledIndex in mCompiledPassIndices. */
+			Pass& GetCompiledPass(u32 compiledIndex) { return mPasses[mCompiledPassIndices[compiledIndex]]; }
+
+			/** Culls the passes whose writes nothing observes: no later surviving pass, export, or the end of the graph. */
+			void CullPasses(const CompileContext& context);
+
+			/** Puts the surviving passes in execution order, and finds the first and last surviving pass of each resource. */
+			void OrderPasses();
+
+			/** Picks the queue of each surviving pass, and finds the previous pass on its queue. */
+			void ResolveQueues(CompileContext& context);
+
+			/**
+			 * Plans the barriers of every subresource, in pass order and at the end of the graph, and the queue waits between passes of
+			 * different queues. Alias acquires of transients are completed after placement.
+			 */
+			void PlanBarriers(CompileContext& context);
+
+			/**
+			 * Plans a barrier of one subresource from its current state into @p destination, for accesses on @p queueType before the
+			 * compiled pass at @p compiledIndex, or ~0u for the end of the graph. The barrier orders the accesses of @p sourceQueueType
+			 * since the state was established, and transfers the subresource between the queues if they differ. If @p isExport is true,
+			 * the barrier returns the subresource to rest after the pass instead.
+			 */
+			void PlanBarrierWithExplicitSourceQueue(CompileContext& context, u32 resourceIndex, u32 subresourceIndex, const GpuAccessState& destination,
+				u32 compiledIndex, GpuQueueType queueType, GpuQueueType sourceQueueType, bool discardsContents, bool isExport);
+
+			/**
+			 * Plans a barrier of one subresource into @p wanted, for an access on @p queueType before the compiled pass at @p compiledIndex,
+			 * or ~0u for the end of the graph. The barrier orders the accesses since the state was established on whichever queue made them.
+			 */
+			void PlanBarrierWithAutomaticSourceQueue(CompileContext& context, u32 resourceIndex, u32 subresourceIndex, const GpuAccessState& wanted,
+				u32 compiledIndex, GpuQueueType queueType, bool discardsContents);
+
+			/** Cuts the passes of each queue into submissions along the queue waits, and puts the submissions in submit order in mTimeline. */
+			void BuildSubmissions(CompileContext& context);
+
+			/** Places the transients in the submissions of their passes, and detaches the extracted ones. */
+			void PlaceTransients(const CompileContext& context);
+
+			/** Builds or finds the render textures of the raster passes whose attachments were set one by one. */
+			void CreateRenderTextures();
+
+			/** Gives the alias acquires of the placed transients their sources and split points, and plans the alias releases. */
+			void CompleteAliasAcquires(CompileContext& context);
+
+			/**
+			 * Places the barrier halves whose position depends on the submissions: the acquires of exports from the compute queue that no
+			 * later access placed, and the releases at the start of the graph.
+			 */
+			void ResolveDeferredBarrierPoints(CompileContext& context);
+
+			/** Merges the planned barriers into the barrier lists and batches that Execute() records, and adds the waits their transfers need. */
+			void BatchBarriers(CompileContext& context);
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			/** Checks that every split barrier and queue wait is ordered by the submissions. */
+			void ValidateSchedule(const CompileContext& context);
+#endif
+
 			/** Records the barriers of @p list as one call of @p phase. */
 			void RecordBarriers(GpuCommandBuffer& commandBuffer, const BarrierList& list, GpuBarrierPhase phase, const TShared<GpuSplitBarrier>& split = nullptr);
 
@@ -488,8 +623,7 @@ namespace b3d
 			Vector<Pass> mPasses;
 			Vector<u32> mCompiledPassIndices; /**< Indices into mPasses of the surviving passes, in execution order. */
 			Vector<BarrierBatch> mBarrierBatches;
-			TInlineArray<u32, 2> mStartBarrierBatchIndices; /**< Indices into mBarrierBatches of the barrier batches released at the start of the graph. */
-			BarrierList mEndBarriers; /**< Barriers to rest at the end of the graph. */
+			Vector<Submission> mSubmissions; /**< In submit order, which is the order of mTimeline. The last one is on the graphics queue. */
 
 			/** Index into mResources of the first surface of each imported render target that is not a texture. */
 			UnorderedMap<const RenderTarget*, u32> mImportedTargetResourceIndices;

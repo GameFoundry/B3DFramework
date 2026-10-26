@@ -504,6 +504,25 @@ void D3D12BarrierTestSuite::TestTextureLayoutMappings()
 	B3D_TEST_ASSERT(D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout::TransferDestination, GQT_COMPUTE,
 		defaultOptions).GetLayout(colorAspect) == D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_COPY_DEST)
 
+	// Layouts that queues of both types access are the layouts every queue type can use
+	D3D12TextureLayoutOptions severalQueueTypesOptions;
+	severalQueueTypesOptions.IsAccessedOnSeveralQueueTypes = true;
+	const GpuImageLayout sharedLayouts[] = { GpuImageLayout::General, GpuImageLayout::ShaderReadOnly, GpuImageLayout::TransferSource, GpuImageLayout::TransferDestination };
+	const D3D12_BARRIER_LAYOUT sharedNativeLayouts[] = { D3D12_BARRIER_LAYOUT_UNORDERED_ACCESS, D3D12_BARRIER_LAYOUT_SHADER_RESOURCE, D3D12_BARRIER_LAYOUT_COPY_SOURCE,
+		D3D12_BARRIER_LAYOUT_COPY_DEST };
+	for(u32 layoutIndex = 0; layoutIndex < 4; layoutIndex++)
+	{
+		const D3D12TextureLayout graphicsLayout = D3D12BarrierUtility::TranslateTextureLayout(sharedLayouts[layoutIndex], GQT_GRAPHICS, severalQueueTypesOptions);
+		const D3D12TextureLayout computeLayout = D3D12BarrierUtility::TranslateTextureLayout(sharedLayouts[layoutIndex], GQT_COMPUTE, severalQueueTypesOptions);
+		B3D_TEST_ASSERT(graphicsLayout.GetLayout(colorAspect) == sharedNativeLayouts[layoutIndex])
+		B3D_TEST_ASSERT(computeLayout == graphicsLayout)
+		B3D_TEST_ASSERT(D3D12BarrierUtility::CanTransitionTextureLayoutOnQueue(graphicsLayout, colorAspect, GQT_GRAPHICS))
+		B3D_TEST_ASSERT(D3D12BarrierUtility::CanTransitionTextureLayoutOnQueue(graphicsLayout, colorAspect, GQT_COMPUTE))
+	}
+
+	B3D_TEST_ASSERT(D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout::DepthStencilReadOnly, GQT_GRAPHICS,
+		severalQueueTypesOptions).GetLayout(GpuTextureAspectFlag::Depth) == D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_GENERIC_READ_COMPUTE_QUEUE_ACCESSIBLE)
+
 	B3D_TEST_ASSERT(D3D12BarrierUtility::IsTextureLayoutSupportedOnQueue(graphicsShaderRead, colorAspect, GQT_GRAPHICS))
 	B3D_TEST_ASSERT(!D3D12BarrierUtility::IsTextureLayoutSupportedOnQueue(graphicsShaderRead, colorAspect, GQT_COMPUTE))
 	B3D_TEST_ASSERT(D3D12BarrierUtility::IsTextureLayoutSupportedOnQueue(computeShaderRead, colorAspect, GQT_COMPUTE))

@@ -16,6 +16,9 @@
 
 namespace b3d
 {
+	TConfigVariable<bool> gFrameGraphAsyncCompute("gpu.FrameGraphAsyncCompute",
+		"If enabled, compute passes that prefer the async compute queue run on it. If disabled, every pass runs on the graphics queue.", true);
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	TConfigVariable<bool> gFrameGraphSerialRecording("gpu.FrameGraphSerialRecording",
 		"If enabled, frame graphs record their passes one at a time, in GPU execution order, and validate them with one shared barrier validator.", true);
@@ -33,6 +36,9 @@ namespace b3d::render
 		/** True while a frame graph creates a render texture for a raster pass on the calling thread. */
 		thread_local bool gIsCreatingRenderTexture = false;
 
+		/** Id of the frame graph that is executing, or zero if none is. */
+		std::atomic<u32> gExecutingFrameGraphId = 0;
+
 		/** Returns a new frame graph id. */
 		u32 CreateFrameGraphId()
 		{
@@ -44,7 +50,7 @@ namespace b3d::render
 		}
 #endif
 
-		/** Command buffer pool and render textures that the frame graphs of one work context share. */
+		/** Command buffer pools and render textures that the frame graphs of one work context share. */
 		class FrameGraphContextData : public IGpuWorkContextLocal
 		{
 		public:
@@ -59,7 +65,8 @@ namespace b3d::render
 				u64 LastUsedFrame = 0;
 			};
 
-			TShared<GpuCommandBufferPool> CommandBufferPool;
+			TShared<GpuCommandBufferPool> CommandBufferPool; /**< Pool of the graphics queue command buffers. */
+			TShared<GpuCommandBufferPool> ComputeCommandBufferPool; /**< Pool of the compute queue command buffers. */
 			Vector<RenderTextureEntry> RenderTextures;
 		};
 
@@ -70,6 +77,12 @@ namespace b3d::render
 		FrameGraphContextData& GetContextData(GpuWorkContext& context)
 		{
 			return context.GetOrCreateLocal<FrameGraphContextData>(&kFrameGraphContextDataKey, []() { return B3DMakeUnique<FrameGraphContextData>(); });
+		}
+
+		/** Returns the other one of the graphics and the compute queue. */
+		GpuQueueType GetOtherQueueType(GpuQueueType queueType)
+		{
+			return queueType == GQT_GRAPHICS ? GQT_COMPUTE : GQT_GRAPHICS;
 		}
 
 		/** Returns true if @p a and @p b describe the same surface of the same texture. */
@@ -522,6 +535,92 @@ namespace b3d::render
 		}
 	}
 
+	/** State the stages of FrameGraph::Compile() pass on to each other. Lives in the frame allocator scope of Compile(). */
+	struct FrameGraph::CompileContext
+	{
+		/** Barrier of one subresource, or of a whole resource, as the planner produces it. */
+		struct PlannedBarrier
+		{
+			u32 ResourceIndex = 0; /**< Index into mResources. */
+			u32 SubresourceIndex = 0; /**< Index relative to the resource's first subresource. Ignored if IsWholeResource is true. */
+			bool IsWholeResource = false;
+			GpuAccessState Source;
+			GpuAccessState Destination;
+			GpuBarrierFlags Flags;
+
+			/**
+			 * Index into mCompiledPassIndices of the pass the release goes after, or -1 for the start of submission ReleaseSubmissionIndex.
+			 * AcquirePassIndex - 1 for full barriers.
+			 */
+			i32 ReleasePassIndex = -1;
+
+			/** Index into mSubmissions of the submission a release at -1 starts, or ~0u for the start of the graph: the first graphics submission. */
+			u32 ReleaseSubmissionIndex = ~0u;
+
+			u32 AcquirePassIndex = 0; /**< Index into mCompiledPassIndices of the pass the barrier precedes, or ~0u for the end of the graph. */
+			GpuQueueType ReleaseQueueType = GQT_GRAPHICS; /**< Queue of the release, or of the whole barrier if it is full. */
+			GpuQueueType AcquireQueueType = GQT_GRAPHICS; /**< Queue of the acquire, or of the whole barrier if it is full. */
+			bool IsSplit = false;
+			bool IsExport = false; /**< True for a barrier to rest after the pass at ReleasePassIndex. */
+		};
+
+		/** Planning state of one subresource. */
+		struct SubresourceState
+		{
+			bool HasState = false; /**< False until a transient's first access. */
+
+			/**
+			 * State the last barrier established, its destination, or the resting state of an import. Later accesses join it while they fit.
+			 * Its queues include the other queue if it reads the subresource in it.
+			 */
+			GpuAccessState EstablishedState;
+
+			GpuQueueType EstablishedQueueType = GQT_GRAPHICS; /**< Queue of the barrier that established EstablishedState. Graphics for the resting state. */
+			i32 EstablishedPassIndex = -1; /**< Index into mCompiledPassIndices of the pass the barrier that established EstablishedState precedes, or -1 if none does. */
+			GpuStageFlags StagesSinceEstablished[GQT_COUNT]; /**< Stages in which each queue accessed the subresource since EstablishedState was established. */
+			GpuAccessFlags AccessSinceEstablished[GQT_COUNT]; /**< Reads and writes of each queue since EstablishedState was established. */
+
+			/**
+			 * Index into mCompiledPassIndices of the last pass of each queue that accessed the subresource or acquired its state, or -1 for the
+			 * start of the graph.
+			 */
+			i32 LastPassIndices[GQT_COUNT] = { -1, -1, -1 };
+
+			u32 BarrierIndex = ~0u; /**< Index into PlannedBarriers of the barrier that established EstablishedState, or ~0u if none did. */
+
+			/** Index into PlannedBarriers of the split barrier that returns the subresource from an export on the compute queue, while its acquire is not placed. */
+			u32 PendingComputeExportBarrierIndex = ~0u;
+		};
+
+		u32 SubresourceCount = 0; /**< Number of subresources of all resources. See Resource::FirstSubresourceIndex. */
+		bool UsesComputeQueue = false; /**< True if a surviving pass runs on the compute queue. */
+
+		/** Index into mCompiledPassIndices of the previous pass on the queue of each surviving pass, or -1 for the first pass of a queue. */
+		FrameVector<i32> PreviousQueuePassIndices;
+
+		FrameVector<SubresourceState> SubresourceStates; /**< Planning state of each subresource of all resources. */
+		FrameVector<PlannedBarrier> PlannedBarriers;
+
+		/** Queue waits: a pass, or -1 for the start of the graph on the graphics queue, and a pass of the other queue that must wait for it. */
+		FrameVector<std::pair<i32, u32>> WaitEdges;
+
+		FrameVector<u32> FirstAccessBarrierIndices; /**< Indices into PlannedBarriers of the barriers that start the lifetimes of the transients, in pass order. */
+		FrameVector<u32> ComputeExportBarrierIndices; /**< Indices into PlannedBarriers of the split barriers that return exports from the compute queue to rest. */
+
+		u32 FirstGraphicsSubmissionIndex = 0; /**< Index into mSubmissions of the first submission on the graphics queue. */
+		u32 LastSubmissionIndex = 0; /**< Index into mSubmissions of the last submission, which is on the graphics queue. */
+	};
+
+	bool FrameGraph::Resource::IsShared() const
+	{
+		return Buffer != nullptr || (Texture != nullptr && GpuBackendUtility::IsConcurrentlyReadable(Texture->GetProperties().Usage));
+	}
+
+	GpuAccessState FrameGraph::Resource::GetQueueRestingState(GpuQueueType queueType) const
+	{
+		return Texture != nullptr ? GpuBackendUtility::GetRestingState(*Texture, queueType) : GpuBackendUtility::GetRestingState(*Buffer, queueType);
+	}
+
 	void FrameGraph::Compile()
 	{
 		B3D_ASSERT(!mIsCompiled && "A frame graph can only be compiled once.");
@@ -535,62 +634,81 @@ namespace b3d::render
 		mStatistics.PassCount = (u32)mPasses.size();
 
 		// The subresources of all resources are numbered one after another, so per-subresource state lives in flat arrays
-		u32 subresourceCount = 0;
+		CompileContext context;
 		for(Resource& resource : mResources)
 		{
-			resource.FirstSubresourceIndex = subresourceCount;
-			subresourceCount += resource.SubresourceCount;
+			resource.FirstSubresourceIndex = context.SubresourceCount;
+			context.SubresourceCount += resource.SubresourceCount;
 
 			if(resource.ExportPassIndex.has_value())
 				B3D_ENSURE_LOG(resource.Type != ResourceType::Transient || resource.IsExtracted, "Only imported and extracted resources can be exported.");
 		}
 
-		// Culling. Walking backwards, a pass survives if it writes contents that a later surviving pass or the end of the graph observes.
+		CullPasses(context);
+		OrderPasses();
+		ResolveQueues(context);
+		PlanBarriers(context);
+		BuildSubmissions(context);
+		PlaceTransients(context);
+		CreateRenderTextures();
+		CompleteAliasAcquires(context);
+		ResolveDeferredBarrierPoints(context);
+		BatchBarriers(context);
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		ValidateSchedule(context);
+#endif
+	}
+
+	void FrameGraph::CullPasses(const CompileContext& context)
+	{
+		// Walking backwards, a pass survives if it writes contents that a later surviving pass or the end of the graph observes.
 		// The contents of imported and extracted resources are observed after the graph ends, and exported contents after their pass.
+		FrameVector<bool> isObserved(context.SubresourceCount, false);
+		for(const Resource& resource : mResources)
 		{
-			FrameVector<bool> isObserved(subresourceCount, false);
-			for(const Resource& resource : mResources)
-			{
-				if(resource.Type != ResourceType::Transient || resource.IsExtracted)
-					std::fill(isObserved.begin() + resource.FirstSubresourceIndex, isObserved.begin() + resource.FirstSubresourceIndex + resource.SubresourceCount, true);
-			}
-
-			for(u32 passIndex = (u32)mPasses.size(); passIndex-- > 0;)
-			{
-				Pass& pass = mPasses[passIndex];
-				for(u32 resourceIndex : pass.ExportedResourceIndices)
-				{
-					const Resource& resource = mResources[resourceIndex];
-					std::fill(isObserved.begin() + resource.FirstSubresourceIndex, isObserved.begin() + resource.FirstSubresourceIndex + resource.SubresourceCount, true);
-				}
-
-				bool isAlive = false;
-				for(const SubresourceAccess& access : pass.Accesses)
-				{
-					if(access.State.Access.IsSet(GpuAccessFlag::Write) && isObserved[mResources[access.ResourceIndex].FirstSubresourceIndex + access.SubresourceIndex])
-						isAlive = true;
-				}
-
-				pass.IsCulled = !isAlive;
-				if(!isAlive)
-				{
-					mStatistics.CulledPassCount++;
-					continue;
-				}
-
-				// A write that discards the earlier contents hides them from everything after it
-				for(const SubresourceAccess& access : pass.Accesses)
-				{
-					const u32 subresourceIndex = mResources[access.ResourceIndex].FirstSubresourceIndex + access.SubresourceIndex;
-					if(!access.DiscardsContents)
-						isObserved[subresourceIndex] = true;
-					else if(access.State.Access.IsSet(GpuAccessFlag::Write))
-						isObserved[subresourceIndex] = false;
-				}
-			}
+			if(resource.Type != ResourceType::Transient || resource.IsExtracted)
+				std::fill(isObserved.begin() + resource.FirstSubresourceIndex, isObserved.begin() + resource.FirstSubresourceIndex + resource.SubresourceCount, true);
 		}
 
-		// Execution order. Surviving passes keep their declaration order, and each resource learns its first and last surviving pass.
+		for(u32 passIndex = (u32)mPasses.size(); passIndex-- > 0;)
+		{
+			Pass& pass = mPasses[passIndex];
+			for(u32 resourceIndex : pass.ExportedResourceIndices)
+			{
+				const Resource& resource = mResources[resourceIndex];
+				std::fill(isObserved.begin() + resource.FirstSubresourceIndex, isObserved.begin() + resource.FirstSubresourceIndex + resource.SubresourceCount, true);
+			}
+
+			bool isAlive = false;
+			for(const SubresourceAccess& access : pass.Accesses)
+			{
+				if(access.State.Access.IsSet(GpuAccessFlag::Write) && isObserved[mResources[access.ResourceIndex].FirstSubresourceIndex + access.SubresourceIndex])
+					isAlive = true;
+			}
+
+			pass.IsCulled = !isAlive;
+			if(!isAlive)
+			{
+				mStatistics.CulledPassCount++;
+				continue;
+			}
+
+			// A write that discards the earlier contents hides them from everything after it
+			for(const SubresourceAccess& access : pass.Accesses)
+			{
+				const u32 subresourceIndex = mResources[access.ResourceIndex].FirstSubresourceIndex + access.SubresourceIndex;
+				if(!access.DiscardsContents)
+					isObserved[subresourceIndex] = true;
+				else if(access.State.Access.IsSet(GpuAccessFlag::Write))
+					isObserved[subresourceIndex] = false;
+			}
+		}
+	}
+
+	void FrameGraph::OrderPasses()
+	{
+		// Surviving passes keep their declaration order, and each resource learns its first and last surviving pass.
 		for(u32 passIndex = 0; passIndex < (u32)mPasses.size(); passIndex++)
 		{
 			const Pass& pass = mPasses[passIndex];
@@ -609,275 +727,41 @@ namespace b3d::render
 				resource.LastPassIndex = compiledIndex;
 			}
 		}
+	}
 
-		// The whole graph is one submission on the graphics queue
-		mTimeline.AddSubmission(GpuQueueId(GQT_GRAPHICS, 0), GpuQueueMask::kNone);
-		mScope = &mAllocator.BeginScope(mTimeline);
-
-		// Placement. Extracted transients leave the allocator for memory of their own, and transients that only culled passes use go back
-		// unplaced. The rest are placed in pass order and released after their last pass, so transients whose passes do not overlap can
-		// share memory.
+	void FrameGraph::ResolveQueues(CompileContext& context)
+	{
+		// Passes that prefer the async compute queue run on it if the device has one, and every other pass on the graphics queue
+		const bool isComputeQueueEnabled = gFrameGraphAsyncCompute && mDevice.GetQueueCount(GQT_COMPUTE) > 0;
+		for(u32 passIndex : mCompiledPassIndices)
 		{
-			for(Resource& resource : mResources)
-			{
-				if(resource.Type != ResourceType::Transient || !resource.IsExtracted)
-					continue;
-
-				if(resource.Texture != nullptr)
-				{
-					mAllocator.Detach(*resource.Texture);
-
-					const GpuMemoryRequirements memoryRequirements = mDevice.GetMemoryRequirements(resource.TextureInformation);
-					resource.Texture->SetAllocation(GpuAllocation::CreatePending(mDevice.GetPersistentAllocator(memoryRequirements.MemoryType)), GpuObjectCreateFlag::None);
-					if(!resource.Texture->IsInitialized())
-						resource.Texture->Initialize();
-				}
-				else
-				{
-					mAllocator.Detach(*resource.Buffer);
-
-					const GpuMemoryRequirements memoryRequirements = mDevice.GetMemoryRequirements(resource.BufferInformation);
-					resource.Buffer->SetAllocation(GpuAllocation::CreatePending(mDevice.GetPersistentAllocator(memoryRequirements.MemoryType)), GpuObjectCreateFlag::None);
-					if(!resource.Buffer->IsInitialized())
-						resource.Buffer->Initialize();
-				}
-
-				resource.IsHeldUnplaced = false;
-			}
-
-			for(Resource& resource : mResources)
-			{
-				if(resource.Type != ResourceType::Transient || resource.IsExtracted || resource.FirstPassIndex != -1)
-					continue;
-
-				if(resource.Texture != nullptr)
-					mAllocator.Return(*resource.Texture);
-				else
-					mAllocator.Return(*resource.Buffer);
-
-				resource.IsHeldUnplaced = false;
-			}
-
-			const auto fnIsAliased = [](const Resource& resource)
-			{
-				return resource.Type == ResourceType::Transient && !resource.IsExtracted;
-			};
-
-			// Last accesses of each subresource of the transients: the last write, and every read after it
-			FrameVector<GpuAccessScope> lastUses(subresourceCount);
-			for(u32 compiledIndex = 0; compiledIndex < (u32)mCompiledPassIndices.size(); compiledIndex++)
-			{
-				const Pass& pass = mPasses[mCompiledPassIndices[compiledIndex]];
-
-				// Transients are placed before the transients of the same pass are released, so they never share memory
-				for(const SubresourceAccess& access : pass.Accesses)
-				{
-					Resource& resource = mResources[access.ResourceIndex];
-					if(!fnIsAliased(resource) || resource.FirstPassIndex != (i32)compiledIndex || !resource.IsHeldUnplaced)
-						continue;
-
-					resource.Placement = resource.Texture != nullptr ? mScope->PlaceTexture(*resource.Texture, 0) : mScope->PlaceBuffer(*resource.Buffer, 0);
-					resource.IsHeldUnplaced = false;
-				}
-
-				for(const SubresourceAccess& access : pass.Accesses)
-				{
-					const Resource& resource = mResources[access.ResourceIndex];
-					if(!fnIsAliased(resource))
-						continue;
-
-					GpuAccessScope& lastUse = lastUses[resource.FirstSubresourceIndex + access.SubresourceIndex];
-					if(access.State.Access.IsSet(GpuAccessFlag::Write))
-						lastUse = GpuAccessScope();
-
-					lastUse.Add(access.State.Stages, access.State.Access);
-				}
-
-				for(u32 accessIndex = 0; accessIndex < (u32)pass.Accesses.size(); accessIndex++)
-				{
-					// Accesses are sorted by resource, so each resource is released once
-					const SubresourceAccess& access = pass.Accesses[accessIndex];
-					if(accessIndex > 0 && pass.Accesses[accessIndex - 1].ResourceIndex == access.ResourceIndex)
-						continue;
-
-					const Resource& resource = mResources[access.ResourceIndex];
-					if(!fnIsAliased(resource) || resource.LastPassIndex != (i32)compiledIndex)
-						continue;
-
-					GpuAccessScope lastAccess;
-					for(u32 subresourceIndex = 0; subresourceIndex < resource.SubresourceCount; subresourceIndex++)
-						lastAccess.Add(lastUses[resource.FirstSubresourceIndex + subresourceIndex]);
-
-					const GpuTransientLastUse lastUse(0, lastAccess, compiledIndex);
-					if(resource.Texture != nullptr)
-						mScope->Release(*resource.Texture, TArrayView<const GpuTransientLastUse>(&lastUse, 1));
-					else
-						mScope->Release(*resource.Buffer, TArrayView<const GpuTransientLastUse>(&lastUse, 1));
-				}
-			}
+			Pass& pass = mPasses[passIndex];
+			pass.QueueType = pass.Flags.IsSet(FrameGraphPassFlag::AsyncCompute) && isComputeQueueEnabled ? GQT_COMPUTE : GQT_GRAPHICS;
+			context.UsesComputeQueue |= pass.QueueType == GQT_COMPUTE;
 		}
 
-		// Render textures. A raster pass whose attachments were set one by one renders through a render texture of those surfaces. The
-		// work context keeps them across graphs, until a surface is recreated or the render texture goes unused for too long.
-		// TODO - Evict render textures together with the transient textures they reference. The transient allocator evicts on its own
-		// schedule, and only compiling a later graph on this context evicts render textures, so a render texture can keep an evicted
-		// transient texture alive after its heap was released, indefinitely if the context builds no more graphs.
+		// The previous pass on the queue of each pass
+		context.PreviousQueuePassIndices.resize(mCompiledPassIndices.size(), -1);
+		i32 lastQueuePassIndices[GQT_COUNT] = { -1, -1, -1 };
+		for(u32 compiledIndex = 0; compiledIndex < (u32)mCompiledPassIndices.size(); compiledIndex++)
 		{
-			FrameGraphContextData& contextData = GetContextData(mContext);
-			const u64 frameIndex = mDevice.GetFrameIndex();
-
-			// A render texture refers to the native resources of its surfaces, so one whose surface was recreated is stale
-			const auto fnIsRecreated = [this](const TShared<Texture>& texture)
-			{
-				if(texture == nullptr)
-					return false;
-
-				const u32 resourceIndex = FindResource(*texture);
-				if(resourceIndex == ~0u)
-					return false;
-
-				const Resource& resource = mResources[resourceIndex];
-				return resource.Type == ResourceType::Transient && (resource.IsExtracted || resource.Placement.Recreated);
-			};
-
-			// A transient the allocator does not cache, or that leaves it, is a new texture in every graph
-			const auto fnIsKeptAcrossGraphs = [this](const TShared<Texture>& texture)
-			{
-				if(texture == nullptr)
-					return true;
-
-				const u32 resourceIndex = FindResource(*texture);
-				if(resourceIndex == ~0u)
-					return true;
-
-				const Resource& resource = mResources[resourceIndex];
-				return resource.Type != ResourceType::Transient || (!resource.IsExtracted && resource.Placement.Cached);
-			};
-
-			Vector<FrameGraphContextData::RenderTextureEntry>& entries = contextData.RenderTextures;
-			entries.erase(std::remove_if(entries.begin(), entries.end(), [&fnIsRecreated, frameIndex](const FrameGraphContextData::RenderTextureEntry& entry)
-			{
-				if(entry.LastUsedFrame + gGpuTransientIdleFrames < frameIndex)
-					return true;
-
-				for(const RenderSurfaceInformation& surface : entry.Information.ColorSurfaces)
-				{
-					if(fnIsRecreated(surface.Texture))
-						return true;
-				}
-
-				return fnIsRecreated(entry.Information.DepthStencilSurface.Texture);
-			}), entries.end());
-
-			for(u32 passIndex : mCompiledPassIndices)
-			{
-				Pass& pass = mPasses[passIndex];
-				if(pass.Type != PassType::Raster || pass.Attachments.Target != nullptr)
-					continue;
-
-				RenderTextureCreateInformation information;
-				const auto fnSetSurface = [](RenderSurfaceInformation& surface, const FrameGraphRasterPass::Attachment& attachment)
-				{
-					surface.Texture = attachment.Texture;
-					surface.Face = attachment.Face;
-					surface.FaceCount = attachment.FaceCount;
-					surface.MipLevel = attachment.MipLevel;
-				};
-
-				bool hasAttachments = pass.Attachments.DepthStencilAttachment.Texture != nullptr;
-				for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
-				{
-					fnSetSurface(information.ColorSurfaces[colorIndex], pass.Attachments.ColorAttachments[colorIndex]);
-					hasAttachments |= pass.Attachments.ColorAttachments[colorIndex].Texture != nullptr;
-				}
-
-				fnSetSurface(information.DepthStencilSurface, pass.Attachments.DepthStencilAttachment);
-				if(!B3D_ENSURE_LOG(hasAttachments, "Raster pass '{0}' has no attachments.", pass.Name))
-					continue;
-
-				bool isKept = fnIsKeptAcrossGraphs(information.DepthStencilSurface.Texture);
-				for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
-					isKept &= fnIsKeptAcrossGraphs(information.ColorSurfaces[colorIndex].Texture);
-
-				const auto found = !isKept ? entries.end() : std::find_if(entries.begin(), entries.end(), [&information](const FrameGraphContextData::RenderTextureEntry& entry)
-				{
-					for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
-					{
-						const RenderSurfaceInformation& surface = information.ColorSurfaces[colorIndex];
-						if(!IsSameSurface(entry.Information.ColorSurfaces[colorIndex], surface) || entry.GpuResources[colorIndex] != GetSurfaceGpuResource(surface))
-							return false;
-					}
-
-					const RenderSurfaceInformation& surface = information.DepthStencilSurface;
-					return IsSameSurface(entry.Information.DepthStencilSurface, surface) && entry.GpuResources[B3D_MAXIMUM_RENDER_TARGET_COUNT] == GetSurfaceGpuResource(surface);
-				});
-
-				if(found != entries.end())
-				{
-					found->LastUsedFrame = frameIndex;
-					pass.Attachments.Target = found->Target;
-					continue;
-				}
-
-				FrameGraphContextData::RenderTextureEntry entry;
-				entry.Information = information;
-				entry.LastUsedFrame = frameIndex;
-				for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
-					entry.GpuResources[colorIndex] = GetSurfaceGpuResource(information.ColorSurfaces[colorIndex]);
-
-				entry.GpuResources[B3D_MAXIMUM_RENDER_TARGET_COUNT] = GetSurfaceGpuResource(information.DepthStencilSurface);
-
-#if B3D_BUILD_TYPE_DEVELOPMENT
-				gIsCreatingRenderTexture = true;
-#endif
-				entry.Target = RenderTexture::Create(information);
-#if B3D_BUILD_TYPE_DEVELOPMENT
-				gIsCreatingRenderTexture = false;
-#endif
-
-				pass.Attachments.Target = entry.Target;
-				if(isKept)
-					entries.push_back(std::move(entry));
-			}
+			i32& lastQueuePassIndex = lastQueuePassIndices[GetCompiledPass(compiledIndex).QueueType];
+			context.PreviousQueuePassIndices[compiledIndex] = lastQueuePassIndex;
+			lastQueuePassIndex = (i32)compiledIndex;
 		}
+	}
 
-		// Barrier planning. Walking the surviving passes, each subresource tracks its current state, and the accesses since the barrier
-		// that established it. An access joins the current state when it can, and otherwise plans a barrier of the subresource into the
-		// access's state. Exported resources and, at the end of the graph, imported and extracted resources plan barriers back to rest.
-
-		/** Barrier of one subresource, or of a whole resource, as the planner produces it. */
-		struct PlannedBarrier
-		{
-			u32 ResourceIndex = 0; /**< Index into mResources. */
-			u32 SubresourceIndex = 0; /**< Index relative to the resource's first subresource. Ignored if IsWholeResource is true. */
-			bool IsWholeResource = false;
-			GpuAccessState Source;
-			GpuAccessState Destination;
-			GpuBarrierFlags Flags;
-
-			i32 ReleasePassIndex = -1; /** Index into mCompiledPassIndices of the pass the release goes after, or -1 for the start of the graph. AcquirePassIndex - 1 for full barriers. */
-
-			u32 AcquirePassIndex = 0; /**< Index into mCompiledPassIndices of the pass the barrier precedes, or ~0u for the end of the graph. */
-			bool IsSplit = false;
-			bool IsExport = false; /**< True for a barrier to rest after the pass at ReleasePassIndex. */
-		};
-
-		/** Planning state of one subresource. */
-		struct SubresourceState
-		{
-			bool HasState = false; /**< False until a transient's first access. */
-			GpuAccessState State; /**< Destination of the last barrier, or the resting state of an import. */
-			GpuStageFlags UsedStages = GpuStageFlag::None; /**< Stages that accessed the subresource since State was established. */
-			GpuAccessFlags UsedAccess = GpuAccessFlag::None; /**< Accesses since State was established. */
-
-			/** Index into mCompiledPassIndices of the last pass that accessed the subresource or acquired its state, or -1 for the start of the graph. */
-			i32 LastPassIndex = -1;
-
-			u32 BarrierIndex = ~0u; /**< Index into plannedBarriers of the barrier that established State, or ~0u if none did. */
-		};
+	void FrameGraph::PlanBarriers(CompileContext& context)
+	{
+		// Walking the surviving passes, each subresource tracks its current state, the queue that established it, and the
+		// accesses of each queue since. An access joins the current state when it can. Otherwise it plans a barrier into its own state: on
+		// its queue if only that queue accessed the subresource since, or a split barrier from the other queue that transfers the subresource
+		// between the queues. Exported resources and, at the end of the graph, imported and extracted resources plan barriers back to rest on
+		// the graphics queue. Accesses that depend on work of the other queue record a queue wait, which the submissions are cut along. Alias
+		// acquires get their sources and their split points after placement, which needs those submissions.
 
 		// Imports start in their resting state. Transients have no state until their first access.
-		FrameVector<SubresourceState> states(subresourceCount);
+		context.SubresourceStates.resize(context.SubresourceCount);
 		for(const Resource& resource : mResources)
 		{
 			if(resource.Type == ResourceType::Transient)
@@ -885,14 +769,719 @@ namespace b3d::render
 
 			for(u32 subresourceIndex = 0; subresourceIndex < resource.SubresourceCount; subresourceIndex++)
 			{
-				SubresourceState& state = states[resource.FirstSubresourceIndex + subresourceIndex];
+				CompileContext::SubresourceState& state = context.SubresourceStates[resource.FirstSubresourceIndex + subresourceIndex];
 				state.HasState = true;
-				state.State = resource.RestingState;
+				state.EstablishedState = resource.RestingState;
 			}
 		}
 
-		FrameVector<PlannedBarrier> plannedBarriers;
+		for(u32 compiledIndex = 0; compiledIndex < (u32)mCompiledPassIndices.size(); compiledIndex++)
+		{
+			const Pass& pass = GetCompiledPass(compiledIndex);
+			const GpuQueueType queueType = pass.QueueType;
+			const GpuQueueId queueId(queueType, 0);
 
+			for(const SubresourceAccess& access : pass.Accesses)
+			{
+				const Resource& resource = mResources[access.ResourceIndex];
+				CompileContext::SubresourceState& state = context.SubresourceStates[resource.FirstSubresourceIndex + access.SubresourceIndex];
+
+				if(!state.HasState)
+				{
+					// The first access of a transient starts its lifetime with one barrier over the whole resource, into the state of the
+					// pass's first access of it. Transients in persistent memory have no earlier resources to wait on, the others get an alias
+					// acquire, completed once they are placed.
+					CompileContext::PlannedBarrier barrier;
+					barrier.ResourceIndex = access.ResourceIndex;
+					barrier.IsWholeResource = true;
+					barrier.Destination = access.State;
+					barrier.AcquirePassIndex = compiledIndex;
+					barrier.ReleasePassIndex = (i32)compiledIndex - 1;
+					barrier.ReleaseQueueType = queueType;
+					barrier.AcquireQueueType = queueType;
+					if(!resource.IsExtracted)
+						barrier.Flags = GpuBarrierFlag::AliasAcquire;
+
+					const u32 barrierIndex = (u32)context.PlannedBarriers.size();
+					context.PlannedBarriers.push_back(barrier);
+					context.FirstAccessBarrierIndices.push_back(barrierIndex);
+
+					for(u32 subresourceIndex = 0; subresourceIndex < resource.SubresourceCount; subresourceIndex++)
+					{
+						CompileContext::SubresourceState& subresourceState = context.SubresourceStates[resource.FirstSubresourceIndex + subresourceIndex];
+						subresourceState.HasState = true;
+						subresourceState.EstablishedState = access.State;
+						subresourceState.EstablishedQueueType = queueType;
+						subresourceState.EstablishedPassIndex = (i32)compiledIndex;
+						subresourceState.LastPassIndices[queueType] = (i32)compiledIndex;
+						subresourceState.BarrierIndex = barrierIndex;
+					}
+				}
+
+				// A subresource an export from the compute queue returns to rest is acquired back on the graphics queue before its next
+				// declared access, if that comes before the point the acquire would otherwise go
+				if(state.PendingComputeExportBarrierIndex != ~0u)
+				{
+					B3D_ENSURE_LOG(queueType == GQT_GRAPHICS, "Pass '{0}' declares a resource on the async compute queue after an async compute pass exported it. Read it without a declaration instead.",
+						pass.Name);
+
+					context.PlannedBarriers[state.PendingComputeExportBarrierIndex].AcquirePassIndex = compiledIndex;
+					context.WaitEdges.push_back(std::make_pair(context.PlannedBarriers[state.PendingComputeExportBarrierIndex].ReleasePassIndex, compiledIndex));
+					state.PendingComputeExportBarrierIndex = ~0u;
+					state.EstablishedPassIndex = (i32)compiledIndex;
+					state.LastPassIndices[GQT_GRAPHICS] = (i32)compiledIndex;
+				}
+
+				// The access joins the established state if that state can cover it, and otherwise plans a barrier into a state of its own.
+				const GpuAccessState& wanted = access.State;
+				const GpuAccessState& established = state.EstablishedState;
+				const bool hasBarrier = state.BarrierIndex != ~0u;
+				const bool isSameLayout = wanted.Layout == established.Layout;
+
+				bool isUsedSinceEstablished = false;
+				bool hasWritesSinceEstablished = false;
+				for(GpuQueueType usedQueueType : { GQT_GRAPHICS, GQT_COMPUTE })
+				{
+					isUsedSinceEstablished |= state.StagesSinceEstablished[usedQueueType] != GpuStageFlag::None;
+					hasWritesSinceEstablished |= state.AccessSinceEstablished[usedQueueType].IsSet(GpuAccessFlag::Write);
+				}
+
+				// The access, the established state and every access since only read
+				const bool isReadOnly = !wanted.Access.IsSet(GpuAccessFlag::Write) && !established.Access.IsSet(GpuAccessFlag::Write) && !hasWritesSinceEstablished;
+
+				bool joinsState = false;
+				bool joinsStateFromOtherQueue = false;
+				if(isSameLayout && state.EstablishedQueueType == queueType)
+				{
+					// We join state if:
+					// - A barrier has been planned, but resource has not been used since, we just expand the barrier
+					// - A barrier has been planed, but the resource is only being read, we just expand the barrier
+					// - The resource is only being read since the established state, but no barrier was issued. This means we are only safe
+					//   to read the established set of stages, as some potential prior write was synchronized only against those stages. Any
+					//   other stages require a new barrier.
+					
+					const bool isUnusedSinceBarrier = hasBarrier && !isUsedSinceEstablished;
+					joinsState = isUnusedSinceBarrier || (isReadOnly && (hasBarrier || established.Stages.IsSetAll(wanted.Stages)));
+				}
+				else if(isSameLayout && isReadOnly && resource.IsShared())
+				{
+					// Reads on the other queue share the read state too, if both queues can read the resource at once
+					joinsStateFromOtherQueue = true;
+				}
+
+				// Allow two queues two read the same resource at the same time. We only issue a wait on the first barrier that establishes the state, 
+				// all further reads on either queue are done without barriers or waits.
+				if(joinsStateFromOtherQueue)
+				{
+					if(state.BarrierIndex != ~0u)
+					{
+						context.PlannedBarriers[state.BarrierIndex].Destination.Queues |= queueId;
+						context.WaitEdges.push_back(std::make_pair(state.EstablishedPassIndex, compiledIndex));
+					}
+
+					state.EstablishedState.Queues |= queueId;
+				}
+				// Expand existing access and/or barrier with new stages/access
+				else if(joinsState)
+				{
+					if(state.BarrierIndex != ~0u)
+					{
+						GpuAccessState& destination = context.PlannedBarriers[state.BarrierIndex].Destination;
+						destination.Stages |= wanted.Stages;
+						destination.Access |= wanted.Access;
+					}
+
+					state.EstablishedState.Stages |= wanted.Stages;
+					state.EstablishedState.Access |= wanted.Access;
+				}
+				// Cannot join, need to plan a new barrier
+				else
+					PlanBarrierWithAutomaticSourceQueue(context, access.ResourceIndex, access.SubresourceIndex, wanted, compiledIndex, queueType, access.DiscardsContents);
+
+				state.StagesSinceEstablished[queueType] |= wanted.Stages;
+				state.AccessSinceEstablished[queueType] |= wanted.Access;
+				state.LastPassIndices[queueType] = (i32)compiledIndex;
+			}
+
+			// Exported resources return to rest right after the pass. A resource that rests on the graphics queue returns there from the
+			// compute queue through a split barrier, acquired where the graphics queue waits for the compute queue anyway, so later readers
+			// on the graphics queue must wait for the pass. Other resources rest the same way on both queues.
+			for(u32 resourceIndex : pass.ExportedResourceIndices)
+			{
+				const Resource& resource = mResources[resourceIndex];
+				const bool returnsToGraphicsQueue = queueType != GQT_GRAPHICS && !resource.IsShared();
+				for(u32 subresourceIndex = 0; subresourceIndex < resource.SubresourceCount; subresourceIndex++)
+				{
+					CompileContext::SubresourceState& state = context.SubresourceStates[resource.FirstSubresourceIndex + subresourceIndex];
+					if(!state.HasState || state.BarrierIndex == ~0u)
+						continue;
+
+					if(!returnsToGraphicsQueue)
+					{
+						// Passes of both queues may read a shared resource at rest without declaring it
+						GpuAccessState restingState = queueType == GQT_GRAPHICS ? resource.RestingState : resource.GetQueueRestingState(queueType);
+						if(context.UsesComputeQueue && resource.IsShared())
+							restingState.Queues = GpuQueueMask(GpuQueueId(GQT_GRAPHICS, 0)) | GpuQueueId(GQT_COMPUTE, 0);
+
+						PlanBarrierWithExplicitSourceQueue(context, resourceIndex, subresourceIndex, restingState, compiledIndex, queueType, queueType, false, true);
+						continue;
+					}
+
+					// Note: Resting on graphics queue is needed only for D3D12, as it uses different image layout types depending on queue type.
+					PlanBarrierWithExplicitSourceQueue(context, resourceIndex, subresourceIndex, resource.RestingState, ~0u, GQT_GRAPHICS, queueType, false, false);
+					state.PendingComputeExportBarrierIndex = (u32)context.PlannedBarriers.size() - 1;
+					state.EstablishedPassIndex = -1;
+
+					context.ComputeExportBarrierIndices.push_back(state.PendingComputeExportBarrierIndex);
+				}
+			}
+		}
+
+		// Imported and extracted resources end the graph at rest on the graphics queue
+		for(u32 resourceIndex = 0; resourceIndex < (u32)mResources.size(); resourceIndex++)
+		{
+			const Resource& resource = mResources[resourceIndex];
+			if(resource.Type == ResourceType::Transient && !resource.IsExtracted)
+				continue;
+
+			const GpuAccessState& restingState = resource.RestingState;
+			const bool isShared = resource.IsShared();
+			for(u32 subresourceIndex = 0; subresourceIndex < resource.SubresourceCount; subresourceIndex++)
+			{
+				CompileContext::SubresourceState& state = context.SubresourceStates[resource.FirstSubresourceIndex + subresourceIndex];
+				if(!state.HasState) // Must be an extracted transient as imported resources start with state
+				{
+					// An extracted resource nothing accessed still has to reach its resting layout
+					state.HasState = true;
+					PlanBarrierWithExplicitSourceQueue(context, resourceIndex, subresourceIndex, restingState, ~0u, GQT_GRAPHICS, GQT_GRAPHICS, true, false);
+					continue;
+				}
+
+				// An export from the compute queue is on its way back to rest
+				if(state.PendingComputeExportBarrierIndex != ~0u)
+					continue;
+
+				// No barrier was ever issued, or barrier was issued that didn't change the rest state. A state established on the compute
+				// queue only rests the same way if both queues can read the resource at once.
+				const bool hasWrites = state.AccessSinceEstablished[GQT_GRAPHICS].IsSet(GpuAccessFlag::Write) || state.AccessSinceEstablished[GQT_COMPUTE].IsSet(GpuAccessFlag::Write) ||
+					state.EstablishedState.Access.IsSet(GpuAccessFlag::Write);
+				const bool isRestingQueue = state.EstablishedQueueType == GQT_GRAPHICS ? state.EstablishedState.Stages.IsSetAll(restingState.Stages) : isShared;
+				const bool isAtRest = state.BarrierIndex == ~0u || (!hasWrites && state.EstablishedState.Layout == restingState.Layout && isRestingQueue);
+
+				if(!isAtRest)
+					PlanBarrierWithAutomaticSourceQueue(context, resourceIndex, subresourceIndex, restingState, ~0u, GQT_GRAPHICS, false);
+			}
+		}
+	}
+
+	void FrameGraph::PlanBarrierWithExplicitSourceQueue(CompileContext& context, u32 resourceIndex, u32 subresourceIndex, const GpuAccessState& destination,
+		u32 compiledIndex, GpuQueueType queueType, GpuQueueType sourceQueueType, bool discardsContents, bool isExport)
+	{
+		const Resource& resource = mResources[resourceIndex];
+		CompileContext::SubresourceState& state = context.SubresourceStates[resource.FirstSubresourceIndex + subresourceIndex];
+
+		// The source covers the accesses of the source queue since the state was established. Without any, it chains to the barrier that
+		// established the state. A resting state also covers the undeclared readers before the graph.
+		CompileContext::PlannedBarrier barrier;
+		barrier.ResourceIndex = resourceIndex;
+		barrier.SubresourceIndex = subresourceIndex;
+		barrier.Source.Stages = state.StagesSinceEstablished[sourceQueueType];
+		barrier.Source.Access = state.AccessSinceEstablished[sourceQueueType];
+		barrier.Source.Layout = state.EstablishedState.Layout;
+		barrier.Source.Queues = state.EstablishedState.Queues;
+
+		// No barrier was issued, or barrier was issued but resource was not used since
+		if(state.BarrierIndex == ~0u || state.StagesSinceEstablished[sourceQueueType] == GpuStageFlag::None)
+		{
+			barrier.Source.Stages |= state.EstablishedState.Stages; // Chain with prior barrier (if any), or on prior readers for imported resource
+			if(state.BarrierIndex == ~0u) // State is still in import resting state, wait on prior readers (which are not known)
+			{
+				barrier.Source.Access |= state.EstablishedState.Access;
+				barrier.Source.Compression = state.EstablishedState.Compression;
+			}
+		}
+
+		// Each half names only stages of the queue it is recorded on
+		barrier.Source.Stages &= GpuBackendUtility::GetQueueStageFlags(sourceQueueType);
+
+		if(discardsContents && resource.Buffer == nullptr)
+			barrier.Source.Layout = GpuImageLayout::Undefined;
+
+		barrier.Destination = destination;
+		barrier.ReleaseQueueType = sourceQueueType;
+		barrier.AcquireQueueType = queueType;
+		barrier.IsExport = isExport;
+
+		const i32 lastPassIndex = state.LastPassIndices[sourceQueueType];
+		if(isExport)
+		{
+			barrier.ReleasePassIndex = (i32)compiledIndex;
+			barrier.AcquirePassIndex = compiledIndex + 1;
+		}
+		else if(sourceQueueType != queueType)
+		{
+			// Barriers between queues are always split: released on the source queue after its last access, and acquired on this queue,
+			// whose submission waits for the release's
+			barrier.IsSplit = true;
+			barrier.ReleasePassIndex = lastPassIndex;
+			barrier.AcquirePassIndex = compiledIndex;
+
+			if(compiledIndex != ~0u)
+				context.WaitEdges.push_back(std::make_pair(lastPassIndex, compiledIndex));
+		}
+		else if(compiledIndex == ~0u)
+		{
+			barrier.ReleasePassIndex = lastPassIndex;
+			barrier.AcquirePassIndex = ~0u;
+		}
+		else
+		{
+			// Barrier is split only if it records some work in-between two halves (i.e. its last and next pass are not adjacent). Additionally:
+			// - Window surfaces are acquired by the barrier's command buffer, so their barriers are never split
+			barrier.IsSplit = resource.Type != ResourceType::Surface && lastPassIndex < context.PreviousQueuePassIndices[compiledIndex];
+			barrier.ReleasePassIndex = barrier.IsSplit ? lastPassIndex : (i32)compiledIndex - 1;
+			barrier.AcquirePassIndex = compiledIndex;
+		}
+
+		state.EstablishedState = destination;
+		state.EstablishedQueueType = queueType;
+		state.EstablishedPassIndex = (i32)compiledIndex;
+		for(u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
+		{
+			state.StagesSinceEstablished[queueTypeIndex] = GpuStageFlag::None;
+			state.AccessSinceEstablished[queueTypeIndex] = GpuAccessFlag::None;
+		}
+
+		state.BarrierIndex = (u32)context.PlannedBarriers.size();
+		if(compiledIndex != ~0u)
+			state.LastPassIndices[queueType] = (i32)compiledIndex;
+
+		context.PlannedBarriers.push_back(barrier);
+	}
+
+	void FrameGraph::PlanBarrierWithAutomaticSourceQueue(CompileContext& context, u32 resourceIndex, u32 subresourceIndex, const GpuAccessState& wanted, u32 compiledIndex,
+		GpuQueueType queueType, bool discardsContents)
+	{
+		const CompileContext::SubresourceState& state = context.SubresourceStates[mResources[resourceIndex].FirstSubresourceIndex + subresourceIndex];
+		const GpuQueueType otherQueueType = GetOtherQueueType(queueType);
+		const bool isUsedOnOtherQueue = state.StagesSinceEstablished[otherQueueType] != GpuStageFlag::None;
+		const bool isUsedOnQueue = state.StagesSinceEstablished[queueType] != GpuStageFlag::None;
+
+		if(isUsedOnOtherQueue && isUsedOnQueue)
+		{
+			// Both queues read the subresource since its state was established. A split barrier only orders the reads of the queue that releases
+			// it, so whichever queue releases it, the layout change between its halves could overlap the other queue's reads. Instead the pass
+			// waits for the other queue's last read, and a full barrier on this queue, recorded after that wait, orders this queue's reads.
+			if(compiledIndex != ~0u)
+				context.WaitEdges.push_back(std::make_pair(state.LastPassIndices[otherQueueType], compiledIndex));
+
+			PlanBarrierWithExplicitSourceQueue(context, resourceIndex, subresourceIndex, wanted, compiledIndex, queueType, queueType, discardsContents, false);
+
+			if(compiledIndex != ~0u)
+			{
+				CompileContext::PlannedBarrier& barrier = context.PlannedBarriers.back();
+				barrier.IsSplit = false;
+				barrier.ReleasePassIndex = (i32)compiledIndex - 1;
+			}
+
+			return;
+		}
+
+		// The queue that accessed the subresource since its state was established, or the queue that established it
+		const GpuQueueType sourceQueueType = isUsedOnOtherQueue ? otherQueueType : isUsedOnQueue ? queueType : state.EstablishedQueueType;
+		PlanBarrierWithExplicitSourceQueue(context, resourceIndex, subresourceIndex, wanted, compiledIndex, queueType, sourceQueueType, discardsContents, false);
+	}
+
+	void FrameGraph::BuildSubmissions(CompileContext& context)
+	{
+		// The passes of each queue are cut into submissions where a pass waits for a pass of the other queue: the other pass's
+		// submission ends after it, and this pass's queue starts a new submission that waits for it, unless its last submission already does.
+		// Edges always go from an earlier pass to a later one, so each submission's passes come after those of the submissions it waits for.
+		/** Submission of one queue, before the submit order is known. */
+		struct SubmissionDraft
+		{
+			FrameVector<u32> PassIndices; /**< Indices into mCompiledPassIndices, in execution order. */
+			i32 RequiredDraftIndex = -1; /**< Index into the other queue's drafts of the latest draft this one waits for, or -1. */
+			u32 SubmissionIndex = 0; /**< Index into mSubmissions, once submit order is known. */
+		};
+
+		FrameVector<SubmissionDraft> drafts[2];
+		FrameVector<u32> passDraftIndices(mCompiledPassIndices.size(), 0);
+
+		// Releases from the start of the graph to the compute queue go into a graphics prologue, so the compute work that acquires them does
+		// not wait for the first graphics submission's work
+		const bool hasPrologue = std::any_of(context.WaitEdges.begin(), context.WaitEdges.end(), [](const std::pair<i32, u32>& edge) { return edge.first == -1; });
+		if(hasPrologue)
+			drafts[GQT_GRAPHICS].emplace_back();
+
+		std::stable_sort(context.WaitEdges.begin(), context.WaitEdges.end(), [](const std::pair<i32, u32>& a, const std::pair<i32, u32>& b) { return a.second < b.second; });
+
+		{
+			// Whether no more passes go into the queue's last draft. The prologue takes none.
+			bool isLastDraftEnded[2] = { true, true };
+			u32 edgeIndex = 0;
+			for(u32 compiledIndex = 0; compiledIndex < (u32)mCompiledPassIndices.size(); compiledIndex++)
+			{
+				const GpuQueueType queueType = GetCompiledPass(compiledIndex).QueueType;
+				const GpuQueueType otherQueueType = GetOtherQueueType(queueType);
+
+				// The latest draft of the other queue the pass waits for. A wait for the start of the graph waits for the prologue.
+				i32 requiredDraftIndex = -1;
+				for(; edgeIndex < (u32)context.WaitEdges.size() && context.WaitEdges[edgeIndex].second == compiledIndex; edgeIndex++)
+				{
+					const i32 sourcePassIndex = context.WaitEdges[edgeIndex].first;
+					B3D_ASSERT(sourcePassIndex == -1 || GetCompiledPass(sourcePassIndex).QueueType == otherQueueType);
+
+					requiredDraftIndex = std::max(requiredDraftIndex, sourcePassIndex == -1 ? 0 : (i32)passDraftIndices[sourcePassIndex]);
+				}
+
+				// No pass can join this draft on the other queue, since we're waiting on it. Passes only join a queue's last draft, so an
+				// earlier draft has ended already.
+				const bool waitsForLastDraft = requiredDraftIndex != -1 && requiredDraftIndex == (i32)drafts[otherQueueType].size() - 1;
+				if(waitsForLastDraft)
+					isLastDraftEnded[otherQueueType] = true;
+
+				// The pass goes into the queue's last draft, unless that draft has ended or does not wait for what the pass waits for
+				FrameVector<SubmissionDraft>& queueDrafts = drafts[queueType];
+				if(isLastDraftEnded[queueType] || queueDrafts.back().RequiredDraftIndex < requiredDraftIndex)
+				{
+					queueDrafts.emplace_back().RequiredDraftIndex = requiredDraftIndex;
+					isLastDraftEnded[queueType] = false;
+				}
+
+				queueDrafts.back().PassIndices.push_back(compiledIndex);
+				passDraftIndices[compiledIndex] = (u32)queueDrafts.size() - 1;
+			}
+		}
+
+		// The graph ends joined on the graphics queue: its last submission waits for the compute queue's last one. A graphics epilogue adds
+		// that wait if the last graphics submission does not already have it, and holds the end barriers.
+		const i32 lastComputeDraftIndex = (i32)drafts[GQT_COMPUTE].size() - 1;
+		if(drafts[GQT_GRAPHICS].empty() || drafts[GQT_GRAPHICS].back().RequiredDraftIndex < lastComputeDraftIndex)
+			drafts[GQT_GRAPHICS].emplace_back().RequiredDraftIndex = lastComputeDraftIndex;
+
+		// Submit order merges the queues' submissions, each once those it waits for are submitted. Compute submissions go first when they
+		// can, so their waits for the latest graphics work cover no more graphics work than they need. A wait that the previous submission of
+		// the queue already covers is left out.
+		{
+			// Number of each queue's drafts submitted so far, which is also the index of the queue's next draft
+			u32 submittedDraftCounts[2] = { 0, 0 };
+			const auto fnCanSubmitNextDraft = [&drafts, &submittedDraftCounts](GpuQueueType queueType)
+			{
+				const u32 nextDraftIndex = submittedDraftCounts[queueType];
+				if(nextDraftIndex == (u32)drafts[queueType].size())
+					return false;
+
+				// The draft of the other queue it waits for, if any, must be submitted already
+				const i32 requiredDraftIndex = drafts[queueType][nextDraftIndex].RequiredDraftIndex;
+				return requiredDraftIndex < (i32)submittedDraftCounts[GetOtherQueueType(queueType)];
+			};
+
+			while(submittedDraftCounts[GQT_GRAPHICS] < (u32)drafts[GQT_GRAPHICS].size() || submittedDraftCounts[GQT_COMPUTE] < (u32)drafts[GQT_COMPUTE].size())
+			{
+				const GpuQueueType queueType = fnCanSubmitNextDraft(GQT_COMPUTE) ? GQT_COMPUTE : GQT_GRAPHICS;
+				const GpuQueueType otherQueueType = GetOtherQueueType(queueType);
+				B3D_ASSERT(fnCanSubmitNextDraft(queueType));
+
+				const u32 draftIndex = submittedDraftCounts[queueType];
+				SubmissionDraft& draft = drafts[queueType][draftIndex];
+				draft.SubmissionIndex = (u32)mSubmissions.size();
+
+				GpuQueueMask waitQueues;
+				if(draft.RequiredDraftIndex != -1)
+				{
+					const u32 requiredSubmissionIndex = drafts[otherQueueType][draft.RequiredDraftIndex].SubmissionIndex;
+					const bool isCovered = draftIndex > 0 && mTimeline.IsOrderedBefore(requiredSubmissionIndex, drafts[queueType][draftIndex - 1].SubmissionIndex);
+					if(!isCovered)
+					{
+						waitQueues |= GpuQueueId(otherQueueType, 0);
+						mStatistics.QueueWaitCount++;
+					}
+				}
+
+				mTimeline.AddSubmission(GpuQueueId(queueType, 0), waitQueues);
+
+				Submission& submission = mSubmissions.emplace_back();
+				submission.QueueType = queueType;
+				submission.SyncMask = waitQueues;
+				submission.PassIndices.assign(draft.PassIndices.begin(), draft.PassIndices.end());
+
+				for(u32 compiledIndex : draft.PassIndices)
+					GetCompiledPass(compiledIndex).SubmissionIndex = draft.SubmissionIndex;
+
+				submittedDraftCounts[queueType]++;
+			}
+		}
+
+		// The first submission of each queue also waits for the work before the graph. Earlier graphs end on the graphics queue, so the first
+		// graphics submission waits for every queue except the compute queue this graph uses, whose own work comes after it. The first compute
+		// submission waits for the graphics queue, which follows the earlier graphs' work and the context's uploads (see GpuWorkContext).
+		context.FirstGraphicsSubmissionIndex = drafts[GQT_GRAPHICS][0].SubmissionIndex;
+		context.LastSubmissionIndex = drafts[GQT_GRAPHICS].back().SubmissionIndex;
+		B3D_ASSERT(context.LastSubmissionIndex == (u32)mSubmissions.size() - 1);
+
+		mSubmissions[context.FirstGraphicsSubmissionIndex].SyncMask |= context.UsesComputeQueue ? GpuQueueMask::kAll & ~GpuQueueMask(GpuQueueId(GQT_COMPUTE, 0)) : GpuQueueMask::kAll;
+		if(!drafts[GQT_COMPUTE].empty())
+			mSubmissions[drafts[GQT_COMPUTE][0].SubmissionIndex].SyncMask |= GpuQueueMask(GpuQueueId(GQT_GRAPHICS, 0)) | GpuQueueMask(GpuQueueId(GQT_TRANSFER, 0));
+
+		mStatistics.SubmissionCount = (u32)mSubmissions.size();
+	}
+
+	void FrameGraph::PlaceTransients(const CompileContext& context)
+	{
+		// Extracted transients leave the allocator for memory of their own, and transients that only culled passes use go back
+		// unplaced. The rest are placed in pass order and released after their last pass, so transients whose passes do not overlap can
+		// share memory.
+		mScope = &mAllocator.BeginScope(mTimeline);
+
+		for(Resource& resource : mResources)
+		{
+			if(resource.Type != ResourceType::Transient || !resource.IsExtracted)
+				continue;
+
+			if(resource.Texture != nullptr)
+			{
+				mAllocator.Detach(*resource.Texture);
+
+				const GpuMemoryRequirements memoryRequirements = mDevice.GetMemoryRequirements(resource.TextureInformation);
+				resource.Texture->SetAllocation(GpuAllocation::CreatePending(mDevice.GetPersistentAllocator(memoryRequirements.MemoryType)), GpuObjectCreateFlag::None);
+				if(!resource.Texture->IsInitialized())
+					resource.Texture->Initialize();
+			}
+			else
+			{
+				mAllocator.Detach(*resource.Buffer);
+
+				const GpuMemoryRequirements memoryRequirements = mDevice.GetMemoryRequirements(resource.BufferInformation);
+				resource.Buffer->SetAllocation(GpuAllocation::CreatePending(mDevice.GetPersistentAllocator(memoryRequirements.MemoryType)), GpuObjectCreateFlag::None);
+				if(!resource.Buffer->IsInitialized())
+					resource.Buffer->Initialize();
+			}
+
+			resource.IsHeldUnplaced = false;
+		}
+
+		for(Resource& resource : mResources)
+		{
+			if(resource.Type != ResourceType::Transient || resource.IsExtracted || resource.FirstPassIndex != -1)
+				continue;
+
+			if(resource.Texture != nullptr)
+				mAllocator.Return(*resource.Texture);
+			else
+				mAllocator.Return(*resource.Buffer);
+
+			resource.IsHeldUnplaced = false;
+		}
+
+		const auto fnIsAliased = [](const Resource& resource)
+		{
+			return resource.Type == ResourceType::Transient && !resource.IsExtracted;
+		};
+
+		// Last accesses on each queue of each subresource of the transients: the last write, and every read after it. Indexed by subresource
+		// and queue.
+		constexpr u32 kQueueTypeCount = 2;
+		FrameVector<GpuAccessScope> lastUses(context.SubresourceCount * kQueueTypeCount);
+
+		// Index into mCompiledPassIndices of the last pass of each queue that used each resource, or -1 if none did. Indexed by resource and queue.
+		FrameVector<i32> lastQueuePassIndices(mResources.size() * kQueueTypeCount, -1);
+
+		for(u32 compiledIndex = 0; compiledIndex < (u32)mCompiledPassIndices.size(); compiledIndex++)
+		{
+			const Pass& pass = GetCompiledPass(compiledIndex);
+
+			// Transients are placed before the transients of the same pass are released, so they never share memory
+			for(const SubresourceAccess& access : pass.Accesses)
+			{
+				Resource& resource = mResources[access.ResourceIndex];
+				if(!fnIsAliased(resource) || resource.FirstPassIndex != (i32)compiledIndex || !resource.IsHeldUnplaced)
+					continue;
+
+				resource.Placement = resource.Texture != nullptr ? mScope->PlaceTexture(*resource.Texture, pass.SubmissionIndex) : mScope->PlaceBuffer(*resource.Buffer, pass.SubmissionIndex);
+				resource.IsHeldUnplaced = false;
+			}
+
+			for(const SubresourceAccess& access : pass.Accesses)
+			{
+				const Resource& resource = mResources[access.ResourceIndex];
+				if(!fnIsAliased(resource))
+					continue;
+
+				GpuAccessScope& lastUse = lastUses[(resource.FirstSubresourceIndex + access.SubresourceIndex) * kQueueTypeCount + pass.QueueType];
+				if(access.State.Access.IsSet(GpuAccessFlag::Write))
+					lastUse = GpuAccessScope();
+
+				lastUse.Add(access.State.Stages, access.State.Access);
+				lastQueuePassIndices[access.ResourceIndex * kQueueTypeCount + pass.QueueType] = (i32)compiledIndex;
+			}
+
+			for(u32 accessIndex = 0; accessIndex < (u32)pass.Accesses.size(); accessIndex++)
+			{
+				// Accesses are sorted by resource, so each resource is released once
+				const SubresourceAccess& access = pass.Accesses[accessIndex];
+				if(accessIndex > 0 && pass.Accesses[accessIndex - 1].ResourceIndex == access.ResourceIndex)
+					continue;
+
+				const Resource& resource = mResources[access.ResourceIndex];
+				if(!fnIsAliased(resource) || resource.LastPassIndex != (i32)compiledIndex)
+					continue;
+
+				// One last use for each queue that used the resource
+				TInlineArray<GpuTransientLastUse, 2> resourceLastUses;
+				for(GpuQueueType queueType : { GQT_GRAPHICS, GQT_COMPUTE })
+				{
+					const i32 lastQueuePassIndex = lastQueuePassIndices[access.ResourceIndex * kQueueTypeCount + queueType];
+					if(lastQueuePassIndex == -1)
+						continue;
+
+					GpuAccessScope lastAccess;
+					for(u32 subresourceIndex = 0; subresourceIndex < resource.SubresourceCount; subresourceIndex++)
+						lastAccess.Add(lastUses[(resource.FirstSubresourceIndex + subresourceIndex) * kQueueTypeCount + queueType]);
+
+					resourceLastUses.Add(GpuTransientLastUse(GetCompiledPass(lastQueuePassIndex).SubmissionIndex, lastAccess, (u32)lastQueuePassIndex));
+				}
+
+				const TArrayView<const GpuTransientLastUse> lastUsesView(resourceLastUses.Data(), resourceLastUses.Size());
+				if(resource.Texture != nullptr)
+					mScope->Release(*resource.Texture, lastUsesView);
+				else
+					mScope->Release(*resource.Buffer, lastUsesView);
+			}
+		}
+	}
+
+	void FrameGraph::CreateRenderTextures()
+	{
+		// A raster pass whose attachments were set one by one renders through a render texture of those surfaces. The
+		// work context keeps them across graphs, until a surface is recreated or the render texture goes unused for too long.
+		// TODO - Evict render textures together with the transient textures they reference. The transient allocator evicts on its own
+		// schedule, and only compiling a later graph on this context evicts render textures, so a render texture can keep an evicted
+		// transient texture alive after its heap was released, indefinitely if the context builds no more graphs.
+		FrameGraphContextData& contextData = GetContextData(mContext);
+		const u64 frameIndex = mDevice.GetFrameIndex();
+
+		// A render texture refers to the native resources of its surfaces, so one whose surface was recreated is stale
+		const auto fnIsRecreated = [this](const TShared<Texture>& texture)
+		{
+			if(texture == nullptr)
+				return false;
+
+			const u32 resourceIndex = FindResource(*texture);
+			if(resourceIndex == ~0u)
+				return false;
+
+			const Resource& resource = mResources[resourceIndex];
+			return resource.Type == ResourceType::Transient && (resource.IsExtracted || resource.Placement.Recreated);
+		};
+
+		// A transient the allocator does not cache, or that leaves it, is a new texture in every graph
+		const auto fnIsKeptAcrossGraphs = [this](const TShared<Texture>& texture)
+		{
+			if(texture == nullptr)
+				return true;
+
+			const u32 resourceIndex = FindResource(*texture);
+			if(resourceIndex == ~0u)
+				return true;
+
+			const Resource& resource = mResources[resourceIndex];
+			return resource.Type != ResourceType::Transient || (!resource.IsExtracted && resource.Placement.Cached);
+		};
+
+		Vector<FrameGraphContextData::RenderTextureEntry>& entries = contextData.RenderTextures;
+		entries.erase(std::remove_if(entries.begin(), entries.end(), [&fnIsRecreated, frameIndex](const FrameGraphContextData::RenderTextureEntry& entry)
+		{
+			if(entry.LastUsedFrame + gGpuTransientIdleFrames < frameIndex)
+				return true;
+
+			for(const RenderSurfaceInformation& surface : entry.Information.ColorSurfaces)
+			{
+				if(fnIsRecreated(surface.Texture))
+					return true;
+			}
+
+			return fnIsRecreated(entry.Information.DepthStencilSurface.Texture);
+		}), entries.end());
+
+		for(u32 passIndex : mCompiledPassIndices)
+		{
+			Pass& pass = mPasses[passIndex];
+			if(pass.Type != PassType::Raster || pass.Attachments.Target != nullptr)
+				continue;
+
+			RenderTextureCreateInformation information;
+			const auto fnSetSurface = [](RenderSurfaceInformation& surface, const FrameGraphRasterPass::Attachment& attachment)
+			{
+				surface.Texture = attachment.Texture;
+				surface.Face = attachment.Face;
+				surface.FaceCount = attachment.FaceCount;
+				surface.MipLevel = attachment.MipLevel;
+			};
+
+			bool hasAttachments = pass.Attachments.DepthStencilAttachment.Texture != nullptr;
+			for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
+			{
+				fnSetSurface(information.ColorSurfaces[colorIndex], pass.Attachments.ColorAttachments[colorIndex]);
+				hasAttachments |= pass.Attachments.ColorAttachments[colorIndex].Texture != nullptr;
+			}
+
+			fnSetSurface(information.DepthStencilSurface, pass.Attachments.DepthStencilAttachment);
+			if(!B3D_ENSURE_LOG(hasAttachments, "Raster pass '{0}' has no attachments.", pass.Name))
+				continue;
+
+			bool isKept = fnIsKeptAcrossGraphs(information.DepthStencilSurface.Texture);
+			for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
+				isKept &= fnIsKeptAcrossGraphs(information.ColorSurfaces[colorIndex].Texture);
+
+			const auto found = !isKept ? entries.end() : std::find_if(entries.begin(), entries.end(), [&information](const FrameGraphContextData::RenderTextureEntry& entry)
+			{
+				for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
+				{
+					const RenderSurfaceInformation& surface = information.ColorSurfaces[colorIndex];
+					if(!IsSameSurface(entry.Information.ColorSurfaces[colorIndex], surface) || entry.GpuResources[colorIndex] != GetSurfaceGpuResource(surface))
+						return false;
+				}
+
+				const RenderSurfaceInformation& surface = information.DepthStencilSurface;
+				return IsSameSurface(entry.Information.DepthStencilSurface, surface) && entry.GpuResources[B3D_MAXIMUM_RENDER_TARGET_COUNT] == GetSurfaceGpuResource(surface);
+			});
+
+			if(found != entries.end())
+			{
+				found->LastUsedFrame = frameIndex;
+				pass.Attachments.Target = found->Target;
+				continue;
+			}
+
+			FrameGraphContextData::RenderTextureEntry entry;
+			entry.Information = information;
+			entry.LastUsedFrame = frameIndex;
+			for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
+				entry.GpuResources[colorIndex] = GetSurfaceGpuResource(information.ColorSurfaces[colorIndex]);
+
+			entry.GpuResources[B3D_MAXIMUM_RENDER_TARGET_COUNT] = GetSurfaceGpuResource(information.DepthStencilSurface);
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			gIsCreatingRenderTexture = true;
+#endif
+			entry.Target = RenderTexture::Create(information);
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			gIsCreatingRenderTexture = false;
+#endif
+
+			pass.Attachments.Target = entry.Target;
+			if(isKept)
+				entries.push_back(std::move(entry));
+		}
+	}
+
+	void FrameGraph::CompleteAliasAcquires(CompileContext& context)
+	{
+		// A transient's memory may span two kinds of memory. Memory that earlier transients of this graph released (its
+		// predecessors), whose last accesses on the acquiring queue are acquire.Source, the latest in pass latestPredecessorPassIndex. And memory
+		// that no transient of this graph used, which graphs submitted earlier may still use (acquire.HasUnknownSourceAccess). Predecessors on
+		// the other queue are ordered before the first use by a queue wait, as placement checked.
 		// True for each resource whose lifetime an alias release ended. Index into mResources.
 		FrameVector<bool> isAliasReleased(mResources.size(), false);
 
@@ -905,266 +1494,150 @@ namespace b3d::render
 				aliasedTextureIndices[resource.Texture->GetGpuResource()] = resourceIndex;
 		}
 
-		// Plans a barrier of one subresource from its current state into @p destination, before the compiled pass at @p compiledIndex
-		const auto fnPlanBarrier = [&](u32 resourceIndex, u32 subresourceIndex, const GpuAccessState& destination, u32 compiledIndex, bool discardsContents, bool isExport)
+		for(u32 barrierIndex : context.FirstAccessBarrierIndices)
 		{
-			const Resource& resource = mResources[resourceIndex];
-			SubresourceState& state = states[resource.FirstSubresourceIndex + subresourceIndex];
-
-			// The source covers the accesses since the state was established. Without any, it chains to the barrier that established the
-			// state. A resting state also covers the undeclared readers before the graph.
-			PlannedBarrier barrier;
-			barrier.ResourceIndex = resourceIndex;
-			barrier.SubresourceIndex = subresourceIndex;
-			barrier.Source.Stages = state.UsedStages;
-			barrier.Source.Access = state.UsedAccess;
-			barrier.Source.Layout = state.State.Layout;
-
-			// No barrier was issued, or barrier was issued but resource was not used since
-			if(state.BarrierIndex == ~0u || state.UsedStages == GpuStageFlag::None)
-			{
-				barrier.Source.Stages |= state.State.Stages; // Chain with prior barrier (if any), or on prior readers for imported resource
-				if(state.BarrierIndex == ~0u) // State is still in import resting state, wait on prior readers (which are not known)
-				{
-					barrier.Source.Access |= state.State.Access;
-					barrier.Source.Compression = state.State.Compression;
-				}
-			}
-
-			if(discardsContents && resource.Buffer == nullptr)
-				barrier.Source.Layout = GpuImageLayout::Undefined;
-
-			barrier.Destination = destination;
-			barrier.IsExport = isExport;
-			if(isExport)
-			{
-				barrier.ReleasePassIndex = (i32)compiledIndex;
-				barrier.AcquirePassIndex = compiledIndex + 1;
-			}
-			else if(compiledIndex == ~0u)
-			{
-				barrier.ReleasePassIndex = state.LastPassIndex;
-				barrier.AcquirePassIndex = ~0u;
-			}
-			else
-			{
-				// Work between the last access and this one may overlap the barrier. Window surfaces are acquired by the barrier's command
-				// buffer, so their barriers are never split.
-				barrier.IsSplit = resource.Type != ResourceType::Surface && state.LastPassIndex < (i32)compiledIndex - 1;
-				barrier.ReleasePassIndex = barrier.IsSplit ? state.LastPassIndex : (i32)compiledIndex - 1;
-				barrier.AcquirePassIndex = compiledIndex;
-			}
-
-			state.State = destination;
-			state.UsedStages = GpuStageFlag::None;
-			state.UsedAccess = GpuAccessFlag::None;
-			state.BarrierIndex = (u32)plannedBarriers.size();
-			if(compiledIndex != ~0u)
-				state.LastPassIndex = (i32)compiledIndex;
-
-			plannedBarriers.push_back(barrier);
-		};
-
-		for(u32 compiledIndex = 0; compiledIndex < (u32)mCompiledPassIndices.size(); compiledIndex++)
-		{
-			const Pass& pass = mPasses[mCompiledPassIndices[compiledIndex]];
-			for(const SubresourceAccess& access : pass.Accesses)
-			{
-				const Resource& resource = mResources[access.ResourceIndex];
-				SubresourceState& state = states[resource.FirstSubresourceIndex + access.SubresourceIndex];
-
-				if(!state.HasState)
-				{
-					// The first access of a transient starts its lifetime with one barrier over the whole resource, into the state of the
-					// pass's first access of it. Transients in persistent memory have no earlier resources to wait on.
-					const bool isAliased = !resource.IsExtracted;
-
-					PlannedBarrier barrier;
-					barrier.ResourceIndex = access.ResourceIndex;
-					barrier.IsWholeResource = true;
-					barrier.Destination = access.State;
-					barrier.AcquirePassIndex = compiledIndex;
-					barrier.ReleasePassIndex = (i32)compiledIndex - 1;
-
-					if(isAliased)
-					{
-						// The transient's memory may span two kinds of memory. Memory that earlier transients of this graph released (its
-						// predecessors), whose last accesses are acquire.Source, the latest in pass latestPredecessorPassIndex. And memory that no
-						// transient of this graph used, which graphs submitted earlier may still use (acquire.HasUnknownSourceAccess).
-						const GpuAliasAcquire& acquire = resource.Placement.Acquire;
-						const TOptional<u32>& latestPredecessorPassIndex = resource.Placement.LatestPredecessorPassIndex;
-						const bool hasPredecessors = latestPredecessorPassIndex.has_value();
-						const bool hasUnusedMemory = acquire.HasUnknownSourceAccess;
-
-						barrier.Flags = GpuBarrierFlag::AliasAcquire;
-						barrier.Source = GpuAccessState(acquire.Source.GetStages(), acquire.Source.GetAccess());
-
-						// Nothing else orders this graph after the graphs submitted earlier, and their accesses to the unused memory are unknown,
-						// so the acquire waits for all earlier work on the queue
-						if(hasUnusedMemory)
-						{
-							barrier.Source.Stages |= GpuStageFlags(GpuStageFlag::All) & ~GpuStageFlags(GpuStageFlag::Host);
-							barrier.Source.Access |= GpuAccessFlag::Write;
-						}
-
-						if(hasPredecessors)
-						{
-							// Released after the predecessors' last pass if passes run between it and this one, which discards the old contents
-							// while they run. A release there also waits for the graphs submitted earlier.
-							if((i32)*latestPredecessorPassIndex < (i32)compiledIndex - 1)
-							{
-								barrier.IsSplit = true;
-								barrier.ReleasePassIndex = (i32)*latestPredecessorPassIndex;
-							}
-						}
-						else if(hasUnusedMemory && compiledIndex > 0)
-						{
-							// Only earlier graphs used the memory, so the release goes at the start of the graph, where it waits for no pass of
-							// this graph, and the acquire rarely waits. Images with two aspects get no split barriers (see the workaround below),
-							// so theirs is a full barrier at the start of the graph instead. No pass of this graph uses the memory before it,
-							// because a graph is one submission on one queue, and acquire.Source and the predecessors cover that queue.
-							if(resource.Texture != nullptr && resource.FullRange.GetAspectCount() == 2)
-							{
-								barrier.AcquirePassIndex = 0;
-								barrier.ReleasePassIndex = -1;
-							}
-							else
-							{
-								barrier.IsSplit = true;
-								barrier.ReleasePassIndex = -1;
-							}
-						}
-					}
-
-					const u32 barrierIndex = (u32)plannedBarriers.size();
-					plannedBarriers.push_back(barrier);
-
-					for(u32 subresourceIndex = 0; subresourceIndex < resource.SubresourceCount; subresourceIndex++)
-					{
-						SubresourceState& subresourceState = states[resource.FirstSubresourceIndex + subresourceIndex];
-						subresourceState.HasState = true;
-						subresourceState.State = access.State;
-						subresourceState.LastPassIndex = (i32)compiledIndex;
-						subresourceState.BarrierIndex = barrierIndex;
-					}
-
-					if(isAliased)
-					{
-						mStatistics.AliasAcquireCount++;
-						if(barrier.IsSplit)
-							mStatistics.SplitAliasAcquireCount++;
-
-						// The textures on the memory before end their lifetimes with the acquire, in the same call or split, so backends can
-						// flush their writes before the memory is discarded. A texture that several acquires supersede ends it with the first.
-						// For resources that are unknown (from prior scopes) this is not necessary as it's expected the backed will do the 
-						// synchronization on command buffer boundary. This whole block is mainly for D3D12.
-						const GpuAccessState releaseDestination(barrier.Destination.Stages, GpuAccessFlag::None, GpuImageLayout::Undefined);
-						for(IGpuResource* predecessor : resource.Placement.Acquire.Predecessors)
-						{
-							const auto found = aliasedTextureIndices.find(predecessor);
-							if(found == aliasedTextureIndices.end() || isAliasReleased[found->second])
-								continue;
-
-							const u32 predecessorIndex = found->second;
-							const Resource& predecessorResource = mResources[predecessorIndex];
-
-							isAliasReleased[predecessorIndex] = true;
-							mStatistics.AliasReleaseCount++;
-
-							for(u32 subresourceIndex = 0; subresourceIndex < predecessorResource.SubresourceCount; subresourceIndex++)
-							{
-								if(!states[predecessorResource.FirstSubresourceIndex + subresourceIndex].HasState)
-									continue;
-
-								fnPlanBarrier(predecessorIndex, subresourceIndex, releaseDestination, compiledIndex, false, false);
-
-								PlannedBarrier& release = plannedBarriers.back();
-								release.Flags = GpuBarrierFlag::AliasRelease;
-								release.IsSplit = barrier.IsSplit;
-								release.ReleasePassIndex = barrier.ReleasePassIndex;
-								release.AcquirePassIndex = barrier.AcquirePassIndex;
-							}
-						}
-					}
-				}
-
-				const GpuAccessState& wanted = access.State;
-				const bool isRead = !wanted.Access.IsSet(GpuAccessFlag::Write);
-				const bool isSameLayout = wanted.Layout == state.State.Layout;
-
-				bool needsBarrier = true;
-				if(isSameLayout && state.BarrierIndex != ~0u && state.UsedStages == GpuStageFlag::None)
-				{
-					// Nothing accessed the subresource since its last barrier, which can also cover this access
-					needsBarrier = false;
-				}
-				else if(isSameLayout && isRead && !state.UsedAccess.IsSet(GpuAccessFlag::Write) && !state.State.Access.IsSet(GpuAccessFlag::Write))
-				{
-					// Reads in one layout share the read state. Stages the state lacks join the barrier that established it.
-					needsBarrier = !state.State.Stages.IsSetAll(wanted.Stages) && state.BarrierIndex == ~0u;
-				}
-
-				if(!needsBarrier)
-				{
-					if(state.BarrierIndex != ~0u)
-					{
-						GpuAccessState& destination = plannedBarriers[state.BarrierIndex].Destination;
-						destination.Stages |= wanted.Stages;
-						destination.Access |= wanted.Access;
-					}
-
-					state.State.Stages |= wanted.Stages;
-					state.State.Access |= wanted.Access;
-				}
-				else
-					fnPlanBarrier(access.ResourceIndex, access.SubresourceIndex, wanted, compiledIndex, access.DiscardsContents, false);
-
-				state.UsedStages |= wanted.Stages;
-				state.UsedAccess |= wanted.Access;
-				state.LastPassIndex = (i32)compiledIndex;
-			}
-
-			// Exported resources return to rest right after the pass
-			for(u32 resourceIndex : pass.ExportedResourceIndices)
-			{
-				const Resource& resource = mResources[resourceIndex];
-				for(u32 subresourceIndex = 0; subresourceIndex < resource.SubresourceCount; subresourceIndex++)
-				{
-					const SubresourceState& state = states[resource.FirstSubresourceIndex + subresourceIndex];
-					if(state.HasState && state.BarrierIndex != ~0u)
-						fnPlanBarrier(resourceIndex, subresourceIndex, resource.RestingState, compiledIndex, false, true);
-				}
-			}
-		}
-
-		// Imported and extracted resources end the graph at rest
-		for(u32 resourceIndex = 0; resourceIndex < (u32)mResources.size(); resourceIndex++)
-		{
-			const Resource& resource = mResources[resourceIndex];
-			if(resource.Type == ResourceType::Transient && !resource.IsExtracted)
+			if(!context.PlannedBarriers[barrierIndex].Flags.IsSet(GpuBarrierFlag::AliasAcquire))
 				continue;
 
-			const GpuAccessState& restingState = resource.RestingState;
-			for(u32 subresourceIndex = 0; subresourceIndex < resource.SubresourceCount; subresourceIndex++)
+			CompileContext::PlannedBarrier& barrier = context.PlannedBarriers[barrierIndex];
+			const Resource& resource = mResources[barrier.ResourceIndex];
+			const u32 compiledIndex = barrier.AcquirePassIndex;
+			const Pass& pass = GetCompiledPass(compiledIndex);
+			const GpuQueueType queueType = pass.QueueType;
+			const u32 submissionFirstPassIndex = mSubmissions[pass.SubmissionIndex].PassIndices[0];
+
+			const GpuAliasAcquire& acquire = resource.Placement.Acquire;
+			const TOptional<u32>& latestPredecessorPassIndex = resource.Placement.LatestPredecessorPassIndex;
+			const bool hasPredecessors = latestPredecessorPassIndex.has_value();
+			const bool hasUnusedMemory = acquire.HasUnknownSourceAccess;
+
+			barrier.Source = GpuAccessState(acquire.Source.GetStages(), acquire.Source.GetAccess());
+
+			// Nothing else orders this graph after the graphs submitted earlier, and their accesses to the unused memory are unknown,
+			// so the acquire waits for all earlier work on the queue
+			if(hasUnusedMemory)
 			{
-				SubresourceState& state = states[resource.FirstSubresourceIndex + subresourceIndex];
-				if(!state.HasState) // Must be an extracted transient as imported resources start with state
+				barrier.Source.Stages |= GpuStageFlags(GpuStageFlag::All) & ~GpuStageFlags(GpuStageFlag::Host);
+				barrier.Source.Access |= GpuAccessFlag::Write;
+			}
+
+			barrier.Source.Stages &= GpuBackendUtility::GetQueueStageFlags(queueType);
+
+			// A split release goes in the first use's submission, because placement checked the other queue's uses only against it
+			if(hasPredecessors)
+			{
+				// Released after the predecessors' last pass if passes of the queue run between it and this one, which discards the old
+				// contents while they run. A release there also waits for the graphs submitted earlier. A predecessor in an earlier
+				// submission of the queue gets the release at the start of this submission instead.
+				if((i32)*latestPredecessorPassIndex < context.PreviousQueuePassIndices[compiledIndex])
 				{
-					// An extracted resource nothing accessed still has to reach its resting layout
-					state.HasState = true;
-					fnPlanBarrier(resourceIndex, subresourceIndex, restingState, ~0u, true, false);
-					continue;
+					if(GetCompiledPass(*latestPredecessorPassIndex).SubmissionIndex == pass.SubmissionIndex)
+					{
+						barrier.IsSplit = true;
+						barrier.ReleasePassIndex = (i32)*latestPredecessorPassIndex;
+					}
+					else if(submissionFirstPassIndex != compiledIndex)
+					{
+						barrier.IsSplit = true;
+						barrier.ReleasePassIndex = -1;
+						barrier.ReleaseSubmissionIndex = pass.SubmissionIndex;
+					}
 				}
+			}
+			else if(hasUnusedMemory && submissionFirstPassIndex != compiledIndex)
+			{
+				// Only earlier graphs used the memory, so the release goes at the start of the submission, where it waits for no pass of
+				// this graph, and the acquire rarely waits. Images with two aspects get no split barriers (see the workaround below), so
+				// theirs is a full barrier at the start of the submission instead. No pass of the queue uses the memory before it,
+				// because acquire.Source and the predecessors cover the queue.
+				if(resource.Texture != nullptr && resource.FullRange.GetAspectCount() == 2)
+				{
+					barrier.AcquirePassIndex = submissionFirstPassIndex;
+					barrier.ReleasePassIndex = (i32)submissionFirstPassIndex - 1;
+				}
+				else
+				{
+					barrier.IsSplit = true;
+					barrier.ReleasePassIndex = -1;
+					barrier.ReleaseSubmissionIndex = pass.SubmissionIndex;
+				}
+			}
 
-				// No barrier was ever issued, or barrier was issued that didn't change the rest state
-				const bool isAtRest = state.BarrierIndex == ~0u || (!state.UsedAccess.IsSet(GpuAccessFlag::Write) && !state.State.Access.IsSet(GpuAccessFlag::Write) &&
-					state.State.Layout == restingState.Layout && state.State.Stages.IsSetAll(restingState.Stages));
+			mStatistics.AliasAcquireCount++;
+			if(barrier.IsSplit)
+				mStatistics.SplitAliasAcquireCount++;
 
-				if(!isAtRest)
-					fnPlanBarrier(resourceIndex, subresourceIndex, restingState, ~0u, false, false);
+			// D3D12 needs an alias release on every texture the acquire supersedes, to flush its writes before the memory is reused. Other
+			// backends record nothing for it. The release goes with the acquire, in the same call or split, once per texture, with the first
+			// acquire that supersedes it. Textures of earlier graphs and textures last used on the other queue need none, as the command
+			// buffer boundary and the queue wait flush their writes.
+			const CompileContext::PlannedBarrier acquireBarrier = barrier;
+			const GpuAccessState releaseDestination(acquireBarrier.Destination.Stages, GpuAccessFlag::None, GpuImageLayout::Undefined);
+			for(IGpuResource* predecessor : acquire.Predecessors)
+			{
+				const auto found = aliasedTextureIndices.find(predecessor);
+				if(found == aliasedTextureIndices.end() || isAliasReleased[found->second])
+					continue;
+
+				const u32 predecessorIndex = found->second;
+				const Resource& predecessorResource = mResources[predecessorIndex];
+
+				isAliasReleased[predecessorIndex] = true;
+				if(predecessorResource.LastPassIndex == -1 || GetCompiledPass(predecessorResource.LastPassIndex).QueueType != queueType)
+					continue;
+
+				mStatistics.AliasReleaseCount++;
+
+				for(u32 subresourceIndex = 0; subresourceIndex < predecessorResource.SubresourceCount; subresourceIndex++)
+				{
+					if(!context.SubresourceStates[predecessorResource.FirstSubresourceIndex + subresourceIndex].HasState)
+						continue;
+
+					PlanBarrierWithExplicitSourceQueue(context, predecessorIndex, subresourceIndex, releaseDestination, compiledIndex, queueType, queueType, false, false);
+
+					CompileContext::PlannedBarrier& release = context.PlannedBarriers.back();
+					release.Flags = GpuBarrierFlag::AliasRelease;
+					release.IsSplit = acquireBarrier.IsSplit;
+					release.ReleasePassIndex = acquireBarrier.ReleasePassIndex;
+					release.ReleaseSubmissionIndex = acquireBarrier.ReleaseSubmissionIndex;
+					release.AcquirePassIndex = acquireBarrier.AcquirePassIndex;
+				}
+			}
+		}
+	}
+
+	void FrameGraph::ResolveDeferredBarrierPoints(CompileContext& context)
+	{
+		// Exports from the compute queue that no later declared access acquired are acquired before the first pass of the first later
+		// graphics submission that waits for them, or at the end of the graph
+		for(u32 barrierIndex : context.ComputeExportBarrierIndices)
+		{
+			CompileContext::PlannedBarrier& barrier = context.PlannedBarriers[barrierIndex];
+			if(barrier.AcquirePassIndex != ~0u)
+				continue;
+
+			const u32 releaseSubmissionIndex = GetCompiledPass(barrier.ReleasePassIndex).SubmissionIndex;
+			for(u32 submissionIndex = releaseSubmissionIndex + 1; submissionIndex <= context.LastSubmissionIndex; submissionIndex++)
+			{
+				const Submission& submission = mSubmissions[submissionIndex];
+				if(submission.QueueType == GQT_GRAPHICS && !submission.PassIndices.empty() && mTimeline.IsOrderedBefore(releaseSubmissionIndex, submissionIndex))
+				{
+					barrier.AcquirePassIndex = submission.PassIndices[0];
+					break;
+				}
 			}
 		}
 
+		// Releases at the start of the graph go into the first graphics submission, which is the prologue if there is one
+		for(CompileContext::PlannedBarrier& barrier : context.PlannedBarriers)
+		{
+			if(barrier.ReleasePassIndex == -1 && barrier.ReleaseSubmissionIndex == ~0u)
+				barrier.ReleaseSubmissionIndex = context.FirstGraphicsSubmissionIndex;
+		}
+	}
+
+	void FrameGraph::BatchBarriers(CompileContext& context)
+	{
 		// Workaround for the Vulkan validation layer: depth-stencil images get no split barriers. Sync validation reports a false write-after-read
 		// hazard when vkCmdWaitEvents2 transitions the layout of a depth-stencil image that an earlier submission read, such as the previous
 		// frame's render pass that loaded it, even when this frame has written the image since. The report itself says the read is already
@@ -1172,55 +1645,54 @@ namespace b3d::render
 		// synchronize with them, although the barrier's source stages are among them. By the specification the split barrier is correct;
 		// pipeline barriers with the same scopes are not reported. Not reduced to a minimal repro. Seen with split barriers whose depth and
 		// stencil aspects differ in kind, and with MSAA, where the coverage stencil, the resolved scene depth and the SSR stencil get split
-		// barriers of single aspects.
-		for(PlannedBarrier& barrier : plannedBarriers)
+		// barriers of single aspects. Split barriers between queues use no events, and must stay split.
+		for(CompileContext::PlannedBarrier& barrier : context.PlannedBarriers)
 		{
 			const Resource& resource = mResources[barrier.ResourceIndex];
-			if(!barrier.IsSplit || resource.Buffer != nullptr || resource.FullRange.GetAspectCount() != 2)
+			if(!barrier.IsSplit || barrier.ReleaseQueueType != barrier.AcquireQueueType || resource.Buffer != nullptr || resource.FullRange.GetAspectCount() != 2)
 				continue;
 
 			barrier.IsSplit = false;
 			barrier.ReleasePassIndex = (i32)barrier.AcquirePassIndex - 1;
 		}
 
-		// Batching. Planned barriers that differ only in their subresource merge into subresource ranges. Each range goes to the list of
+		// Planned barriers that differ only in their subresource merge into subresource ranges. Each range goes to the list of
 		// the call that records it: a pass's alias acquires or full barriers, the barrier batch of its split release and acquire, a pass's
 		// export barriers, or the end of the graph.
-		const auto fnKey = [](const PlannedBarrier& barrier)
+		const auto fnKey = [](const CompileContext::PlannedBarrier& barrier)
 		{
-			return std::make_tuple(barrier.AcquirePassIndex, barrier.ReleasePassIndex, barrier.IsSplit, barrier.IsExport, barrier.ResourceIndex, barrier.IsWholeResource,
-				(u32)barrier.Flags, (u32)barrier.Source.Stages, (u32)barrier.Source.Access, (u32)barrier.Source.Layout, (u32)barrier.Source.Compression,
-				(u32)barrier.Destination.Stages, (u32)barrier.Destination.Access, (u32)barrier.Destination.Layout, (u32)barrier.Destination.Compression);
+			return std::make_tuple(barrier.AcquirePassIndex, barrier.ReleasePassIndex, barrier.ReleaseSubmissionIndex, barrier.IsSplit, barrier.IsExport, (u32)barrier.ReleaseQueueType,
+				(u32)barrier.AcquireQueueType, barrier.ResourceIndex, barrier.IsWholeResource, (u32)barrier.Flags, (u32)barrier.Source.Stages, (u32)barrier.Source.Access,
+				(u32)barrier.Source.Layout, (u32)barrier.Source.Compression, barrier.Source.Queues.Mask, (u32)barrier.Destination.Stages, (u32)barrier.Destination.Access,
+				(u32)barrier.Destination.Layout, (u32)barrier.Destination.Compression, barrier.Destination.Queues.Mask);
 		};
 
-		FrameVector<u32> order(plannedBarriers.size());
+		FrameVector<u32> order(context.PlannedBarriers.size());
 		for(u32 barrierIndex = 0; barrierIndex < (u32)order.size(); barrierIndex++)
 			order[barrierIndex] = barrierIndex;
 
 		std::stable_sort(order.begin(), order.end(), [&](u32 a, u32 b)
 		{
-			const auto keyA = fnKey(plannedBarriers[a]);
-			const auto keyB = fnKey(plannedBarriers[b]);
+			const auto keyA = fnKey(context.PlannedBarriers[a]);
+			const auto keyB = fnKey(context.PlannedBarriers[b]);
 			if(keyA != keyB)
 				return keyA < keyB;
 
-			return plannedBarriers[a].SubresourceIndex < plannedBarriers[b].SubresourceIndex;
+			return context.PlannedBarriers[a].SubresourceIndex < context.PlannedBarriers[b].SubresourceIndex;
 		});
 
 		// Returns the list that records barriers like @p barrier
-		const auto fnGetList = [this](const PlannedBarrier& barrier) -> BarrierList&
+		const auto fnGetList = [this, &context](const CompileContext::PlannedBarrier& barrier) -> BarrierList&
 		{
-			if(barrier.AcquirePassIndex == ~0u)
-				return mEndBarriers;
-
 			if(barrier.IsExport)
-				return mPasses[mCompiledPassIndices[barrier.ReleasePassIndex]].ExportBarriers;
+				return GetCompiledPass(barrier.ReleasePassIndex).ExportBarriers;
 
 			if(barrier.IsSplit)
 			{
 				const auto found = std::find_if(mBarrierBatches.begin(), mBarrierBatches.end(), [&barrier](const BarrierBatch& batch)
 				{
-					return batch.ReleasePassIndex == barrier.ReleasePassIndex && batch.AcquirePassIndex == barrier.AcquirePassIndex;
+					return batch.ReleasePassIndex == barrier.ReleasePassIndex && batch.AcquirePassIndex == barrier.AcquirePassIndex && batch.ReleaseQueueType == barrier.ReleaseQueueType &&
+						batch.AcquireQueueType == barrier.AcquireQueueType && (barrier.ReleasePassIndex != -1 || batch.ReleaseSubmissionIndex == barrier.ReleaseSubmissionIndex);
 				});
 
 				if(found != mBarrierBatches.end())
@@ -1229,30 +1701,41 @@ namespace b3d::render
 				const u32 batchIndex = (u32)mBarrierBatches.size();
 				BarrierBatch& batch = mBarrierBatches.emplace_back();
 				batch.ReleasePassIndex = barrier.ReleasePassIndex;
+				batch.ReleaseSubmissionIndex = barrier.ReleaseSubmissionIndex;
 				batch.AcquirePassIndex = barrier.AcquirePassIndex;
-				batch.SplitBarrier = mDevice.CreateSplitBarrier();
+				batch.ReleaseQueueType = barrier.ReleaseQueueType;
+				batch.AcquireQueueType = barrier.AcquireQueueType;
+				batch.SplitBarrier = barrier.ReleaseQueueType != barrier.AcquireQueueType ? mDevice.CreateSplitBarrier(barrier.ReleaseQueueType, barrier.AcquireQueueType) :
+					mDevice.CreateSplitBarrier();
 
 				if(barrier.ReleasePassIndex == -1)
-					mStartBarrierBatchIndices.Add(batchIndex);
+					mSubmissions[barrier.ReleaseSubmissionIndex].StartBarrierBatchIndices.Add(batchIndex);
 				else
-					mPasses[mCompiledPassIndices[barrier.ReleasePassIndex]].ReleasedBarrierBatchIndices.Add(batchIndex);
+					GetCompiledPass(barrier.ReleasePassIndex).ReleasedBarrierBatchIndices.Add(batchIndex);
 
-				mPasses[mCompiledPassIndices[barrier.AcquirePassIndex]].AcquiredBarrierBatchIndices.Add(batchIndex);
+				if(barrier.AcquirePassIndex == ~0u)
+					mSubmissions[context.LastSubmissionIndex].EndBarrierBatchIndices.Add(batchIndex);
+				else
+					GetCompiledPass(barrier.AcquirePassIndex).AcquiredBarrierBatchIndices.Add(batchIndex);
+
 				mStatistics.BarrierBatchCount++;
 				return batch.Barriers;
 			}
 
-			Pass& pass = mPasses[mCompiledPassIndices[barrier.AcquirePassIndex]];
+			if(barrier.AcquirePassIndex == ~0u)
+				return mSubmissions[context.LastSubmissionIndex].EndBarriers;
+
+			Pass& pass = GetCompiledPass(barrier.AcquirePassIndex);
 			return barrier.Flags.IsSetAny(GpuBarrierFlag::AliasAcquire | GpuBarrierFlag::AliasRelease) ? pass.AliasAcquireBarriers : pass.Barriers;
 		};
 
 		for(u32 runStart = 0; runStart < (u32)order.size();)
 		{
-			const PlannedBarrier& first = plannedBarriers[order[runStart]];
+			const CompileContext::PlannedBarrier& first = context.PlannedBarriers[order[runStart]];
 			const auto firstKey = fnKey(first);
 
 			u32 runEnd = runStart + 1;
-			while(runEnd < (u32)order.size() && fnKey(plannedBarriers[order[runEnd]]) == firstKey)
+			while(runEnd < (u32)order.size() && fnKey(context.PlannedBarriers[order[runEnd]]) == firstKey)
 				runEnd++;
 
 			BarrierList& list = fnGetList(first);
@@ -1267,7 +1750,7 @@ namespace b3d::render
 				const GpuTextureSubresourceRange& fullRange = resource.FullRange;
 				FrameVector<bool> isIncluded(resource.SubresourceCount, false);
 				for(u32 orderIndex = runStart; orderIndex < runEnd; orderIndex++)
-					isIncluded[plannedBarriers[order[orderIndex]].SubresourceIndex] = true;
+					isIncluded[context.PlannedBarriers[order[orderIndex]].SubresourceIndex] = true;
 
 				for(GpuTextureAspectFlag aspect : kGpuTextureAspects)
 				{
@@ -1340,36 +1823,96 @@ namespace b3d::render
 					list.RenderTargetBarriers.emplace_back(resource.Target, resource.Surface, first.Source, first.Destination, range, first.Flags);
 
 				if(first.IsSplit)
+				{
 					mStatistics.SplitBarrierCount++;
+					if(first.ReleaseQueueType != first.AcquireQueueType)
+						mStatistics.QueueTransferCount++;
+				}
 				else
 					mStatistics.FullBarrierCount++;
 			}
 
 			runStart = runEnd;
 		}
+
+		// The submission that acquires a split barrier from another queue waits on that queue itself, as the backends require, even where
+		// an earlier submission of its queue already orders it after the release
+		for(const BarrierBatch& batch : mBarrierBatches)
+		{
+			if(batch.ReleaseQueueType == batch.AcquireQueueType)
+				continue;
+
+			Submission& submission = mSubmissions[batch.AcquirePassIndex == ~0u ? context.LastSubmissionIndex : GetCompiledPass(batch.AcquirePassIndex).SubmissionIndex];
+			const GpuQueueMask releaseQueue = GpuQueueId(batch.ReleaseQueueType, 0);
+			if((submission.SyncMask & releaseQueue).IsEmpty())
+			{
+				submission.SyncMask |= releaseQueue;
+				mStatistics.QueueWaitCount++;
+			}
+		}
 	}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	void FrameGraph::ValidateSchedule(const CompileContext& context)
+	{
+		// Every split barrier's release and every queue wait's source must be submitted before the work that depends on them, and in a
+		// submission that work waits for
+		const auto fnGetSubmissionIndex = [this, &context](i32 compiledIndex)
+		{
+			return compiledIndex == -1 ? context.FirstGraphicsSubmissionIndex : GetCompiledPass((u32)compiledIndex).SubmissionIndex;
+		};
+
+		for(const BarrierBatch& batch : mBarrierBatches)
+		{
+			const u32 releaseSubmissionIndex = batch.ReleasePassIndex == -1 ? batch.ReleaseSubmissionIndex : GetCompiledPass(batch.ReleasePassIndex).SubmissionIndex;
+			const u32 acquireSubmissionIndex = batch.AcquirePassIndex == ~0u ? context.LastSubmissionIndex : GetCompiledPass(batch.AcquirePassIndex).SubmissionIndex;
+			B3D_ENSURE_LOG(mTimeline.IsOrderedBefore(releaseSubmissionIndex, acquireSubmissionIndex),
+				"Frame graph '{0}' releases a split barrier in submission {1}, but submission {2}, which acquires it, does not wait for it.", mName, releaseSubmissionIndex, acquireSubmissionIndex);
+		}
+
+		for(const std::pair<i32, u32>& edge : context.WaitEdges)
+		{
+			const u32 sourceSubmissionIndex = fnGetSubmissionIndex(edge.first);
+			const u32 destinationSubmissionIndex = fnGetSubmissionIndex((i32)edge.second);
+			B3D_ENSURE_LOG(mTimeline.IsOrderedBefore(sourceSubmissionIndex, destinationSubmissionIndex),
+				"Frame graph '{0}' plans submission {1} to wait for submission {2}, but it does not.", mName, destinationSubmissionIndex, sourceSubmissionIndex);
+		}
+	}
+#endif
 
 	void FrameGraph::Execute()
 	{
 		B3D_ASSERT(mIsCompiled && !mIsExecuted && "A frame graph must be compiled before it is executed, and can only be executed once.");
 		mIsExecuted = true;
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		// The submissions of a graph must reach the queues without another graph's submissions between them, so executions must not overlap
+		u32 executingGraphId = 0;
+		const bool isExecutionRegistered = gExecutingFrameGraphId.compare_exchange_strong(executingGraphId, mId);
+		B3D_ENSURE_LOG(isExecutionRegistered, "Frame graph '{0}' executes while another frame graph executes. Execute frame graphs one at a time, so their submissions do not interleave.",
+			mName);
+#endif
+
 		const CpuProfilingScope graphCpuSample(mName.c_str());
 
-		TShared<GpuCommandBufferPool>& pool = GetContextData(mContext).CommandBufferPool;
-		if(pool == nullptr)
-			pool = mDevice.CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_GRAPHICS));
+		// Returns the pool of the context's command buffers of @p queueType
+		FrameGraphContextData& contextData = GetContextData(mContext);
+		const auto fnGetPool = [this, &contextData](GpuQueueType queueType) -> GpuCommandBufferPool&
+		{
+			TShared<GpuCommandBufferPool>& pool = queueType == GQT_COMPUTE ? contextData.ComputeCommandBufferPool : contextData.CommandBufferPool;
+			if(pool == nullptr)
+				pool = mDevice.CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread(queueType));
 
-		const TShared<GpuCommandBuffer> commandBuffer = pool->FindOrCreate(GpuCommandBufferCreateInformation::Create(mName));
+			return *pool;
+		};
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-		// One validator follows every resource across the passes. It keeps the parameter sets it saw alive until it is destroyed.
+		// One validator follows every resource across the passes, of every command buffer. It keeps the parameter sets it saw alive until it
+		// is destroyed.
 		TUnique<GpuBarrierValidator> validator;
 		if(gFrameGraphSerialRecording)
 		{
 			validator = B3DMakeUnique<GpuBarrierValidator>();
-			commandBuffer->SetValidator(validator.get());
-
 			for(const Resource& resource : mResources)
 			{
 				if(resource.Type != ResourceType::Transient || resource.IsExtracted || resource.FirstPassIndex == -1)
@@ -1383,80 +1926,113 @@ namespace b3d::render
 		}
 #endif
 
-#if B3D_PROFILING_ENABLED
-		commandBuffer->BeginProfiling(ProfilerString(mName.data(), mName.size()));
+		// Each submission records its passes on a command buffer of its own, in submit order. A graph of one submission names it after
+		// the graph, and graphs of several name them after the graph, the queue and the submission's position on the queue.
+		Vector<TShared<GpuCommandBuffer>> commandBuffers;
+		u32 queueSubmissionCounts[GQT_COUNT] = {};
+		for(const Submission& submission : mSubmissions)
+		{
+			String name = mName;
+			if(mSubmissions.size() > 1)
+				name += (submission.QueueType == GQT_COMPUTE ? " Compute " : " Graphics ") + ToString(queueSubmissionCounts[submission.QueueType]++);
+
+			const TShared<GpuCommandBuffer> commandBuffer = fnGetPool(submission.QueueType).FindOrCreate(GpuCommandBufferCreateInformation::Create(name));
+			commandBuffers.push_back(commandBuffer);
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			if(validator != nullptr)
+				commandBuffer->SetValidator(validator.get());
 #endif
 
-		{
-			const GpuProfilingScope graphGpuSample(*commandBuffer, ProfilerString(mName.data(), mName.size()));
+#if B3D_PROFILING_ENABLED
+			commandBuffer->BeginProfiling(ProfilerString(name.data(), name.size()));
+#endif
 
-			for(u32 batchIndex : mStartBarrierBatchIndices)
-				RecordBarriers(*commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Release, mBarrierBatches[batchIndex].SplitBarrier);
-
-			for(u32 passIndex : mCompiledPassIndices)
 			{
-				Pass& pass = mPasses[passIndex];
-				commandBuffer->BeginLabel(pass.Name);
+				const GpuProfilingScope commandBufferGpuSample(*commandBuffer, ProfilerString(name.data(), name.size()));
 
-				const CpuProfilingScope passCpuSample(pass.Name.c_str());
-				const GpuProfilingScope passGpuSample(*commandBuffer, ProfilerString(pass.Name.data(), pass.Name.size()));
-
-				RecordBarriers(*commandBuffer, pass.AliasAcquireBarriers, GpuBarrierPhase::Full);
-				for(u32 batchIndex : pass.AcquiredBarrierBatchIndices)
-					RecordBarriers(*commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Acquire, mBarrierBatches[batchIndex].SplitBarrier);
-
-				RecordBarriers(*commandBuffer, pass.Barriers, GpuBarrierPhase::Full);
-
-				const bool isRaster = pass.Type == PassType::Raster && pass.Attachments.Target != nullptr;
-				if(isRaster)
-				{
-					RenderPassCreateInformation renderPassInformation(pass.Attachments.Target, pass.Attachments.ReadOnlyMask, pass.Attachments.LoadMask);
-					renderPassInformation.ClearMask = pass.Attachments.ClearMask;
-					commandBuffer->BeginRenderPass(renderPassInformation);
-				}
-
-				if(pass.Execute)
-				{
-					FrameGraphPassContext passContext(*commandBuffer);
-					pass.Execute(passContext);
-				}
-
-				if(isRaster)
-					commandBuffer->EndRenderPass();
-
-				for(u32 batchIndex : pass.ReleasedBarrierBatchIndices)
+				for(u32 batchIndex : submission.StartBarrierBatchIndices)
 					RecordBarriers(*commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Release, mBarrierBatches[batchIndex].SplitBarrier);
 
-				RecordBarriers(*commandBuffer, pass.ExportBarriers, GpuBarrierPhase::Full);
-				commandBuffer->EndLabel();
+				for(u32 compiledIndex : submission.PassIndices)
+				{
+					Pass& pass = mPasses[mCompiledPassIndices[compiledIndex]];
+					commandBuffer->BeginLabel(pass.Name);
+
+					const CpuProfilingScope passCpuSample(pass.Name.c_str());
+					const GpuProfilingScope passGpuSample(*commandBuffer, ProfilerString(pass.Name.data(), pass.Name.size()));
+
+					RecordBarriers(*commandBuffer, pass.AliasAcquireBarriers, GpuBarrierPhase::Full);
+					for(u32 batchIndex : pass.AcquiredBarrierBatchIndices)
+						RecordBarriers(*commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Acquire, mBarrierBatches[batchIndex].SplitBarrier);
+
+					RecordBarriers(*commandBuffer, pass.Barriers, GpuBarrierPhase::Full);
+
+					const bool isRaster = pass.Type == PassType::Raster && pass.Attachments.Target != nullptr;
+					if(isRaster)
+					{
+						RenderPassCreateInformation renderPassInformation(pass.Attachments.Target, pass.Attachments.ReadOnlyMask, pass.Attachments.LoadMask);
+						renderPassInformation.ClearMask = pass.Attachments.ClearMask;
+						commandBuffer->BeginRenderPass(renderPassInformation);
+					}
+
+					if(pass.Execute)
+					{
+						FrameGraphPassContext passContext(*commandBuffer);
+						pass.Execute(passContext);
+					}
+
+					if(isRaster)
+						commandBuffer->EndRenderPass();
+
+					for(u32 batchIndex : pass.ReleasedBarrierBatchIndices)
+						RecordBarriers(*commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Release, mBarrierBatches[batchIndex].SplitBarrier);
+
+					RecordBarriers(*commandBuffer, pass.ExportBarriers, GpuBarrierPhase::Full);
+					commandBuffer->EndLabel();
+				}
+
+				for(u32 batchIndex : submission.EndBarrierBatchIndices)
+					RecordBarriers(*commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Acquire, mBarrierBatches[batchIndex].SplitBarrier);
+
+				RecordBarriers(*commandBuffer, submission.EndBarriers, GpuBarrierPhase::Full);
 			}
 
-			RecordBarriers(*commandBuffer, mEndBarriers, GpuBarrierPhase::Full);
-		}
-
 #if B3D_PROFILING_ENABLED
-		commandBuffer->EndProfiling();
+			commandBuffer->EndProfiling();
 #endif
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-		// The validator is destroyed below, while the command buffer waits for its reset
-		if(validator != nullptr)
-			commandBuffer->SetValidator(nullptr);
+			// The validator is destroyed below, while the command buffer waits for its reset
+			if(validator != nullptr)
+				commandBuffer->SetValidator(nullptr);
 #endif
+		}
 
-		// The first submission of a graph waits on every queue, which orders it after the uploads its resources depend on
-		GpuSubmissionInformation submissionInformation;
-		submissionInformation.CommandBuffer = commandBuffer;
-		submissionInformation.SyncMask = GpuQueueMask::kAll;
-		for(const GpuTimelineFenceAndValue& signalFence : mSignalFences)
-			submissionInformation.SignalFences.Add(signalFence);
+		// Submissions follow the timeline, and the last one signals the fences
+		for(u32 submissionIndex = 0; submissionIndex < (u32)mSubmissions.size(); submissionIndex++)
+		{
+			GpuSubmissionInformation submissionInformation;
+			submissionInformation.CommandBuffer = commandBuffers[submissionIndex];
+			submissionInformation.SyncMask = mSubmissions[submissionIndex].SyncMask;
+			if(submissionIndex == (u32)mSubmissions.size() - 1)
+			{
+				for(const GpuTimelineFenceAndValue& signalFence : mSignalFences)
+					submissionInformation.SignalFences.Add(signalFence);
+			}
 
-		mContext.SubmitCommandBuffer(submissionInformation);
+			mContext.SubmitCommandBuffer(submissionInformation);
+		}
 
 		mAllocator.EndScope();
 		mScope = nullptr;
 
 		ReleaseResources();
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		if(isExecutionRegistered)
+			gExecutingFrameGraphId.store(0);
+#endif
 
 		for(Function<void()>& callback : mExecuteCallbacks)
 			callback();
@@ -1547,7 +2123,15 @@ namespace b3d::render
 		Pass& output = mPasses.back();
 		output.Name = name;
 		output.Type = type;
+		output.Flags = pass.mFlags;
 		output.Execute = std::move(execute);
+
+		// Raster passes need the graphics queue
+		if(type == PassType::Raster && !B3D_ENSURE_LOG(!output.Flags.IsSet(FrameGraphPassFlag::AsyncCompute),
+			"Raster pass '{0}' is created with FrameGraphPassFlag::AsyncCompute, which raster passes do not support. It runs on the graphics queue.", output.Name))
+		{
+			output.Flags.Unset(FrameGraphPassFlag::AsyncCompute);
+		}
 		output.ParameterSets = std::move(pass.mParameterSets);
 
 		// Every graph resource in a slot of the pass's sets is declared. The shader stages come from the slot.
@@ -1562,6 +2146,15 @@ namespace b3d::render
 					// Resources outside of the graph are at rest, which only allows reads
 					B3D_ENSURE_LOG(!bound.Access.IsSet(GpuAccessFlag::Write), "Pass '{0}' writes '{1}' through slot '{2}', but it is not a resource of the graph. Import it first.",
 						output.Name, resourceName, bound.Uniform->Name);
+
+					// Textures that cannot be read on several queues at once rest on the graphics queue. The check uses the preference, so content
+					// behaves the same whether or not gFrameGraphAsyncCompute moves the pass to the compute queue.
+					if(output.Flags.IsSet(FrameGraphPassFlag::AsyncCompute) && bound.Texture != nullptr)
+					{
+						B3D_ENSURE_LOG(GpuBackendUtility::IsConcurrentlyReadable(bound.Texture->GetProperties().Usage),
+							"Pass '{0}' reads '{1}' through slot '{2}' on the async compute queue, but '{1}' rests on the graphics queue. Import it first.",
+							output.Name, resourceName, bound.Uniform->Name);
+					}
 
 					return;
 				}

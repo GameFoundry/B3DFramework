@@ -278,6 +278,7 @@ namespace b3d
 				B3DCombineHash(hash, (u32)Access);
 				B3DCombineHash(hash, Layout);
 				B3DCombineHash(hash, Compression);
+				B3DCombineHash(hash, Queues.Mask);
 
 				return hash;
 			}
@@ -290,6 +291,14 @@ namespace b3d
 
 			/** How compression may encode the image contents. Only read from the source of an image barrier. */
 			GpuCompressionHint Compression = GpuCompressionHint::Unknown;
+
+			/**
+			 * Queues that access the resource in this state, if more than the queue that records the barrier half. Backends whose image
+			 * layouts depend on the queue then pick a layout every one of these queues can use. Only resources that more than one queue can
+			 * access at once may name other queues: buffers, and textures that GpuBackendUtility::IsConcurrentlyReadable() allows. Both
+			 * barriers around a state must name the same queues.
+			 */
+			GpuQueueMask Queues;
 		};
 
 		/**

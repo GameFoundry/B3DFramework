@@ -504,9 +504,9 @@ void VulkanTexture::BuildDescription(const VulkanGpuDevice& device, const Textur
 	createInfo.tiling = tiling;
 	createInfo.initialLayout = layout;
 
-	// Sampleable-only textures are shared so that reads on any queue need no ownership transfer
+	// Concurrently readable textures are shared so that reads on any queue need no ownership transfer
 	const TInlineArray<u32, GQT_COUNT>& queueFamilies = device.GetQueueFamilies();
-	const bool isShared = usage.IsSet(TextureUsageFlag::AllowConcurrentQueueReads) || GpuBackendUtility::IsSampleableOnly(usage);
+	const bool isShared = GpuBackendUtility::IsConcurrentlyReadable(usage);
 	const bool usesConcurrentSharing = isShared && queueFamilies.Size() > 1;
 	createInfo.sharingMode = usesConcurrentSharing ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
 	createInfo.queueFamilyIndexCount = usesConcurrentSharing ? (u32)queueFamilies.Size() : 0;

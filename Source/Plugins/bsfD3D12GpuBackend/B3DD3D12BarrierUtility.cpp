@@ -551,10 +551,18 @@ D3D12BarrierScope D3D12BarrierUtility::GetTextureLayoutScope(GpuImageLayout layo
 
 D3D12TextureLayout D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout layout, GpuQueueType queueType, const D3D12TextureLayoutOptions& options)
 {
+	// Layouts several queue types access are the ones every queue type can use
+	const auto fnGetQueueLayout = [queueType, &options](D3D12_BARRIER_LAYOUT directLayout, D3D12_BARRIER_LAYOUT computeLayout, D3D12_BARRIER_LAYOUT commonLayout)
+	{
+		return options.IsAccessedOnSeveralQueueTypes ? commonLayout : GetQueueSpecificLayout(queueType, directLayout, computeLayout, commonLayout);
+	};
+
+	const bool isReadOnSeveralQueueTypes = options.AllowConcurrentQueueReads || options.IsAccessedOnSeveralQueueTypes;
+
 	switch(layout)
 	{
 	case GpuImageLayout::General:
-		return D3D12TextureLayout(GetQueueSpecificLayout(queueType,
+		return D3D12TextureLayout(fnGetQueueLayout(
 			D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_UNORDERED_ACCESS,
 			D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_UNORDERED_ACCESS,
 			D3D12_BARRIER_LAYOUT_UNORDERED_ACCESS));
@@ -563,7 +571,7 @@ D3D12TextureLayout D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout la
 	case GpuImageLayout::DepthStencilAttachment:
 		return D3D12TextureLayout(D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE);
 	case GpuImageLayout::DepthStencilReadOnly:
-		if(options.AllowConcurrentQueueReads)
+		if(isReadOnSeveralQueueTypes)
 			return D3D12TextureLayout(D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_GENERIC_READ_COMPUTE_QUEUE_ACCESSIBLE);
 
 		return D3D12TextureLayout(GetQueueSpecificLayout(queueType,
@@ -575,7 +583,7 @@ D3D12TextureLayout D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout la
 	case GpuImageLayout::DepthAttachmentStencilReadOnly:
 		return D3D12TextureLayout(D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE, D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_GENERIC_READ);
 	case GpuImageLayout::ShaderReadOnly:
-		if(options.AllowConcurrentQueueReads)
+		if(isReadOnSeveralQueueTypes)
 			return D3D12TextureLayout(D3D12_BARRIER_LAYOUT_SHADER_RESOURCE);
 
 		return D3D12TextureLayout(GetQueueSpecificLayout(queueType,
@@ -586,7 +594,7 @@ D3D12TextureLayout D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout la
 		if(options.IsPresentable || queueType == GQT_TRANSFER)
 			return D3D12TextureLayout::Common();
 
-		return D3D12TextureLayout(GetQueueSpecificLayout(queueType,
+		return D3D12TextureLayout(fnGetQueueLayout(
 			D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_COPY_SOURCE,
 			D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_COPY_SOURCE,
 			D3D12_BARRIER_LAYOUT_COPY_SOURCE));
@@ -594,7 +602,7 @@ D3D12TextureLayout D3D12BarrierUtility::TranslateTextureLayout(GpuImageLayout la
 		if(options.IsPresentable || queueType == GQT_TRANSFER)
 			return D3D12TextureLayout::Common();
 
-		return D3D12TextureLayout(GetQueueSpecificLayout(queueType,
+		return D3D12TextureLayout(fnGetQueueLayout(
 			D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_COPY_DEST,
 			D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_COPY_DEST,
 			D3D12_BARRIER_LAYOUT_COPY_DEST));
