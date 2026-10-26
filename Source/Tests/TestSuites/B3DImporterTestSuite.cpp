@@ -780,7 +780,7 @@ namespace
 	 */
 	class TextureDecompressMaterial : public render::RendererMaterial<TextureDecompressMaterial>
 	{
-		RMAT_DEF("TextureDecompress.bsl")
+		RMAT_DEF("Tests/TextureDecompress.bsl")
 
 	public:
 		TextureDecompressMaterial() = default;

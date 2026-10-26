@@ -17,6 +17,10 @@ add_library(FrameworkTests SHARED ${FRAMEWORK_TESTS_SOURCE_FILES})
 # Test suites declare renderer materials, whose shaders must be in the prebuilt shader store
 B3DRegisterShaderCookModule(FrameworkTests)
 
+# Shaders of the test suites, cooked into the prebuilt shader store so platforms that cannot compile shaders at runtime run them too.
+# Tests resolve them through ShaderRegistry as "Tests/<name>.bsl", a path relative to the engine shader folder.
+set_property(GLOBAL APPEND PROPERTY B3D_SHADER_COOK_INPUT_FOLDERS "${B3D_FRAMEWORK_ROOT_FOLDER}/Data/Shaders/Tests")
+
 # Common flags
 B3DSetDefaultLinkAndCompileFlags(FrameworkTests)
 
