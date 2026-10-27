@@ -1,14 +1,8 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Managers/B3DD3D12VertexInputManager.h"
+#include "B3DD3D12VertexInput.h"
+#include "B3DD3D12ResourceManager.h"
 #include "GpuBackend/B3DVertexDescription.h"
-
-// Generic manager method definitions, followed by the explicit instantiation for the D3D12 vertex input types.
-// Included here so the single instantiation lives in this translation unit. The header carries a matching
-// `extern template` to suppress implicit instantiation elsewhere.
-#include "GpuBackend/B3DGpuVertexInputManager.inl"
-
-template class b3d::render::TGpuVertexInputManager<b3d::render::D3D12VertexInputManager, b3d::TShared<b3d::render::D3D12VertexInput>>;
 
 using namespace b3d;
 using namespace b3d::render;
@@ -79,8 +73,8 @@ namespace
 	}
 }
 
-D3D12VertexInput::D3D12VertexInput(u32 id, const GpuVertexInputLayout& layout)
-	: mId(id), mVertexBufferBindingCount(layout.StreamCount)
+D3D12VertexInput::D3D12VertexInput(D3D12ResourceManager* owner, u32 id, const GpuVertexInputLayout& layout)
+	: TD3D12Resource<GpuVertexInput>(owner, id, "B3DVertexInput"), mVertexBufferBindingCount(layout.StreamCount)
 {
 	mElements.reserve(layout.Attributes.Size());
 
@@ -120,19 +114,4 @@ D3D12VertexInput::D3D12VertexInput(u32 id, const GpuVertexInputLayout& layout)
 
 	mLayoutDescription.pInputElementDescs = mElements.data();
 	mLayoutDescription.NumElements = (UINT)mElements.size();
-}
-
-D3D12VertexInputManager::~D3D12VertexInputManager()
-{
-	ReleaseAll();
-}
-
-TShared<D3D12VertexInput> D3D12VertexInputManager::CreateVertexInput(const GpuVertexInputLayout& layout)
-{
-	return B3DMakeShared<D3D12VertexInput>(mNextId++, layout);
-}
-
-void D3D12VertexInputManager::DestroyVertexInput(TShared<D3D12VertexInput>& vertexInput)
-{
-	vertexInput = nullptr;
 }

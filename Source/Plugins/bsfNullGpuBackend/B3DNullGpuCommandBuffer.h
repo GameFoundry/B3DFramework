@@ -25,7 +25,7 @@ namespace b3d
 		class NullGpuCommandBuffer final : public GpuCommandBuffer
 		{
 		public:
-			NullGpuCommandBuffer(NullGpuDevice& device, NullGpuCommandBufferPool& pool, u32 id, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
+			NullGpuCommandBuffer(NullGpuDevice& device, NullGpuCommandBufferPool& pool, u32 id, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
 			~NullGpuCommandBuffer() override = default;
 
 			void SetName(const StringView& name) override {}

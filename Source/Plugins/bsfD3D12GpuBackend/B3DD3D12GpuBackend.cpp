@@ -7,7 +7,6 @@
 #include "Managers/B3DD3D12GpuBackendFactory.h"
 #include "Managers/B3DD3D12RenderWindowManager.h"
 #include "Managers/B3DD3D12TextureManager.h"
-#include "Managers/B3DD3D12VertexInputManager.h"
 #include "String/B3DUnicode.h"
 #include "Utility/B3DConfigVariable.h"
 
@@ -185,7 +184,6 @@ void D3D12GpuBackend::OnStartUp()
 	render::TextureManager::StartUp<render::D3D12TextureManager>(*mDevices[0]);
 
 	RenderWindowManager::StartUp<D3D12RenderWindowManager>();
-	D3D12VertexInputManager::StartUp();
 
 	// TODO(d3d12-port): Set up GPU command capture with PIX.
 
@@ -208,7 +206,6 @@ void D3D12GpuBackend::OnShutDown()
 		device->WaitUntilIdle();
 	}
 
-	D3D12VertexInputManager::ShutDown();
 	RenderWindowManager::ShutDown();
 	render::TextureManager::ShutDown();
 	TextureManager::ShutDown();

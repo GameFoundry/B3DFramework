@@ -359,11 +359,9 @@ void VulkanGpuQueue::RefreshCompletionState(bool forceWait, u64 lastProgressValu
 		if(record.ProgressValue > lastFinishedProgressValue)
 			break;
 
-		SingleConsumerQueue& messageBackQueue = record.CommandBuffers.Front()->GetPool().GetMessageQueue();
-
 		if(!record.RetainedSemaphores.Empty())
 		{
-			messageBackQueue.PostCommand([semaphoresToRelease = std::move(record.RetainedSemaphores), queueId = GetId()]()
+			record.CommandBuffers.Front()->GetPool().PostCommand([semaphoresToRelease = std::move(record.RetainedSemaphores), queueId = GetId()]()
 			{
 				for(VulkanSemaphore* semaphore : semaphoresToRelease)
 					semaphore->NotifyDone(queueId, GpuAccessFlag::Read | GpuAccessFlag::Write);
@@ -373,7 +371,7 @@ void VulkanGpuQueue::RefreshCompletionState(bool forceWait, u64 lastProgressValu
 		for(const TShared<VulkanGpuCommandBuffer>& commandBuffer : record.CommandBuffers)
 		{
 			waitGroup.Increment();
-			commandBuffer->GetPool().GetMessageQueue().PostCommand([commandBuffer, waitGroup = forceWait ? &waitGroup : nullptr]()
+			commandBuffer->GetPool().PostCommand([commandBuffer, waitGroup = forceWait ? &waitGroup : nullptr]()
 			{
 				commandBuffer->mState = GpuCommandBufferState::Done;
 				commandBuffer->OnDidComplete();

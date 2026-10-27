@@ -11,7 +11,7 @@
 #include "B3DVulkanGpuPipelineParameterLayout.h"
 #include "B3DVulkanFramebuffer.h"
 #include "B3DVulkanSwapChain.h"
-#include "Managers/B3DVulkanVertexInputManager.h"
+#include "B3DVulkanVertexInput.h"
 #include "B3DVulkanEventQuery.h"
 #include "B3DVulkanRenderPass.h"
 #include "B3DVulkanRenderTexture.h"
@@ -135,7 +135,7 @@ TShared<GpuCommandBuffer> VulkanGpuCommandBufferPool::Create(const GpuCommandBuf
 	VkResult result = vkAllocateCommandBuffers(static_cast<VulkanGpuDevice&>(mGpuDevice).GetLogical(), &cmdBufferAllocInfo, &commandBufferHandle);
 	B3D_ASSERT(result == VK_SUCCESS);
 
-	TShared<VulkanGpuCommandBuffer> commandBuffer = B3DMakeSharedFromExisting(new(B3DAllocate<VulkanGpuCommandBuffer>()) VulkanGpuCommandBuffer(static_cast<VulkanGpuDevice&>(mGpuDevice), *this, mNextCommandBufferId++, commandBufferHandle, mInformation.Thread, mInformation.Type, createInformation),
+	TShared<VulkanGpuCommandBuffer> commandBuffer = B3DMakeSharedFromExisting(new(B3DAllocate<VulkanGpuCommandBuffer>()) VulkanGpuCommandBuffer(static_cast<VulkanGpuDevice&>(mGpuDevice), *this, mNextCommandBufferId++, commandBufferHandle, mInformation.Type, createInformation),
 		[](VulkanGpuCommandBuffer* commandBuffer)
 		{
 			commandBuffer->Destroy();
@@ -175,8 +175,8 @@ void VulkanGpuCommandBufferPool::Reset()
 const Color kDebugLabelColor = Color::kBansheeOrange;
 constexpr u32 kMaximumBoundDescriptorSets = 64;
 
-VulkanGpuCommandBuffer::VulkanGpuCommandBuffer(VulkanGpuDevice& device, VulkanGpuCommandBufferPool& pool, u32 id, VkCommandBuffer commandBufferHandle, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation)
-	: GpuCommandBuffer(device, ownerThread, queueType, createInformation), mId(id), mCommandBufferHandle(commandBufferHandle), mPool(pool), mOwnerThread(ownerThread), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true), mGraphicsPushConstantsRequireBind(false), mComputePushConstantsRequireBind(false), mViewportRequiresBind(true), mStencilRefRequiresBind(true), mScissorRequiresBind(true), mBoundParamsDirty(false), mVertexInputsDirty(false)
+VulkanGpuCommandBuffer::VulkanGpuCommandBuffer(VulkanGpuDevice& device, VulkanGpuCommandBufferPool& pool, u32 id, VkCommandBuffer commandBufferHandle, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation)
+	: GpuCommandBuffer(device, pool, queueType, createInformation), mId(id), mCommandBufferHandle(commandBufferHandle), mPool(pool), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true), mGraphicsPushConstantsRequireBind(false), mComputePushConstantsRequireBind(false), mViewportRequiresBind(true), mStencilRefRequiresBind(true), mScissorRequiresBind(true), mBoundParamsDirty(false), mVertexInputsDirty(false)
 {
 	const u32 maximumBoundDescriptorSets = Math::Min(kMaximumBoundDescriptorSets, device.GetDeviceProperties().limits.maxBoundDescriptorSets);
 	mDescriptorSetsTemp = (VkDescriptorSet*)B3DAllocate(sizeof(VkDescriptorSet) * maximumBoundDescriptorSets);
@@ -1549,10 +1549,10 @@ bool VulkanGpuCommandBuffer::IsReadyForRender()
 bool VulkanGpuCommandBuffer::BindGraphicsPipeline()
 {
 	const TShared<VertexDescription> vertexShaderInputDescription = mGraphicsPipeline->GetInputDeclaration();
-	const TShared<VulkanVertexInput> vertexShaderInput = VulkanVertexInputManager::Instance().GetVertexInput(mVertexDescription, vertexShaderInputDescription);
+	const VulkanVertexInput* vertexShaderInput = static_cast<VulkanVertexInput*>(mGpuDevice.GetVertexInputManager().GetVertexInput(mVertexDescription, vertexShaderInputDescription, mResourceTracker));
 
 	VulkanRenderPass *const renderPass = mFramebuffer->GetRenderPass();
-	VulkanPipeline *const pipeline = mGraphicsPipeline->FindOrCreateVulkanResource(renderPass, mRenderTargetReadOnlyMask, mDrawOp, vertexShaderInput);
+	VulkanPipeline *const pipeline = mGraphicsPipeline->FindOrCreateVulkanResource(renderPass, mRenderTargetReadOnlyMask, mDrawOp, *vertexShaderInput);
 
 	if(pipeline == nullptr)
 		return false;

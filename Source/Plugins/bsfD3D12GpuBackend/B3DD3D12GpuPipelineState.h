@@ -53,7 +53,7 @@ namespace b3d
 			/**
 			 * Returns (creating on first use) the pipeline state object variant matching the provided render target
 			 * formats, topology and vertex input. The key's VertexInputId must identify the provided vertex input.
-			 * Returns null if creation failed.
+			 * Returns null if creation failed. Thread safe.
 			 */
 			D3D12Pipeline* FindOrCreatePipeline(const D3D12PipelineVariantKey& key, const D3D12VertexInput& vertexInput);
 
@@ -72,6 +72,7 @@ namespace b3d
 
 			UnorderedMap<D3D12PipelineVariantKey, D3D12Pipeline*, D3D12PipelineVariantKey::Hash> mPipelines;
 			TShared<VertexDescription> mVertexDescription;
+			Mutex mMutex; /**< Guards mPipelines, as command buffers recorded on several threads may draw with the pipeline state. */
 		};
 
 		/** DirectX 12 implementation of a compute pipeline state. */

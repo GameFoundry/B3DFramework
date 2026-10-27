@@ -41,6 +41,9 @@ namespace b3d
 	{
 		struct GpuCommandBufferPoolCreateInformation;
 		class GpuCommandBufferPool;
+		class GpuVertexInput;
+		class GpuVertexInputManager;
+		struct GpuVertexInputLayout;
 	}
 
 	struct GpuPipelineParameterLayoutCreateInformation;
@@ -212,6 +215,9 @@ namespace b3d
 		 */
 		virtual TShared<SamplerState> FindOrCreateSamplerState(const SamplerStateCreateInformation& createInformation);
 
+		/** Returns the cache of the vertex input objects created on this device. */
+		render::GpuVertexInputManager& GetVertexInputManager() const { return *mVertexInputManager; }
+
 		/**
 		 *  Creates a sampler state.
 		 *
@@ -381,7 +387,9 @@ namespace b3d
 		}
 
 	protected:
-		GpuDevice() = default;
+		friend class render::GpuVertexInputManager;
+
+		GpuDevice();
 
 		/**
 		 * Creates a new GPU texture at @p allocation, which is pending or has memory that satisfies the texture's memory
@@ -394,6 +402,12 @@ namespace b3d
 		 * requirements. See CreateGpuBuffer(const GpuBufferCreateInformation&, const GpuAllocation&, GpuObjectCreateFlags).
 		 */
 		virtual TShared<render::GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) = 0;
+
+		/**
+		 * Creates the object mapping the vertex buffer elements of @p layout onto the inputs of a vertex shader, identified by @p id.
+		 * Returns null if the backend cannot express the layout. Called by the vertex input manager, which caches the result.
+		 */
+		virtual render::GpuVertexInput* CreateVertexInput(u32 id, const render::GpuVertexInputLayout& layout) = 0;
 
 		/**
 		 * Registers a transient heap pool created by the backend, takes ownership of it, and returns it. Must only be called during
@@ -409,6 +423,9 @@ namespace b3d
 
 		mutable UnorderedMap<SamplerStateCreateInformation, TShared<SamplerState>> mCachedSamplerStates;
 		mutable Mutex mSamplerStateMutex;
+
+		/** Cache of the vertex input objects created on this device. Backends destroy it before their resource manager. */
+		TUnique<render::GpuVertexInputManager> mVertexInputManager;
 
 		/** Thread responsible for executing queue submit and present operations. Constructed by backends that use one. */
 		TUnique<render::GpuSubmitThread> mSubmitThread;

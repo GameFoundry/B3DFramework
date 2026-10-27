@@ -212,7 +212,7 @@ namespace b3d
 			bool RecordBarriers(const GpuBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split) override;
 
 			/** Creates a command buffer wrapping @p commandList. */
-			D3D12GpuCommandBuffer(D3D12GpuDevice& device, D3D12GpuCommandBufferPool& pool, u32 id, ID3D12GraphicsCommandList7* commandList, ID3D12CommandAllocator* commandAllocator, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
+			D3D12GpuCommandBuffer(D3D12GpuDevice& device, D3D12GpuCommandBufferPool& pool, u32 id, ID3D12GraphicsCommandList7* commandList, ID3D12CommandAllocator* commandAllocator, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
 
 			/** Returns the pool the command buffer was allocated from. */
 			D3D12GpuCommandBufferPool& GetPool() const { return mPool; }

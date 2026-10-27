@@ -154,9 +154,6 @@ namespace b3d
 			/** Returns an unique identifier of this command buffer. */
 			u32 GetId() const { return mId; }
 
-			/** Returns the thread that the command buffer is allowed to be used on. */
-			ThreadId GetOwnerThread() const { return mOwnerThread; }
-
 			/**
 			 * Prepares the command buffer to be submitted on a GpuQueue.
 			 *
@@ -358,7 +355,7 @@ namespace b3d
 				u64 PoolIdentifier = 0;
 			};
 
-			VulkanGpuCommandBuffer(VulkanGpuDevice& device, VulkanGpuCommandBufferPool& pool, u32 id, VkCommandBuffer commandBufferHandle, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
+			VulkanGpuCommandBuffer(VulkanGpuDevice& device, VulkanGpuCommandBufferPool& pool, u32 id, VkCommandBuffer commandBufferHandle, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
 
 			/** Returns the pool the command buffer was allocated from. */
 			VulkanGpuCommandBufferPool& GetPool() const { return mPool; }
@@ -442,7 +439,6 @@ namespace b3d
 			VkCommandBuffer mCommandBufferHandle;
 			VulkanGpuCommandBufferPool& mPool;
 			VkFence mFence;
-			ThreadId mOwnerThread;
 
 			VulkanFramebuffer* mFramebuffer = nullptr;
 			RenderSurfaceMask mRenderTargetReadOnlyMask = RT_NONE;

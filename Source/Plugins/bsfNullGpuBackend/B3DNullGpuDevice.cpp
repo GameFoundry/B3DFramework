@@ -1,6 +1,7 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DNullGpuDevice.h"
+#include "GpuBackend/B3DGpuVertexInputManager.h"
 #include "B3DNullGpuQueue.h"
 #include "B3DNullGpuCommandBuffer.h"
 #include "B3DNullGpuCommandBufferPool.h"
@@ -62,6 +63,7 @@ namespace b3d
 
 		NullGpuDevice::~NullGpuDevice()
 		{
+			mVertexInputManager = nullptr;
 			DestroyTransientHeapPools();
 		}
 
@@ -256,6 +258,12 @@ namespace b3d
 				buffer->Initialize();
 
 			return buffer;
+		}
+
+		GpuVertexInput* NullGpuDevice::CreateVertexInput(u32 id, const GpuVertexInputLayout& layout)
+		{
+			// Null command buffers record no draws, so they never request vertex inputs
+			return nullptr;
 		}
 
 		TShared<GpuQueryPool> NullGpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)

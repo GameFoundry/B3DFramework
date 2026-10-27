@@ -5,7 +5,6 @@
 #include "Managers/B3DVulkanGpuBackendFactory.h"
 #include "Managers/B3DVulkanTextureManager.h"
 #include "Managers/B3DVulkanRenderWindowManager.h"
-#include "Managers/B3DVulkanVertexInputManager.h"
 
 #include <vulkan/vulkan.h>
 
@@ -442,9 +441,6 @@ void VulkanGpuBackend::OnStartUp()
 	// Create render window manager
 	RenderWindowManager::StartUp<VulkanRenderWindowManager>();
 
-	// Create vertex input manager
-	VulkanVertexInputManager::StartUp();
-
 #if B3D_PLATFORM_WIN32
 	mGPUCommandCapture = B3DMakeShared<RenderDocCommandCapture>(mInstance); // TODO - This should included in the build for development only, but it's currently always bundled with the application
 #endif
@@ -467,7 +463,6 @@ void VulkanGpuBackend::OnShutDown()
 		device->WaitUntilIdle();
 	}
 
-	VulkanVertexInputManager::ShutDown();
 	RenderWindowManager::ShutDown();
 	VulkanFramebufferCache::ShutDown();
 	VulkanRenderPassCache::ShutDown();

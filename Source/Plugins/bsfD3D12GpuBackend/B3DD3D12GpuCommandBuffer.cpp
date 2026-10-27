@@ -20,7 +20,7 @@
 #include "B3DD3D12BarrierUtility.h"
 #include "Utility/B3DD3D12BarrierBatch.h"
 #include "Managers/B3DD3D12DescriptorManager.h"
-#include "Managers/B3DD3D12VertexInputManager.h"
+#include "B3DD3D12VertexInput.h"
 #include "Profiling/B3DRenderStats.h"
 #include "Image/B3DPixelUtility.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
@@ -163,7 +163,7 @@ TShared<GpuCommandBuffer> D3D12GpuCommandBufferPool::Create(const GpuCommandBuff
 		return nullptr;
 
 	TShared<D3D12GpuCommandBuffer> commandBuffer = B3DMakeSharedFromExisting(new (B3DAllocate<D3D12GpuCommandBuffer>())
-		D3D12GpuCommandBuffer(d3d12Device, *this, mNextCommandBufferId++, commandList.Get(), commandAllocator.Get(), mInformation.Thread, mInformation.Type, createInformation),
+		D3D12GpuCommandBuffer(d3d12Device, *this, mNextCommandBufferId++, commandList.Get(), commandAllocator.Get(), mInformation.Type, createInformation),
 		[](D3D12GpuCommandBuffer* commandBuffer)
 		{
 			B3DDelete(commandBuffer);
@@ -201,7 +201,7 @@ void D3D12GpuCommandBufferPool::Reset()
 	}
 }
 
-D3D12GpuCommandBuffer::D3D12GpuCommandBuffer(D3D12GpuDevice& device, D3D12GpuCommandBufferPool& pool, u32 id, ID3D12GraphicsCommandList7* commandList, ID3D12CommandAllocator* commandAllocator, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation) : GpuCommandBuffer(device, ownerThread, queueType, createInformation), mId(id), mCommandList(commandList), mCommandAllocator(commandAllocator), mPool(pool), mGraphicsPipelineRequiresBind(true), mGraphicsRootSignatureRequiresBind(true), mComputePipelineRequiresBind(true), mPrimitiveTopologyRequiresBind(true), mViewportRequiresBind(true), mStencilReferenceValueRequiresBind(true), mScissorRequiresBind(true), mGraphicsParametersRequireBind(false), mComputeParametersRequireBind(false), mGraphicsPushConstantsRequireBind(false), mComputePushConstantsRequireBind(false), mVertexInputsDirty(false)
+D3D12GpuCommandBuffer::D3D12GpuCommandBuffer(D3D12GpuDevice& device, D3D12GpuCommandBufferPool& pool, u32 id, ID3D12GraphicsCommandList7* commandList, ID3D12CommandAllocator* commandAllocator, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation) : GpuCommandBuffer(device, pool, queueType, createInformation), mId(id), mCommandList(commandList), mCommandAllocator(commandAllocator), mPool(pool), mGraphicsPipelineRequiresBind(true), mGraphicsRootSignatureRequiresBind(true), mComputePipelineRequiresBind(true), mPrimitiveTopologyRequiresBind(true), mViewportRequiresBind(true), mStencilReferenceValueRequiresBind(true), mScissorRequiresBind(true), mGraphicsParametersRequireBind(false), mComputeParametersRequireBind(false), mGraphicsPushConstantsRequireBind(false), mComputePushConstantsRequireBind(false), mVertexInputsDirty(false)
 {
 	HRESULT hr = GetD3D12GpuDevice().GetD3D12Device()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
 	B3D_ASSERT(SUCCEEDED(hr) && "Failed to create fence");
@@ -943,7 +943,7 @@ bool D3D12GpuCommandBuffer::BindGraphicsPipeline()
 	{
 		// Map the bound vertex buffer layout to the vertex shader's inputs; the result is part of the pipeline
 		// variant and tells us how many vertex buffer slots the pipeline fetches from
-		const TShared<D3D12VertexInput> vertexInput = D3D12VertexInputManager::Instance().GetVertexInput(mVertexDescription, mGraphicsPipeline->GetInputDeclaration());
+		const D3D12VertexInput* vertexInput = static_cast<D3D12VertexInput*>(mGpuDevice.GetVertexInputManager().GetVertexInput(mVertexDescription, mGraphicsPipeline->GetInputDeclaration(), mResourceTracker));
 		if (vertexInput == nullptr)
 			return false;
 

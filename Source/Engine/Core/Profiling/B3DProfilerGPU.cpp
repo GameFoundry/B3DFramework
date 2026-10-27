@@ -138,25 +138,31 @@ void GpuCommandBufferProfiler::ConvertToResultSample(const Sample& sample, GpuPr
 		: 0.0f;
 	reportSample.SamplesDrawn = 0;
 
-	reportSample.DrawCallCount = (u32)(sample.EndRenderStatistics.DrawCallCount - sample.BeginRenderStatistics.DrawCallCount);
-	reportSample.RenderTargetChangesCount = (u32)(sample.EndRenderStatistics.RenderTargetChangeCount - sample.BeginRenderStatistics.RenderTargetChangeCount);
-	reportSample.PresentCount = (u32)(sample.EndRenderStatistics.PresentCount - sample.BeginRenderStatistics.PresentCount);
-	reportSample.ClearCount = (u32)(sample.EndRenderStatistics.ClearCount - sample.BeginRenderStatistics.ClearCount);
+	const auto fnGetDelta = [&sample](RenderStatistic statistic)
+	{
+		const u32 statisticIndex = (u32)statistic;
+		return (u32)(sample.EndRenderStatistics.Values[statisticIndex] - sample.BeginRenderStatistics.Values[statisticIndex]);
+	};
 
-	reportSample.VerticesDrawn = (u32)(sample.EndRenderStatistics.VertexCount - sample.BeginRenderStatistics.VertexCount);
-	reportSample.PrimitivesDrawn = (u32)(sample.EndRenderStatistics.PrimitiveCount - sample.BeginRenderStatistics.PrimitiveCount);
+	reportSample.DrawCallCount = fnGetDelta(RenderStatistic::DrawCallCount);
+	reportSample.RenderTargetChangesCount = fnGetDelta(RenderStatistic::RenderTargetChangeCount);
+	reportSample.PresentCount = fnGetDelta(RenderStatistic::PresentCount);
+	reportSample.ClearCount = fnGetDelta(RenderStatistic::ClearCount);
 
-	reportSample.PipelineStateChangeCount = (u32)(sample.EndRenderStatistics.PipelineStateChangeCount - sample.BeginRenderStatistics.PipelineStateChangeCount);
+	reportSample.VerticesDrawn = fnGetDelta(RenderStatistic::VertexCount);
+	reportSample.PrimitivesDrawn = fnGetDelta(RenderStatistic::PrimitiveCount);
 
-	reportSample.GpuParameterBindCount = (u32)(sample.EndRenderStatistics.GpuParameterBindCount - sample.BeginRenderStatistics.GpuParameterBindCount);
-	reportSample.VertexBufferBindCount = (u32)(sample.EndRenderStatistics.VertexBufferBindCount - sample.BeginRenderStatistics.VertexBufferBindCount);
-	reportSample.IndexBufferBindCount = (u32)(sample.EndRenderStatistics.IndexBufferBindCount - sample.BeginRenderStatistics.IndexBufferBindCount);
+	reportSample.PipelineStateChangeCount = fnGetDelta(RenderStatistic::PipelineStateChangeCount);
 
-	reportSample.ResourceWriteCount = (u32)(sample.EndRenderStatistics.ResourceWriteCount - sample.BeginRenderStatistics.ResourceWriteCount);
-	reportSample.ResourceReadCount = (u32)(sample.EndRenderStatistics.ResourceReadCount - sample.BeginRenderStatistics.ResourceReadCount);
+	reportSample.GpuParameterBindCount = fnGetDelta(RenderStatistic::GpuParameterBindCount);
+	reportSample.VertexBufferBindCount = fnGetDelta(RenderStatistic::VertexBufferBindCount);
+	reportSample.IndexBufferBindCount = fnGetDelta(RenderStatistic::IndexBufferBindCount);
 
-	reportSample.ObjectsCreatedCount = (u32)(sample.EndRenderStatistics.ObjectsCreatedCount - sample.BeginRenderStatistics.ObjectsCreatedCount);
-	reportSample.ObjectsDestroyedCount = (u32)(sample.EndRenderStatistics.ObjectsDestroyedCount - sample.BeginRenderStatistics.ObjectsDestroyedCount);
+	reportSample.ResourceWriteCount = fnGetDelta(RenderStatistic::ResourceWriteCount);
+	reportSample.ResourceReadCount = fnGetDelta(RenderStatistic::ResourceReadCount);
+
+	reportSample.ObjectsCreatedCount = fnGetDelta(RenderStatistic::ObjectsCreatedCount);
+	reportSample.ObjectsDestroyedCount = fnGetDelta(RenderStatistic::ObjectsDestroyedCount);
 
 	reportSample.ChildSamples.Reserve(sample.Children.Size());
 	for(auto& entry : sample.Children)
@@ -319,6 +325,8 @@ void GpuProfiler::ResolveProfileWhenReady(const ProfilerString& name, const TSha
 
 TOptional<GpuProfilerResults> GpuProfiler::GetResults(const ProfilerString& name)
 {
+	Lock lock(mMutex);
+
 	if(auto found = mResolvedProfilerData.find(name); found != mResolvedProfilerData.end())
 	{
 		ResolvedCommandBufferProfilerData resolvedProfilerData = std::move(found->second);

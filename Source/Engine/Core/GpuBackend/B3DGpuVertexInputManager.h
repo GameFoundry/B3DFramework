@@ -4,12 +4,15 @@
 
 #include "B3DPrerequisites.h"
 #include "GpuBackend/B3DVertexDescription.h"
+#include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "Threading/B3DThreading.h"
 
 namespace b3d
 {
 	namespace render
 	{
+		class GpuResourceTracker;
+
 		/** @addtogroup GpuBackend
 		 *  @{
 		 */
@@ -71,39 +74,53 @@ namespace b3d
 		};
 
 		/**
-		 * Builds and caches backend vertex input objects describing how the elements of a vertex buffer layout map to
-		 * the inputs of a vertex shader, so the mapping for a combination is built once and reused afterwards. Least
-		 * recently used entries are evicted once the cache fills up.
-		 *
-		 * @note	Thread safe.
-		 *
-		 * @tparam	TDerived		Backend manager deriving from this class. Must provide:
-		 *							- TVertexInput CreateVertexInput(const GpuVertexInputLayout& layout) building the
-		 *							  backend vertex input object from the resolved layout; may return null on failure.
-		 *							- void DestroyVertexInput(TVertexInput& vertexInput) releasing an object evicted from
-		 *							  the cache. The derived destructor must call ReleaseAll() so eviction of the remaining
-		 *							  entries happens while the derived class is still alive.
-		 * @tparam	TVertexInput	Backend vertex input handle (e.g. a shared or raw pointer). Must be contextually
-		 *							convertible to bool, where false means an empty handle.
+		 * Maps the elements of a vertex buffer layout onto the inputs of a vertex shader. Backends derive from it to hold the
+		 * API-specific description built from a GpuVertexInputLayout. Created and cached by GpuVertexInputManager.
 		 */
-		template<class TDerived, class TVertexInput>
-		class TGpuVertexInputManager
+		class B3D_EXPORT GpuVertexInput : public IGpuResource
 		{
 		public:
+			/** Returns an identifier which uniquely represents this vertex input configuration. */
+			u32 GetId() const { return mId; }
+
+		protected:
+			/**
+			 * @param	owner	Manager responsible for freeing this resource.
+			 * @param	id		Identifier which uniquely represents this vertex input configuration.
+			 * @param	name	Debug name.
+			 */
+			GpuVertexInput(GpuResourceManager* owner, u32 id, const StringView& name)
+				: IGpuResource(owner, name), mId(id)
+			{ }
+
+		private:
+			u32 mId;
+		};
+
+		/**
+		 * Builds and caches the vertex input objects of a device, describing how the elements of a vertex buffer layout map
+		 * to the inputs of a vertex shader, so the mapping for a combination is built once and reused afterwards. Least
+		 * recently used entries are evicted once the cache fills up, and destroyed once no command buffer uses them.
+		 *
+		 * @note	Thread safe.
+		 */
+		class B3D_EXPORT GpuVertexInputManager
+		{
+		public:
+			/** @param	device	Device that creates the vertex input objects. */
+			GpuVertexInputManager(GpuDevice& device);
+			~GpuVertexInputManager();
+
 			/**
 			 * Returns an object mapping vertex buffer elements to vertex shader inputs, building and caching it on
 			 * first use. Returns null if the backend could not build it.
 			 *
 			 * @param	vertexBufferDescription		Describes the structure of a single vertex in a vertex buffer.
 			 * @param	shaderInputDescription		Describes the vertex element inputs expected by a vertex shader.
+			 * @param	resourceTracker				Tracker of the command buffer that uses the object. The object is tracked on it
+			 *										before the cache is unlocked, so another thread cannot evict and destroy it first.
 			 */
-			TVertexInput GetVertexInput(const TShared<VertexDescription>& vertexBufferDescription, const TShared<VertexDescription>& shaderInputDescription);
-
-		protected:
-			~TGpuVertexInputManager() = default;
-
-			/** Evicts all cached entries. Call from the derived class' destructor. */
-			void ReleaseAll();
+			GpuVertexInput* GetVertexInput(const TShared<VertexDescription>& vertexBufferDescription, const TShared<VertexDescription>& shaderInputDescription, GpuResourceTracker& resourceTracker);
 
 		private:
 			/**	Key uniquely identifying buffer and shader vertex declarations. */
@@ -130,7 +147,7 @@ namespace b3d
 			/**	Contains data about a single cached vertex input object. */
 			struct VertexInputEntry
 			{
-				TVertexInput VertexInput{};
+				GpuVertexInput* VertexInput = nullptr;
 				u32 LastUsedIndex = 0;
 			};
 
@@ -140,10 +157,12 @@ namespace b3d
 			static constexpr u32 kDeclarationBufferSize = 1024;
 			static constexpr u32 kElementCountToPrune = 64;
 
+			GpuDevice& mDevice;
 			UnorderedMap<VertexDeclarationKey, VertexInputEntry, HashFunc, EqualFunc> mVertexInputMap;
 
 			bool mWarningShown = false;
 			u32 mLastUsedCounter = 0;
+			u32 mNextId = 1;
 
 			Mutex mMutex;
 		};

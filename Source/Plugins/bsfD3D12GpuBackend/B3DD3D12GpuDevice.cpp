@@ -1,6 +1,7 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DD3D12GpuDevice.h"
+#include "B3DD3D12VertexInput.h"
 #include "B3DD3D12GpuQueue.h"
 #include "String/B3DUnicode.h"
 #include <chrono>
@@ -211,6 +212,9 @@ D3D12GpuDevice::~D3D12GpuDevice()
 
 	mCachedSamplerStates.clear();
 
+	// Queues the cached vertex inputs for destroy while the resource manager is still alive
+	mVertexInputManager = nullptr;
+
 	for (u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
 	{
 		for (TShared<D3D12GpuQueue>& queue : mQueueInfos[queueTypeIndex].Queues)
@@ -281,6 +285,11 @@ TShared<render::GpuBuffer> D3D12GpuDevice::CreateGpuBufferInternal(const GpuBuff
 		output->Initialize();
 
 	return output;
+}
+
+GpuVertexInput* D3D12GpuDevice::CreateVertexInput(u32 id, const GpuVertexInputLayout& layout)
+{
+	return mResourceManager->Create<D3D12VertexInput>(id, layout);
 }
 
 GpuMemoryRequirements D3D12GpuDevice::GetMemoryRequirements(const TextureCreateInformation& createInformation) const

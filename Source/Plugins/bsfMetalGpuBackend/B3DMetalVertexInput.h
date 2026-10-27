@@ -3,8 +3,8 @@
 #pragma once
 
 #include "B3DMetalPrerequisites.h"
+#include "B3DMetalResource.h"
 #include "GpuBackend/B3DGpuVertexInputManager.h"
-#include "Utility/B3DModule.h"
 
 namespace b3d
 {
@@ -49,17 +49,15 @@ namespace b3d
 		 * MTLVertexDescriptor built by resolving a vertex-buffer layout against the vertex shader's
 		 * declared inputs, with unmatched shader inputs redirected to a zero-filled null stream.
 		 */
-		class MetalVertexInput
+		class MetalVertexInput : public TMetalResource<GpuVertexInput>
 		{
 		public:
 			/**
+			 * @param	owner		Manager that takes care of tracking and releasing of this object.
 			 * @param	id			Identifier which uniquely represents this vertex input configuration.
 			 * @param	layout		Vertex buffer layout resolved against the vertex shader inputs.
 			 */
-			MetalVertexInput(u32 id, const GpuVertexInputLayout& layout);
-
-			/** Returns an identifier which uniquely represents this vertex input configuration. */
-			u32 GetId() const { return mId; }
+			MetalVertexInput(MetalResourceManager* owner, u32 id, const GpuVertexInputLayout& layout);
 
 			/** Returns the number of vertex-buffer streams referenced by the input, including the null stream when present. */
 			u32 GetVertexBufferBindingCount() const { return mStreamCount; }
@@ -86,32 +84,10 @@ namespace b3d
 			MTLVertexDescriptor* GetVertexDescriptor() const { return mVertexDescriptor; }
 
 		private:
-			u32 mId;
 			u32 mStreamCount = 0;
 			u32 mUsedStreamMask = 0;
 			u32 mNullStreamIndex = GpuVertexInputLayout::kNoNullStream;
 			MTLVertexDescriptor* mVertexDescriptor = nil;
-		};
-
-		class MetalVertexInputManager;
-		extern template class TGpuVertexInputManager<MetalVertexInputManager, TShared<MetalVertexInput>>;
-
-		/** Maps vertex buffer structure and vertex shader inputs in order to create vertex input descriptions usable by Metal. */
-		class MetalVertexInputManager : public Module<MetalVertexInputManager>, public TGpuVertexInputManager<MetalVertexInputManager, TShared<MetalVertexInput>>
-		{
-		public:
-			~MetalVertexInputManager();
-
-		private:
-			friend class TGpuVertexInputManager<MetalVertexInputManager, TShared<MetalVertexInput>>;
-
-			/** Creates a vertex input object for the provided resolved layout. Returns null if the layout cannot be expressed on Metal. */
-			TShared<MetalVertexInput> CreateVertexInput(const GpuVertexInputLayout& layout);
-
-			/** Releases a vertex input object evicted from the cache. */
-			void DestroyVertexInput(TShared<MetalVertexInput>& vertexInput);
-
-			u32 mNextId = 1;
 		};
 
 		/** @} */

@@ -34,7 +34,7 @@ namespace b3d
 
 			/**
 			 * Identifier of the MetalVertexInput (vertex-buffer layout resolved against the vertex
-			 * shader inputs, see MetalVertexInputManager) this variant is compiled with.
+			 * shader inputs, see GpuVertexInputManager) this variant is compiled with.
 			 * Zero when the pipeline consumes no vertex input.
 			 */
 			u32 VertexInputId = 0;
@@ -116,7 +116,7 @@ namespace b3d
 			 * Blocks until the compile completes. If the variant is already compiling (e.g. requested
 			 * concurrently from another thread), waits on that compile instead of starting a new one.
 			 */
-			id<MTLRenderPipelineState> GetOrCreateMetalPipeline(const MetalPipelineVariantKey& key, const TShared<MetalVertexInput>& vertexInput);
+			id<MTLRenderPipelineState> GetOrCreateMetalPipeline(const MetalPipelineVariantKey& key, const MetalVertexInput* vertexInput);
 
 			/** Returns the Metal cull mode computed from the engine rasterizer state. */
 			u32 GetCullMode() const { return mCullMode; }
@@ -150,7 +150,7 @@ namespace b3d
 			 * dispatched; false if the key was already in the cache (ready or pending). Called by
 			 * @c GetOrCreateMetalPipeline, which then waits for the result.
 			 */
-			bool StartCompile(const MetalPipelineVariantKey& key, const TShared<MetalVertexInput>& vertexInput);
+			bool StartCompile(const MetalPipelineVariantKey& key, const MetalVertexInput* vertexInput);
 
 			MetalGpuDevice& mGpuDevice;
 
@@ -174,7 +174,7 @@ namespace b3d
 			UnorderedMap<MetalPipelineVariantKey, CachedVariant, MetalPipelineVariantKeyHash> mPipelines;
 
 			// Shader-side vertex input declaration, published in Initialize(). Resolved against the
-			// bound vertex-buffer VertexDescription by the command buffer at bind time via MetalVertexInputManager
+			// bound vertex-buffer VertexDescription by the command buffer at bind time via GpuVertexInputManager
 			TShared<VertexDescription> mVertexDescription;
 
 			// Cached rasterizer state applied on the render encoder at bind time.

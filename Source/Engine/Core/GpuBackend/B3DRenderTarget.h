@@ -204,7 +204,7 @@ namespace b3d
 			 * Returns a number that increments each time a render pass that may write the target begins. External systems can use this
 			 * to determine when the target's contents changed.
 			 */
-			u64 GetUpdateCount() const { return mUpdateCount; }
+			u64 GetUpdateCount() const { return mUpdateCount.load(std::memory_order_relaxed); }
 
 			/**
 			 * @name Internal
@@ -212,7 +212,7 @@ namespace b3d
 			 */
 
 			/** Increments the update count, letting other code know that the contents of the render target changed. */
-			void TickUpdateCount() { mUpdateCount++; }
+			void TickUpdateCount() { mUpdateCount.fetch_add(1, std::memory_order_relaxed); }
 
 			/**
 			 * Reads the contents of this render target. Issues a copy command into the command buffer
@@ -231,7 +231,7 @@ namespace b3d
 		protected:
 			friend class b3d::RenderTarget;
 
-			u64 mUpdateCount = 0;
+			std::atomic<u64> mUpdateCount = 0;
 			RenderTargetProperties mRenderTargetProperties;
 			RenderTargetClearValues mClearValues;
 		};

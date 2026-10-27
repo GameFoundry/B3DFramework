@@ -6,7 +6,7 @@
 #include "B3DD3D12Utility.h"
 #include "B3DD3D12GpuPipelineParameterLayout.h"
 #include "B3DD3D12ResourceManager.h"
-#include "Managers/B3DD3D12VertexInputManager.h"
+#include "B3DD3D12VertexInput.h"
 #include "GpuBackend/B3DVertexDescription.h"
 #include "GpuBackend/B3DGpuBackend.h"
 #include "Utility/B3DTimer.h"
@@ -75,6 +75,8 @@ D3D12RootSignature* D3D12GpuGraphicsPipelineState::GetRootSignature() const
 
 D3D12Pipeline* D3D12GpuGraphicsPipelineState::FindOrCreatePipeline(const D3D12PipelineVariantKey& key, const D3D12VertexInput& vertexInput)
 {
+	Lock lock(mMutex);
+
 	auto found = mPipelines.find(key);
 	if (found != mPipelines.end())
 		return found->second;

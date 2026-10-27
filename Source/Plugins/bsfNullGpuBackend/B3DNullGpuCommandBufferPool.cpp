@@ -21,7 +21,7 @@ namespace b3d
 		{
 			const u32 id = mNextCommandBufferId++;
 			TShared<NullGpuCommandBuffer> commandBuffer = B3DMakeShared<NullGpuCommandBuffer>(
-				static_cast<NullGpuDevice&>(mGpuDevice), *this, id, mInformation.Thread, mInformation.Type, createInformation);
+				static_cast<NullGpuDevice&>(mGpuDevice), *this, id, mInformation.Type, createInformation);
 
 			mCommandBuffers[id] = commandBuffer;
 			return commandBuffer;

@@ -1,17 +1,16 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "B3DMetalVertexInputManager.h"
+#include "B3DMetalVertexInput.h"
+#include "B3DMetalResourceManager.h"
 #include "B3DMetalUtility.h"
 #include "Debug/B3DLog.h"
-
-#include "GpuBackend/B3DGpuVertexInputManager.inl"
 
 namespace b3d
 {
 	namespace render
 	{
-		MetalVertexInput::MetalVertexInput(u32 id, const GpuVertexInputLayout& layout)
-			: mId(id), mStreamCount(layout.StreamCount), mUsedStreamMask(layout.UsedStreamMask), mNullStreamIndex(layout.NullStreamIndex)
+		MetalVertexInput::MetalVertexInput(MetalResourceManager* owner, u32 id, const GpuVertexInputLayout& layout)
+			: TMetalResource<GpuVertexInput>(owner, id, "B3DVertexInput"), mStreamCount(layout.StreamCount), mUsedStreamMask(layout.UsedStreamMask), mNullStreamIndex(layout.NullStreamIndex)
 		{
 			MTLVertexDescriptor* descriptor = [[MTLVertexDescriptor alloc] init];
 
@@ -81,49 +80,5 @@ namespace b3d
 
 			mVertexDescriptor = descriptor;
 		}
-
-		MetalVertexInputManager::~MetalVertexInputManager()
-		{
-			ReleaseAll();
-		}
-
-		TShared<MetalVertexInput> MetalVertexInputManager::CreateVertexInput(const GpuVertexInputLayout& layout)
-		{
-			// Validate that the resolved layout is expressible on Metal before allocating anything.
-			if (kMetalVertexBufferSlotBase + layout.StreamCount > kMetalVertexBufferSlotEnd)
-			{
-				B3D_LOG(Error, LogRenderBackend, "Vertex input requires {0} streams, exceeding the {1} vertex-stage buffer slots available on Metal.",
-					layout.StreamCount, kMetalVertexBufferSlotEnd - kMetalVertexBufferSlotBase);
-				return nullptr;
-			}
-
-			for (const GpuVertexInputAttribute& attribute : layout.Attributes)
-			{
-				const VertexElementType elementType = attribute.BufferElement != nullptr
-					? attribute.BufferElement->GetType()
-					: attribute.ShaderInput->GetType();
-				if (MetalUtility::GetVertexFormat(elementType) == MTLVertexFormatInvalid)
-				{
-					B3D_LOG(Error, LogRenderBackend, "Unsupported vertex element type {0} on the Metal backend.", (u32)elementType);
-					return nullptr;
-				}
-
-				if (attribute.ShaderInput->GetOffset() > kMetalMaxVertexAttributeIndex)
-				{
-					B3D_LOG(Error, LogRenderBackend, "Vertex shader input location {0} exceeds Metal's maximum attribute index {1}.",
-						attribute.ShaderInput->GetOffset(), kMetalMaxVertexAttributeIndex);
-					return nullptr;
-				}
-			}
-
-			return B3DMakeShared<MetalVertexInput>(mNextId++, layout);
-		}
-
-		void MetalVertexInputManager::DestroyVertexInput(TShared<MetalVertexInput>& vertexInput)
-		{
-			vertexInput = nullptr;
-		}
-
-		template class TGpuVertexInputManager<MetalVertexInputManager, TShared<MetalVertexInput>>;
 	} // namespace render
 } // namespace b3d

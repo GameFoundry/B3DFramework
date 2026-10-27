@@ -235,7 +235,7 @@ void D3D12GpuQueue::RefreshCompletionState(bool forceWait, u64 lastFenceValue)
 	auto fnPostCompletion = [forceWait, &waitGroup](const TShared<D3D12GpuCommandBuffer>& commandBuffer, const char* debugName)
 	{
 		waitGroup.Increment();
-		commandBuffer->GetPool().GetMessageQueue().PostCommand([commandBuffer, waitGroup = forceWait ? &waitGroup : nullptr]()
+		commandBuffer->GetPool().PostCommand([commandBuffer, waitGroup = forceWait ? &waitGroup : nullptr]()
 		{
 			commandBuffer->mState = GpuCommandBufferState::Done;
 			commandBuffer->OnDidComplete();

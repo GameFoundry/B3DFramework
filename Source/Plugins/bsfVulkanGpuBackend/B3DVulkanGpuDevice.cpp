@@ -1,6 +1,7 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DVulkanGpuDevice.h"
+#include "B3DVulkanVertexInput.h"
 
 #include <algorithm>
 #include "B3DVulkanGpuQueue.h"
@@ -358,6 +359,10 @@ VulkanGpuDevice::~VulkanGpuDevice()
 	}
 
 	mCachedSamplerStates.clear();
+
+	// Queues the cached vertex inputs for destroy while the resource manager is still alive
+	mVertexInputManager = nullptr;
+
 	mBuiltinResources.Cleanup();
 
 	for (u32 queueUsageIndex = 0; queueUsageIndex < GQT_COUNT; queueUsageIndex++)
@@ -441,6 +446,11 @@ TShared<render::GpuBuffer> VulkanGpuDevice::CreateGpuBufferInternal(const GpuBuf
 		output->Initialize();
 
 	return output;
+}
+
+GpuVertexInput* VulkanGpuDevice::CreateVertexInput(u32 id, const GpuVertexInputLayout& layout)
+{
+	return mResourceManager->Create<VulkanVertexInput>(id, layout);
 }
 
 TShared<GpuQueryPool> VulkanGpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)

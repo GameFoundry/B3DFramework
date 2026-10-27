@@ -5,7 +5,7 @@
 #include "B3DVulkanGpuProgram.h"
 #include "B3DVulkanUtility.h"
 #include "B3DVulkanGpuPipelineParameterLayout.h"
-#include "Managers/B3DVulkanVertexInputManager.h"
+#include "B3DVulkanVertexInput.h"
 #include "B3DVulkanGpuCommandBuffer.h"
 #include "Profiling/B3DRenderStats.h"
 #include "B3DVulkanRenderPass.h"
@@ -354,11 +354,11 @@ void VulkanGpuGraphicsPipelineState::Initialize()
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_PipelineState);
 }
 
-VulkanPipeline* VulkanGpuGraphicsPipelineState::FindOrCreateVulkanResource(VulkanRenderPass* renderPass, RenderSurfaceMask readOnlyMask, DrawOperationType drawOp, const TShared<VulkanVertexInput>& vertexInput)
+VulkanPipeline* VulkanGpuGraphicsPipelineState::FindOrCreateVulkanResource(VulkanRenderPass* renderPass, RenderSurfaceMask readOnlyMask, DrawOperationType drawOp, const VulkanVertexInput& vertexInput)
 {
 	Lock lock(mMutex);
 
-	GpuPipelineKey key(renderPass->GetId(), vertexInput->GetId(), readOnlyMask, drawOp);
+	GpuPipelineKey key(renderPass->GetId(), vertexInput.GetId(), readOnlyMask, drawOp);
 
 	auto iterFind = mPipelines.find(key);
 	if(iterFind != mPipelines.end())
@@ -392,7 +392,7 @@ void VulkanGpuGraphicsPipelineState::RegisterShaderModuleResources(GpuResourceTr
 	}
 }
 
-VulkanPipeline* VulkanGpuGraphicsPipelineState::CreatePipeline(VulkanRenderPass* renderPass, RenderSurfaceMask readOnlyMask, DrawOperationType primitiveType, const TShared<VulkanVertexInput>& vertexInput)
+VulkanPipeline* VulkanGpuGraphicsPipelineState::CreatePipeline(VulkanRenderPass* renderPass, RenderSurfaceMask readOnlyMask, DrawOperationType primitiveType, const VulkanVertexInput& vertexInput)
 {
 	mInputAssemblyInfo.topology = VulkanUtility::GetDrawOp(primitiveType);
 	mTesselationInfo.patchControlPoints = 3; // Not provided by our shaders for now
@@ -430,7 +430,7 @@ VulkanPipeline* VulkanGpuGraphicsPipelineState::CreatePipeline(VulkanRenderPass*
 	// (as per spec 7.2., such render passes are considered compatible).
 	mPipelineInfo.renderPass = renderPass->GetVkRenderPass(RT_NONE, RT_NONE, RT_NONE);
 	mPipelineInfo.layout = mPipelineLayout;
-	mPipelineInfo.pVertexInputState = vertexInput->GetCreateInfo();
+	mPipelineInfo.pVertexInputState = vertexInput.GetCreateInfo();
 
 	bool depthReadOnly;
 	if(renderPass->HasDepthAttachment())
@@ -513,7 +513,7 @@ VulkanPipeline* VulkanGpuGraphicsPipelineState::CreatePipeline(VulkanRenderPass*
 	mDepthStencilInfo.back.failOp = oldBackFailOp;
 	mDepthStencilInfo.back.depthFailOp = oldBackZFailOp;
 
-	return gpuDevice.GetResourceManager().Create<VulkanPipeline>(pipeline, colorReadOnly, depthReadOnly, vertexInput->GetVertexBufferBindingCount());
+	return gpuDevice.GetResourceManager().Create<VulkanPipeline>(pipeline, colorReadOnly, depthReadOnly, vertexInput.GetVertexBufferBindingCount());
 }
 
 VulkanGpuComputePipelineState::VulkanGpuComputePipelineState(VulkanGpuDevice& gpuDevice, const GpuComputePipelineStateCreateInformation& createInformation)

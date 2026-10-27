@@ -23,76 +23,77 @@ namespace b3d
 		RenderStatObject_Query
 	};
 
+	/** Statistics tracked by RenderStats. */
+	enum class RenderStatistic : u32
+	{
+		DrawCallCount, /**< Number of draw calls. */
+		ComputeCallCount, /**< Number of compute dispatches. */
+		RenderTargetChangeCount, /**< Number of times the active render target changed. */
+		PresentCount, /**< Number of presents. */
+		ClearCount, /**< Number of render target clears, entire or partial. */
+		VertexCount, /**< Number of vertices sent to the pipeline. */
+		PrimitiveCount, /**< Number of primitives sent to the pipeline. */
+		PipelineStateChangeCount, /**< Number of pipeline state binds. */
+		GpuParameterBindCount, /**< Number of GPU parameter binds. */
+		VertexBufferBindCount, /**< Number of vertex buffer binds. */
+		IndexBufferBindCount, /**< Number of index buffer binds. */
+		ResourceWriteCount, /**< Number of GPU resource writes. */
+		ResourceReadCount, /**< Number of GPU resource reads. */
+		ObjectsCreatedCount, /**< Number of GPU objects created. */
+		ObjectsDestroyedCount, /**< Number of GPU objects destroyed. */
+		Count
+	};
+
 	/** Object that stores various render statistics. */
 	struct B3D_EXPORT RenderStatsData
 	{
-		RenderStatsData() = default;
-
-		u64 DrawCallCount = 0;
-		u64 ComputeCallCount = 0;
-		u64 RenderTargetChangeCount = 0;
-		u64 PresentCount = 0;
-		u64 ClearCount = 0;
-
-		u64 VertexCount = 0;
-		u64 PrimitiveCount = 0;
-
-		u64 PipelineStateChangeCount = 0;
-
-		u64 GpuParameterBindCount = 0;
-		u64 VertexBufferBindCount = 0;
-		u64 IndexBufferBindCount = 0;
-
-		u64 ResourceWriteCount;
-		u64 ResourceReadCount;
-
-		u64 ObjectsCreatedCount;
-		u64 ObjectsDestroyedCount;
+		/** Value of each statistic, indexed by RenderStatistic. */
+		std::array<u64, (u32)RenderStatistic::Count> Values {};
 	};
 
 	/**
 	 * Tracks various render system statistics.
 	 *
-	 * @note	Render thread only.
+	 * @note	Thread safe, as command buffers may be recorded on several threads at once.
 	 */
 	class B3D_EXPORT RenderStats : public Module<RenderStats>
 	{
 	public:
 		/** Increments draw call counter indicating how many times were render system API Draw methods called. */
-		void IncNumDrawCalls() { mData.DrawCallCount++; }
+		void IncNumDrawCalls() { Add(RenderStatistic::DrawCallCount, 1); }
 
 		/** Increments compute call counter indicating how many times were compute shaders dispatched. */
-		void IncNumComputeCalls() { mData.ComputeCallCount++; }
+		void IncNumComputeCalls() { Add(RenderStatistic::ComputeCallCount, 1); }
 
 		/** Increments render target change counter indicating how many times did the active render target change. */
-		void IncNumRenderTargetChanges() { mData.RenderTargetChangeCount++; }
+		void IncNumRenderTargetChanges() { Add(RenderStatistic::RenderTargetChangeCount, 1); }
 
 		/** Increments render target present counter indicating how many times did the buffer swap happen. */
-		void IncNumPresents() { mData.PresentCount++; }
+		void IncNumPresents() { Add(RenderStatistic::PresentCount, 1); }
 
 		/**
 		 * Increments render target clear counter indicating how many times did the target the cleared, entirely or
 		 * partially.
 		 */
-		void IncNumClears() { mData.ClearCount++; }
+		void IncNumClears() { Add(RenderStatistic::ClearCount, 1); }
 
 		/** Increments vertex draw counter indicating how many vertices were sent to the pipeline. */
-		void AddNumVertices(u32 count) { mData.VertexCount += count; }
+		void AddNumVertices(u32 count) { Add(RenderStatistic::VertexCount, count); }
 
 		/** Increments primitive draw counter indicating how many primitives were sent to the pipeline. */
-		void AddNumPrimitives(u32 count) { mData.PrimitiveCount += count; }
+		void AddNumPrimitives(u32 count) { Add(RenderStatistic::PrimitiveCount, count); }
 
 		/** Increments pipeline state change counter indicating how many times was a pipeline state bound. */
-		void IncNumPipelineStateChanges() { mData.PipelineStateChangeCount++; }
+		void IncNumPipelineStateChanges() { Add(RenderStatistic::PipelineStateChangeCount, 1); }
 
 		/** Increments GPU parameter change counter indicating how many times were GPU parameters bound to the pipeline. */
-		void IncNumGpuParamBinds() { mData.GpuParameterBindCount++; }
+		void IncNumGpuParamBinds() { Add(RenderStatistic::GpuParameterBindCount, 1); }
 
 		/** Increments vertex buffer change counter indicating how many times was a vertex buffer bound to the pipeline. */
-		void IncNumVertexBufferBinds() { mData.VertexBufferBindCount++; }
+		void IncNumVertexBufferBinds() { Add(RenderStatistic::VertexBufferBindCount, 1); }
 
 		/** Increments index buffer change counter indicating how many times was a index buffer bound to the pipeline. */
-		void IncNumIndexBufferBinds() { mData.IndexBufferBindCount++; }
+		void IncNumIndexBufferBinds() { Add(RenderStatistic::IndexBufferBindCount, 1); }
 
 		/**
 		 * Increments created GPU resource counter.
@@ -109,7 +110,7 @@ namespace b3d
 			// TODO - I should also track number of active GPU objects using this method, instead
 			// of just keeping track of how many were created and destroyed during the frame.
 
-			mData.ObjectsCreatedCount++;
+			Add(RenderStatistic::ObjectsCreatedCount, 1);
 		}
 
 		/**
@@ -117,32 +118,38 @@ namespace b3d
 		 *
 		 * @param[in]	category	Category of the resource.
 		 */
-		void IncResDestroyed(u32 category) { mData.ObjectsDestroyedCount++; }
+		void IncResDestroyed(u32 category) { Add(RenderStatistic::ObjectsDestroyedCount, 1); }
 
 		/**
 		 * Increments GPU resource read counter.
 		 *
 		 * @param[in]	category	Category of the resource.
 		 */
-		void IncResRead(u32 category) { mData.ResourceReadCount++; }
+		void IncResRead(u32 category) { Add(RenderStatistic::ResourceReadCount, 1); }
 
 		/**
 		 * Increments GPU resource write counter.
 		 *
 		 * @param[in]	category	Category of the resource.
 		 */
-		void IncResWrite(u32 category) { mData.ResourceWriteCount++; }
+		void IncResWrite(u32 category) { Add(RenderStatistic::ResourceWriteCount, 1); }
 
-		/**
-		 * Returns an object containing various rendering statistics.
-		 *
-		 * @note
-		 * Do not modify the returned state unless you know what you are doing, it will change the actual internal object.
-		 */
-		RenderStatsData& GetData() { return mData; }
+		/** Returns the current values of the statistics. */
+		RenderStatsData GetData() const
+		{
+			RenderStatsData output;
+			for(u32 statisticIndex = 0; statisticIndex < (u32)RenderStatistic::Count; statisticIndex++)
+				output.Values[statisticIndex] = mCounters[statisticIndex].load(std::memory_order_relaxed);
+
+			return output;
+		}
 
 	private:
-		RenderStatsData mData;
+		/** Adds @p count to the counter of @p statistic. The counters order nothing, so the addition is relaxed. */
+		void Add(RenderStatistic statistic, u64 count) { mCounters[(u32)statistic].fetch_add(count, std::memory_order_relaxed); }
+
+		/** Counter of each statistic, indexed by RenderStatistic. */
+		std::array<std::atomic<u64>, (u32)RenderStatistic::Count> mCounters {};
 	};
 
 #if B3D_PROFILING_ENABLED

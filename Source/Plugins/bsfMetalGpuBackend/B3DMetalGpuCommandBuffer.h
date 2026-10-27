@@ -55,7 +55,7 @@ namespace b3d
 		class MetalGpuCommandBuffer final : public GpuCommandBuffer
 		{
 		public:
-			MetalGpuCommandBuffer(MetalGpuDevice& device, MetalGpuCommandBufferPool& pool, u32 id, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
+			MetalGpuCommandBuffer(MetalGpuDevice& device, MetalGpuCommandBufferPool& pool, u32 id, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
 			~MetalGpuCommandBuffer() override;
 
 			/** Returns a unique identifier of this command buffer. */
@@ -244,7 +244,7 @@ namespace b3d
 			 * @param	outSkipDraw		Set to true when the draw must be skipped, because the pipeline has vertex inputs
 			 *							but no vertex description is bound, or the description cannot be expressed on Metal.
 			 */
-			TShared<MetalVertexInput> ResolveVertexInputForDraw(bool& outSkipDraw);
+			MetalVertexInput* ResolveVertexInputForDraw(bool& outSkipDraw);
 
 			/** Tracks and binds the bound vertex buffers. */
 			void BindVertexBuffers();

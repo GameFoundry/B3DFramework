@@ -73,7 +73,7 @@ namespace b3d
 			 *
 			 * @note	Thread safe.
 			 */
-			VulkanPipeline* FindOrCreateVulkanResource(VulkanRenderPass* renderPass, RenderSurfaceMask readOnlyMask, DrawOperationType drawOp, const TShared<VulkanVertexInput>& vertexInput);
+			VulkanPipeline* FindOrCreateVulkanResource(VulkanRenderPass* renderPass, RenderSurfaceMask readOnlyMask, DrawOperationType drawOp, const VulkanVertexInput& vertexInput);
 
 			/** Returns the pipeline layout object. */
 			VkPipelineLayout GetPipelineLayoutHandle() const { return mPipelineLayout; }
@@ -96,7 +96,7 @@ namespace b3d
 			 *
 			 * @note	Thread safe.
 			 */
-			VulkanPipeline* CreatePipeline(VulkanRenderPass* renderPass, RenderSurfaceMask readOnlyMask, DrawOperationType primitiveType, const TShared<VulkanVertexInput>& vertexInput);
+			VulkanPipeline* CreatePipeline(VulkanRenderPass* renderPass, RenderSurfaceMask readOnlyMask, DrawOperationType primitiveType, const VulkanVertexInput& vertexInput);
 
 			/**	Key uniquely identifying GPU pipelines. */
 			struct GpuPipelineKey

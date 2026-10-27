@@ -1,22 +1,15 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Managers/B3DVulkanVertexInputManager.h"
+#include "B3DVulkanVertexInput.h"
 #include "B3DVulkanUtility.h"
 #include "Profiling/B3DRenderStats.h"
 #include "GpuBackend/B3DVertexDescription.h"
 
-// Generic manager method definitions, followed by the explicit instantiation for the Vulkan vertex input types.
-// Included here so the single instantiation lives in this translation unit. The header carries a matching
-// `extern template` to suppress implicit instantiation elsewhere.
-#include "GpuBackend/B3DGpuVertexInputManager.inl"
-
-template class b3d::render::TGpuVertexInputManager<b3d::render::VulkanVertexInputManager, b3d::TShared<b3d::render::VulkanVertexInput>>;
-
 using namespace b3d;
 using namespace b3d::render;
 
-VulkanVertexInput::VulkanVertexInput(u32 id, const GpuVertexInputLayout& layout)
-	: mId(id)
+VulkanVertexInput::VulkanVertexInput(VulkanResourceManager* owner, u32 id, const GpuVertexInputLayout& layout)
+	: TVulkanResource<GpuVertexInput>(owner, true, id, "B3DVertexInput")
 {
 	const u32 attributeCount = (u32)layout.Attributes.Size();
 	const u32 bindingCount = layout.StreamCount;
@@ -86,19 +79,4 @@ VulkanVertexInput::VulkanVertexInput(u32 id, const GpuVertexInputLayout& layout)
 	mCreateInfo.vertexBindingDescriptionCount = bindingCount;
 	mCreateInfo.pVertexAttributeDescriptions = mAttributes.Data();
 	mCreateInfo.vertexAttributeDescriptionCount = attributeCount;
-}
-
-VulkanVertexInputManager::~VulkanVertexInputManager()
-{
-	ReleaseAll();
-}
-
-TShared<VulkanVertexInput> VulkanVertexInputManager::CreateVertexInput(const GpuVertexInputLayout& layout)
-{
-	return B3DMakeShared<VulkanVertexInput>(mNextId++, layout);
-}
-
-void VulkanVertexInputManager::DestroyVertexInput(TShared<VulkanVertexInput>& vertexInput)
-{
-	vertexInput = nullptr;
 }

@@ -4,7 +4,7 @@
 #include "B3DMetalGpuDevice.h"
 #include "B3DMetalGpuProgram.h"
 #include "B3DMetalUtility.h"
-#include "B3DMetalVertexInputManager.h"
+#include "B3DMetalVertexInput.h"
 #include "GpuBackend/B3DVertexDescription.h"
 #include "Threading/B3DThreading.h"
 #include "Profiling/B3DRenderStats.h"
@@ -135,7 +135,7 @@ namespace b3d
 			GpuGraphicsPipelineState::Initialize();
 		}
 
-		bool MetalGpuGraphicsPipelineState::StartCompile(const MetalPipelineVariantKey& key, const TShared<MetalVertexInput>& vertexInput)
+		bool MetalGpuGraphicsPipelineState::StartCompile(const MetalPipelineVariantKey& key, const MetalVertexInput* vertexInput)
 		{
 			// Fast path: variant already compiled (success or failure) on a prior call, or compile in flight.
 			{
@@ -253,7 +253,7 @@ namespace b3d
 			return true;
 		}
 
-		id<MTLRenderPipelineState> MetalGpuGraphicsPipelineState::GetOrCreateMetalPipeline(const MetalPipelineVariantKey& key, const TShared<MetalVertexInput>& vertexInput)
+		id<MTLRenderPipelineState> MetalGpuGraphicsPipelineState::GetOrCreateMetalPipeline(const MetalPipelineVariantKey& key, const MetalVertexInput* vertexInput)
 		{
 			const bool dispatched = StartCompile(key, vertexInput);
 

@@ -24,7 +24,7 @@
 #include "GpuBackend/B3DRenderWindow.h"
 #include "GpuBackend/B3DGpuSubmitThread.h"
 #include "GpuBackend/B3DGpuVertexInputManager.h"
-#include "B3DMetalVertexInputManager.h"
+#include "B3DMetalVertexInput.h"
 #include "Image/B3DPixelUtility.h"
 #include "Utility/B3DBitwise.h"
 #include "Debug/B3DLog.h"
@@ -212,8 +212,8 @@ namespace b3d
 			Addresses[index] = address;
 		}
 
-		MetalGpuCommandBuffer::MetalGpuCommandBuffer(MetalGpuDevice& device, MetalGpuCommandBufferPool& pool, u32 id, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation)
-			: GpuCommandBuffer(device, ownerThread, queueType, createInformation), mGpuDevice(device), mPool(pool), mId(id)
+		MetalGpuCommandBuffer::MetalGpuCommandBuffer(MetalGpuDevice& device, MetalGpuCommandBufferPool& pool, u32 id, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation)
+			: GpuCommandBuffer(device, pool, queueType, createInformation), mGpuDevice(device), mPool(pool), mId(id)
 		{
 			// The id parameter hides the Objective-C id type
 			const auto metalDevice = device.GetMetalDevice();
@@ -873,7 +873,7 @@ namespace b3d
 			mDrawOperation = operation;
 		}
 
-		TShared<MetalVertexInput> MetalGpuCommandBuffer::ResolveVertexInputForDraw(bool& outSkipDraw)
+		MetalVertexInput* MetalGpuCommandBuffer::ResolveVertexInputForDraw(bool& outSkipDraw)
 		{
 			outSkipDraw = false;
 
@@ -889,7 +889,7 @@ namespace b3d
 				return nullptr;
 			}
 
-			TShared<MetalVertexInput> vertexInput = MetalVertexInputManager::Instance().GetVertexInput(mBoundVertexDescription, pipeline->GetInputDeclaration());
+			MetalVertexInput* vertexInput = static_cast<MetalVertexInput*>(mGpuDevice.GetVertexInputManager().GetVertexInput(mBoundVertexDescription, pipeline->GetInputDeclaration(), mResourceTracker));
 			if (!vertexInput)
 			{
 				B3D_LOG(Warning, LogRenderBackend, "Skipping draw: vertex input could not be resolved for the bound vertex description on Metal.");
@@ -988,7 +988,7 @@ namespace b3d
 			BindDynamicUniformBuffers(true);
 
 			bool skipDraw = false;
-			TShared<MetalVertexInput> vertexInput = ResolveVertexInputForDraw(skipDraw);
+			MetalVertexInput* vertexInput = ResolveVertexInputForDraw(skipDraw);
 			if (skipDraw)
 				return false;
 
@@ -2362,7 +2362,7 @@ namespace b3d
 				TShared<GpuCommandBuffer> selfShared = GetShared();
 				TShared<WaitGroup> ownerCompletion = B3DMakeShared<WaitGroup>(1);
 				submitQueue.NotifySubmissionFailed(ownerCompletion);
-				mPool.GetMessageQueue().PostCommand([selfShared, ownerCompletion]()
+				mPool.PostCommand([selfShared, ownerCompletion]()
 				{
 					auto* owner = static_cast<MetalGpuCommandBuffer*>(selfShared.get());
 					owner->mState = GpuCommandBufferState::Done;
@@ -2421,7 +2421,7 @@ namespace b3d
 			const u64 signalValue = submitQueue.SignalSubmission([selfShared, ownerCompletion]()
 			{
 				auto* metalSelf = static_cast<MetalGpuCommandBuffer*>(selfShared.get());
-				metalSelf->mPool.GetMessageQueue().PostCommand([selfShared, ownerCompletion]()
+				metalSelf->mPool.PostCommand([selfShared, ownerCompletion]()
 				{
 					auto* owner = static_cast<MetalGpuCommandBuffer*>(selfShared.get());
 					owner->mState = GpuCommandBufferState::Done;

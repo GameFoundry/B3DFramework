@@ -37,7 +37,8 @@
 #include "Threading/B3DThreading.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "GpuBackend/B3DGpuSubmitThread.h"
-#include "B3DMetalVertexInputManager.h"
+#include "B3DMetalVertexInput.h"
+#include "B3DMetalUtility.h"
 
 
 namespace b3d
@@ -58,10 +59,10 @@ namespace b3d
 			}
 
 			mClearPipeline.reset();
-			mResourceManager.reset();
 
-			if (MetalVertexInputManager::IsStarted())
-				MetalVertexInputManager::ShutDown();
+			// Queues the cached vertex inputs for destroy while the resource manager is still alive
+			mVertexInputManager = nullptr;
+			mResourceManager.reset();
 
 			// The pool creates its heaps through the heap allocator's backend
 			DestroyTransientHeapPools();
@@ -184,8 +185,6 @@ namespace b3d
 			if (mDummyArgumentBuffer == nil)
 				B3D_LOG(Fatal, LogRenderBackend, "Failed to create the shared dummy argument buffer.");
 			std::memset([mDummyArgumentBuffer contents], 0, kDummyArgumentBufferSize);
-
-			MetalVertexInputManager::StartUp();
 
 			IGpuSubmitThreadBackend& submitThreadBackend = *this;
 			mSubmitThread = B3DMakeUnique<GpuSubmitThread>(*this, submitThreadBackend);
@@ -346,6 +345,38 @@ namespace b3d
 				buffer->Initialize();
 
 			return buffer;
+		}
+
+		GpuVertexInput* MetalGpuDevice::CreateVertexInput(u32 id, const GpuVertexInputLayout& layout)
+		{
+			// Validate that the resolved layout is expressible on Metal before allocating anything.
+			if (kMetalVertexBufferSlotBase + layout.StreamCount > kMetalVertexBufferSlotEnd)
+			{
+				B3D_LOG(Error, LogRenderBackend, "Vertex input requires {0} streams, exceeding the {1} vertex-stage buffer slots available on Metal.",
+					layout.StreamCount, kMetalVertexBufferSlotEnd - kMetalVertexBufferSlotBase);
+				return nullptr;
+			}
+
+			for (const GpuVertexInputAttribute& attribute : layout.Attributes)
+			{
+				const VertexElementType elementType = attribute.BufferElement != nullptr
+					? attribute.BufferElement->GetType()
+					: attribute.ShaderInput->GetType();
+				if (MetalUtility::GetVertexFormat(elementType) == MTLVertexFormatInvalid)
+				{
+					B3D_LOG(Error, LogRenderBackend, "Unsupported vertex element type {0} on the Metal backend.", (u32)elementType);
+					return nullptr;
+				}
+
+				if (attribute.ShaderInput->GetOffset() > kMetalMaxVertexAttributeIndex)
+				{
+					B3D_LOG(Error, LogRenderBackend, "Vertex shader input location {0} exceeds Metal's maximum attribute index {1}.",
+						attribute.ShaderInput->GetOffset(), kMetalMaxVertexAttributeIndex);
+					return nullptr;
+				}
+			}
+
+			return GetResourceManager().Create<MetalVertexInput>(id, layout);
 		}
 
 		TUnique<IGpuAllocator> MetalGpuDevice::CreateScratchAllocator(u32 memoryType,

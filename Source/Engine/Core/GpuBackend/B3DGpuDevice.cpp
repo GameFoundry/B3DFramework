@@ -6,6 +6,7 @@
 #include "Image/B3DTexture.h"
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuProgram.h"
+#include "GpuBackend/B3DGpuVertexInputManager.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "GpuBackend/Allocators/B3DGpuTransientHeapPool.h"
 #include "Material/B3DShaderCompiler.h"
@@ -13,9 +14,14 @@
 
 using namespace b3d;
 
+GpuDevice::GpuDevice()
+	: mVertexInputManager(B3DMakeUnique<render::GpuVertexInputManager>(*this))
+{ }
+
 GpuDevice::~GpuDevice()
 {
 	B3D_ASSERT(mTransientHeapPools.Empty() && "The backend must destroy its transient heap pools before its heap backends.");
+	B3D_ASSERT(mVertexInputManager == nullptr && "The backend must destroy its vertex input manager before its resource manager.");
 }
 
 TShared<GpuProgramBytecode> GpuDevice::CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const

@@ -105,6 +105,7 @@ namespace b3d
 			TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
 			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
 			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
+			GpuVertexInput* CreateVertexInput(u32 id, const GpuVertexInputLayout& layout) override;
 
 			/** Initializes capabilities with reasonable defaults for a null backend. */
 			void InitializeCapabilities();
