@@ -1,6 +1,7 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DD3D12GpuParameterSet.h"
+#include "B3DD3D12GpuParameterSetPool.h"
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12GpuPipelineParameterLayout.h"
 #include "B3DD3D12GpuBuffer.h"
@@ -52,10 +53,20 @@ namespace
 		default:						return D3D12_UAV_DIMENSION_TEXTURE2D;
 		}
 	}
+
+	/** Returns true if @p lhs and @p rhs place the same parameter at the same table offset. */
+	bool IsSameBinding(const D3D12DescriptorBindingLayout& lhs, const D3D12DescriptorBindingLayout& rhs)
+	{
+		return lhs.Slot == rhs.Slot && lhs.TableOffset == rhs.TableOffset && lhs.DescriptorCount == rhs.DescriptorCount && lhs.Type == rhs.Type &&
+			lhs.ObjectType == rhs.ObjectType;
+	}
 }
 
-D3D12GpuParameters::D3D12GpuParameters(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, D3D12GpuDevice& device, u32 setIndex) : GpuParameterSet(parameterSetLayout, setIndex), mDevice(device)
+D3D12GpuParameters::D3D12GpuParameters(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, D3D12GpuDevice& device, u32 setIndex,
+	D3D12GpuParameterSetPool& pool)
+	: GpuParameterSet(parameterSetLayout, setIndex), mDevice(device)
 {
+	mOwnerPool = &pool;
 }
 
 D3D12GpuParameters::~D3D12GpuParameters()
@@ -378,8 +389,15 @@ D3D12GpuParameters::ResolvedDescriptor D3D12GpuParameters::ResolveStorageBuffer(
 	return output;
 }
 
-void D3D12GpuParameters::RefreshDescriptors()
+bool D3D12GpuParameters::DescriptorTable::IsCurrent(const D3D12DescriptorTableLayout& layout) const
 {
+	return !IsDirty && DescriptorCount == layout.DescriptorCount && std::equal(Bindings.begin(), Bindings.end(), layout.Bindings.begin(), layout.Bindings.end(),
+		IsSameBinding);
+}
+
+bool D3D12GpuParameters::RefreshDescriptors(bool canWrite)
+{
+	bool isStale = false;
 	for(auto& entry : mDescriptorBindings)
 	{
 		DescriptorBinding& binding = entry.second;
@@ -398,7 +416,13 @@ void D3D12GpuParameters::RefreshDescriptors()
 				const auto& data = mUniformBufferData[dataIndex];
 				const auto* buffer = static_cast<const D3D12GpuBuffer*>(data.Buffer.get());
 				if(buffer != nullptr && buffer->GetResourceGeneration() != resolvedGeneration)
+				{
+					if(!canWrite)
+						return true;
+
 					StoreDescriptor(binding, arrayIndex, ResolveCBV(buffer, data.Offset));
+					isStale = true;
+				}
 
 				break;
 			}
@@ -407,7 +431,13 @@ void D3D12GpuParameters::RefreshDescriptors()
 				const auto& data = mSampledTextureData[dataIndex];
 				auto* texture = static_cast<D3D12Texture*>(data.Texture.get());
 				if(texture != nullptr && texture->GetResourceGeneration() != resolvedGeneration)
+				{
+					if(!canWrite)
+						return true;
+
 					StoreDescriptor(binding, arrayIndex, ResolveSRV(texture, data.Surface));
+					isStale = true;
+				}
 
 				break;
 			}
@@ -416,7 +446,13 @@ void D3D12GpuParameters::RefreshDescriptors()
 				const auto& data = mStorageTextureData[dataIndex];
 				auto* texture = static_cast<D3D12Texture*>(data.Texture.get());
 				if(texture != nullptr && texture->GetResourceGeneration() != resolvedGeneration)
+				{
+					if(!canWrite)
+						return true;
+
 					StoreDescriptor(binding, arrayIndex, ResolveUAV(texture, data.Surface));
+					isStale = true;
+				}
 
 				break;
 			}
@@ -425,7 +461,13 @@ void D3D12GpuParameters::RefreshDescriptors()
 				const auto& data = mStorageBufferData[dataIndex];
 				const auto* buffer = static_cast<const D3D12GpuBuffer*>(data.Buffer.get());
 				if(buffer != nullptr && buffer->GetResourceGeneration() != resolvedGeneration)
+				{
+					if(!canWrite)
+						return true;
+
 					StoreDescriptor(binding, arrayIndex, ResolveStorageBuffer(buffer, data.View.Format, binding.IsReadWrite, entry.first));
+					isStale = true;
+				}
 
 				break;
 			}
@@ -434,6 +476,8 @@ void D3D12GpuParameters::RefreshDescriptors()
 			}
 		}
 	}
+
+	return isStale;
 }
 
 void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D12DescriptorSetLayout& descriptorSetLayout)
@@ -465,11 +509,10 @@ void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D1
 	auto fnUpdateTable = [d3d12Device, &descriptorManager, &fnGetNullDescriptor](DescriptorTable& table, const D3D12DescriptorTableLayout& tableLayout,
 		const UnorderedMap<u32, DescriptorBinding>& bindings, D3D12DescriptorHeapType heapType, D3D12_DESCRIPTOR_HEAP_TYPE nativeHeapType)
 	{
-		if(table.Layout != &tableLayout || table.DescriptorCount != tableLayout.DescriptorCount)
-			table.IsDirty = true;
-
-		if(!table.IsDirty)
+		if(table.IsCurrent(tableLayout))
 			return;
+
+		table.IsDirty = true;
 
 		if(tableLayout.DescriptorCount == 0)
 		{
@@ -480,7 +523,7 @@ void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D1
 			}
 
 			table.DescriptorCount = 0;
-			table.Layout = &tableLayout;
+			table.Bindings.assign(tableLayout.Bindings.begin(), tableLayout.Bindings.end());
 			table.IsDirty = false;
 
 			return;
@@ -523,7 +566,7 @@ void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D1
 
 		table.Resource = descriptorTable;
 		table.DescriptorCount = tableLayout.DescriptorCount;
-		table.Layout = &tableLayout;
+		table.Bindings.assign(tableLayout.Bindings.begin(), tableLayout.Bindings.end());
 		table.IsDirty = false;
 	};
 
@@ -531,11 +574,47 @@ void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D1
 	fnUpdateTable(mSamplerTable, descriptorSetLayout.SamplerTable, mSamplerBindings, D3D12DescriptorHeapType::Sampler, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 }
 
+void D3D12GpuParameters::Flush(TArrayView<const GpuRenderPassAttachmentUsage> attachments)
+{
+	B3D_ASSERT(IsOwnedByThisThread() && "Parameter sets can only be flushed on the thread that owns their pool.");
+
+	RefreshDescriptors(true);
+	UpdateGPUDescriptors(mDevice, static_cast<const D3D12GpuPipelineParameterSetLayout&>(*mParameterSetLayout).GetDescriptorSetLayout());
+}
+
 void D3D12GpuParameters::BindDescriptors(D3D12GpuDevice& device, GpuResourceTracker& resourceTracker, ID3D12GraphicsCommandList* commandList, bool isGraphics,
 	const D3D12DescriptorSetLayout& descriptorSetLayout, const UnorderedMap<u32, u32>* dynamicOffsets)
 {
-	RefreshDescriptors();
-	UpdateGPUDescriptors(device, descriptorSetLayout);
+	// A set holds one table per type, packed as its own layout packs it. Flushing writes that packing, and threads that do not own the set
+	// cannot write another one, so only pipelines that pack the set the same way can bind it.
+	const auto fnIsSamePacking = [](const D3D12DescriptorTableLayout& lhs, const D3D12DescriptorTableLayout& rhs)
+	{
+		return lhs.DescriptorCount == rhs.DescriptorCount && std::equal(lhs.Bindings.begin(), lhs.Bindings.end(), rhs.Bindings.begin(), rhs.Bindings.end(),
+			IsSameBinding);
+	};
+
+	const D3D12DescriptorSetLayout& ownDescriptorSetLayout = static_cast<const D3D12GpuPipelineParameterSetLayout&>(*mParameterSetLayout).GetDescriptorSetLayout();
+	if(!B3D_ENSURE_LOG(fnIsSamePacking(ownDescriptorSetLayout.ResourceTable, descriptorSetLayout.ResourceTable) &&
+		fnIsSamePacking(ownDescriptorSetLayout.SamplerTable, descriptorSetLayout.SamplerTable),
+		"Parameter set {0} is bound with a pipeline that packs it differently than its own layout. A set can only be bound with pipelines whose "
+		"layout of the set has the same bindings as the layout it was created with.", GetSet()))
+	{
+		return;
+	}
+
+	// Only the owner thread writes the set. Other threads, such as those recording a frame graph in parallel, bind it as it was flushed.
+	if(IsOwnedByThisThread())
+	{
+		RefreshDescriptors(true);
+		UpdateGPUDescriptors(device, descriptorSetLayout);
+	}
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	else if(RefreshDescriptors(false) || !mResourceTable.IsCurrent(descriptorSetLayout.ResourceTable) || !mSamplerTable.IsCurrent(descriptorSetLayout.SamplerTable))
+	{
+		B3D_LOG(Error, LogRenderBackend, "Parameter set {0} is bound on a thread that does not own it, but was not flushed for the bind. Flush it with "
+			"GpuParameterSet::Flush() on the owner thread first.", GetSet());
+	}
+#endif
 
 	for(const D3D12RootConstantBufferLayout& rootBufferLayout : descriptorSetLayout.RootConstantBuffers)
 	{

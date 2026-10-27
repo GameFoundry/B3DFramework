@@ -574,6 +574,8 @@ namespace b3d
 
 	namespace render
 	{
+		struct GpuRenderPassAttachmentUsage;
+
 		/** @addtogroup GpuBackend
 		 *  @{
 		 */
@@ -605,6 +607,17 @@ namespace b3d
 
 			/** Returns the descriptor pool this parameter set was allocated from. */
 			GpuParameterSetPool* GetOwnerPool() const { return mOwnerPool; }
+
+			/**
+			 * Writes the changes since the last flush into the native descriptors of the set: Set* calls, and bound buffers and textures
+			 * whose native resource changed, such as on a discard write or a relocation. Native descriptors that a command buffer still
+			 * uses are replaced instead of written. Only on the thread that owns the set's pool.
+			 *
+			 * @param	attachments		Attachments of the render pass the set is bound in, or empty outside of render passes. Sampled
+			 *							textures among them are read in the layout of the attachment, on backends whose descriptors hold
+			 *							image layouts.
+			 */
+			virtual void Flush(TArrayView<const GpuRenderPassAttachmentUsage> attachments = {}) { }
 
 			/**
 			 * Sets uniform buffer using a pool suballocation at the specified slot.
@@ -671,6 +684,9 @@ namespace b3d
 
 			TShared<GpuParameterSet> GetSelf() const override;
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
+
+			/** Returns true if the calling thread owns the set's pool, and may therefore write the set. */
+			bool IsOwnedByThisThread() const { return mOwnerPool == nullptr || mOwnerPool->GetOwnerThread() == B3D_CURRENT_THREAD_ID; }
 
 			GpuParameterSetPool* mOwnerPool = nullptr;
 		};

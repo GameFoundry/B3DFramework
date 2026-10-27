@@ -22,8 +22,9 @@ namespace b3d
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	/**
-	 * If enabled, frame graphs record their passes one at a time, in the order the GPU executes them, and validate every command buffer
-	 * of an execution with one shared GpuBarrierValidator. If disabled, frame graphs validate nothing. Development builds only.
+	 * If enabled, frame graphs created with render::FrameGraphFlag::RecordInParallel record their passes one at a time, like other frame
+	 * graphs. Graphs that record one pass at a time do so in the order the GPU executes them, and validate every command buffer of an
+	 * execution with one shared GpuBarrierValidator. Graphs that record in parallel validate nothing. Development builds only.
 	 */
 	extern B3D_EXPORT TConfigVariable<bool> gFrameGraphSerialRecording;
 #endif
@@ -53,6 +54,33 @@ namespace b3d
 
 		typedef Flags<FrameGraphPassFlag, u8> FrameGraphPassFlags;
 		B3D_FLAGS_OPERATORS_EXT(FrameGraphPassFlag, u8)
+
+		/** Options of a FrameGraph. */
+		enum class FrameGraphFlag : u8
+		{
+			None = 0,
+
+			/**
+			 * The graph records its command buffers in parallel, one task per submission, if it has several submissions. Submissions with
+			 * passes that use a window are recorded on the calling thread. The execute functions of the passes run on several threads at
+			 * once, and must not:
+			 *  - use the work context of the graph,
+			 *  - write parameter sets or buffers, such as with Set* calls or TextureUtility::Write(),
+			 *  - create pipeline states, parameter layouts or materials,
+			 *  - render to or copy from a window,
+			 *  - discard-write, relocate or recreate resources,
+			 *  - yield the fiber they run on.
+			 *
+			 * The graph flushes the parameter sets added to the passes with FrameGraphPass::AddParameterSet() for their passes before it
+			 * records (see GpuParameterSet::Flush()). Sets a pass binds without adding them must be flushed by the caller. A set holds one
+			 * layout per sampled texture, so passes that add the same set must sample its textures in the same layouts: either all render
+			 * into a texture they sample, or none do.
+			 */
+			RecordInParallel = 1 << 0
+		};
+
+		typedef Flags<FrameGraphFlag, u8> FrameGraphFlags;
+		B3D_FLAGS_OPERATORS_EXT(FrameGraphFlag, u8)
 
 		/** Determines what a raster pass does with the existing contents of an attachment. */
 		enum class FrameGraphAttachmentLoad
@@ -281,6 +309,8 @@ namespace b3d
 		 * The graph then submits its passes as several command buffers on both queues, with the queue waits their accesses require, and
 		 * ends with the graphics queue waiting on the compute queue.
 		 *
+		 * Graphs created with FrameGraphFlag::RecordInParallel record their submissions on several threads.
+		 *
 		 * @note	Not thread safe. Only the thread that owns the work context may use the graph. Graphs of different work contexts share
 		 *			the device's transient heaps, so their GPU work must follow the scope contract of GpuTransientResourceAllocator. The
 		 *			submissions of one graph must reach the queues without another graph's submissions between them: execute graphs one at
@@ -291,9 +321,9 @@ namespace b3d
 		public:
 			/**
 			 * Creates a graph that records with @p context, and places its transients with the context's transient resource allocator.
-			 * @p name names the graph's profiling samples and its command buffer.
+			 * @p name names the graph's profiling samples and its command buffer. @p flags are the options of the graph.
 			 */
-			FrameGraph(GpuWorkContext& context, const StringView& name);
+			FrameGraph(GpuWorkContext& context, const StringView& name, FrameGraphFlags flags = FrameGraphFlag::None);
 
 			/** Unregisters the graph's resources and gives back unplaced transients. A compiled graph must have been executed. */
 			~FrameGraph();
@@ -605,6 +635,9 @@ namespace b3d
 			void ValidateSchedule(const CompileContext& context);
 #endif
 
+			/** Records the barriers and passes of @p submission on @p commandBuffer, in a profiling sample named @p name. */
+			void RecordSubmission(const Submission& submission, GpuCommandBuffer& commandBuffer, const String& name);
+
 			/** Records the barriers of @p list as one call of @p phase. */
 			void RecordBarriers(GpuCommandBuffer& commandBuffer, const BarrierList& list, GpuBarrierPhase phase, const TShared<GpuSplitBarrier>& split = nullptr);
 
@@ -615,6 +648,7 @@ namespace b3d
 			GpuDevice& mDevice;
 			GpuTransientResourceAllocator& mAllocator;
 			const String mName;
+			const FrameGraphFlags mFlags;
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			const u32 mId; /**< Identifies the graph's resources apart from those of other live graphs. */
 #endif

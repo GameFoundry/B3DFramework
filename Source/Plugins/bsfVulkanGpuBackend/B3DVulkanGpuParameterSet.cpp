@@ -630,8 +630,19 @@ void VulkanGpuParameterSet::TrackDynamicUniformBufferOffsets(GpuResourceTracker&
 }
 #endif
 
-bool VulkanGpuParameterSet::PrepareForBind(GpuResourceTracker& resourceTracker, TInlineArray<u32, 4>& outDynamicOffsets, VkDescriptorSet& outSet)
+void VulkanGpuParameterSet::Flush(TArrayView<const GpuRenderPassAttachmentUsage> attachments)
 {
+	B3D_ASSERT(IsOwnedByThisThread() && "Parameter sets can only be flushed on the thread that owns their pool.");
+
+	Lock lock(mMutex);
+	UpdateDescriptors(attachments, true);
+}
+
+bool VulkanGpuParameterSet::UpdateDescriptors(TArrayView<const GpuRenderPassAttachmentUsage> attachments, bool canWrite)
+{
+	if(mSetDirty && !canWrite)
+		return true;
+
 	VulkanGpuPipelineParameterSetLayout& pipelineParameterInformationSet = static_cast<VulkanGpuPipelineParameterSetLayout&>(*mParameterSetLayout);
 
 	const u32 uniformBufferBindingCount = pipelineParameterInformationSet.GetBindingCount(GpuParameterType::UniformBuffer);
@@ -641,16 +652,10 @@ bool VulkanGpuParameterSet::PrepareForBind(GpuResourceTracker& resourceTracker, 
 	const u32 samplerBindingCount = pipelineParameterInformationSet.GetBindingCount(GpuParameterType::Sampler);
 
 	FrameAllocatorScope frameScope;
-	const u32 firstDynamicOffset = (u32)outDynamicOffsets.Size();
-	outDynamicOffsets.Resize(firstDynamicOffset + pipelineParameterInformationSet.GetDynamicOffsetCount(), 0);
 
-	Lock lock(mMutex);
-
-	// Registers resources with the command buffer, and check if internal resource handled changed (in which case set
-	// needs updating - this can happen due to resource writes, as internally system might find it more performant
-	// to discard used resources and create new ones).
-	// Note: Makes the assumption that this object (and all of the resources it holds) are externally locked, and will
-	// not be modified on another thread while being bound.
+	// Checks if internal resource handles changed from what was previously written in the descriptor set. This can happen due to resource
+	// writes, as internally the system might find it more performant to discard used resources and create new ones. Without canWrite the
+	// first change found is reported.
 	for(u32 sequentialBindingIndex = 0; sequentialBindingIndex < uniformBufferBindingCount; sequentialBindingIndex++)
 	{
 		const u32 arraySize = pipelineParameterInformationSet.GetArraySize(GpuParameterType::UniformBuffer, sequentialBindingIndex);
@@ -659,7 +664,6 @@ bool VulkanGpuParameterSet::PrepareForBind(GpuResourceTracker& resourceTracker, 
 		for(u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
 		{
 			const u32 sequentialResourceIndex = pipelineParameterInformationSet.GetSequentialResourceIndex(slot, arrayIndex);
-			const u32 usedBindingSequentialIndex = pipelineParameterInformationSet.GetUsedBindingSequentialIndex(slot);
 			const u32 usedResourceSequentialIndex = pipelineParameterInformationSet.GetUsedResourceSequentialIndex(slot, arrayIndex);
 
 			VulkanBuffer* resource = nullptr;
@@ -683,10 +687,6 @@ bool VulkanGpuParameterSet::PrepareForBind(GpuResourceTracker& resourceTracker, 
 					continue;
 			}
 
-			// Register with command buffer
-			resourceTracker.TrackBufferUsage(resource, GpuAccessFlag::Read, bufferOffset);
-
-			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(mUniformBuffers[sequentialResourceIndex] != VK_NULL_HANDLE);
 
 			VkDescriptorBufferInfo& bufferInfo = mSetInformation.BufferWriteInfos[usedResourceSequentialIndex];
@@ -694,6 +694,9 @@ bool VulkanGpuParameterSet::PrepareForBind(GpuResourceTracker& resourceTracker, 
 			VkBuffer vkBuffer = resource->GetVulkanHandle();
 			if(mUniformBuffers[sequentialResourceIndex] != vkBuffer)
 			{
+				if(!canWrite)
+					return true;
+
 				mUniformBuffers[sequentialResourceIndex] = vkBuffer;
 				bufferInfo.buffer = vkBuffer;
 				bufferInfo.range = bufferSize;
@@ -702,11 +705,11 @@ bool VulkanGpuParameterSet::PrepareForBind(GpuResourceTracker& resourceTracker, 
 			}
 
 			// Dynamic-offset buffers keep the offset out of the descriptor so it can change without a set rewrite
-			const u32 dynamicOffsetIndex = pipelineParameterInformationSet.GetDynamicOffsetIndex(slot);
-			if(dynamicOffsetIndex != ~0u)
-				outDynamicOffsets[firstDynamicOffset + dynamicOffsetIndex] = bufferOffset;
-			else if(bufferInfo.offset != bufferOffset)
+			if(pipelineParameterInformationSet.GetDynamicOffsetIndex(slot) == ~0u && bufferInfo.offset != bufferOffset)
 			{
+				if(!canWrite)
+					return true;
+
 				bufferInfo.offset = bufferOffset;
 				mSetDirty = true;
 			}
@@ -727,7 +730,6 @@ bool VulkanGpuParameterSet::PrepareForBind(GpuResourceTracker& resourceTracker, 
 			TArrayView<const GpuParameterObjectType> types = pipelineParameterInformationSet.GetTypes();
 			GpuParameterObjectType type = types[usedBindingSequentialIndex];
 
-			GpuAccessFlags accessFlags = GpuAccessFlag::Read;
 			VulkanBuffer* resource = nullptr;
 			VkDeviceSize bufferSize = VK_WHOLE_SIZE;
 			u32 bufferOffset = 0;
@@ -765,18 +767,14 @@ bool VulkanGpuParameterSet::PrepareForBind(GpuResourceTracker& resourceTracker, 
 					continue;
 			}
 
-			if(type == GPOT_RWBYTE_BUFFER || type == GPOT_RWSTRUCTURED_BUFFER)
-				accessFlags |= GpuAccessFlag::Write;
-
-			// Register with command buffer
-			resourceTracker.TrackBufferUsage(resource, accessFlags, bufferOffset);
-
-			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(mBuffers[sequentialResourceIndex] != VK_NULL_HANDLE);
 
 			VkBuffer vkBuffer = resource->GetVulkanHandle();
 			if(mBuffers[sequentialResourceIndex] != vkBuffer)
 			{
+				if(!canWrite)
+					return true;
+
 				mBuffers[sequentialResourceIndex] = vkBuffer;
 
 				VkBufferView view = VK_NULL_HANDLE;
@@ -831,15 +829,14 @@ bool VulkanGpuParameterSet::PrepareForBind(GpuResourceTracker& resourceTracker, 
 			if(resource == nullptr)
 				continue;
 
-			// Register with command buffer
-			resourceTracker.TrackResourceUsage(resource, GpuAccessFlag::Read);
-
-			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(mSamplers[sequentialResourceIndex] != VK_NULL_HANDLE);
 
 			VkSampler vkSampler = resource->GetVulkanHandle();
 			if(mSamplers[sequentialResourceIndex] != vkSampler)
 			{
+				if(!canWrite)
+					return true;
+
 				mSamplers[sequentialResourceIndex] = vkSampler;
 
 				const u32 usedResourceSequentialIndex = pipelineParameterInformationSet.GetUsedResourceSequentialIndex(slot, arrayIndex);
@@ -895,17 +892,14 @@ bool VulkanGpuParameterSet::PrepareForBind(GpuResourceTracker& resourceTracker, 
 				imageView = vulkanImage->GetView(format, false);
 			}
 
-			// Register with command buffer
-			const GpuTextureSubresourceRange range = vulkanImage->GetRange(surface);
-			if(!resourceTracker.TrackShaderImageUsage(vulkanImage, range, GpuAccessFlag::Read | GpuAccessFlag::Write))
-				return false;
-
-			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(mStorageImages[sequentialResourceIndex] != VK_NULL_HANDLE);
 
 			VkImage vkImage = vulkanImage->GetVulkanHandle();
 			if(mStorageImages[sequentialResourceIndex] != vkImage)
 			{
+				if(!canWrite)
+					return true;
+
 				mStorageImages[sequentialResourceIndex] = vkImage;
 
 				const u32 usedResourceSequentialIndex = pipelineParameterInformationSet.GetUsedResourceSequentialIndex(slot, arrayIndex);
@@ -966,71 +960,217 @@ bool VulkanGpuParameterSet::PrepareForBind(GpuResourceTracker& resourceTracker, 
 				imageView = vulkanImage->GetView(format, false);
 			}
 
-			// Register with command buffer
 			GpuTextureSubresourceRange range = vulkanImage->GetRange(surface);
 			// GetRange() reports resource aspects, while sampled depth-stencil views select only the depth plane.
 			if(range.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
 				range.AspectMask = GpuTextureAspectFlag::Depth;
 
-			const GpuImageLayout resolvedLayout = resourceTracker.ResolveShaderImageLayout(vulkanImage, range, gpuLayout);
-			if(!resourceTracker.TrackShaderImageUsage(vulkanImage, range, GpuAccessFlag::Read))
-				return false;
+			const GpuImageLayout resolvedLayout = GpuBackendUtility::ResolveShaderImageLayout(attachments, vulkanImage, range, gpuLayout);
 
-			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(mSampledImages[sequentialResourceIndex] != VK_NULL_HANDLE);
 
 			VkDescriptorImageInfo& imageInfo = mSetInformation.ImageWriteInfos[usedResourceSequentialIndex];
 
 			VkImage vkImage = vulkanImage->GetVulkanHandle();
-			if(mSampledImages[sequentialResourceIndex] != vkImage)
-			{
-				mSampledImages[sequentialResourceIndex] = vkImage;
-
-				imageInfo.imageView = imageView.Handle;
-				mSetDirty = true;
-			}
-
 			const VkImageLayout vkImageLayout = VulkanUtility::ToVkImageLayout(resolvedLayout);
-			if(imageInfo.imageLayout != vkImageLayout)
+			if(mSampledImages[sequentialResourceIndex] != vkImage || imageInfo.imageLayout != vkImageLayout)
 			{
+				if(!canWrite)
+					return true;
+
+				mSampledImages[sequentialResourceIndex] = vkImage;
+				imageInfo.imageView = imageView.Handle;
 				imageInfo.imageLayout = vkImageLayout;
+
 				mSetDirty = true;
 			}
 		}
 	}
 
-	// Acquire sets as needed, and update their contents if dirty
-	if(mSetDirty)
+	if(!mSetDirty)
+		return false;
+
+	// If current set is bound, allocate new from pool
+	if(mSetInformation.DescriptorSet->IsBound())
 	{
-		// Set is dirty, we need to update
-		// If current set is bound, allocate new from pool
-		if(mSetInformation.DescriptorSet->IsBound())
+		VulkanGpuParameterSetPool* vulkanPool = static_cast<VulkanGpuParameterSetPool*>(mOwnerPool);
+		VulkanDescriptorLayout* layout = pipelineParameterInformationSet.GetLayout();
+
+		VulkanDescriptorSet* oldSet = mSetInformation.DescriptorSet;
+		VulkanDescriptorSet* newSet = vulkanPool->AllocateDescriptorSet(layout->GetVulkanHandle());
+
+		if (newSet != nullptr)
 		{
-			VulkanGpuParameterSetPool* vulkanPool = static_cast<VulkanGpuParameterSetPool*>(mOwnerPool);
-			VulkanDescriptorLayout* layout = pipelineParameterInformationSet.GetLayout();
+			mSetInformation.DescriptorSet = newSet;
 
-			VulkanDescriptorSet* oldSet = mSetInformation.DescriptorSet;
-			VulkanDescriptorSet* newSet = vulkanPool->AllocateDescriptorSet(layout->GetVulkanHandle());
+			if (oldSet != nullptr)
+				oldSet->Destroy();
+		}
+		else
+		{
+			B3D_LOG(Warning, LogRenderBackend, "Pool exhausted during descriptor set reallocation. Reusing bound set.");
+		}
+	}
 
-			if (newSet != nullptr)
+	// Note: Currently I write to the entire set at once, but it might be beneficial to remember only the exact
+	// entries that were updated, and only write to them individually.
+	mSetInformation.DescriptorSet->Write(mSetInformation.WriteSetInfos);
+
+	mSetDirty = false;
+	return true;
+}
+
+bool VulkanGpuParameterSet::PrepareForBind(GpuResourceTracker& resourceTracker, TInlineArray<u32, 4>& outDynamicOffsets, VkDescriptorSet& outSet)
+{
+	VulkanGpuPipelineParameterSetLayout& pipelineParameterInformationSet = static_cast<VulkanGpuPipelineParameterSetLayout&>(*mParameterSetLayout);
+
+	const u32 uniformBufferBindingCount = pipelineParameterInformationSet.GetBindingCount(GpuParameterType::UniformBuffer);
+	const u32 sampledTextureBindingCount = pipelineParameterInformationSet.GetBindingCount(GpuParameterType::SampledTexture);
+	const u32 storageTextureBindingCount = pipelineParameterInformationSet.GetBindingCount(GpuParameterType::StorageTexture);
+	const u32 storageBufferBindingCount = pipelineParameterInformationSet.GetBindingCount(GpuParameterType::StorageBuffer);
+	const u32 samplerBindingCount = pipelineParameterInformationSet.GetBindingCount(GpuParameterType::Sampler);
+
+	const u32 firstDynamicOffset = (u32)outDynamicOffsets.Size();
+	outDynamicOffsets.Resize(firstDynamicOffset + pipelineParameterInformationSet.GetDynamicOffsetCount(), 0);
+
+	Lock lock(mMutex);
+
+	// Only the owner thread writes the set. Other threads, such as those recording a frame graph in parallel, bind it as it was flushed.
+	if(IsOwnedByThisThread())
+		UpdateDescriptors(resourceTracker.GetRenderPassAttachments(), true);
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	else if(UpdateDescriptors(resourceTracker.GetRenderPassAttachments(), false))
+	{
+		B3D_LOG(Error, LogRenderBackend, "Parameter set {0} is bound on a thread that does not own it, but was not flushed for the bind. Flush it with "
+			"GpuParameterSet::Flush() on the owner thread first, for the render pass it is bound in.", GetSet());
+	}
+#endif
+
+	// Registers the resources the descriptors reference with the command buffer
+	const VulkanBuiltinResources& builtinResources = mGpuDevice.GetBuiltinResources();
+	for(u32 sequentialBindingIndex = 0; sequentialBindingIndex < uniformBufferBindingCount; sequentialBindingIndex++)
+	{
+		const u32 arraySize = pipelineParameterInformationSet.GetArraySize(GpuParameterType::UniformBuffer, sequentialBindingIndex);
+		const u32 slot = pipelineParameterInformationSet.GetSlot(GpuParameterType::UniformBuffer, sequentialBindingIndex);
+
+		for(u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
+		{
+			const u32 sequentialResourceIndex = pipelineParameterInformationSet.GetSequentialResourceIndex(slot, arrayIndex);
+			const UniformBufferData& data = mUniformBufferData[sequentialResourceIndex];
+
+			VulkanBuffer* resource = data.Buffer != nullptr ? static_cast<VulkanGpuBuffer*>(data.Buffer.get())->GetVulkanResource() : nullptr;
+			const u32 bufferOffset = resource != nullptr ? data.Offset : 0;
+			if(resource == nullptr)
+				resource = builtinResources.DummyUniformBuffer->GetVulkanResource();
+
+			if(resource == nullptr)
+				continue;
+
+			resourceTracker.TrackBufferUsage(resource, GpuAccessFlag::Read, bufferOffset);
+
+			const u32 dynamicOffsetIndex = pipelineParameterInformationSet.GetDynamicOffsetIndex(slot);
+			if(dynamicOffsetIndex != ~0u)
+				outDynamicOffsets[firstDynamicOffset + dynamicOffsetIndex] = bufferOffset;
+		}
+	}
+
+	for(u32 sequentialBindingIndex = 0; sequentialBindingIndex < storageBufferBindingCount; sequentialBindingIndex++)
+	{
+		const u32 arraySize = pipelineParameterInformationSet.GetArraySize(GpuParameterType::StorageBuffer, sequentialBindingIndex);
+		const u32 slot = pipelineParameterInformationSet.GetSlot(GpuParameterType::StorageBuffer, sequentialBindingIndex);
+
+		const GpuParameterObjectType type = pipelineParameterInformationSet.GetTypes()[pipelineParameterInformationSet.GetUsedBindingSequentialIndex(slot)];
+		const bool isReadWrite = type == GPOT_RWBYTE_BUFFER || type == GPOT_RWSTRUCTURED_BUFFER;
+		for(u32 arrayIndex = 0; arrayIndex < arraySize; ++arrayIndex)
+		{
+			const u32 sequentialResourceIndex = pipelineParameterInformationSet.GetSequentialResourceIndex(slot, arrayIndex);
+			const StorageBufferData& data = mStorageBufferData[sequentialResourceIndex];
+
+			VulkanBuffer* resource = data.Buffer != nullptr ? static_cast<VulkanGpuBuffer*>(data.Buffer.get())->GetVulkanResource() : nullptr;
+			const u32 bufferOffset = resource != nullptr ? data.View.Offset : 0;
+			if(resource == nullptr)
 			{
-				mSetInformation.DescriptorSet = newSet;
+				switch(type)
+				{
+				case GPOT_BYTE_BUFFER:
+					resource = builtinResources.DummyReadBuffer->GetVulkanResource();
+					break;
+				case GPOT_RWBYTE_BUFFER:
+					resource = builtinResources.DummyStorageBuffer->GetVulkanResource();
+					break;
+				case GPOT_STRUCTURED_BUFFER:
+				case GPOT_RWSTRUCTURED_BUFFER:
+					resource = builtinResources.DummyStructuredBuffer->GetVulkanResource();
+					break;
+				default:
+					break;
+				}
 
-				if (oldSet != nullptr)
-					oldSet->Destroy();
+				if(resource == nullptr)
+					continue;
 			}
-			else
+
+			resourceTracker.TrackBufferUsage(resource, isReadWrite ? GpuAccessFlag::Read | GpuAccessFlag::Write : GpuAccessFlags(GpuAccessFlag::Read), bufferOffset);
+		}
+	}
+
+	for(u32 sequentialBindingIndex = 0; sequentialBindingIndex < samplerBindingCount; sequentialBindingIndex++)
+	{
+		const u32 arraySize = pipelineParameterInformationSet.GetArraySize(GpuParameterType::Sampler, sequentialBindingIndex);
+		const u32 slot = pipelineParameterInformationSet.GetSlot(GpuParameterType::Sampler, sequentialBindingIndex);
+
+		for(u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
+		{
+			const u32 sequentialResourceIndex = pipelineParameterInformationSet.GetSequentialResourceIndex(slot, arrayIndex);
+			if(mSamplerStates[sequentialResourceIndex] == nullptr)
+				continue;
+
+			VulkanSampler* resource = static_cast<VulkanSamplerState*>(mSamplerStates[sequentialResourceIndex].get())->GetVulkanResource();
+			if(resource != nullptr)
+				resourceTracker.TrackResourceUsage(resource, GpuAccessFlag::Read);
+		}
+	}
+
+	// Images are tracked over the subresources their views select. Slots without a texture read a dummy texture.
+	const auto fnTrackImages = [&pipelineParameterInformationSet, &resourceTracker](GpuParameterType parameterType, u32 bindingCount, const TextureData* textureData,
+		GpuAccessFlags access)
+	{
+		for(u32 sequentialBindingIndex = 0; sequentialBindingIndex < bindingCount; sequentialBindingIndex++)
+		{
+			const u32 arraySize = pipelineParameterInformationSet.GetArraySize(parameterType, sequentialBindingIndex);
+			const u32 slot = pipelineParameterInformationSet.GetSlot(parameterType, sequentialBindingIndex);
+
+			for(u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
 			{
-				B3D_LOG(Warning, LogRenderBackend, "Pool exhausted during descriptor set reallocation. Reusing bound set.");
+				const TextureData& data = textureData[pipelineParameterInformationSet.GetSequentialResourceIndex(slot, arrayIndex)];
+
+				VulkanImage* vulkanImage = data.Texture != nullptr ? static_cast<VulkanTexture*>(data.Texture.get())->GetVulkanResource() : nullptr;
+				if(vulkanImage == nullptr)
+				{
+					const GpuParameterObjectType objectType = pipelineParameterInformationSet.GetTypes()[pipelineParameterInformationSet.GetUsedBindingSequentialIndex(slot)];
+					vulkanImage = static_cast<VulkanTextureManager&>(TextureManager::Instance()).GetDummyTexture(objectType)->GetVulkanResource();
+					if(vulkanImage == nullptr)
+						continue;
+				}
+
+				GpuTextureSubresourceRange range = vulkanImage->GetRange(data.Surface);
+				// GetRange() reports resource aspects, while sampled depth-stencil views select only the depth plane.
+				if(parameterType == GpuParameterType::SampledTexture && range.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
+					range.AspectMask = GpuTextureAspectFlag::Depth;
+
+				if(!resourceTracker.TrackShaderImageUsage(vulkanImage, range, access))
+					return false;
 			}
 		}
 
-		// Note: Currently I write to the entire set at once, but it might be beneficial to remember only the exact
-		// entries that were updated, and only write to them individually.
-		mSetInformation.DescriptorSet->Write(mSetInformation.WriteSetInfos);
+		return true;
+	};
 
-		mSetDirty = false;
-	}
+	if(!fnTrackImages(GpuParameterType::StorageTexture, storageTextureBindingCount, mStorageTextureData, GpuAccessFlag::Read | GpuAccessFlag::Write))
+		return false;
+
+	if(!fnTrackImages(GpuParameterType::SampledTexture, sampledTextureBindingCount, mSampledTextureData, GpuAccessFlag::Read))
+		return false;
 
 	VulkanDescriptorSet* const set = mSetInformation.DescriptorSet;
 

@@ -5,7 +5,7 @@
 namespace b3d
 {
 	GpuParameterSetPool::GpuParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation)
-		: mInformation(createInformation)
+		: mInformation(createInformation), mOwnerThread(B3D_CURRENT_THREAD_ID)
 	{
 	}
 } // namespace b3d

@@ -81,6 +81,15 @@ namespace b3d
 		public:
 			/** Creates a parameter-set layout from @p parameterDescription. */
 			explicit D3D12GpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription);
+
+			/**
+			 * Returns the descriptor tables of the layout, packed as the pipeline layouts whose set has the same bindings pack them. Root
+			 * parameter indices and root constant buffers belong to pipeline layouts, and are left unassigned.
+			 */
+			const D3D12DescriptorSetLayout& GetDescriptorSetLayout() const { return mDescriptorSetLayout; }
+
+		private:
+			D3D12DescriptorSetLayout mDescriptorSetLayout;
 		};
 
 		/** DirectX 12 implementation of GPU pipeline parameter layout. */

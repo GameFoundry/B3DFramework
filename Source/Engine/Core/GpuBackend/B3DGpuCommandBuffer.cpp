@@ -82,7 +82,7 @@ bool GpuDrawAccessValidator::ValidateDraw()
 #endif
 
 GpuCommandBufferPool::GpuCommandBufferPool(GpuDevice& gpuDevice, const GpuCommandBufferPoolCreateInformation& createInformation)
-	:mGpuDevice(gpuDevice), mInformation(createInformation)
+	:mGpuDevice(gpuDevice), mInformation(createInformation), mOwnerThread(createInformation.Thread)
 {
 	// Process messages related to this command buffer pool on this thread. Mostly these are command buffer resets once they are done executing.
 	Scheduler* const scheduler = Scheduler::Get();
@@ -100,8 +100,39 @@ void GpuCommandBufferPool::Destroy()
 	mIsDestroyed = true;
 }
 
-GpuCommandBuffer::GpuCommandBuffer(GpuDevice& gpuDevice, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation)
-	:mGpuDevice(gpuDevice), mQueueType(queueType), mOwnerThread(ownerThread), mInformation(createInformation)
+void GpuCommandBufferPool::SetThisAsOwnerThread()
+{
+	Vector<Function<void()>> heldMessages;
+	{
+		Lock lock(mOwnershipMutex);
+		mOwnerThread.store(B3D_CURRENT_THREAD_ID, std::memory_order_release);
+
+		if(B3D_CURRENT_THREAD_ID == mInformation.Thread)
+			std::swap(heldMessages, mHeldMessages);
+	}
+
+	// Messages run on the thread the pool was created for, which this is, so no message runs in between
+	for(Function<void()>& message : heldMessages)
+		message();
+}
+
+void GpuCommandBufferPool::PostCommand(Function<void()>&& callback, const char* debugName, bool waitUntilComplete)
+{
+	mMessageQueue.PostCommand([this, callback = std::move(callback)]() mutable
+	{
+		Lock lock(mOwnershipMutex);
+		if(mOwnerThread.load(std::memory_order_relaxed) != mInformation.Thread)
+		{
+			mHeldMessages.push_back(std::move(callback));
+			return;
+		}
+
+		callback();
+	}, debugName, waitUntilComplete);
+}
+
+GpuCommandBuffer::GpuCommandBuffer(GpuDevice& gpuDevice, const GpuCommandBufferPool& pool, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation)
+	:mGpuDevice(gpuDevice), mQueueType(queueType), mCommandBufferPool(pool), mInformation(createInformation)
 { }
 
 

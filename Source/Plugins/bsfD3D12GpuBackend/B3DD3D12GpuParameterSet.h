@@ -3,6 +3,7 @@
 #pragma once
 
 #include "B3DD3D12Prerequisites.h"
+#include "B3DD3D12GpuPipelineParameterLayout.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 
 namespace b3d
@@ -11,8 +12,7 @@ namespace b3d
 	{
 		class GpuResourceTracker;
 		class D3D12DescriptorTable;
-		struct D3D12DescriptorSetLayout;
-		struct D3D12DescriptorTableLayout;
+		class D3D12GpuParameterSetPool;
 
 		/** @addtogroup D3D12GpuBackend
 		 *  @{
@@ -22,14 +22,15 @@ namespace b3d
 		class D3D12GpuParameters : public GpuParameterSet
 		{
 		public:
-			/** Creates a parameter set for @p setIndex of @p parameterSetLayout. */
-			D3D12GpuParameters(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, D3D12GpuDevice& device, u32 setIndex);
+			/** Creates a parameter set for @p setIndex of @p parameterSetLayout, allocated from @p pool. */
+			D3D12GpuParameters(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, D3D12GpuDevice& device, u32 setIndex, D3D12GpuParameterSetPool& pool);
 			~D3D12GpuParameters() override;
 
 			void Initialize() override;
 
 			/**
-			 * Prepares packed descriptor tables for binding and sets the root CBVs of bound uniform buffers.
+			 * Prepares packed descriptor tables for binding and sets the root CBVs of bound uniform buffers. On the thread that owns the set,
+			 * flushes the set first (see Flush()), with the packing of the active pipeline.
 			 *
 			 * @param	device				Device to use for descriptor operations.
 			 * @param	resourceTracker		Command-buffer tracker that retains the emitted descriptor tables.
@@ -63,6 +64,9 @@ namespace b3d
 			bool SetStorageTexture(u32 slot, const TShared<Texture>& texture, const TextureSurface& surface, u32 arrayIndex = 0) override;
 			bool SetStorageBuffer(u32 slot, const TShared<GpuBuffer>& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation()) override;
 			bool SetSamplerState(u32 slot, const TShared<SamplerState>& sampler, u32 arrayIndex = 0) override;
+
+			/** Packs the descriptor tables as the set's own layout packs them (see D3D12GpuPipelineParameterSetLayout). Descriptors hold no image layouts, so @p attachments are ignored. */
+			void Flush(TArrayView<const GpuRenderPassAttachmentUsage> attachments = {}) override;
 
 			/** @} */
 
@@ -99,9 +103,15 @@ namespace b3d
 			{
 				DescriptorTable() = default;
 
+				/**
+				 * Returns true if the table is up to date and packed as @p layout packs it. Every pipeline layout packs its own copy of a set's
+				 * tables, so packings are compared by content.
+				 */
+				bool IsCurrent(const D3D12DescriptorTableLayout& layout) const;
+
 				u32 DescriptorCount = 0; /**< Number of descriptors in the packed table. */
 				D3D12DescriptorTable* Resource = nullptr; /**< Tracked GPU-visible descriptor range used by recorded commands. */
-				const D3D12DescriptorTableLayout* Layout = nullptr; /**< Active packing used to build Resource. */
+				Vector<D3D12DescriptorBindingLayout> Bindings; /**< Bindings of the packing used to build Resource. */
 				bool IsDirty = true; /**< True when the GPU-visible table must be refreshed. */
 			};
 
@@ -151,9 +161,10 @@ namespace b3d
 
 			/**
 			 * Resolves again the descriptors of textures and buffers that recreated their native resource since they were resolved,
-			 * which released the views the descriptors were copied from.
+			 * which released the views the descriptors were copied from. If @p canWrite is false, only reports them. Returns true if any
+			 * descriptor was stale.
 			 */
-			void RefreshDescriptors();
+			bool RefreshDescriptors(bool canWrite);
 
 			/** Stores a CPU descriptor at the given (slot, arrayIndex) in the sampler bindings and flags the packed table dirty. */
 			void SetSamplerDescriptor(u32 slot, u32 arrayIndex, D3D12_CPU_DESCRIPTOR_HANDLE handle)

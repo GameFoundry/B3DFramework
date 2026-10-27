@@ -12,9 +12,122 @@
 using namespace b3d;
 using namespace b3d::render;
 
+namespace
+{
+	/**
+	 * Packs the bindings of @p setLayout into the resource and sampler tables of @p output, sorted by range type and register, with
+	 * sequential bindings grouped into contiguous ranges. Uniform buffers with dynamic offsets are bound as root CBVs instead. Adds the
+	 * stages that access each table to @p resourceTableStages and @p samplerTableStages. Root parameter indices are left unassigned.
+	 */
+	void PackDescriptorTables(const GpuPipelineParameterSetLayout& setLayout, D3D12DescriptorSetLayout& output, GpuProgramStageBits& resourceTableStages,
+		GpuProgramStageBits& samplerTableStages)
+	{
+		auto fnGetDescriptorRangeType = [](GpuParameterType parameterType, GpuParameterObjectType objectType) -> D3D12_DESCRIPTOR_RANGE_TYPE
+		{
+			switch (parameterType)
+			{
+			case GpuParameterType::UniformBuffer:
+				return D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+
+			case GpuParameterType::SampledTexture:
+				return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+
+			case GpuParameterType::StorageTexture:
+				return D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+
+			case GpuParameterType::Sampler:
+				return D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
+
+			case GpuParameterType::StorageBuffer:
+				return GpuObjectParameterTypeInformation::IsReadWriteBuffer(objectType) ? D3D12_DESCRIPTOR_RANGE_TYPE_UAV : D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+
+			default:
+				return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+			}
+		};
+
+		for(u32 typeIndex = 0; typeIndex < (u32)GpuParameterType::Count; typeIndex++)
+		{
+			const GpuParameterType type = (GpuParameterType)typeIndex;
+			const u32 typeBindingCount = setLayout.GetBindingCount(type);
+
+			for(u32 sequentialIndex = 0; sequentialIndex < typeBindingCount; sequentialIndex++)
+			{
+				const UniformInformation* uniformInformation = setLayout.TryGetUniformInformation(type, sequentialIndex);
+				if(uniformInformation == nullptr)
+					continue;
+
+				if(type == GpuParameterType::UniformBuffer && uniformInformation->DynamicOffsetIndex != ~0u)
+					continue;
+
+				D3D12DescriptorBindingLayout bindingLayout;
+				bindingLayout.Type = type;
+				bindingLayout.ObjectType = uniformInformation->ObjectType;
+				bindingLayout.RangeType = fnGetDescriptorRangeType(type, uniformInformation->ObjectType);
+				bindingLayout.Slot = uniformInformation->Slot;
+				bindingLayout.ShaderRegister = MapSlotToRegister(uniformInformation->Slot);
+				bindingLayout.DescriptorCount = uniformInformation->ArraySize;
+
+				if(type == GpuParameterType::Sampler)
+				{
+					output.SamplerTable.Bindings.Add(bindingLayout);
+					samplerTableStages |= uniformInformation->Usage;
+				}
+				else
+				{
+					output.ResourceTable.Bindings.Add(bindingLayout);
+					resourceTableStages |= uniformInformation->Usage;
+				}
+			}
+		}
+
+		auto fnPackTable = [](D3D12DescriptorTableLayout& tableLayout)
+		{
+			std::sort(tableLayout.Bindings.begin(), tableLayout.Bindings.end(), [](const D3D12DescriptorBindingLayout& lhs, const D3D12DescriptorBindingLayout& rhs)
+			{
+				if(lhs.RangeType != rhs.RangeType)
+					return lhs.RangeType < rhs.RangeType;
+
+				return lhs.ShaderRegister < rhs.ShaderRegister;
+			});
+
+			for(D3D12DescriptorBindingLayout& bindingLayout : tableLayout.Bindings)
+			{
+				bindingLayout.TableOffset = tableLayout.DescriptorCount;
+
+				D3D12DescriptorRangeLayout* previousRange = tableLayout.Ranges.size() == 0 ? nullptr : &tableLayout.Ranges.back();
+				const bool extendsPreviousRange = previousRange != nullptr && previousRange->Type == bindingLayout.RangeType && previousRange->BaseShaderRegister + previousRange->DescriptorCount == bindingLayout.ShaderRegister;
+				if(extendsPreviousRange)
+				{
+					previousRange->DescriptorCount += bindingLayout.DescriptorCount;
+				}
+				else
+				{
+					D3D12DescriptorRangeLayout rangeLayout;
+					rangeLayout.Type = bindingLayout.RangeType;
+					rangeLayout.BaseShaderRegister = bindingLayout.ShaderRegister;
+					rangeLayout.DescriptorCount = bindingLayout.DescriptorCount;
+					rangeLayout.TableOffset = bindingLayout.TableOffset;
+
+					tableLayout.Ranges.Add(rangeLayout);
+				}
+
+				tableLayout.DescriptorCount += bindingLayout.DescriptorCount;
+			}
+		};
+
+		fnPackTable(output.ResourceTable);
+		fnPackTable(output.SamplerTable);
+	}
+} // namespace
+
 D3D12GpuPipelineParameterSetLayout::D3D12GpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription)
 	: GpuPipelineParameterSetLayout(parameterDescription)
-{ }
+{
+	GpuProgramStageBits resourceTableStages = GpuProgramStageBit::None;
+	GpuProgramStageBits samplerTableStages = GpuProgramStageBit::None;
+	PackDescriptorTables(*this, mDescriptorSetLayout, resourceTableStages, samplerTableStages);
+}
 
 D3D12GpuPipelineParameterLayout::D3D12GpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation, D3D12GpuDevice& device) : GpuPipelineParameterLayout(device, createInformation), mDevice(device)
 {
@@ -94,30 +207,6 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 		return lastVisibility;
 	};
 
-	auto fnGetDescriptorRangeType = [](GpuParameterType parameterType, GpuParameterObjectType objectType) -> D3D12_DESCRIPTOR_RANGE_TYPE
-	{
-		switch (parameterType)
-		{
-		case GpuParameterType::UniformBuffer:
-			return D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-
-		case GpuParameterType::SampledTexture:
-			return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-
-		case GpuParameterType::StorageTexture:
-			return D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-
-		case GpuParameterType::Sampler:
-			return D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
-
-		case GpuParameterType::StorageBuffer:
-			return GpuObjectParameterTypeInformation::IsReadWriteBuffer(objectType) ? D3D12_DESCRIPTOR_RANGE_TYPE_UAV : D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-
-		default:
-			return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-		}
-	};
-
 	// Root parameter 0 is the fixed push-constant ABI shared with the HLSL shader compiler.
 	D3D12_ROOT_PARAMETER rootConstantParameter = {};
 	rootConstantParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
@@ -188,89 +277,11 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 	Vector<GpuProgramStageBits> resourceTableStages(setCount, GpuProgramStageBit::None);
 	Vector<GpuProgramStageBits> samplerTableStages(setCount, GpuProgramStageBit::None);
 
-	// Determine bindings for all resource tables (a pair per set)
+	// Determine bindings for all resource tables (a pair per set), grouped into contiguous ranges
+	// TODO - Copy the tables each D3D12GpuPipelineParameterSetLayout already packed instead of packing them again. The set layouts
+	// would also need to keep the stages that access each table.
 	for(u32 setIndex = 0; setIndex < setCount; setIndex++)
-	{
-		const TShared<GpuPipelineParameterSetLayout>& setLayout = mSets[setIndex];
-		D3D12DescriptorSetLayout& descriptorSetLayout = mDescriptorSetLayouts[setIndex];
-
-		for(u32 typeIndex = 0; typeIndex < (u32)GpuParameterType::Count; typeIndex++)
-		{
-			const GpuParameterType type = (GpuParameterType)typeIndex;
-			const u32 typeBindingCount = setLayout->GetBindingCount(type);
-
-			for(u32 sequentialIndex = 0; sequentialIndex < typeBindingCount; sequentialIndex++)
-			{
-				const UniformInformation* uniformInformation = setLayout->TryGetUniformInformation(type, sequentialIndex);
-				if(uniformInformation == nullptr)
-					continue;
-
-				if(type == GpuParameterType::UniformBuffer && uniformInformation->DynamicOffsetIndex != ~0u)
-					continue;
-
-				D3D12DescriptorBindingLayout bindingLayout;
-				bindingLayout.Type = type;
-				bindingLayout.ObjectType = uniformInformation->ObjectType;
-				bindingLayout.RangeType = fnGetDescriptorRangeType(type, uniformInformation->ObjectType);
-				bindingLayout.Slot = uniformInformation->Slot;
-				bindingLayout.ShaderRegister = MapSlotToRegister(uniformInformation->Slot);
-				bindingLayout.DescriptorCount = uniformInformation->ArraySize;
-
-				if(type == GpuParameterType::Sampler)
-				{
-					descriptorSetLayout.SamplerTable.Bindings.Add(bindingLayout);
-					samplerTableStages[setIndex] |= uniformInformation->Usage;
-				}
-				else
-				{
-					descriptorSetLayout.ResourceTable.Bindings.Add(bindingLayout);
-					resourceTableStages[setIndex] |= uniformInformation->Usage;
-				}
-			}
-		}
-	}
-
-	auto fnPackTable = [](D3D12DescriptorTableLayout& tableLayout)
-	{
-		std::sort(tableLayout.Bindings.begin(), tableLayout.Bindings.end(), [](const D3D12DescriptorBindingLayout& lhs, const D3D12DescriptorBindingLayout& rhs)
-		{
-			if(lhs.RangeType != rhs.RangeType)
-				return lhs.RangeType < rhs.RangeType;
-
-			return lhs.ShaderRegister < rhs.ShaderRegister;
-		});
-
-		for(D3D12DescriptorBindingLayout& bindingLayout : tableLayout.Bindings)
-		{
-			bindingLayout.TableOffset = tableLayout.DescriptorCount;
-
-			D3D12DescriptorRangeLayout* previousRange = tableLayout.Ranges.size() == 0 ? nullptr : &tableLayout.Ranges.back();
-			const bool extendsPreviousRange = previousRange != nullptr && previousRange->Type == bindingLayout.RangeType && previousRange->BaseShaderRegister + previousRange->DescriptorCount == bindingLayout.ShaderRegister;
-			if(extendsPreviousRange)
-			{
-				previousRange->DescriptorCount += bindingLayout.DescriptorCount;
-			}
-			else
-			{
-				D3D12DescriptorRangeLayout rangeLayout;
-				rangeLayout.Type = bindingLayout.RangeType;
-				rangeLayout.BaseShaderRegister = bindingLayout.ShaderRegister;
-				rangeLayout.DescriptorCount = bindingLayout.DescriptorCount;
-				rangeLayout.TableOffset = bindingLayout.TableOffset;
-
-				tableLayout.Ranges.Add(rangeLayout);
-			}
-
-			tableLayout.DescriptorCount += bindingLayout.DescriptorCount;
-		}
-	};
-
-	// Group sequential bindings into contiguous ranges
-	for(D3D12DescriptorSetLayout& descriptorSetLayout : mDescriptorSetLayouts)
-	{
-		fnPackTable(descriptorSetLayout.ResourceTable);
-		fnPackTable(descriptorSetLayout.SamplerTable);
-	}
+		PackDescriptorTables(*mSets[setIndex], mDescriptorSetLayouts[setIndex], resourceTableStages[setIndex], samplerTableStages[setIndex]);
 
 	auto fnAddTableRootParameter = [&rootParameters, &descriptorRanges, fnGetShaderVisibility, kReservedRootParameterRegisterSpace](D3D12DescriptorTableLayout& tableLayout, const GpuProgramStageBits& stages,
 		u32 setIndex, D3D12_DESCRIPTOR_RANGE_TYPE dummyRangeType)

@@ -1064,7 +1064,7 @@ void GpuBackendTestSuite::TestResourceUseTracking()
 	attachments.Add(attachmentUsage);
 	tracker.BeginRenderPass(attachments);
 
-	B3D_TEST_ASSERT(tracker.ResolveShaderImageLayout(&attachmentImage, attachmentImage.GetRange(), GpuImageLayout::ShaderReadOnly) == GpuImageLayout::General)
+	B3D_TEST_ASSERT(GpuBackendUtility::ResolveShaderImageLayout(tracker.GetRenderPassAttachments(), &attachmentImage, attachmentImage.GetRange(), GpuImageLayout::ShaderReadOnly) == GpuImageLayout::General)
 	B3D_TEST_ASSERT(tracker.TrackShaderImageUsage(&attachmentImage, attachmentImage.GetRange(), GpuAccessFlag::Read))
 
 	// Writes to a sampled attachment are rejected while the render pass is active

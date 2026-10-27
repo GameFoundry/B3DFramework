@@ -57,7 +57,8 @@ namespace b3d
 	 * - Transient: Used for per-frame allocations. All parameter sets allocated from the pool are deallocated at once.
 	 * - Persistent: Used for persistent (multi-frame) allocations. Individual sets are deallocated as the go out of scope.
 	 *
-	 * @note	Not thread safe. The pool, and the parameter sets allocated from it, are used on a single thread.
+	 * @note	Not thread safe. The pool, and the parameter sets allocated from it, are used on the thread that created the pool. Other
+	 *			threads may bind sets that were flushed for the render pass they are bound in (see render::GpuParameterSet::Flush()).
 	 */
 	class B3D_EXPORT GpuParameterSetPool
 	{
@@ -83,10 +84,14 @@ namespace b3d
 		/** Returns the mode this pool operates in. */
 		GpuParameterSetPoolMode GetMode() const { return mInformation.Mode; }
 
+		/** Returns the thread the pool was created on, which owns the pool and its parameter sets. */
+		ThreadId GetOwnerThread() const { return mOwnerThread; }
+
 	protected:
 		GpuParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation);
 
 		GpuParameterSetPoolInformation mInformation;
+		const ThreadId mOwnerThread;
 	};
 
 	/** @} */

@@ -61,11 +61,8 @@ namespace b3d
 			/** Clears the active attachment tracking scope. */
 			void EndRenderPass();
 
-			/**
-			 * Returns the layout a shader read of the specified image range is performed in. Reads of an attachment of the active render pass use
-			 * the attachment's layout, all other reads use @p requestedLayout.
-			 */
-			GpuImageLayout ResolveShaderImageLayout(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout requestedLayout) const;
+			/** Returns the attachments of the active render pass, or none outside of render passes. */
+			TArrayView<const GpuRenderPassAttachmentUsage> GetRenderPassAttachments() const { return mRenderPassAttachments; }
 
 			/** @} */
 
@@ -151,9 +148,6 @@ namespace b3d
 		private:
 			/** Creates a new tracking state for the buffer (if this is the first time the buffer has been used on the command buffer), or returns existing tracking state. */
 			GpuBufferTrackingState& GetOrCreateBufferTrackingState(IGpuBufferResource* buffer);
-
-			/** Finds the render-pass attachment overlapping @p range, or returns null. */
-			const GpuRenderPassAttachmentUsage* FindRenderPassAttachment(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const;
 
 			/** Maps images to their use handles. */
 			TDenseMap<IGpuImageResource*, GpuResourceUseHandle> mImages;

@@ -80,33 +80,13 @@ void GpuResourceTracker::EndRenderPass()
 	mIsInRenderPass = false;
 }
 
-const GpuRenderPassAttachmentUsage* GpuResourceTracker::FindRenderPassAttachment(IGpuImageResource* image, const GpuTextureSubresourceRange& range) const
-{
-	for(const GpuRenderPassAttachmentUsage& attachment : mRenderPassAttachments)
-	{
-		if(attachment.Image == image && GpuBackendUtility::RangeOverlaps(attachment.Range, range))
-			return &attachment;
-	}
-
-	return nullptr;
-}
-
-GpuImageLayout GpuResourceTracker::ResolveShaderImageLayout(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout requestedLayout) const
-{
-	const GpuRenderPassAttachmentUsage* const renderPassAttachment = FindRenderPassAttachment(image, subresourceRange);
-	if(renderPassAttachment != nullptr)
-		return renderPassAttachment->Layout;
-
-	return requestedLayout;
-}
-
 bool GpuResourceTracker::TrackShaderImageUsage(IGpuImageResource* image, const GpuTextureSubresourceRange& subresourceRange, GpuAccessFlags access)
 {
 	if(image == nullptr)
 		return true;
 
 	const GpuTextureSubresourceRange range = GpuBackendUtility::ClampRange(subresourceRange, image->GetRange());
-	const GpuRenderPassAttachmentUsage* const attachment = FindRenderPassAttachment(image, range);
+	const GpuRenderPassAttachmentUsage* const attachment = GpuBackendUtility::FindRenderPassAttachment(mRenderPassAttachments, image, range);
 	if(attachment != nullptr && (attachment->Access != GpuAccessFlag::Read || access.IsSet(GpuAccessFlag::Write)))
 	{
 		B3D_LOG(Error, LogRenderBackend, "Framebuffer attachments sampled during a render pass must be marked read-only.");

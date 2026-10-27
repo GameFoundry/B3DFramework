@@ -169,6 +169,18 @@ namespace b3d
 		/** A copy pass with FrameGraphPassFlag::AsyncCompute copies what a graphics dispatch wrote on the async compute queue. */
 		void TestAsyncCopy();
 
+		/**
+		 * The async compute tests again, with frame graphs that record their submissions in parallel (FrameGraphFlag::RecordInParallel),
+		 * with the same results.
+		 */
+		void TestParallelRecording();
+
+		/**
+		 * Frames of a graph that records in parallel, whose passes alternate between the queues in nine submissions. Every pass after the
+		 * first binds one parameter set, so the set is bound on both queues and on several threads at once.
+		 */
+		void TestParallelRecordingStress();
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		/**
 		 * The development checks: writes to resources at rest, conflicting declarations in one pass, writes after an export, dependencies

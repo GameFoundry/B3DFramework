@@ -160,7 +160,7 @@ namespace b3d
 		struct GpuCommandBufferPoolInformation
 		{
 			GpuQueueType Type = GQT_GRAPHICS; /**< Determines which commands may be executed on the command buffer. Queue on which the command buffer is submitted must match this usage. */
-			ThreadId Thread; /**< Thread on which the command buffer pool is allowed to be used on. Any created command buffers are also bound to this thread. */
+			ThreadId Thread; /**< Thread that owns the pool and its command buffers at first, and processes the messages of the pool. See GpuCommandBufferPool::SetThisAsOwnerThread(). */
 			bool UsePoolReset = false; /**< When true, command buffers are reset as a group via pool-level reset instead of individually. */
 		};
 
@@ -211,15 +211,14 @@ namespace b3d
 		 * Allows creation of command buffers.
 		 *
 		 * All allocated command buffers may only be used on the GPU queues that have the subset of usage flags provided by this pool.
-		 * Command buffer and all command buffers allocated from the command buffer may only be used on a single thread. Command buffers may only be used on another thread as part of command buffer submission.
+		 * The pool and its command buffers may only be used on the thread that owns the pool: the thread it was created for, unless
+		 * SetThisAsOwnerThread() handed it to another. Command buffers may only be used on another thread as part of command buffer
+		 * submission.
 		 */
 		class B3D_EXPORT GpuCommandBufferPool
 		{
 		public:
 			virtual ~GpuCommandBufferPool() = default;
-
-			/** Returns queue that may be used for posting messages to the command buffer pool (e.g. command buffer completion notifies). */
-			SingleConsumerQueue& GetMessageQueue() { return mMessageQueue; }
 
 			/** Returns true if the pool uses pool-level reset instead of individual command buffer reset. */
 			bool GetUsePoolReset() const { return mInformation.UsePoolReset; }
@@ -236,18 +235,53 @@ namespace b3d
 			/** Destroys the pool. Will be called automatically on destruction, but may be called earlier if desired. */
 			virtual void Destroy();
 
+			/**
+			 * Makes the calling thread the owner of the pool and its command buffers. The caller guarantees that the previous owner no longer
+			 * uses them, such as by handing the pool over through a task and waiting for the task. Messages to the pool, such as command
+			 * buffer completions, are held while a thread other than the one the pool was created for owns it, and run once that thread
+			 * owns it again.
+			 */
+			void SetThisAsOwnerThread();
+
+			/** Returns the thread that owns the pool and its command buffers. */
+			ThreadId GetOwnerThread() const { return mOwnerThread.load(std::memory_order_acquire); }
+
+			/**
+			 * @name Internal
+			 * @{
+			 */
+
+			/**
+			 * Posts @p callback to run on the thread the pool was created for, once that thread owns the pool. Used for messages that touch the
+			 * pool or its command buffers, such as command buffer completion. Thread safe.
+			 *
+			 * @param	callback			Function to run.
+			 * @param	debugName			Name of the message, for debugging.
+			 * @param	waitUntilComplete	If true, blocks until the message was processed. A held message counts as processed.
+			 */
+			void PostCommand(Function<void()>&& callback, const char* debugName = nullptr, bool waitUntilComplete = false);
+
+			/** @} */
+
 		protected:
 			friend class b3d::GpuDevice;
 
 			GpuCommandBufferPool(GpuDevice& gpuDevice, const GpuCommandBufferPoolCreateInformation& createInformation);
 
-			/** Reports an error if the current thread is not the thread associated with the object. */
-			void EnsureValidThread() const { B3D_DEBUG_ONLY(B3D_ENSURE(B3D_CURRENT_THREAD_ID == mInformation.Thread)); }
+			/** Returns the queue the messages of the pool are processed on, by the thread the pool was created for. */
+			SingleConsumerQueue& GetMessageQueue() { return mMessageQueue; }
+
+			/** Reports an error if the current thread does not own the pool. */
+			void EnsureValidThread() const { B3D_DEBUG_ONLY(B3D_ENSURE(B3D_CURRENT_THREAD_ID == GetOwnerThread())); }
 
 			GpuDevice& mGpuDevice;
 			const GpuCommandBufferPoolInformation mInformation;
 			SingleConsumerQueue mMessageQueue;
 			bool mIsDestroyed = false;
+
+			std::atomic<ThreadId> mOwnerThread;
+			Mutex mOwnershipMutex; /**< Held while a message runs and while the owner changes, so the owner never changes during a message. */
+			Vector<Function<void()>> mHeldMessages; /**< Messages that arrived while another thread owned the pool, in arrival order. */
 		};
 
 		/**
@@ -529,10 +563,9 @@ namespace b3d
 #endif
 
 		/**
-		 * Contains a list of render API commands that can be queued for execution on the GPU. User is allowed to populate the
-		 * command buffer from any thread, ensuring render API command generation can be multi-threaded. Command buffers
-		 * must always be created on the render thread. Same command buffer cannot be used on multiple threads simulateously
-		 * without external synchronization.
+		 * Contains a list of render API commands that can be queued for execution on the GPU. Command buffers are created by a
+		 * GpuCommandBufferPool, and recorded and submitted on the thread that owns the pool. Pools can be handed to other threads
+		 * (see GpuCommandBufferPool::SetThisAsOwnerThread()), so command buffers of different pools can be recorded in parallel.
 		 */
 		class B3D_EXPORT GpuCommandBuffer
 		{
@@ -927,7 +960,7 @@ namespace b3d
 			friend class GpuCommandBufferPool;
 			friend class GpuSubmitThread;
 
-			GpuCommandBuffer(GpuDevice& gpuDevice, ThreadId ownerThread, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
+			GpuCommandBuffer(GpuDevice& gpuDevice, const GpuCommandBufferPool& pool, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
 
 			/**
 			 * Records barriers, or one half of split barriers. The base implementation reports that the backend does not
@@ -1013,8 +1046,8 @@ namespace b3d
 			bool ValidateDrawAccesses();
 #endif
 
-			/** Reports an error if the current thread is not the thread associated with the object. */
-			void EnsureValidThread() const { B3D_DEBUG_ONLY(B3D_ENSURE(B3D_CURRENT_THREAD_ID == mOwnerThread)); }
+			/** Reports an error if the current thread does not own the pool of the command buffer. */
+			void EnsureValidThread() const { B3D_DEBUG_ONLY(B3D_ENSURE(B3D_CURRENT_THREAD_ID == mCommandBufferPool.GetOwnerThread())); }
 	
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			GpuDrawAccessValidator mDrawAccessValidator;
@@ -1022,7 +1055,7 @@ namespace b3d
 			GpuDevice& mGpuDevice;
 			const GpuCommandBufferCreateInformation mInformation;
 			const GpuQueueType mQueueType;
-			const ThreadId mOwnerThread;
+			const GpuCommandBufferPool& mCommandBufferPool;
 			String mName;
 			GpuCommandBufferState mState = GpuCommandBufferState::Ready;
 			GpuQueueMask mQueueSyncMask;

@@ -187,6 +187,17 @@ namespace b3d
 		 */
 		static render::GpuImageLayout GetRenderPassAttachmentLayout(RenderSurfaceMaskBits surface, RenderSurfaceMask readOnlyMask);
 
+		/** Finds the attachment among @p attachments overlapping @p range of @p image, or returns null. */
+		static const render::GpuRenderPassAttachmentUsage* FindRenderPassAttachment(TArrayView<const render::GpuRenderPassAttachmentUsage> attachments,
+			IGpuImageResource* image, const GpuTextureSubresourceRange& range);
+
+		/**
+		 * Returns the layout a shader read of the specified image range is performed in, in a render pass with @p attachments. Reads of an
+		 * attachment use the attachment's layout, all other reads use @p requestedLayout.
+		 */
+		static render::GpuImageLayout ResolveShaderImageLayout(TArrayView<const render::GpuRenderPassAttachmentUsage> attachments, IGpuImageResource* image,
+			const GpuTextureSubresourceRange& subresourceRange, render::GpuImageLayout requestedLayout);
+
 		/**
 		 * Returns the surfaces that a render pass clears when it begins, and writes the values to clear them to into @p clearValues. These
 		 * are the surfaces in RenderPassCreateInformation::ClearMask, with the clear values of the render target. If

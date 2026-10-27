@@ -2,10 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "FrameGraph/B3DFrameGraph.h"
 
+#include "B3DApplication.h"
 #include "GpuBackend/Allocators/B3DGpuTransientHeapPool.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
+#include "GpuBackend/B3DGpuFramebuffer.h"
 #include "GpuBackend/B3DGpuBarrierValidator.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuWorkContext.h"
@@ -21,7 +23,7 @@ namespace b3d
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	TConfigVariable<bool> gFrameGraphSerialRecording("gpu.FrameGraphSerialRecording",
-		"If enabled, frame graphs record their passes one at a time, in GPU execution order, and validate them with one shared barrier validator.", true);
+		"If enabled, frame graphs that record in parallel record their passes one at a time instead, like other frame graphs, which validates their barriers.", false);
 #endif
 } // namespace b3d
 
@@ -38,6 +40,9 @@ namespace b3d::render
 
 		/** Id of the frame graph that is executing, or zero if none is. */
 		std::atomic<u32> gExecutingFrameGraphId = 0;
+
+		/** True while a task of a frame graph that records in parallel records a submission on the calling thread. */
+		thread_local bool gIsRecordingSubmission = false;
 
 		/** Returns a new frame graph id. */
 		u32 CreateFrameGraphId()
@@ -65,8 +70,11 @@ namespace b3d::render
 				u64 LastUsedFrame = 0;
 			};
 
-			TShared<GpuCommandBufferPool> CommandBufferPool; /**< Pool of the graphics queue command buffers. */
-			TShared<GpuCommandBufferPool> ComputeCommandBufferPool; /**< Pool of the compute queue command buffers. */
+			/**
+			 * Pools of the command buffers of each queue type. Graphs record on the first pool of the queue, and graphs that record in
+			 * parallel on a pool per submission of the queue, as a pool records one command buffer at a time.
+			 */
+			Vector<TShared<GpuCommandBufferPool>> CommandBufferPools[GQT_COUNT];
 			Vector<RenderTextureEntry> RenderTextures;
 		};
 
@@ -203,8 +211,8 @@ namespace b3d::render
 			TArrayView<const GpuRenderTargetBarrier>(RenderTargetBarriers.data(), (u32)RenderTargetBarriers.size()));
 	}
 
-	FrameGraph::FrameGraph(GpuWorkContext& context, const StringView& name)
-		: mContext(context), mDevice(context.GetDevice()), mAllocator(context.GetTransientResourceAllocator()), mName(name)
+	FrameGraph::FrameGraph(GpuWorkContext& context, const StringView& name, FrameGraphFlags flags)
+		: mContext(context), mDevice(context.GetDevice()), mAllocator(context.GetTransientResourceAllocator()), mName(name), mFlags(flags)
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		, mId(CreateFrameGraphId())
 #endif
@@ -1895,23 +1903,45 @@ namespace b3d::render
 
 		const CpuProfilingScope graphCpuSample(mName.c_str());
 
-		// Returns the pool of the context's command buffers of @p queueType
-		FrameGraphContextData& contextData = GetContextData(mContext);
-		const auto fnGetPool = [this, &contextData](GpuQueueType queueType) -> GpuCommandBufferPool&
+		// Each submission records its passes on a command buffer of its own, in submit order. A graph of one submission names it after
+		// the graph, and graphs of several name them after the graph, the queue and the submission's position on the queue.
+		const u32 submissionCount = (u32)mSubmissions.size();
+		Vector<String> names(submissionCount, mName);
+		Vector<u32> queuePositions(submissionCount, 0);
+		u32 queueSubmissionCounts[GQT_COUNT] = {};
+		for(u32 submissionIndex = 0; submissionIndex < submissionCount; submissionIndex++)
 		{
-			TShared<GpuCommandBufferPool>& pool = queueType == GQT_COMPUTE ? contextData.ComputeCommandBufferPool : contextData.CommandBufferPool;
-			if(pool == nullptr)
-				pool = mDevice.CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread(queueType));
+			const GpuQueueType queueType = mSubmissions[submissionIndex].QueueType;
+			queuePositions[submissionIndex] = queueSubmissionCounts[queueType]++;
+			if(submissionCount > 1)
+				names[submissionIndex] += (queueType == GQT_COMPUTE ? " Compute " : " Graphics ") + ToString(queuePositions[submissionIndex]);
+		}
 
-			return *pool;
+		// Returns the command buffer pool at @p poolIndex among the pools of @p queueType
+		FrameGraphContextData& contextData = GetContextData(mContext);
+		const auto fnGetPool = [this, &contextData](GpuQueueType queueType, u32 poolIndex) -> GpuCommandBufferPool&
+		{
+			Vector<TShared<GpuCommandBufferPool>>& pools = contextData.CommandBufferPools[queueType];
+			while((u32)pools.size() <= poolIndex)
+				pools.push_back(mDevice.CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread(queueType)));
+
+			return *pools[poolIndex];
 		};
 
+		bool isRecordedInParallel = mFlags.IsSet(FrameGraphFlag::RecordInParallel) && submissionCount > 1;
 #if B3D_BUILD_TYPE_DEVELOPMENT
-		// One validator follows every resource across the passes, of every command buffer. It keeps the parameter sets it saw alive until it
-		// is destroyed.
+		isRecordedInParallel &= !gFrameGraphSerialRecording;
+#endif
+
+		Vector<TShared<GpuCommandBuffer>> commandBuffers(submissionCount);
+#if B3D_BUILD_TYPE_DEVELOPMENT
 		TUnique<GpuBarrierValidator> validator;
-		if(gFrameGraphSerialRecording)
+#endif
+		if(!isRecordedInParallel)
 		{
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			// One validator follows every resource across the passes, of every command buffer. It keeps the parameter sets it saw alive until
+			// it is destroyed.
 			validator = B3DMakeUnique<GpuBarrierValidator>();
 			for(const Resource& resource : mResources)
 			{
@@ -1923,99 +1953,201 @@ namespace b3d::render
 				else if(resource.Buffer != nullptr && resource.Buffer->GetGpuResource() != nullptr)
 					validator->DeclareAliasAcquire(*resource.Buffer, resource.Placement.Acquire);
 			}
-		}
 #endif
 
-		// Each submission records its passes on a command buffer of its own, in submit order. A graph of one submission names it after
-		// the graph, and graphs of several name them after the graph, the queue and the submission's position on the queue.
-		Vector<TShared<GpuCommandBuffer>> commandBuffers;
-		u32 queueSubmissionCounts[GQT_COUNT] = {};
-		for(const Submission& submission : mSubmissions)
-		{
-			String name = mName;
-			if(mSubmissions.size() > 1)
-				name += (submission.QueueType == GQT_COMPUTE ? " Compute " : " Graphics ") + ToString(queueSubmissionCounts[submission.QueueType]++);
-
-			const TShared<GpuCommandBuffer> commandBuffer = fnGetPool(submission.QueueType).FindOrCreate(GpuCommandBufferCreateInformation::Create(name));
-			commandBuffers.push_back(commandBuffer);
+			for(u32 submissionIndex = 0; submissionIndex < submissionCount; submissionIndex++)
+			{
+				const Submission& submission = mSubmissions[submissionIndex];
+				const TShared<GpuCommandBuffer>& commandBuffer = commandBuffers[submissionIndex] = fnGetPool(submission.QueueType, 0).FindOrCreate(
+					GpuCommandBufferCreateInformation::Create(names[submissionIndex]));
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-			if(validator != nullptr)
 				commandBuffer->SetValidator(validator.get());
 #endif
 
-#if B3D_PROFILING_ENABLED
-			commandBuffer->BeginProfiling(ProfilerString(name.data(), name.size()));
-#endif
-
-			{
-				const GpuProfilingScope commandBufferGpuSample(*commandBuffer, ProfilerString(name.data(), name.size()));
-
-				for(u32 batchIndex : submission.StartBarrierBatchIndices)
-					RecordBarriers(*commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Release, mBarrierBatches[batchIndex].SplitBarrier);
-
-				for(u32 compiledIndex : submission.PassIndices)
-				{
-					Pass& pass = mPasses[mCompiledPassIndices[compiledIndex]];
-					commandBuffer->BeginLabel(pass.Name);
-
-					const CpuProfilingScope passCpuSample(pass.Name.c_str());
-					const GpuProfilingScope passGpuSample(*commandBuffer, ProfilerString(pass.Name.data(), pass.Name.size()));
-
-					RecordBarriers(*commandBuffer, pass.AliasAcquireBarriers, GpuBarrierPhase::Full);
-					for(u32 batchIndex : pass.AcquiredBarrierBatchIndices)
-						RecordBarriers(*commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Acquire, mBarrierBatches[batchIndex].SplitBarrier);
-
-					RecordBarriers(*commandBuffer, pass.Barriers, GpuBarrierPhase::Full);
-
-					const bool isRaster = pass.Type == PassType::Raster && pass.Attachments.Target != nullptr;
-					if(isRaster)
-					{
-						RenderPassCreateInformation renderPassInformation(pass.Attachments.Target, pass.Attachments.ReadOnlyMask, pass.Attachments.LoadMask);
-						renderPassInformation.ClearMask = pass.Attachments.ClearMask;
-						commandBuffer->BeginRenderPass(renderPassInformation);
-					}
-
-					if(pass.Execute)
-					{
-						FrameGraphPassContext passContext(*commandBuffer);
-						pass.Execute(passContext);
-					}
-
-					if(isRaster)
-						commandBuffer->EndRenderPass();
-
-					for(u32 batchIndex : pass.ReleasedBarrierBatchIndices)
-						RecordBarriers(*commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Release, mBarrierBatches[batchIndex].SplitBarrier);
-
-					RecordBarriers(*commandBuffer, pass.ExportBarriers, GpuBarrierPhase::Full);
-					commandBuffer->EndLabel();
-				}
-
-				for(u32 batchIndex : submission.EndBarrierBatchIndices)
-					RecordBarriers(*commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Acquire, mBarrierBatches[batchIndex].SplitBarrier);
-
-				RecordBarriers(*commandBuffer, submission.EndBarriers, GpuBarrierPhase::Full);
-			}
-
-#if B3D_PROFILING_ENABLED
-			commandBuffer->EndProfiling();
-#endif
+				RecordSubmission(submission, *commandBuffer, names[submissionIndex]);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-			// The validator is destroyed below, while the command buffer waits for its reset
-			if(validator != nullptr)
+				// The validator is destroyed below, while the command buffer waits for its reset
 				commandBuffer->SetValidator(nullptr);
 #endif
+			}
+		}
+		else
+		{
+			// Returns the attachments of the render pass of @p pass, as parameter sets resolve layouts against them. The surfaces of a window
+			// are left out, as no parameter set can hold them.
+			const auto fnGetRenderPassAttachments = [](const Pass& pass)
+			{
+				GpuRenderPassAttachmentUsageArray output;
+
+				const TShared<RenderTarget>& target = pass.Attachments.Target;
+				if(pass.Type != PassType::Raster || target == nullptr || target->GetProperties().IsWindow)
+					return output;
+
+				const RenderSurfaceMask readOnlyMask = pass.Attachments.ReadOnlyMask;
+				const auto fnAddAttachment = [&output, readOnlyMask](const RenderSurfaceInformation& surfaceInformation, RenderSurfaceMaskBits surface, GpuTextureAspectFlag aspect)
+				{
+					IGpuImageResource* const image = static_cast<IGpuImageResource*>(GetSurfaceGpuResource(surfaceInformation));
+					if(image == nullptr || !image->GetRange().AspectMask.IsSet(aspect))
+						return;
+
+					const u32 faceCount = surfaceInformation.FaceCount != 0 ? surfaceInformation.FaceCount : image->GetRange().ArrayLayerCount - surfaceInformation.Face;
+
+					GpuRenderPassAttachmentUsage usage;
+					usage.Image = image;
+					usage.Range = GpuTextureSubresourceRange(surfaceInformation.MipLevel, 1, surfaceInformation.Face, faceCount, aspect);
+					usage.Surface = surface;
+					usage.Access = readOnlyMask.IsSet(surface) ? GpuAccessFlags(GpuAccessFlag::Read) : GpuAccessFlag::Read | GpuAccessFlag::Write;
+					usage.Layout = GpuBackendUtility::GetRenderPassAttachmentLayout(surface, readOnlyMask);
+					output.Add(usage);
+				};
+
+				// Render textures the graph built from the attachments of the pass describe them as well
+				const RenderTexture& renderTexture = static_cast<const RenderTexture&>(*target);
+				for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
+					fnAddAttachment(renderTexture.GetColorSurfaceInformation(colorIndex), (RenderSurfaceMaskBits)(RT_COLOR0 << colorIndex), GpuTextureAspectFlag::Color);
+
+				fnAddAttachment(renderTexture.GetDepthStencilSurfaceInformation(), RT_DEPTH, GpuTextureAspectFlag::Depth);
+				fnAddAttachment(renderTexture.GetDepthStencilSurfaceInformation(), RT_STENCIL, GpuTextureAspectFlag::Stencil);
+				return output;
+			};
+
+			// Parameter sets are only written on the thread that owns them, and bound read-only on other threads, so the sets of the passes
+			// are flushed here, for the render passes that bind them. A set holds one layout per sampled texture, so every pass that binds
+			// it must sample its textures in the layouts of the first.
+			struct FlushedParameterSet
+			{
+				const Pass* FlushingPass = nullptr;
+				GpuRenderPassAttachmentUsageArray Attachments;
+			};
+
+			UnorderedMap<const GpuParameterSet*, FlushedParameterSet> flushedParameterSets;
+			for(u32 compiledIndex = 0; compiledIndex < (u32)mCompiledPassIndices.size(); compiledIndex++)
+			{
+				const Pass& pass = GetCompiledPass(compiledIndex);
+				const GpuRenderPassAttachmentUsageArray attachments = fnGetRenderPassAttachments(pass);
+				for(const TShared<GpuParameterSet>& parameters : pass.ParameterSets)
+				{
+					const auto [found, isFirst] = flushedParameterSets.try_emplace(parameters.get());
+					if(isFirst)
+					{
+						found->second.FlushingPass = &pass;
+						found->second.Attachments = attachments;
+
+						parameters->Flush(attachments);
+						continue;
+					}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+					const FlushedParameterSet& flushed = found->second;
+					parameters->ForEachBoundResource(nullptr, [this, &pass, &flushed, &attachments](const GpuParameterSetResource& bound)
+					{
+						IGpuImageResource* const image = bound.Texture != nullptr ? static_cast<IGpuImageResource*>(bound.Texture->GetGpuResource()) : nullptr;
+						if(image == nullptr || bound.Uniform->Type != GpuParameterType::SampledTexture)
+							return;
+
+						// Sampled views of depth-stencil textures select the depth aspect
+						GpuTextureSubresourceRange range = image->GetRange(bound.Surface);
+						if(range.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
+							range.AspectMask = GpuTextureAspectFlag::Depth;
+
+						const GpuImageLayout flushedLayout = GpuBackendUtility::ResolveShaderImageLayout(flushed.Attachments, image, range, GpuImageLayout::Undefined);
+						const GpuImageLayout layout = GpuBackendUtility::ResolveShaderImageLayout(attachments, image, range, GpuImageLayout::Undefined);
+						B3D_ENSURE_LOG(layout == flushedLayout, "Frame graph '{0}' records in parallel, but passes '{1}' and '{2}' bind one parameter set that samples "
+							"texture '{3}' in different layouts, as only one of them renders into it. Give the passes a parameter set each.", mName,
+							flushed.FlushingPass->Name, pass.Name, bound.Texture->GetName());
+					});
+#endif
+				}
+			}
+
+			// Submissions that use a window are recorded on this thread, as only the thread that owns a window may use its swap chain
+			const auto fnUsesWindow = [this](const Submission& submission)
+			{
+				const auto fnHasWindowBarriers = [](const BarrierList& list) { return !list.RenderTargetBarriers.empty(); };
+				const auto fnHasWindowBatches = [this, &fnHasWindowBarriers](TArrayView<const u32> batchIndices)
+				{
+					return std::any_of(batchIndices.begin(), batchIndices.end(), [this, &fnHasWindowBarriers](u32 batchIndex) { return fnHasWindowBarriers(mBarrierBatches[batchIndex].Barriers); });
+				};
+
+				if(fnHasWindowBatches(submission.StartBarrierBatchIndices) || fnHasWindowBatches(submission.EndBarrierBatchIndices) || fnHasWindowBarriers(submission.EndBarriers))
+					return true;
+
+				return std::any_of(submission.PassIndices.begin(), submission.PassIndices.end(), [this, &fnHasWindowBarriers, &fnHasWindowBatches](u32 compiledIndex)
+				{
+					const Pass& pass = mPasses[mCompiledPassIndices[compiledIndex]];
+					return (pass.Attachments.Target != nullptr && pass.Attachments.Target->GetProperties().IsWindow) || fnHasWindowBarriers(pass.AliasAcquireBarriers) ||
+						fnHasWindowBatches(pass.AcquiredBarrierBatchIndices) || fnHasWindowBarriers(pass.Barriers) || fnHasWindowBatches(pass.ReleasedBarrierBatchIndices) ||
+						fnHasWindowBarriers(pass.ExportBarriers);
+				});
+			};
+
+			// Every submission records on a pool of its own, as a pool records one command buffer at a time. A task takes the pool over to
+			// record the submission, and this thread takes it back once every task completed.
+			WaitGroup waitGroup;
+			FrameVector<u32> windowSubmissionIndices;
+			for(u32 submissionIndex = 0; submissionIndex < submissionCount; submissionIndex++)
+			{
+				const Submission& submission = mSubmissions[submissionIndex];
+				if(fnUsesWindow(submission))
+				{
+					windowSubmissionIndices.push_back(submissionIndex);
+					continue;
+				}
+
+				GpuCommandBufferPool& pool = fnGetPool(submission.QueueType, queuePositions[submissionIndex]);
+				waitGroup.Increment();
+				GetApplication().GetTaskScheduler().Post(SchedulerTask([this, &pool, &submission, &commandBuffers, &names, &waitGroup, submissionIndex]()
+				{
+					pool.SetThisAsOwnerThread();
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+					B3D_ENSURE_LOG(!gIsRecordingSubmission, "Frame graph '{0}' records two submissions on one thread at once. The execute functions of the passes of "
+						"frame graphs that record in parallel must not yield.", mName);
+					gIsRecordingSubmission = true;
+#endif
+
+					// The thread may not be sampled, as it runs tasks of any kind
+					ProfilerCPU& profiler = GetProfilerCPU();
+					const bool isThreadSampled = profiler.IsThreadSampled();
+					if(!isThreadSampled)
+						profiler.BeginThread("FrameGraphRecording");
+
+					commandBuffers[submissionIndex] = pool.FindOrCreate(GpuCommandBufferCreateInformation::Create(names[submissionIndex]));
+					RecordSubmission(submission, *commandBuffers[submissionIndex], names[submissionIndex]);
+
+					if(!isThreadSampled)
+						profiler.EndThread();
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+					gIsRecordingSubmission = false;
+#endif
+
+					waitGroup.NotifyDone();
+				}, "FrameGraphRecording"));
+			}
+
+			for(u32 submissionIndex : windowSubmissionIndices)
+			{
+				const Submission& submission = mSubmissions[submissionIndex];
+				commandBuffers[submissionIndex] = fnGetPool(submission.QueueType, queuePositions[submissionIndex]).FindOrCreate(GpuCommandBufferCreateInformation::Create(names[submissionIndex]));
+				RecordSubmission(submission, *commandBuffers[submissionIndex], names[submissionIndex]);
+			}
+
+			waitGroup.Wait();
+
+			for(u32 submissionIndex = 0; submissionIndex < submissionCount; submissionIndex++)
+				fnGetPool(mSubmissions[submissionIndex].QueueType, queuePositions[submissionIndex]).SetThisAsOwnerThread();
 		}
 
 		// Submissions follow the timeline, and the last one signals the fences
-		for(u32 submissionIndex = 0; submissionIndex < (u32)mSubmissions.size(); submissionIndex++)
+		for(u32 submissionIndex = 0; submissionIndex < submissionCount; submissionIndex++)
 		{
 			GpuSubmissionInformation submissionInformation;
 			submissionInformation.CommandBuffer = commandBuffers[submissionIndex];
 			submissionInformation.SyncMask = mSubmissions[submissionIndex].SyncMask;
-			if(submissionIndex == (u32)mSubmissions.size() - 1)
+			if(submissionIndex == submissionCount - 1)
 			{
 				for(const GpuTimelineFenceAndValue& signalFence : mSignalFences)
 					submissionInformation.SignalFences.Add(signalFence);
@@ -2038,6 +2170,67 @@ namespace b3d::render
 			callback();
 
 		mExecuteCallbacks.clear();
+	}
+
+	void FrameGraph::RecordSubmission(const Submission& submission, GpuCommandBuffer& commandBuffer, const String& name)
+	{
+#if B3D_PROFILING_ENABLED
+		commandBuffer.BeginProfiling(ProfilerString(name.data(), name.size()));
+#endif
+
+		{
+			const GpuProfilingScope commandBufferGpuSample(commandBuffer, ProfilerString(name.data(), name.size()));
+
+			for(u32 batchIndex : submission.StartBarrierBatchIndices)
+				RecordBarriers(commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Release, mBarrierBatches[batchIndex].SplitBarrier);
+
+			for(u32 compiledIndex : submission.PassIndices)
+			{
+				Pass& pass = mPasses[mCompiledPassIndices[compiledIndex]];
+				commandBuffer.BeginLabel(pass.Name);
+
+				const CpuProfilingScope passCpuSample(pass.Name.c_str());
+				const GpuProfilingScope passGpuSample(commandBuffer, ProfilerString(pass.Name.data(), pass.Name.size()));
+
+				RecordBarriers(commandBuffer, pass.AliasAcquireBarriers, GpuBarrierPhase::Full);
+				for(u32 batchIndex : pass.AcquiredBarrierBatchIndices)
+					RecordBarriers(commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Acquire, mBarrierBatches[batchIndex].SplitBarrier);
+
+				RecordBarriers(commandBuffer, pass.Barriers, GpuBarrierPhase::Full);
+
+				const bool isRaster = pass.Type == PassType::Raster && pass.Attachments.Target != nullptr;
+				if(isRaster)
+				{
+					RenderPassCreateInformation renderPassInformation(pass.Attachments.Target, pass.Attachments.ReadOnlyMask, pass.Attachments.LoadMask);
+					renderPassInformation.ClearMask = pass.Attachments.ClearMask;
+					commandBuffer.BeginRenderPass(renderPassInformation);
+				}
+
+				if(pass.Execute)
+				{
+					FrameGraphPassContext passContext(commandBuffer);
+					pass.Execute(passContext);
+				}
+
+				if(isRaster)
+					commandBuffer.EndRenderPass();
+
+				for(u32 batchIndex : pass.ReleasedBarrierBatchIndices)
+					RecordBarriers(commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Release, mBarrierBatches[batchIndex].SplitBarrier);
+
+				RecordBarriers(commandBuffer, pass.ExportBarriers, GpuBarrierPhase::Full);
+				commandBuffer.EndLabel();
+			}
+
+			for(u32 batchIndex : submission.EndBarrierBatchIndices)
+				RecordBarriers(commandBuffer, mBarrierBatches[batchIndex].Barriers, GpuBarrierPhase::Acquire, mBarrierBatches[batchIndex].SplitBarrier);
+
+			RecordBarriers(commandBuffer, submission.EndBarriers, GpuBarrierPhase::Full);
+		}
+
+#if B3D_PROFILING_ENABLED
+		commandBuffer.EndProfiling();
+#endif
 	}
 
 	void FrameGraph::AddExecuteCallback(Function<void()> callback)

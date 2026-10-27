@@ -34,13 +34,11 @@ namespace b3d
 			bool SetStorageTexture(u32 slot, const TShared<Texture>& texture, const TextureSurface& surface, u32 arrayIndex = 0) override;
 			bool SetStorageBuffer(u32 slot, const TShared<GpuBuffer>& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation()) override;
 			bool SetSamplerState(u32 slot, const TShared<SamplerState>& sampler, u32 arrayIndex = 0) override;
+			void Flush(TArrayView<const GpuRenderPassAttachmentUsage> attachments = {}) override;
 
 			/**
-			 * Prepares the internal descriptor sets for a bind operation on the provided command buffer. It generates and/or
-			 * updates and descriptor sets, and registers the relevant resources with the command buffer.
-			 *
-			 * Caller must perform external locking if some other thread could write to this object while it is being bound.
-			 * The same applies to any resources held by this object.
+			 * Prepares the descriptor set for a bind on a command buffer, and tracks the resources it references with the command buffer. On
+			 * the thread that owns the set, flushes the set first (see Flush()), for the render pass of the command buffer.
 			 *
 			 * @param		resourceTracker		Tracker of the command buffer the set is bound on, used to resolve image layouts and retain resources.
 			 * @param		outDynamicOffsets	Receives this set's dynamic buffer offsets in descriptor binding order, appended to any existing offsets.
@@ -55,6 +53,14 @@ namespace b3d
 #endif
 
 		protected:
+			/**
+			 * Resolves the native handles of the bound resources, and the layouts of sampled images in a render pass with @p attachments, and
+			 * compares them to what the descriptor set holds. If @p canWrite is true, writes the differences and the earlier Set* calls into
+			 * the descriptor set, or into a new one if a command buffer uses the current one. Returns true if the descriptor set needed
+			 * changes. Caller holds mMutex.
+			 */
+			bool UpdateDescriptors(TArrayView<const GpuRenderPassAttachmentUsage> attachments, bool canWrite);
+
 			/** All GPU param data related to a single descriptor set. */
 			struct SetInformation
 			{

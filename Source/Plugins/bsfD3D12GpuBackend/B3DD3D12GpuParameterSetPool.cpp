@@ -13,7 +13,7 @@ namespace b3d::render
 
 	TShared<GpuParameterSet> D3D12GpuParameterSetPool::Create(const TShared<GpuPipelineParameterSetLayout>& layout, u32 setIndex, GpuObjectCreateFlags flags)
 	{
-		D3D12GpuParameters* rawParameterSet = new(B3DAllocate<D3D12GpuParameters>()) D3D12GpuParameters(layout, mDevice, setIndex);
+		D3D12GpuParameters* rawParameterSet = new(B3DAllocate<D3D12GpuParameters>()) D3D12GpuParameters(layout, mDevice, setIndex, *this);
 
 		TShared<D3D12GpuParameters> parameterSet = flags.IsSet(GpuObjectCreateFlag::RenderThreadDestroy)
 			? B3DMakeSharedFromExisting(rawParameterSet)

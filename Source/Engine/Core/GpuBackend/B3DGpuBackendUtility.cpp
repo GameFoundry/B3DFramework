@@ -5,6 +5,7 @@
 #include "GpuBackend/B3DRenderWindow.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuBuffer.h"
+#include "GpuBackend/B3DGpuFramebuffer.h"
 #include "Image/B3DTexture.h"
 
 #include "Utility/B3DBitwise.h"
@@ -503,6 +504,28 @@ GpuImageLayout GpuBackendUtility::GetRenderPassAttachmentLayout(RenderSurfaceMas
 		return stencilReadOnly ? GpuImageLayout::DepthStencilReadOnly : GpuImageLayout::DepthReadOnlyStencilAttachment;
 
 	return stencilReadOnly ? GpuImageLayout::DepthAttachmentStencilReadOnly : GpuImageLayout::DepthStencilAttachment;
+}
+
+const GpuRenderPassAttachmentUsage* GpuBackendUtility::FindRenderPassAttachment(TArrayView<const GpuRenderPassAttachmentUsage> attachments,
+	IGpuImageResource* image, const GpuTextureSubresourceRange& range)
+{
+	for(const GpuRenderPassAttachmentUsage& attachment : attachments)
+	{
+		if(attachment.Image == image && RangeOverlaps(attachment.Range, range))
+			return &attachment;
+	}
+
+	return nullptr;
+}
+
+GpuImageLayout GpuBackendUtility::ResolveShaderImageLayout(TArrayView<const GpuRenderPassAttachmentUsage> attachments, IGpuImageResource* image,
+	const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout requestedLayout)
+{
+	const GpuRenderPassAttachmentUsage* const renderPassAttachment = FindRenderPassAttachment(attachments, image, subresourceRange);
+	if(renderPassAttachment != nullptr)
+		return renderPassAttachment->Layout;
+
+	return requestedLayout;
 }
 
 RenderSurfaceMask GpuBackendUtility::GetRenderPassClears(const RenderPassCreateInformation& createInformation, RenderTargetClearValues& clearValues)
