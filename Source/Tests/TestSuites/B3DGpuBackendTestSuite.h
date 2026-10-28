@@ -65,6 +65,13 @@ namespace b3d
 		void TestSplitBarrierExecution();
 
 		/**
+		 * Records tens of thousands of dispatches and thousands of texture copies into one command buffer, on each queue, changing push
+		 * constants and parameter sets along the way, and verifies every write. Covers backends that grow their recording memory in
+		 * blocks, which must carry the bound state across them. Runs only with backends that resolve the test shaders.
+		 */
+		void TestLongRecording();
+
+		/**
 		 * Verifies that a barrier orders a long-running compute write before a copy recorded after a render pass that follows the
 		 * barrier, and before a copy in a later command buffer on the same queue. On backends that record passes as separate
 		 * encoders the copy runs in a later pass than the barrier, so a backend that only orders the pass the barrier was issued in

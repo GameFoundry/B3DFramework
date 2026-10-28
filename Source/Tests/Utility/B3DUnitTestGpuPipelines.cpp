@@ -46,6 +46,11 @@ namespace b3d
 		return CreateComputePipeline(device, "BarrierDispatch");
 	}
 
+	TShared<GpuComputePipelineState> CreateTestIndexedWritePipeline(GpuDevice& device)
+	{
+		return CreateComputePipeline(device, "IndexedWriteDispatch");
+	}
+
 	TShared<GpuComputePipelineState> CreateTestSamplePipeline(GpuDevice& device)
 	{
 		return CreateComputePipeline(device, "BarrierSample");

@@ -107,6 +107,7 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestResourceUseTracking)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestBarriers)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestSplitBarrierExecution)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestLongRecording)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestBarrierAcrossPasses)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestTransientAliasing)
 #if B3D_BUILD_TYPE_DEVELOPMENT
@@ -1462,6 +1463,164 @@ void GpuBackendTestSuite::TestSplitBarrierExecution()
 		fnTest(false, "Split barrier within a command buffer");
 		fnTest(true, "Split barrier across command buffers");
 	}, "GpuBackendTestSuite::TestSplitBarrierExecution", true);
+}
+
+void GpuBackendTestSuite::TestLongRecording()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	// Shaders are resources, which are created outside of the render thread
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	const TShared<GpuComputePipelineState> pipeline = CreateTestIndexedWritePipeline(*device);
+	if(pipeline == nullptr)
+		return;
+
+	GetRenderThread().PostCommand([this, &device, &pipeline]()
+	{
+		static constexpr u32 kDispatchCount = 32 * 1024;
+		static constexpr u32 kDispatchesPerParameterSet = 512;
+		static constexpr u32 kTextureSize = 64;
+		static constexpr u32 kPattern = 0x5A000000;
+		static constexpr u32 kBiases[] = { 0x10000000, 0x20000000 };
+		const GpuAccessState computeWrite(GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write);
+		const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write, GpuImageLayout::TransferDestination);
+		const GpuAccessState transferRead(GpuStageFlag::Transfer, GpuAccessFlag::Read, GpuImageLayout::TransferSource);
+		const GpuAccessState hostRead(GpuStageFlag::Host, GpuAccessFlag::Read);
+
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+
+		// One bias per parameter set
+		const TShared<render::GpuBuffer> biases = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(sizeof(u32), GpuBufferFlag::StoreOnCPUWithGPUAccess, 2));
+		const u32 biasStride = biases->GetSuballocationSize();
+		{
+			const render::GpuBufferMappedScope mapping = biases->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			for(u32 biasIndex = 0; biasIndex < 2; biasIndex++)
+				*reinterpret_cast<u32*>(static_cast<u8*>(mapping.GetMappedMemory()) + biasIndex * biasStride) = kBiases[biasIndex];
+		}
+
+		// Sampleable-only textures are shared between the queue families on Vulkan
+		TextureCreateInformation textureInformation;
+		textureInformation.Name = "Long recording texture";
+		textureInformation.Width = kTextureSize;
+		textureInformation.Height = kTextureSize;
+		textureInformation.Format = PF_R32U;
+
+		const ImageSubresourcePitch pitch = device->CreateTexture(textureInformation)->GetStagingBufferPitchForSubresource(0, 0);
+		const u32 stagingElementCount = pitch.RowPitch * pitch.SliceHeight;
+		const TShared<render::GpuBuffer> upload = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(stagingElementCount * sizeof(u32)));
+		{
+			const render::GpuBufferMappedScope mapping = upload->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			u32* elements = static_cast<u32*>(mapping.GetMappedMemory());
+			for(u32 elementIndex = 0; elementIndex < stagingElementCount; elementIndex++)
+				elements[elementIndex] = kPattern | elementIndex;
+		}
+
+		auto fnTest = [&](GpuQueueType queueType, const String& caseName)
+		{
+			const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kDispatchCount, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+			const TShared<render::GpuBuffer> outputReadback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kDispatchCount * sizeof(u32)));
+			const TShared<render::Texture> source = device->CreateTexture(textureInformation);
+			const TShared<render::Texture> destination = device->CreateTexture(textureInformation);
+			const TShared<render::GpuBuffer> textureReadback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(stagingElementCount * sizeof(u32)));
+
+			TShared<render::GpuParameterSet> parameterSets[2];
+			for(u32 setIndex = 0; setIndex < 2; setIndex++)
+			{
+				parameterSets[setIndex] = context->GetParameterSetPool().Create(pipeline->GetParameterLayout()->GetSet(0), 0);
+				parameterSets[setIndex]->SetUniformBuffer("Parameters", biases, 0, setIndex * biasStride);
+				parameterSets[setIndex]->SetStorageBuffer("OutputBuffer", output);
+			}
+
+			const TShared<GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device, queueType);
+			const TShared<GpuCommandBuffer> commands = pool->Create(GpuCommandBufferCreateInformation::Create("Long recording"));
+
+			// The new textures start at rest, and their contents are overwritten
+			const GpuBufferBarrier writeBufferBarrier(output, GpuAccessState(), computeWrite);
+			const GpuTextureBarrier writeTextureBarriers[] = { GpuTextureBarrier(source, GpuBarrierTestUtility::GetDiscardedRestingState(*source, queueType), transferWrite),
+				GpuTextureBarrier(destination, GpuBarrierTestUtility::GetDiscardedRestingState(*destination, queueType), transferWrite) };
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&writeBufferBarrier, 1), TArrayView<const GpuTextureBarrier>(writeTextureBarriers, 2)));
+			commands->CopyBufferToTexture(upload, source, 0, 0, 0);
+			commands->IssueBarriers(GpuTextureBarrier(source, transferWrite, transferRead));
+
+			// The dispatches write different elements, and the copies different texels, so neither need barriers between them
+			commands->SetGpuComputePipelineState(pipeline);
+			for(u32 dispatchIndex = 0; dispatchIndex < kDispatchCount; dispatchIndex++)
+			{
+				if(dispatchIndex % kDispatchesPerParameterSet == 0)
+					commands->SetGpuParameterSet(parameterSets[(dispatchIndex / kDispatchesPerParameterSet) % 2]);
+
+				commands->SetPushConstants(0, sizeof(dispatchIndex), &dispatchIndex);
+				commands->DispatchCompute(1);
+			}
+
+			// Mirrors the source horizontally, one texel per copy
+			for(u32 row = 0; row < kTextureSize; row++)
+			{
+				for(u32 column = 0; column < kTextureSize; column++)
+				{
+					TextureCopyInformation copyInformation;
+					copyInformation.SourceVolume = PixelVolume(column, row, 0, column + 1, row + 1, 1);
+					copyInformation.DestinationPosition = Vector3I(kTextureSize - 1 - column, row, 0);
+					commands->CopyTexture(source, destination, copyInformation);
+				}
+			}
+
+			const GpuBufferBarrier readBufferBarriers[] = { GpuBufferBarrier(output, computeWrite, transferRead), GpuBufferBarrier(outputReadback, GpuAccessState(), transferWrite),
+				GpuBufferBarrier(textureReadback, GpuAccessState(), transferWrite) };
+			const GpuTextureBarrier readTextureBarrier(destination, transferWrite, transferRead);
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(readBufferBarriers, 3), TArrayView<const GpuTextureBarrier>(&readTextureBarrier, 1)));
+			commands->CopyBufferToBuffer(output, outputReadback, 0, 0, kDispatchCount * sizeof(u32));
+			commands->CopyTextureToBuffer(destination, textureReadback, 0, 0);
+
+			const GpuBufferBarrier readbackBarriers[] = { GpuBufferBarrier(outputReadback, transferWrite, hostRead), GpuBufferBarrier(textureReadback, transferWrite, hostRead) };
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(readbackBarriers, 2)));
+
+			context->SubmitCommandBuffer(commands, GpuQueueMask::kNone);
+			device->WaitUntilIdle();
+
+			{
+				const render::GpuBufferMappedScope mapping = outputReadback->Map(GpuMapOption::Read);
+				B3D_TEST_ASSERT(mapping.IsValid())
+				if(!mapping.IsValid())
+					return;
+
+				const u32* elements = static_cast<const u32*>(mapping.GetMappedMemory());
+				bool matches = true;
+				for(u32 dispatchIndex = 0; dispatchIndex < kDispatchCount; dispatchIndex++)
+					matches &= elements[dispatchIndex] == kBiases[(dispatchIndex / kDispatchesPerParameterSet) % 2] + dispatchIndex;
+
+				B3D_TEST_ASSERT_MSG(matches, caseName + ": the dispatches did not write the expected values.")
+			}
+
+			const render::GpuBufferMappedScope mapping = textureReadback->Map(GpuMapOption::Read);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			const u32* elements = static_cast<const u32*>(mapping.GetMappedMemory());
+			bool matches = true;
+			for(u32 row = 0; row < kTextureSize; row++)
+			{
+				for(u32 column = 0; column < kTextureSize; column++)
+					matches &= elements[row * pitch.RowPitch + column] == (kPattern | (row * pitch.RowPitch + kTextureSize - 1 - column));
+			}
+
+			B3D_TEST_ASSERT_MSG(matches, caseName + ": the texture copies did not write the expected texels.")
+		};
+
+		fnTest(GQT_GRAPHICS, "Graphics queue");
+		fnTest(GQT_COMPUTE, "Compute queue");
+	}, "GpuBackendTestSuite::TestLongRecording", true);
 }
 
 void GpuBackendTestSuite::TestBarrierAcrossPasses()

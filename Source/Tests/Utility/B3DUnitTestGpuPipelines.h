@@ -14,6 +14,13 @@ namespace b3d
 	TShared<GpuComputePipelineState> CreateTestDispatchPipeline(GpuDevice& device);
 
 	/**
+	 * Creates a compute pipeline whose single-thread dispatch writes Bias + OutputIndex into element OutputIndex of the storage buffer
+	 * OutputBuffer. OutputIndex is a push constant, and Bias comes from the uniform buffer Parameters. Returns null if the shader cannot be
+	 * resolved for the active backend.
+	 */
+	TShared<GpuComputePipelineState> CreateTestIndexedWritePipeline(GpuDevice& device);
+
+	/**
 	 * Creates a compute pipeline whose thread (x, y) of a 16 x 16 dispatch reads texel (x, y) of the sampled R32U texture InputTexture,
 	 * and writes it into element y * 16 + x of the storage buffer OutputBuffer. Returns null if the shader cannot be resolved for the
 	 * active backend.
