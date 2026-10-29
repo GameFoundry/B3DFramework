@@ -370,7 +370,12 @@ namespace b3d
 
 			// Consumer barriers only order the encoder they are encoded in. Every later encoder, including those of command
 			// buffers committed to the queue later, waits through a producer barrier.
-			[encoder barrierAfterStages:barrier.SourceStages beforeQueueStages:barrier.DestinationStages visibilityOptions:barrier.Visibility];
+			//
+			// Workaround for a Metal bug: a consumer barrier in a compute encoder does not reliably wait for the render work of
+			// earlier encoders, although the barrier's stages cover it, so dispatches could read render pass results before they
+			// are written. Producer barriers in render encoders do order them, so they always make later dispatches wait too.
+			const MTLStages producerDestinationStages = barrier.DestinationStages | (isRenderEncoder ? MTLStageDispatch : 0);
+			[encoder barrierAfterStages:barrier.SourceStages beforeQueueStages:producerDestinationStages visibilityOptions:barrier.Visibility];
 		}
 
 		void MetalGpuCommandBuffer::EmitPendingBarrier()
