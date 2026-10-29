@@ -226,16 +226,8 @@ namespace b3d
 			mArgumentBufferSize = Bitwise::AlignUp<u64>(argumentBufferSize, mArgumentBufferAlignment);
 
 			mCombinedStages = GpuProgramStageBit::None;
-			mHasFragmentWrites = false;
 			for (const MetalArgumentBufferBinding& binding : mBindings)
-			{
 				mCombinedStages |= binding.Stages;
-
-				const bool isWritable = (binding.Type == GpuParameterType::StorageBuffer && GpuObjectParameterTypeInformation::IsReadWriteBuffer(binding.ObjectType))
-					|| (binding.Type == GpuParameterType::StorageTexture && GpuObjectParameterTypeInformation::IsReadWriteTexture(binding.ObjectType));
-				if (isWritable && binding.Stages.IsSet(GpuProgramStageBit::Fragment))
-					mHasFragmentWrites = true;
-			}
 		}
 
 		const MetalArgumentBufferBinding* MetalGpuPipelineParameterSetLayout::FindBinding(GpuParameterType type, u32 slot) const

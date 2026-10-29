@@ -57,7 +57,7 @@ VulkanFramebuffer::VulkanFramebuffer(VulkanResourceManager* owner, VulkanRenderP
 	framebufferCI.layers = desc.Layers;
 
 	// Relying on the fact that compatible render passes can be used, and don't need to match exactly
-	framebufferCI.renderPass = mRenderPass->GetVkRenderPass(RT_NONE, RT_NONE, RT_NONE);
+	framebufferCI.renderPass = mRenderPass->GetVkRenderPass(RT_NONE, RT_NONE, RT_NONE, RT_ALL);
 
 	VkDevice device = mOwner->GetDevice().GetLogical();
 	VkResult result = vkCreateFramebuffer(device, &framebufferCI, gVulkanAllocator, &mVkFramebuffer);

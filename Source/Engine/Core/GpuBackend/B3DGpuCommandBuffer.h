@@ -524,6 +524,12 @@ namespace b3d
 			 */
 			RenderSurfaceMask ClearMask = RT_NONE;
 
+			/**
+			 * Which surfaces of the render target keep their contents when the render pass ends. The contents of the other writable
+			 * surfaces are undefined afterwards, which lets tile-based GPUs skip writing them to memory. Read-only surfaces ignore it.
+			 */
+			RenderSurfaceMask StoreMask = RT_ALL;
+
 			RenderPassCreateInformation() = default;
 
 			RenderPassCreateInformation(const TShared<RenderTarget>& target, RenderSurfaceMask readOnlyMask = RT_NONE, RenderSurfaceMask loadMask = RT_NONE)

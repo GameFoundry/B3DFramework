@@ -73,12 +73,14 @@ namespace b3d
 			/**
 			 * Gets internal Vulkan render pass object.
 			 *
-			 * @param[in]	loadMask	Mask that control which render target surface contents should be preserved on load.
-			 * @param[in]	readMask	Mask that controls which render targets can be read by shaders while they're bound.
-			 * @param[in]	clearMask	Mask that controls which render targets should be cleared on render pass start. Target
-			 *							cannot have both load and clear bits set. If load bit is set, clear will be ignored.
+			 * @param	loadMask	Mask that control which render target surface contents should be preserved on load.
+			 * @param	readMask	Mask that controls which render targets can be read by shaders while they're bound.
+			 * @param	clearMask	Mask that controls which render targets should be cleared on render pass start. Target
+			 *						cannot have both load and clear bits set. If load bit is set, clear will be ignored.
+			 * @param	storeMask	Mask that controls which render target surfaces keep their contents when the render pass ends.
+			 *						Read-only surfaces ignore it.
 			 */
-			VkRenderPass GetVkRenderPass(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask) const;
+			VkRenderPass GetVkRenderPass(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask, RenderSurfaceMask storeMask) const;
 
 			/** Gets the total number of frame-buffer attachments, including both color and depth. */
 			u32 GetAttachmentCount() const { return mAttachmentCount; }
@@ -105,7 +107,7 @@ namespace b3d
 			/** Key used for identifying different types of frame-buffer variants. */
 			struct VariantKey
 			{
-				VariantKey(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask);
+				VariantKey(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask, RenderSurfaceMask storeMask);
 
 				class HashFunction
 				{
@@ -122,10 +124,11 @@ namespace b3d
 				RenderSurfaceMask LoadMask;
 				RenderSurfaceMask ReadMask;
 				RenderSurfaceMask ClearMask;
+				RenderSurfaceMask StoreMask;
 			};
 
 			/** Creates a new variant of the render pass. */
-			VkRenderPass CreateVariant(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask) const;
+			VkRenderPass CreateVariant(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask, RenderSurfaceMask storeMask) const;
 
 			u32 mId;
 			u32 mAttachmentCount;

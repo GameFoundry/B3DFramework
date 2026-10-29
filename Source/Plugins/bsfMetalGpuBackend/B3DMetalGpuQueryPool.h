@@ -20,8 +20,8 @@ namespace b3d
 		/**
 		 * Metal implementation of a query pool.
 		 *
-		 * Occlusion pools allocate a shared @c MTLBuffer used as the visibility result buffer; each
-		 * query gets an 8-byte slot. Timestamp pools use an @c MTL4CounterHeap, resolved on the CPU.
+		 * Occlusion pools own a range of the 8-byte slots of the device's visibility result buffer (see
+		 * MetalGpuDevice::GetVisibilityResultBuffer()), one per query. Timestamp pools use an @c MTL4CounterHeap, resolved on the CPU.
 		 * Pipeline-statistics pools are not implemented (needs a core API change).
 		 */
 		class MetalGpuQueryPool final : public GpuQueryPool
@@ -34,14 +34,14 @@ namespace b3d
 			bool TryResolve(bool wait = false) override;
 			u64 GetQueryResult(GpuQueryId queryId, u32 elementIndex = 0) override;
 
-			/** Returns the underlying visibility-result buffer for occlusion queries. */
-			id<MTLBuffer> GetVisibilityBuffer() const { return mVisibilityBuffer; }
+			/** Returns the byte range of the pool's slots in the device's visibility result buffer. Empty for other than occlusion pools. */
+			NSRange GetVisibilityResultRange() const;
 
 			/** Returns the underlying counter heap for timestamp queries, or nil if unsupported. */
 			id<MTL4CounterHeap> GetCounterHeap() const { return mCounterHeap; }
 
-			/** Returns the byte offset of a query's result slot inside the visibility buffer. */
-			u32 GetQueryOffset(GpuQueryId queryId) const { return queryId.Id * sizeof(u64); }
+			/** Returns the byte offset of a query's result slot inside the device's visibility result buffer. */
+			u32 GetQueryOffset(GpuQueryId queryId) const { return (mFirstVisibilityResultSlot + queryId.Id) * sizeof(u64); }
 
 			/**
 			 * Records the first reference from a command buffer that has not entered submission yet.
@@ -107,8 +107,7 @@ namespace b3d
 			void RemoveCompletedSubmissions();
 
 			MetalGpuDevice& mGpuDevice;
-			id<MTLBuffer> mVisibilityBuffer = nil;
-			GpuAllocation mVisibilityBufferAllocation;
+			u32 mFirstVisibilityResultSlot = ~0u; /**< First slot of an occlusion pool in the device's visibility result buffer, or ~0u if it has none. */
 			id<MTL4CounterHeap> mCounterHeap = nil;
 			u32 mNextQueryId = 0;
 			u32 mRecordedCommandBuffers = 0;

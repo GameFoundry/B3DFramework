@@ -225,17 +225,14 @@ namespace b3d
 			/** Converts the stored normalized viewport to this pass's pixel units and applies it to the open render encoder. */
 			void ApplyViewportToRenderEncoder();
 
-			/** Ends the open render encoder and continues the render pass in a new one, which loads what the previous one stored. */
-			bool RestartRenderPass();
-
-			/** Opens a render encoder continuing the current pass, and restores the state the previous encoder held. */
-			bool ResumeRenderPass(MTL4RenderPassDescriptor* descriptor);
-
 			/**
-			 * Makes the render encoder write visibility results into @p queryPool. Metal fixes the visibility buffer when an
-			 * encoder is created, so changing pools requires a new encoder.
+			 * Clears the surfaces in @p mask within @p area of the render pass, by drawing a triangle that covers it. Metal's only other clear,
+			 * a load action, would need a new render encoder.
 			 */
-			bool ActivateOcclusionQueryPool(const TShared<MetalGpuQueryPool>& queryPool);
+			void EncodeClear(RenderSurfaceMask mask, const MTLViewport& area);
+
+			/** Returns a viewport, in pixels, that covers the whole render pass. */
+			MTLViewport GetRenderPassViewport() const;
 
 			/**
 			 * Resolves the bound graphics pipeline's vertex input against the bound vertex description, and binds the null
@@ -304,9 +301,6 @@ namespace b3d
 			/** True if the open encoder encoded work that later work in the same encoder may depend on. */
 			bool mEncoderHasWork = false;
 
-			/** True if fragment shaders of draws in the open render encoder may write storage resources. */
-			bool mRenderEncoderHasFragmentWrites = false;
-
 			/** Barrier recorded while no encoder was open, encoded at the start of the next encoder. */
 			MetalStageBarrier mPendingBarrier;
 
@@ -331,8 +325,6 @@ namespace b3d
 
 			/** Residency sets of the layers whose drawables the command buffer accesses, attached through UseDrawableResidency(). */
 			Vector<id<MTLResidencySet>> mDrawableResidencySets;
-
-			MTL4RenderPassDescriptor* mRestartRenderPassDescriptor = nil;
 
 			/** Signals of event queries, issued by the queue once the command buffer finishes executing. */
 			Vector<PendingEventSignal> mPendingEventSignals;
@@ -391,9 +383,6 @@ namespace b3d
 
 			/** Clear values of the bound target's surfaces, used by both the pass load actions and explicit clears. */
 			RenderTargetClearValues mRenderPassClearValues;
-
-			/** Occlusion query pool whose visibility buffer is attached to the render encoder. */
-			TShared<MetalGpuQueryPool> mActiveOcclusionQueryPool;
 
 			/** Query pools used while recording. Usually only a few, so they're searched linearly. */
 			TInlineArray<TShared<MetalGpuQueryPool>, 4> mUsedQueryPools;

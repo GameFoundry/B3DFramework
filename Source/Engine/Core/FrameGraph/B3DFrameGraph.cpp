@@ -15,6 +15,7 @@
 #include "GpuBackend/B3DRenderWindow.h"
 #include "Profiling/B3DProfilerCPU.h"
 #include "Profiling/B3DProfilerGPU.h"
+#include "Utility/B3DBitwise.h"
 
 namespace b3d
 {
@@ -421,28 +422,29 @@ namespace b3d::render
 			attachments.ReadOnlyMask = RT_DEPTH;
 		}
 
-		// Declares the access of a color attachment to @p range
-		const auto fnDeclareColorAttachmentAccess = [this, &output](u32 resourceIndex, const GpuTextureSubresourceRange& range, bool discardsContents)
+		// Declares the access of the attachment of @p surfaces to @p range. A color attachment is a single surface, while the depth and
+		// stencil aspects of a depth-stencil attachment are a surface each, with their own state.
+		const auto fnDeclareAttachmentAccess = [this, &output, &depthState, &stencilState](u32 resourceIndex, const GpuTextureSubresourceRange& range, bool discardsContents, RenderSurfaceMask surfaces)
 		{
-			DeclareAccess(output, resourceIndex, range, GetColorAttachmentState(), discardsContents);
-		};
+			if(surfaces != RT_DEPTH_STENCIL)
+			{
+				DeclareAccess(output, resourceIndex, range, GetColorAttachmentState(), discardsContents, (RenderSurfaceMaskBits)(u32)surfaces);
+				return;
+			}
 
-		// Declares the access of a depth-stencil attachment to @p range. The depth and stencil aspects each get their own state.
-		const auto fnDeclareDepthStencilAttachmentAccess = [this, &output, &depthState, &stencilState](u32 resourceIndex, const GpuTextureSubresourceRange& range, bool discardsContents)
-		{
 			GpuTextureSubresourceRange depthRange = range;
 			depthRange.AspectMask = range.AspectMask & GpuTextureAspectFlag::Depth;
 			if(depthRange.AspectMask != GpuTextureAspectFlags())
-				DeclareAccess(output, resourceIndex, depthRange, depthState, discardsContents);
+				DeclareAccess(output, resourceIndex, depthRange, depthState, discardsContents, RT_DEPTH);
 
 			GpuTextureSubresourceRange stencilRange = range;
 			stencilRange.AspectMask = range.AspectMask & GpuTextureAspectFlag::Stencil;
 			if(stencilRange.AspectMask != GpuTextureAspectFlags())
-				DeclareAccess(output, resourceIndex, stencilRange, stencilState, discardsContents);
+				DeclareAccess(output, resourceIndex, stencilRange, stencilState, discardsContents, RT_STENCIL);
 		};
 
-		// Declares the subresources of an attachment texture with @p fnDeclareAccess, and adds its surfaces to the load and clear masks
-		const auto fnDeclareTexture = [this, &output, &attachments](const FrameGraphRasterPass::Attachment& attachment, RenderSurfaceMask surfaces, const auto& fnDeclareAccess)
+		// Declares the subresources of the attachment texture of @p surfaces, and adds the surfaces to the load and clear masks
+		const auto fnDeclareTexture = [this, &output, &attachments, &fnDeclareAttachmentAccess](const FrameGraphRasterPass::Attachment& attachment, RenderSurfaceMask surfaces)
 		{
 			if(attachment.Texture == nullptr)
 				return;
@@ -455,7 +457,7 @@ namespace b3d::render
 			const u32 faceCount = attachment.FaceCount != 0 ? attachment.FaceCount : resource.FullRange.ArrayLayerCount - attachment.Face;
 			const GpuTextureSubresourceRange range(attachment.MipLevel, 1, attachment.Face, faceCount, resource.FullRange.AspectMask);
 
-			fnDeclareAccess(resourceIndex, range, attachment.Load != FrameGraphAttachmentLoad::Load);
+			fnDeclareAttachmentAccess(resourceIndex, range, attachment.Load != FrameGraphAttachmentLoad::Load, surfaces);
 			AddLoadMask(attachment.Load, surfaces, attachments.LoadMask, attachments.ClearMask);
 		};
 
@@ -465,11 +467,11 @@ namespace b3d::render
 			for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
 			{
 				attachments.ColorAttachments[colorIndex] = pass.mColorAttachments[colorIndex];
-				fnDeclareTexture(pass.mColorAttachments[colorIndex], (RenderSurfaceMaskBits)(RT_COLOR0 << colorIndex), fnDeclareColorAttachmentAccess);
+				fnDeclareTexture(pass.mColorAttachments[colorIndex], (RenderSurfaceMaskBits)(RT_COLOR0 << colorIndex));
 			}
 
 			attachments.DepthStencilAttachment = pass.mDepthStencilAttachment;
-			fnDeclareTexture(pass.mDepthStencilAttachment, RT_DEPTH_STENCIL, fnDeclareDepthStencilAttachmentAccess);
+			fnDeclareTexture(pass.mDepthStencilAttachment, RT_DEPTH_STENCIL);
 			return;
 		}
 
@@ -481,7 +483,7 @@ namespace b3d::render
 		if(!target->GetProperties().IsWindow)
 		{
 			const RenderTexture& renderTexture = static_cast<const RenderTexture&>(*target);
-			const auto fnDeclareSurface = [&fnDeclareTexture, load](const RenderSurfaceInformation& surface, RenderSurfaceMask surfaces, const auto& fnDeclareAccess)
+			const auto fnDeclareSurface = [&fnDeclareTexture, load](const RenderSurfaceInformation& surface, RenderSurfaceMask surfaces)
 			{
 				FrameGraphRasterPass::Attachment attachment;
 				attachment.Texture = surface.Texture;
@@ -490,13 +492,13 @@ namespace b3d::render
 				attachment.Face = surface.Face;
 				attachment.FaceCount = surface.FaceCount;
 
-				fnDeclareTexture(attachment, surfaces, fnDeclareAccess);
+				fnDeclareTexture(attachment, surfaces);
 			};
 
 			for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
-				fnDeclareSurface(renderTexture.GetColorSurfaceInformation(colorIndex), (RenderSurfaceMaskBits)(RT_COLOR0 << colorIndex), fnDeclareColorAttachmentAccess);
+				fnDeclareSurface(renderTexture.GetColorSurfaceInformation(colorIndex), (RenderSurfaceMaskBits)(RT_COLOR0 << colorIndex));
 
-			fnDeclareSurface(renderTexture.GetDepthStencilSurfaceInformation(), RT_DEPTH_STENCIL, fnDeclareDepthStencilAttachmentAccess);
+			fnDeclareSurface(renderTexture.GetDepthStencilSurfaceInformation(), RT_DEPTH_STENCIL);
 			return;
 		}
 
@@ -507,13 +509,13 @@ namespace b3d::render
 
 		const bool discardsContents = load != FrameGraphAttachmentLoad::Load;
 		const u32 colorResourceIndex = found->second;
-		fnDeclareColorAttachmentAccess(colorResourceIndex, mResources[colorResourceIndex].FullRange, discardsContents);
+		fnDeclareAttachmentAccess(colorResourceIndex, mResources[colorResourceIndex].FullRange, discardsContents, RT_COLOR0);
 		AddLoadMask(load, RT_COLOR0, attachments.LoadMask, attachments.ClearMask);
 
 		const u32 depthStencilResourceIndex = colorResourceIndex + 1;
 		if(depthStencilResourceIndex < (u32)mResources.size() && mResources[depthStencilResourceIndex].Target == target)
 		{
-			fnDeclareDepthStencilAttachmentAccess(depthStencilResourceIndex, mResources[depthStencilResourceIndex].FullRange, discardsContents);
+			fnDeclareAttachmentAccess(depthStencilResourceIndex, mResources[depthStencilResourceIndex].FullRange, discardsContents, RT_DEPTH_STENCIL);
 			AddLoadMask(load, RT_DEPTH_STENCIL, attachments.LoadMask, attachments.ClearMask);
 		}
 	}
@@ -654,6 +656,7 @@ namespace b3d::render
 
 		CullPasses(context);
 		OrderPasses();
+		InferLoads(context);
 		ResolveQueues(context);
 		PlanBarriers(context);
 		BuildSubmissions(context);
@@ -689,10 +692,19 @@ namespace b3d::render
 			}
 
 			bool isAlive = false;
+			RenderSurfaceMask writtenSurfaces = RT_NONE;
+			RenderSurfaceMask observedSurfaces = RT_NONE;
 			for(const SubresourceAccess& access : pass.Accesses)
 			{
-				if(access.State.Access.IsSet(GpuAccessFlag::Write) && isObserved[mResources[access.ResourceIndex].FirstSubresourceIndex + access.SubresourceIndex])
-					isAlive = true;
+				if(!access.State.Access.IsSet(GpuAccessFlag::Write))
+					continue;
+
+				const bool isWriteObserved = isObserved[mResources[access.ResourceIndex].FirstSubresourceIndex + access.SubresourceIndex];
+				isAlive |= isWriteObserved;
+				writtenSurfaces |= access.Surface;
+
+				if(isWriteObserved)
+					observedSurfaces |= access.Surface;
 			}
 
 			pass.IsCulled = !isAlive;
@@ -701,6 +713,11 @@ namespace b3d::render
 				mStatistics.CulledPassCount++;
 				continue;
 			}
+
+			// A raster pass stores the surfaces with a subresource whose writes something observes, and discards the others
+			const RenderSurfaceMask discardedSurfaces = writtenSurfaces & ~observedSurfaces;
+			pass.Attachments.StoreMask = ~discardedSurfaces;
+			mStatistics.DiscardedAttachmentCount += Bitwise::CountSetBits((u32)discardedSurfaces);
 
 			// A write that discards the earlier contents hides them from everything after it
 			for(const SubresourceAccess& access : pass.Accesses)
@@ -733,6 +750,69 @@ namespace b3d::render
 					resource.FirstPassIndex = compiledIndex;
 
 				resource.LastPassIndex = compiledIndex;
+			}
+		}
+	}
+
+	void FrameGraph::InferLoads(const CompileContext& context)
+	{
+		// Walking the surviving passes in order, each subresource tracks whether a pass wrote it. Imported resources hold contents from
+		// before the graph.
+		FrameVector<bool> isWritten(context.SubresourceCount, false);
+		for(const Resource& resource : mResources)
+		{
+			if(resource.Type != ResourceType::Transient)
+				std::fill(isWritten.begin() + resource.FirstSubresourceIndex, isWritten.begin() + resource.FirstSubresourceIndex + resource.SubresourceCount, true);
+		}
+
+		for(u32 compiledIndex = 0; compiledIndex < (u32)mCompiledPassIndices.size(); compiledIndex++)
+		{
+			Pass& pass = GetCompiledPass(compiledIndex);
+
+			// A surface none of whose subresources an earlier pass wrote has undefined contents, so the pass does not load it
+			if(pass.Type == PassType::Raster && pass.Attachments.LoadMask != RT_NONE)
+			{
+				RenderSurfaceMask undefinedSurfaces = RT_NONE;
+				RenderSurfaceMask definedSurfaces = RT_NONE;
+				for(const SubresourceAccess& access : pass.Accesses)
+				{
+					if(isWritten[mResources[access.ResourceIndex].FirstSubresourceIndex + access.SubresourceIndex])
+						definedSurfaces |= access.Surface;
+					else
+						undefinedSurfaces |= access.Surface;
+				}
+
+				const RenderSurfaceMask undefinedLoads = pass.Attachments.LoadMask & undefinedSurfaces & ~definedSurfaces;
+				if(undefinedLoads != RT_NONE)
+				{
+#if B3D_BUILD_TYPE_DEVELOPMENT
+					// Loading undefined contents, such as to blend onto them, is a bug of the pass. Accesses are sorted by resource.
+					u32 reportedResourceIndex = ~0u;
+					for(const SubresourceAccess& access : pass.Accesses)
+					{
+						if((undefinedLoads & access.Surface) == RT_NONE || access.ResourceIndex == reportedResourceIndex)
+							continue;
+
+						reportedResourceIndex = access.ResourceIndex;
+						B3D_LOG(Warning, LogRenderer, "Pass '{0}' loads '{1}', which no earlier pass wrote. Its contents are undefined.", pass.Name,
+							mResources[access.ResourceIndex].Texture->GetName());
+					}
+#endif
+
+					// Read-only surfaces must be loaded, and backends load depth and stencil together
+					RenderSurfaceMask droppedLoads = undefinedLoads & ~pass.Attachments.ReadOnlyMask;
+					if((droppedLoads & RT_DEPTH_STENCIL) != (pass.Attachments.LoadMask & RT_DEPTH_STENCIL))
+						droppedLoads &= ~RenderSurfaceMask(RT_DEPTH_STENCIL);
+
+					pass.Attachments.LoadMask &= ~droppedLoads;
+					mStatistics.DroppedLoadCount += Bitwise::CountSetBits((u32)droppedLoads);
+				}
+			}
+
+			for(const SubresourceAccess& access : pass.Accesses)
+			{
+				if(access.State.Access.IsSet(GpuAccessFlag::Write))
+					isWritten[mResources[access.ResourceIndex].FirstSubresourceIndex + access.SubresourceIndex] = true;
 			}
 		}
 	}
@@ -2203,6 +2283,7 @@ namespace b3d::render
 				{
 					RenderPassCreateInformation renderPassInformation(pass.Attachments.Target, pass.Attachments.ReadOnlyMask, pass.Attachments.LoadMask);
 					renderPassInformation.ClearMask = pass.Attachments.ClearMask;
+					renderPassInformation.StoreMask = pass.Attachments.StoreMask;
 					commandBuffer.BeginRenderPass(renderPassInformation);
 				}
 
@@ -2413,7 +2494,7 @@ namespace b3d::render
 		return output;
 	}
 
-	void FrameGraph::DeclareAccess(Pass& pass, u32 resourceIndex, const GpuTextureSubresourceRange& range, const GpuAccessState& state, bool discardsContents)
+	void FrameGraph::DeclareAccess(Pass& pass, u32 resourceIndex, const GpuTextureSubresourceRange& range, const GpuAccessState& state, bool discardsContents, RenderSurfaceMaskBits surface)
 	{
 		const Resource& resource = mResources[resourceIndex];
 
@@ -2440,6 +2521,7 @@ namespace b3d::render
 				access.SubresourceIndex = subresourceIndex;
 				access.State = state;
 				access.DiscardsContents = discardsContents;
+				access.Surface = surface;
 				pass.Accesses.insert(position, access);
 				return;
 			}
@@ -2471,6 +2553,13 @@ namespace b3d::render
 			existing.State.Access |= state.Access;
 			existing.State.Layout = layout;
 			existing.DiscardsContents &= discardsContents;
+
+			// A subresource is part of a single attachment, which other accesses of the pass, such as sampling, do not change
+			if(surface != RT_NONE)
+			{
+				B3D_ENSURE_LOG(existing.Surface == RT_NONE || existing.Surface == surface, "Pass '{0}' renders into the same subresource of '{1}' through two attachments.", pass.Name, resourceName);
+				existing.Surface = surface;
+			}
 		};
 
 		if(resource.Buffer != nullptr)

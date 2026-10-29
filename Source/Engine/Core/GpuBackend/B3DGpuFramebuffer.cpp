@@ -40,7 +40,7 @@ namespace b3d::render
 		return nullptr;
 	}
 
-	GpuRenderPassAttachmentUsageArray GpuFramebuffer::BuildRenderPassAttachmentUsages(RenderSurfaceMask readOnlyMask, RenderSurfaceMask loadMask) const
+	GpuRenderPassAttachmentUsageArray GpuFramebuffer::BuildRenderPassAttachmentUsages(RenderSurfaceMask readOnlyMask) const
 	{
 		GpuRenderPassAttachmentUsageArray output;
 		for(const GpuFramebufferAttachment& attachment : mAttachments)
@@ -52,9 +52,6 @@ namespace b3d::render
 			usage.Range = attachment.Range;
 			usage.Surface = attachment.Surface;
 			usage.Access = readOnly ? GpuAccessFlags(GpuAccessFlag::Read) : GpuAccessFlag::Read | GpuAccessFlag::Write; // Writable attachments can also read through loads, blending and depth/stencil tests.
-			if(!readOnly && !loadMask.IsSet(attachment.Surface))
-				usage.BarrierFlags.Set(GpuBarrierFlag::DiscardContents);
-
 			usage.Layout = GpuBackendUtility::GetRenderPassAttachmentLayout(attachment.Surface, readOnlyMask);
 			usage.FinalLayout = attachment.FinalLayout;
 

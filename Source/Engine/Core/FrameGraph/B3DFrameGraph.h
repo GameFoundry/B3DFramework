@@ -85,7 +85,12 @@ namespace b3d
 		/** Determines what a raster pass does with the existing contents of an attachment. */
 		enum class FrameGraphAttachmentLoad
 		{
-			Load, /**< The pass reads the existing contents, such as for blending. */
+			/**
+			 * The pass reads the existing contents, such as for blending. Contents that no earlier pass of the graph wrote are undefined: the
+			 * graph does not load them, and development builds report it.
+			 */
+			Load,
+
 			Clear, /**< The pass clears the attachment to the clear value of its texture or render target. */
 			DontCare /**< The pass overwrites every pixel it reads. The existing contents are discarded. */
 		};
@@ -274,6 +279,19 @@ namespace b3d
 		{
 			u32 PassCount = 0; /**< Number of passes added to the graph. */
 			u32 CulledPassCount = 0; /**< Number of passes culled because nothing observes their writes. */
+
+			/**
+			 * Number of attachment surfaces that surviving raster passes do not store, because nothing observes what the passes wrote into
+			 * them. Depth and stencil count separately.
+			 */
+			u32 DiscardedAttachmentCount = 0;
+
+			/**
+			 * Number of attachment surfaces that raster passes load although no earlier pass wrote them, whose loads the graph dropped. Depth and
+			 * stencil count separately.
+			 */
+			u32 DroppedLoadCount = 0;
+
 			u32 FullBarrierCount = 0; /**< Number of barriers issued as full barriers, alias acquires included. */
 			u32 SplitBarrierCount = 0; /**< Number of barriers issued as split barriers, alias acquires included. */
 			u32 BarrierBatchCount = 0; /**< Number of barrier batches: GpuSplitBarrier objects that record the split barriers. */
@@ -471,6 +489,12 @@ namespace b3d
 				 * a subresource keeps the rest.
 				 */
 				bool DiscardsContents = false;
+
+				/**
+				 * Surface of the raster pass's render target the subresource is part of, or RT_NONE if it is not an attachment. The depth and
+				 * stencil aspects are RT_DEPTH and RT_STENCIL.
+				 */
+				RenderSurfaceMaskBits Surface = RT_NONE;
 			};
 
 			/** Attachments of a raster pass, and the render target that binds them. */
@@ -482,6 +506,7 @@ namespace b3d
 				RenderSurfaceMask LoadMask = RT_NONE;
 				RenderSurfaceMask ClearMask = RT_NONE;
 				RenderSurfaceMask ReadOnlyMask = RT_NONE;
+				RenderSurfaceMask StoreMask = RT_ALL; /**< Compile() leaves out the surfaces whose writes nothing observes. */
 			};
 
 			/** Barriers of one call to GpuCommandBuffer::IssueBarriers(), ReleaseBarriers() or AcquireBarriers(). */
@@ -568,9 +593,10 @@ namespace b3d
 
 			/**
 			 * Declares an access of @p pass to @p range of the resource at @p resourceIndex. Merges the access with earlier accesses of the
-			 * pass to the same subresources. See SubresourceAccess::DiscardsContents for @p discardsContents.
+			 * pass to the same subresources. See SubresourceAccess::DiscardsContents for @p discardsContents, and SubresourceAccess::Surface
+			 * for @p surface.
 			 */
-			void DeclareAccess(Pass& pass, u32 resourceIndex, const GpuTextureSubresourceRange& range, const GpuAccessState& state, bool discardsContents = false);
+			void DeclareAccess(Pass& pass, u32 resourceIndex, const GpuTextureSubresourceRange& range, const GpuAccessState& state, bool discardsContents = false, RenderSurfaceMaskBits surface = RT_NONE);
 
 			/** State the stages of Compile() pass on to each other. */
 			struct CompileContext;
@@ -578,11 +604,20 @@ namespace b3d
 			/** Returns the surviving pass at @p compiledIndex in mCompiledPassIndices. */
 			Pass& GetCompiledPass(u32 compiledIndex) { return mPasses[mCompiledPassIndices[compiledIndex]]; }
 
-			/** Culls the passes whose writes nothing observes: no later surviving pass, export, or the end of the graph. */
+			/**
+			 * Culls the passes whose writes nothing observes: no later surviving pass, export, or the end of the graph. Surviving raster
+			 * passes store only the surfaces whose writes something observes.
+			 */
 			void CullPasses(const CompileContext& context);
 
 			/** Puts the surviving passes in execution order, and finds the first and last surviving pass of each resource. */
 			void OrderPasses();
+
+			/**
+			 * Drops the loads of the raster pass surfaces that no earlier surviving pass wrote, as their contents are undefined. Development
+			 * builds report each, as loading undefined contents is a bug of the pass.
+			 */
+			void InferLoads(const CompileContext& context);
 
 			/** Picks the queue of each surviving pass, and finds the previous pass on its queue. */
 			void ResolveQueues(CompileContext& context);

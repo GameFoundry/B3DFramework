@@ -51,11 +51,17 @@ namespace b3d
 			constexpr u32 kUploadAlignment = 256;
 
 			/**
-			 * Sets the load and store actions of every attachment @p descriptor has a texture for. Attachments neither
-			 * loaded nor cleared use DontCare.
+			 * Sets the load and store actions of every attachment @p descriptor has a texture for. Attachments neither loaded nor
+			 * cleared use DontCare, and so do attachments not in @p storeMask when the pass ends.
 			 */
-			void ConfigureAttachmentActions(MTL4RenderPassDescriptor* descriptor, RenderSurfaceMask loadMask, RenderSurfaceMask clearMask, const RenderTargetClearValues& clearValues)
+			void ConfigureAttachmentActions(MTL4RenderPassDescriptor* descriptor, RenderSurfaceMask loadMask, RenderSurfaceMask clearMask, RenderSurfaceMask storeMask,
+				const RenderTargetClearValues& clearValues)
 			{
+				auto fnGetStoreAction = [&storeMask](RenderSurfaceMaskBits surface)
+				{
+					return storeMask.IsSet(surface) ? MTLStoreActionStore : MTLStoreActionDontCare;
+				};
+
 				auto fnGetLoadAction = [&loadMask, &clearMask](RenderSurfaceMaskBits surface)
 				{
 					if (clearMask.IsSet(surface))
@@ -73,7 +79,7 @@ namespace b3d
 					const Color& clearColor = clearValues.Colors[attachmentIndex];
 					color.loadAction = fnGetLoadAction((RenderSurfaceMaskBits)(RT_COLOR0 << attachmentIndex));
 					color.clearColor = MTLClearColorMake(clearColor.R, clearColor.G, clearColor.B, clearColor.A);
-					color.storeAction = MTLStoreActionStore;
+					color.storeAction = fnGetStoreAction((RenderSurfaceMaskBits)(RT_COLOR0 << attachmentIndex));
 				}
 
 				MTLRenderPassDepthAttachmentDescriptor* depth = descriptor.depthAttachment;
@@ -81,7 +87,7 @@ namespace b3d
 				{
 					depth.loadAction = fnGetLoadAction(RT_DEPTH);
 					depth.clearDepth = clearValues.Depth;
-					depth.storeAction = MTLStoreActionStore;
+					depth.storeAction = fnGetStoreAction(RT_DEPTH);
 				}
 
 				MTLRenderPassStencilAttachmentDescriptor* stencil = descriptor.stencilAttachment;
@@ -89,7 +95,7 @@ namespace b3d
 				{
 					stencil.loadAction = fnGetLoadAction(RT_STENCIL);
 					stencil.clearStencil = clearValues.Stencil;
-					stencil.storeAction = MTLStoreActionStore;
+					stencil.storeAction = fnGetStoreAction(RT_STENCIL);
 				}
 			}
 
@@ -286,7 +292,6 @@ namespace b3d
 			}
 
 			mEncoderHasWork = false;
-			mRenderEncoderHasFragmentWrites = false;
 		}
 
 		id<MTL4ComputeCommandEncoder> MetalGpuCommandBuffer::OpenComputeEncoder()
@@ -373,82 +378,6 @@ namespace b3d
 			const MetalStageBarrier pendingBarrier = mPendingBarrier;
 			mPendingBarrier = MetalStageBarrier();
 			EmitBarrier(pendingBarrier);
-		}
-
-		bool MetalGpuCommandBuffer::RestartRenderPass()
-		{
-			if (mRenderEncoder == nil || mRestartRenderPassDescriptor == nil)
-			{
-				B3D_LOG(Fatal, LogRenderBackend, "Cannot restart the Metal render pass required by a barrier.");
-				mRecordingFailed = true;
-
-				CloseEncoder();
-				return false;
-			}
-
-			return ResumeRenderPass(mRestartRenderPassDescriptor);
-		}
-
-		bool MetalGpuCommandBuffer::ResumeRenderPass(MTL4RenderPassDescriptor* descriptor)
-		{
-			if (descriptor == nil || mRecordingFailed)
-				return false;
-
-			CloseEncoder();
-			if (!OpenRenderEncoder(descriptor))
-			{
-				B3D_LOG(Fatal, LogRenderBackend, "Failed to resume a Metal render pass after an encoder boundary.");
-				mRecordingFailed = true;
-
-				return false;
-			}
-
-			// The new encoder loads the attachments the previous one stored. Later encoders are ordered after both encoders by
-			// the barriers that order them after the render pass.
-			const MetalStageBarrier attachmentBarrier(GpuBarrierScope(GpuStageFlag::ColorAttachment | GpuStageFlag::LateFragmentTests, GpuAccessFlag::Write,
-				GpuStageFlag::ColorAttachment | GpuStageFlag::EarlyFragmentTests, GpuAccessFlag::Read | GpuAccessFlag::Write));
-			[mRenderEncoder barrierAfterQueueStages:attachmentBarrier.SourceStages beforeStages:attachmentBarrier.DestinationStages visibilityOptions:attachmentBarrier.Visibility];
-
-#if B3D_BUILD_TYPE_DEVELOPMENT
-			mRenderEncoder.label = @"Render pass (resumed)";
-#endif
-
-			if (mHasViewport)
-				[mRenderEncoder setViewport:mViewport];
-
-			if (mHasScissor)
-				[mRenderEncoder setScissorRect:mScissor];
-
-			[mRenderEncoder setVisibilityResultMode:mVisibilityMode offset:mVisibilityOffset];
-			return true;
-		}
-
-		bool MetalGpuCommandBuffer::ActivateOcclusionQueryPool(const TShared<MetalGpuQueryPool>& queryPool)
-		{
-			if (!queryPool || mRenderEncoder == nil || mRestartRenderPassDescriptor == nil)
-				return false;
-
-			if (queryPool.get() == mActiveOcclusionQueryPool.get())
-				return true;
-
-			id<MTLBuffer> visibilityBuffer = queryPool->GetVisibilityBuffer();
-			if (visibilityBuffer == nil)
-			{
-				B3D_LOG(Error, LogRenderBackend, "Cannot activate a Metal occlusion query pool without a visibility buffer.");
-				return false;
-			}
-
-			// visibilityResultBuffer cannot change within a render encoder, so continue the render pass in a new encoder
-			// that loads the attachments the previous one stored. Results accumulate, so a query can span encoders.
-			mRestartRenderPassDescriptor.visibilityResultBuffer = visibilityBuffer;
-			mRestartRenderPassDescriptor.visibilityResultType = MTLVisibilityResultTypeAccumulate;
-			mActiveOcclusionQueryPool.reset();
-
-			if (!ResumeRenderPass(mRestartRenderPassDescriptor))
-				return false;
-
-			mActiveOcclusionQueryPool = queryPool;
-			return true;
 		}
 
 		bool MetalGpuCommandBuffer::QueueEventSignal(id<MTLSharedEvent> event, u64 value)
@@ -1030,18 +959,6 @@ namespace b3d
 		void MetalGpuCommandBuffer::NotifyDrawEncoded()
 		{
 			mEncoderHasWork = true;
-			if (mRenderEncoderHasFragmentWrites || mBoundGraphicsPipeline == nullptr)
-				return;
-
-			const GpuPipelineParameterLayout& pipelineLayout = *mBoundGraphicsPipeline->GetParameterLayout();
-			for (u32 setIndex = 0; setIndex < pipelineLayout.GetSetCount(); setIndex++)
-			{
-				if (static_cast<const MetalGpuPipelineParameterSetLayout*>(pipelineLayout.GetSet(setIndex).get())->HasFragmentWrites())
-				{
-					mRenderEncoderHasFragmentWrites = true;
-					break;
-				}
-			}
 		}
 
 		void MetalGpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance)
@@ -1162,7 +1079,6 @@ namespace b3d
 			mAcquiredWindowSurface = nullptr;
 			mRenderPassWidth = 0;
 			mRenderPassHeight = 0;
-			mRestartRenderPassDescriptor = nil;
 			mBoundVertexBuffers.Clear();
 			// The normalized viewport persists across passes and is converted to pixels once the encoder is open
 			mHasScissor = false;
@@ -1175,8 +1091,10 @@ namespace b3d
 
 			MTL4RenderPassDescriptor* descriptor = [[MTL4RenderPassDescriptor alloc] init];
 
-			// BeginQuery() selects the visibility buffer lazily, see ActivateOcclusionQueryPool()
-			mActiveOcclusionQueryPool.reset();
+			// Every occlusion query pool owns slots of the device's visibility result buffer, so the pass can use any of them. Results accumulate,
+			// as the buffer holds the results of other passes too, and ResetQueries() zeroes a pool's slots.
+			descriptor.visibilityResultBuffer = mGpuDevice.GetVisibilityResultBuffer();
+			descriptor.visibilityResultType = MTLVisibilityResultTypeAccumulate;
 
 			const RenderTargetProperties& targetProperties = target->GetProperties();
 			mRenderPassWidth = targetProperties.Width;
@@ -1246,10 +1164,10 @@ namespace b3d
 					return;
 
 				framebuffer->ApplyAttachments(descriptor);
-				renderPassAttachmentUsages = framebuffer->BuildRenderPassAttachmentUsages(readOnlyMask, loadMask);
+				renderPassAttachmentUsages = framebuffer->BuildRenderPassAttachmentUsages(readOnlyMask);
 			}
 
-			ConfigureAttachmentActions(descriptor, loadMask, clearMask, renderPassStartClearValues);
+			ConfigureAttachmentActions(descriptor, loadMask, clearMask, createInformation.StoreMask | readOnlyMask, renderPassStartClearValues);
 			PackAttachmentFormats(descriptor, mRenderPassPipelineKey);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
@@ -1271,21 +1189,6 @@ namespace b3d
 
 			if (mRecordingFailed)
 				return;
-
-			// Encoders that continue this pass (barriers, occlusion pool changes) load what the previous encoder stored
-			mRestartRenderPassDescriptor = [descriptor copy];
-			for (u32 attachmentIndex = 0; attachmentIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; attachmentIndex++)
-			{
-				MTLRenderPassColorAttachmentDescriptor* attachment = mRestartRenderPassDescriptor.colorAttachments[attachmentIndex];
-				if (attachment.texture != nil)
-					attachment.loadAction = MTLLoadActionLoad;
-			}
-
-			if (mRestartRenderPassDescriptor.depthAttachment.texture != nil)
-				mRestartRenderPassDescriptor.depthAttachment.loadAction = MTLLoadActionLoad;
-
-			if (mRestartRenderPassDescriptor.stencilAttachment.texture != nil)
-				mRestartRenderPassDescriptor.stencilAttachment.loadAction = MTLLoadActionLoad;
 
 			// Otherwise the acquired drawable stays held until the next present and starves the drawable pool
 			if (!OpenRenderEncoder(descriptor))
@@ -1329,8 +1232,6 @@ namespace b3d
 			mRenderPassPipelineKey = MetalPipelineVariantKey{};
 			mRenderPassWidth = 0;
 			mRenderPassHeight = 0;
-			mActiveOcclusionQueryPool.reset();
-			mRestartRenderPassDescriptor = nil;
 			mBoundVertexBuffers.Clear();
 			// The normalized viewport persists across passes, see SetViewport()
 			mHasScissor = false;
@@ -1371,64 +1272,40 @@ namespace b3d
 			[mRenderEncoder setViewport:viewport];
 		}
 
+		MTLViewport MetalGpuCommandBuffer::GetRenderPassViewport() const
+		{
+			MTLViewport viewport = {};
+			viewport.width = (double)mRenderPassWidth;
+			viewport.height = (double)mRenderPassHeight;
+			viewport.zfar = 1.0;
+
+			return viewport;
+		}
+
 		void MetalGpuCommandBuffer::ClearRenderTarget(RenderSurfaceMask mask)
 		{
 			EnsureValidThread();
-			if (mask == RT_NONE || mRenderEncoder == nil || mRestartRenderPassDescriptor == nil)
+			if (!B3D_ENSURE(IsInRenderPass()))
 				return;
 
-			MTL4RenderPassDescriptor* clearDescriptor = [mRestartRenderPassDescriptor copy];
-			bool hasAttachment = false;
-			for (u32 attachmentIndex = 0; attachmentIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; attachmentIndex++)
-			{
-				const RenderSurfaceMaskBits bit = (RenderSurfaceMaskBits)(RT_COLOR0 << attachmentIndex);
-				MTLRenderPassColorAttachmentDescriptor* attachment = clearDescriptor.colorAttachments[attachmentIndex];
-				if (!mask.IsSet(bit) || attachment.texture == nil)
-					continue;
-
-				const Color& color = mRenderPassClearValues.Colors[attachmentIndex];
-				attachment.loadAction = MTLLoadActionClear;
-				attachment.clearColor = MTLClearColorMake(color.R, color.G, color.B, color.A);
-				hasAttachment = true;
-			}
-
-			if (mask.IsSet(RT_DEPTH) && clearDescriptor.depthAttachment.texture != nil)
-			{
-				clearDescriptor.depthAttachment.loadAction = MTLLoadActionClear;
-				clearDescriptor.depthAttachment.clearDepth = mRenderPassClearValues.Depth;
-				hasAttachment = true;
-			}
-
-			if (mask.IsSet(RT_STENCIL) && clearDescriptor.stencilAttachment.texture != nil)
-			{
-				clearDescriptor.stencilAttachment.loadAction = MTLLoadActionClear;
-				clearDescriptor.stencilAttachment.clearStencil = mRenderPassClearValues.Stencil;
-				hasAttachment = true;
-			}
-
-			if (!hasAttachment)
-				return;
-
-			ResumeRenderPass(clearDescriptor);
+			EncodeClear(mask, GetRenderPassViewport());
 		}
 
 		void MetalGpuCommandBuffer::ClearViewport(RenderSurfaceMask mask)
 		{
 			EnsureValidThread();
-			if (mask == RT_NONE || mRenderEncoder == nil)
+			if (!B3D_ENSURE(IsInRenderPass()))
 				return;
 
-			const bool coversRenderTarget = !mHasViewport ||
-				(mViewport.originX == 0.0 && mViewport.originY == 0.0 &&
-				mViewport.width == (double)mRenderPassWidth && mViewport.height == (double)mRenderPassHeight);
-			if (coversRenderTarget)
-			{
-				ClearRenderTarget(mask);
-				return;
-			}
+			EncodeClear(mask, mHasViewport ? mViewport : GetRenderPassViewport());
+		}
 
-			// Metal only clears whole attachments (through load actions), so a partial clear draws a triangle covering the
-			// viewport. Stencil is written by the depth-stencil state's replace operation using the reference value.
+		void MetalGpuCommandBuffer::EncodeClear(RenderSurfaceMask mask, const MTLViewport& area)
+		{
+			if (mask == RT_NONE)
+				return;
+
+			// Stencil is written by the depth-stencil state's replace operation using the reference value.
 			const bool clearsDepth = mask.IsSet(RT_DEPTH) && mRenderPassPipelineKey.DepthFormat != 0;
 			const bool clearsStencil = mask.IsSet(RT_STENCIL) && mRenderPassPipelineKey.StencilFormat != 0;
 
@@ -1470,17 +1347,22 @@ namespace b3d
 			if (parametersAddress == 0)
 				return;
 
-			// The clear area is defined by the viewport alone, so a scissor left over from earlier draws must not narrow it
+			// The clear area alone defines what is cleared, so a scissor left over from earlier draws must not narrow it
 			const MTLScissorRect previousScissor = mScissor;
 			const bool hadScissor = mHasScissor;
 
 			MTLScissorRect clearScissor;
-			clearScissor.x = (NSUInteger)mViewport.originX;
-			clearScissor.y = (NSUInteger)mViewport.originY;
-			clearScissor.width = (NSUInteger)mViewport.width;
-			clearScissor.height = (NSUInteger)mViewport.height;
+			clearScissor.x = (NSUInteger)area.originX;
+			clearScissor.y = (NSUInteger)area.originY;
+			clearScissor.width = (NSUInteger)area.width;
+			clearScissor.height = (NSUInteger)area.height;
 
+			// The triangle covers the viewport, which is set to the clear area. The clear must not count towards an occlusion query.
+			[mRenderEncoder setViewport:area];
 			[mRenderEncoder setScissorRect:clearScissor];
+			if (mVisibilityMode != MTLVisibilityResultModeDisabled)
+				[mRenderEncoder setVisibilityResultMode:MTLVisibilityResultModeDisabled offset:0];
+
 			SetRenderPipelineState(pipelineState);
 			SetDepthStencilState(depthStencilState);
 			[mRenderEncoder setCullMode:MTLCullModeNone];
@@ -1491,9 +1373,14 @@ namespace b3d
 			[mRenderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
 			mEncoderHasWork = true;
 
-			// The clear parameters share the push constant slot. The next draw rebinds all other state the clear changed,
-			// only the scissor needs restoring.
+			// The clear parameters share the push constant slot. The next draw rebinds all other state the clear changed, only the
+			// viewport, scissor and occlusion query need restoring.
 			mGraphicsPushConstantsRequireBind = true;
+			[mRenderEncoder setViewport:mHasViewport ? mViewport : GetRenderPassViewport()];
+
+			if (mVisibilityMode != MTLVisibilityResultModeDisabled)
+				[mRenderEncoder setVisibilityResultMode:mVisibilityMode offset:mVisibilityOffset];
+
 			if (hadScissor)
 				[mRenderEncoder setScissorRect:previousScissor];
 			else
@@ -2057,9 +1944,6 @@ namespace b3d
 				return;
 			}
 
-			if (!ActivateOcclusionQueryPool(metalPool))
-				return;
-
 			const MTLVisibilityResultMode mode = flags.IsSet(GpuQueryFlag::PreciseOcclusion) ? MTLVisibilityResultModeCounting : MTLVisibilityResultModeBoolean;
 			const NSUInteger offset = metalPool->GetQueryOffset(query);
 			mVisibilityMode = mode;
@@ -2077,9 +1961,7 @@ namespace b3d
 				return;
 
 			auto metalPool = std::static_pointer_cast<MetalGpuQueryPool>(queryPool);
-			if (!metalPool->IsQueryAllocated(query) || metalPool.get() != mActiveOcclusionQueryPool.get()
-				|| mVisibilityMode == MTLVisibilityResultModeDisabled
-				|| mVisibilityOffset != metalPool->GetQueryOffset(query))
+			if (!metalPool->IsQueryAllocated(query) || mVisibilityMode == MTLVisibilityResultModeDisabled || mVisibilityOffset != metalPool->GetQueryOffset(query))
 			{
 				B3D_LOG(Error, LogRenderBackend, "EndQuery does not match the active Metal occlusion query.");
 				return;
@@ -2104,7 +1986,8 @@ namespace b3d
 			}
 
 			auto metalPool = std::static_pointer_cast<MetalGpuQueryPool>(queryPool);
-			if (id<MTLBuffer> visibilityBuffer = metalPool->GetVisibilityBuffer())
+			const NSRange visibilityResultRange = metalPool->GetVisibilityResultRange();
+			if (visibilityResultRange.length > 0)
 			{
 				id<MTL4ComputeCommandEncoder> encoder = OpenComputeEncoder();
 				if (encoder == nil)
@@ -2118,7 +2001,7 @@ namespace b3d
 				const GpuBarrierScope visibilityWriteToResetScope(GpuStageFlag::LateFragmentTests, GpuAccessFlag::Write, GpuStageFlag::Transfer, GpuAccessFlag::Write);
 				EmitBarrier(MetalStageBarrier(visibilityWriteToResetScope));
 
-				[encoder fillBuffer:visibilityBuffer range:NSMakeRange(0, [visibilityBuffer length]) value:0];
+				[encoder fillBuffer:mGpuDevice.GetVisibilityResultBuffer() range:visibilityResultRange value:0];
 				mEncoderHasWork = true;
 
 				const GpuBarrierScope resetToVisibilityWriteScope(GpuStageFlag::Transfer, GpuAccessFlag::Write, GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests, GpuAccessFlag::Write);
@@ -2244,17 +2127,12 @@ namespace b3d
 			const bool recordsBarrier = barrierCase == BarrierCase::Full || barrierCase == BarrierCase::SplitAcquire;
 
 			MetalStageBarrier stageBarrier;
-			GpuStageFlags sourceStages = GpuStageFlag::None;
-			GpuAccessFlags destinationAccess = GpuAccessFlag::None;
-			bool hasRenderTargetBarriers = false;
 			const auto fnAddBarrier = [&](const GpuBarrier& barrier)
 			{
 				if (!recordsBarrier)
 					return;
 
 				stageBarrier.Merge(MetalStageBarrier(GpuBarrierScope(barrier.Source.Stages, barrier.Source.Access, barrier.Destination.Stages, barrier.Destination.Access), barrier.Flags));
-				sourceStages |= barrier.Source.Stages;
-				destinationAccess |= barrier.Destination.Access;
 			};
 
 			for (const GpuBufferBarrier& barrier : barriers.BufferBarriers)
@@ -2294,8 +2172,6 @@ namespace b3d
 				if (renderTarget == nullptr)
 					continue;
 
-				hasRenderTargetBarriers = true;
-
 				// Window back buffers are not tracked resources, and only need their work ordered
 				if (renderTarget->GetProperties().IsWindow)
 				{
@@ -2317,22 +2193,6 @@ namespace b3d
 
 			if (stageBarrier.IsEmpty())
 				return true;
-
-			// Render encoders cannot wait for their own fragment work, so the render pass continues in a new encoder
-			if (mRenderEncoder != nil && mEncoderHasWork)
-			{
-				const bool waitsForAttachments = hasRenderTargetBarriers && (stageBarrier.SourceStages & MTLStageFragment) != 0;
-
-				// Attachments of other render passes were accessed by earlier encoders, as a render pass cannot access its own attachments from
-				// shaders. Fragment shader reads within the encoder only matter if something writes after them.
-				const bool waitsForFragmentShaders = sourceStages.IsSetAny(GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::FragmentShaderUniform) &&
-					(mRenderEncoderHasFragmentWrites || destinationAccess.IsSet(GpuAccessFlag::Write));
-				if (waitsForAttachments || waitsForFragmentShaders)
-				{
-					if (!RestartRenderPass())
-						return false;
-				}
-			}
 
 			EmitBarrier(stageBarrier);
 			return true;
@@ -2482,7 +2342,6 @@ namespace b3d
 			mGraphicsResourcesRequireTracking = true;
 			mBoundIndexBuffer = nullptr;
 			mBoundVertexDescription = nullptr;
-			mActiveOcclusionQueryPool.reset();
 		}
 
 		void MetalGpuCommandBuffer::ClearRecordingState()
@@ -2551,7 +2410,6 @@ namespace b3d
 			mRenderPassTrackingActive = false;
 			mRenderPassWidth = 0;
 			mRenderPassHeight = 0;
-			mActiveOcclusionQueryPool.reset();
 			for (const TShared<MetalGpuQueryPool>& pool : mUsedQueryPools)
 			{
 				if (mQueryPoolsQueuedForSubmission)
@@ -2563,7 +2421,6 @@ namespace b3d
 			mSubmittedQueryPools.clear();
 			mQueryPoolsQueuedForSubmission = false;
 			mPendingEventSignals.clear();
-			mRestartRenderPassDescriptor = nil;
 			mBoundVertexBuffers.Clear();
 			mHasViewport = false;
 			mNormalizedViewport = Area2(0.0f, 0.0f, 1.0f, 1.0f);

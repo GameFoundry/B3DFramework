@@ -114,6 +114,50 @@ namespace
 			numAreas++;
 		}
 	}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	/** Returns the surfaces @p target has. */
+	RenderSurfaceMask GetTargetSurfaces(const render::RenderTarget& target)
+	{
+		RenderSurfaceMask output = RT_NONE;
+		if(target.GetProperties().IsWindow)
+		{
+			output = RT_COLOR0;
+			if(static_cast<const render::RenderWindow&>(target).HasDepthBuffer())
+				output |= RT_DEPTH_STENCIL;
+
+			return output;
+		}
+
+		const auto& renderTexture = static_cast<const render::RenderTexture&>(target);
+		for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
+		{
+			if(renderTexture.GetColorSurfaceInformation(colorIndex).Texture != nullptr)
+				output |= (RenderSurfaceMaskBits)(RT_COLOR0 << colorIndex);
+		}
+
+		if(renderTexture.GetDepthStencilSurfaceInformation().Texture != nullptr)
+			output |= RT_DEPTH_STENCIL;
+
+		return output;
+	}
+
+	/** Sets the clear values of the surfaces in @p poisonMask to values that stand out: color to magenta, depth and stencil to 0. */
+	void SetPoisonClearValues(RenderSurfaceMask poisonMask, RenderTargetClearValues& clearValues)
+	{
+		for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
+		{
+			if(poisonMask.IsSet((RenderSurfaceMaskBits)(RT_COLOR0 << colorIndex)))
+				clearValues.Colors[colorIndex] = Color(1.0f, 0.0f, 1.0f, 1.0f);
+		}
+
+		if(poisonMask.IsSet(RT_DEPTH))
+			clearValues.Depth = 0.0f;
+
+		if(poisonMask.IsSet(RT_STENCIL))
+			clearValues.Stencil = 0;
+	}
+#endif
 }
 
 GpuResourceUseFlags GpuBackendUtility::GetShaderResourceUseFlags(GpuProgramStageBits stages)
@@ -541,29 +585,8 @@ RenderSurfaceMask GpuBackendUtility::GetRenderPassClears(const RenderPassCreateI
 	if(target == nullptr)
 		return clearMask;
 
-	// Surfaces the render target has
-	RenderSurfaceMask targetSurfaceMask = RT_NONE;
-	if(target->GetProperties().IsWindow)
-	{
-		targetSurfaceMask = RT_COLOR0;
-		if(static_cast<const render::RenderWindow&>(*target).HasDepthBuffer())
-			targetSurfaceMask |= RT_DEPTH_STENCIL;
-	}
-	else
-	{
-		const auto& renderTexture = static_cast<const render::RenderTexture&>(*target);
-		for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
-		{
-			if(renderTexture.GetColorSurfaceInformation(colorIndex).Texture != nullptr)
-				targetSurfaceMask |= (RenderSurfaceMaskBits)(RT_COLOR0 << colorIndex);
-		}
-
-		if(renderTexture.GetDepthStencilSurfaceInformation().Texture != nullptr)
-			targetSurfaceMask |= RT_DEPTH_STENCIL;
-	}
-
 	const RenderSurfaceMask loadMask = createInformation.LoadMask;
-	RenderSurfaceMask poisonMask = targetSurfaceMask & ~loadMask & ~clearMask;
+	RenderSurfaceMask poisonMask = GetTargetSurfaces(*target) & ~loadMask & ~clearMask;
 
 	// Backends load depth and stencil together
 	if(loadMask.IsSetAny(RT_DEPTH_STENCIL))
@@ -577,20 +600,25 @@ RenderSurfaceMask GpuBackendUtility::GetRenderPassClears(const RenderPassCreateI
 		poisonMask &= ~unloadedReadOnlyMask;
 	}
 
-	for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
-	{
-		if(poisonMask.IsSet((RenderSurfaceMaskBits)(RT_COLOR0 << colorIndex)))
-			clearValues.Colors[colorIndex] = Color(1.0f, 0.0f, 1.0f, 1.0f);
-	}
-
-	if(poisonMask.IsSet(RT_DEPTH))
-		clearValues.Depth = 0.0f;
-
-	if(poisonMask.IsSet(RT_STENCIL))
-		clearValues.Stencil = 0;
-
+	SetPoisonClearValues(poisonMask, clearValues);
 	clearMask |= poisonMask;
 #endif
 
 	return clearMask;
+}
+
+RenderSurfaceMask GpuBackendUtility::GetRenderPassDiscardClears([[maybe_unused]] const RenderPassCreateInformation& createInformation, RenderTargetClearValues& clearValues)
+{
+	clearValues = RenderTargetClearValues();
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	if(!gGpuPoisonUnloadedAttachments || createInformation.Target == nullptr)
+		return RT_NONE;
+
+	const RenderSurfaceMask poisonMask = GetTargetSurfaces(*createInformation.Target) & ~createInformation.StoreMask & ~createInformation.ReadOnlyMask;
+	SetPoisonClearValues(poisonMask, clearValues);
+	return poisonMask;
+#else
+	return RT_NONE;
+#endif
 }

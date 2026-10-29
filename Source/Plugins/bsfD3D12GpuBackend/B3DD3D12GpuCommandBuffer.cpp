@@ -637,7 +637,7 @@ void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& c
 	GpuRenderPassAttachmentUsageArray renderPassAttachmentUsages;
 	if(mFramebuffer != nullptr)
 	{
-		renderPassAttachmentUsages = mFramebuffer->BuildRenderPassAttachmentUsages(mRenderTargetReadOnlyMask, createInformation.LoadMask);
+		renderPassAttachmentUsages = mFramebuffer->BuildRenderPassAttachmentUsages(mRenderTargetReadOnlyMask);
 
 		for(GpuRenderPassAttachmentUsage& attachmentUsage : renderPassAttachmentUsages)
 			attachmentUsage.FinalLayout.reset();
@@ -663,6 +663,10 @@ void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& c
 	const RenderSurfaceMask clearMask = GpuBackendUtility::GetRenderPassClears(createInformation, clearValues);
 	if (clearMask != RT_NONE)
 		ClearViewportArea(GetRenderPassArea(), clearMask, clearValues);
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	mRenderPassDiscardClearMask = GpuBackendUtility::GetRenderPassDiscardClears(createInformation, mRenderPassDiscardClearValues);
+#endif
 }
 
 void D3D12GpuCommandBuffer::SetViewport(const Area2& area)
@@ -684,17 +688,19 @@ void D3D12GpuCommandBuffer::SetViewport(const Area2& area)
 void D3D12GpuCommandBuffer::ClearRenderTarget(RenderSurfaceMask mask)
 {
 	EnsureValidThread();
+	if (!B3D_ENSURE(IsInRenderPass()))
+		return;
 
-	if (mRenderTarget)
-		ClearViewportArea(GetRenderPassArea(), mask, mRenderTarget->GetClearValues());
+	ClearViewportArea(GetRenderPassArea(), mask, mRenderTarget->GetClearValues());
 }
 
 void D3D12GpuCommandBuffer::ClearViewport(RenderSurfaceMask mask)
 {
 	EnsureValidThread();
+	if (!B3D_ENSURE(IsInRenderPass()))
+		return;
 
-	if (mRenderTarget)
-		ClearViewportArea(GetViewportArea(), mask, mRenderTarget->GetClearValues());
+	ClearViewportArea(GetViewportArea(), mask, mRenderTarget->GetClearValues());
 }
 
 void D3D12GpuCommandBuffer::ClearViewportArea(const Area2I& area, RenderSurfaceMask mask, const RenderTargetClearValues& clearValues)
@@ -917,6 +923,15 @@ void D3D12GpuCommandBuffer::EndRenderPass()
 
 	if (mState != GpuCommandBufferState::RecordingRenderPass)
 		return;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	// Discarded surfaces show what later passes read of them, as the next barrier from an undefined layout may keep their contents
+	if (mRenderPassDiscardClearMask != RT_NONE)
+	{
+		ClearViewportArea(GetRenderPassArea(), mRenderPassDiscardClearMask, mRenderPassDiscardClearValues);
+		mRenderPassDiscardClearMask = RT_NONE;
+	}
+#endif
 
 	mResourceTracker.EndRenderPass();
 

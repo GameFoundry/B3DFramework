@@ -8,8 +8,8 @@
 using namespace b3d;
 using namespace b3d::render;
 
-VulkanRenderPass::VariantKey::VariantKey(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask)
-	: LoadMask(loadMask), ReadMask(readMask), ClearMask(clearMask)
+VulkanRenderPass::VariantKey::VariantKey(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask, RenderSurfaceMask storeMask)
+	: LoadMask(loadMask), ReadMask(readMask), ClearMask(clearMask), StoreMask(storeMask)
 {}
 
 size_t VulkanRenderPass::VariantKey::HashFunction::operator()(const VariantKey& v) const
@@ -18,6 +18,7 @@ size_t VulkanRenderPass::VariantKey::HashFunction::operator()(const VariantKey& 
 	B3DCombineHash(hash, v.ReadMask);
 	B3DCombineHash(hash, v.LoadMask);
 	B3DCombineHash(hash, v.ClearMask);
+	B3DCombineHash(hash, v.StoreMask);
 
 	return hash;
 }
@@ -25,7 +26,7 @@ size_t VulkanRenderPass::VariantKey::HashFunction::operator()(const VariantKey& 
 bool VulkanRenderPass::VariantKey::EqualFunction::operator()(
 	const VariantKey& lhs, const VariantKey& rhs) const
 {
-	return lhs.LoadMask == rhs.LoadMask && lhs.ReadMask == rhs.ReadMask && lhs.ClearMask == rhs.ClearMask;
+	return lhs.LoadMask == rhs.LoadMask && lhs.ReadMask == rhs.ReadMask && lhs.ClearMask == rhs.ClearMask && lhs.StoreMask == rhs.StoreMask;
 }
 
 size_t VulkanRenderPassAttachmentCreateInformation::CalculateCompatibilityHash(bool isDepth) const
@@ -170,7 +171,7 @@ VulkanRenderPass::VulkanRenderPass(const VkDevice& device, const VulkanRenderPas
 	mRenderPassCI.dependencyCount = 0;
 	mRenderPassCI.pDependencies = nullptr;
 
-	mDefault = CreateVariant(RT_NONE, RT_NONE, RT_NONE);
+	mDefault = CreateVariant(RT_NONE, RT_NONE, RT_NONE, RT_ALL);
 }
 
 VulkanRenderPass::~VulkanRenderPass()
@@ -183,7 +184,7 @@ VulkanRenderPass::~VulkanRenderPass()
 		vkDestroyRenderPass(mDevice, entry.second, gVulkanAllocator);
 }
 
-VkRenderPass VulkanRenderPass::CreateVariant(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask) const
+VkRenderPass VulkanRenderPass::CreateVariant(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask, RenderSurfaceMask storeMask) const
 {
 	for(u32 sequentialAttachmentIndex = 0; sequentialAttachmentIndex < mColorAttachmentCount; sequentialAttachmentIndex++)
 	{
@@ -207,7 +208,7 @@ VkRenderPass VulkanRenderPass::CreateVariant(RenderSurfaceMask loadMask, RenderS
 		else
 		{
 			vkAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-			vkAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			vkAttachmentDescription.storeOp = storeMask.IsSet((RenderSurfaceMaskBits)(1 << attachmentIndex)) ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		}
 
 		vkAttachmentDescription.initialLayout = vkAttachmentReference.layout;
@@ -263,12 +264,12 @@ VkRenderPass VulkanRenderPass::CreateVariant(RenderSurfaceMask loadMask, RenderS
 		if(readMask.IsSet(RT_DEPTH))
 			vkAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_NONE;
 		else
-			vkAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			vkAttachmentDescription.storeOp = storeMask.IsSet(RT_DEPTH) ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
 		if(readMask.IsSet(RT_STENCIL))
 			vkAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_NONE;
 		else
-			vkAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+			vkAttachmentDescription.stencilStoreOp = storeMask.IsSet(RT_STENCIL) ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	}
 
 	VkRenderPass output;
@@ -278,18 +279,18 @@ VkRenderPass VulkanRenderPass::CreateVariant(RenderSurfaceMask loadMask, RenderS
 	return output;
 }
 
-VkRenderPass VulkanRenderPass::GetVkRenderPass(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask) const
+VkRenderPass VulkanRenderPass::GetVkRenderPass(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask, RenderSurfaceMask storeMask) const
 {
-	if(loadMask == RT_NONE && readMask == RT_NONE && clearMask == RT_NONE)
+	if(loadMask == RT_NONE && readMask == RT_NONE && clearMask == RT_NONE && storeMask == RT_ALL)
 		return mDefault;
 
 	Lock lock(mMutex);
-	VariantKey key(loadMask, readMask, clearMask);
+	VariantKey key(loadMask, readMask, clearMask, storeMask);
 	auto iterFind = mVariants.find(key);
 	if(iterFind != mVariants.end())
 		return iterFind->second;
 
-	VkRenderPass newVariant = CreateVariant(loadMask, readMask, clearMask);
+	VkRenderPass newVariant = CreateVariant(loadMask, readMask, clearMask, storeMask);
 	mVariants[key] = newVariant;
 
 	return newVariant;

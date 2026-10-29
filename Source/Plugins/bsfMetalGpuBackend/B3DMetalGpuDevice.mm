@@ -70,11 +70,13 @@ namespace b3d
 			{
 				mHeapAllocator->Free(mNullVertexBuffer, mNullVertexBufferAllocation);
 				mHeapAllocator->Free(mDummyArgumentBuffer, mDummyArgumentBufferAllocation);
+				mHeapAllocator->Free(mVisibilityResultBuffer, mVisibilityResultBufferAllocation);
 				mHeapAllocator.reset();
 			}
 
 			mNullVertexBuffer = nil;
 			mDummyArgumentBuffer = nil;
+			mVisibilityResultBuffer = nil;
 
 			for (QueueInfo& queueInfo : mQueueInfos)
 				queueInfo.Queues.Clear();
@@ -178,12 +180,23 @@ namespace b3d
 			mNullVertexBuffer = mHeapAllocator->AllocateBuffer(kMetalNullVertexStreamStride, MetalHeapAllocator::kMemoryTypeShared, sharedAllocation, mNullVertexBufferAllocation);
 			if (mNullVertexBuffer == nil)
 				B3D_LOG(Fatal, LogRenderBackend, "Failed to create the shared null vertex buffer.");
+
 			std::memset([mNullVertexBuffer contents], 0, kMetalNullVertexStreamStride);
+
+			// Pools reset their slots before their first use, so the initial contents only matter to queries that were never reset
+			const u64 visibilityResultBufferSize = (u64)kVisibilityResultSlotCount * sizeof(u64);
+			mVisibilityResultBuffer = mHeapAllocator->AllocateBuffer(visibilityResultBufferSize, MetalHeapAllocator::kMemoryTypeShared, sharedAllocation, mVisibilityResultBufferAllocation);
+			if (mVisibilityResultBuffer == nil)
+				B3D_LOG(Fatal, LogRenderBackend, "Failed to create the visibility result buffer.");
+
+			std::memset([mVisibilityResultBuffer contents], 0, (size_t)visibilityResultBufferSize);
+			mFreeVisibilityResultSlots.push_back(std::make_pair(0u, kVisibilityResultSlotCount));
 
 			constexpr u32 kDummyArgumentBufferSize = 65536;
 			mDummyArgumentBuffer = mHeapAllocator->AllocateBuffer(kDummyArgumentBufferSize, MetalHeapAllocator::kMemoryTypeShared, sharedAllocation, mDummyArgumentBufferAllocation);
 			if (mDummyArgumentBuffer == nil)
 				B3D_LOG(Fatal, LogRenderBackend, "Failed to create the shared dummy argument buffer.");
+
 			std::memset([mDummyArgumentBuffer contents], 0, kDummyArgumentBufferSize);
 
 			IGpuSubmitThreadBackend& submitThreadBackend = *this;
@@ -556,6 +569,59 @@ namespace b3d
 		void MetalGpuDevice::ExecuteWaitUntilIdle(GpuQueue& queue)
 		{
 			static_cast<MetalGpuQueue&>(queue).ExecuteWaitUntilIdle();
+		}
+
+		u32 MetalGpuDevice::AllocateVisibilityResultSlots(u32 count)
+		{
+			Lock lock(mVisibilityResultSlotMutex);
+			for (auto iterator = mFreeVisibilityResultSlots.begin(); iterator != mFreeVisibilityResultSlots.end(); ++iterator)
+			{
+				if (iterator->second < count)
+					continue;
+
+				const u32 firstSlot = iterator->first;
+				iterator->first += count;
+				iterator->second -= count;
+				if (iterator->second == 0)
+					mFreeVisibilityResultSlots.erase(iterator);
+
+				return firstSlot;
+			}
+
+			return ~0u;
+		}
+
+		void MetalGpuDevice::FreeVisibilityResultSlots(u32 firstSlot, u32 count)
+		{
+			Lock lock(mVisibilityResultSlotMutex);
+
+			// The free ranges stay sorted, and merge with the ranges next to them
+			auto next = std::lower_bound(mFreeVisibilityResultSlots.begin(), mFreeVisibilityResultSlots.end(), firstSlot,
+				[](const std::pair<u32, u32>& range, u32 slot) { return range.first < slot; });
+			if (next != mFreeVisibilityResultSlots.begin())
+			{
+				auto previous = std::prev(next);
+				if (previous->first + previous->second == firstSlot)
+				{
+					previous->second += count;
+					if (next != mFreeVisibilityResultSlots.end() && previous->first + previous->second == next->first)
+					{
+						previous->second += next->second;
+						mFreeVisibilityResultSlots.erase(next);
+					}
+
+					return;
+				}
+			}
+
+			if (next != mFreeVisibilityResultSlots.end() && firstSlot + count == next->first)
+			{
+				next->first = firstSlot;
+				next->second += count;
+				return;
+			}
+
+			mFreeVisibilityResultSlots.insert(next, std::make_pair(firstSlot, count));
 		}
 
 		TShared<SamplerState> MetalGpuDevice::CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags)

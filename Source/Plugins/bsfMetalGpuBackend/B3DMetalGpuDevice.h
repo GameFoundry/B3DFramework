@@ -27,6 +27,9 @@ namespace b3d
 		public:
 			static constexpr const char* kGpuProgramLanguageName = kGpuProgramLanguageMsl;
 
+			/** Number of 8-byte slots of the visibility result buffer. Apple GPUs limit visibility result offsets to 256 KB. */
+			static constexpr u32 kVisibilityResultSlotCount = 32 * 1024;
+
 			MetalGpuDevice();
 			~MetalGpuDevice();
 
@@ -73,11 +76,26 @@ namespace b3d
 			MetalResourceManager& GetResourceManager() const { B3D_ASSERT(mResourceManager != nullptr); return *mResourceManager; }
 
 			/**
-			 * Returns the device-owned internal clear pipeline, used by
-			 * @c MetalGpuCommandBuffer::ClearViewport to clear a sub-rect of the render target - Metal's
-			 * only native clear is the render pass load action, which always covers a whole attachment.
+			 * Returns the device-owned internal clear pipeline, which @c MetalGpuCommandBuffer::ClearRenderTarget and
+			 * @c MetalGpuCommandBuffer::ClearViewport draw with. Metal's only native clear, the render pass load action, needs a new
+			 * render encoder.
 			 */
 			MetalClearPipeline& GetClearPipeline() const { B3D_ASSERT(mClearPipeline != nullptr); return *mClearPipeline; }
+
+			/**
+			 * Returns the buffer the occlusion queries of every render pass write their visibility results into. Occlusion query pools own
+			 * ranges of its slots, so a render encoder created with it can run the queries of any pool.
+			 */
+			id<MTLBuffer> GetVisibilityResultBuffer() const { return mVisibilityResultBuffer; }
+
+			/**
+			 * Reserves @p count consecutive slots of the visibility result buffer, and returns the first, or ~0u if no free range is large
+			 * enough. Thread safe.
+			 */
+			u32 AllocateVisibilityResultSlots(u32 count);
+
+			/** Releases slots reserved by AllocateVisibilityResultSlots(). Thread safe. */
+			void FreeVisibilityResultSlots(u32 firstSlot, u32 count);
 
 			/**
 			 * Returns true while the device's GpuSubmitThread is alive (from the end of Initialize()
@@ -171,6 +189,12 @@ namespace b3d
 			GpuAllocation mNullVertexBufferAllocation;
 			id<MTLBuffer> mDummyArgumentBuffer = nil;
 			GpuAllocation mDummyArgumentBufferAllocation;
+			id<MTLBuffer> mVisibilityResultBuffer = nil;
+			GpuAllocation mVisibilityResultBufferAllocation;
+
+			/** Free ranges of visibility result slots, as first slot and slot count, sorted by first slot. */
+			Vector<std::pair<u32, u32>> mFreeVisibilityResultSlots;
+			Mutex mVisibilityResultSlotMutex;
 
 			/** Frequency of GPU timestamps, in ticks per second. */
 			u64 mTimestampFrequency = 0;

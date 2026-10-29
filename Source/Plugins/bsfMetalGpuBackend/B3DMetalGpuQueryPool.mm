@@ -18,20 +18,14 @@ namespace b3d
 
 			if (createInformation.Type == GpuQueryType::Occlusion)
 			{
-				constexpr u64 kMaximumVisibilityResultOffset = 256ull * 1024ull;
-				const u64 lastResultOffset = createInformation.PoolSize > 0 ? ((u64)createInformation.PoolSize - 1ull) * sizeof(u64) : 0;
-				if (createInformation.PoolSize == 0 || lastResultOffset > kMaximumVisibilityResultOffset)
-					B3D_LOG(Error, LogRenderBackend, "Metal occlusion query pool size {0} exceeds the Apple GPU visibility-buffer limit.", createInformation.PoolSize);
-				else
-				{
-					const u64 byteSize = (u64)createInformation.PoolSize * sizeof(u64);
-					const u32 memoryType = MetalHeapAllocator::kMemoryTypeShared;
-					MetalHeapAllocator& heapAllocator = gpuDevice.GetHeapAllocator();
-					mVisibilityBuffer = heapAllocator.AllocateBuffer(byteSize, memoryType, GpuAllocation::CreatePending(heapAllocator.GetAllocator(memoryType)), mVisibilityBufferAllocation);
-					mSupported = mVisibilityBuffer != nil;
+				if (createInformation.PoolSize > 0)
+					mFirstVisibilityResultSlot = gpuDevice.AllocateVisibilityResultSlots(createInformation.PoolSize);
 
-					if (mVisibilityBuffer == nil)
-						B3D_LOG(Error, LogRenderBackend, "Failed to allocate a Metal visibility query buffer.");
+				mSupported = mFirstVisibilityResultSlot != ~0u;
+				if (!mSupported)
+				{
+					B3D_LOG(Error, LogRenderBackend, "Metal occlusion query pool of size {0} does not fit in the free slots of the visibility result buffer, which has {1} for all pools.",
+						createInformation.PoolSize, MetalGpuDevice::kVisibilityResultSlotCount);
 				}
 			}
 			else if (createInformation.Type == GpuQueryType::Timestamp)
@@ -63,7 +57,16 @@ namespace b3d
 		MetalGpuQueryPool::~MetalGpuQueryPool()
 		{
 			// The pool is only destroyed once no command buffer that uses it is executing
-			mGpuDevice.GetHeapAllocator().Free(mVisibilityBuffer, mVisibilityBufferAllocation);
+			if (mFirstVisibilityResultSlot != ~0u)
+				mGpuDevice.FreeVisibilityResultSlots(mFirstVisibilityResultSlot, mPoolSize);
+		}
+
+		NSRange MetalGpuQueryPool::GetVisibilityResultRange() const
+		{
+			if (mFirstVisibilityResultSlot == ~0u)
+				return NSMakeRange(0, 0);
+
+			return NSMakeRange((NSUInteger)mFirstVisibilityResultSlot * sizeof(u64), (NSUInteger)mPoolSize * sizeof(u64));
 		}
 
 		GpuQueryId MetalGpuQueryPool::AllocateQuery()
@@ -225,11 +228,11 @@ namespace b3d
 				return true;
 			}
 
-			if (mQueryType == GpuQueryType::Occlusion && mVisibilityBuffer != nil)
+			if (mQueryType == GpuQueryType::Occlusion && mFirstVisibilityResultSlot != ~0u)
 			{
-				const u64* contents = (const u64*)[mVisibilityBuffer contents];
+				const u64* contents = (const u64*)[mGpuDevice.GetVisibilityResultBuffer() contents];
 				if (contents != nullptr)
-					memcpy(mResolvedResults.data(), contents, (size_t)mNextQueryId * sizeof(u64));
+					memcpy(mResolvedResults.data(), contents + mFirstVisibilityResultSlot, (size_t)mNextQueryId * sizeof(u64));
 			}
 			else if (mQueryType == GpuQueryType::Timestamp && mCounterHeap != nil)
 			{

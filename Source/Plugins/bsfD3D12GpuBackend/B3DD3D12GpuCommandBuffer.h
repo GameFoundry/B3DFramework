@@ -285,6 +285,12 @@ namespace b3d
 			D3D12Framebuffer* mFramebuffer = nullptr;
 			RenderSurfaceMask mRenderTargetReadOnlyMask = RT_NONE;
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			/** Surfaces EndRenderPass() clears, and their values. See GpuBackendUtility::GetRenderPassDiscardClears(). */
+			RenderSurfaceMask mRenderPassDiscardClearMask = RT_NONE;
+			RenderTargetClearValues mRenderPassDiscardClearValues;
+#endif
+
 			TShared<D3D12GpuGraphicsPipelineState> mGraphicsPipeline;
 			TShared<D3D12GpuComputePipelineState> mComputePipeline;
 			TShared<VertexDescription> mVertexDescription;

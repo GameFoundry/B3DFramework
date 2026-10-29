@@ -206,6 +206,14 @@ namespace b3d
 		 * Read-only surfaces are never cleared, and must be loaded.
 		 */
 		static RenderSurfaceMask GetRenderPassClears(const render::RenderPassCreateInformation& createInformation, RenderTargetClearValues& clearValues);
+
+		/**
+		 * Returns the surfaces that development builds clear right before a render pass ends, and writes the values to clear them to into
+		 * @p clearValues. If gGpuPoisonUnloadedAttachments is enabled, these are the writable surfaces the render pass does not store (see
+		 * RenderPassCreateInformation::StoreMask), cleared like the surfaces of GetRenderPassClears(), so passes that read what an earlier
+		 * pass discarded show it on GPUs that keep discarded contents. Returns RT_NONE otherwise.
+		 */
+		static RenderSurfaceMask GetRenderPassDiscardClears(const render::RenderPassCreateInformation& createInformation, RenderTargetClearValues& clearValues);
 	};
 
 	/** @} */

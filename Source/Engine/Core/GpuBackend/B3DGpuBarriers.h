@@ -63,13 +63,12 @@ namespace b3d
 		enum class GpuBarrierFlag : u8
 		{
 			None = 0,
-			DiscardContents = 1 << 0, /**< Existing contents need not be preserved by the barrier. Images only. */
 
 			/**
-			 * The barrier starts a new lifetime of the resource on memory that earlier resources used (see GpuAliasAcquire). 
-			 * On an image it is always combined with DiscardContents, as the image starts from GpuImageLayout::Undefined.
+			 * The barrier starts a new lifetime of the resource on memory that earlier resources used (see GpuAliasAcquire). On an image it
+			 * starts from GpuImageLayout::Undefined.
 			 */
-			AliasAcquire = 1 << 1,
+			AliasAcquire = 1 << 0,
 
 			/**
 			 * The barrier ends the lifetime of a resource whose memory an alias acquire of another resource takes over (see
@@ -77,7 +76,7 @@ namespace b3d
 			 * those of the acquiring resource's first use. It is the last barrier of the resource, recorded together with the alias acquire
 			 * or before it. Backends whose alias acquires flush the earlier resources' writes record nothing for it.
 			 */
-			AliasRelease = 1 << 2
+			AliasRelease = 1 << 1
 		};
 
 		typedef Flags<GpuBarrierFlag, u8> GpuBarrierFlags;

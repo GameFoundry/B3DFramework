@@ -25,7 +25,6 @@ namespace b3d
 			GpuTextureSubresourceRange Range; /**< Subresources covered by this attachment aspect. */
 			RenderSurfaceMaskBits Surface = RT_NONE; /**< Logical render-target surface represented by this entry. */
 			GpuAccessFlags Access; /**< Access performed through the attachment. */
-			GpuBarrierFlags BarrierFlags; /**< Behavior requested from the barrier preceding attachment access. */
 			GpuImageLayout Layout = GpuImageLayout::Undefined; /**< Layout of the attachment during the render pass. */
 			TOptional<GpuImageLayout> FinalLayout; /**< Layout established when the render pass ends, or empty to retain Layout. */
 		};
@@ -83,7 +82,7 @@ namespace b3d
 			 * Builds the attachment usage array that can be used for tracking attachment usage in the resource tracker. Attachments are in the
 			 * layouts returned by GpuBackendUtility::GetRenderPassAttachmentLayout().
 			 */
-			GpuRenderPassAttachmentUsageArray BuildRenderPassAttachmentUsages(RenderSurfaceMask readOnlyMask, RenderSurfaceMask loadMask) const;
+			GpuRenderPassAttachmentUsageArray BuildRenderPassAttachmentUsages(RenderSurfaceMask readOnlyMask) const;
 
 		protected:
 			GpuFramebuffer(u32 width, u32 height, u32 layerCount = 1);

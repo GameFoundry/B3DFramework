@@ -443,6 +443,12 @@ namespace b3d
 			VulkanFramebuffer* mFramebuffer = nullptr;
 			RenderSurfaceMask mRenderTargetReadOnlyMask = RT_NONE;
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			/** Surfaces EndRenderPass() clears, and their values. See GpuBackendUtility::GetRenderPassDiscardClears(). */
+			RenderSurfaceMask mRenderPassDiscardClearMask = RT_NONE;
+			RenderTargetClearValues mRenderPassDiscardClearValues;
+#endif
+
 			GpuResourceTracker mResourceTracker;
 			GpuQueueId mSubmittedQueueId;
 

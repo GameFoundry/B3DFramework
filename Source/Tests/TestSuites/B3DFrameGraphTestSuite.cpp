@@ -42,6 +42,9 @@ FrameGraphTestSuite::FrameGraphTestSuite()
 	B3D_ADD_TEST(FrameGraphTestSuite::TestProfiling)
 	B3D_ADD_TEST(FrameGraphTestSuite::TestRasterPass)
 	B3D_ADD_TEST(FrameGraphTestSuite::TestDepthReadOnly)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestStoreInference)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestLoadInference)
+	B3D_ADD_TEST(FrameGraphTestSuite::TestOcclusionQueries)
 	B3D_ADD_TEST(FrameGraphTestSuite::TestTwoAspectAliasAcquire)
 	B3D_ADD_TEST(FrameGraphTestSuite::TestExecuteCallbacks)
 	B3D_ADD_TEST(FrameGraphTestSuite::TestAsyncComputeProducer)
@@ -1226,6 +1229,398 @@ void FrameGraphTestSuite::TestDepthReadOnly()
 		}
 
 		B3D_TEST_ASSERT_MSG(isCleared, "The color attachment does not hold its clear value.")
+
+		device->EndFrame();
+	});
+}
+
+void FrameGraphTestSuite::TestStoreInference()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	if(device == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+
+	RunOnRenderThread("FrameGraphTestSuite::TestStoreInference", [this, &device]()
+	{
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		const ShaderVariationParameters variation(TInlineArray<ShaderVariationParameter, 4>({
+			ShaderVariationParameter("MSAA_COUNT", 1),
+			ShaderVariationParameter("MODE", 0),
+			ShaderVariationParameter("BLEND", 0),
+			ShaderVariationParameter("WRITE_ALPHA", 0),
+			ShaderVariationParameter("SRGB_ENCODE", 0),
+			ShaderVariationParameter("OUTPUT_32BIT", false),
+		}));
+
+		BlitMat* const blitMaterial = BlitMat::Get(*context, variation);
+		B3D_TEST_ASSERT(blitMaterial != nullptr)
+		if(blitMaterial == nullptr)
+			return;
+
+		TextureCreateInformation colorInformation;
+		colorInformation.Width = kSize;
+		colorInformation.Height = kSize;
+		colorInformation.Format = PF_RGBA8;
+		colorInformation.Usage = TextureUsageFlag::RenderTarget;
+
+		TextureCreateInformation depthInformation = colorInformation;
+		depthInformation.Format = PF_D32_S8X24;
+		depthInformation.Usage = TextureUsageFlag::DepthStencil;
+
+		// The reads keep the outputs of the passes observed
+		Vector<TAsyncOp<TShared<PixelData>>> reads;
+
+		// Compiles and executes @p graph, checks that no pass was culled, and returns the number of attachments its passes discard. The graphs
+		// share cached transients, and each completes before the next, as the test checks compile results, not ordering between graphs. Without
+		// the wait, Vulkan synchronization validation falsely reports a write-after-read at the split barrier into a readback when the submit
+		// thread falls behind recording, so that the previous graph's readback is not yet retired when the next graph is submitted.
+		const auto fnExecute = [this, &device](FrameGraph& graph)
+		{
+			graph.Compile();
+			const FrameGraphStatistics statistics = graph.GetStatistics();
+			graph.Execute();
+			device->WaitUntilIdle();
+
+			B3D_TEST_ASSERT(statistics.CulledPassCount == 0)
+			return statistics.DiscardedAttachmentCount;
+		};
+
+		// A transient sampled after its first write is stored, and its last write, which survives for its other attachment, is discarded
+		{
+			FrameGraph graph(*context, kGraphName);
+			const TShared<render::Texture> sampled = graph.CreateTexture("Sampled", colorInformation);
+			const TShared<render::Texture> sampleOutput = graph.CreateTexture("Sample output", colorInformation);
+			const TShared<render::Texture> rewriteOutput = graph.CreateTexture("Rewrite output", colorInformation);
+
+			FrameGraphRasterPass writePass;
+			writePass.SetColorAttachment(0, sampled, FrameGraphAttachmentLoad::Clear);
+			graph.AddRasterPass("Write", std::move(writePass), nullptr);
+
+			FrameGraphRasterPass samplePass;
+			samplePass.SetColorAttachment(0, sampleOutput, FrameGraphAttachmentLoad::Clear);
+			blitMaterial->Prepare(samplePass, sampled);
+			graph.AddRasterPass("Sample", std::move(samplePass), nullptr);
+
+			FrameGraphRasterPass rewritePass;
+			rewritePass.SetColorAttachment(0, sampled, FrameGraphAttachmentLoad::Load);
+			rewritePass.SetColorAttachment(1, rewriteOutput, FrameGraphAttachmentLoad::Clear);
+			graph.AddRasterPass("Rewrite", std::move(rewritePass), nullptr);
+
+			reads.push_back(TextureUtility::ReadAsync(graph, sampleOutput));
+			reads.push_back(TextureUtility::ReadAsync(graph, rewriteOutput));
+
+			B3D_TEST_ASSERT_MSG(fnExecute(graph) == 1, "Only the last write of the sampled transient should be discarded.")
+		}
+
+		// A transient that a later pass clears again is discarded by the earlier pass
+		{
+			FrameGraph graph(*context, kGraphName);
+			const TShared<render::Texture> cleared = graph.CreateTexture("Cleared twice", colorInformation);
+			const TShared<render::Texture> other = graph.CreateTexture("Other", colorInformation);
+
+			FrameGraphRasterPass firstPass;
+			firstPass.SetColorAttachment(0, cleared, FrameGraphAttachmentLoad::Clear);
+			firstPass.SetColorAttachment(1, other, FrameGraphAttachmentLoad::Clear);
+			graph.AddRasterPass("First clear", std::move(firstPass), nullptr);
+
+			FrameGraphRasterPass secondPass;
+			secondPass.SetColorAttachment(0, cleared, FrameGraphAttachmentLoad::Clear);
+			graph.AddRasterPass("Second clear", std::move(secondPass), nullptr);
+
+			reads.push_back(TextureUtility::ReadAsync(graph, cleared));
+			reads.push_back(TextureUtility::ReadAsync(graph, other));
+
+			B3D_TEST_ASSERT_MSG(fnExecute(graph) == 1, "The first clear of the texture cleared twice should be discarded.")
+		}
+
+		// Imported, extracted and exported textures outlive the graph, so they are stored even though no pass reads them
+		{
+			FrameGraph graph(*context, kGraphName);
+
+			colorInformation.Name = "Imported";
+			const TShared<render::Texture> imported = device->CreateTexture(colorInformation);
+			graph.ImportTexture(imported);
+
+			colorInformation.Name = "Exported";
+			const TShared<render::Texture> exported = device->CreateTexture(colorInformation);
+			graph.ImportTexture(exported);
+			colorInformation.Name = String();
+
+			const TShared<render::Texture> extracted = graph.CreateTexture("Extracted", colorInformation);
+			graph.ExtractTexture(extracted);
+
+			FrameGraphRasterPass pass;
+			pass.SetColorAttachment(0, imported, FrameGraphAttachmentLoad::Clear);
+			pass.SetColorAttachment(1, extracted, FrameGraphAttachmentLoad::Clear);
+			pass.SetColorAttachment(2, exported, FrameGraphAttachmentLoad::Clear);
+			pass.Export(exported);
+			graph.AddRasterPass("Write outliving textures", std::move(pass), nullptr);
+
+			B3D_TEST_ASSERT_MSG(fnExecute(graph) == 0, "Textures that outlive the graph should be stored.")
+		}
+
+		// Sampling reads only the depth of a depth-stencil texture, so the pass that cleared it discards the stencil
+		{
+			FrameGraph graph(*context, kGraphName);
+			const TShared<render::Texture> depth = graph.CreateTexture("Depth", depthInformation);
+			const TShared<render::Texture> color = graph.CreateTexture("Color", colorInformation);
+
+			FrameGraphRasterPass clearPass;
+			clearPass.SetDepthStencilAttachment(depth, FrameGraphDepthStencilMode::Write, FrameGraphAttachmentLoad::Clear);
+			graph.AddRasterPass("Clear depth", std::move(clearPass), nullptr);
+
+			FrameGraphRasterPass samplePass;
+			samplePass.SetColorAttachment(0, color, FrameGraphAttachmentLoad::Clear);
+			blitMaterial->Prepare(samplePass, depth);
+			graph.AddRasterPass("Sample depth", std::move(samplePass), nullptr);
+
+			reads.push_back(TextureUtility::ReadAsync(graph, color));
+
+			B3D_TEST_ASSERT_MSG(fnExecute(graph) == 1, "Only the stencil of the depth-stencil texture should be discarded.")
+		}
+
+		// A later pass reads one layer of a texture array, which keeps the whole attachment stored
+		{
+			TextureCreateInformation arrayInformation = colorInformation;
+			arrayInformation.ArraySliceCount = 2;
+
+			FrameGraph graph(*context, kGraphName);
+			const TShared<render::Texture> array = graph.CreateTexture("Array", arrayInformation);
+
+			FrameGraphRasterPass pass;
+			pass.SetColorAttachment(0, array, FrameGraphAttachmentLoad::Clear, 0, 0, 2);
+			graph.AddRasterPass("Write both layers", std::move(pass), nullptr);
+
+			reads.push_back(TextureUtility::ReadAsync(graph, array, 0, 0));
+
+			B3D_TEST_ASSERT_MSG(fnExecute(graph) == 0, "The texture array should be stored for the read of its first layer.")
+		}
+
+		// A read-only attachment is never discarded, and the pass that cleared it stores it for the load
+		{
+			FrameGraph graph(*context, kGraphName);
+			const TShared<render::Texture> depth = graph.CreateTexture("Depth", depthInformation);
+			const TShared<render::Texture> color = graph.CreateTexture("Color", colorInformation);
+
+			FrameGraphRasterPass clearPass;
+			clearPass.SetDepthStencilAttachment(depth, FrameGraphDepthStencilMode::Write, FrameGraphAttachmentLoad::Clear);
+			graph.AddRasterPass("Clear depth", std::move(clearPass), nullptr);
+
+			FrameGraphRasterPass readPass;
+			readPass.SetColorAttachment(0, color, FrameGraphAttachmentLoad::Clear);
+			readPass.SetDepthStencilAttachment(depth, FrameGraphDepthStencilMode::ReadOnly, FrameGraphAttachmentLoad::Load);
+			graph.AddRasterPass("Read depth", std::move(readPass), nullptr);
+
+			reads.push_back(TextureUtility::ReadAsync(graph, color));
+
+			B3D_TEST_ASSERT_MSG(fnExecute(graph) == 0, "No attachment should be discarded.")
+		}
+
+		// The command buffer's completion callbacks run on this thread while it waits
+		device->WaitUntilIdle();
+		for(const TAsyncOp<TShared<PixelData>>& read : reads)
+			B3D_TEST_ASSERT_MSG(read.HasCompleted(), "A read did not complete with the graph's command buffer.")
+
+		device->EndFrame();
+	});
+}
+
+void FrameGraphTestSuite::TestLoadInference()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	if(device == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	logs.ExpectWarning("Pass 'Load undefined' loads 'Undefined color', which no earlier pass wrote. Its contents are undefined.");
+	logs.ExpectWarning("Pass 'Load undefined' loads 'Undefined depth', which no earlier pass wrote. Its contents are undefined.");
+#endif
+
+	RunOnRenderThread("FrameGraphTestSuite::TestLoadInference", [this, &device]()
+	{
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+
+		TextureCreateInformation colorInformation;
+		colorInformation.Width = kSize;
+		colorInformation.Height = kSize;
+		colorInformation.Format = PF_RGBA8;
+		colorInformation.Usage = TextureUsageFlag::RenderTarget;
+
+		TextureCreateInformation depthInformation = colorInformation;
+		depthInformation.Format = PF_D32_S8X24;
+		depthInformation.Usage = TextureUsageFlag::DepthStencil;
+
+		// The reads keep the outputs of the passes observed
+		Vector<TAsyncOp<TShared<PixelData>>> reads;
+
+		// Transients no earlier pass wrote are not loaded: the color, and the depth and stencil
+		{
+			FrameGraph graph(*context, kGraphName);
+			const TShared<render::Texture> color = graph.CreateTexture("Undefined color", colorInformation);
+			const TShared<render::Texture> depth = graph.CreateTexture("Undefined depth", depthInformation);
+
+			FrameGraphRasterPass pass;
+			pass.SetColorAttachment(0, color, FrameGraphAttachmentLoad::Load);
+			pass.SetDepthStencilAttachment(depth, FrameGraphDepthStencilMode::Write, FrameGraphAttachmentLoad::Load);
+			graph.AddRasterPass("Load undefined", std::move(pass), nullptr);
+
+			reads.push_back(TextureUtility::ReadAsync(graph, color));
+
+			graph.Compile();
+			B3D_TEST_ASSERT_MSG(graph.GetStatistics().DroppedLoadCount == 3, "The loads of the color, depth and stencil should be dropped.")
+			graph.Execute();
+
+			// The graphs share cached transients, and each completes before the next, as the test checks compile results
+			device->WaitUntilIdle();
+		}
+
+		// A transient an earlier pass wrote, and an imported texture, are loaded
+		{
+			FrameGraph graph(*context, kGraphName);
+			const TShared<render::Texture> transient = graph.CreateTexture("Written color", colorInformation);
+
+			colorInformation.Name = "Imported color";
+			const TShared<render::Texture> imported = device->CreateTexture(colorInformation);
+			graph.ImportTexture(imported);
+
+			FrameGraphRasterPass clearPass;
+			clearPass.SetColorAttachment(0, transient, FrameGraphAttachmentLoad::Clear);
+			graph.AddRasterPass("Clear", std::move(clearPass), nullptr);
+
+			FrameGraphRasterPass loadPass;
+			loadPass.SetColorAttachment(0, transient, FrameGraphAttachmentLoad::Load);
+			loadPass.SetColorAttachment(1, imported, FrameGraphAttachmentLoad::Load);
+			graph.AddRasterPass("Load written", std::move(loadPass), nullptr);
+
+			reads.push_back(TextureUtility::ReadAsync(graph, transient));
+
+			graph.Compile();
+			B3D_TEST_ASSERT_MSG(graph.GetStatistics().DroppedLoadCount == 0, "No load should be dropped.")
+			graph.Execute();
+		}
+
+		// The command buffer's completion callbacks run on this thread while it waits
+		device->WaitUntilIdle();
+		for(const TAsyncOp<TShared<PixelData>>& read : reads)
+			B3D_TEST_ASSERT_MSG(read.HasCompleted(), "A read did not complete with the graph's command buffer.")
+
+		device->EndFrame();
+	});
+}
+
+void FrameGraphTestSuite::TestOcclusionQueries()
+{
+	const TShared<GpuDevice> device = GetTestDevice();
+	if(device == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning(kBarrierOnlyWarning);
+
+	RunOnRenderThread("FrameGraphTestSuite::TestOcclusionQueries", [this, &device]()
+	{
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		const ShaderVariationParameters variation(TInlineArray<ShaderVariationParameter, 4>({
+			ShaderVariationParameter("MSAA_COUNT", 1),
+			ShaderVariationParameter("MODE", 0),
+			ShaderVariationParameter("BLEND", 0),
+			ShaderVariationParameter("WRITE_ALPHA", 0),
+			ShaderVariationParameter("SRGB_ENCODE", 0),
+			ShaderVariationParameter("OUTPUT_32BIT", false),
+		}));
+
+		BlitMat* const blitMaterial = BlitMat::Get(*context, variation);
+		B3D_TEST_ASSERT(blitMaterial != nullptr)
+		if(blitMaterial == nullptr)
+			return;
+
+		// Some backends resolve a pool with a single query type, so precise and binary queries use separate pools
+		GpuQueryPoolCreateInformation poolInformation;
+		poolInformation.Type = GpuQueryType::Occlusion;
+		poolInformation.PoolSize = 4;
+
+		const TShared<GpuQueryPool> precisePool = device->CreateQueryPool(poolInformation);
+		const TShared<GpuQueryPool> binaryPool = device->CreateQueryPool(poolInformation);
+		B3D_TEST_ASSERT(precisePool != nullptr && binaryPool != nullptr)
+		if(precisePool == nullptr || binaryPool == nullptr)
+			return;
+
+		// The pools are reset before the graph's submission, on the same queue
+		const TShared<GpuCommandBufferPool> commandBufferPool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
+		const TShared<render::GpuCommandBuffer> resetCommands = commandBufferPool->Create(GpuCommandBufferCreateInformation::Create("Reset queries"));
+		resetCommands->ResetQueries(precisePool);
+		resetCommands->ResetQueries(binaryPool);
+		context->SubmitCommandBuffer(resetCommands, GpuQueueMask::kNone);
+
+		const GpuQueryId drawPreciseQuery = precisePool->AllocateQuery();
+		const GpuQueryId drawBinaryQuery = binaryPool->AllocateQuery();
+		const GpuQueryId emptyPreciseQuery = precisePool->AllocateQuery();
+
+		TextureCreateInformation information;
+		information.Width = kSize;
+		information.Height = kSize;
+		information.Format = PF_RGBA8;
+		information.Usage = TextureUsageFlag::RenderTarget;
+
+		TAsyncOp<TShared<PixelData>> read;
+		{
+			FrameGraph graph(*context, kGraphName);
+			const TShared<render::Texture> blitSource = graph.CreateTexture("Blit source", information);
+			const TShared<render::Texture> target = graph.CreateTexture("Target", information);
+
+			FrameGraphRasterPass sourcePass;
+			sourcePass.SetColorAttachment(0, blitSource, FrameGraphAttachmentLoad::Clear);
+			graph.AddRasterPass("Write source", std::move(sourcePass), nullptr);
+
+			FrameGraphRasterPass queryPass;
+			queryPass.SetColorAttachment(0, target, FrameGraphAttachmentLoad::DontCare);
+			const TShared<render::GpuParameterSet> blitSet = blitMaterial->Prepare(queryPass, blitSource);
+
+			graph.AddRasterPass("Occlusion queries", std::move(queryPass), [=](FrameGraphPassContext& passContext)
+			{
+				const Area2 sourceArea(0.0f, 0.0f, (float)kSize, (float)kSize);
+				render::GpuCommandBuffer& commandBuffer = passContext.GetCommandBuffer();
+				commandBuffer.ClearRenderTarget(RT_COLOR0);
+				commandBuffer.SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
+
+				commandBuffer.BeginQuery(drawPreciseQuery, precisePool, GpuQueryFlag::PreciseOcclusion);
+				blitMaterial->Execute(passContext, blitSet, sourceArea, false);
+				commandBuffer.EndQuery(drawPreciseQuery, precisePool);
+
+				commandBuffer.BeginQuery(drawBinaryQuery, binaryPool);
+				blitMaterial->Execute(passContext, blitSet, sourceArea, false);
+				commandBuffer.EndQuery(drawBinaryQuery, binaryPool);
+
+				commandBuffer.BeginQuery(emptyPreciseQuery, precisePool, GpuQueryFlag::PreciseOcclusion);
+				commandBuffer.EndQuery(emptyPreciseQuery, precisePool);
+			});
+
+			// The read keeps the pass observed
+			read = TextureUtility::ReadAsync(graph, target);
+
+			graph.Compile();
+			B3D_TEST_ASSERT(graph.GetStatistics().CulledPassCount == 0)
+			graph.Execute();
+		}
+
+		// The command buffer's completion callbacks run on this thread while it waits
+		device->WaitUntilIdle();
+		B3D_TEST_ASSERT_MSG(read.HasCompleted(), "The read did not complete with the graph's command buffer.")
+
+		const bool resolved = precisePool->TryResolve(true) && binaryPool->TryResolve(true);
+		B3D_TEST_ASSERT_MSG(resolved, "The occlusion queries did not resolve.")
+		if(resolved)
+		{
+			B3D_TEST_ASSERT_MSG(precisePool->GetQueryResult(drawPreciseQuery) == kSize * kSize, "The precise query should count every sample of the blit.")
+			B3D_TEST_ASSERT_MSG(binaryPool->GetQueryResult(drawBinaryQuery) != 0, "The binary query should report that the blit drew samples.")
+			B3D_TEST_ASSERT_MSG(precisePool->GetQueryResult(emptyPreciseQuery) == 0, "The query around no draw should count no samples.")
+		}
 
 		device->EndFrame();
 	});

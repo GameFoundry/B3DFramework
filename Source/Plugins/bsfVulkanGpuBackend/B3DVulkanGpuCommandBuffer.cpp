@@ -315,7 +315,7 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 	mResourceTracker.TrackResourceUsage(mFramebuffer, GpuAccessFlag::Write);
 
 	VulkanRenderPass* renderPass = mFramebuffer->GetRenderPass();
-	const GpuRenderPassAttachmentUsageArray renderPassAttachmentUsages = mFramebuffer->BuildRenderPassAttachmentUsages(readOnlyMask, loadMask);
+	const GpuRenderPassAttachmentUsageArray renderPassAttachmentUsages = mFramebuffer->BuildRenderPassAttachmentUsages(readOnlyMask);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	mDrawAccessValidator.BeginRenderPass();
@@ -348,11 +348,15 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 	const RenderSurfaceMask clearMask = GpuBackendUtility::GetRenderPassClears(createInformation, targetClearValues);
 	Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> clearValues = BuildClearValues(clearMask, targetClearValues);
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	mRenderPassDiscardClearMask = GpuBackendUtility::GetRenderPassDiscardClears(createInformation, mRenderPassDiscardClearValues);
+#endif
+
 	VkRenderPassBeginInfo renderPassBeginInfo;
 	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderPassBeginInfo.pNext = nullptr;
 	renderPassBeginInfo.framebuffer = mFramebuffer->GetVulkanHandle();
-	renderPassBeginInfo.renderPass = renderPass->GetVkRenderPass(loadMask, readMask, clearMask);
+	renderPassBeginInfo.renderPass = renderPass->GetVkRenderPass(loadMask, readMask, clearMask, createInformation.StoreMask);
 	renderPassBeginInfo.renderArea = VulkanUtility::ToVulkanRect(renderArea);
 	renderPassBeginInfo.clearValueCount = renderPass->GetClearEntryCount(clearMask);
 	renderPassBeginInfo.pClearValues = clearValues.data();
@@ -367,6 +371,8 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& 
 void VulkanGpuCommandBuffer::ClearRenderTarget(RenderSurfaceMask mask)
 {
 	EnsureValidThread();
+	if(!B3D_ENSURE(IsInRenderPass()))
+		return;
 
 	Area2I area(0, 0, mFramebuffer->GetWidth(), mFramebuffer->GetHeight());
 	ClearAttachments(area, mask);
@@ -377,6 +383,8 @@ void VulkanGpuCommandBuffer::ClearRenderTarget(RenderSurfaceMask mask)
 void VulkanGpuCommandBuffer::ClearViewport(RenderSurfaceMask mask)
 {
 	EnsureValidThread();
+	if(!B3D_ENSURE(IsInRenderPass()))
+		return;
 
 	const Area2I viewportArea = GetViewportArea();
 	ClearAttachments(viewportArea, mask);
@@ -1204,6 +1212,15 @@ void VulkanGpuCommandBuffer::BeginRenderPass()
 void VulkanGpuCommandBuffer::EndRenderPass()
 {
 	B3D_ASSERT(mState == GpuCommandBufferState::RecordingRenderPass);
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	// Discarded surfaces show what later passes read of them even on GPUs that keep discarded contents
+	if(mRenderPassDiscardClearMask != RT_NONE)
+	{
+		ClearAttachments(GetRenderPassArea(), mRenderPassDiscardClearMask, BuildClearValues(mRenderPassDiscardClearMask, mRenderPassDiscardClearValues));
+		mRenderPassDiscardClearMask = RT_NONE;
+	}
+#endif
 
 	vkCmdEndRenderPass(mCommandBufferHandle);
 

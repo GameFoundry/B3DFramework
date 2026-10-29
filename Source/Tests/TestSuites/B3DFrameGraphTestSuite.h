@@ -91,6 +91,26 @@ namespace b3d
 		void TestDepthReadOnly();
 
 		/**
+		 * Raster passes store the attachments whose contents a later surviving pass or the end of the graph observes, and discard the
+		 * others: the last write of a transient, a transient a later pass clears again, and the stencil of a depth-stencil texture whose
+		 * depth alone is sampled later. Imported, extracted and exported textures are stored, and so is a texture array of which a later
+		 * pass reads one layer. Read-only attachments are never discarded.
+		 */
+		void TestStoreInference();
+
+		/**
+		 * A raster pass that loads transients no earlier pass wrote does not load them, and development builds report it. Loads of
+		 * transients an earlier pass wrote, and of imported textures, are kept.
+		 */
+		void TestLoadInference();
+
+		/**
+		 * A raster pass that clears its target and alternates between queries of two occlusion query pools, one precise and one binary,
+		 * reports the samples of each draw to the query active around it, and none to a query around no draw.
+		 */
+		void TestOcclusionQueries();
+
+		/**
 		 * A depth-stencil transient and a color transient are first used by a later pass, on memory no earlier transient of the graph
 		 * used. The color transient's alias acquire is a split barrier released at the start of the graph; the depth-stencil one, which
 		 * gets no split barriers, is a full barrier at the start of the graph.

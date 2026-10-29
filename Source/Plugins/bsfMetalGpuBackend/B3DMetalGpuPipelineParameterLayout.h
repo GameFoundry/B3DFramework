@@ -90,9 +90,6 @@ namespace b3d
 			/** Returns the union of the shader stages referencing any binding in this set. */
 			GpuProgramStageBits GetCombinedStages() const { return mCombinedStages; }
 
-			/** Returns true if a fragment shader can write a storage buffer or texture bound in this set. */
-			bool HasFragmentWrites() const { return mHasFragmentWrites; }
-
 			/** Finds the binding record for an engine @c (type, slot) pair, or null when absent. */
 			const MetalArgumentBufferBinding* FindBinding(GpuParameterType type, u32 slot) const;
 
@@ -106,7 +103,6 @@ namespace b3d
 			u32 mArgumentBufferAlignment = 16;
 
 			GpuProgramStageBits mCombinedStages = GpuProgramStageBit::None;
-			bool mHasFragmentWrites = false;
 		};
 
 		/** Holds meta-data about a set of GPU parameters used by a single pipeline state. */
