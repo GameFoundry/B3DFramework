@@ -33,6 +33,7 @@ namespace b3d
 		void TestPool();
 		void TestSegregatedFitAllocator();
 		void TestTlsfAllocator();
+		void TestRangeAllocator();
 		void TestEvent();
 
 		/** Runs the event tests on events with the provided thread safety policy. */

@@ -74,6 +74,8 @@ namespace b3d
 				mHeapAllocator.reset();
 			}
 
+			mCounterHeaps.Clear();
+
 			mNullVertexBuffer = nil;
 			mDummyArgumentBuffer = nil;
 			mVisibilityResultBuffer = nil;
@@ -190,7 +192,6 @@ namespace b3d
 				B3D_LOG(Fatal, LogRenderBackend, "Failed to create the visibility result buffer.");
 
 			std::memset([mVisibilityResultBuffer contents], 0, (size_t)visibilityResultBufferSize);
-			mFreeVisibilityResultSlots.push_back(std::make_pair(0u, kVisibilityResultSlotCount));
 
 			constexpr u32 kDummyArgumentBufferSize = 65536;
 			mDummyArgumentBuffer = mHeapAllocator->AllocateBuffer(kDummyArgumentBufferSize, MetalHeapAllocator::kMemoryTypeShared, sharedAllocation, mDummyArgumentBufferAllocation);
@@ -412,7 +413,16 @@ namespace b3d
 			if (createInformation.Type == GpuQueryType::Timestamp && !mCapabilities.HasCapability(RSC_TIMER_QUERIES))
 				return nullptr;
 
-			return B3DMakeShared<MetalGpuQueryPool>(*this, createInformation);
+			TShared<MetalGpuQueryPool> queryPool = B3DMakeShared<MetalGpuQueryPool>(*this, createInformation);
+
+			// Visibility results and timestamps are written to slots shared with the device's other pools, which are limited
+			if (createInformation.Type == GpuQueryType::Occlusion && queryPool->GetVisibilityResultRange().length == 0)
+				return nullptr;
+
+			if (createInformation.Type == GpuQueryType::Timestamp && queryPool->GetCounterHeap() == nil)
+				return nullptr;
+
+			return queryPool;
 		}
 
 		TShared<EventQuery> MetalGpuDevice::CreateEventQuery()
@@ -573,55 +583,62 @@ namespace b3d
 
 		u32 MetalGpuDevice::AllocateVisibilityResultSlots(u32 count)
 		{
-			Lock lock(mVisibilityResultSlotMutex);
-			for (auto iterator = mFreeVisibilityResultSlots.begin(); iterator != mFreeVisibilityResultSlots.end(); ++iterator)
-			{
-				if (iterator->second < count)
-					continue;
-
-				const u32 firstSlot = iterator->first;
-				iterator->first += count;
-				iterator->second -= count;
-				if (iterator->second == 0)
-					mFreeVisibilityResultSlots.erase(iterator);
-
-				return firstSlot;
-			}
-
-			return ~0u;
+			Lock lock(mQueryAllocationMutex);
+			return mVisibilityResultSlots.Allocate(count);
 		}
 
 		void MetalGpuDevice::FreeVisibilityResultSlots(u32 firstSlot, u32 count)
 		{
-			Lock lock(mVisibilityResultSlotMutex);
+			Lock lock(mQueryAllocationMutex);
+			mVisibilityResultSlots.Free(firstSlot, count);
+		}
 
-			// The free ranges stay sorted, and merge with the ranges next to them
-			auto next = std::lower_bound(mFreeVisibilityResultSlots.begin(), mFreeVisibilityResultSlots.end(), firstSlot,
-				[](const std::pair<u32, u32>& range, u32 slot) { return range.first < slot; });
-			if (next != mFreeVisibilityResultSlots.begin())
+		u32 MetalGpuDevice::AllocateCounterHeapSlots(u32 count, __strong id<MTL4CounterHeap>& outCounterHeap)
+		{
+			if (!B3D_ENSURE_LOG(count > 0 && count <= kCounterHeapSlotCount, "Cannot reserve {0} timestamp counter heap slots, a heap holds at most {1}.", count, kCounterHeapSlotCount))
+				return RangeAllocator::kInvalidIndex;
+
+			Lock lock(mQueryAllocationMutex);
+			for (CounterHeap& counterHeap : mCounterHeaps)
 			{
-				auto previous = std::prev(next);
-				if (previous->first + previous->second == firstSlot)
+				const u32 firstSlot = counterHeap.Slots.Allocate(count);
+				if (firstSlot != RangeAllocator::kInvalidIndex)
 				{
-					previous->second += count;
-					if (next != mFreeVisibilityResultSlots.end() && previous->first + previous->second == next->first)
-					{
-						previous->second += next->second;
-						mFreeVisibilityResultSlots.erase(next);
-					}
-
-					return;
+					outCounterHeap = counterHeap.Heap;
+					return firstSlot;
 				}
 			}
 
-			if (next != mFreeVisibilityResultSlots.end() && firstSlot + count == next->first)
+			MTL4CounterHeapDescriptor* descriptor = [[MTL4CounterHeapDescriptor alloc] init];
+			descriptor.type = MTL4CounterHeapTypeTimestamp;
+			descriptor.count = kCounterHeapSlotCount;
+
+			NSError* error = nil;
+			id<MTL4CounterHeap> heap = [mMetalDevice newCounterHeapWithDescriptor:descriptor error:&error];
+			if (heap == nil)
 			{
-				next->first = firstSlot;
-				next->second += count;
-				return;
+				B3D_LOG(Error, LogRenderBackend, "Failed to create a timestamp counter heap: {0}",
+					error ? String([[error localizedDescription] UTF8String]) : String("No error details were provided."));
+				return RangeAllocator::kInvalidIndex;
 			}
 
-			mFreeVisibilityResultSlots.insert(next, std::make_pair(firstSlot, count));
+			mCounterHeaps.Add(CounterHeap());
+			CounterHeap& counterHeap = mCounterHeaps.Back();
+			counterHeap.Heap = heap;
+
+			outCounterHeap = heap;
+			return counterHeap.Slots.Allocate(count);
+		}
+
+		void MetalGpuDevice::FreeCounterHeapSlots(id<MTL4CounterHeap> counterHeap, u32 firstSlot, u32 count)
+		{
+			Lock lock(mQueryAllocationMutex);
+
+			auto iterator = std::find_if(mCounterHeaps.Begin(), mCounterHeaps.End(), [counterHeap](const CounterHeap& entry) { return entry.Heap == counterHeap; });
+			if (!B3D_ENSURE(iterator != mCounterHeaps.End()))
+				return;
+
+			iterator->Slots.Free(firstSlot, count);
 		}
 
 		TShared<SamplerState> MetalGpuDevice::CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags)

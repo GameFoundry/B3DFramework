@@ -16,6 +16,7 @@
 #include "Utility/B3DPool.h"
 #include "Allocators/B3DSegregatedFitAllocator.h"
 #include "Allocators/B3DTlsfAllocator.h"
+#include "Allocators/B3DRangeAllocator.h"
 #include "Allocators/B3DStackAllocator.h"
 #include "Utility/B3DSpatialTree.h"
 #include "Utility/B3DBitstream.h"
@@ -265,6 +266,7 @@ UtilityTestSuite::UtilityTestSuite()
 	B3D_ADD_TEST(UtilityTestSuite::TestPool)
 	B3D_ADD_TEST(UtilityTestSuite::TestSegregatedFitAllocator)
 	B3D_ADD_TEST(UtilityTestSuite::TestTlsfAllocator)
+	B3D_ADD_TEST(UtilityTestSuite::TestRangeAllocator)
 	B3D_ADD_TEST(UtilityTestSuite::TestEvent)
 }
 
@@ -2177,6 +2179,56 @@ void UtilityTestSuite::TestSingleConsumerQueueShutdown()
 
 		consumer.WaitUntilComplete();
 		B3D_TEST_ASSERT(commandCount == 1);
+	}
+}
+
+void UtilityTestSuite::TestRangeAllocator()
+{
+	// Ranges are allocated first fit, and fail once no free range is large enough
+	{
+		RangeAllocator allocator(16);
+		B3D_TEST_ASSERT(allocator.Allocate(0) == RangeAllocator::kInvalidIndex);
+		B3D_TEST_ASSERT(allocator.Allocate(4) == 0);
+		B3D_TEST_ASSERT(allocator.Allocate(8) == 4);
+		B3D_TEST_ASSERT(allocator.Allocate(5) == RangeAllocator::kInvalidIndex);
+		B3D_TEST_ASSERT(allocator.Allocate(4) == 12);
+		B3D_TEST_ASSERT(allocator.Allocate(1) == RangeAllocator::kInvalidIndex);
+	}
+
+	// Freed ranges are reused, and merge with the free ranges before and after them
+	{
+		RangeAllocator allocator(12);
+		const u32 first = allocator.Allocate(4);
+		const u32 second = allocator.Allocate(4);
+		const u32 third = allocator.Allocate(4);
+
+		allocator.Free(first, 4);
+		allocator.Free(third, 4);
+		B3D_TEST_ASSERT(allocator.Allocate(8) == RangeAllocator::kInvalidIndex);
+
+		// Merges with both neighbors, so the whole capacity is free again
+		allocator.Free(second, 4);
+		B3D_TEST_ASSERT(allocator.Allocate(12) == 0);
+		allocator.Free(0, 12);
+
+		// Merges with the range before it only
+		B3D_TEST_ASSERT(allocator.Allocate(3) == 0);
+		B3D_TEST_ASSERT(allocator.Allocate(3) == 3);
+		B3D_TEST_ASSERT(allocator.Allocate(6) == 6);
+		allocator.Free(0, 3);
+		allocator.Free(3, 3);
+		B3D_TEST_ASSERT(allocator.Allocate(6) == 0);
+
+		// Merges with the range after it only
+		allocator.Free(6, 6);
+		allocator.Free(3, 3);
+		B3D_TEST_ASSERT(allocator.Allocate(9) == 3);
+	}
+
+	// An allocator without capacity never allocates
+	{
+		RangeAllocator allocator;
+		B3D_TEST_ASSERT(allocator.Allocate(1) == RangeAllocator::kInvalidIndex);
 	}
 }
 

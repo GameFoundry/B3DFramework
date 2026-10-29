@@ -55,6 +55,13 @@ namespace b3d
 	class B3D_EXPORT GpuCommandBufferProfiler
 	{
 	private:
+		/** Timestamp query written by a sample, and the index of the profiler's query pool it was allocated from. */
+		struct Timestamp
+		{
+			u32 PoolIndex = 0;
+			render::GpuQueryId QueryId;
+		};
+
 		/** Information about a single profiling sample. Each sample can have multiple child samples. */
 		struct Sample
 		{
@@ -63,16 +70,20 @@ namespace b3d
 			RenderStatsData BeginRenderStatistics;
 			RenderStatsData EndRenderStatistics;
 
-			render::GpuQueryId TimestampBeginQueryId;
-			render::GpuQueryId TimestampEndQueryId;
+			Timestamp BeginTimestamp;
+			Timestamp EndTimestamp;
 
 			TArray<Sample*> Children;
 		};
 
 	public:
 		/**
-		 * Constructs a new command buffer profiler and allocates query pool. Query pool reset is issued on the provided command buffer. Command buffer must not
-		 * be in a render pass.
+		 * Constructs a new command buffer profiler and allocates its first query pool. Query pool reset is issued on the provided command buffer. Command
+		 * buffer must not be in a render pass.
+		 *
+		 * Once a query pool runs low, the profiler continues in a new one. Query pools can only be reset outside of a render pass, so the profiler
+		 * switches while outside of one, early enough to leave kRenderPassQueryCount queries for the next render pass. Samples that start
+		 * within a render pass after the pool ran out are skipped.
 		 */
 		GpuCommandBufferProfiler(render::GpuCommandBuffer& commandBuffer);
 		~GpuCommandBufferProfiler();
@@ -111,7 +122,21 @@ namespace b3d
 		/** Converts all command buffer profiler samples into report samples. Caller must ensure that query pool has resolved the queries before calling. */
 		GpuProfilerResults GetResults();
 
-		TShared<render::GpuQueryPool> mTimestampQueryPool;
+		/**
+		 * Writes a timestamp on @p commandBuffer. Outside of a render pass it continues in a new query pool if fewer than kRenderPassQueryCount
+		 * queries are left in the current one. Returns false if no query could be allocated.
+		 */
+		bool WriteTimestamp(render::GpuCommandBuffer& commandBuffer, Timestamp& outTimestamp);
+
+		/** Attempts to resolve the queries of every query pool. Returns true if all are resolved, or there are none. */
+		bool TryResolve();
+
+		/** Number of queries left free in a query pool when a render pass starts, for the samples within it. */
+		static constexpr u32 kRenderPassQueryCount = 32;
+
+		/** Query pools in the order they were used. Empty if the device does not support timer queries. */
+		TInlineArray<TShared<render::GpuQueryPool>, 1> mTimestampQueryPools;
+		u32 mAllocatedQueryCount = 0; /**< Number of queries allocated from the last of mTimestampQueryPools. */
 
 		TArray<Sample*> mRootSamples;
 		TArray<Sample*> mActiveSampleChain;
@@ -175,8 +200,11 @@ namespace b3d
 	private:
 		friend class GpuCommandBufferProfiler;
 
-		/**	Attempts to find an existing free pool, or creates a new one if free one cannot be found. */
-		TShared<render::GpuQueryPool> FindOrCreateQueryPool() const;
+		/**
+		 * Attempts to find an existing free pool, recycling discarded profilers if there is none, or creates a new one if a free one
+		 * cannot be found. mMutex must be locked.
+		 */
+		TShared<render::GpuQueryPool> FindOrCreateQueryPool();
 
 		/** Notifies the system that the query pool is no longer used and can be re-used. */
 		void ReleaseQueryPool(const TShared<render::GpuQueryPool>& queryPool);
@@ -186,6 +214,9 @@ namespace b3d
 
 	private:
 		static constexpr u32 kMaxQueuedEntries = 3;
+
+		/** Number of queries in each query pool. A command buffer profiler continues in another pool once its current one runs out. */
+		static constexpr u32 kQueryPoolSize = 128;
 
 		/** Information about all unresolved command buffer profilers with the same identifier. */
 		struct ResolvedCommandBufferProfilerData
@@ -198,6 +229,12 @@ namespace b3d
 		{
 			TInlineArray<TShared<GpuCommandBufferProfiler>, kMaxQueuedEntries> Queued;
 		};
+
+		/**
+		 * Resolves the queued profilers of @p name whose queries the GPU finished writing. The latest resolved profiler becomes the
+		 * name's results, and the profilers queued before it are discarded. mMutex must be locked.
+		 */
+		void ResolveQueuedProfilers(const ProfilerString& name, UnresolvedCommandBufferProfilerData& profilerData);
 
 		UnorderedMap<ProfilerString, UnresolvedCommandBufferProfilerData> mUnresolvedProfilerData;
 		UnorderedMap<ProfilerString, ResolvedCommandBufferProfilerData> mResolvedProfilerData;

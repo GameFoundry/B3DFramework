@@ -1907,15 +1907,15 @@ namespace b3d
 
 			// Outside encoders the timestamp is written once all earlier work in the command buffer completes
 			if (mRenderEncoder != nil)
-				[mRenderEncoder writeTimestampWithGranularity:MTL4TimestampGranularityPrecise afterStage:MTLRenderStageFragment intoHeap:counterHeap atIndex:query.Id];
+				[mRenderEncoder writeTimestampWithGranularity:MTL4TimestampGranularityPrecise afterStage:MTLRenderStageFragment intoHeap:counterHeap atIndex:metalPool->GetCounterHeapSlot(query)];
 			else if (mComputeEncoder != nil)
-				[mComputeEncoder writeTimestampWithGranularity:MTL4TimestampGranularityPrecise intoHeap:counterHeap atIndex:query.Id];
+				[mComputeEncoder writeTimestampWithGranularity:MTL4TimestampGranularityPrecise intoHeap:counterHeap atIndex:metalPool->GetCounterHeapSlot(query)];
 			else
 			{
 				if (!BeginNativeCommandBuffer())
 					return;
 
-				[mCommandBuffer writeTimestampIntoHeap:counterHeap atIndex:query.Id];
+				[mCommandBuffer writeTimestampIntoHeap:counterHeap atIndex:metalPool->GetCounterHeapSlot(query)];
 			}
 
 			AddUniqueUsedQueryPool(metalPool);

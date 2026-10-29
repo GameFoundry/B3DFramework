@@ -13,14 +13,17 @@ using namespace b3d;
 GpuCommandBufferProfiler::GpuCommandBufferProfiler(render::GpuCommandBuffer& commandBuffer)
 	: mCommandBufferId((u64)&commandBuffer)
 {
-	mTimestampQueryPool = GetGpuProfiler().FindOrCreateQueryPool();
-	if(mTimestampQueryPool != nullptr)
-		commandBuffer.ResetQueries(mTimestampQueryPool);
+	TShared<render::GpuQueryPool> queryPool = GetGpuProfiler().FindOrCreateQueryPool();
+	if(queryPool != nullptr)
+	{
+		commandBuffer.ResetQueries(queryPool);
+		mTimestampQueryPools.Add(std::move(queryPool));
+	}
 }
 
 GpuCommandBufferProfiler::~GpuCommandBufferProfiler()
 {
-	if(mTimestampQueryPool != nullptr) // If it hasn't been cleared yet
+	if(!mTimestampQueryPools.Empty()) // If it hasn't been cleared yet
 		Clear();
 }
 
@@ -28,7 +31,7 @@ void GpuCommandBufferProfiler::BeginSample(render::GpuCommandBuffer& commandBuff
 {
 	if(!B3D_ENSURE(mCommandBufferId == (u64)&commandBuffer))
 		return;
-	if(mTimestampQueryPool == nullptr)
+	if(mTimestampQueryPools.Empty())
 		return;
 	if(mSkippedSampleDepth > 0)
 	{
@@ -36,8 +39,10 @@ void GpuCommandBufferProfiler::BeginSample(render::GpuCommandBuffer& commandBuff
 		return;
 	}
 
-	const render::GpuQueryId beginQueryId = mTimestampQueryPool->AllocateQuery();
-	if(!beginQueryId.IsValid())
+	const RenderStatsData beginRenderStatistics = RenderStats::Instance().GetData();
+
+	Timestamp beginTimestamp;
+	if(!WriteTimestamp(commandBuffer, beginTimestamp))
 	{
 		mSkippedSampleDepth = 1;
 		return;
@@ -45,10 +50,8 @@ void GpuCommandBufferProfiler::BeginSample(render::GpuCommandBuffer& commandBuff
 
 	auto sample = mSamplePool.Construct<Sample>();
 	sample->Name = std::move(name);
-	sample->BeginRenderStatistics = RenderStats::Instance().GetData();
-	sample->TimestampBeginQueryId = beginQueryId;
-
-	commandBuffer.WriteTimestamp(sample->TimestampBeginQueryId, mTimestampQueryPool);
+	sample->BeginRenderStatistics = beginRenderStatistics;
+	sample->BeginTimestamp = beginTimestamp;
 
 	if(mActiveSampleChain.Empty())
 		mRootSamples.Add(sample);
@@ -65,7 +68,7 @@ void GpuCommandBufferProfiler::EndSample(render::GpuCommandBuffer& commandBuffer
 {
 	if(!B3D_ENSURE(mCommandBufferId == (u64)&commandBuffer))
 		return;
-	if(mTimestampQueryPool == nullptr)
+	if(mTimestampQueryPools.Empty())
 		return;
 	if(mSkippedSampleDepth > 0)
 	{
@@ -78,19 +81,58 @@ void GpuCommandBufferProfiler::EndSample(render::GpuCommandBuffer& commandBuffer
 
 	Sample* sample = mActiveSampleChain.back();
 	sample->EndRenderStatistics = RenderStats::Instance().GetData();
-	const render::GpuQueryId endQueryId = mTimestampQueryPool->AllocateQuery();
-	if(!endQueryId.IsValid())
-	{
-		sample->TimestampEndQueryId = sample->TimestampBeginQueryId;
-		mActiveSampleChain.Pop();
-		return;
-	}
 
-	sample->TimestampEndQueryId = endQueryId;
-
-	commandBuffer.WriteTimestamp(sample->TimestampEndQueryId, mTimestampQueryPool);
+	// Without a query, the sample reports no time
+	if(!WriteTimestamp(commandBuffer, sample->EndTimestamp))
+		sample->EndTimestamp = sample->BeginTimestamp;
 
 	mActiveSampleChain.Pop();
+}
+
+bool GpuCommandBufferProfiler::WriteTimestamp(render::GpuCommandBuffer& commandBuffer, Timestamp& outTimestamp)
+{
+	// Query pools can only be reset outside of a render pass, so switching early leaves queries for the samples within the next one
+	const u32 freeQueryCount = mTimestampQueryPools.Back()->GetPoolSize() - mAllocatedQueryCount;
+	if(freeQueryCount < kRenderPassQueryCount && !commandBuffer.IsInRenderPass())
+	{
+		TShared<render::GpuQueryPool> queryPool;
+		{
+			GpuProfiler& gpuProfiler = GetGpuProfiler();
+			Lock lock(gpuProfiler.mMutex);
+			queryPool = gpuProfiler.FindOrCreateQueryPool();
+		}
+
+		// Without a new pool, the remaining queries of the current one are still used
+		if(queryPool != nullptr)
+		{
+			commandBuffer.ResetQueries(queryPool);
+			mTimestampQueryPools.Add(std::move(queryPool));
+			mAllocatedQueryCount = 0;
+		}
+	}
+
+	const render::GpuQueryId queryId = mTimestampQueryPools.Back()->AllocateQuery();
+	if(!queryId.IsValid())
+		return false;
+
+	mAllocatedQueryCount++;
+
+	outTimestamp.PoolIndex = (u32)mTimestampQueryPools.Size() - 1;
+	outTimestamp.QueryId = queryId;
+	commandBuffer.WriteTimestamp(queryId, mTimestampQueryPools.Back());
+
+	return true;
+}
+
+bool GpuCommandBufferProfiler::TryResolve()
+{
+	for(const TShared<render::GpuQueryPool>& queryPool : mTimestampQueryPools)
+	{
+		if(!queryPool->TryResolve())
+			return false;
+	}
+
+	return true;
 }
 
 void GpuCommandBufferProfiler::Clear()
@@ -111,9 +153,11 @@ void GpuCommandBufferProfiler::Clear()
 	mSkippedSampleDepth = 0;
 	mCommandBufferId = 0;
 
-	if(mTimestampQueryPool != nullptr)
-		GetGpuProfiler().ReleaseQueryPool(mTimestampQueryPool);
-	mTimestampQueryPool = nullptr;
+	for(const TShared<render::GpuQueryPool>& queryPool : mTimestampQueryPools)
+		GetGpuProfiler().ReleaseQueryPool(queryPool);
+
+	mTimestampQueryPools.Clear();
+	mAllocatedQueryCount = 0;
 }
 
 void GpuCommandBufferProfiler::Reset(render::GpuCommandBuffer& commandBuffer)
@@ -121,16 +165,19 @@ void GpuCommandBufferProfiler::Reset(render::GpuCommandBuffer& commandBuffer)
 	mCommandBufferId = (u64)&commandBuffer;
 	mSkippedSampleDepth = 0;
 
-	mTimestampQueryPool = GetGpuProfiler().FindOrCreateQueryPool();
-	if(mTimestampQueryPool != nullptr)
-		commandBuffer.ResetQueries(mTimestampQueryPool);
+	TShared<render::GpuQueryPool> queryPool = GetGpuProfiler().FindOrCreateQueryPool();
+	if(queryPool != nullptr)
+	{
+		commandBuffer.ResetQueries(queryPool);
+		mTimestampQueryPools.Add(std::move(queryPool));
+	}
 }
 
 void GpuCommandBufferProfiler::ConvertToResultSample(const Sample& sample, GpuProfilerSample& reportSample)
 {
 	const TShared<GpuDevice>& device = GetApplication().GetPrimaryGpuDevice();
-	const u64 beginTimestamp = mTimestampQueryPool->GetQueryResult(sample.TimestampBeginQueryId);
-	const u64 endTimestamp = mTimestampQueryPool->GetQueryResult(sample.TimestampEndQueryId);
+	const u64 beginTimestamp = mTimestampQueryPools[sample.BeginTimestamp.PoolIndex]->GetQueryResult(sample.BeginTimestamp.QueryId);
+	const u64 endTimestamp = mTimestampQueryPools[sample.EndTimestamp.PoolIndex]->GetQueryResult(sample.EndTimestamp.QueryId);
 
 	reportSample.Name.assign(sample.Name.data(), sample.Name.size());
 	reportSample.TimeMs = endTimestamp >= beginTimestamp
@@ -230,36 +277,38 @@ void GpuProfiler::Update()
 	Lock lock(mMutex); // Note: Potentially expensive mutex as it could be held for long
 
 	for(auto& entry : mUnresolvedProfilerData)
-	{
-		UnresolvedCommandBufferProfilerData& unresolvedProfilerData = entry.second;
-
-		bool previousEntryWasResolved = false;
-		for(u32 reverseIndex = 0; reverseIndex < unresolvedProfilerData.Queued.Size();)
-		{
-			const u32 index = (u32)unresolvedProfilerData.Queued.Size() - 1 - reverseIndex;
-			TShared<GpuCommandBufferProfiler>& unresolvedCommandBufferProfiler = unresolvedProfilerData.Queued[index];
-			if(unresolvedCommandBufferProfiler->mTimestampQueryPool == nullptr || previousEntryWasResolved)
-			{
-				mDiscardedProfilers.Add(unresolvedCommandBufferProfiler);
-				unresolvedProfilerData.Queued.Erase(unresolvedProfilerData.Queued.Begin() + index);
-
-				continue;
-			}
-
-			if(unresolvedCommandBufferProfiler->mTimestampQueryPool->TryResolve())
-			{
-				mResolvedProfilerData[entry.first].LastResolved = unresolvedCommandBufferProfiler;
-				unresolvedProfilerData.Queued.Erase(unresolvedProfilerData.Queued.Begin() + index);
-
-				previousEntryWasResolved = true;
-				continue;
-			}
-
-			reverseIndex++;
-		}
-	}
+		ResolveQueuedProfilers(entry.first, entry.second);
 
 	RecycleDiscardedProfilers();
+}
+
+void GpuProfiler::ResolveQueuedProfilers(const ProfilerString& name, UnresolvedCommandBufferProfilerData& profilerData)
+{
+	// Note: mMutex must be locked here
+	bool previousEntryWasResolved = false;
+	for(u32 reverseIndex = 0; reverseIndex < profilerData.Queued.Size();)
+	{
+		const u32 index = (u32)profilerData.Queued.Size() - 1 - reverseIndex;
+		TShared<GpuCommandBufferProfiler>& unresolvedCommandBufferProfiler = profilerData.Queued[index];
+		if(unresolvedCommandBufferProfiler->mTimestampQueryPools.Empty() || previousEntryWasResolved)
+		{
+			mDiscardedProfilers.Add(unresolvedCommandBufferProfiler);
+			profilerData.Queued.Erase(profilerData.Queued.Begin() + index);
+
+			continue;
+		}
+
+		if(unresolvedCommandBufferProfiler->TryResolve())
+		{
+			mResolvedProfilerData[name].LastResolved = unresolvedCommandBufferProfiler;
+			profilerData.Queued.Erase(profilerData.Queued.Begin() + index);
+
+			previousEntryWasResolved = true;
+			continue;
+		}
+
+		reverseIndex++;
+	}
 }
 
 void GpuProfiler::RecycleDiscardedProfilers()
@@ -268,7 +317,7 @@ void GpuProfiler::RecycleDiscardedProfilers()
 	for(u32 index = 0; index < (u32)mDiscardedProfilers.Size();)
 	{
 		const TShared<GpuCommandBufferProfiler>& profiler = mDiscardedProfilers[index];
-		if(profiler->mTimestampQueryPool != nullptr && !profiler->mTimestampQueryPool->TryResolve())
+		if(!profiler->TryResolve())
 		{
 			index++;
 			continue;
@@ -283,10 +332,6 @@ void GpuProfiler::RecycleDiscardedProfilers()
 TShared<GpuCommandBufferProfiler> GpuProfiler::CreateCommandBufferProfiler(render::GpuCommandBuffer& commandBuffer)
 {
 	Lock lock(mMutex);
-
-	// Profilers can be created without frames passing, such as during start-up, which would otherwise not recycle any
-	if(mFreeCommandBufferProfilers.Empty())
-		RecycleDiscardedProfilers();
 
 	if(!mFreeCommandBufferProfilers.Empty())
 	{
@@ -313,6 +358,9 @@ void GpuProfiler::ResolveProfileWhenReady(const ProfilerString& name, const TSha
 	}
 
 	UnresolvedCommandBufferProfilerData& profilerData = mUnresolvedProfilerData[name];
+
+	// Without frames passing, such as during start-up or in unit tests, Update() would not free the profilers queued earlier
+	ResolveQueuedProfilers(name, profilerData);
 
 	if(profilerData.Queued.Size() == kMaxQueuedEntries)
 	{
@@ -344,12 +392,16 @@ TOptional<GpuProfilerResults> GpuProfiler::GetResults(const ProfilerString& name
 	return std::nullopt;
 }
 
-TShared<render::GpuQueryPool> GpuProfiler::FindOrCreateQueryPool() const
+TShared<render::GpuQueryPool> GpuProfiler::FindOrCreateQueryPool()
 {
 	// Note: mMutex must be locked here
 	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if(gpuDevice == nullptr || !gpuDevice->GetCapabilities().HasCapability(RSC_TIMER_QUERIES))
 		return nullptr;
+
+	// Profilers can be discarded without frames passing, such as during start-up, which would otherwise not reuse their pools
+	if(mFreeTimestampQueryPools.Empty())
+		RecycleDiscardedProfilers();
 
 	if(!mFreeTimestampQueryPools.Empty())
 	{
@@ -361,7 +413,7 @@ TShared<render::GpuQueryPool> GpuProfiler::FindOrCreateQueryPool() const
 
 	render::GpuQueryPoolCreateInformation createInformation;
 	createInformation.Type = render::GpuQueryType::Timestamp;
-	createInformation.PoolSize = 1024;
+	createInformation.PoolSize = kQueryPoolSize;
 
 	return gpuDevice->CreateQueryPool(createInformation);
 }

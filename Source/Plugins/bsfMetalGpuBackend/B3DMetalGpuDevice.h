@@ -7,6 +7,7 @@
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DGpuBackend.h"
+#include "Allocators/B3DRangeAllocator.h"
 
 namespace b3d
 {
@@ -29,6 +30,12 @@ namespace b3d
 
 			/** Number of 8-byte slots of the visibility result buffer. Apple GPUs limit visibility result offsets to 256 KB. */
 			static constexpr u32 kVisibilityResultSlotCount = 32 * 1024;
+
+			/**
+			 * Number of slots of each timestamp counter heap, the maximum Metal allows. Metal also limits a process to 32 live counter
+			 * heaps, so timestamp query pools share them rather than each having its own.
+			 */
+			static constexpr u32 kCounterHeapSlotCount = 4096;
 
 			MetalGpuDevice();
 			~MetalGpuDevice();
@@ -89,13 +96,23 @@ namespace b3d
 			id<MTLBuffer> GetVisibilityResultBuffer() const { return mVisibilityResultBuffer; }
 
 			/**
-			 * Reserves @p count consecutive slots of the visibility result buffer, and returns the first, or ~0u if no free range is large
-			 * enough. Thread safe.
+			 * Reserves @p count consecutive slots of the visibility result buffer, and returns the first, or RangeAllocator::kInvalidIndex
+			 * if no free range is large enough. Thread safe.
 			 */
 			u32 AllocateVisibilityResultSlots(u32 count);
 
 			/** Releases slots reserved by AllocateVisibilityResultSlots(). Thread safe. */
 			void FreeVisibilityResultSlots(u32 firstSlot, u32 count);
+
+			/**
+			 * Reserves @p count consecutive slots of a timestamp counter heap, creating a new heap if no existing one has enough free
+			 * slots. Returns the first slot and outputs its heap in @p outCounterHeap, or returns RangeAllocator::kInvalidIndex if the
+			 * slots cannot be reserved. Thread safe.
+			 */
+			u32 AllocateCounterHeapSlots(u32 count, __strong id<MTL4CounterHeap>& outCounterHeap);
+
+			/** Releases slots reserved by AllocateCounterHeapSlots(). Thread safe. */
+			void FreeCounterHeapSlots(id<MTL4CounterHeap> counterHeap, u32 firstSlot, u32 count);
 
 			/**
 			 * Returns true while the device's GpuSubmitThread is alive (from the end of Initialize()
@@ -192,9 +209,16 @@ namespace b3d
 			id<MTLBuffer> mVisibilityResultBuffer = nil;
 			GpuAllocation mVisibilityResultBufferAllocation;
 
-			/** Free ranges of visibility result slots, as first slot and slot count, sorted by first slot. */
-			Vector<std::pair<u32, u32>> mFreeVisibilityResultSlots;
-			Mutex mVisibilityResultSlotMutex;
+			/** Timestamp counter heap shared by query pools, and its unallocated slots. */
+			struct CounterHeap
+			{
+				id<MTL4CounterHeap> Heap = nil;
+				RangeAllocator Slots{ kCounterHeapSlotCount };
+			};
+
+			RangeAllocator mVisibilityResultSlots{ kVisibilityResultSlotCount };
+			TArray<CounterHeap> mCounterHeaps;
+			Mutex mQueryAllocationMutex; /**< Guards mVisibilityResultSlots and mCounterHeaps. */
 
 			/** Frequency of GPU timestamps, in ticks per second. */
 			u64 mTimestampFrequency = 0;

@@ -4,6 +4,7 @@
 
 #include "B3DD3D12Prerequisites.h"
 #include "B3DD3D12Resource.h"
+#include "Allocators/B3DRangeAllocator.h"
 
 namespace b3d
 {
@@ -109,18 +110,6 @@ namespace b3d
 		private:
 			friend class D3D12DescriptorTable;
 
-			/** Contiguous free range within a shader-visible descriptor heap. */
-			struct DescriptorRange
-			{
-				/** Creates a range starting at @p startIndex and spanning @p descriptorCount descriptors. */
-				DescriptorRange(u32 startIndex, u32 descriptorCount) 
-					:StartIndex(startIndex), DescriptorCount(descriptorCount) 
-				{ }
-
-				u32 StartIndex;      /**< Index of the first descriptor. */
-				u32 DescriptorCount; /**< Number of descriptors in the range. */
-			};
-
 			/** Descriptor heap for a specific type. */
 			struct DescriptorHeap
 			{
@@ -130,7 +119,7 @@ namespace b3d
 				u32 DescriptorCount = 0;				/**< Capacity the heap was created with. */
 				u32 NextFreeIndex = 0;					/**< Bump-allocation cursor into the heap. */
 				Vector<u32> FreeList;					/**< Indices returned by FreeCPUDescriptor(), reused before the cursor advances. */
-				Vector<DescriptorRange> FreeRanges;		/**< Coalesced free ranges in a shader-visible heap. */
+				RangeAllocator FreeRanges;				/**< Free descriptors of a shader-visible heap. */
 				Mutex AllocationMutex;					/**< Guards descriptor allocation and release. */
 			};
 

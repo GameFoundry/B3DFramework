@@ -5,6 +5,7 @@
 #include "B3DMetalPrerequisites.h"
 #include "GpuBackend/B3DGpuQueries.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
+#include "Allocators/B3DRangeAllocator.h"
 
 namespace b3d
 {
@@ -21,7 +22,8 @@ namespace b3d
 		 * Metal implementation of a query pool.
 		 *
 		 * Occlusion pools own a range of the 8-byte slots of the device's visibility result buffer (see
-		 * MetalGpuDevice::GetVisibilityResultBuffer()), one per query. Timestamp pools use an @c MTL4CounterHeap, resolved on the CPU.
+		 * MetalGpuDevice::GetVisibilityResultBuffer()), one per query. Timestamp pools use a range of an @c MTL4CounterHeap shared
+		 * with other pools, resolved on the CPU.
 		 * Pipeline-statistics pools are not implemented (needs a core API change).
 		 */
 		class MetalGpuQueryPool final : public GpuQueryPool
@@ -37,8 +39,11 @@ namespace b3d
 			/** Returns the byte range of the pool's slots in the device's visibility result buffer. Empty for other than occlusion pools. */
 			NSRange GetVisibilityResultRange() const;
 
-			/** Returns the underlying counter heap for timestamp queries, or nil if unsupported. */
+			/** Returns the counter heap the pool's timestamp queries are written to, or nil if unsupported. */
 			id<MTL4CounterHeap> GetCounterHeap() const { return mCounterHeap; }
+
+			/** Returns the slot of a timestamp query in the counter heap. */
+			u32 GetCounterHeapSlot(GpuQueryId queryId) const { return mFirstCounterHeapSlot + queryId.Id; }
 
 			/** Returns the byte offset of a query's result slot inside the device's visibility result buffer. */
 			u32 GetQueryOffset(GpuQueryId queryId) const { return (mFirstVisibilityResultSlot + queryId.Id) * sizeof(u64); }
@@ -107,8 +112,9 @@ namespace b3d
 			void RemoveCompletedSubmissions();
 
 			MetalGpuDevice& mGpuDevice;
-			u32 mFirstVisibilityResultSlot = ~0u; /**< First slot of an occlusion pool in the device's visibility result buffer, or ~0u if it has none. */
-			id<MTL4CounterHeap> mCounterHeap = nil;
+			u32 mFirstVisibilityResultSlot = RangeAllocator::kInvalidIndex; /**< First slot of an occlusion pool in the device's visibility result buffer, if it has any. */
+			id<MTL4CounterHeap> mCounterHeap = nil; /**< Counter heap of a timestamp pool, shared with other pools. */
+			u32 mFirstCounterHeapSlot = RangeAllocator::kInvalidIndex; /**< First slot of a timestamp pool in mCounterHeap, if it has any. */
 			u32 mNextQueryId = 0;
 			u32 mRecordedCommandBuffers = 0;
 			u32 mPendingSubmissions = 0;

@@ -227,7 +227,7 @@ namespace b3d
 		virtual TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
 
 		/**
-		 * Creates a new query pool. Returns null if the device does not support queries of the requested type.
+		 * Creates a new query pool. Returns null if the device does not support queries of the requested type, or cannot create the pool.
 		 *
 		 * @param	createInformation		Object describing the query pool to create.
 		 */

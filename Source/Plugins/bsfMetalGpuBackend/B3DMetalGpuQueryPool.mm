@@ -21,7 +21,7 @@ namespace b3d
 				if (createInformation.PoolSize > 0)
 					mFirstVisibilityResultSlot = gpuDevice.AllocateVisibilityResultSlots(createInformation.PoolSize);
 
-				mSupported = mFirstVisibilityResultSlot != ~0u;
+				mSupported = mFirstVisibilityResultSlot != RangeAllocator::kInvalidIndex;
 				if (!mSupported)
 				{
 					B3D_LOG(Error, LogRenderBackend, "Metal occlusion query pool of size {0} does not fit in the free slots of the visibility result buffer, which has {1} for all pools.",
@@ -34,18 +34,8 @@ namespace b3d
 					B3D_LOG(Error, LogRenderBackend, "Metal timestamp query pools cannot be empty.");
 				else if (device != nil && gpuDevice.GetCapabilities().HasCapability(RSC_TIMER_QUERIES))
 				{
-					MTL4CounterHeapDescriptor* descriptor = [[MTL4CounterHeapDescriptor alloc] init];
-					descriptor.type = MTL4CounterHeapTypeTimestamp;
-					descriptor.count = (NSUInteger)createInformation.PoolSize;
-
-					NSError* error = nil;
-					mCounterHeap = [device newCounterHeapWithDescriptor:descriptor error:&error];
-					mSupported = mCounterHeap != nil;
-					if (mCounterHeap == nil)
-					{
-						const char* reason = error ? [[error localizedDescription] UTF8String] : "unknown error";
-						B3D_LOG(Error, LogRenderBackend, "Failed to create the MTL4CounterHeap for a timestamp pool: {0}", reason);
-					}
+					mFirstCounterHeapSlot = gpuDevice.AllocateCounterHeapSlots(createInformation.PoolSize, mCounterHeap);
+					mSupported = mFirstCounterHeapSlot != RangeAllocator::kInvalidIndex;
 				}
 				else
 					B3D_LOG(Warning, LogRenderBackend, "Timestamp query pool created on a device without RSC_TIMER_QUERIES; results will remain zero.");
@@ -57,13 +47,16 @@ namespace b3d
 		MetalGpuQueryPool::~MetalGpuQueryPool()
 		{
 			// The pool is only destroyed once no command buffer that uses it is executing
-			if (mFirstVisibilityResultSlot != ~0u)
+			if (mFirstVisibilityResultSlot != RangeAllocator::kInvalidIndex)
 				mGpuDevice.FreeVisibilityResultSlots(mFirstVisibilityResultSlot, mPoolSize);
+
+			if (mFirstCounterHeapSlot != RangeAllocator::kInvalidIndex)
+				mGpuDevice.FreeCounterHeapSlots(mCounterHeap, mFirstCounterHeapSlot, mPoolSize);
 		}
 
 		NSRange MetalGpuQueryPool::GetVisibilityResultRange() const
 		{
-			if (mFirstVisibilityResultSlot == ~0u)
+			if (mFirstVisibilityResultSlot == RangeAllocator::kInvalidIndex)
 				return NSMakeRange(0, 0);
 
 			return NSMakeRange((NSUInteger)mFirstVisibilityResultSlot * sizeof(u64), (NSUInteger)mPoolSize * sizeof(u64));
@@ -228,15 +221,15 @@ namespace b3d
 				return true;
 			}
 
-			if (mQueryType == GpuQueryType::Occlusion && mFirstVisibilityResultSlot != ~0u)
+			if (mQueryType == GpuQueryType::Occlusion && mFirstVisibilityResultSlot != RangeAllocator::kInvalidIndex)
 			{
 				const u64* contents = (const u64*)[mGpuDevice.GetVisibilityResultBuffer() contents];
 				if (contents != nullptr)
 					memcpy(mResolvedResults.data(), contents + mFirstVisibilityResultSlot, (size_t)mNextQueryId * sizeof(u64));
 			}
-			else if (mQueryType == GpuQueryType::Timestamp && mCounterHeap != nil)
+			else if (mQueryType == GpuQueryType::Timestamp && mFirstCounterHeapSlot != RangeAllocator::kInvalidIndex)
 			{
-				NSData* resolved = [mCounterHeap resolveCounterRange:NSMakeRange(0, mNextQueryId)];
+				NSData* resolved = [mCounterHeap resolveCounterRange:NSMakeRange(mFirstCounterHeapSlot, mNextQueryId)];
 				const size_t requiredBytes = (size_t)mNextQueryId * sizeof(MTL4TimestampHeapEntry);
 				if (resolved != nil && [resolved length] >= requiredBytes)
 				{
@@ -266,8 +259,8 @@ namespace b3d
 			Lock lock(mStateMutex);
 			RemoveCompletedSubmissions();
 			B3D_ENSURE(mPendingSubmissions == 0 && mInFlightSubmissions.empty() && mRecordedCommandBuffers <= 1);
-			if (mCounterHeap != nil && mNextQueryId > 0)
-				[mCounterHeap invalidateCounterRange:NSMakeRange(0, mNextQueryId)];
+			if (mFirstCounterHeapSlot != RangeAllocator::kInvalidIndex && mNextQueryId > 0)
+				[mCounterHeap invalidateCounterRange:NSMakeRange(mFirstCounterHeapSlot, mNextQueryId)];
 
 			mNextQueryId = 0;
 			mResultsCached = false;

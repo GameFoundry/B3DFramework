@@ -132,7 +132,7 @@ void D3D12DescriptorManager::CreateHeaps()
 		if (shaderVisible)
 		{
 			outHeap.GPUStart = outHeap.Heap->GetGPUDescriptorHandleForHeapStart();
-			outHeap.FreeRanges.emplace_back(0, descriptorCount);
+			outHeap.FreeRanges = RangeAllocator(descriptorCount);
 		}
 
 		outHeap.DescriptorCount = descriptorCount;
@@ -209,32 +209,13 @@ D3D12DescriptorTable* D3D12DescriptorManager::AllocateGPUDescriptorTable(D3D12De
 		return nullptr;
 
 	// Note: This allocator could get very fragmented, a potential improvement to use a better allocator. Ideally also to handle transient allocations separately using a linear allocator.
-	u32 startIndex = 0;
-	bool foundRange = false;
+	u32 startIndex = RangeAllocator::kInvalidIndex;
 	{
 		Lock lock(heap.AllocationMutex);
-		for (u32 rangeIndex = 0; rangeIndex < (u32)heap.FreeRanges.size(); rangeIndex++)
-		{
-			DescriptorRange& range = heap.FreeRanges[rangeIndex];
-			if (range.DescriptorCount < count)
-				continue;
-
-			startIndex = range.StartIndex;
-			foundRange = true;
-
-			if (range.DescriptorCount == count)
-				heap.FreeRanges.erase(heap.FreeRanges.begin() + rangeIndex);
-			else
-			{
-				range.StartIndex += count;
-				range.DescriptorCount -= count;
-			}
-
-			break;
-		}
+		startIndex = heap.FreeRanges.Allocate(count);
 	}
 
-	if (!foundRange)
+	if (startIndex == RangeAllocator::kInvalidIndex)
 	{
 		B3D_LOG(Error, LogRenderBackend, "Shader-visible descriptor heap exhausted for type {0}", (u32)type);
 		return nullptr;
@@ -254,24 +235,7 @@ void D3D12DescriptorManager::FreeGPUDescriptorRange(D3D12DescriptorHeapType type
 	DescriptorHeap& heap = mHeaps[(u32)type];
 	Lock lock(heap.AllocationMutex);
 
-	heap.FreeRanges.emplace_back(startIndex, descriptorCount);
-	std::sort(heap.FreeRanges.begin(), heap.FreeRanges.end(), [](const DescriptorRange& lhs, const DescriptorRange& rhs)
-	{
-		return lhs.StartIndex < rhs.StartIndex;
-	});
-
-	u32 destinationIndex = 0;
-	for (u32 sourceIndex = 1; sourceIndex < (u32)heap.FreeRanges.size(); sourceIndex++)
-	{
-		DescriptorRange& destination = heap.FreeRanges[destinationIndex];
-		const DescriptorRange& source = heap.FreeRanges[sourceIndex];
-		if (destination.StartIndex + destination.DescriptorCount == source.StartIndex)
-			destination.DescriptorCount += source.DescriptorCount;
-		else
-			heap.FreeRanges[++destinationIndex] = source;
-	}
-
-	heap.FreeRanges.erase(heap.FreeRanges.begin() + destinationIndex + 1, heap.FreeRanges.end());
+	heap.FreeRanges.Free(startIndex, descriptorCount);
 }
 
 ID3D12DescriptorHeap* D3D12DescriptorManager::GetDescriptorHeap(D3D12DescriptorHeapType type) const
