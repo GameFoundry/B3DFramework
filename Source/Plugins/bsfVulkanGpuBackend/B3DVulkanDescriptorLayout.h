@@ -17,6 +17,9 @@ namespace b3d
 		{
 		public:
 			VulkanDescriptorLayout(VulkanGpuDevice& device, TArrayView<VkDescriptorSetLayoutBinding> bindings);
+
+			/** Creates a layout from a complete description, including its flags and extension structures. */
+			VulkanDescriptorLayout(VulkanGpuDevice& device, const VkDescriptorSetLayoutCreateInfo& createInformation);
 			~VulkanDescriptorLayout();
 
 			/** Returns a handle to the Vulkan set layout object. */

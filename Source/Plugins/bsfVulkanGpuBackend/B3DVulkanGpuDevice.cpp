@@ -1,6 +1,7 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DVulkanGpuDevice.h"
+#include "B3DVulkanDescriptorLayout.h"
 #include "B3DVulkanVertexInput.h"
 
 #include <algorithm>
@@ -188,6 +189,8 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	bool supportsPipelineExecutableProperties = false;
 #endif
 
+	bool supportsMutableDescriptorType = false;
+
 	// Enumerate supported extensions
 	uint32_t availableExtensionCount = 0;
 	vkEnumerateDeviceExtensionProperties(device, nullptr, &availableExtensionCount, nullptr);
@@ -202,6 +205,8 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 				{
 					extensions[extensionCount++] = VK_EXT_SHADER_VIEWPORT_INDEX_LAYER_EXTENSION_NAME;
 				}
+				else if(strcmp(entry.extensionName, VK_EXT_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME) == 0)
+					supportsMutableDescriptorType = true;
 #if B3D_BUILD_TYPE_DEVELOPMENT
 				else if(strcmp(entry.extensionName, VK_KHR_PIPELINE_EXECUTABLE_PROPERTIES_EXTENSION_NAME) == 0)
 				{
@@ -220,6 +225,15 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	separateDepthStencilLayoutsFeatureProbe.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES;
 	timelineFeatureProbe.pNext = &separateDepthStencilLayoutsFeatureProbe;
 
+	VkPhysicalDeviceDescriptorIndexingFeatures descriptorIndexingFeatureProbe = {};
+	descriptorIndexingFeatureProbe.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES;
+	separateDepthStencilLayoutsFeatureProbe.pNext = &descriptorIndexingFeatureProbe;
+
+	VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT mutableDescriptorTypeFeatureProbe = {};
+	mutableDescriptorTypeFeatureProbe.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT;
+	if(supportsMutableDescriptorType)
+		descriptorIndexingFeatureProbe.pNext = &mutableDescriptorTypeFeatureProbe;
+
 	VkPhysicalDeviceFeatures2 features2 = {};
 	features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
 	features2.pNext = &timelineFeatureProbe;
@@ -231,6 +245,26 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 
 	if(separateDepthStencilLayoutsFeatureProbe.separateDepthStencilLayouts != VK_TRUE)
 		B3D_LOG(Fatal, LogRenderBackend, "The Vulkan device does not support the Vulkan 1.2 separateDepthStencilLayouts feature required for independent depth and stencil synchronization. Update the graphics driver or use a different backend.");
+
+	// The bindless heaps are a set of update-after-bind arrays, with resources of every class in one mutable binding
+	mSupportsBindlessResources = supportsMutableDescriptorType && mutableDescriptorTypeFeatureProbe.mutableDescriptorType == VK_TRUE &&
+		descriptorIndexingFeatureProbe.runtimeDescriptorArray == VK_TRUE &&
+		descriptorIndexingFeatureProbe.descriptorBindingPartiallyBound == VK_TRUE &&
+		descriptorIndexingFeatureProbe.descriptorBindingVariableDescriptorCount == VK_TRUE &&
+		descriptorIndexingFeatureProbe.descriptorBindingUpdateUnusedWhilePending == VK_TRUE &&
+		descriptorIndexingFeatureProbe.descriptorBindingSampledImageUpdateAfterBind == VK_TRUE &&
+		descriptorIndexingFeatureProbe.descriptorBindingUniformTexelBufferUpdateAfterBind == VK_TRUE &&
+		descriptorIndexingFeatureProbe.descriptorBindingStorageBufferUpdateAfterBind == VK_TRUE &&
+		descriptorIndexingFeatureProbe.shaderUniformTexelBufferArrayDynamicIndexing == VK_TRUE &&
+		descriptorIndexingFeatureProbe.shaderSampledImageArrayNonUniformIndexing == VK_TRUE &&
+		descriptorIndexingFeatureProbe.shaderUniformTexelBufferArrayNonUniformIndexing == VK_TRUE &&
+		descriptorIndexingFeatureProbe.shaderStorageBufferArrayNonUniformIndexing == VK_TRUE &&
+		mDeviceFeatures.shaderSampledImageArrayDynamicIndexing == VK_TRUE &&
+		mDeviceFeatures.shaderStorageBufferArrayDynamicIndexing == VK_TRUE &&
+		mDeviceProperties.limits.maxBoundDescriptorSets > kGpuBindlessParameterSet;
+
+	if(mSupportsBindlessResources)
+		extensions[extensionCount++] = VK_EXT_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME;
 
 	// Build the enabled-feature pNext chain
 	void* featureChain = nullptr;
@@ -254,6 +288,31 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	vulkan13Features.synchronization2 = VK_TRUE;
 	vulkan13Features.maintenance4 = VK_TRUE;
 	featureChain = &vulkan13Features;
+
+	VkPhysicalDeviceDescriptorIndexingFeatures descriptorIndexingFeatures = {};
+	VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT mutableDescriptorTypeFeatures = {};
+	if(mSupportsBindlessResources)
+	{
+		descriptorIndexingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES;
+		descriptorIndexingFeatures.pNext = featureChain;
+		descriptorIndexingFeatures.runtimeDescriptorArray = VK_TRUE;
+		descriptorIndexingFeatures.descriptorBindingPartiallyBound = VK_TRUE;
+		descriptorIndexingFeatures.descriptorBindingVariableDescriptorCount = VK_TRUE;
+		descriptorIndexingFeatures.descriptorBindingUpdateUnusedWhilePending = VK_TRUE;
+		descriptorIndexingFeatures.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
+		descriptorIndexingFeatures.descriptorBindingUniformTexelBufferUpdateAfterBind = VK_TRUE;
+		descriptorIndexingFeatures.descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE;
+		descriptorIndexingFeatures.shaderUniformTexelBufferArrayDynamicIndexing = VK_TRUE;
+		descriptorIndexingFeatures.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+		descriptorIndexingFeatures.shaderUniformTexelBufferArrayNonUniformIndexing = VK_TRUE;
+		descriptorIndexingFeatures.shaderStorageBufferArrayNonUniformIndexing = VK_TRUE;
+		featureChain = &descriptorIndexingFeatures;
+
+		mutableDescriptorTypeFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT;
+		mutableDescriptorTypeFeatures.pNext = featureChain;
+		mutableDescriptorTypeFeatures.mutableDescriptorType = VK_TRUE;
+		featureChain = &mutableDescriptorTypeFeatures;
+	}
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR pipelineExecutableFeatures = {};
@@ -332,6 +391,97 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	mResourceManager = B3DNew<VulkanResourceManager>(*this);
 	mBuiltinResources.Initialize();
 
+	if(mSupportsBindlessResources)
+	{
+		const u32 resourceCapacity = std::min(gGpuBindlessResourceCapacity.Get(), mCapabilities.MaximumBindlessResourceCount);
+		const u32 samplerCapacity = std::min(gGpuBindlessSamplerCapacity.Get(), mCapabilities.MaximumBindlessSamplerCount);
+
+		// Samplers at binding 0, and resources of every class at binding 1, whose descriptor count is set when the set is allocated
+		VkDescriptorSetLayoutBinding bindings[2];
+		bindings[0].binding = 0;
+		bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+		bindings[0].descriptorCount = samplerCapacity;
+		bindings[0].stageFlags = VK_SHADER_STAGE_ALL;
+		bindings[0].pImmutableSamplers = nullptr;
+
+		bindings[1].binding = 1;
+		bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_MUTABLE_EXT;
+		bindings[1].descriptorCount = resourceCapacity;
+		bindings[1].stageFlags = VK_SHADER_STAGE_ALL;
+		bindings[1].pImmutableSamplers = nullptr;
+
+		const VkDescriptorBindingFlags commonBindingFlags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT;
+		const VkDescriptorBindingFlags bindingFlags[2] = { commonBindingFlags, commonBindingFlags | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT };
+
+		const VkDescriptorType resourceTypes[3] = { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER };
+
+		VkMutableDescriptorTypeListEXT mutableTypeLists[2];
+		mutableTypeLists[0].descriptorTypeCount = 0;
+		mutableTypeLists[0].pDescriptorTypes = nullptr;
+		mutableTypeLists[1].descriptorTypeCount = 3;
+		mutableTypeLists[1].pDescriptorTypes = resourceTypes;
+
+		VkMutableDescriptorTypeCreateInfoEXT mutableTypeCI;
+		mutableTypeCI.sType = VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_EXT;
+		mutableTypeCI.pNext = nullptr;
+		mutableTypeCI.mutableDescriptorTypeListCount = 2;
+		mutableTypeCI.pMutableDescriptorTypeLists = mutableTypeLists;
+
+		VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsCI;
+		bindingFlagsCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO;
+		bindingFlagsCI.pNext = &mutableTypeCI;
+		bindingFlagsCI.bindingCount = 2;
+		bindingFlagsCI.pBindingFlags = bindingFlags;
+
+		VkDescriptorSetLayoutCreateInfo layoutCI;
+		layoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		layoutCI.pNext = &bindingFlagsCI;
+		layoutCI.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
+		layoutCI.bindingCount = 2;
+		layoutCI.pBindings = bindings;
+
+		mBindlessHeapLayout = B3DNew<VulkanDescriptorLayout>(*this, layoutCI);
+
+		// The pool's mutable descriptors use the same type list as the binding
+		VkDescriptorPoolSize poolSizes[2];
+		poolSizes[0].type = VK_DESCRIPTOR_TYPE_SAMPLER;
+		poolSizes[0].descriptorCount = samplerCapacity;
+		poolSizes[1].type = VK_DESCRIPTOR_TYPE_MUTABLE_EXT;
+		poolSizes[1].descriptorCount = resourceCapacity;
+
+		VkDescriptorPoolCreateInfo poolCI;
+		poolCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		poolCI.pNext = &mutableTypeCI;
+		poolCI.flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT;
+		poolCI.maxSets = 1;
+		poolCI.poolSizeCount = 2;
+		poolCI.pPoolSizes = poolSizes;
+
+		VkResult poolResult = vkCreateDescriptorPool(mLogicalDevice, &poolCI, gVulkanAllocator, &mBindlessHeapPool);
+		B3D_ASSERT(poolResult == VK_SUCCESS);
+
+		VkDescriptorSetVariableDescriptorCountAllocateInfo variableCountAI;
+		variableCountAI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO;
+		variableCountAI.pNext = nullptr;
+		variableCountAI.descriptorSetCount = 1;
+		variableCountAI.pDescriptorCounts = &resourceCapacity;
+
+		const VkDescriptorSetLayout bindlessHeapLayout = mBindlessHeapLayout->GetVulkanHandle();
+
+		VkDescriptorSetAllocateInfo setAI;
+		setAI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		setAI.pNext = &variableCountAI;
+		setAI.descriptorPool = mBindlessHeapPool;
+		setAI.descriptorSetCount = 1;
+		setAI.pSetLayouts = &bindlessHeapLayout;
+
+		VkResult setResult = vkAllocateDescriptorSets(mLogicalDevice, &setAI, &mBindlessHeapSet);
+		B3D_ASSERT(setResult == VK_SUCCESS);
+
+		IGpuBindlessHeap& bindlessHeap = *this;
+		CreateBindlessHeaps(bindlessHeap, resourceCapacity, samplerCapacity);
+	}
+
 	// Initialize video mode information
 #if B3D_PLATFORM_WIN32
 	mVideoModeInfo = B3DMakeShared<Win32VideoModeInfo>();
@@ -359,6 +509,14 @@ VulkanGpuDevice::~VulkanGpuDevice()
 	}
 
 	mCachedSamplerStates.clear();
+
+	// Releases the pinned resources while the resource manager is still alive
+	mBindlessHeaps = nullptr;
+
+	if(mBindlessHeapPool != VK_NULL_HANDLE)
+		vkDestroyDescriptorPool(mLogicalDevice, mBindlessHeapPool, gVulkanAllocator);
+
+	B3DDelete(mBindlessHeapLayout);
 
 	// Queues the cached vertex inputs for destroy while the resource manager is still alive
 	mVertexInputManager = nullptr;
@@ -1095,6 +1253,107 @@ IGpuTransientHeapPool* VulkanGpuDevice::GetTransientHeapPool(u32 memoryType)
 	return mTransientHeapPools[memoryType];
 }
 
+void VulkanGpuDevice::WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view)
+{
+	VkDescriptorImageInfo imageInfo;
+	VkDescriptorBufferInfo bufferInfo;
+	VkBufferView bufferView = VK_NULL_HANDLE;
+
+	VkWriteDescriptorSet writeInfo;
+	writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writeInfo.pNext = nullptr;
+	writeInfo.dstSet = mBindlessHeapSet;
+	writeInfo.dstBinding = 1;
+	writeInfo.dstArrayElement = slotIndex;
+	writeInfo.descriptorCount = 1;
+	writeInfo.pImageInfo = nullptr;
+	writeInfo.pBufferInfo = nullptr;
+	writeInfo.pTexelBufferView = nullptr;
+
+	if(view.Texture != nullptr)
+	{
+		auto* texture = static_cast<VulkanTexture*>(view.Texture);
+
+		imageInfo.sampler = VK_NULL_HANDLE;
+		imageInfo.imageView = texture->GetVulkanResource()->GetView(view.Surface, false).Handle;
+		imageInfo.imageLayout = texture->UsesGeneralLayout() ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+		writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+		writeInfo.pImageInfo = &imageInfo;
+	}
+	else
+	{
+		auto* buffer = static_cast<VulkanGpuBuffer*>(view.Buffer);
+		if(buffer->GetInformation().Type == GpuBufferType::StructuredStorage)
+		{
+			bufferInfo.buffer = buffer->GetVulkanResource()->GetVulkanHandle();
+			bufferInfo.offset = 0;
+			bufferInfo.range = VK_WHOLE_SIZE;
+
+			writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+			writeInfo.pBufferInfo = &bufferInfo;
+		}
+		else
+		{
+			bufferView = buffer->GetOrCreateView(view.Format);
+
+			writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+			writeInfo.pTexelBufferView = &bufferView;
+		}
+	}
+
+	vkUpdateDescriptorSets(mLogicalDevice, 1, &writeInfo, 0, nullptr);
+}
+
+void VulkanGpuDevice::WriteSamplerSlot(u32 slotIndex, const SamplerState& sampler)
+{
+	VkDescriptorImageInfo imageInfo;
+	imageInfo.sampler = static_cast<const VulkanSamplerState&>(sampler).GetVulkanResource()->GetVulkanHandle();
+	imageInfo.imageView = VK_NULL_HANDLE;
+	imageInfo.imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+	VkWriteDescriptorSet writeInfo;
+	writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writeInfo.pNext = nullptr;
+	writeInfo.dstSet = mBindlessHeapSet;
+	writeInfo.dstBinding = 0;
+	writeInfo.dstArrayElement = slotIndex;
+	writeInfo.descriptorCount = 1;
+	writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+	writeInfo.pImageInfo = &imageInfo;
+	writeInfo.pBufferInfo = nullptr;
+	writeInfo.pTexelBufferView = nullptr;
+
+	vkUpdateDescriptorSets(mLogicalDevice, 1, &writeInfo, 0, nullptr);
+}
+
+void VulkanGpuDevice::ClearSlot(GpuBindlessHeapType heap, u32 slotIndex)
+{
+	// Without the null descriptor feature, a retired resource slot views a dummy buffer instead. Sampler slots keep their
+	// descriptor, as no sampler outlives the heaps for certain.
+	if(heap != GpuBindlessHeapType::Resource)
+		return;
+
+	VkDescriptorBufferInfo bufferInfo;
+	bufferInfo.buffer = mBuiltinResources.DummyStructuredBuffer->GetVulkanResource()->GetVulkanHandle();
+	bufferInfo.offset = 0;
+	bufferInfo.range = VK_WHOLE_SIZE;
+
+	VkWriteDescriptorSet writeInfo;
+	writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	writeInfo.pNext = nullptr;
+	writeInfo.dstSet = mBindlessHeapSet;
+	writeInfo.dstBinding = 1;
+	writeInfo.dstArrayElement = slotIndex;
+	writeInfo.descriptorCount = 1;
+	writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	writeInfo.pImageInfo = nullptr;
+	writeInfo.pBufferInfo = &bufferInfo;
+	writeInfo.pTexelBufferView = nullptr;
+
+	vkUpdateDescriptorSets(mLogicalDevice, 1, &writeInfo, 0, nullptr);
+}
+
 void VulkanGpuDevice::InitializeCapabilities()
 {
 	const VkPhysicalDeviceProperties& deviceProperties = GetDeviceProperties();
@@ -1199,6 +1458,31 @@ void VulkanGpuDevice::InitializeCapabilities()
 	mCapabilities.OptimalBufferToBufferCopyOffsetAlignment = (u32)deviceLimits.optimalBufferCopyOffsetAlignment;
 	mCapabilities.OptimalBufferToImageCopyOffsetAlignment = (u32)deviceLimits.optimalBufferCopyRowPitchAlignment;
 	mCapabilities.MaximumPushConstantSize = deviceLimits.maxPushConstantsSize;
+
+	if(mSupportsBindlessResources)
+	{
+		VkPhysicalDeviceDescriptorIndexingProperties descriptorIndexingProperties = {};
+		descriptorIndexingProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_PROPERTIES;
+
+		VkPhysicalDeviceProperties2 properties2 = {};
+		properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+		properties2.pNext = &descriptorIndexingProperties;
+		vkGetPhysicalDeviceProperties2(mPhysicalDevice, &properties2);
+
+		// A mutable descriptor counts against the limits of every type it can hold
+		mCapabilities.MaximumBindlessResourceCount = std::min({
+			descriptorIndexingProperties.maxPerStageDescriptorUpdateAfterBindSampledImages,
+			descriptorIndexingProperties.maxPerStageDescriptorUpdateAfterBindStorageBuffers,
+			descriptorIndexingProperties.maxDescriptorSetUpdateAfterBindSampledImages,
+			descriptorIndexingProperties.maxDescriptorSetUpdateAfterBindStorageBuffers,
+			descriptorIndexingProperties.maxPerStageUpdateAfterBindResources,
+			descriptorIndexingProperties.maxUpdateAfterBindDescriptorsInAllPools });
+
+		mCapabilities.MaximumBindlessSamplerCount = std::min(descriptorIndexingProperties.maxPerStageDescriptorUpdateAfterBindSamplers,
+			descriptorIndexingProperties.maxDescriptorSetUpdateAfterBindSamplers);
+
+		mCapabilities.SetCapability(RSC_BINDLESS_RESOURCES);
+	}
 
 	B3D_ENSURE_LOG(mCapabilities.MaximumPushConstantSize >= kMaxPushConstantSizeInBytes, "Vulkan device supports only {0} push-constant bytes; the engine requires at least {1} bytes.", mCapabilities.MaximumPushConstantSize, kMaxPushConstantSizeInBytes);
 }

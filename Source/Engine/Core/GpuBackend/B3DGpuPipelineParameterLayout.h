@@ -246,6 +246,9 @@ namespace b3d
 		/** Returns the push-constant buffer size required by the pipeline, or zero when it is unused. */
 		u32 GetPushConstantBufferSize() const { return mPushConstantBufferSize; }
 
+		/** Returns the optional features used by any program in the pipeline. */
+		GpuProgramFeatureFlags GetProgramFeatures() const { return mProgramFeatures; }
+
 		/** Checks if set @p set has a sampled texture parameter with the specified name. */
 		bool HasSampledTexture(const StringView& name, u32 set = 0) const { return mSets[set]->HasUniformOfType(name, GpuParameterType::SampledTexture); }
 
@@ -324,6 +327,7 @@ namespace b3d
 
 		TInlineArray<TShared<GpuPipelineParameterSetLayout>, 2> mSets;
 		u32 mPushConstantBufferSize = 0;
+		GpuProgramFeatureFlags mProgramFeatures;
 	};
 
 	/** @} */

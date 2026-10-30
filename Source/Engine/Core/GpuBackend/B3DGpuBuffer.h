@@ -52,7 +52,15 @@ namespace b3d
 		 * Ensures that the GPU can perform write operations in the buffer. Generally this is used for buffers used in compute operations. StoreOnGPU memory
 		 * flag must be used.
 		 */
-		AllowUnorderedAccessOnTheGPU = 1 << 2
+		AllowUnorderedAccessOnTheGPU = 1 << 2,
+
+		/**
+		 * Makes the buffer readable by shaders through ResourceDescriptorHeap, at the index returned by render::GpuBuffer::GetBindlessIndex().
+		 * Only valid for simple and structured storage buffers without suballocations. The buffer stays at rest at a fixed location: it cannot
+		 * be aliased or transient, and CPU writes never discard its contents. GPU writes must return it to rest. Requires a device that supports
+		 * bindless resources.
+		 */
+		Bindless = 1 << 3
 	};
 
 	using GpuBufferFlags = Flags<GpuBufferFlag>;
@@ -548,6 +556,9 @@ namespace b3d::render
 	public:
 		virtual ~GpuBuffer();
 
+		void Initialize() override;
+		void Destroy() override;
+
 		/** Returns information describing the buffer. */
 		const GpuBufferInformation& GetInformation() const { return mInformation; }
 
@@ -682,10 +693,25 @@ namespace b3d::render
 		virtual IGpuResource* GetGpuResource() const { return nullptr; }
 
 		/**
-		 * Returns true if the buffer is fixed to the memory it was created at. Such a buffer never recreates its native
+		 * Returns true if the buffer is fixed to the memory it was created at, or is bindless. Such a buffer never recreates its native
 		 * resource, so writes cannot discard its contents.
 		 */
-		bool HasFixedLocation() const { return !mRequestedAllocation.IsPending(); }
+		bool HasFixedLocation() const { return !mRequestedAllocation.IsPending() || mInformation.Flags.IsSet(GpuBufferFlag::Bindless); }
+
+		/**
+		 * Returns the index of the buffer's default view in the bindless resource heap, or kGpuBindlessInvalidIndex if the buffer wasn't
+		 * created with GpuBufferFlag::Bindless or isn't initialized. Structured buffers are viewed as structured, and simple storage buffers
+		 * as typed with their own format. The index is valid until the buffer is destroyed.
+		 */
+		u32 GetBindlessIndex() const { return mBindlessSlots.GetDefaultIndex(); }
+
+		/**
+		 * Returns the bindless resource heap index of a typed view of the buffer with elements of @p format, allocating it on first request.
+		 * Only valid for simple storage buffers. Returns kGpuBindlessInvalidIndex if the buffer isn't bindless or the heap is full.
+		 *
+		 * @note	Render thread only.
+		 */
+		u32 GetOrCreateBindlessIndex(GpuBufferFormat format);
 
 		/**
 		 * @name Internal
@@ -778,6 +804,7 @@ namespace b3d::render
 		GpuAllocation mRequestedAllocation;
 
 		u32 mFrameGraphResourceIndex = ~0u; /**< See SetFrameGraphResourceIndex(). */
+		GpuBindlessResourceSlots mBindlessSlots;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		u32 mFrameGraphId = 0; /**< See SetFrameGraphId(). */

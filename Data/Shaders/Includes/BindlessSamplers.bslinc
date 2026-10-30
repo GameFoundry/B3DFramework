@@ -1,0 +1,23 @@
+mixin BindlessSamplers
+{
+	code
+	{
+		// Global sampler filtering and addressing. Match GpuGlobalSamplerFilter and GpuGlobalSamplerAddress.
+		static const uint GLOBAL_SAMPLER_FILTER_POINT = 0;
+		static const uint GLOBAL_SAMPLER_FILTER_BILINEAR = 1;
+		static const uint GLOBAL_SAMPLER_FILTER_TRILINEAR = 2;
+
+		static const uint GLOBAL_SAMPLER_ADDRESS_WRAP = 0;
+		static const uint GLOBAL_SAMPLER_ADDRESS_CLAMP = 1;
+
+		/**
+		 * Returns the sampler heap index of a global sampler, permanently resident on every device that supports bindless resources.
+		 * Matches GetGlobalSamplerIndex(). Read the sampler with SamplerDescriptorHeap[GetGlobalSamplerIndex(filter, address)].
+		 */
+		uint GetGlobalSamplerIndex(uint filter, uint address)
+		{
+			return 1 + filter * 2 + address;
+		}
+
+	};
+};

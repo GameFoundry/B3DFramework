@@ -847,6 +847,10 @@ TShared<GpuProgramBytecode> HLSLToDXIL::CompileBytecode(const GpuProgramCreateIn
 		AddUnusedDeclarations(*createInformation.ShaderReflection->Parameters, *bytecode->ParameterDescription);
 	}
 
+	// DXIL reflection doesn't report descriptor heap accesses
+	const ShaderEntryPointReflection& entryPointReflection = createInformation.GetEntryPointReflection();
+	bytecode->ParameterDescription->Features = entryPointReflection.Features;
+
 	ComPtr<IDxcBlob> shaderBlob;
 	result = compilationResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
 	if(FAILED(result) || shaderBlob == nullptr)

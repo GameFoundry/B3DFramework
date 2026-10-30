@@ -2,6 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GpuBackend/B3DSamplerState.h"
 #include "RTTI/B3DSamplerStateRTTI.h"
+#include "GpuBackend/B3DGpuBindlessHeap.h"
+#include "GpuBackend/B3DGpuDevice.h"
 
 using namespace b3d;
 
@@ -19,9 +21,51 @@ bool SamplerStateInformation::operator==(const SamplerStateInformation& rhs) con
 		ComparisonFunc == rhs.ComparisonFunc;
 }
 
-SamplerState::SamplerState(const SamplerStateCreateInformation& createInformation)
-	: mInformation(createInformation)
+SamplerState::SamplerState(GpuDevice& device, const SamplerStateCreateInformation& createInformation)
+	: mInformation(createInformation), mDevice(device)
 {
+}
+
+SamplerState::~SamplerState()
+{
+	const u32 bindlessIndex = mBindlessIndex.load(std::memory_order_acquire);
+	if(bindlessIndex == kGpuBindlessInvalidIndex)
+		return;
+
+	mBindlessHeaps->ReleaseSlot(GpuBindlessHeapType::Sampler, bindlessIndex, this);
+
+	if(mGpuResource != nullptr)
+		mBindlessHeaps->UnpinResource(*mGpuResource);
+}
+
+u32 SamplerState::GetBindlessIndex() const
+{
+	const u32 existingIndex = mBindlessIndex.load(std::memory_order_acquire);
+	if(existingIndex != kGpuBindlessInvalidIndex)
+		return existingIndex;
+
+	GpuBindlessHeaps* heaps = mDevice.GetBindlessHeaps();
+	if(heaps == nullptr)
+		return kGpuBindlessInvalidIndex;
+
+	const u32 newIndex = heaps->AllocateSamplerSlot(*this, this);
+	if(newIndex == kGpuBindlessInvalidIndex)
+		return kGpuBindlessInvalidIndex;
+
+	// Another thread may have allocated a slot concurrently, in which case its slot is used
+	u32 expectedIndex = kGpuBindlessInvalidIndex;
+	if(!mBindlessIndex.compare_exchange_strong(expectedIndex, newIndex, std::memory_order_acq_rel))
+	{
+		heaps->ReleaseSlot(GpuBindlessHeapType::Sampler, newIndex, this);
+		return expectedIndex;
+	}
+
+	// The slot is released into these heaps even if the device no longer reports them, as when the heaps destroy the global samplers
+	mBindlessHeaps = heaps;
+	if(mGpuResource != nullptr)
+		heaps->PinResource(*mGpuResource);
+
+	return newIndex;
 }
 
 u64 SamplerState::GenerateHash(const SamplerStateInformation& information)

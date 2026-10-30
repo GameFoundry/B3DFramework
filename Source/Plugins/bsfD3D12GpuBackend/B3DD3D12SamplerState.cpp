@@ -58,7 +58,7 @@ namespace
 }
 
 D3D12SamplerState::D3D12SamplerState(const SamplerStateCreateInformation& createInformation, GpuDevice& device)
-	: SamplerState(createInformation), mDevice(static_cast<D3D12GpuDevice&>(device))
+	: SamplerState(device, createInformation), mDevice(static_cast<D3D12GpuDevice&>(device))
 {
 }
 

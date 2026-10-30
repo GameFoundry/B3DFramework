@@ -17,13 +17,14 @@ VulkanSampler::~VulkanSampler()
 }
 
 VulkanSamplerState::VulkanSamplerState(VulkanGpuDevice& gpuDevice, const SamplerStateCreateInformation& createInformation)
-	: SamplerState(createInformation), mGpuDevice(gpuDevice)
+	: SamplerState(gpuDevice, createInformation), mGpuDevice(gpuDevice)
 {}
 
 VulkanSamplerState::~VulkanSamplerState()
 {
-	if(mSampler != nullptr)
-		mSampler->Destroy();
+	// The base destructor releases the bindless pin, so the resource stays alive until then
+	if(mGpuResource != nullptr)
+		mGpuResource->Destroy();
 }
 
 void VulkanSamplerState::Initialize()
@@ -61,5 +62,5 @@ void VulkanSamplerState::Initialize()
 	VkResult result = vkCreateSampler(mGpuDevice.GetLogical(), &samplerInfo, gVulkanAllocator, &sampler);
 	B3D_ASSERT(result == VK_SUCCESS);
 
-	mSampler = mGpuDevice.GetResourceManager().Create<VulkanSampler>(sampler);
+	mGpuResource = mGpuDevice.GetResourceManager().Create<VulkanSampler>(sampler);
 }

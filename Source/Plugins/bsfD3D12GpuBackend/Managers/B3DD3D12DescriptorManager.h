@@ -58,8 +58,11 @@ namespace b3d
 		class D3D12DescriptorManager
 		{
 		public:
-			/** Creates the descriptor heaps and immutable fallback descriptors for @p device. */
-			D3D12DescriptorManager(D3D12GpuDevice& device);
+			/**
+			 * Creates the descriptor heaps and immutable fallback descriptors for @p device. The shader-visible heaps start with
+			 * bindless regions of @p bindlessResourceCount and @p bindlessSamplerCount descriptors, followed by the table regions.
+			 */
+			D3D12DescriptorManager(D3D12GpuDevice& device, u32 bindlessResourceCount, u32 bindlessSamplerCount);
 
 			/** Allocates a descriptor from the CPU-only staging heap of the specified type. */
 			D3D12_CPU_DESCRIPTOR_HANDLE AllocateCPUDescriptor(D3D12DescriptorHeapType type);
@@ -75,6 +78,12 @@ namespace b3d
 
 			/** Returns the primary heap for @p type; CBV/SRV/UAV and sampler heaps are shader-visible. */
 			ID3D12DescriptorHeap* GetDescriptorHeap(D3D12DescriptorHeapType type) const;
+
+			/**
+			 * Returns the CPU handle of slot @p slotIndex of the bindless region of the shader-visible heap of @p type, which equals
+			 * the slot's heap index. Only valid for the CBV_SRV_UAV and Sampler heap types.
+			 */
+			D3D12_CPU_DESCRIPTOR_HANDLE GetBindlessCPUHandle(D3D12DescriptorHeapType type, u32 slotIndex) const;
 
 			/**
 			 * Returns a CPU descriptor for the default sampler (linear filtering, wrap addressing), used for sampler
@@ -107,6 +116,12 @@ namespace b3d
 			/** Returns the stride between consecutive descriptors in a heap of the specified type. */
 			u32 GetDescriptorSize(D3D12DescriptorHeapType type) const { return mDescriptorSizes[(u32)type]; }
 
+			/** Number of descriptors in the table region of the shader-visible CBV/SRV/UAV heap. */
+			static constexpr u32 kResourceTableDescriptorCount = 64 * 1024;
+
+			/** Minimum number of descriptors in the table region of the shader-visible sampler heap. The bindless region takes the rest. */
+			static constexpr u32 kSamplerTableDescriptorCount = 1024;
+
 		private:
 			friend class D3D12DescriptorTable;
 
@@ -117,14 +132,15 @@ namespace b3d
 				D3D12_CPU_DESCRIPTOR_HANDLE CPUStart{};	/**< CPU handle of the first descriptor. */
 				D3D12_GPU_DESCRIPTOR_HANDLE GPUStart{};	/**< Only valid for shader-visible heaps. */
 				u32 DescriptorCount = 0;				/**< Capacity the heap was created with. */
+				u32 TableStart = 0;						/**< First descriptor of the table region of a shader-visible heap. Bindless descriptors precede it. */
 				u32 NextFreeIndex = 0;					/**< Bump-allocation cursor into the heap. */
 				Vector<u32> FreeList;					/**< Indices returned by FreeCPUDescriptor(), reused before the cursor advances. */
-				RangeAllocator FreeRanges;				/**< Free descriptors of a shader-visible heap. */
+				RangeAllocator FreeRanges;				/**< Free descriptors of the table region of a shader-visible heap, relative to TableStart. */
 				Mutex AllocationMutex;					/**< Guards descriptor allocation and release. */
 			};
 
 			/** Creates the descriptor heaps, both the shader-visible ones and the CPU-only staging heaps. */
-			void CreateHeaps();
+			void CreateHeaps(u32 bindlessResourceCount, u32 bindlessSamplerCount);
 
 			/** Creates the null CBV/SRV/UAV descriptors unset resource bindings fall back to. */
 			void CreateNullDescriptors();

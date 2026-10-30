@@ -222,7 +222,7 @@ VulkanBuffer* VulkanGpuBuffer::CreateBuffer(VulkanGpuDevice& device, u32 size, b
 	// Buffers participate in defragmentation only when they allocate from an allocator that supports it (scratch/linear
 	// allocations and fixed locations don't); such buffers pass `this` as the proxy parent so defrag can notify the
 	// buffer when it needs to reallocate.
-	const bool isDefragmentable = mRequestedAllocation.IsPending() && mRequestedAllocation.Allocator->SupportsDefragmentation();
+	const bool isDefragmentable = !HasFixedLocation() && mRequestedAllocation.Allocator->SupportsDefragmentation();
 	VulkanGpuBuffer* const proxyParent = (staging || !isDefragmentable) ? nullptr : this;
 
 	const String debugName = staging ? StringUtility::Format("Staging buffer ({0})", mName) : mName;

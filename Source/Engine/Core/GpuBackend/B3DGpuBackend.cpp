@@ -10,6 +10,12 @@ namespace b3d
 	TConfigVariable<i32> gGpuPreferredDeviceIndex("gpu.PreferredDeviceIndex",
 		"Specifies the index of the GPU to use. If < 0 is provided, best GPU is selected automatically.", -1,
 		ConfigVariableFlag::ReadOnly);
+	TConfigVariable<u32> gGpuBindlessResourceCapacity("gpu.BindlessResourceCapacity",
+		"Number of slots in the bindless resource heap. Clamped to the device limit.", 256 * 1024, ConfigVariableFlag::ReadOnly);
+	TConfigVariable<u32> gGpuBindlessSamplerCapacity("gpu.BindlessSamplerCapacity",
+		"Number of slots in the bindless sampler heap. Clamped to the device limit.", 1024, ConfigVariableFlag::ReadOnly);
+	TConfigVariable<float> gGpuBindlessSamplerEvictionThreshold("gpu.BindlessSamplerEvictionThreshold",
+		"Fraction of the bindless sampler heap that, once allocated, makes new sampler slots first evict cached samplers nothing else references.", 0.9f);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	TConfigVariable<bool> gGpuDumpPipelineTimings("gpu.DumpPipelineTimings",

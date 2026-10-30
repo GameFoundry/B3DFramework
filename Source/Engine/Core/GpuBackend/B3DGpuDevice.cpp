@@ -22,6 +22,7 @@ GpuDevice::~GpuDevice()
 {
 	B3D_ASSERT(mTransientHeapPools.Empty() && "The backend must destroy its transient heap pools before its heap backends.");
 	B3D_ASSERT(mVertexInputManager == nullptr && "The backend must destroy its vertex input manager before its resource manager.");
+	B3D_ASSERT(mBindlessHeaps == nullptr && "The backend must destroy the bindless heaps before its native heaps.");
 }
 
 TShared<GpuProgramBytecode> GpuDevice::CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const
@@ -65,6 +66,39 @@ void GpuDevice::EndFrame()
 		pool->ReclaimUnused();
 
 	mFrameCompletionTracker.AdvanceFrame();
+
+	if(mBindlessHeaps != nullptr)
+		mBindlessHeaps->ProcessReleases();
+}
+
+void GpuDevice::CreateBindlessHeaps(IGpuBindlessHeap& backend, u32 resourceCapacity, u32 samplerCapacity)
+{
+	B3D_ASSERT(mBindlessHeaps == nullptr);
+
+	mBindlessHeaps = B3DMakeUnique<GpuBindlessHeaps>(*this, backend, mFrameCompletionTracker, resourceCapacity, samplerCapacity);
+	mBindlessHeaps->CreateGlobalSamplers();
+}
+
+u32 GpuDevice::EvictUnusedSamplerStates()
+{
+	// Destroying sampler states releases their bindless slots, which must happen without the cache lock held
+	TInlineArray<TShared<SamplerState>, 16> evictedSamplerStates;
+	{
+		Lock lock(mSamplerStateMutex);
+
+		for(auto iter = mCachedSamplerStates.begin(); iter != mCachedSamplerStates.end();)
+		{
+			if(iter->second.use_count() == 1)
+			{
+				evictedSamplerStates.Add(std::move(iter->second));
+				iter = mCachedSamplerStates.erase(iter);
+			}
+			else
+				++iter;
+		}
+	}
+
+	return (u32)evictedSamplerStates.Size();
 }
 
 IGpuTransientHeapPool* GpuDevice::AddTransientHeapPool(TUnique<IGpuTransientHeapPool> pool)
@@ -112,6 +146,40 @@ namespace
 			"Allocation (offset {0}, size {1}) does not satisfy the resource's requirements (size {2}, alignment {3}).",
 			allocation.Offset, allocation.Size, memoryRequirements.Size, memoryRequirements.Alignment);
 	}
+
+	/** Checks that a bindless resource can be created on @p device with @p flags, logging the reason if it can't. */
+	bool ValidateBindlessResource(const GpuDevice& device, const String& name, GpuObjectCreateFlags flags)
+	{
+		if(!B3D_ENSURE_LOG(device.GetBindlessHeaps() != nullptr, "Cannot create bindless resource '{0}', the GPU device doesn't support bindless resources.", name))
+			return false;
+
+		return B3D_ENSURE_LOG(!flags.IsSet(GpuObjectCreateFlag::Aliased), "Bindless resource '{0}' cannot be aliased. Bindless resources must stay at rest at a fixed location.", name);
+	}
+
+	/** Checks that a texture described by @p createInformation can be created on @p device with @p flags, logging the reason if it can't. */
+	bool ValidateTexture(const GpuDevice& device, const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
+	{
+		if(!createInformation.Usage.IsSet(TextureUsageFlag::Bindless))
+			return true;
+
+		return ValidateBindlessResource(device, createInformation.Name, flags);
+	}
+
+	/** Checks that a buffer described by @p createInformation can be created on @p device with @p flags, logging the reason if it can't. */
+	bool ValidateGpuBuffer(const GpuDevice& device, const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
+	{
+		if(!createInformation.Flags.IsSet(GpuBufferFlag::Bindless))
+			return true;
+
+		// Buffers are named after creation
+		static const String kBufferName = "<buffer>";
+		if(!ValidateBindlessResource(device, kBufferName, flags))
+			return false;
+
+		// Storage buffers have no suballocations, so each one has a single view
+		return B3D_ENSURE_LOG(createInformation.Type == GpuBufferType::SimpleStorage || createInformation.Type == GpuBufferType::StructuredStorage,
+			"A bindless buffer must be a simple or structured storage buffer.");
+	}
 }
 
 TShared<render::Texture> GpuDevice::CreateTexture(const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
@@ -124,12 +192,18 @@ TShared<render::Texture> GpuDevice::CreateTexture(const TextureCreateInformation
 	if(!ValidateResourceAllocation(allocation, memoryRequirements, flags))
 		return nullptr;
 
+	if(!ValidateTexture(*this, createInformation, flags))
+		return nullptr;
+
 	return CreateTextureInternal(createInformation, allocation, flags);
 }
 
 TShared<render::Texture> GpuDevice::CreateTexture(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags)
 {
 	if(!ValidateResourceAllocation(allocation, GetMemoryRequirements(createInformation), flags))
+		return nullptr;
+
+	if(!ValidateTexture(*this, createInformation, flags))
 		return nullptr;
 
 	return CreateTextureInternal(createInformation, allocation, flags);
@@ -145,12 +219,18 @@ TShared<render::GpuBuffer> GpuDevice::CreateGpuBuffer(const GpuBufferCreateInfor
 	if(!ValidateResourceAllocation(allocation, memoryRequirements, flags))
 		return nullptr;
 
+	if(!ValidateGpuBuffer(*this, createInformation, flags))
+		return nullptr;
+
 	return CreateGpuBufferInternal(createInformation, allocation, flags);
 }
 
 TShared<render::GpuBuffer> GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags)
 {
 	if(!ValidateResourceAllocation(allocation, GetMemoryRequirements(createInformation), flags))
+		return nullptr;
+
+	if(!ValidateGpuBuffer(*this, createInformation, flags))
 		return nullptr;
 
 	return CreateGpuBufferInternal(createInformation, allocation, flags);

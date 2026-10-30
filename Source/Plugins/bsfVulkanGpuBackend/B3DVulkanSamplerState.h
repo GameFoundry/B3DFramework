@@ -35,7 +35,7 @@ namespace b3d
 			~VulkanSamplerState();
 
 			/** Gets the resource wrapping the sampler object; */
-			VulkanSampler* GetVulkanResource() const { return mSampler; }
+			VulkanSampler* GetVulkanResource() const { return static_cast<VulkanSampler*>(mGpuResource); }
 
 		protected:
 			friend class VulkanGpuDevice;
@@ -45,7 +45,6 @@ namespace b3d
 			void Initialize() override;
 
 			VulkanGpuDevice& mGpuDevice;
-			VulkanSampler* mSampler = nullptr;
 		};
 
 		/** @} */

@@ -603,8 +603,8 @@ VulkanImage* VulkanTexture::CreateImage()
 {
 	VulkanImageCreateInformation imageInfo = BuildImageCreateInformation();
 
-	// Textures participate in defragmentation only when they allocate from an allocator that supports it
-	VulkanTexture* const proxyParent = mRequestedAllocation.IsPending() && mRequestedAllocation.Allocator->SupportsDefragmentation() ? this : nullptr;
+	// Textures participate in defragmentation only when they allocate from an allocator that supports it, and don't need a fixed location
+	VulkanTexture* const proxyParent = !HasFixedLocation() && mRequestedAllocation.Allocator->SupportsDefragmentation() ? this : nullptr;
 
 	VulkanImage* const vulkanImage = mGpuDevice.CreateImage(imageInfo, mRequestedAllocation, mKind, proxyParent);
 	if (vulkanImage != nullptr)

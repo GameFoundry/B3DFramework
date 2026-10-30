@@ -16,6 +16,7 @@
 #include "TestSuites/B3DCoreTestSuite.h"
 #include "TestSuites/B3DGpuBackendTestSuite.h"
 #include "TestSuites/B3DGpuAllocatorTestSuite.h"
+#include "TestSuites/B3DGpuBindlessTestSuite.h"
 #include "TestSuites/B3DFrameGraphTestSuite.h"
 #include "TestSuites/B3DPrefabTestSuite.h"
 #include "TestSuites/B3DSceneObjectTransformTestSuite.h"
@@ -53,6 +54,7 @@ namespace b3d
 			registry.RegisterSuite(TestSuite::Create<CoreTestSuite>());
 			registry.RegisterSuite(TestSuite::Create<GpuBackendTestSuite>());
 			registry.RegisterSuite(TestSuite::Create<GpuAllocatorTestSuite>());
+			registry.RegisterSuite(TestSuite::Create<GpuBindlessTestSuite>());
 			registry.RegisterSuite(TestSuite::Create<FrameGraphTestSuite>());
 			registry.RegisterSuite(TestSuite::Create<PrefabTestSuite>());
 			registry.RegisterSuite(TestSuite::Create<SceneObjectTransformTestSuite>());

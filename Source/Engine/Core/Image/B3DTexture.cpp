@@ -374,6 +374,9 @@ Texture::Texture(const TextureCreateInformation& createInformation, const GpuAll
 
 void Texture::SetAllocation(const GpuAllocation& allocation, GpuObjectCreateFlags flags)
 {
+	if(!B3D_ENSURE_LOG(!mProperties.Usage.IsSet(TextureUsageFlag::Bindless), "Cannot move bindless texture '{0}'. Bindless textures stay at a fixed location.", mName))
+		return;
+
 	if(!B3D_ENSURE_LOG(allocation.HasMemory() || allocation.IsPending(), "Cannot move texture '{0}' to an empty allocation.", mName))
 		return;
 
@@ -394,6 +397,9 @@ bool Texture::StartsAtRest() const
 
 void Texture::Initialize()
 {
+	if(mProperties.Usage.IsSet(TextureUsageFlag::Bindless) && B3D_ENSURE(GetGpuResource() != nullptr))
+		mBindlessSlots.Register(GetDevice(), *GetGpuResource(), GpuBindlessResourceView(*this, TextureSurface::kComplete));
+
 	if(mInitData != nullptr)
 	{
 		GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
@@ -403,6 +409,15 @@ void Texture::Initialize()
 	}
 
 	RenderProxy::Initialize();
+}
+
+void Texture::Destroy()
+{
+	// Bindless textures never replace their native resource, so it is the one pinned on registration
+	if(IGpuResource* nativeResource = GetGpuResource())
+		mBindlessSlots.Unregister(*nativeResource);
+
+	RenderProxy::Destroy();
 }
 
 /************************************************************************/

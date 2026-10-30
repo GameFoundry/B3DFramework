@@ -15,6 +15,7 @@
 #include "B3DGpuWorkContext.h"
 
 #include "B3DGpuSplitBarrier.h"
+#include "B3DGpuBindlessHeap.h"
 
 namespace b3d::render
 {
@@ -339,6 +340,9 @@ namespace b3d
 		/** Returns the index of the current frame, as advanced by EndFrame(). Thread safe. */
 		u64 GetFrameIndex() const { return mFrameCompletionTracker.GetCurrentMarker(); }
 
+		/** Returns the bindless heaps of the device, or null if the device doesn't support bindless resources. Thread safe. */
+		GpuBindlessHeaps* GetBindlessHeaps() const { return mBindlessHeaps.get(); }
+
 		/************************************************************************/
 		/* 								UTILITY METHODS                    		*/
 		/************************************************************************/
@@ -421,6 +425,17 @@ namespace b3d
 		 */
 		void DestroyTransientHeapPools();
 
+		/**
+		 * Creates the bindless heaps on top of the backend's native heaps, including the global samplers. Must be called once during device
+		 * initialization, after the device can create sampler states.
+		 */
+		void CreateBindlessHeaps(IGpuBindlessHeap& backend, u32 resourceCapacity, u32 samplerCapacity);
+
+		/** Removes cached sampler states that nothing outside the cache references. Returns the number of removed sampler states. */
+		u32 EvictUnusedSamplerStates();
+
+		friend class GpuBindlessHeaps;
+
 		mutable UnorderedMap<SamplerStateCreateInformation, TShared<SamplerState>> mCachedSamplerStates;
 		mutable Mutex mSamplerStateMutex;
 
@@ -435,6 +450,12 @@ namespace b3d
 		 * of released heaps against it.
 		 */
 		GpuFrameCompletionTracker mFrameCompletionTracker;
+
+		/**
+		 * Bindless heaps, created by backends that support bindless resources. Backends destroy them once the GPU is idle and the sampler
+		 * state cache is cleared, before their native heaps and resource manager.
+		 */
+		TUnique<GpuBindlessHeaps> mBindlessHeaps;
 
 	private:
 		TArray<IGpuTransientHeapPool*> mTransientHeapPools; /**< Owned. */

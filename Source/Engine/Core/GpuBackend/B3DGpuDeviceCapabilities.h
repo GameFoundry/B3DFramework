@@ -63,6 +63,8 @@ namespace b3d
 		RSC_TIMER_QUERIES = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 12),
 		/** Supports wave-level GPU program operations. */
 		RSC_WAVE_OPERATIONS = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 13),
+		/** Supports bindless resources: GPU programs can read resources and samplers through ResourceDescriptorHeap and SamplerDescriptorHeap. */
+		RSC_BINDLESS_RESOURCES = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 14),
 	};
 
 	/** Conventions used for a specific render backend. */
@@ -190,6 +192,12 @@ namespace b3d
 
 		/** Maximum number of lanes in a hardware wave. Zero when wave operations are unsupported. */
 		u32 MaximumWaveLaneCount = 0;
+
+		/** Maximum number of slots in the bindless resource heap. Zero when bindless resources are unsupported. */
+		u32 MaximumBindlessResourceCount = 0;
+
+		/** Maximum number of slots in the bindless sampler heap. Zero when bindless resources are unsupported. */
+		u32 MaximumBindlessSamplerCount = 0;
 
 		/** Optimal alignment for offsets used in buffers for copy source or destination operations, when copying from a buffer to another buffer. */
 		u32 OptimalBufferToBufferCopyOffsetAlignment = 16;

@@ -337,6 +337,13 @@ void D3D12GpuPipelineParameterLayout::CreateRootSignature()
 	rootSignatureDesc.pParameters = rootParameters.empty() ? nullptr : rootParameters.data();
 	rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
+	// The bindless regions are at the start of the bound shader-visible heaps
+	if(GetProgramFeatures().IsSet(GpuProgramFeatureFlag::ResourceDescriptorHeap))
+		rootSignatureDesc.Flags |= D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED;
+
+	if(GetProgramFeatures().IsSet(GpuProgramFeatureFlag::SamplerDescriptorHeap))
+		rootSignatureDesc.Flags |= D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED;
+
 	ComPtr<ID3DBlob> signature;
 	ComPtr<ID3DBlob> error;
 	HRESULT hr = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);

@@ -171,6 +171,21 @@ namespace b3d
 
 	using GpuProgramStageBits = Flags<GpuProgramStageBit>;
 	B3D_FLAGS_OPERATORS(GpuProgramStageBit)
+
+	/** Optional features that a GPU program uses, which the pipeline it runs in must provide. */
+	enum class GpuProgramFeatureFlag
+	{
+		None = 0,
+		ResourceDescriptorHeap = 1 << 0, /**< Reads resources through the bindless resource heap (ResourceDescriptorHeap). */
+		SamplerDescriptorHeap = 1 << 1 /**< Reads samplers through the bindless sampler heap (SamplerDescriptorHeap). */
+	};
+
+	using GpuProgramFeatureFlags = Flags<GpuProgramFeatureFlag>;
+	B3D_FLAGS_OPERATORS(GpuProgramFeatureFlag)
+
+	/** Program features that require the bindless heaps bound at kGpuBindlessParameterSet. */
+	inline const GpuProgramFeatureFlags kGpuProgramBindlessFeatures = GpuProgramFeatureFlag::ResourceDescriptorHeap | GpuProgramFeatureFlag::SamplerDescriptorHeap;
+
 	/** Types of valid formats used for standard GPU buffers. */
 	enum GpuBufferFormat
 	{

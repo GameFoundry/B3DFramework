@@ -13,6 +13,8 @@ Result GpuProgramParameterDescription::TryCombine(const GpuProgramParameterDescr
 	if(other.PushConstantBufferSize > PushConstantBufferSize)
 		PushConstantBufferSize = other.PushConstantBufferSize;
 
+	Features |= other.Features;
+
 	// Combine uniform buffers
 	for(const auto& entry : other.UniformBuffers)
 	{

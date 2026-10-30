@@ -22,6 +22,15 @@ VulkanDescriptorLayout::VulkanDescriptorLayout(VulkanGpuDevice& device, TArrayVi
 	B3D_ASSERT(result == VK_SUCCESS);
 }
 
+VulkanDescriptorLayout::VulkanDescriptorLayout(VulkanGpuDevice& device, const VkDescriptorSetLayoutCreateInfo& createInformation)
+	: mDevice(device)
+{
+	mHash = CalculateHash(TArrayView<VkDescriptorSetLayoutBinding>(const_cast<VkDescriptorSetLayoutBinding*>(createInformation.pBindings), createInformation.bindingCount));
+
+	VkResult result = vkCreateDescriptorSetLayout(device.GetLogical(), &createInformation, gVulkanAllocator, &mLayout);
+	B3D_ASSERT(result == VK_SUCCESS);
+}
+
 VulkanDescriptorLayout::~VulkanDescriptorLayout()
 {
 	vkDestroyDescriptorSetLayout(mDevice.GetLogical(), mLayout, gVulkanAllocator);

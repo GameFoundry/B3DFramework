@@ -53,7 +53,7 @@ namespace b3d
 		};
 
 		/** Represents a single GPU device usable by Vulkan. */
-		class VulkanGpuDevice : public GpuDevice, private IGpuSubmitThreadBackend
+		class VulkanGpuDevice : public GpuDevice, private IGpuSubmitThreadBackend, private IGpuBindlessHeap
 		{
 		public:
 			static constexpr const char* kGpuProgramLanguageName = kGpuProgramLanguageVksl;
@@ -144,6 +144,12 @@ namespace b3d
 
 			/** Returns a set of resources that are always available. */
 			const VulkanBuiltinResources& GetBuiltinResources() const { return mBuiltinResources;  }
+
+			/** Returns the layout of the bindless heap set, or null if the device doesn't support bindless resources. */
+			VulkanDescriptorLayout* GetBindlessHeapLayout() const { return mBindlessHeapLayout; }
+
+			/** Returns the descriptor set holding the bindless heaps, bound at kGpuBindlessParameterSet. Null if the device doesn't support bindless resources. */
+			VkDescriptorSet GetBindlessHeapSet() const { return mBindlessHeapSet; }
 
 			/**
 			 * @name Resource Creation
@@ -249,6 +255,17 @@ namespace b3d
 
 			/** @} */
 
+			/**
+			 * @name IGpuBindlessHeap implementation
+			 * @{
+			 */
+
+			void WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view) override;
+			void WriteSamplerSlot(u32 slotIndex, const SamplerState& sampler) override;
+			void ClearSlot(GpuBindlessHeapType heap, u32 slotIndex) override;
+
+			/** @} */
+
 			TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
 			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
 			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
@@ -316,6 +333,11 @@ namespace b3d
 			VkPhysicalDeviceProperties mDeviceProperties;
 			VkPhysicalDeviceFeatures mDeviceFeatures;
 			VkPhysicalDeviceMemoryProperties mMemoryProperties;
+			bool mSupportsBindlessResources = false;
+
+			VulkanDescriptorLayout* mBindlessHeapLayout = nullptr;
+			VkDescriptorPool mBindlessHeapPool = VK_NULL_HANDLE;
+			VkDescriptorSet mBindlessHeapSet = VK_NULL_HANDLE;
 
 			/** Contains data about a set of queues of a specific type. */
 			struct QueueInfo

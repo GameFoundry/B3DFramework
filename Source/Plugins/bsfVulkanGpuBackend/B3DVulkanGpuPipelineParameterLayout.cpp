@@ -154,49 +154,63 @@ VulkanGpuPipelineParameterLayout::VulkanGpuPipelineParameterLayout(VulkanGpuDevi
 	: GpuPipelineParameterLayout(gpuDevice, createInformation)
 {
 	const u32 pushConstantBufferSize = GetPushConstantBufferSize();
-	if(pushConstantBufferSize == 0)
-		return;
-
-	if(!B3D_ENSURE_LOG((pushConstantBufferSize & 3u) == 0 && pushConstantBufferSize <= kMaxPushConstantSizeInBytes,
-		"Vulkan pipeline declares an invalid push-constant buffer size of {0} bytes; expected a four-byte-aligned size no greater than {1} bytes.", pushConstantBufferSize, kMaxPushConstantSizeInBytes))
+	if(pushConstantBufferSize != 0)
 	{
-		return;
+		const bool isValidSize = B3D_ENSURE_LOG((pushConstantBufferSize & 3u) == 0 && pushConstantBufferSize <= kMaxPushConstantSizeInBytes,
+			"Vulkan pipeline declares an invalid push-constant buffer size of {0} bytes; expected a four-byte-aligned size no greater than {1} bytes.", pushConstantBufferSize, kMaxPushConstantSizeInBytes);
+
+		const bool isSupportedSize = B3D_ENSURE_LOG(pushConstantBufferSize <= gpuDevice.GetCapabilities().MaximumPushConstantSize,
+			"Vulkan pipeline requires {0} push-constant bytes, but the device supports only {1} bytes.", pushConstantBufferSize, gpuDevice.GetCapabilities().MaximumPushConstantSize);
+
+		GpuProgramStageBits pushConstantStages = GpuProgramStageBit::None;
+		if(createInformation.Vertex != nullptr && createInformation.Vertex->PushConstantBufferSize != 0)
+			pushConstantStages |= GpuProgramStageBit::Vertex;
+
+		if(createInformation.Fragment != nullptr && createInformation.Fragment->PushConstantBufferSize != 0)
+			pushConstantStages |= GpuProgramStageBit::Fragment;
+
+		if(createInformation.Hull != nullptr && createInformation.Hull->PushConstantBufferSize != 0)
+			pushConstantStages |= GpuProgramStageBit::Hull;
+
+		if(createInformation.Domain != nullptr && createInformation.Domain->PushConstantBufferSize != 0)
+			pushConstantStages |= GpuProgramStageBit::Domain;
+
+		if(createInformation.Geometry != nullptr && createInformation.Geometry->PushConstantBufferSize != 0)
+			pushConstantStages |= GpuProgramStageBit::Geometry;
+
+		if(createInformation.Compute != nullptr && createInformation.Compute->PushConstantBufferSize != 0)
+			pushConstantStages |= GpuProgramStageBit::Compute;
+
+		VkPushConstantRange pushConstantRange;
+		pushConstantRange.stageFlags = VulkanUtility::GetShaderStages(pushConstantStages);
+		pushConstantRange.offset = 0;
+		pushConstantRange.size = pushConstantBufferSize;
+
+		const bool hasStages = B3D_ENSURE_LOG(pushConstantRange.stageFlags != 0, "Vulkan pipeline declares push constants without a shader stage.");
+		if(isValidSize && isSupportedSize && hasStages)
+			mPushConstantRange = pushConstantRange;
 	}
 
-	if(!B3D_ENSURE_LOG(pushConstantBufferSize <= gpuDevice.GetCapabilities().MaximumPushConstantSize,
-		"Vulkan pipeline requires {0} push-constant bytes, but the device supports only {1} bytes.", pushConstantBufferSize, gpuDevice.GetCapabilities().MaximumPushConstantSize))
+	// Pipelines that access the bindless heaps receive them at their own set. Sets between the parameter sets and it are empty.
+	VulkanDescriptorManager& descriptorManager = gpuDevice.GetDescriptorManager();
+	const u32 parameterSetCount = GetSetCount();
+
+	u32 setLayoutCount = parameterSetCount;
+	if(GetProgramFeatures().IsSetAny(kGpuProgramBindlessFeatures) && B3D_ENSURE_LOG(gpuDevice.GetBindlessHeapLayout() != nullptr, "Pipeline accesses the bindless heaps, but the device doesn't support bindless resources."))
+		setLayoutCount = kGpuBindlessParameterSet + 1;
+
+	TInlineArray<VulkanDescriptorLayout*, kGpuBindlessParameterSet + 1> setLayouts;
+	for(u32 setIndex = 0; setIndex < setLayoutCount; setIndex++)
 	{
-		return;
+		if(setIndex < parameterSetCount)
+			setLayouts.Add(static_cast<VulkanGpuPipelineParameterSetLayout&>(*GetSet(setIndex)).GetLayout());
+		else if(setIndex == kGpuBindlessParameterSet)
+			setLayouts.Add(gpuDevice.GetBindlessHeapLayout());
+		else
+			setLayouts.Add(descriptorManager.GetLayout(TArrayView<VkDescriptorSetLayoutBinding>()));
 	}
 
-	GpuProgramStageBits pushConstantStages = GpuProgramStageBit::None;
-	if(createInformation.Vertex != nullptr && createInformation.Vertex->PushConstantBufferSize != 0)
-		pushConstantStages |= GpuProgramStageBit::Vertex;
-
-	if(createInformation.Fragment != nullptr && createInformation.Fragment->PushConstantBufferSize != 0)
-		pushConstantStages |= GpuProgramStageBit::Fragment;
-
-	if(createInformation.Hull != nullptr && createInformation.Hull->PushConstantBufferSize != 0)
-		pushConstantStages |= GpuProgramStageBit::Hull;
-
-	if(createInformation.Domain != nullptr && createInformation.Domain->PushConstantBufferSize != 0)
-		pushConstantStages |= GpuProgramStageBit::Domain;
-
-	if(createInformation.Geometry != nullptr && createInformation.Geometry->PushConstantBufferSize != 0)
-		pushConstantStages |= GpuProgramStageBit::Geometry;
-
-	if(createInformation.Compute != nullptr && createInformation.Compute->PushConstantBufferSize != 0)
-		pushConstantStages |= GpuProgramStageBit::Compute;
-
-	VkPushConstantRange pushConstantRange;
-	pushConstantRange.stageFlags = VulkanUtility::GetShaderStages(pushConstantStages);
-	pushConstantRange.offset = 0;
-	pushConstantRange.size = pushConstantBufferSize;
-
-	if(!B3D_ENSURE_LOG(pushConstantRange.stageFlags != 0, "Vulkan pipeline declares push constants without a shader stage."))
-		return;
-
-	mPushConstantRange = pushConstantRange;
+	mPipelineLayout = descriptorManager.GetPipelineLayout(setLayouts.Data(), setLayoutCount, mPushConstantRange);
 }
 
 

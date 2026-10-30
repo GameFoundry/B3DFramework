@@ -268,8 +268,38 @@ namespace b3d::render
 	GpuBuffer::~GpuBuffer()
 	{ }
 
+	void GpuBuffer::Initialize()
+	{
+		if(mInformation.Flags.IsSet(GpuBufferFlag::Bindless) && B3D_ENSURE(GetGpuResource() != nullptr))
+			mBindlessSlots.Register(mDevice, *GetGpuResource(), GpuBindlessResourceView(*this, BF_UNKNOWN));
+
+		RenderProxy::Initialize();
+	}
+
+	void GpuBuffer::Destroy()
+	{
+		// Bindless buffers never replace their native resource, so it is the one pinned on registration
+		if(IGpuResource* nativeResource = GetGpuResource())
+			mBindlessSlots.Unregister(*nativeResource);
+
+		RenderProxy::Destroy();
+	}
+
+	u32 GpuBuffer::GetOrCreateBindlessIndex(GpuBufferFormat format)
+	{
+		if(!B3D_ENSURE_LOG(mInformation.Type == GpuBufferType::SimpleStorage, "Typed bindless views are only supported for simple storage buffers. Buffer: '{0}'.", mName))
+			return kGpuBindlessInvalidIndex;
+
+		// The default view uses the buffer's own format
+		const GpuBufferFormat viewFormat = format == mInformation.SimpleStorage.Format ? BF_UNKNOWN : format;
+		return mBindlessSlots.GetOrCreateIndex(GpuBindlessResourceView(*this, viewFormat));
+	}
+
 	void GpuBuffer::SetAllocation(const GpuAllocation& allocation, GpuObjectCreateFlags flags)
 	{
+		if(!B3D_ENSURE_LOG(!mInformation.Flags.IsSet(GpuBufferFlag::Bindless), "Cannot move bindless buffer '{0}'. Bindless buffers stay at a fixed location.", mName))
+			return;
+
 		if(!B3D_ENSURE_LOG(allocation.HasMemory() || allocation.IsPending(), "Cannot move buffer '{0}' to an empty allocation.", mName))
 			return;
 
@@ -293,8 +323,9 @@ namespace b3d::render
 			{
 				if(IsRangeInUse(offset, size))
 					B3D_LOG(Warning, LogRenderBackend, "Writing to a buffer that is currently used on the GPU. This will result in undefined behaviour. Buffer: {0}", mName);
-				else if(!options.IsSet(GpuMapOption::NoOverwrite))
+				else if(!options.IsSet(GpuMapOption::NoOverwrite) && !mInformation.Flags.IsSet(GpuBufferFlag::Bindless))
 				{
+					// The bindless heaps keep bindless buffers bound while registered, so binding by command buffers can't be told apart
 					if(IsRangeBound(offset, size))
 						B3D_LOG(Warning, LogRenderBackend, "Writing to a buffer that is currently bound on a command buffer. Previous usages of the buffer will be affected. Buffer: {0}", mName);
 				}

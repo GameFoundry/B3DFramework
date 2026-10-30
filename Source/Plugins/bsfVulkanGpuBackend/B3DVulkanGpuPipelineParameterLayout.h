@@ -66,8 +66,12 @@ namespace b3d
 			/** Returns the optional native push-constant range. */
 			const TOptional<VkPushConstantRange>& GetPushConstantRange() const { return mPushConstantRange; }
 
+			/** Returns the native pipeline layout, including the bindless heap set if any program accesses the heaps. */
+			VkPipelineLayout GetPipelineLayout() const { return mPipelineLayout; }
+
 		private:
 			TOptional<VkPushConstantRange> mPushConstantRange;
+			VkPipelineLayout mPipelineLayout = VK_NULL_HANDLE;
 		};
 
 		/** @} */

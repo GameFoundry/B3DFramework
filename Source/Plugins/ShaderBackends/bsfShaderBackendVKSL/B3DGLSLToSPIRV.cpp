@@ -3,6 +3,7 @@
 #include "B3DGLSLToSPIRV.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuPushConstants.h"
+#include "GpuBackend/B3DGpuBindlessHeap.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DVertexDescription.h"
 #include "GpuBackend/B3DGpuProgram.h"
@@ -594,6 +595,13 @@ namespace
 	bool ParseSPIRVCrossUniforms(spirv_cross::Compiler& compiler, GpuProgramParameterDescription& outParameterDescription, StringStream& outLog)
 	{
 		const spirv_cross::ShaderResources& sprivResources = compiler.get_shader_resources();
+
+		// The descriptor heap arrays at the bindless set are bound by the device, not through parameters
+		const auto fnIsBindlessHeap = [&compiler](const spirv_cross::Resource& resource)
+		{
+			return compiler.get_decoration(resource.id, spv::DecorationDescriptorSet) == kGpuBindlessParameterSet;
+		};
+
 		if (sprivResources.push_constant_buffers.size() > 1)
 		{
 			outLog << "SPIR-V declares more than one push-constant buffer.";
@@ -616,6 +624,9 @@ namespace
 
 		for (const auto& resource : sprivResources.uniform_buffers)
 		{
+			if (fnIsBindlessHeap(resource))
+				continue;
+
 			TOptional<GpuUniformBufferInformation> uniformBufferInformation = ParseSPIRVCrossUniformBuffer(compiler, resource, outLog);
 			if (!uniformBufferInformation)
 				continue;
@@ -643,6 +654,9 @@ namespace
 		// Combined texture/sampler (e.g. sampler2D).
 		for (const auto& resource : sprivResources.sampled_images)
 		{
+			if (fnIsBindlessHeap(resource))
+				continue;
+
 			TOptional<GpuObjectParameterInformation> sampledImageInformation = ParseSPIRVCrossSampledTexture(compiler, resource, outLog);
 			if (sampledImageInformation)
 			{
@@ -664,6 +678,9 @@ namespace
 		// Sampled texture or buffer (e.g. texture2D/Texture2D, samplerBuffer/Buffer).
 		for (const auto& resource : sprivResources.separate_images)
 		{
+			if (fnIsBindlessHeap(resource))
+				continue;
+
 			TOptional<GpuObjectParameterInformation> sampledImageInformation = ParseSPIRVCrossSampledTexture(compiler, resource, outLog);
 			if (sampledImageInformation)
 			{
@@ -678,6 +695,9 @@ namespace
 		// Storage texture or buffer (e.g. image2D/RWTexture2D, imageBuffer/RWBuffer).
 		for (const auto& resource : sprivResources.storage_images)
 		{
+			if (fnIsBindlessHeap(resource))
+				continue;
+
 			TOptional<GpuObjectParameterInformation> sampledImageInformation = ParseSPIRVCrossStorageTexture(compiler, resource, outLog);
 			if (sampledImageInformation)
 			{
@@ -692,6 +712,9 @@ namespace
 		// Samplers (sampler/SamplerState).
 		for (const auto& resource : sprivResources.separate_samplers)
 		{
+			if (fnIsBindlessHeap(resource))
+				continue;
+
 			TOptional<GpuObjectParameterInformation> samplerInformation = ParseSPIRVCrossSampler(compiler, resource, outLog);
 			if (samplerInformation)
 			{
@@ -703,6 +726,9 @@ namespace
 		// Structured buffers (e.g. buffer/StructuredBuffer/RWStructuredBuffer).
 		for (const auto& resource : sprivResources.storage_buffers)
 		{
+			if (fnIsBindlessHeap(resource))
+				continue;
+
 			TOptional<GpuObjectParameterInformation> storageBufferInformation = ParseSPIRVCrossStorageBuffer(compiler, resource, outLog);
 			if (storageBufferInformation)
 			{
@@ -912,6 +938,9 @@ TShared<GpuProgramBytecode> GLSLToSPIRV::CompileBytecode(const GpuProgramCreateI
 	{
 		ShaderParameterDescription::IterateMatching(desc.ShaderReflection->Parameters->GetUniformBuffers(), bytecode->ParameterDescription->UniformBuffers, [](const auto& source, auto& outTarget) { outTarget.UsesDynamicOffset = source.UsesDynamicOffset; });
 	}
+
+	const ShaderEntryPointReflection& entryPointReflection = desc.GetEntryPointReflection();
+	bytecode->ParameterDescription->Features = entryPointReflection.Features;
 
 	const String& messageLogString = messageLog.str();
 	if (!messageLogString.empty())

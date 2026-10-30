@@ -5,6 +5,7 @@
 #include "B3DMetalSourceCompiler.h"
 #endif
 #include "GpuBackend/B3DGpuPushConstants.h"
+#include "GpuBackend/B3DGpuBindlessHeap.h"
 #include "GpuBackend/B3DSamplerState.h"
 #include "Material/B3DShader.h"
 #include "Resources/B3DBuiltinResources.h"
@@ -629,7 +630,8 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 		Xsc::Extensions::SrtSignature |
 		Xsc::Extensions::HLSLTemplates |
 		Xsc::Extensions::PushConstants |
-		Xsc::Extensions::DynamicOffsets;
+		Xsc::Extensions::DynamicOffsets |
+		Xsc::Extensions::BindlessResources;
 
 	switch(type)
 	{
@@ -670,6 +672,9 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 	outputDesc.options.maxPushConstantSize = kMaxPushConstantSizeInBytes;
 	outputDesc.options.pushConstantHLSLRegister = kPushConstantHlslRegister;
 	outputDesc.options.pushConstantHLSLRegisterSpace = kPushConstantHlslRegisterSpace;
+	outputDesc.options.bindlessBindingSet = kGpuBindlessParameterSet;
+	outputDesc.options.bindlessBindingStartSlot = 0;
+	outputDesc.options.bindlessBindingLayout = Xsc::BindlessBindingLayout::PerHeap;
 	outputDesc.options.fragmentLocations = true;
 	outputDesc.options.separateShaders = true;
 	outputDesc.options.separateSamplers = true;
@@ -718,6 +723,41 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 			log.GetMessages(logOutput);
 
 			outCompileResult.ErrorMessage = StringUtility::Format("Shader cross compilation failed. Log: \n\n{0}", logOutput.str());
+			return "";
+		}
+	}
+
+	if(reflectParameters || compileSuccess)
+	{
+		if(reflectionData.bindless.writableResources)
+		{
+			outCompileResult.ErrorMessage = "RW textures and RW buffers cannot be accessed through ResourceDescriptorHeap. Bind them as ordinary parameters.";
+			return "";
+		}
+
+		// The bindless heaps are bound at their own set, which no ordinary parameter may share
+		const auto fnFindReservedSetBinding = [](const auto& bindings) -> const Xsc::Reflection::BindingSlot*
+		{
+			for(const auto& binding : bindings)
+			{
+				if(binding.set == (int)kGpuBindlessParameterSet)
+					return &binding;
+			}
+
+			return nullptr;
+		};
+
+		const Xsc::Reflection::BindingSlot* reservedSetBinding = fnFindReservedSetBinding(reflectionData.constantBuffers);
+		if(reservedSetBinding == nullptr)
+			reservedSetBinding = fnFindReservedSetBinding(reflectionData.textures);
+
+		if(reservedSetBinding == nullptr)
+			reservedSetBinding = fnFindReservedSetBinding(reflectionData.storageBuffers);
+
+		if(reservedSetBinding != nullptr)
+		{
+			outCompileResult.ErrorMessage = StringUtility::Format("Parameter '{0}' is declared in set (register space) {1}, which is reserved for the bindless heaps.",
+				reservedSetBinding->ident.c_str(), kGpuBindlessParameterSet);
 			return "";
 		}
 	}
@@ -848,6 +888,12 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 		B3D_ASSERT(reflectionData.pushConstantBuffers.size() <= 1);
 		entryPoint.PushConstantBufferSize = reflectionData.pushConstantBuffers.empty() ? 0u : (u32)reflectionData.pushConstantBuffers.front().size;
 
+		if(reflectionData.bindless.resourceHeap)
+			entryPoint.Features |= GpuProgramFeatureFlag::ResourceDescriptorHeap;
+
+		if(reflectionData.bindless.samplerHeap)
+			entryPoint.Features |= GpuProgramFeatureFlag::SamplerDescriptorHeap;
+
 		const String entryPointName = target.KeepsEntryPointNames ? inputDesc.entryPoint.c_str() : "main";
 		outReflection.EntryPoints.emplace(entryPointName, std::move(entryPoint));
 	}
@@ -918,8 +964,9 @@ ShaderCompilerResult HLSLCrossCompiler::Reflect(const String& hlsl, ShaderReflec
 	outReflection.Parameters = nullptr;
 	outReflection.EntryPoints.clear();
 
+	// Reflection without a target uses Vulkan GLSL, since plain GLSL cannot express the bindless heaps
 	HLSLCrossCompileTarget reflectionTarget;
-	reflectionTarget.TargetLanguage = Xsc::TargetLanguage::GLSL450;
+	reflectionTarget.TargetLanguage = Xsc::TargetLanguage::VKSL450;
 	reflectionTarget.PreprocessorDefine = "OPENGL";
 
 	if(target != nullptr)

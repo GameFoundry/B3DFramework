@@ -4,11 +4,12 @@
 
 #include "Material/B3DShaderReflection.h"
 #include "RTTI/B3DShaderRTTI.h"
+#include "RTTI/B3DFlagsRTTI.h"
 
 namespace b3d
 {
 	template <>
-	struct RTTIPlainType<ShaderEntryPointReflection> : RTTIPlainTypeHelper<ShaderEntryPointReflection, TID_ShaderEntryPointReflection, 0>
+	struct RTTIPlainType<ShaderEntryPointReflection> : RTTIPlainTypeHelper<ShaderEntryPointReflection, TID_ShaderEntryPointReflection, 1>
 	{
 		template<class Processor>
 		static void RTTIEnumerateFields(ShaderEntryPointReflection& object, Processor& processor, u8 version)
@@ -16,6 +17,9 @@ namespace b3d
 			processor(object.Type);
 			processor(object.ThreadGroupSize);
 			processor(object.PushConstantBufferSize);
+
+			if(version > 0)
+				processor(object.Features);
 		}
 	};
 

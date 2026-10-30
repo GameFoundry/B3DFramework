@@ -61,6 +61,13 @@ namespace b3d
 		/** Allows retrieving views of the texture using a different format than specified on creation. */
 		MutableFormat B3D_SCRIPT_EXPORT(ExportName(MutableFormat)) = 1 << 14,
 
+		/**
+		 * Makes the texture readable by shaders through ResourceDescriptorHeap, at the index returned by render::Texture::GetBindlessIndex().
+		 * The texture stays at rest at a fixed location: it cannot be aliased or transient, and CPU writes never discard its contents. GPU
+		 * writes must return it to rest. Requires a device that supports bindless resources.
+		 */
+		Bindless B3D_SCRIPT_EXPORT(Exclude(true)) = 1 << 15,
+
 		/** Default setting suitable for majority of textures. */
 		Default = StoreOnGPU
 	};
@@ -505,6 +512,7 @@ namespace b3d
 			virtual ~Texture() {}
 
 			void Initialize() override;
+			void Destroy() override;
 
 			/** Assigns an name to the image, primarily used for easier debugging. */
 			virtual void SetName(const StringView& name) { mName = name; }
@@ -576,10 +584,24 @@ namespace b3d
 			virtual IGpuResource* GetGpuResource() const { return nullptr; }
 
 			/**
-			 * Returns true if the texture is fixed to the memory it was created at. Such a texture never recreates its
+			 * Returns true if the texture is fixed to the memory it was created at, or is bindless. Such a texture never recreates its
 			 * native resource, so writes cannot discard its contents.
 			 */
-			bool HasFixedLocation() const { return !mRequestedAllocation.IsPending(); }
+			bool HasFixedLocation() const { return !mRequestedAllocation.IsPending() || mProperties.Usage.IsSet(TextureUsageFlag::Bindless); }
+
+			/**
+			 * Returns the index of a view of the whole texture in the bindless resource heap, or kGpuBindlessInvalidIndex if the texture
+			 * wasn't created with TextureUsageFlag::Bindless or isn't initialized. The index is valid until the texture is destroyed.
+			 */
+			u32 GetBindlessIndex() const { return mBindlessSlots.GetDefaultIndex(); }
+
+			/**
+			 * Returns the bindless resource heap index of a view of @p surface, allocating it on first request. Returns
+			 * kGpuBindlessInvalidIndex if the texture isn't bindless or the heap is full.
+			 *
+			 * @note	Render thread only.
+			 */
+			u32 GetOrCreateBindlessIndex(const TextureSurface& surface) { return mBindlessSlots.GetOrCreateIndex(GpuBindlessResourceView(*this, surface)); }
 
 			/**
 			 * @name Internal
@@ -677,6 +699,7 @@ namespace b3d
 			void ClearBufferViews();
 
 			UnorderedMap<TextureViewInformation, TShared<TextureView>, TextureView::HashFunction, TextureView::EqualFunction> mTextureViews;
+			GpuBindlessResourceSlots mBindlessSlots;
 			String mName;
 			TextureProperties mProperties;
 			TShared<PixelData> mInitData;

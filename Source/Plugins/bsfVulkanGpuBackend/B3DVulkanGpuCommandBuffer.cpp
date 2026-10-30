@@ -724,6 +724,8 @@ void VulkanGpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanc
 		mDescriptorSetsBindState.Unset(DescriptorSetBindFlag::Graphics);
 	}
 
+	BindBindlessHeaps(VK_PIPELINE_BIND_POINT_GRAPHICS, *mGraphicsPipeline->GetParameterLayout(), mGraphicsPipeline->GetPipelineLayoutHandle());
+
 	BindPushConstants(true);
 
 	if(instanceCount <= 0)
@@ -778,6 +780,8 @@ void VulkanGpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 ver
 
 		mDescriptorSetsBindState.Unset(DescriptorSetBindFlag::Graphics);
 	}
+
+	BindBindlessHeaps(VK_PIPELINE_BIND_POINT_GRAPHICS, *mGraphicsPipeline->GetParameterLayout(), mGraphicsPipeline->GetPipelineLayoutHandle());
 
 	BindPushConstants(true);
 
@@ -836,6 +840,8 @@ void VulkanGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u
 
 		mDescriptorSetsBindState.Unset(DescriptorSetBindFlag::Compute);
 	}
+
+	BindBindlessHeaps(VK_PIPELINE_BIND_POINT_COMPUTE, *pipelineParameterLayout, mComputePipeline->GetPipelineLayoutHandle());
 
 	BindPushConstants(false);
 
@@ -1308,6 +1314,8 @@ VulkanGpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmit
 	mCmpPipelineRequiresBind = true;
 	mFramebuffer = nullptr;
 	mDescriptorSetsBindState = DescriptorSetBindFlag::Graphics | DescriptorSetBindFlag::Compute;
+	mGraphicsBindlessHeapLayout = VK_NULL_HANDLE;
+	mComputeBindlessHeapLayout = VK_NULL_HANDLE;
 	mBoundGpuParameterSets.Clear();
 	mIndexBuffer = nullptr;
 	mVertexBuffers.clear();
@@ -1766,6 +1774,11 @@ void VulkanGpuCommandBuffer::BindPushConstants(bool isGraphics)
 
 void VulkanGpuCommandBuffer::BindDescriptorSets(VkPipelineBindPoint bindPoint, VkPipelineLayout pipelineLayout)
 {
+	// Binding sets with another pipeline layout may disturb the bindless heap set
+	VkPipelineLayout& bindlessHeapLayout = bindPoint == VK_PIPELINE_BIND_POINT_GRAPHICS ? mGraphicsBindlessHeapLayout : mComputeBindlessHeapLayout;
+	if(bindlessHeapLayout != pipelineLayout)
+		bindlessHeapLayout = VK_NULL_HANDLE;
+
 	u32 set = 0;
 	while(set < kMaximumBoundDescriptorSets)
 	{
@@ -1787,6 +1800,21 @@ void VulkanGpuCommandBuffer::BindDescriptorSets(VkPipelineBindPoint bindPoint, V
 			vkCmdBindDescriptorSets(mCommandBufferHandle, bindPoint, pipelineLayout, firstSet, set - firstSet, &mDescriptorSetsTemp[firstSet], (u32)dynamicOffsets.size(), dynamicOffsets.data());
 		}
 	}
+}
+
+void VulkanGpuCommandBuffer::BindBindlessHeaps(VkPipelineBindPoint bindPoint, const GpuPipelineParameterLayout& parameterLayout, VkPipelineLayout pipelineLayout)
+{
+	if(!parameterLayout.GetProgramFeatures().IsSetAny(kGpuProgramBindlessFeatures))
+		return;
+
+	VkPipelineLayout& bindlessHeapLayout = bindPoint == VK_PIPELINE_BIND_POINT_GRAPHICS ? mGraphicsBindlessHeapLayout : mComputeBindlessHeapLayout;
+	if(bindlessHeapLayout == pipelineLayout)
+		return;
+
+	const VkDescriptorSet bindlessHeapSet = GetVulkanGpuDevice().GetBindlessHeapSet();
+	vkCmdBindDescriptorSets(mCommandBufferHandle, bindPoint, pipelineLayout, kGpuBindlessParameterSet, 1, &bindlessHeapSet, 0, nullptr);
+
+	bindlessHeapLayout = pipelineLayout;
 }
 
 void VulkanGpuCommandBuffer::SetEvent(VulkanEvent* event)

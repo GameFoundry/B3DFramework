@@ -24,6 +24,18 @@ namespace b3d
 	/** Index of the GPU device to use. If negative, the best device is selected automatically. Shared by all backends. */
 	extern B3D_EXPORT TConfigVariable<i32> gGpuPreferredDeviceIndex;
 
+	/** Number of slots in the bindless resource heap, including the invalid slot. Clamped to the device limit. Shared by all backends. */
+	extern B3D_EXPORT TConfigVariable<u32> gGpuBindlessResourceCapacity;
+
+	/** Number of slots in the bindless sampler heap, including the invalid slot and the global samplers. Clamped to the device limit. Shared by all backends. */
+	extern B3D_EXPORT TConfigVariable<u32> gGpuBindlessSamplerCapacity;
+
+	/**
+	 * Fraction of the bindless sampler heap that, once allocated, makes new sampler slot allocations first evict cached samplers that nothing
+	 * else references. Shared by all backends.
+	 */
+	extern B3D_EXPORT TConfigVariable<float> gGpuBindlessSamplerEvictionThreshold;
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	/**
 	 * When enabled, backends log how long the driver takes to create each compute pipeline. With the driver's shader cache

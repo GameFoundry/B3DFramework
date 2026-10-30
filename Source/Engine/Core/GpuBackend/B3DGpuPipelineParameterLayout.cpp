@@ -423,6 +423,8 @@ GpuPipelineParameterLayout::GpuPipelineParameterLayout(GpuDevice& device, const 
 			mPushConstantBufferSize = std::max(mPushConstantBufferSize, pushConstantBufferSize);
 		}
 
+		mProgramFeatures |= parameterDescription->Features;
+
 		// Split the program's parameter description by set
 		TInlineArray<GpuProgramParameterDescription, 4> programPerSetDescriptions;
 		parameterDescription->SplitBySet(programPerSetDescriptions);

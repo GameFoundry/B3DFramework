@@ -260,7 +260,7 @@ TShared<SamplerState> TShader<IsRenderProxy>::GetDefaultSampler(u32 index) const
 		if (!B3D_ENSURE(gpuDevice))
 			return nullptr;
 
-		return gpuDevice->CreateSamplerState(mInformation.Description->Parameters->GetSamplerDefaultValues()[index]);
+		return gpuDevice->FindOrCreateSamplerState(mInformation.Description->Parameters->GetSamplerDefaultValues()[index]);
 	}
 
 	return TShared<SamplerState>();

@@ -43,7 +43,7 @@ namespace b3d
 		} // namespace
 
 		MetalSamplerState::MetalSamplerState(MetalGpuDevice& gpuDevice, const SamplerStateCreateInformation& createInformation)
-			: SamplerState(createInformation), mGpuDevice(gpuDevice)
+			: SamplerState(gpuDevice, createInformation), mGpuDevice(gpuDevice)
 		{
 		}
 

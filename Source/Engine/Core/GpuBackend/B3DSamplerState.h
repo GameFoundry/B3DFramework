@@ -9,6 +9,9 @@
 
 namespace b3d
 {
+	class IGpuResource;
+	class GpuBindlessHeaps;
+
 	/** @addtogroup GpuBackend
 	 *  @{
 	 */
@@ -70,7 +73,7 @@ namespace b3d
 	class B3D_EXPORT SamplerState : public IReflectable
 	{
 	public:
-		virtual ~SamplerState() = default;
+		virtual ~SamplerState();
 
 		/** Initializes the object. The object should not be used before this is called. */
 		virtual void Initialize() {}
@@ -78,12 +81,36 @@ namespace b3d
 		/** Returns information describing the sampler state. */
 		const SamplerStateInformation& GetInformation() const { return mInformation; }
 
+		/**
+		 * Returns the index of the sampler in the bindless sampler heap, allocating the slot on first call. The index is valid until the
+		 * sampler is destroyed. Returns kGpuBindlessInvalidIndex if the device doesn't support bindless resources or the heap is full.
+		 * 
+		 * Thread safe.
+		 */
+		u32 GetBindlessIndex() const;
+
+		/** Returns the resource that tracks the GPU use of the native sampler, or null if the backend tracks none. */
+		IGpuResource* GetGpuResource() const { return mGpuResource; }
+
 		/**	Generates a hash value from a sampler state descriptor. */
 		static u64 GenerateHash(const SamplerStateInformation& information);
 	protected:
-		SamplerState(const SamplerStateCreateInformation& createInformation);
+		SamplerState(GpuDevice& device, const SamplerStateCreateInformation& createInformation);
 
 		SamplerStateInformation mInformation;
+
+		/**
+		 * Resource that tracks the GPU use of the native sampler, or null if the backend tracks none. Created by the backend on
+		 * initialization, and must stay valid until the base destructor, which releases its bindless pin.
+		 */
+		IGpuResource* mGpuResource = nullptr;
+
+	private:
+		GpuDevice& mDevice;
+
+		/** Heaps the bindless slot is allocated in, or null if the sampler has no slot. */
+		mutable GpuBindlessHeaps* mBindlessHeaps = nullptr;
+		mutable std::atomic<u32> mBindlessIndex = 0;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

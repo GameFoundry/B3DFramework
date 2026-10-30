@@ -430,6 +430,12 @@ namespace b3d
 			void BindDescriptorSets(VkPipelineBindPoint bindPoint, VkPipelineLayout pipelineLayout);
 
 			/**
+			 * Binds the bindless heap set to @p bindPoint if @p parameterLayout accesses the heaps, unless it is already bound with
+			 * @p pipelineLayout.
+			 */
+			void BindBindlessHeaps(VkPipelineBindPoint bindPoint, const GpuPipelineParameterLayout& parameterLayout, VkPipelineLayout pipelineLayout);
+
+			/**
 			 * Acquires the active swap chain image of @p renderWindow and registers its surface with the command buffer. Returns the
 			 * framebuffer of the image, or null if no image could be acquired.
 			 */
@@ -464,6 +470,8 @@ namespace b3d
 			DrawOperationType mDrawOp = DOT_TRIANGLE_LIST;
 			u32 mRequiredVertexBufferBindingCount = 0;
 			u64 mBoundDescriptorSetMask = 0; /**< Bit per set index prepared by BindGpuParameters() for binding. */
+			VkPipelineLayout mGraphicsBindlessHeapLayout = VK_NULL_HANDLE; /**< Pipeline layout the bindless heap set is bound with for graphics, if bound. */
+			VkPipelineLayout mComputeBindlessHeapLayout = VK_NULL_HANDLE; /**< Pipeline layout the bindless heap set is bound with for compute, if bound. */
 			GpuPushConstantPayload mPushConstants;
 			bool mGfxPipelineRequiresBind : 1;
 			bool mCmpPipelineRequiresBind : 1;

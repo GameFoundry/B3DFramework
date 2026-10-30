@@ -168,6 +168,9 @@ TShared<render::Texture> GpuTransientResourceAllocator::GetOrCreateTexture(const
 	if(!B3D_ENSURE_LOG(IsGpuOnly(createInformation), "Transient texture '{0}' must only be accessed by the GPU.", createInformation.Name))
 		return nullptr;
 
+	if(!B3D_ENSURE_LOG(!createInformation.Usage.IsSet(TextureUsageFlag::Bindless), "Transient texture '{0}' cannot be bindless. Bindless textures must stay at rest.", createInformation.Name))
+		return nullptr;
+
 	auto fnIsSame = [&createInformation](const Resource& resource)
 	{
 		return IsSameTexture(resource.TextureDescription, createInformation);
@@ -201,6 +204,9 @@ TShared<render::Texture> GpuTransientResourceAllocator::GetOrCreateTexture(const
 TShared<render::GpuBuffer> GpuTransientResourceAllocator::GetOrCreateBuffer(const GpuBufferCreateInformation& createInformation)
 {
 	if(!B3D_ENSURE_LOG(IsGpuOnly(createInformation), "Transient buffers must only be accessed by the GPU."))
+		return nullptr;
+
+	if(!B3D_ENSURE_LOG(!createInformation.Flags.IsSet(GpuBufferFlag::Bindless), "Transient buffers cannot be bindless. Bindless buffers must stay at rest."))
 		return nullptr;
 
 	auto fnIsSame = [&createInformation](const Resource& resource)

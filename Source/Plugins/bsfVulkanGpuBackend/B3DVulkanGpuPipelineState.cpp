@@ -337,19 +337,7 @@ void VulkanGpuGraphicsPipelineState::Initialize()
 	if(mData.VertexProgram != nullptr)
 		mVertexDescription = mData.VertexProgram->GetVertexInputDescription();
 
-	VulkanGpuDevice& gpuDevice = static_cast<VulkanGpuDevice&>(mGpuDevice);
-	VulkanDescriptorManager& descManager = gpuDevice.GetDescriptorManager();
-
-	u32 layoutCount = mParameterLayout->GetSetCount();
-	VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)B3DStackAllocate(sizeof(VulkanDescriptorLayout*) * layoutCount);
-
-	for(u32 layoutIndex = 0; layoutIndex < layoutCount; layoutIndex++)
-		layouts[layoutIndex] = static_cast<VulkanGpuPipelineParameterSetLayout&>(*mParameterLayout->GetSet(layoutIndex)).GetLayout();
-
-	const auto* parameterLayout = static_cast<VulkanGpuPipelineParameterLayout*>(mParameterLayout.get());
-	mPipelineLayout = descManager.GetPipelineLayout(layouts, layoutCount, parameterLayout->GetPushConstantRange());
-
-	B3DStackFree(layouts);
+	mPipelineLayout = static_cast<VulkanGpuPipelineParameterLayout*>(mParameterLayout.get())->GetPipelineLayout();
 
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_PipelineState);
 }
@@ -556,14 +544,7 @@ void VulkanGpuComputePipelineState::Initialize()
 	pipelineCI.basePipelineIndex = -1;
 
 	VulkanGpuDevice& gpuDevice = static_cast<VulkanGpuDevice&>(mGpuDevice);
-	VulkanDescriptorManager& descManager = gpuDevice.GetDescriptorManager();
 	VulkanResourceManager& rescManager = gpuDevice.GetResourceManager();
-
-	u32 layoutCount = mParameterLayout->GetSetCount();
-	VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)B3DStackAllocate(sizeof(VulkanDescriptorLayout*) * layoutCount);
-
-	for(u32 j = 0; j < layoutCount; j++)
-		layouts[j] = static_cast<VulkanGpuPipelineParameterSetLayout&>(*mParameterLayout->GetSet(j)).GetLayout();
 
 	VulkanShaderModule* module = vkProgram->GetVulkanResource();
 
@@ -572,8 +553,7 @@ void VulkanGpuComputePipelineState::Initialize()
 	else
 		pipelineCI.stage.module = VK_NULL_HANDLE;
 
-	const auto* parameterLayout = static_cast<VulkanGpuPipelineParameterLayout*>(mParameterLayout.get());
-	pipelineCI.layout = descManager.GetPipelineLayout(layouts, layoutCount, parameterLayout->GetPushConstantRange());
+	pipelineCI.layout = static_cast<VulkanGpuPipelineParameterLayout*>(mParameterLayout.get())->GetPipelineLayout();
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	// When the gpu.DumpPipelineStats config variable is enabled, ask the driver to keep per-shader executable
@@ -605,7 +585,6 @@ void VulkanGpuComputePipelineState::Initialize()
 
 	mPipeline = rescManager.Create<VulkanPipeline>(pipeline);
 	mPipelineLayout = pipelineCI.layout;
-	B3DStackFree(layouts);
 
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_PipelineState);
 }

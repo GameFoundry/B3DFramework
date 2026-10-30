@@ -73,6 +73,9 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter) : mAdapter(adapter)
 	if(FAILED(hr) || baseOptions.ResourceHeapTier < D3D12_RESOURCE_HEAP_TIER_2)
 		B3D_LOG(Fatal, LogRenderBackend, "The selected D3D12 device does not support resource heap tier 2 (hr={0}).", (u32)hr);
 
+	// Shaders index the descriptor heaps directly, which needs shader model 6.6 and resource binding tier 3
+	mSupportsBindlessResources = baseOptions.ResourceBindingTier >= D3D12_RESOURCE_BINDING_TIER_3;
+
 	// Older runtimes fail the query, which counts as unsupported
 	D3D12_FEATURE_DATA_TIGHT_ALIGNMENT tightAlignment = {};
 	if(SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_TIGHT_ALIGNMENT, &tightAlignment, sizeof(tightAlignment))))
@@ -146,7 +149,15 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter) : mAdapter(adapter)
 
 	InitializeCapabilities();
 
-	mDescriptorManager = B3DNew<D3D12DescriptorManager>(*this);
+	u32 bindlessResourceCapacity = 0;
+	u32 bindlessSamplerCapacity = 0;
+	if(mSupportsBindlessResources)
+	{
+		bindlessResourceCapacity = std::min(gGpuBindlessResourceCapacity.Get(), mCapabilities.MaximumBindlessResourceCount);
+		bindlessSamplerCapacity = std::min(gGpuBindlessSamplerCapacity.Get(), mCapabilities.MaximumBindlessSamplerCount);
+	}
+
+	mDescriptorManager = B3DNew<D3D12DescriptorManager>(*this, bindlessResourceCapacity, bindlessSamplerCapacity);
 	mResourceManager = B3DNew<D3D12ResourceManager>(*this);
 	mHeapBackend = B3DMakeUnique<D3D12HeapBackend>(*this);
 	mBufferPool = B3DMakeUnique<D3D12BufferPool>(*this);
@@ -160,6 +171,12 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter) : mAdapter(adapter)
 	transientConfiguration.Granularity = mIsTightAlignmentSupported ? 1 : D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
 	transientConfiguration.CompletionTracker = &mFrameCompletionTracker;
 	mTransientHeapPool = AddTransientHeapPool(B3DMakeUnique<TGpuTransientHeapPool<D3D12HeapBackend>>(mHeapBackend.get(), transientConfiguration));
+
+	if(mSupportsBindlessResources)
+	{
+		IGpuBindlessHeap& bindlessHeap = *this;
+		CreateBindlessHeaps(bindlessHeap, bindlessResourceCapacity, bindlessSamplerCapacity);
+	}
 
 #if B3D_PLATFORM_WIN32
 	mVideoModeInfo = B3DMakeShared<Win32VideoModeInfo>();
@@ -211,6 +228,9 @@ D3D12GpuDevice::~D3D12GpuDevice()
 #endif
 
 	mCachedSamplerStates.clear();
+
+	// Releases the pinned resources while the resource manager is still alive
+	mBindlessHeaps = nullptr;
 
 	// Queues the cached vertex inputs for destroy while the resource manager is still alive
 	mVertexInputManager = nullptr;
@@ -909,6 +929,45 @@ float D3D12GpuDevice::ConvertTimestampToMilliseconds(u64 timestamp)
 	return (float)((double)timestamp * millisecondsPerTick);
 }
 
+void D3D12GpuDevice::WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view)
+{
+	D3D12_CPU_DESCRIPTOR_HANDLE sourceHandle;
+	if(view.Texture != nullptr)
+		sourceHandle = static_cast<D3D12Texture*>(view.Texture)->GetSRVHandle(view.Surface);
+	else
+	{
+		auto* buffer = static_cast<D3D12GpuBuffer*>(view.Buffer);
+		sourceHandle = buffer->GetSRVHandle(view.Format);
+	}
+
+	if(!B3D_ENSURE_LOG(sourceHandle.ptr != 0, "Failed to create the view written into bindless resource slot {0}.", slotIndex))
+		sourceHandle = mDescriptorManager->GetNullSRVHandle(D3D12_SRV_DIMENSION_TEXTURE2D);
+
+	const D3D12_CPU_DESCRIPTOR_HANDLE destinationHandle = mDescriptorManager->GetBindlessCPUHandle(D3D12DescriptorHeapType::CBV_SRV_UAV, slotIndex);
+	mDevice->CopyDescriptorsSimple(1, destinationHandle, sourceHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+}
+
+void D3D12GpuDevice::WriteSamplerSlot(u32 slotIndex, const SamplerState& sampler)
+{
+	const D3D12_CPU_DESCRIPTOR_HANDLE destinationHandle = mDescriptorManager->GetBindlessCPUHandle(D3D12DescriptorHeapType::Sampler, slotIndex);
+	mDevice->CopyDescriptorsSimple(1, destinationHandle, static_cast<const D3D12SamplerState&>(sampler).GetDescriptorHandle(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+}
+
+void D3D12GpuDevice::ClearSlot(GpuBindlessHeapType heap, u32 slotIndex)
+{
+	// Sampler heaps have no null descriptor, so retired sampler slots get the default sampler
+	if(heap == GpuBindlessHeapType::Resource)
+	{
+		const D3D12_CPU_DESCRIPTOR_HANDLE destinationHandle = mDescriptorManager->GetBindlessCPUHandle(D3D12DescriptorHeapType::CBV_SRV_UAV, slotIndex);
+		mDevice->CopyDescriptorsSimple(1, destinationHandle, mDescriptorManager->GetNullSRVHandle(D3D12_SRV_DIMENSION_TEXTURE2D), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	}
+	else
+	{
+		const D3D12_CPU_DESCRIPTOR_HANDLE destinationHandle = mDescriptorManager->GetBindlessCPUHandle(D3D12DescriptorHeapType::Sampler, slotIndex);
+		mDevice->CopyDescriptorsSimple(1, destinationHandle, mDescriptorManager->GetDefaultSamplerCPUHandle(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+	}
+}
+
 void D3D12GpuDevice::InitializeCapabilities()
 {
 	DXGI_ADAPTER_DESC3 adapterDesc;
@@ -956,6 +1015,15 @@ void D3D12GpuDevice::InitializeCapabilities()
 	mCapabilities.SetCapability(RSC_TIMER_QUERIES);
 	if(options.WaveOps)
 		mCapabilities.SetCapability(RSC_WAVE_OPERATIONS);
+
+	if(mSupportsBindlessResources)
+	{
+		mCapabilities.SetCapability(RSC_BINDLESS_RESOURCES);
+
+		// The table regions follow the bindless regions in the shader-visible heaps
+		mCapabilities.MaximumBindlessResourceCount = D3D12_MAX_SHADER_VISIBLE_DESCRIPTOR_HEAP_SIZE_TIER_2 - D3D12DescriptorManager::kResourceTableDescriptorCount;
+		mCapabilities.MaximumBindlessSamplerCount = D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE - D3D12DescriptorManager::kSamplerTableDescriptorCount;
+	}
 
 	mCapabilities.Conventions.NdcYAxis = GpuBackendConventions::Axis::Up;
 	mCapabilities.Conventions.MatrixOrder = GpuBackendConventions::MatrixOrder::ColumnMajor;

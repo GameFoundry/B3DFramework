@@ -25,7 +25,7 @@ namespace b3d
 		 */
 
 		/** Represents a single GPU device usable by DirectX 12. */
-		class D3D12GpuDevice : public GpuDevice, private IGpuSubmitThreadBackend
+		class D3D12GpuDevice : public GpuDevice, private IGpuSubmitThreadBackend, private IGpuBindlessHeap
 		{
 		public:
 			static constexpr const char* kGpuProgramLanguageName = kGpuProgramLanguageHlsl;
@@ -145,6 +145,17 @@ namespace b3d
 
 			/** @} */
 
+			/**
+			 * @name IGpuBindlessHeap implementation
+			 * @{
+			 */
+
+			void WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view) override;
+			void WriteSamplerSlot(u32 slotIndex, const SamplerState& sampler) override;
+			void ClearSlot(GpuBindlessHeapType heap, u32 slotIndex) override;
+
+			/** @} */
+
 			TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
 			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
 			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
@@ -185,6 +196,7 @@ namespace b3d
 			ComPtr<IDXGIAdapter4> mAdapter;
 			bool mIsPrimary = false;
 			bool mIsTightAlignmentSupported = false;
+			bool mSupportsBindlessResources = false;
 
 			D3D12DescriptorManager* mDescriptorManager = nullptr;
 			D3D12ResourceManager* mResourceManager = nullptr;
