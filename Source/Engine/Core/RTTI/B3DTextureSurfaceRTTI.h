@@ -21,7 +21,7 @@ namespace b3d
 		/** @copydoc RTTIPlainType::ToMemory */
 		static BitLength ToMemory(const TextureSurface& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			static constexpr uint32_t kVersion = 1; // In case the data structure changes
+			static constexpr uint32_t kVersion = 2; // In case the data structure changes
 
 			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
@@ -31,7 +31,7 @@ namespace b3d
 					size += B3DRTTIWrite(data.MipLevelCount, stream);
 					size += B3DRTTIWrite(data.Face, stream);
 					size += B3DRTTIWrite(data.FaceCount, stream);
-					size += B3DRTTIWrite(data.IsBoundAs2DArray, stream);
+					size += B3DRTTIWrite(data.ViewType, stream);
 
 					return size; });
 		}
@@ -63,7 +63,14 @@ namespace b3d
 			case 0:
 				break;
 			case 1:
-				B3DRTTIRead(data.IsBoundAs2DArray, stream);
+			{
+				bool isBoundAs2DArray;
+				B3DRTTIRead(isBoundAs2DArray, stream);
+				data.ViewType = isBoundAs2DArray ? TextureViewType::Texture2DArray : TextureViewType::Default;
+				break;
+			}
+			case 2:
+				B3DRTTIRead(data.ViewType, stream);
 				break;
 			default:
 				B3D_LOG(Error, LogRTTI, "Unable to deserialize TextureSurface. (Unknown version.)");
@@ -80,7 +87,7 @@ namespace b3d
 			dataSize += B3DRTTISize(data.MipLevelCount);
 			dataSize += B3DRTTISize(data.Face);
 			dataSize += B3DRTTISize(data.FaceCount);
-			dataSize += B3DRTTISize(data.IsBoundAs2DArray);
+			dataSize += B3DRTTISize(data.ViewType);
 
 			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;

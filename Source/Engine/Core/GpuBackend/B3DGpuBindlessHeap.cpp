@@ -25,27 +25,8 @@ static GpuParameterObjectType GetViewObjectType(const GpuBindlessResourceView& v
 	}
 
 	const TextureProperties& properties = view.Texture->GetProperties();
-	const TextureSurface& surface = view.Surface;
-	const u32 faceCount = surface.FaceCount == 0 ? properties.GetFaceCount() - surface.Face : surface.FaceCount;
-	const bool isArray = faceCount > 1 || surface.IsBoundAs2DArray;
-
-	if(properties.SampleCount > 1)
-		return isArray ? GPOT_TEXTURE2DMSARRAY : GPOT_TEXTURE2DMS;
-
-	switch(properties.Type)
-	{
-	case TEX_TYPE_1D:
-		return isArray ? GPOT_TEXTURE1DARRAY : GPOT_TEXTURE1D;
-	case TEX_TYPE_3D:
-		return surface.IsBoundAs2DArray ? GPOT_TEXTURE2DARRAY : GPOT_TEXTURE3D;
-	case TEX_TYPE_CUBE_MAP:
-		if(!surface.IsBoundAs2DArray && faceCount >= 6)
-			return faceCount > 6 ? GPOT_TEXTURECUBEARRAY : GPOT_TEXTURECUBE;
-
-		[[fallthrough]];
-	default:
-		return isArray ? GPOT_TEXTURE2DARRAY : GPOT_TEXTURE2D;
-	}
+	const TextureViewType viewType = properties.ResolveSurface(view.Surface, false).ViewType;
+	return GpuObjectParameterTypeInformation::GetTextureObjectType(viewType, properties.SampleCount > 1);
 }
 #endif
 
@@ -172,6 +153,8 @@ u32 GpuBindlessHeaps::TakeSlot(Heap& heap, const void* owner, const String& owne
 u32 GpuBindlessHeaps::AllocateResourceSlot(const GpuBindlessResourceView& view, const void* owner)
 {
 	const String& ownerName = view.Texture != nullptr ? view.Texture->GetName() : view.Buffer->GetName();
+	if(view.Texture != nullptr && !view.Texture->GetProperties().ValidateSurface(view.Surface, false))
+		return kGpuBindlessInvalidIndex;
 
 	Lock lock(mMutex);
 

@@ -185,25 +185,45 @@ DXGI_FORMAT D3D12Utility::GetShaderResourceViewFormat(DXGI_FORMAT viewFormat)
 	}
 }
 
-D3D12_SRV_DIMENSION D3D12Utility::GetTextureShaderResourceViewDimension(TextureType textureType, bool isCube, bool isArray, u32 sampleCount)
+D3D12_SRV_DIMENSION D3D12Utility::GetShaderResourceViewDimension(TextureViewType viewType, bool isMultisampled)
 {
-	if(sampleCount > 1)
-		return isArray ? D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY : D3D12_SRV_DIMENSION_TEXTURE2DMS;
-
-	switch(textureType)
+	switch(viewType)
 	{
-	case TEX_TYPE_1D:
+	case TextureViewType::Texture1D:
 		return D3D12_SRV_DIMENSION_TEXTURE1D;
-	case TEX_TYPE_3D:
+	case TextureViewType::Texture1DArray:
+		return D3D12_SRV_DIMENSION_TEXTURE1DARRAY;
+	case TextureViewType::Texture2D:
+		return isMultisampled ? D3D12_SRV_DIMENSION_TEXTURE2DMS : D3D12_SRV_DIMENSION_TEXTURE2D;
+	case TextureViewType::Texture2DArray:
+		return isMultisampled ? D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY : D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+	case TextureViewType::Texture3D:
 		return D3D12_SRV_DIMENSION_TEXTURE3D;
-	case TEX_TYPE_CUBE_MAP:
-	case TEX_TYPE_2D:
+	case TextureViewType::TextureCube:
+		return D3D12_SRV_DIMENSION_TEXTURECUBE;
+	case TextureViewType::TextureCubeArray:
+		return D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
 	default:
-		// A cube map that isn't viewed as a cube always has IsBoundAs2DArray set, so it lands in the array branch
-		if(isCube)
-			return D3D12_SRV_DIMENSION_TEXTURECUBE;
+		return D3D12_SRV_DIMENSION_UNKNOWN;
+	}
+}
 
-		return isArray ? D3D12_SRV_DIMENSION_TEXTURE2DARRAY : D3D12_SRV_DIMENSION_TEXTURE2D;
+D3D12_UAV_DIMENSION D3D12Utility::GetUnorderedAccessViewDimension(TextureViewType viewType)
+{
+	switch(viewType)
+	{
+	case TextureViewType::Texture1D:
+		return D3D12_UAV_DIMENSION_TEXTURE1D;
+	case TextureViewType::Texture1DArray:
+		return D3D12_UAV_DIMENSION_TEXTURE1DARRAY;
+	case TextureViewType::Texture2D:
+		return D3D12_UAV_DIMENSION_TEXTURE2D;
+	case TextureViewType::Texture2DArray:
+		return D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+	case TextureViewType::Texture3D:
+		return D3D12_UAV_DIMENSION_TEXTURE3D;
+	default:
+		return D3D12_UAV_DIMENSION_UNKNOWN;
 	}
 }
 

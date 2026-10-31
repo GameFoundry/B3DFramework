@@ -32,8 +32,11 @@ namespace b3d
 			/** Returns the shader-resource view format compatible with @p viewFormat. */
 			static DXGI_FORMAT GetShaderResourceViewFormat(DXGI_FORMAT viewFormat);
 
-			/** Returns the shader-resource view dimension for the specified texture shape. */
-			static D3D12_SRV_DIMENSION GetTextureShaderResourceViewDimension(TextureType textureType, bool isCube, bool isArray, u32 sampleCount);
+			/** Returns the shader resource view dimension of a texture view of @p viewType, of a texture with multiple samples if @p isMultisampled is true. */
+			static D3D12_SRV_DIMENSION GetShaderResourceViewDimension(TextureViewType viewType, bool isMultisampled);
+
+			/** Returns the unordered access view dimension of a texture view of @p viewType. Cube views have no unordered access dimension. */
+			static D3D12_UAV_DIMENSION GetUnorderedAccessViewDimension(TextureViewType viewType);
 
 			/** Converts engine buffer flags to D3D12 resource flags. */
 			static D3D12_RESOURCE_FLAGS GetBufferResourceFlags(GpuBufferFlags flags);

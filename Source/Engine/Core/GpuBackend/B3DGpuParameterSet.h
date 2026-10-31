@@ -488,6 +488,12 @@ namespace b3d
 	protected:
 		TGpuParameterSet(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex);
 
+		/**
+		 * Checks that @p surface of @p texture is a valid view (see TextureProperties::ValidateSurface()) whose type matches the parameter at
+		 * @p slot, and logs an error if not. Textures that are not loaded yet are not checked.
+		 */
+		bool ValidateTextureView(u32 slot, const TextureType& texture, const TextureSurface& surface, bool isStorage) const;
+
 		virtual TShared<GpuParametersType> GetSelf() const = 0;
 
 		/** Data for a single bound texture. */

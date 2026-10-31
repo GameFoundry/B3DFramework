@@ -389,7 +389,7 @@ namespace b3d
 						auto* texture = static_cast<MetalTexture*>(data.Texture.get());
 						nativeHandle = texture != nullptr ? texture->GetMetalTexture() : nil;
 
-						id<MTLTexture> view = texture != nullptr ? texture->GetSubresourceView(data.Surface) : nil;
+						id<MTLTexture> view = texture != nullptr ? texture->GetSubresourceView(data.Surface, binding.Type == GpuParameterType::StorageTexture) : nil;
 						value = view != nil ? MetalUtility::GetArgumentValue(view.gpuResourceID) : 0;
 						resolvedResource = view;
 						break;

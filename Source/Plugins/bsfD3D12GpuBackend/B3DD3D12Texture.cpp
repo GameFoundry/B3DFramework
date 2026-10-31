@@ -354,15 +354,12 @@ namespace b3d
 			D3D12DescriptorManager& descriptorManager = device.GetDescriptorManager();
 
 			const TextureProperties& properties = GetProperties();
+			const TextureSurface view = properties.ResolveSurface(surface, type == ViewType::UAV);
 
-			// Resolve the requested surface, treating zero counts as "all remaining".
-			const u32 mipCount = properties.MipMapCount + 1;
-			const u32 faceCount = properties.GetFaceCount();
-
-			const u32 baseMip = surface.MipLevel;
-			const u32 selectedMipCount = surface.MipLevelCount == 0 ? (mipCount - baseMip) : surface.MipLevelCount;
-			const u32 baseFace = surface.Face;
-			const u32 selectedFaceCount = surface.FaceCount == 0 ? (faceCount - baseFace) : surface.FaceCount;
+			const u32 baseMip = view.MipLevel;
+			const u32 selectedMipCount = view.MipLevelCount;
+			const u32 baseFace = view.Face;
+			const u32 selectedFaceCount = view.FaceCount;
 
 			D3D12_CPU_DESCRIPTOR_HANDLE handle = descriptorManager.AllocateCPUDescriptor(D3D12DescriptorHeapType::CBV_SRV_UAV);
 			if(handle.ptr == 0)
@@ -371,9 +368,6 @@ namespace b3d
 				return handle;
 			}
 
-			const bool isCube = properties.Type == TEX_TYPE_CUBE_MAP && !surface.IsBoundAs2DArray;
-			const bool isArray = selectedFaceCount > 1 || baseFace > 0 || surface.IsBoundAs2DArray;
-
 			if(type == ViewType::SRV)
 			{
 				D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -381,12 +375,18 @@ namespace b3d
 				srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
 				const D3D12_RESOURCE_DESC resourceDescription = nativeResource->GetDesc();
-				srvDesc.ViewDimension = D3D12Utility::GetTextureShaderResourceViewDimension(properties.Type, isCube, isArray, resourceDescription.SampleDesc.Count);
+				srvDesc.ViewDimension = D3D12Utility::GetShaderResourceViewDimension(view.ViewType, resourceDescription.SampleDesc.Count > 1);
 				switch(srvDesc.ViewDimension)
 				{
 				case D3D12_SRV_DIMENSION_TEXTURE1D:
 					srvDesc.Texture1D.MostDetailedMip = baseMip;
 					srvDesc.Texture1D.MipLevels = selectedMipCount;
+					break;
+				case D3D12_SRV_DIMENSION_TEXTURE1DARRAY:
+					srvDesc.Texture1DArray.MostDetailedMip = baseMip;
+					srvDesc.Texture1DArray.MipLevels = selectedMipCount;
+					srvDesc.Texture1DArray.FirstArraySlice = baseFace;
+					srvDesc.Texture1DArray.ArraySize = selectedFaceCount;
 					break;
 				case D3D12_SRV_DIMENSION_TEXTURE3D:
 					srvDesc.Texture3D.MostDetailedMip = baseMip;
@@ -395,6 +395,12 @@ namespace b3d
 				case D3D12_SRV_DIMENSION_TEXTURECUBE:
 					srvDesc.TextureCube.MostDetailedMip = baseMip;
 					srvDesc.TextureCube.MipLevels = selectedMipCount;
+					break;
+				case D3D12_SRV_DIMENSION_TEXTURECUBEARRAY:
+					srvDesc.TextureCubeArray.MostDetailedMip = baseMip;
+					srvDesc.TextureCubeArray.MipLevels = selectedMipCount;
+					srvDesc.TextureCubeArray.First2DArrayFace = baseFace;
+					srvDesc.TextureCubeArray.NumCubes = selectedFaceCount / 6;
 					break;
 				case D3D12_SRV_DIMENSION_TEXTURE2DARRAY:
 					srvDesc.Texture2DArray.MostDetailedMip = baseMip;
@@ -428,33 +434,32 @@ namespace b3d
 				D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
 				uavDesc.Format = mViewFormat;
 
-				switch(properties.Type)
+				uavDesc.ViewDimension = D3D12Utility::GetUnorderedAccessViewDimension(view.ViewType);
+				switch(uavDesc.ViewDimension)
 				{
-				case TEX_TYPE_1D:
-					uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1D;
+				case D3D12_UAV_DIMENSION_TEXTURE1D:
 					uavDesc.Texture1D.MipSlice = baseMip;
 					break;
-				case TEX_TYPE_3D:
-					uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+				case D3D12_UAV_DIMENSION_TEXTURE1DARRAY:
+					uavDesc.Texture1DArray.MipSlice = baseMip;
+					uavDesc.Texture1DArray.FirstArraySlice = baseFace;
+					uavDesc.Texture1DArray.ArraySize = selectedFaceCount;
+					break;
+				case D3D12_UAV_DIMENSION_TEXTURE3D:
 					uavDesc.Texture3D.MipSlice = baseMip;
 					uavDesc.Texture3D.FirstWSlice = 0;
 					uavDesc.Texture3D.WSize = std::max(1u, properties.Depth >> baseMip);
 					break;
-				case TEX_TYPE_CUBE_MAP:
-				case TEX_TYPE_2D:
+				case D3D12_UAV_DIMENSION_TEXTURE2DARRAY:
+					uavDesc.Texture2DArray.MipSlice = baseMip;
+					uavDesc.Texture2DArray.FirstArraySlice = baseFace;
+					uavDesc.Texture2DArray.ArraySize = selectedFaceCount;
+					break;
+				case D3D12_UAV_DIMENSION_TEXTURE2D:
+					uavDesc.Texture2D.MipSlice = baseMip;
+					break;
 				default:
-					if(isArray || isCube)
-					{
-						uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
-						uavDesc.Texture2DArray.MipSlice = baseMip;
-						uavDesc.Texture2DArray.FirstArraySlice = baseFace;
-						uavDesc.Texture2DArray.ArraySize = selectedFaceCount;
-					}
-					else
-					{
-						uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-						uavDesc.Texture2D.MipSlice = baseMip;
-					}
+					B3D_ASSERT(false);
 					break;
 				}
 

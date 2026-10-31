@@ -14,13 +14,13 @@ namespace b3d
 	[StructLayout(LayoutKind.Sequential), SerializeObject]
 	public partial struct TextureSurface
 	{
-		public TextureSurface(int mipLevel = 0, int mipLevelCount = 1, int face = 0, int faceCount = 1, bool isBoundAs2DArray = false)
+		public TextureSurface(int mipLevel = 0, int mipLevelCount = 1, int face = 0, int faceCount = 1, TextureViewType viewType = TextureViewType.Default)
 		{
 			this.MipLevel = mipLevel;
 			this.MipLevelCount = mipLevelCount;
 			this.Face = face;
 			this.FaceCount = faceCount;
-			this.IsBoundAs2DArray = isBoundAs2DArray;
+			this.ViewType = viewType;
 		}
 
 		/// <summary>First mip level to reference.</summary>
@@ -34,8 +34,11 @@ namespace b3d
 		public int Face;
 		/// <summary>Number of faces to reference, if the texture has more than one.</summary>
 		public int FaceCount;
-		/// <summary>Forces a cubemap or a 3D texture to be bound as a 2D texture array.</summary>
-		public bool IsBoundAs2DArray;
+		/// <summary>
+		/// Type of view GPU programs access the surface through. Must match the type of the parameter the surface is bound to. See 
+		/// TextureProperties::ValidateSurface() for the surfaces each type can view.
+		/// </summary>
+		public TextureViewType ViewType;
 	}
 
 	/** @} */

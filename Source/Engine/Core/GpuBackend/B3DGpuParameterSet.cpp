@@ -354,6 +354,40 @@ const TextureSurface& TGpuParameterSet<IsRenderProxy>::GetStorageTextureSurface(
 }
 
 template <bool IsRenderProxy>
+bool TGpuParameterSet<IsRenderProxy>::ValidateTextureView(u32 slot, const TextureType& texture, const TextureSurface& surface, bool isStorage) const
+{
+	if constexpr(IsRenderProxy)
+	{
+		if(texture == nullptr)
+			return true;
+	}
+	else
+	{
+		if(!texture.IsLoaded(false))
+			return true;
+	}
+
+	const TextureProperties& properties = texture->GetProperties();
+	if(!properties.ValidateSurface(surface, isStorage))
+		return false;
+
+	const UniformInformation* information = mParameterSetLayout->TryGetUniformInformation(slot);
+	if(information == nullptr)
+		return true;
+
+	const TextureViewType viewType = properties.ResolveSurface(surface, isStorage).ViewType;
+	const TextureViewType parameterViewType = GpuObjectParameterTypeInformation::GetTextureViewType(information->ObjectType);
+	if(viewType != parameterViewType)
+	{
+		B3D_LOG(Error, LogRenderBackend, "Texture view type {0} doesn't match the type {1} of the parameter it is bound to. Set/slot: {2}/{3}.", (u32)viewType,
+			(u32)parameterViewType, mSet, slot);
+		return false;
+	}
+
+	return true;
+}
+
+template <bool IsRenderProxy>
 bool TGpuParameterSet<IsRenderProxy>::SetSampledTexture(u32 slot, const TextureType& texture, const TextureSurface& surface, u32 arrayIndex)
 {
 	const u32 sequentialArrayIndex = mParameterSetLayout->GetSequentialResourceIndex(slot, arrayIndex);
@@ -362,6 +396,9 @@ bool TGpuParameterSet<IsRenderProxy>::SetSampledTexture(u32 slot, const TextureT
 		B3D_LOG(Warning, LogRenderBackend, "Unable to assign parameter. Cannot find sampled texture parameter with the set/slot combination: {0}/{1}", mSet, slot);
 		return false;
 	}
+
+	if(!ValidateTextureView(slot, texture, surface, false))
+		return false;
 
 	mSampledTextureData[sequentialArrayIndex].Texture = texture;
 	mSampledTextureData[sequentialArrayIndex].Surface = surface;
@@ -381,6 +418,9 @@ bool TGpuParameterSet<IsRenderProxy>::SetStorageTexture(u32 slot, const TextureT
 		B3D_LOG(Warning, LogRenderBackend, "Unable to assign parameter. Cannot find storage texture parameter with the set/slot combination: {0}/{1}", mSet, slot);
 		return false;
 	}
+
+	if(!ValidateTextureView(slot, texture, surface, true))
+		return false;
 
 	mStorageTextureData[sequentialArrayIndex].Texture = texture;
 	mStorageTextureData[sequentialArrayIndex].Surface = surface;

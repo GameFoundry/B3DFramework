@@ -77,6 +77,102 @@ u32 TextureProperties::GetFaceCount() const
 	return facesPerSlice * ArraySliceCount;
 }
 
+TextureSurface TextureProperties::ResolveSurface(const TextureSurface& surface, TextureType type, u32 faceCount, u32 mipLevelCount, bool isStorage)
+{
+	TextureSurface output = surface;
+	if(output.MipLevelCount == 0)
+		output.MipLevelCount = mipLevelCount - std::min(surface.MipLevel, mipLevelCount);
+
+	if(output.FaceCount == 0)
+		output.FaceCount = faceCount - std::min(surface.Face, faceCount);
+
+	if(output.ViewType == TextureViewType::Default)
+	{
+		switch(type)
+		{
+		case TEX_TYPE_1D:
+			output.ViewType = faceCount > 1 ? TextureViewType::Texture1DArray : TextureViewType::Texture1D;
+			break;
+		case TEX_TYPE_3D:
+			output.ViewType = TextureViewType::Texture3D;
+			break;
+		case TEX_TYPE_CUBE_MAP:
+			if(isStorage)
+				output.ViewType = TextureViewType::Texture2DArray;
+			else
+				output.ViewType = faceCount > 6 ? TextureViewType::TextureCubeArray : TextureViewType::TextureCube;
+			break;
+		case TEX_TYPE_2D:
+		default:
+			output.ViewType = faceCount > 1 ? TextureViewType::Texture2DArray : TextureViewType::Texture2D;
+			break;
+		}
+	}
+
+	return output;
+}
+
+bool TextureProperties::ValidateSurface(const TextureSurface& surface, bool isStorage) const
+{
+	const u32 faceCount = GetFaceCount();
+	const u32 mipLevelCount = MipMapCount + 1;
+	const TextureSurface view = ResolveSurface(surface, isStorage);
+
+	const char* error = nullptr;
+	if(view.MipLevel >= mipLevelCount || view.MipLevelCount > mipLevelCount - view.MipLevel || view.Face >= faceCount || view.FaceCount > faceCount - view.Face)
+		error = "The surface is outside of the texture.";
+	else if(SampleCount > 1 && view.ViewType != TextureViewType::Texture2D && view.ViewType != TextureViewType::Texture2DArray)
+		error = "Textures with multiple samples can only have 2D views.";
+	else
+	{
+		switch(view.ViewType)
+		{
+		case TextureViewType::Texture1D:
+		case TextureViewType::Texture1DArray:
+			if(Type != TEX_TYPE_1D)
+				error = "1D views need a 1D texture.";
+			break;
+		case TextureViewType::Texture2D:
+		case TextureViewType::Texture2DArray:
+			if(Type != TEX_TYPE_2D && Type != TEX_TYPE_CUBE_MAP)
+				error = "2D views need a 2D texture or a cube map.";
+			break;
+		case TextureViewType::Texture3D:
+			if(Type != TEX_TYPE_3D)
+				error = "3D views need a 3D texture.";
+			break;
+		case TextureViewType::TextureCube:
+		case TextureViewType::TextureCubeArray:
+			if(Type != TEX_TYPE_CUBE_MAP)
+				error = "Cube views need a cube map.";
+			else if(isStorage)
+				error = "Cube views cannot be storage views.";
+			else if(view.Face % 6 != 0 || view.FaceCount % 6 != 0)
+				error = "Cube views must view whole cubes.";
+			break;
+		default:
+			break;
+		}
+
+		if(error == nullptr)
+		{
+			const bool isSingleCube = view.ViewType == TextureViewType::TextureCube;
+			const bool isSingleSlice = view.ViewType == TextureViewType::Texture1D || view.ViewType == TextureViewType::Texture2D;
+			if((isSingleSlice && (view.Face != 0 || view.FaceCount != 1)) || (isSingleCube && (view.Face != 0 || view.FaceCount != 6)))
+				error = "Non-array views can only view the first slice or cube. View the surface as an array instead.";
+		}
+	}
+
+	if(error != nullptr)
+	{
+		B3D_LOG(Error, LogRenderBackend, "Invalid view of texture surface (mip {0}, count {1}, face {2}, count {3}, view type {4}). {5}", surface.MipLevel,
+			surface.MipLevelCount, surface.Face, surface.FaceCount, (u32)view.ViewType, error);
+		return false;
+	}
+
+	return true;
+}
+
 void TextureProperties::MapFromSubresourceIndex(u32 subresourceIndex, u32& outFace, u32& outMip) const
 {
 	u32 mipmapCount = MipMapCount + 1;

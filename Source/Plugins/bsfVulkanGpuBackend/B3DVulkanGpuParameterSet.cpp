@@ -448,7 +448,7 @@ bool VulkanGpuParameterSet::SetStorageTexture(u32 slot, const TShared<Texture>& 
 	VkImage vkImage = VK_NULL_HANDLE;
 	if(vulkanImage != nullptr)
 	{
-		imageView = vulkanImage->GetView(surface, false);
+		imageView = vulkanImage->GetView(texture->GetProperties().ResolveSurface(surface, true), false);
 		vkImage = vulkanImage->GetVulkanHandle();
 
 		if(!EnsureImageViewValidForShader(imageView, objectType))
@@ -860,13 +860,14 @@ bool VulkanGpuParameterSet::UpdateDescriptors(TArrayView<const GpuRenderPassAtta
 			const u32 sequentialResourceIndex = pipelineParameterInformationSet.GetSequentialResourceIndex(slot, arrayIndex);
 
 			VulkanImage* vulkanImage = nullptr;
+			TextureSurface surface = mStorageTextureData[sequentialResourceIndex].Surface;
 			if(mStorageTextureData[sequentialResourceIndex].Texture != nullptr)
 			{
 				auto* element = static_cast<VulkanTexture*>(mStorageTextureData[sequentialResourceIndex].Texture.get());
 				vulkanImage = element->GetVulkanResource();
+				surface = element->GetProperties().ResolveSurface(surface, true);
 			}
 
-			const TextureSurface& surface = mStorageTextureData[sequentialResourceIndex].Surface;
 			const TArrayView<const GpuParameterObjectType> types = pipelineParameterInformationSet.GetTypes();
 			const GpuParameterObjectType objectType = types[usedBindingSequentialIndex];
 

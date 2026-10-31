@@ -160,9 +160,8 @@ namespace b3d
 			VulkanImageView CreateView(const TextureSurface& surface, VkFormat format, VkImageAspectFlags aspectMask, bool isPartOfFramebuffer) const;
 
 			/**
-			 * If layer or mip count in the provided surface is set to zero, ensures they are set to the actual layer count.
-			 * Set @p isPartOfFramebuffer to true if the surface is used as a framebuffer attachment. Returned surface is the
-			 * same as @p surface, for convenience.
+			 * Resolves @p surface in place (see TextureProperties::ResolveSurface()), as a sampled view. Framebuffer attachments, if
+			 * @p isPartOfFramebuffer is true, are 2D views or 2D arrays, of the depth slices of 3D textures. Returns @p surface, for convenience.
 			 */
 			const TextureSurface& CalculateExplicitSurface(TextureSurface& surface, bool isPartOfFramebuffer) const;
 
@@ -186,6 +185,7 @@ namespace b3d
 			bool mIsShaderReadAllowed = true;
 
 			u32 mDepthSliceCount;
+			TextureType mTextureType;
 
 			mutable VkImageViewCreateInfo mImageViewCI;
 			mutable Vector<ImageViewInformation> mImageInfos;

@@ -231,6 +231,34 @@ namespace b3d
 		 */
 		u32 GetFaceCount() const;
 
+		/** Resolves @p surface of this texture. See ResolveSurface(const TextureSurface&, TextureType, u32, u32, bool). */
+		TextureSurface ResolveSurface(const TextureSurface& surface, bool isStorage) const
+		{
+			return ResolveSurface(surface, Type, GetFaceCount(), MipMapCount + 1, isStorage);
+		}
+
+		/**
+		 * Resolves @p surface into an explicit one: zero mip level and face counts become the remaining counts, and the default view type
+		 * becomes the type it stands for (see TextureViewType::Default).
+		 *
+		 * @param	surface			Surface to resolve.
+		 * @param	type			Type of the texture.
+		 * @param	faceCount		Number of faces of the texture. See GetFaceCount().
+		 * @param	mipLevelCount	Number of mip levels of the texture, including the full resolution one.
+		 * @param	isStorage		True if the surface is viewed for storage (unordered access), rather than sampled.
+		 */
+		static TextureSurface ResolveSurface(const TextureSurface& surface, TextureType type, u32 faceCount, u32 mipLevelCount, bool isStorage);
+
+		/**
+		 * Checks that GPU programs can access @p surface of this texture on every backend, and logs an error if not. The surface must be
+		 * within the texture, and its resolved view type (see ResolveSurface()) must suit the texture:
+		 *  - 1D views need a 1D texture, 2D views a 2D texture or a cube map, 3D views a 3D texture, and cube views a cube map.
+		 *  - Non-array views (1D, 2D and cube) can only view the first slice or cube.
+		 *  - Cube views must view whole cubes, and cannot be storage views.
+		 *  - Textures with multiple samples can only have 2D views.
+		 */
+		bool ValidateSurface(const TextureSurface& surface, bool isStorage) const;
+
 		/**
 		 * Allocates a buffer that exactly matches the format of the texture described by these properties, for the provided
 		 * face and mip level. This is a helper function, primarily meant for creating buffers when reading from, or writing

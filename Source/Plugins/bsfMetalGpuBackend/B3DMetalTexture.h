@@ -59,10 +59,9 @@ namespace b3d
 			id<MTLTexture> GetShaderReadView(MTLPixelFormat viewFormat);
 
 			/**
-			 * Returns a lazily-created @c MTLTexture view restricted to the requested subresource
-			 * range (zero counts select all remaining mips/faces, mirroring Vulkan's VK_REMAINING_*
-			 * semantics). Returns the native texture itself when the surface covers the entire
-			 * resource. Views are cached for the lifetime of the image and retire with it.
+			 * Returns a lazily-created @c MTLTexture view of @p surface, which must be resolved (see TextureProperties::ResolveSurface()).
+			 * Returns the native texture itself when the view covers the entire resource with the resource's type. Views are cached for
+			 * the lifetime of the image and retire with it.
 			 */
 			id<MTLTexture> GetSubresourceView(const TextureSurface& surface);
 
@@ -110,8 +109,11 @@ namespace b3d
 			/** Returns a cached reinterpret view of the backing image (see MetalImage::GetShaderReadView), or nil when no image exists. */
 			id<MTLTexture> GetShaderReadView(MTLPixelFormat viewFormat);
 
-			/** Returns a cached subresource-range view of the backing image (see MetalImage::GetSubresourceView), or nil when no image exists. */
-			id<MTLTexture> GetSubresourceView(const TextureSurface& surface);
+			/**
+			 * Returns a cached view of @p surface of the backing image (see MetalImage::GetSubresourceView), as a storage view if @p isStorage
+			 * is true, or nil when no image exists.
+			 */
+			id<MTLTexture> GetSubresourceView(const TextureSurface& surface, bool isStorage);
 
 			/**
 			 * Creates the descriptor of a native texture with @p properties on @p device. Logs an error and returns nil if the

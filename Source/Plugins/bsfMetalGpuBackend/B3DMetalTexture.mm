@@ -110,52 +110,50 @@ namespace b3d
 			const bool isCube = parentType == MTLTextureTypeCube || parentType == MTLTextureTypeCubeArray;
 			const u32 sliceCount = (u32)[mTexture arrayLength] * (isCube ? 6 : 1);
 
-			B3D_ASSERT(surface.MipLevel < mipLevelCount && surface.Face < sliceCount);
-			const u32 firstMip = Math::Min(surface.MipLevel, mipLevelCount - 1);
-			const u32 mipCount = surface.MipLevelCount == 0 ? mipLevelCount - firstMip : Math::Min(surface.MipLevelCount, mipLevelCount - firstMip);
-			const u32 firstSlice = Math::Min(surface.Face, sliceCount - 1);
-			const u32 viewSliceCount = surface.FaceCount == 0 ? sliceCount - firstSlice : Math::Min(surface.FaceCount, sliceCount - firstSlice);
+			B3D_ASSERT(surface.MipLevel + surface.MipLevelCount <= mipLevelCount && surface.Face + surface.FaceCount <= sliceCount);
+			const u32 firstMip = surface.MipLevel;
+			const u32 mipCount = surface.MipLevelCount;
+			const u32 firstSlice = surface.Face;
+			const u32 viewSliceCount = surface.FaceCount;
+
+			const bool isMultisampled = parentType == MTLTextureType2DMultisample || parentType == MTLTextureType2DMultisampleArray;
+			MTLTextureType viewType;
+			switch (surface.ViewType)
+			{
+			case TextureViewType::Texture1D:
+				viewType = MTLTextureType1D;
+				break;
+			case TextureViewType::Texture1DArray:
+				viewType = MTLTextureType1DArray;
+				break;
+			case TextureViewType::Texture2DArray:
+				viewType = isMultisampled ? MTLTextureType2DMultisampleArray : MTLTextureType2DArray;
+				break;
+			case TextureViewType::Texture3D:
+				viewType = MTLTextureType3D;
+				break;
+			case TextureViewType::TextureCube:
+				viewType = MTLTextureTypeCube;
+				break;
+			case TextureViewType::TextureCubeArray:
+				viewType = MTLTextureTypeCubeArray;
+				break;
+			case TextureViewType::Texture2D:
+			default:
+				viewType = isMultisampled ? MTLTextureType2DMultisample : MTLTextureType2D;
+				break;
+			}
 
 			const bool coversWholeResource = firstMip == 0 && mipCount == mipLevelCount && firstSlice == 0 && viewSliceCount == sliceCount;
-			if (coversWholeResource && !(isCube && surface.IsBoundAs2DArray))
+			if (coversWholeResource && viewType == parentType)
 				return mTexture;
 
 			Lock lock(mViewCacheMutex);
 
-			const u64 key = ((u64)(surface.IsBoundAs2DArray ? 1 : 0) << 60) | ((u64)firstMip << 52) | ((u64)mipCount << 44) | ((u64)firstSlice << 22) | (u64)viewSliceCount;
+			const u64 key = ((u64)surface.ViewType << 60) | ((u64)firstMip << 52) | ((u64)mipCount << 44) | ((u64)firstSlice << 22) | (u64)viewSliceCount;
 			auto existing = mSubresourceViews.find(key);
 			if (existing != mSubresourceViews.end())
 				return existing->second;
-
-			// Re-type the view to match how the sliced range is addressed from a shader
-			MTLTextureType viewType = parentType;
-			switch (parentType)
-			{
-			case MTLTextureTypeCube:
-			case MTLTextureTypeCubeArray:
-				if (viewSliceCount == 1)
-					viewType = MTLTextureType2D;
-				else if ((viewSliceCount % 6) == 0)
-				{
-					if (surface.IsBoundAs2DArray)
-						viewType = MTLTextureType2DArray;
-					else
-						viewType = viewSliceCount > 6 ? MTLTextureTypeCubeArray : MTLTextureTypeCube;
-				}
-				else
-					viewType = MTLTextureType2DArray;
-				break;
-			case MTLTextureType1D:
-				if (viewSliceCount > 1)
-					viewType = MTLTextureType1DArray;
-				break;
-			case MTLTextureType2D:
-				if (viewSliceCount > 1)
-					viewType = MTLTextureType2DArray;
-				break;
-			default:
-				break;
-			}
 
 			id<MTLTexture> view = [mTexture newTextureViewWithPixelFormat:[mTexture pixelFormat] textureType:viewType levels:NSMakeRange(firstMip, mipCount) slices:NSMakeRange(firstSlice, viewSliceCount)];
 			if (view == nil)
@@ -188,9 +186,9 @@ namespace b3d
 			return mImage != nullptr ? mImage->GetShaderReadView(viewFormat) : nil;
 		}
 
-		id<MTLTexture> MetalTexture::GetSubresourceView(const TextureSurface& surface)
+		id<MTLTexture> MetalTexture::GetSubresourceView(const TextureSurface& surface, bool isStorage)
 		{
-			return mImage != nullptr ? mImage->GetSubresourceView(surface) : nil;
+			return mImage != nullptr ? mImage->GetSubresourceView(mProperties.ResolveSurface(surface, isStorage)) : nil;
 		}
 
 		void MetalTexture::SetName(const StringView& name)

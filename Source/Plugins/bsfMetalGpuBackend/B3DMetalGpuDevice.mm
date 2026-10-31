@@ -695,7 +695,7 @@ namespace b3d
 		{
 			u64 entry;
 			if (view.Texture != nullptr)
-				entry = MetalUtility::GetArgumentValue(static_cast<MetalTexture*>(view.Texture)->GetSubresourceView(view.Surface).gpuResourceID);
+				entry = MetalUtility::GetArgumentValue(static_cast<MetalTexture*>(view.Texture)->GetSubresourceView(view.Surface, false).gpuResourceID);
 			else
 			{
 				auto* buffer = static_cast<MetalGpuBuffer*>(view.Buffer);

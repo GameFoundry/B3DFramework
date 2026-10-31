@@ -201,9 +201,19 @@ You can also bind to specific texture surfaces (e.g. mip levels, array slices) b
 
 ~~~~~~~~~~~~~{.cpp}
 // Bind a specific mip level of a texture
-TextureSurface surface(0, 1, 2, 1); // Mip level 2, one mip, face 0, one face
+TextureSurface surface(2, 1, 0, 1); // Mip level 2, one mip, face 0, one face
 parameterSet->SetSampledTexture("mainTexture", diffuseTexture, surface);
 ~~~~~~~~~~~~~
+
+The view type of the surface (@b3d::TextureSurface::ViewType) must match the type the GPU program declares for the parameter, or the texture is not bound and an error is logged. By default it follows from the texture rather than from the selected range: textures with multiple array slices are viewed as arrays, and cube maps as cubes, so a single slice of a texture array is still read through a `Texture2DArray`. Set the view type explicitly to view a texture differently, for example a cube map as a 2D array of its faces:
+
+~~~~~~~~~~~~~{.cpp}
+// Bind the faces of a cube map, as declared by a Texture2DArray parameter
+TextureSurface surface(0, 0, 0, 6, TextureViewType::Texture2DArray);
+parameterSet->SetSampledTexture("cubeFaces", cubeTexture, surface);
+~~~~~~~~~~~~~
+
+Non-array views (1D, 2D and cube) can only view the first slice or cube of a texture, so other slices must be viewed as arrays. See @b3d::TextureProperties::ValidateSurface for the complete rules.
 
 ### Checking parameter existence
 Before setting a parameter, you can check if it exists in the parameter set using the **Has*** methods:

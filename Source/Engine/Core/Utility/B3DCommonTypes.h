@@ -411,6 +411,23 @@ namespace b3d
 		GpuDataParameterTypeInformation Lookup[GPDT_COUNT];
 	};
 
+	/** Type of view through which GPU programs access a texture. See TextureSurface::ViewType. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) TextureViewType
+	{
+		/**
+		 * Follows from the texture: textures with more than one array slice are viewed as arrays, and cube maps as cubes, or as cube arrays
+		 * if they have more than one. Storage views of cube maps are 2D arrays, as cube views cannot be written to.
+		 */
+		Default,
+		Texture1D, /**< Single slice of a one dimensional texture. Can only view the first slice. */
+		Texture1DArray, /**< Range of slices of a one dimensional texture. */
+		Texture2D, /**< Single slice of a two dimensional texture or a cube map. Can only view the first slice. */
+		Texture2DArray, /**< Range of slices of a two dimensional texture, or faces of a cube map. */
+		Texture3D, /**< Three dimensional texture. */
+		TextureCube, /**< First cube of a cube map. Not supported by storage views. */
+		TextureCubeArray /**< Range of whole cubes of a cube map. Not supported by storage views. */
+	};
+
 	/**	Type of GPU object parameters that can be used as inputs to a GPU program. */
 	enum GpuParameterObjectType
 	{
@@ -530,6 +547,57 @@ namespace b3d
 			return type == GPOT_BYTE_ADDRESS_BUFFER || type == GPOT_RWBYTE_ADDRESS_BUFFER;
 		}
 
+		/** Returns the type of texture view that parameters of @p type access. Returns TextureViewType::Default if @p type is not a texture. */
+		static TextureViewType GetTextureViewType(GpuParameterObjectType type)
+		{
+			if(Is1DTexture(type))
+				return TextureViewType::Texture1D;
+
+			if(Is1DTextureArray(type))
+				return TextureViewType::Texture1DArray;
+
+			if(Is2DTexture(type))
+				return TextureViewType::Texture2D;
+
+			if(Is2DTextureArray(type))
+				return TextureViewType::Texture2DArray;
+
+			if(Is3DTexture(type))
+				return TextureViewType::Texture3D;
+
+			if(IsCubeTexture(type))
+				return TextureViewType::TextureCube;
+
+			if(IsCubeTextureArray(type))
+				return TextureViewType::TextureCubeArray;
+
+			return TextureViewType::Default;
+		}
+
+		/** Returns the type of parameter that reads a texture view of @p viewType, of a texture with multiple samples if @p isMultisampled is true. */
+		static GpuParameterObjectType GetTextureObjectType(TextureViewType viewType, bool isMultisampled)
+		{
+			switch(viewType)
+			{
+			case TextureViewType::Texture1D:
+				return GPOT_TEXTURE1D;
+			case TextureViewType::Texture1DArray:
+				return GPOT_TEXTURE1DARRAY;
+			case TextureViewType::Texture2D:
+				return isMultisampled ? GPOT_TEXTURE2DMS : GPOT_TEXTURE2D;
+			case TextureViewType::Texture2DArray:
+				return isMultisampled ? GPOT_TEXTURE2DMSARRAY : GPOT_TEXTURE2DARRAY;
+			case TextureViewType::Texture3D:
+				return GPOT_TEXTURE3D;
+			case TextureViewType::TextureCube:
+				return GPOT_TEXTURECUBE;
+			case TextureViewType::TextureCubeArray:
+				return GPOT_TEXTURECUBEARRAY;
+			default:
+				return GPOT_UNKNOWN;
+			}
+		}
+
 		/** Returns true if @p type represents a buffer that shaders can write to. */
 		static bool IsReadWriteBuffer(GpuParameterObjectType type)
 		{
@@ -628,13 +696,13 @@ namespace b3d
 	/**	References a subset of surfaces within a texture. */
 	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering), ExportAsStruct(true)) TextureSurface
 	{
-		TextureSurface(u32 mipLevel = 0, u32 mipLevelCount = 1, u32 face = 0, u32 faceCount = 1, bool isBoundAs2DArray = false)
-			: MipLevel(mipLevel), MipLevelCount(mipLevelCount), Face(face), FaceCount(faceCount), IsBoundAs2DArray(isBoundAs2DArray)
+		TextureSurface(u32 mipLevel = 0, u32 mipLevelCount = 1, u32 face = 0, u32 faceCount = 1, TextureViewType viewType = TextureViewType::Default)
+			: MipLevel(mipLevel), MipLevelCount(mipLevelCount), Face(face), FaceCount(faceCount), ViewType(viewType)
 		{}
 
 		bool operator==(const TextureSurface& rhs) const
 		{
-			return MipLevel == rhs.MipLevel && MipLevelCount == rhs.MipLevelCount && Face == rhs.Face && FaceCount == rhs.FaceCount && IsBoundAs2DArray == rhs.IsBoundAs2DArray;
+			return MipLevel == rhs.MipLevel && MipLevelCount == rhs.MipLevelCount && Face == rhs.Face && FaceCount == rhs.FaceCount && ViewType == rhs.ViewType;
 		}
 
 		bool operator!=(const TextureSurface& rhs) const { return !operator==(rhs); }
@@ -655,8 +723,11 @@ namespace b3d
 		/** Number of faces to reference, if the texture has more than one. */
 		u32 FaceCount;
 
-		/** Forces a cubemap or a 3D texture to be bound as a 2D texture array. */
-		bool IsBoundAs2DArray;
+		/**
+		 * Type of view GPU programs access the surface through. Must match the type of the parameter the surface is bound to. See
+		 * TextureProperties::ValidateSurface() for the surfaces each type can view.
+		 */
+		TextureViewType ViewType;
 
 		/** Surface that covers all texture sub-resources. */
 		static B3D_EXPORT const TextureSurface kComplete;

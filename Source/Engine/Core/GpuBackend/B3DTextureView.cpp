@@ -14,7 +14,7 @@ size_t TextureView::HashFunction::operator()(const TextureViewInformation &key) 
 	B3DCombineHash(seed, key.Surface.MipLevelCount);
 	B3DCombineHash(seed, key.Surface.Face);
 	B3DCombineHash(seed, key.Surface.FaceCount);
-	B3DCombineHash(seed, key.Surface.IsBoundAs2DArray);
+	B3DCombineHash(seed, key.Surface.ViewType);
 	B3DCombineHash(seed, key.Usage);
 
 	return seed;
