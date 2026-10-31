@@ -937,7 +937,7 @@ void D3D12GpuDevice::WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceV
 	else
 	{
 		auto* buffer = static_cast<D3D12GpuBuffer*>(view.Buffer);
-		sourceHandle = buffer->GetSRVHandle(view.Format);
+		sourceHandle = buffer->GetSRVHandle(view.ViewType, view.Format);
 	}
 
 	if(!B3D_ENSURE_LOG(sourceHandle.ptr != 0, "Failed to create the view written into bindless resource slot {0}.", slotIndex))

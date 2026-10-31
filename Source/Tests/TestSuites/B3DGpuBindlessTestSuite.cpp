@@ -86,7 +86,7 @@ void GpuBindlessTestSuite::TestHeapAllocation()
 	ManualCompletionTracker completionTracker;
 	GpuBindlessHeaps heaps(*device, nativeHeap, completionTracker, 4, 16);
 
-	const GpuBindlessResourceView view(*buffer, BF_UNKNOWN);
+	const GpuBindlessResourceView view(*buffer, GpuBufferViewType::Typed, BF_UNKNOWN);
 	const int owners[4] = {};
 
 	// Slot 0 is the invalid index, so a heap of four slots holds three views
@@ -236,17 +236,34 @@ void GpuBindlessTestSuite::TestResourceIndices()
 		B3D_TEST_ASSERT(texture->GetOrCreateBindlessIndex(TextureSurface(0, 1, 0, 1)) == mipIndex)
 		B3D_TEST_ASSERT(texture->GetOrCreateBindlessIndex(TextureSurface::kComplete) == textureIndex)
 
-		B3D_TEST_ASSERT(structuredBuffer->GetBindlessIndex() != kGpuBindlessInvalidIndex)
+		const u32 structuredIndex = structuredBuffer->GetBindlessIndex();
+		const u32 rawIndex = structuredBuffer->GetOrCreateBindlessIndex(GpuBufferViewType::Raw);
+		B3D_TEST_ASSERT(structuredIndex != kGpuBindlessInvalidIndex)
+		B3D_TEST_ASSERT(rawIndex != kGpuBindlessInvalidIndex && rawIndex != structuredIndex)
+		B3D_TEST_ASSERT(structuredBuffer->GetOrCreateBindlessIndex(GpuBufferViewType::Raw) == rawIndex)
+		B3D_TEST_ASSERT(structuredBuffer->GetOrCreateBindlessIndex(GpuBufferViewType::Typed) == structuredIndex)
 
 		const u32 typedIndex = typedBuffer->GetBindlessIndex();
-		const u32 reinterpretedIndex = typedBuffer->GetOrCreateBindlessIndex(BF_16X2U);
+		const u32 reinterpretedIndex = typedBuffer->GetOrCreateBindlessIndex(GpuBufferViewType::Typed, BF_16X2U);
 		B3D_TEST_ASSERT(typedIndex != kGpuBindlessInvalidIndex)
 		B3D_TEST_ASSERT(reinterpretedIndex != kGpuBindlessInvalidIndex && reinterpretedIndex != typedIndex)
-		B3D_TEST_ASSERT(typedBuffer->GetOrCreateBindlessIndex(BF_32X1U) == typedIndex)
-		B3D_TEST_ASSERT(typedBuffer->GetOrCreateBindlessIndex(BF_UNKNOWN) == typedIndex)
+		B3D_TEST_ASSERT(typedBuffer->GetOrCreateBindlessIndex(GpuBufferViewType::Typed, BF_32X1U) == typedIndex)
+		B3D_TEST_ASSERT(typedBuffer->GetOrCreateBindlessIndex(GpuBufferViewType::Typed) == typedIndex)
+
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("Raw bindless views are only supported for structured storage buffers.");
+			B3D_TEST_ASSERT(typedBuffer->GetOrCreateBindlessIndex(GpuBufferViewType::Raw) == kGpuBindlessInvalidIndex)
+		}
+
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("Only typed bindless views of simple storage buffers can have an element format.");
+			B3D_TEST_ASSERT(structuredBuffer->GetOrCreateBindlessIndex(GpuBufferViewType::Typed, BF_32X1U) == kGpuBindlessInvalidIndex)
+		}
 
 		GpuBindlessHeapStatistics statistics = heaps.GetStatistics(GpuBindlessHeapType::Resource);
-		B3D_TEST_ASSERT(statistics.AllocatedCount == initialAllocatedCount + 5)
+		B3D_TEST_ASSERT(statistics.AllocatedCount == initialAllocatedCount + 6)
 
 		// Destruction releases every slot of the resource
 		const u32 pendingReleaseCount = statistics.PendingReleaseCount;
@@ -256,7 +273,7 @@ void GpuBindlessTestSuite::TestResourceIndices()
 
 		statistics = heaps.GetStatistics(GpuBindlessHeapType::Resource);
 		B3D_TEST_ASSERT(statistics.AllocatedCount == initialAllocatedCount)
-		B3D_TEST_ASSERT(statistics.PendingReleaseCount >= pendingReleaseCount + 5)
+		B3D_TEST_ASSERT(statistics.PendingReleaseCount >= pendingReleaseCount + 6)
 
 		// Global samplers have permanent slots, and cached samplers get theirs on first request
 		SamplerStateCreateInformation pointClampInformation;
@@ -356,9 +373,15 @@ void GpuBindlessTestSuite::TestHeapAccess()
 		samplerInformation.MipmapBias = 0.25f;
 		const TShared<SamplerState> cachedSampler = device->FindOrCreateSamplerState(samplerInformation);
 
-		const u32 indices[] = { structuredBuffer->GetBindlessIndex(), typedBuffer->GetBindlessIndex(), texture->GetBindlessIndex() | (cachedSampler->GetBindlessIndex() << 16) };
+		const u32 indices[] =
+		{
+			structuredBuffer->GetBindlessIndex(),
+			typedBuffer->GetBindlessIndex(),
+			texture->GetBindlessIndex() | (cachedSampler->GetBindlessIndex() << 16),
+			structuredBuffer->GetOrCreateBindlessIndex(GpuBufferViewType::Raw)
+		};
 
-		static constexpr u32 kOutputCount = 5;
+		static constexpr u32 kOutputCount = 7;
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 		const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kOutputCount, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
 		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kOutputCount * sizeof(u32)));
@@ -397,8 +420,8 @@ void GpuBindlessTestSuite::TestHeapAccess()
 		if(!mapping.IsValid())
 			return;
 
-		const u32 expected[kOutputCount] = { 101, 202, 50, 60, 30 };
-		const char* names[kOutputCount] = { "structured buffer", "typed buffer", "texture load", "cached sampler", "global sampler" };
+		const u32 expected[kOutputCount] = { 101, 202, 50, 60, 30, 102, 103 };
+		const char* names[kOutputCount] = { "structured buffer", "typed buffer", "texture load", "cached sampler", "global sampler", "raw buffer", "raw buffer wide load" };
 		const u32* actual = static_cast<const u32*>(mapping.GetMappedMemory());
 		for(u32 outputIndex = 0; outputIndex < kOutputCount; outputIndex++)
 			B3D_TEST_ASSERT_MSG(actual[outputIndex] == expected[outputIndex], StringUtility::Format("Read through the {0}: {1}, expected {2}.", names[outputIndex], actual[outputIndex], expected[outputIndex]))

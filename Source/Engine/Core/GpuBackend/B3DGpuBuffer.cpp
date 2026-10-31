@@ -271,7 +271,7 @@ namespace b3d::render
 	void GpuBuffer::Initialize()
 	{
 		if(mInformation.Flags.IsSet(GpuBufferFlag::Bindless) && B3D_ENSURE(GetGpuResource() != nullptr))
-			mBindlessSlots.Register(mDevice, *GetGpuResource(), GpuBindlessResourceView(*this, BF_UNKNOWN));
+			mBindlessSlots.Register(mDevice, *GetGpuResource(), GpuBindlessResourceView(*this, GpuBufferViewType::Typed, BF_UNKNOWN));
 
 		RenderProxy::Initialize();
 	}
@@ -285,14 +285,18 @@ namespace b3d::render
 		RenderProxy::Destroy();
 	}
 
-	u32 GpuBuffer::GetOrCreateBindlessIndex(GpuBufferFormat format)
+	u32 GpuBuffer::GetOrCreateBindlessIndex(GpuBufferViewType viewType, GpuBufferFormat format)
 	{
-		if(!B3D_ENSURE_LOG(mInformation.Type == GpuBufferType::SimpleStorage, "Typed bindless views are only supported for simple storage buffers. Buffer: '{0}'.", mName))
+		const bool isSimpleStorage = mInformation.Type == GpuBufferType::SimpleStorage;
+		if(!B3D_ENSURE_LOG(viewType != GpuBufferViewType::Raw || mInformation.Type == GpuBufferType::StructuredStorage, "Raw bindless views are only supported for structured storage buffers. Buffer: '{0}'.", mName))
+			return kGpuBindlessInvalidIndex;
+
+		if(!B3D_ENSURE_LOG(format == BF_UNKNOWN || (viewType == GpuBufferViewType::Typed && isSimpleStorage), "Only typed bindless views of simple storage buffers can have an element format. Buffer: '{0}'.", mName))
 			return kGpuBindlessInvalidIndex;
 
 		// The default view uses the buffer's own format
-		const GpuBufferFormat viewFormat = format == mInformation.SimpleStorage.Format ? BF_UNKNOWN : format;
-		return mBindlessSlots.GetOrCreateIndex(GpuBindlessResourceView(*this, viewFormat));
+		const GpuBufferFormat viewFormat = isSimpleStorage && format == mInformation.SimpleStorage.Format ? BF_UNKNOWN : format;
+		return mBindlessSlots.GetOrCreateIndex(GpuBindlessResourceView(*this, viewType, viewFormat));
 	}
 
 	void GpuBuffer::SetAllocation(const GpuAllocation& allocation, GpuObjectCreateFlags flags)

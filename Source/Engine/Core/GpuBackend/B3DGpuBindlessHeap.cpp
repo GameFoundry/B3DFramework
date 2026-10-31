@@ -16,13 +16,13 @@ GpuBindlessResourceView::GpuBindlessResourceView(render::Texture& texture, const
 	: Texture(&texture), Surface(surface)
 { }
 
-GpuBindlessResourceView::GpuBindlessResourceView(render::GpuBuffer& buffer, GpuBufferFormat format)
-	: Buffer(&buffer), Format(format)
+GpuBindlessResourceView::GpuBindlessResourceView(render::GpuBuffer& buffer, GpuBufferViewType viewType, GpuBufferFormat format)
+	: Buffer(&buffer), ViewType(viewType), Format(format)
 { }
 
 bool GpuBindlessResourceView::operator==(const GpuBindlessResourceView& other) const
 {
-	return Texture == other.Texture && Surface == other.Surface && Buffer == other.Buffer && Format == other.Format;
+	return Texture == other.Texture && Surface == other.Surface && Buffer == other.Buffer && ViewType == other.ViewType && Format == other.Format;
 }
 
 GpuBindlessHeaps::GpuBindlessHeaps(GpuDevice& device, IGpuBindlessHeap& backend, const IGpuCompletionTracker& completionTracker, u32 resourceCapacity, u32 samplerCapacity)

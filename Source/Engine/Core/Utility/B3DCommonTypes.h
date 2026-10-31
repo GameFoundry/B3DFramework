@@ -238,6 +238,15 @@ namespace b3d
 		BF_UNKNOWN = 0xffff /**< Unknown format (used for non-standard buffers, like structured or raw. */
 	};
 
+	/** Determines how a view interprets the contents of a storage buffer. */
+	enum class GpuBufferViewType
+	{
+		/** Elements of the buffer's own type: typed elements of a simple storage buffer, or structures of a structured storage buffer. */
+		Typed,
+		/** 32-bit words addressed in bytes, read through ByteAddressBuffer. Only structured storage buffers can be viewed as raw. */
+		Raw
+	};
+
 	/** Different types of GPU views that control how GPU sees a hardware buffer. */
 	enum GpuViewUsage
 	{

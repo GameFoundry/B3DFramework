@@ -70,12 +70,13 @@ namespace b3d
 				UAV  /**< Unordered access view. */
 			};
 
-			/** Shader-binding descriptors viewing the buffer through a particular element format and byte offset. */
+			/** Shader-binding descriptors viewing the buffer with a particular interpretation, element format and byte offset. */
 			struct BufferViews
 			{
 				BufferViews() = default;
-				BufferViews(GpuBufferFormat format, u32 offset) : Format(format), Offset(offset) { }
+				BufferViews(GpuBufferViewType type, GpuBufferFormat format, u32 offset) : Type(type), Format(format), Offset(offset) { }
 
+				GpuBufferViewType Type = GpuBufferViewType::Typed; /**< How these descriptors interpret the buffer contents. */
 				GpuBufferFormat Format = BF_UNKNOWN; /**< Element format shared by these descriptors. */
 				u32 Offset = 0; /**< Byte offset for constant buffer views; zero for storage buffer views. */
 				D3D12_CPU_DESCRIPTOR_HANDLE Cbv{};   /**< Constant buffer view, when applicable. */
@@ -132,19 +133,24 @@ namespace b3d
 
 			/**
 			 * Returns a CPU descriptor handle for a shader resource view (SRV) of the buffer, viewing it as a read-only
-			 * structured/typed/byte storage buffer. For simple storage buffers @p format overrides the element format
-			 * the view interprets the contents as (BF_UNKNOWN uses the buffer's own format); other buffer types ignore
-			 * it. Returns a zeroed handle if the buffer cannot be viewed as an SRV.
+			 * storage buffer. Returns a zeroed handle if the buffer cannot be viewed this way.
+			 *
+			 * @param	viewType	How the view interprets the buffer contents. Only structured storage buffers can be viewed as raw.
+			 * @param	format		Element format of a typed view of a simple storage buffer, or BF_UNKNOWN for the buffer's own
+			 *						format. Ignored by other views.
 			 */
-			D3D12_CPU_DESCRIPTOR_HANDLE GetSRVHandle(GpuBufferFormat format = BF_UNKNOWN) const;
+			D3D12_CPU_DESCRIPTOR_HANDLE GetSRVHandle(GpuBufferViewType viewType = GpuBufferViewType::Typed, GpuBufferFormat format = BF_UNKNOWN) const;
 
 			/**
 			 * Returns a CPU descriptor handle for an unordered access view (UAV) of the buffer, viewing it as a writable
-			 * storage buffer. For simple storage buffers @p format overrides the element format the view interprets the
-			 * contents as (BF_UNKNOWN uses the buffer's own format); other buffer types ignore it. Returns a zeroed
-			 * handle if the buffer was not created with AllowUnorderedAccessOnTheGPU.
+			 * storage buffer. Returns a zeroed handle if the buffer cannot be viewed this way, or was not created with
+			 * AllowUnorderedAccessOnTheGPU.
+			 *
+			 * @param	viewType	How the view interprets the buffer contents. Only structured storage buffers can be viewed as raw.
+			 * @param	format		Element format of a typed view of a simple storage buffer, or BF_UNKNOWN for the buffer's own
+			 *						format. Ignored by other views.
 			 */
-			D3D12_CPU_DESCRIPTOR_HANDLE GetUAVHandle(GpuBufferFormat format = BF_UNKNOWN) const;
+			D3D12_CPU_DESCRIPTOR_HANDLE GetUAVHandle(GpuBufferViewType viewType = GpuBufferViewType::Typed, GpuBufferFormat format = BF_UNKNOWN) const;
 
 			/** Returns the size of the native slice backing a buffer described by @p information, of @p totalSize bytes. */
 			static u32 GetSliceSize(const GpuBufferInformation& information, u32 totalSize);
@@ -175,11 +181,12 @@ namespace b3d
 			void ReleaseBuffer();
 
 			/**
-			 * Returns a cached descriptor of @p type, creating it if needed. Typed simple-storage views are keyed by
-			 * @p format; other buffer types use BF_UNKNOWN. Constant buffer views also use @p offset in bytes; other views
-			 * use zero. Returns a zeroed handle when the requested view isn't valid.
+			 * Returns a cached descriptor of @p type, creating it if needed. Descriptors are keyed by @p viewType and @p format,
+			 * where typed views of simple storage buffers use @p format or the buffer's own format if BF_UNKNOWN, and other views
+			 * use BF_UNKNOWN. Constant buffer views also use @p offset in bytes; other views use zero. Returns a zeroed handle
+			 * when the requested view isn't valid.
 			 */
-			D3D12_CPU_DESCRIPTOR_HANDLE GetOrCreateView(GpuBufferFormat format, ViewType type, u32 offset = 0) const;
+			D3D12_CPU_DESCRIPTOR_HANDLE GetOrCreateView(GpuBufferViewType viewType, GpuBufferFormat format, ViewType type, u32 offset = 0) const;
 
 			D3D12Buffer* mBuffer = nullptr;
 

@@ -26,17 +26,26 @@ float4 fsmain(VStoFS input) : SV_Target0
 }
 ~~~~~~~~~~~~~
 
+Functions can return resources and samplers read from the heaps, on their own or as members of a struct.
+
+~~~~~~~~~~~~~{.hlsl}
+Texture2D<float4> GetMaterialTexture(uint materialIndex)
+{
+	return ResourceDescriptorHeap[MaterialTextureIndex + materialIndex];
+}
+~~~~~~~~~~~~~
+
 The resource heap holds read-only views only:
  - textures, as any `Texture*` type,
  - simple storage buffers, as `Buffer<T>`,
- - structured storage buffers, as `StructuredBuffer<T>`.
+ - structured storage buffers, as `StructuredBuffer<T>`, or as raw 32-bit words through `ByteAddressBuffer`.
 
-`RW*` types, append and consume buffers, `ByteAddressBuffer` and constant buffers can't be read through the heap. Bind them through a parameter set as usual. The heaps are bound at parameter set 7 (register space 7 in HLSL), so programs that access them can't declare their own parameters there.
+`RW*` types, append and consume buffers and constant buffers can't be read through the heap. Bind them through a parameter set as usual. The heaps are bound at parameter set 7 (register space 7 in HLSL), so programs that access them can't declare their own parameters there.
 
 The pipeline binds the heaps automatically when one of its programs accesses them. Nothing needs to be set on the command buffer.
 
 On Metal, two more restrictions apply:
- - `GetDimensions()` can't be called on a `StructuredBuffer<T>` read through the heap.
+ - `GetDimensions()` can't be called on a `StructuredBuffer<T>` or `ByteAddressBuffer` read through the heap.
  - A program that accesses `SamplerDescriptorHeap` must leave at least one of parameter sets 0 to 6 unused, because the sampler heap takes that set's place in the generated Metal shader.
 
 # Bindless textures and buffers
@@ -60,11 +69,19 @@ u32 bufferIndex = buffer->GetBindlessIndex();
 
 Other views get their own slots on first request:
  - @b3d::render::Texture::GetOrCreateBindlessIndex views a @b3d::TextureSurface of the texture, such as a single mip level.
- - @b3d::render::GpuBuffer::GetOrCreateBindlessIndex views a simple storage buffer with another element format.
+ - @b3d::render::GpuBuffer::GetOrCreateBindlessIndex views a simple storage buffer with another element format (@b3d::GpuBufferViewType::Typed), or a structured storage buffer as raw 32-bit words (@b3d::GpuBufferViewType::Raw), which programs read as a `ByteAddressBuffer`.
 
 ~~~~~~~~~~~~~{.cpp}
 // View of the first mip level only
 u32 mipIndex = texture->GetOrCreateBindlessIndex(TextureSurface(0, 1, 0, 1));
+
+// Raw view of the structured buffer
+u32 rawBufferIndex = buffer->GetOrCreateBindlessIndex(GpuBufferViewType::Raw);
+~~~~~~~~~~~~~
+
+~~~~~~~~~~~~~{.hlsl}
+ByteAddressBuffer rawBuffer = ResourceDescriptorHeap[RawBufferIndex];
+uint4 words = rawBuffer.Load4(byteOffset);
 ~~~~~~~~~~~~~
 
 Indices are valid until the resource is destroyed. The slots are reused once the GPU finishes the frame in which the resource was destroyed, so work recorded before the destruction can still read them. Index 0 is never allocated in either heap. It is @b3d::kGpuBindlessInvalidIndex, which the getters return when the resource has no slot.
@@ -92,7 +109,7 @@ When the sampler heap fills past `gpu.BindlessSamplerEvictionThreshold`, the dev
 
 ## Global samplers
 
-Six common samplers have permanent slots, at the indices returned by @b3d::GetGlobalSamplerIndex. They combine point, bilinear or trilinear filtering (@b3d::GpuGlobalSamplerFilter) with wrap or clamp addressing (@b3d::GpuGlobalSamplerAddress). Programs can use them without being passed an index: the `BindlessSamplers` mixin provides the same indices through `GetGlobalSamplerIndex()` and the `GLOBAL_SAMPLER_*` constants.
+Six common samplers have permanent slots, at the indices returned by @b3d::GetGlobalSamplerIndex. They combine point, bilinear or trilinear filtering (@b3d::GpuGlobalSamplerFilter) with wrap or clamp addressing (@b3d::GpuGlobalSamplerAddress). Programs can use them without being passed an index: the `BindlessSamplers` mixin provides the samplers through `GetGlobalSampler()`, their indices through `GetGlobalSamplerIndex()`, and the `GLOBAL_SAMPLER_*` constants.
 
 ~~~~~~~~~~~~~{.hlsl}
 #include "$ENGINE$\BindlessSamplers.bslinc"
@@ -106,7 +123,7 @@ shader MyShader
 		float4 fsmain(VStoFS input) : SV_Target0
 		{
 			Texture2D<float4> materialTexture = ResourceDescriptorHeap[MaterialTextureIndex];
-			SamplerState linearClamp = SamplerDescriptorHeap[GetGlobalSamplerIndex(GLOBAL_SAMPLER_FILTER_BILINEAR, GLOBAL_SAMPLER_ADDRESS_CLAMP)];
+			SamplerState linearClamp = GetGlobalSampler(GLOBAL_SAMPLER_FILTER_BILINEAR, GLOBAL_SAMPLER_ADDRESS_CLAMP);
 
 			return materialTexture.Sample(linearClamp, input.uv);
 		}

@@ -376,11 +376,11 @@ D3D12GpuParameters::ResolvedDescriptor D3D12GpuParameters::ResolveStorageBuffer(
 	if(buffer->GetD3D12Buffer() == nullptr)
 		return output;
 
-	output.Handle = isReadWrite ? buffer->GetUAVHandle(format) : buffer->GetSRVHandle(format);
+	output.Handle = isReadWrite ? buffer->GetUAVHandle(GpuBufferViewType::Typed, format) : buffer->GetSRVHandle(GpuBufferViewType::Typed, format);
 	if (output.Handle.ptr == 0)
 	{
 		B3D_LOG(Warning, LogRenderBackend, "D3D12: Storage buffer bound to set {0} slot {1} has no {2} view; binding its {3} view instead.", GetSet(), slot, isReadWrite ? "UAV" : "SRV", isReadWrite ? "SRV" : "UAV");
-		output.Handle = isReadWrite ? buffer->GetSRVHandle(format) : buffer->GetUAVHandle(format);
+		output.Handle = isReadWrite ? buffer->GetSRVHandle(GpuBufferViewType::Typed, format) : buffer->GetUAVHandle(GpuBufferViewType::Typed, format);
 
 		if (output.Handle.ptr == 0)
 			B3D_LOG(Error, LogRenderBackend, "D3D12: Storage buffer '{0}' (type {1}) bound to set {2} slot {3} has no shader views at all; the slot is left unbound and reads will return zero.", buffer->GetName(), (u32)buffer->GetInformation().Type, GetSet(), slot);

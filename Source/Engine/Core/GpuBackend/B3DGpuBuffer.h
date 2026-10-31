@@ -706,12 +706,16 @@ namespace b3d::render
 		u32 GetBindlessIndex() const { return mBindlessSlots.GetDefaultIndex(); }
 
 		/**
-		 * Returns the bindless resource heap index of a typed view of the buffer with elements of @p format, allocating it on first request.
-		 * Only valid for simple storage buffers. Returns kGpuBindlessInvalidIndex if the buffer isn't bindless or the heap is full.
+		 * Returns the bindless resource heap index of a view of the buffer, allocating it on first request. Returns
+		 * kGpuBindlessInvalidIndex if the buffer isn't bindless, can't be viewed this way, or the heap is full.
+		 *
+		 * @param	viewType	How the view interprets the buffer contents. Only structured storage buffers can be viewed as raw.
+		 * @param	format		Element format of a typed view of a simple storage buffer, or BF_UNKNOWN for the buffer's own format.
+		 *						Must be BF_UNKNOWN for other views.
 		 *
 		 * @note	Render thread only.
 		 */
-		u32 GetOrCreateBindlessIndex(GpuBufferFormat format);
+		u32 GetOrCreateBindlessIndex(GpuBufferViewType viewType, GpuBufferFormat format = BF_UNKNOWN);
 
 		/**
 		 * @name Internal

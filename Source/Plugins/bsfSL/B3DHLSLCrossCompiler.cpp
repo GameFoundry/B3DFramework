@@ -631,7 +631,8 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 		Xsc::Extensions::HLSLTemplates |
 		Xsc::Extensions::PushConstants |
 		Xsc::Extensions::DynamicOffsets |
-		Xsc::Extensions::BindlessResources;
+		Xsc::Extensions::BindlessResources |
+		Xsc::Extensions::OpaqueStructTypes;
 
 	switch(type)
 	{

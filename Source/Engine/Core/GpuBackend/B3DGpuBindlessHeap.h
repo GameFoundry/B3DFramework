@@ -78,10 +78,10 @@ namespace b3d
 		GpuBindlessResourceView(render::Texture& texture, const TextureSurface& surface);
 
 		/**
-		 * View of a buffer. Structured buffers are viewed as structured, and simple storage buffers as typed, using @p format or
-		 * their own format if BF_UNKNOWN.
+		 * View of a buffer, interpreting its contents as @p viewType. Typed views of simple storage buffers use @p format, or their own
+		 * format if BF_UNKNOWN.
 		 */
-		GpuBindlessResourceView(render::GpuBuffer& buffer, GpuBufferFormat format);
+		GpuBindlessResourceView(render::GpuBuffer& buffer, GpuBufferViewType viewType, GpuBufferFormat format);
 
 		bool operator==(const GpuBindlessResourceView& other) const;
 
@@ -89,6 +89,7 @@ namespace b3d
 		TextureSurface Surface; /**< Viewed surface of the texture. */
 
 		render::GpuBuffer* Buffer = nullptr; /**< Viewed buffer, or null for a texture view. */
+		GpuBufferViewType ViewType = GpuBufferViewType::Typed; /**< How the buffer view interprets the contents of the buffer. */
 		GpuBufferFormat Format = BF_UNKNOWN; /**< Element format of a typed buffer view. BF_UNKNOWN for the buffer's own format. */
 	};
 

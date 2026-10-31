@@ -345,14 +345,13 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 
 	// Create the default shader-binding descriptors. Format and offset overrides remain lazy.
 	if(information.Type == GpuBufferType::Uniform)
-		GetOrCreateView(BF_UNKNOWN, ViewType::CBV);
+		GetOrCreateView(GpuBufferViewType::Typed, BF_UNKNOWN, ViewType::CBV);
 
 	if(information.Type == GpuBufferType::SimpleStorage || information.Type == GpuBufferType::StructuredStorage || information.Type == GpuBufferType::Vertex)
 	{
-		const GpuBufferFormat format = information.Type == GpuBufferType::SimpleStorage ? information.SimpleStorage.Format : BF_UNKNOWN;
-		GetOrCreateView(format, ViewType::SRV);
+		GetOrCreateView(GpuBufferViewType::Typed, BF_UNKNOWN, ViewType::SRV);
 		if(information.Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU))
-			GetOrCreateView(format, ViewType::UAV);
+			GetOrCreateView(GpuBufferViewType::Typed, BF_UNKNOWN, ViewType::UAV);
 	}
 
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_VertexBuffer);
@@ -360,36 +359,37 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 
 D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetCBVHandle(u32 offset) const
 {
-	return GetOrCreateView(BF_UNKNOWN, ViewType::CBV, offset);
+	return GetOrCreateView(GpuBufferViewType::Typed, BF_UNKNOWN, ViewType::CBV, offset);
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetSRVHandle(GpuBufferFormat format) const
+D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetSRVHandle(GpuBufferViewType viewType, GpuBufferFormat format) const
 {
-	const GpuBufferInformation& information = GetInformation();
-	if(information.Type != GpuBufferType::SimpleStorage)
-		format = BF_UNKNOWN;
-	else if(format == BF_UNKNOWN)
-		format = information.SimpleStorage.Format;
-
-	return GetOrCreateView(format, ViewType::SRV);
+	return GetOrCreateView(viewType, format, ViewType::SRV);
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetUAVHandle(GpuBufferFormat format) const
+D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetUAVHandle(GpuBufferViewType viewType, GpuBufferFormat format) const
 {
-	const GpuBufferInformation& information = GetInformation();
-	if(information.Type != GpuBufferType::SimpleStorage)
-		format = BF_UNKNOWN;
-	else if(format == BF_UNKNOWN)
-		format = information.SimpleStorage.Format;
-
-	return GetOrCreateView(format, ViewType::UAV);
+	return GetOrCreateView(viewType, format, ViewType::UAV);
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferFormat format, ViewType type, u32 offset) const
+D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferViewType viewType, GpuBufferFormat format, ViewType type, u32 offset) const
 {
 	const GpuBufferInformation& information = GetInformation();
 	if(mBuffer == nullptr)
 		return {};
+
+	const bool isRaw = viewType == GpuBufferViewType::Raw;
+	if(isRaw && information.Type != GpuBufferType::StructuredStorage)
+		return {};
+
+	// Only typed views of simple storage buffers have an element format, which defaults to the buffer's own
+	if(viewType == GpuBufferViewType::Typed && information.Type == GpuBufferType::SimpleStorage)
+	{
+		if(format == BF_UNKNOWN)
+			format = information.SimpleStorage.Format;
+	}
+	else
+		format = BF_UNKNOWN;
 
 	if(type == ViewType::CBV && information.Type != GpuBufferType::Uniform)
 		return {};
@@ -404,17 +404,24 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferFormat form
 	if(type == ViewType::UAV && !information.Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU))
 		return {};
 
-	const bool isStructured = information.Type != GpuBufferType::SimpleStorage;
-	const DXGI_FORMAT viewFormat = isStructured ? DXGI_FORMAT_UNKNOWN : GetBufferViewFormat(format);
-	if(information.Type == GpuBufferType::SimpleStorage && viewFormat == DXGI_FORMAT_UNKNOWN)
-		return {};
+	// Raw views address 32-bit words and have no structure stride
+	const bool isStructured = information.Type != GpuBufferType::SimpleStorage && !isRaw;
+	DXGI_FORMAT viewFormat = DXGI_FORMAT_UNKNOWN;
+	if(isRaw)
+		viewFormat = DXGI_FORMAT_R32_TYPELESS;
+	else if(!isStructured)
+	{
+		viewFormat = GetBufferViewFormat(format);
+		if(viewFormat == DXGI_FORMAT_UNKNOWN)
+			return {};
+	}
 
 	Lock lock(mViewMutex);
 
 	BufferViews* matchingViews = nullptr;
 	for(BufferViews& cachedViews : mViews)
 	{
-		if(cachedViews.Format == format && cachedViews.Offset == offset)
+		if(cachedViews.Type == viewType && cachedViews.Format == format && cachedViews.Offset == offset)
 		{
 			matchingViews = &cachedViews;
 			break;
@@ -423,7 +430,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferFormat form
 
 	if(matchingViews == nullptr)
 	{
-		mViews.Add(BufferViews(format, offset));
+		mViews.Add(BufferViews(viewType, format, offset));
 		matchingViews = &mViews.back();
 	}
 
@@ -475,6 +482,12 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferFormat form
 		elementStride = b3d::GpuBuffer::GetFormatSize(format);
 	}
 
+	if(isRaw)
+	{
+		elementCount = (elementCount * elementStride) / sizeof(u32);
+		elementStride = sizeof(u32);
+	}
+
 	if(type == ViewType::UAV)
 	{
 		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
@@ -484,7 +497,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferFormat form
 		uavDesc.Buffer.NumElements = elementCount;
 		uavDesc.Buffer.StructureByteStride = isStructured ? elementStride : 0;
 		uavDesc.Buffer.CounterOffsetInBytes = 0;
-		uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+		uavDesc.Buffer.Flags = isRaw ? D3D12_BUFFER_UAV_FLAG_RAW : D3D12_BUFFER_UAV_FLAG_NONE;
 
 		device.GetD3D12Device()->CreateUnorderedAccessView(mBuffer->GetD3D12Resource(), nullptr, &uavDesc, *viewHandle);
 	}
@@ -497,7 +510,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferFormat form
 		srvDesc.Buffer.FirstElement = mBuffer->GetOffset() / elementStride;
 		srvDesc.Buffer.NumElements = elementCount;
 		srvDesc.Buffer.StructureByteStride = isStructured ? elementStride : 0;
-		srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+		srvDesc.Buffer.Flags = isRaw ? D3D12_BUFFER_SRV_FLAG_RAW : D3D12_BUFFER_SRV_FLAG_NONE;
 
 		device.GetD3D12Device()->CreateShaderResourceView(mBuffer->GetD3D12Resource(), &srvDesc, *viewHandle);
 	}

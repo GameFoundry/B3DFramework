@@ -12,11 +12,17 @@ mixin BindlessSamplers
 
 		/**
 		 * Returns the sampler heap index of a global sampler, permanently resident on every device that supports bindless resources.
-		 * Matches GetGlobalSamplerIndex(). Read the sampler with SamplerDescriptorHeap[GetGlobalSamplerIndex(filter, address)].
+		 * Matches GetGlobalSamplerIndex().
 		 */
 		uint GetGlobalSamplerIndex(uint filter, uint address)
 		{
 			return 1 + filter * 2 + address;
+		}
+
+		/** Returns a global sampler, permanently resident on every device that supports bindless resources. */
+		SamplerState GetGlobalSampler(uint filter, uint address)
+		{
+			return SamplerDescriptorHeap[GetGlobalSamplerIndex(filter, address)];
 		}
 
 	};
