@@ -401,6 +401,16 @@ bool TGpuParameterSet<IsRenderProxy>::SetStorageBuffer(u32 slot, const BufferTyp
 		return false;
 	}
 
+	if(buffer != nullptr && buffer->GetInformation().Type != GpuBufferType::StructuredStorage)
+	{
+		const UniformInformation* information = mParameterSetLayout->TryGetUniformInformation(slot);
+		if(information != nullptr && GpuObjectParameterTypeInformation::IsByteAddressBuffer(information->ObjectType))
+		{
+			B3D_LOG(Error, LogRenderBackend, "Only structured storage buffers can be bound as byte address buffers. Set/slot: {0}/{1}.", mSet, slot);
+			return false;
+		}
+	}
+
 	mStorageBufferData[sequentialArrayIndex].Buffer = buffer;
 	mStorageBufferData[sequentialArrayIndex].View = view;
 

@@ -12,6 +12,43 @@
 
 using namespace b3d;
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+/** Returns the parameter type that shaders read @p view as. */
+static GpuParameterObjectType GetViewObjectType(const GpuBindlessResourceView& view)
+{
+	if(view.Buffer != nullptr)
+	{
+		if(view.ViewType == GpuBufferViewType::Raw)
+			return GPOT_BYTE_ADDRESS_BUFFER;
+
+		return view.Buffer->GetInformation().Type == GpuBufferType::StructuredStorage ? GPOT_STRUCTURED_BUFFER : GPOT_TYPED_BUFFER;
+	}
+
+	const TextureProperties& properties = view.Texture->GetProperties();
+	const TextureSurface& surface = view.Surface;
+	const u32 faceCount = surface.FaceCount == 0 ? properties.GetFaceCount() - surface.Face : surface.FaceCount;
+	const bool isArray = faceCount > 1 || surface.IsBoundAs2DArray;
+
+	if(properties.SampleCount > 1)
+		return isArray ? GPOT_TEXTURE2DMSARRAY : GPOT_TEXTURE2DMS;
+
+	switch(properties.Type)
+	{
+	case TEX_TYPE_1D:
+		return isArray ? GPOT_TEXTURE1DARRAY : GPOT_TEXTURE1D;
+	case TEX_TYPE_3D:
+		return surface.IsBoundAs2DArray ? GPOT_TEXTURE2DARRAY : GPOT_TEXTURE3D;
+	case TEX_TYPE_CUBE_MAP:
+		if(!surface.IsBoundAs2DArray && faceCount >= 6)
+			return faceCount > 6 ? GPOT_TEXTURECUBEARRAY : GPOT_TEXTURECUBE;
+
+		[[fallthrough]];
+	default:
+		return isArray ? GPOT_TEXTURE2DARRAY : GPOT_TEXTURE2D;
+	}
+}
+#endif
+
 GpuBindlessResourceView::GpuBindlessResourceView(render::Texture& texture, const TextureSurface& surface)
 	: Texture(&texture), Surface(surface)
 { }
@@ -146,6 +183,10 @@ u32 GpuBindlessHeaps::AllocateResourceSlot(const GpuBindlessResourceView& view, 
 		return kGpuBindlessInvalidIndex;
 	}
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	heap.SlotRecords[slotIndex].ViewType = GetViewObjectType(view);
+#endif
+
 	// The backend writes are serialized, since native descriptor writes into one heap are not thread safe
 	mBackend.WriteResourceSlot(slotIndex, view);
 	return slotIndex;
@@ -242,10 +283,16 @@ void GpuBindlessHeaps::ProcessReleases(IsCompleteFunction fnIsComplete)
 			heap.Statistics.PendingReleaseCount--;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-			heap.SlotRecords[release.SlotIndex] = SlotRecord();
+			SlotRecord& record = heap.SlotRecords[release.SlotIndex];
+			const GpuParameterObjectType viewType = record.ViewType;
+			record = SlotRecord();
 
 			// Nothing reads the slot anymore. A null descriptor makes reads through stale indices well defined, and visible in captures.
-			mBackend.ClearSlot(release.HeapType, release.SlotIndex);
+			// Samplers have no null descriptor, so retired sampler slots get a global sampler instead, unless the heaps are being destroyed.
+			if(release.HeapType == GpuBindlessHeapType::Resource)
+				mBackend.ClearResourceSlot(release.SlotIndex, viewType);
+			else if(!mGlobalSamplers.Empty())
+				mBackend.WriteSamplerSlot(release.SlotIndex, *mGlobalSamplers[GetGlobalSamplerIndex(GpuGlobalSamplerFilter::Point, GpuGlobalSamplerAddress::Wrap) - 1]);
 #endif
 		}
 

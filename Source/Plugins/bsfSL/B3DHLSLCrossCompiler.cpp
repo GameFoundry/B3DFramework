@@ -176,12 +176,12 @@ static GpuParameterObjectType XSCConvertBufferType(Xsc::Reflection::BufferType t
 {
 	switch(type)
 	{
-	case Xsc::Reflection::BufferType::Buffer: return GPOT_BYTE_BUFFER;
+	case Xsc::Reflection::BufferType::Buffer: return GPOT_TYPED_BUFFER;
 	case Xsc::Reflection::BufferType::StructuredBuffer: return GPOT_STRUCTURED_BUFFER;
-	case Xsc::Reflection::BufferType::ByteAddressBuffer: return GPOT_BYTE_BUFFER;
+	case Xsc::Reflection::BufferType::ByteAddressBuffer: return GPOT_BYTE_ADDRESS_BUFFER;
 	case Xsc::Reflection::BufferType::RWBuffer: return GPOT_RWTYPED_BUFFER;
 	case Xsc::Reflection::BufferType::RWStructuredBuffer: return GPOT_RWSTRUCTURED_BUFFER;
-	case Xsc::Reflection::BufferType::RWByteAddressBuffer: return GPOT_RWBYTE_BUFFER;
+	case Xsc::Reflection::BufferType::RWByteAddressBuffer: return GPOT_RWBYTE_ADDRESS_BUFFER;
 	case Xsc::Reflection::BufferType::AppendStructuredBuffer: return GPOT_RWAPPEND_BUFFER;
 	case Xsc::Reflection::BufferType::ConsumeStructuredBuffer: return GPOT_RWCONSUME_BUFFER;
 	default: return GPOT_UNKNOWN;

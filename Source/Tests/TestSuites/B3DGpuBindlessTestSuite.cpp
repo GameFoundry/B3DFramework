@@ -35,11 +35,16 @@ namespace
 
 		void WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view) override { ResourceWrites.Add(slotIndex); }
 		void WriteSamplerSlot(u32 slotIndex, const SamplerState& sampler) override { SamplerWrites.Add(slotIndex); }
-		void ClearSlot(GpuBindlessHeapType heap, u32 slotIndex) override { ClearedSlots.Add(slotIndex); }
+		void ClearResourceSlot(u32 slotIndex, GpuParameterObjectType viewType) override
+		{
+			ClearedSlots.Add(slotIndex);
+			ClearedViewTypes.Add(viewType);
+		}
 
 		TArray<u32> ResourceWrites;
 		TArray<u32> SamplerWrites;
 		TArray<u32> ClearedSlots;
+		TArray<GpuParameterObjectType> ClearedViewTypes;
 	};
 
 	/** Completion tracker whose GPU progress is set by the test. */
@@ -129,6 +134,7 @@ void GpuBindlessTestSuite::TestHeapAllocation()
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	B3D_TEST_ASSERT(nativeHeap.ClearedSlots.Size() == 1 && nativeHeap.ClearedSlots[0] == slots[1])
+	B3D_TEST_ASSERT(nativeHeap.ClearedViewTypes[0] == GPOT_STRUCTURED_BUFFER)
 #endif
 
 	const u32 reusedSlot = heaps.AllocateResourceSlot(view, &owners[3]);
@@ -319,8 +325,8 @@ void GpuBindlessTestSuite::TestHeapAccess()
 	GetRenderThread().PostCommand([this, &device, &pipeline]()
 	{
 		const GpuBufferFlags inputFlags = GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::Bindless;
-		const TShared<render::GpuBuffer> structuredBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 4, inputFlags));
-		const TShared<render::GpuBuffer> typedBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X1U, 4, inputFlags));
+		TShared<render::GpuBuffer> structuredBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 4, inputFlags));
+		TShared<render::GpuBuffer> typedBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X1U, 4, inputFlags));
 		B3D_TEST_ASSERT(structuredBuffer != nullptr && typedBuffer != nullptr)
 		if(structuredBuffer == nullptr || typedBuffer == nullptr)
 			return;
@@ -346,7 +352,7 @@ void GpuBindlessTestSuite::TestHeapAccess()
 		textureInformation.Format = PF_RGBA8;
 		textureInformation.Usage = TextureUsageFlag::Default | TextureUsageFlag::Bindless;
 
-		const TShared<render::Texture> texture = device->CreateTexture(textureInformation);
+		TShared<render::Texture> texture = device->CreateTexture(textureInformation);
 		B3D_TEST_ASSERT(texture != nullptr)
 		if(texture == nullptr)
 			return;
@@ -395,35 +401,58 @@ void GpuBindlessTestSuite::TestHeapAccess()
 		const GpuAccessState hostRead(GpuStageFlag::Host, GpuAccessFlag::Read);
 
 		const TShared<GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
-		const TShared<GpuCommandBuffer> commands = pool->Create(GpuCommandBufferCreateInformation::Create("Bindless heap access"));
+		const char* names[kOutputCount] = { "structured buffer", "typed buffer", "texture load", "cached sampler", "global sampler", "raw buffer", "raw buffer wide load" };
+
+		// Runs the shader on the slots of indices and checks what it reads through each of them
+		auto fnDispatch = [&](const char* name, const TShared<GpuCommandBuffer>& commands, const u32 (&expected)[kOutputCount])
+		{
+			commands->IssueBarriers(GpuBufferBarrier(output, GpuAccessState(), computeWrite));
+			commands->SetGpuComputePipelineState(pipeline);
+			commands->SetGpuParameterSet(parameterSet);
+			commands->SetPushConstants(0, sizeof(indices), indices);
+			commands->DispatchCompute(1);
+
+			const GpuBufferBarrier copyBarriers[] = { GpuBufferBarrier(output, computeWrite, transferRead), GpuBufferBarrier(readback, GpuAccessState(), transferWrite) };
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(copyBarriers, 2)));
+			commands->CopyBufferToBuffer(output, readback, 0, 0, kOutputCount * sizeof(u32));
+			commands->IssueBarriers(GpuBufferBarrier(readback, transferWrite, hostRead));
+			context->SubmitCommandBuffer(commands);
+			device->WaitUntilIdle();
+
+			const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			const u32* actual = static_cast<const u32*>(mapping.GetMappedMemory());
+			for(u32 outputIndex = 0; outputIndex < kOutputCount; outputIndex++)
+			{
+				B3D_TEST_ASSERT_MSG(actual[outputIndex] == expected[outputIndex], StringUtility::Format("Read through the {0} {1}: {2}, expected {3}.",
+					name, names[outputIndex], actual[outputIndex], expected[outputIndex]))
+			}
+		};
+
+		TShared<GpuCommandBuffer> commands = pool->Create(GpuCommandBufferCreateInformation::Create("Bindless heap access"));
 
 		// The texture returns to rest after its upload, which is where heaps read it without barriers
 		commands->IssueBarriers(GpuTextureBarrier(texture, GpuBarrierTestUtility::GetDiscardedRestingState(*texture), textureTransferWrite));
 		commands->CopyBufferToTexture(upload, texture, 0, 0, 0);
 		commands->IssueBarriers(GpuTextureBarrier(texture, textureTransferWrite, GpuBackendUtility::GetRestingState(*texture, GQT_GRAPHICS)));
 
-		commands->IssueBarriers(GpuBufferBarrier(output, GpuAccessState(), computeWrite));
-		commands->SetGpuComputePipelineState(pipeline);
-		commands->SetGpuParameterSet(parameterSet);
-		commands->SetPushConstants(0, sizeof(indices), indices);
-		commands->DispatchCompute(1);
-
-		const GpuBufferBarrier copyBarriers[] = { GpuBufferBarrier(output, computeWrite, transferRead), GpuBufferBarrier(readback, GpuAccessState(), transferWrite) };
-		commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(copyBarriers, 2)));
-		commands->CopyBufferToBuffer(output, readback, 0, 0, kOutputCount * sizeof(u32));
-		commands->IssueBarriers(GpuBufferBarrier(readback, transferWrite, hostRead));
-		context->SubmitCommandBuffer(commands);
-		device->WaitUntilIdle();
-
-		const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
-		B3D_TEST_ASSERT(mapping.IsValid())
-		if(!mapping.IsValid())
-			return;
-
 		const u32 expected[kOutputCount] = { 101, 202, 50, 60, 30, 102, 103 };
-		const char* names[kOutputCount] = { "structured buffer", "typed buffer", "texture load", "cached sampler", "global sampler", "raw buffer", "raw buffer wide load" };
-		const u32* actual = static_cast<const u32*>(mapping.GetMappedMemory());
-		for(u32 outputIndex = 0; outputIndex < kOutputCount; outputIndex++)
-			B3D_TEST_ASSERT_MSG(actual[outputIndex] == expected[outputIndex], StringUtility::Format("Read through the {0}: {1}, expected {2}.", names[outputIndex], actual[outputIndex], expected[outputIndex]))
+		fnDispatch("live", commands, expected);
+		commands = nullptr;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		// Development builds clear retired slots with null descriptors matching the view type, so stale indices read zeros. Nothing
+		// else allocates slots on this thread, so the slots stay retired.
+		texture = nullptr;
+		structuredBuffer = nullptr;
+		typedBuffer = nullptr;
+		device->GetBindlessHeaps()->ProcessAllReleases();
+
+		const u32 expectedRetired[kOutputCount] = {};
+		fnDispatch("retired", pool->Create(GpuCommandBufferCreateInformation::Create("Bindless retired slot access")), expectedRetired);
+#endif
 	}, "GpuBindlessTestSuite::TestHeapAccess", true);
 }

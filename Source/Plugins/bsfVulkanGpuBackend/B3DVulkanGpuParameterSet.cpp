@@ -749,14 +749,16 @@ bool VulkanGpuParameterSet::UpdateDescriptors(TArrayView<const GpuRenderPassAtta
 
 				switch(type)
 				{
-				case GPOT_BYTE_BUFFER:
+				case GPOT_TYPED_BUFFER:
 					resource = builtinResources.DummyReadBuffer->GetVulkanResource();
 					break;
-				case GPOT_RWBYTE_BUFFER:
+				case GPOT_RWTYPED_BUFFER:
 					resource = builtinResources.DummyStorageBuffer->GetVulkanResource();
 					break;
 				case GPOT_STRUCTURED_BUFFER:
 				case GPOT_RWSTRUCTURED_BUFFER:
+				case GPOT_BYTE_ADDRESS_BUFFER:
+				case GPOT_RWBYTE_ADDRESS_BUFFER:
 					resource = builtinResources.DummyStructuredBuffer->GetVulkanResource();
 					break;
 				default:
@@ -778,7 +780,7 @@ bool VulkanGpuParameterSet::UpdateDescriptors(TArrayView<const GpuRenderPassAtta
 				mBuffers[sequentialResourceIndex] = vkBuffer;
 
 				VkBufferView view = VK_NULL_HANDLE;
-				if(type != GPOT_STRUCTURED_BUFFER && type != GPOT_RWSTRUCTURED_BUFFER)
+				if(GpuObjectParameterTypeInformation::IsTypedBuffer(type))
 				{
 					if(mStorageBufferData[sequentialResourceIndex].Buffer != nullptr)
 					{
@@ -1080,7 +1082,7 @@ bool VulkanGpuParameterSet::PrepareForBind(GpuResourceTracker& resourceTracker, 
 		const u32 slot = pipelineParameterInformationSet.GetSlot(GpuParameterType::StorageBuffer, sequentialBindingIndex);
 
 		const GpuParameterObjectType type = pipelineParameterInformationSet.GetTypes()[pipelineParameterInformationSet.GetUsedBindingSequentialIndex(slot)];
-		const bool isReadWrite = type == GPOT_RWBYTE_BUFFER || type == GPOT_RWSTRUCTURED_BUFFER;
+		const bool isReadWrite = GpuObjectParameterTypeInformation::IsReadWriteBuffer(type);
 		for(u32 arrayIndex = 0; arrayIndex < arraySize; ++arrayIndex)
 		{
 			const u32 sequentialResourceIndex = pipelineParameterInformationSet.GetSequentialResourceIndex(slot, arrayIndex);
@@ -1092,14 +1094,16 @@ bool VulkanGpuParameterSet::PrepareForBind(GpuResourceTracker& resourceTracker, 
 			{
 				switch(type)
 				{
-				case GPOT_BYTE_BUFFER:
+				case GPOT_TYPED_BUFFER:
 					resource = builtinResources.DummyReadBuffer->GetVulkanResource();
 					break;
-				case GPOT_RWBYTE_BUFFER:
+				case GPOT_RWTYPED_BUFFER:
 					resource = builtinResources.DummyStorageBuffer->GetVulkanResource();
 					break;
 				case GPOT_STRUCTURED_BUFFER:
 				case GPOT_RWSTRUCTURED_BUFFER:
+				case GPOT_BYTE_ADDRESS_BUFFER:
+				case GPOT_RWBYTE_ADDRESS_BUFFER:
 					resource = builtinResources.DummyStructuredBuffer->GetVulkanResource();
 					break;
 				default:

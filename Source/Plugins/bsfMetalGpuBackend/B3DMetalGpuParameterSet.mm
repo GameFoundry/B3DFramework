@@ -186,7 +186,7 @@ namespace b3d
 		{
 			const MetalArgumentBufferBinding* binding = mMetalLayout != nullptr ? mMetalLayout->FindBinding(GpuParameterType::StorageBuffer, slot) : nullptr;
 			const GpuParameterObjectType objectType = binding != nullptr ? binding->ObjectType : GPOT_UNKNOWN;
-			if (objectType != GPOT_STRUCTURED_BUFFER && objectType != GPOT_RWSTRUCTURED_BUFFER && objectType != GPOT_BYTE_BUFFER && objectType != GPOT_RWBYTE_BUFFER)
+			if (objectType != GPOT_STRUCTURED_BUFFER && objectType != GPOT_RWSTRUCTURED_BUFFER && !GpuObjectParameterTypeInformation::IsTypedBuffer(objectType) && !GpuObjectParameterTypeInformation::IsByteAddressBuffer(objectType))
 			{
 				B3D_LOG(Error, LogRenderBackend, "Metal storage buffers with counters are not supported. Slot: {0}.", slot);
 				return false;
@@ -364,9 +364,10 @@ namespace b3d
 						id<MTLBuffer> metalBuffer = buffer != nullptr ? buffer->GetMetalBuffer() : nil;
 						nativeHandle = metalBuffer;
 
-						if (binding.ObjectType == GPOT_BYTE_BUFFER || binding.ObjectType == GPOT_RWBYTE_BUFFER)
+						// Typed buffers are read through a texture buffer view, and structured and byte address buffers through a pointer
+						if (GpuObjectParameterTypeInformation::IsTypedBuffer(binding.ObjectType))
 						{
-							const bool writable = binding.ObjectType == GPOT_RWBYTE_BUFFER;
+							const bool writable = binding.ObjectType == GPOT_RWTYPED_BUFFER;
 							id<MTLTexture> view = buffer != nullptr ? buffer->GetTextureBufferView(data.View.Format, data.View.Offset, data.View.Range, writable) : nil;
 
 							value = view != nil ? MetalUtility::GetArgumentValue(view.gpuResourceID) : 0;

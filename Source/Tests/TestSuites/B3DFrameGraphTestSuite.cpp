@@ -2671,6 +2671,9 @@ void FrameGraphTestSuite::TestValidation()
 	logs.ExpectError(drawDependency + " Buffer: 'Undeclared buffer'.");
 	logs.ExpectError(drawDependency + " Image: 'Undeclared texture'.");
 	logs.ExpectError("The image was accessed in a different layout than its last barrier declares. Image: 'Unexported texture'.");
+
+	// GPU-based validation also reports the layout misuse of 'Unexported texture' below
+	logs.IgnoreError("'Unexported texture'");
 	logs.ExpectError("The resource was used while it is unplaced, without memory from its transient resource allocator. Place it first. Image: 'Held texture'.");
 
 	RunOnRenderThread("FrameGraphTestSuite::TestValidation", [&device, &pipeline, &samplePipeline]()

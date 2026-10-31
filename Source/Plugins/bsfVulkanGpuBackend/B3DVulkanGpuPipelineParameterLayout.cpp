@@ -128,14 +128,16 @@ VulkanGpuPipelineParameterSetLayout::VulkanGpuPipelineParameterSetLayout(VulkanG
 		switch(entry->ObjectType)
 		{
 		default:
-		case GPOT_BYTE_BUFFER:
+		case GPOT_TYPED_BUFFER:
 			binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
 			break;
-		case GPOT_RWBYTE_BUFFER:
+		case GPOT_RWTYPED_BUFFER:
 			binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
 			break;
 		case GPOT_STRUCTURED_BUFFER:
 		case GPOT_RWSTRUCTURED_BUFFER:
+		case GPOT_BYTE_ADDRESS_BUFFER:
+		case GPOT_RWBYTE_ADDRESS_BUFFER:
 			binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 			break;
 		}

@@ -100,18 +100,18 @@ namespace b3d
 			D3D12_CPU_DESCRIPTOR_HANDLE GetNullCBVHandle() const { return mNullCBVHandle; }
 
 			/**
-			 * Returns a null SRV descriptor of the given view dimension, used for read-only texture/buffer bindings the
-			 * caller never set. Shader reads through it return zero. The dimension must match the shader's declared
-			 * resource type for the null-descriptor guarantees to hold.
+			 * Returns a null SRV descriptor for a read-only texture or buffer that shaders read as @p type, used for bindings the
+			 * caller never set and for retired bindless slots. Shader reads through it return zero. The view dimension, and the
+			 * stride and flags of buffer views, match @p type, as the null-descriptor guarantees only hold for a matching view.
 			 */
-			D3D12_CPU_DESCRIPTOR_HANDLE GetNullSRVHandle(D3D12_SRV_DIMENSION dimension) const;
+			D3D12_CPU_DESCRIPTOR_HANDLE GetNullSRVHandle(GpuParameterObjectType type) const;
 
 			/**
-			 * Returns a null UAV descriptor of the given view dimension, used for read-write texture/buffer bindings
-			 * the caller never set. Shader reads through it return zero, writes are dropped. The dimension must match
-			 * the shader's declared resource type for the null-descriptor guarantees to hold.
+			 * Returns a null UAV descriptor for a read-write texture or buffer that shaders access as @p type, used for bindings
+			 * the caller never set. Shader reads through it return zero, writes are dropped. The view matches @p type, as for
+			 * GetNullSRVHandle().
 			 */
-			D3D12_CPU_DESCRIPTOR_HANDLE GetNullUAVHandle(D3D12_UAV_DIMENSION dimension) const;
+			D3D12_CPU_DESCRIPTOR_HANDLE GetNullUAVHandle(GpuParameterObjectType type) const;
 
 			/** Returns the stride between consecutive descriptors in a heap of the specified type. */
 			u32 GetDescriptorSize(D3D12DescriptorHeapType type) const { return mDescriptorSizes[(u32)type]; }
@@ -171,8 +171,12 @@ namespace b3d
 			// Fallbacks for resource bindings never set by the caller, indexed by view dimension where applicable
 			D3D12_CPU_DESCRIPTOR_HANDLE mDefaultSamplerHandle{};
 			D3D12_CPU_DESCRIPTOR_HANDLE mNullCBVHandle{};
-			D3D12_CPU_DESCRIPTOR_HANDLE mNullSRVHandles[D3D12_SRV_DIMENSION_TEXTURECUBEARRAY + 1] = {};
-			D3D12_CPU_DESCRIPTOR_HANDLE mNullUAVHandles[D3D12_UAV_DIMENSION_TEXTURE3D + 1] = {};
+			D3D12_CPU_DESCRIPTOR_HANDLE mNullSRVHandles[D3D12_SRV_DIMENSION_TEXTURECUBEARRAY + 1] = {}; /**< Indexed by dimension. Typed views for buffers. */
+			D3D12_CPU_DESCRIPTOR_HANDLE mNullUAVHandles[D3D12_UAV_DIMENSION_TEXTURE3D + 1] = {}; /**< Indexed by dimension. Typed views for buffers. */
+			D3D12_CPU_DESCRIPTOR_HANDLE mNullStructuredBufferSRVHandle{};
+			D3D12_CPU_DESCRIPTOR_HANDLE mNullStructuredBufferUAVHandle{};
+			D3D12_CPU_DESCRIPTOR_HANDLE mNullRawBufferSRVHandle{};
+			D3D12_CPU_DESCRIPTOR_HANDLE mNullRawBufferUAVHandle{};
 		};
 
 		/** @} */

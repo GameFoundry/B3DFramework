@@ -95,22 +95,80 @@ void D3D12DescriptorManager::CreateNullDescriptors()
 		d3d12Device->CreateUnorderedAccessView(nullptr, nullptr, &uavDesc, handle);
 		mNullUAVHandles[dimension] = handle;
 	}
+
+	// Structured and raw buffer views differ from typed ones in their format, stride and flags
+	auto fnCreateNullBufferViews = [this, d3d12Device](DXGI_FORMAT format, u32 stride, bool isRaw, D3D12_CPU_DESCRIPTOR_HANDLE& outSRVHandle,
+		D3D12_CPU_DESCRIPTOR_HANDLE& outUAVHandle)
+	{
+		outSRVHandle = AllocateCPUDescriptor(D3D12DescriptorHeapType::CBV_SRV_UAV);
+		if(outSRVHandle.ptr != 0)
+		{
+			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+			srvDesc.Format = format;
+			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			srvDesc.Buffer.StructureByteStride = stride;
+			srvDesc.Buffer.Flags = isRaw ? D3D12_BUFFER_SRV_FLAG_RAW : D3D12_BUFFER_SRV_FLAG_NONE;
+
+			d3d12Device->CreateShaderResourceView(nullptr, &srvDesc, outSRVHandle);
+		}
+
+		outUAVHandle = AllocateCPUDescriptor(D3D12DescriptorHeapType::CBV_SRV_UAV);
+		if(outUAVHandle.ptr != 0)
+		{
+			D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+			uavDesc.Format = format;
+			uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+			uavDesc.Buffer.StructureByteStride = stride;
+			uavDesc.Buffer.Flags = isRaw ? D3D12_BUFFER_UAV_FLAG_RAW : D3D12_BUFFER_UAV_FLAG_NONE;
+
+			d3d12Device->CreateUnorderedAccessView(nullptr, nullptr, &uavDesc, outUAVHandle);
+		}
+	};
+
+	fnCreateNullBufferViews(DXGI_FORMAT_UNKNOWN, sizeof(u32), false, mNullStructuredBufferSRVHandle, mNullStructuredBufferUAVHandle);
+	fnCreateNullBufferViews(DXGI_FORMAT_R32_TYPELESS, 0, true, mNullRawBufferSRVHandle, mNullRawBufferUAVHandle);
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE D3D12DescriptorManager::GetNullSRVHandle(D3D12_SRV_DIMENSION dimension) const
+D3D12_CPU_DESCRIPTOR_HANDLE D3D12DescriptorManager::GetNullSRVHandle(GpuParameterObjectType type) const
 {
-	if ((u32)dimension >= (u32)std::size(mNullSRVHandles))
-		return D3D12_CPU_DESCRIPTOR_HANDLE{ 0 };
-
-	return mNullSRVHandles[dimension];
+	switch(type)
+	{
+	case GPOT_TEXTURE1D:			return mNullSRVHandles[D3D12_SRV_DIMENSION_TEXTURE1D];
+	case GPOT_TEXTURE1DARRAY:		return mNullSRVHandles[D3D12_SRV_DIMENSION_TEXTURE1DARRAY];
+	case GPOT_TEXTURE2D:			return mNullSRVHandles[D3D12_SRV_DIMENSION_TEXTURE2D];
+	case GPOT_TEXTURE2DARRAY:		return mNullSRVHandles[D3D12_SRV_DIMENSION_TEXTURE2DARRAY];
+	case GPOT_TEXTURE2DMS:			return mNullSRVHandles[D3D12_SRV_DIMENSION_TEXTURE2DMS];
+	case GPOT_TEXTURE2DMSARRAY:		return mNullSRVHandles[D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY];
+	case GPOT_TEXTURE3D:			return mNullSRVHandles[D3D12_SRV_DIMENSION_TEXTURE3D];
+	case GPOT_TEXTURECUBE:			return mNullSRVHandles[D3D12_SRV_DIMENSION_TEXTURECUBE];
+	case GPOT_TEXTURECUBEARRAY:		return mNullSRVHandles[D3D12_SRV_DIMENSION_TEXTURECUBEARRAY];
+	case GPOT_STRUCTURED_BUFFER:	return mNullStructuredBufferSRVHandle;
+	case GPOT_BYTE_ADDRESS_BUFFER:	return mNullRawBufferSRVHandle;
+	default:
+		return GpuObjectParameterTypeInformation::IsBuffer(type) ? mNullSRVHandles[D3D12_SRV_DIMENSION_BUFFER] : mNullSRVHandles[D3D12_SRV_DIMENSION_TEXTURE2D];
+	}
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE D3D12DescriptorManager::GetNullUAVHandle(D3D12_UAV_DIMENSION dimension) const
+D3D12_CPU_DESCRIPTOR_HANDLE D3D12DescriptorManager::GetNullUAVHandle(GpuParameterObjectType type) const
 {
-	if ((u32)dimension >= (u32)std::size(mNullUAVHandles))
-		return D3D12_CPU_DESCRIPTOR_HANDLE{ 0 };
-
-	return mNullUAVHandles[dimension];
+	switch(type)
+	{
+	case GPOT_RWTEXTURE1D:						return mNullUAVHandles[D3D12_UAV_DIMENSION_TEXTURE1D];
+	case GPOT_RWTEXTURE1DARRAY:					return mNullUAVHandles[D3D12_UAV_DIMENSION_TEXTURE1DARRAY];
+	case GPOT_RWTEXTURE2D:
+	case GPOT_RWTEXTURE2DMS:					return mNullUAVHandles[D3D12_UAV_DIMENSION_TEXTURE2D];
+	case GPOT_RWTEXTURE2DARRAY:
+	case GPOT_RWTEXTURE2DMSARRAY:				return mNullUAVHandles[D3D12_UAV_DIMENSION_TEXTURE2DARRAY];
+	case GPOT_RWTEXTURE3D:						return mNullUAVHandles[D3D12_UAV_DIMENSION_TEXTURE3D];
+	case GPOT_RWSTRUCTURED_BUFFER:
+	case GPOT_RWSTRUCTURED_BUFFER_WITH_COUNTER:
+	case GPOT_RWAPPEND_BUFFER:
+	case GPOT_RWCONSUME_BUFFER:					return mNullStructuredBufferUAVHandle;
+	case GPOT_RWBYTE_ADDRESS_BUFFER:			return mNullRawBufferUAVHandle;
+	default:
+		return GpuObjectParameterTypeInformation::IsBuffer(type) ? mNullUAVHandles[D3D12_UAV_DIMENSION_BUFFER] : mNullUAVHandles[D3D12_UAV_DIMENSION_TEXTURE2D];
+	}
 }
 
 void D3D12DescriptorManager::CreateHeaps(u32 bindlessResourceCount, u32 bindlessSamplerCount)

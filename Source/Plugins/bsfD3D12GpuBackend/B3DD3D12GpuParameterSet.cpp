@@ -20,40 +20,6 @@ using namespace b3d::render;
 
 namespace
 {
-	/** Returns the SRV dimension matching a sampled-texture object type. */
-	D3D12_SRV_DIMENSION GetSRVDimension(GpuParameterObjectType type)
-	{
-		switch(type)
-		{
-		case GPOT_TEXTURE1D:			return D3D12_SRV_DIMENSION_TEXTURE1D;
-		case GPOT_TEXTURE1DARRAY:		return D3D12_SRV_DIMENSION_TEXTURE1DARRAY;
-		case GPOT_TEXTURE2D:			return D3D12_SRV_DIMENSION_TEXTURE2D;
-		case GPOT_TEXTURE2DARRAY:		return D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-		case GPOT_TEXTURE2DMS:			return D3D12_SRV_DIMENSION_TEXTURE2DMS;
-		case GPOT_TEXTURE2DMSARRAY:		return D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY;
-		case GPOT_TEXTURE3D:			return D3D12_SRV_DIMENSION_TEXTURE3D;
-		case GPOT_TEXTURECUBE:			return D3D12_SRV_DIMENSION_TEXTURECUBE;
-		case GPOT_TEXTURECUBEARRAY:		return D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
-		default:						return D3D12_SRV_DIMENSION_TEXTURE2D;
-		}
-	}
-
-	/** Returns the UAV dimension matching a storage-texture object type. */
-	D3D12_UAV_DIMENSION GetUAVDimension(GpuParameterObjectType type)
-	{
-		switch(type)
-		{
-		case GPOT_RWTEXTURE1D:			return D3D12_UAV_DIMENSION_TEXTURE1D;
-		case GPOT_RWTEXTURE1DARRAY:		return D3D12_UAV_DIMENSION_TEXTURE1DARRAY;
-		case GPOT_RWTEXTURE2D:
-		case GPOT_RWTEXTURE2DMS:		return D3D12_UAV_DIMENSION_TEXTURE2D;
-		case GPOT_RWTEXTURE2DARRAY:
-		case GPOT_RWTEXTURE2DMSARRAY:	return D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
-		case GPOT_RWTEXTURE3D:			return D3D12_UAV_DIMENSION_TEXTURE3D;
-		default:						return D3D12_UAV_DIMENSION_TEXTURE2D;
-		}
-	}
-
 	/** Returns true if @p lhs and @p rhs place the same parameter at the same table offset. */
 	bool IsSameBinding(const D3D12DescriptorBindingLayout& lhs, const D3D12DescriptorBindingLayout& rhs)
 	{
@@ -116,6 +82,7 @@ void D3D12GpuParameters::Initialize()
 			binding.Type = type;
 			binding.FirstDataIndex = uniformInformation->SequentialResourceIndex;
 			binding.IsReadWrite = type == GpuParameterType::StorageBuffer && GpuObjectParameterTypeInformation::IsReadWriteBuffer(uniformInformation->ObjectType);
+			binding.BufferViewType = GpuObjectParameterTypeInformation::IsByteAddressBuffer(uniformInformation->ObjectType) ? GpuBufferViewType::Raw : GpuBufferViewType::Typed;
 
 			// Fallback descriptor for elements the caller leaves unbound, matching the binding's declared type (see the field's documentation)
 			D3D12DescriptorManager& descriptorManager = mDevice.GetDescriptorManager();
@@ -125,13 +92,13 @@ void D3D12GpuParameters::Initialize()
 				binding.NullDescriptorHandle = descriptorManager.GetNullCBVHandle();
 				break;
 			case GpuParameterType::SampledTexture:
-				binding.NullDescriptorHandle = descriptorManager.GetNullSRVHandle(GetSRVDimension(uniformInformation->ObjectType));
+				binding.NullDescriptorHandle = descriptorManager.GetNullSRVHandle(uniformInformation->ObjectType);
 				break;
 			case GpuParameterType::StorageTexture:
-				binding.NullDescriptorHandle = descriptorManager.GetNullUAVHandle(GetUAVDimension(uniformInformation->ObjectType));
+				binding.NullDescriptorHandle = descriptorManager.GetNullUAVHandle(uniformInformation->ObjectType);
 				break;
 			case GpuParameterType::StorageBuffer:
-				binding.NullDescriptorHandle = GpuObjectParameterTypeInformation::IsReadWriteBuffer(uniformInformation->ObjectType) ? descriptorManager.GetNullUAVHandle(D3D12_UAV_DIMENSION_BUFFER) : descriptorManager.GetNullSRVHandle(D3D12_SRV_DIMENSION_BUFFER);
+				binding.NullDescriptorHandle = binding.IsReadWrite ? descriptorManager.GetNullUAVHandle(uniformInformation->ObjectType) : descriptorManager.GetNullSRVHandle(uniformInformation->ObjectType);
 				break;
 			case GpuParameterType::Sampler:
 				binding.NullDescriptorHandle = descriptorManager.GetDefaultSamplerCPUHandle();
@@ -188,7 +155,7 @@ bool D3D12GpuParameters::SetStorageBuffer(u32 slot, const TShared<GpuBuffer>& bu
 
 	// TODO(d3d12-port): view.Offset/Range are not applied (no engine callers currently pass them for storage buffers).
 	if (DescriptorBinding* binding = FindDescriptorBinding(slot))
-		StoreDescriptor(*binding, arrayIndex, ResolveStorageBuffer(static_cast<const D3D12GpuBuffer*>(buffer.get()), view.Format, binding->IsReadWrite, slot));
+		StoreDescriptor(*binding, arrayIndex, ResolveStorageBuffer(static_cast<const D3D12GpuBuffer*>(buffer.get()), *binding, view.Format, slot));
 
 	return true;
 }
@@ -366,7 +333,7 @@ D3D12GpuParameters::ResolvedDescriptor D3D12GpuParameters::ResolveUAV(D3D12Textu
 	return ResolvedDescriptor{ texture->GetUAVHandle(surface), texture->GetResourceGeneration() };
 }
 
-D3D12GpuParameters::ResolvedDescriptor D3D12GpuParameters::ResolveStorageBuffer(const D3D12GpuBuffer* buffer, GpuBufferFormat format, bool isReadWrite, u32 slot) const
+D3D12GpuParameters::ResolvedDescriptor D3D12GpuParameters::ResolveStorageBuffer(const D3D12GpuBuffer* buffer, const DescriptorBinding& binding, GpuBufferFormat format, u32 slot) const
 {
 	if(buffer == nullptr)
 		return ResolvedDescriptor();
@@ -376,11 +343,17 @@ D3D12GpuParameters::ResolvedDescriptor D3D12GpuParameters::ResolveStorageBuffer(
 	if(buffer->GetD3D12Buffer() == nullptr)
 		return output;
 
-	output.Handle = isReadWrite ? buffer->GetUAVHandle(GpuBufferViewType::Typed, format) : buffer->GetSRVHandle(GpuBufferViewType::Typed, format);
+	// Raw views have no element format
+	const bool isReadWrite = binding.IsReadWrite;
+	const GpuBufferViewType viewType = binding.BufferViewType;
+	if(viewType == GpuBufferViewType::Raw)
+		format = BF_UNKNOWN;
+
+	output.Handle = isReadWrite ? buffer->GetUAVHandle(viewType, format) : buffer->GetSRVHandle(viewType, format);
 	if (output.Handle.ptr == 0)
 	{
 		B3D_LOG(Warning, LogRenderBackend, "D3D12: Storage buffer bound to set {0} slot {1} has no {2} view; binding its {3} view instead.", GetSet(), slot, isReadWrite ? "UAV" : "SRV", isReadWrite ? "SRV" : "UAV");
-		output.Handle = isReadWrite ? buffer->GetSRVHandle(GpuBufferViewType::Typed, format) : buffer->GetUAVHandle(GpuBufferViewType::Typed, format);
+		output.Handle = isReadWrite ? buffer->GetSRVHandle(viewType, format) : buffer->GetUAVHandle(viewType, format);
 
 		if (output.Handle.ptr == 0)
 			B3D_LOG(Error, LogRenderBackend, "D3D12: Storage buffer '{0}' (type {1}) bound to set {2} slot {3} has no shader views at all; the slot is left unbound and reads will return zero.", buffer->GetName(), (u32)buffer->GetInformation().Type, GetSet(), slot);
@@ -465,7 +438,7 @@ bool D3D12GpuParameters::RefreshDescriptors(bool canWrite)
 					if(!canWrite)
 						return true;
 
-					StoreDescriptor(binding, arrayIndex, ResolveStorageBuffer(buffer, data.View.Format, binding.IsReadWrite, entry.first));
+					StoreDescriptor(binding, arrayIndex, ResolveStorageBuffer(buffer, binding, data.View.Format, entry.first));
 					isStale = true;
 				}
 
@@ -494,11 +467,11 @@ void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D1
 		case GpuParameterType::UniformBuffer:
 			return descriptorManager.GetNullCBVHandle();
 		case GpuParameterType::SampledTexture:
-			return descriptorManager.GetNullSRVHandle(GetSRVDimension(bindingLayout.ObjectType));
+			return descriptorManager.GetNullSRVHandle(bindingLayout.ObjectType);
 		case GpuParameterType::StorageTexture:
-			return descriptorManager.GetNullUAVHandle(GetUAVDimension(bindingLayout.ObjectType));
+			return descriptorManager.GetNullUAVHandle(bindingLayout.ObjectType);
 		case GpuParameterType::StorageBuffer:
-			return GpuObjectParameterTypeInformation::IsReadWriteBuffer(bindingLayout.ObjectType) ? descriptorManager.GetNullUAVHandle(D3D12_UAV_DIMENSION_BUFFER) : descriptorManager.GetNullSRVHandle(D3D12_SRV_DIMENSION_BUFFER);
+			return GpuObjectParameterTypeInformation::IsReadWriteBuffer(bindingLayout.ObjectType) ? descriptorManager.GetNullUAVHandle(bindingLayout.ObjectType) : descriptorManager.GetNullSRVHandle(bindingLayout.ObjectType);
 		case GpuParameterType::Sampler:
 			return descriptorManager.GetDefaultSamplerCPUHandle();
 		default:

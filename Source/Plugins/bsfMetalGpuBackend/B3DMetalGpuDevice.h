@@ -196,7 +196,7 @@ namespace b3d
 
 			void WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view) override;
 			void WriteSamplerSlot(u32 slotIndex, const SamplerState& sampler) override;
-			void ClearSlot(GpuBindlessHeapType heap, u32 slotIndex) override;
+			void ClearResourceSlot(u32 slotIndex, GpuParameterObjectType viewType) override;
 
 			/** @} */
 

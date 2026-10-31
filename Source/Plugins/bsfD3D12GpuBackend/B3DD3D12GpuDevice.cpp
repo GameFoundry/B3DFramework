@@ -941,7 +941,7 @@ void D3D12GpuDevice::WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceV
 	}
 
 	if(!B3D_ENSURE_LOG(sourceHandle.ptr != 0, "Failed to create the view written into bindless resource slot {0}.", slotIndex))
-		sourceHandle = mDescriptorManager->GetNullSRVHandle(D3D12_SRV_DIMENSION_TEXTURE2D);
+		sourceHandle = mDescriptorManager->GetNullSRVHandle(GPOT_TEXTURE2D);
 
 	const D3D12_CPU_DESCRIPTOR_HANDLE destinationHandle = mDescriptorManager->GetBindlessCPUHandle(D3D12DescriptorHeapType::CBV_SRV_UAV, slotIndex);
 	mDevice->CopyDescriptorsSimple(1, destinationHandle, sourceHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -953,19 +953,10 @@ void D3D12GpuDevice::WriteSamplerSlot(u32 slotIndex, const SamplerState& sampler
 	mDevice->CopyDescriptorsSimple(1, destinationHandle, static_cast<const D3D12SamplerState&>(sampler).GetDescriptorHandle(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 }
 
-void D3D12GpuDevice::ClearSlot(GpuBindlessHeapType heap, u32 slotIndex)
+void D3D12GpuDevice::ClearResourceSlot(u32 slotIndex, GpuParameterObjectType viewType)
 {
-	// Sampler heaps have no null descriptor, so retired sampler slots get the default sampler
-	if(heap == GpuBindlessHeapType::Resource)
-	{
-		const D3D12_CPU_DESCRIPTOR_HANDLE destinationHandle = mDescriptorManager->GetBindlessCPUHandle(D3D12DescriptorHeapType::CBV_SRV_UAV, slotIndex);
-		mDevice->CopyDescriptorsSimple(1, destinationHandle, mDescriptorManager->GetNullSRVHandle(D3D12_SRV_DIMENSION_TEXTURE2D), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	}
-	else
-	{
-		const D3D12_CPU_DESCRIPTOR_HANDLE destinationHandle = mDescriptorManager->GetBindlessCPUHandle(D3D12DescriptorHeapType::Sampler, slotIndex);
-		mDevice->CopyDescriptorsSimple(1, destinationHandle, mDescriptorManager->GetDefaultSamplerCPUHandle(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
-	}
+	const D3D12_CPU_DESCRIPTOR_HANDLE destinationHandle = mDescriptorManager->GetBindlessCPUHandle(D3D12DescriptorHeapType::CBV_SRV_UAV, slotIndex);
+	mDevice->CopyDescriptorsSimple(1, destinationHandle, mDescriptorManager->GetNullSRVHandle(viewType), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
 void D3D12GpuDevice::InitializeCapabilities()

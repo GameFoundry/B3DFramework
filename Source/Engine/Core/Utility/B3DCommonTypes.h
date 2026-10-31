@@ -424,14 +424,15 @@ namespace b3d
 		GPOT_TEXTURE3D = 13, /**< 3D texture. */
 		GPOT_TEXTURECUBE = 14, /**< Cube texture. */
 		GPOT_TEXTURE2DMS = 15, /**< 2D texture with multiple samples. */
-		GPOT_BYTE_BUFFER = 32, /**< Buffer containing raw bytes (no interpretation). */
+		GPOT_TYPED_BUFFER = 32, /**< Buffer of typed elements, read through the element format (Buffer). */
 		GPOT_STRUCTURED_BUFFER = 33, /**< Buffer containing a set of structures. */
-		GPOT_RWTYPED_BUFFER = 41, /**< Read-write buffer containing a set of primitives. */
-		GPOT_RWBYTE_BUFFER = 42, /**< Read-write buffer containing raw bytes (no interpretation). */
+		GPOT_BYTE_ADDRESS_BUFFER = 34, /**< Buffer read as 32-bit words at byte addresses (ByteAddressBuffer). */
+		GPOT_RWTYPED_BUFFER = 41, /**< Buffer of typed elements, read and written through the element format (RWBuffer). */
 		GPOT_RWSTRUCTURED_BUFFER = 43, /**< Read-write buffer containing a set of structures. */
 		GPOT_RWSTRUCTURED_BUFFER_WITH_COUNTER = 44, /**< Read-write buffer containing a set of structures, with a counter. */
 		GPOT_RWAPPEND_BUFFER = 45, /**< Buffer that can be used for appending data in a stack-like fashion. */
 		GPOT_RWCONSUME_BUFFER = 46, /**< Buffer that can be used for consuming data in a stack-like fashion. */
+		GPOT_RWBYTE_ADDRESS_BUFFER = 47, /**< Buffer read and written as 32-bit words at byte addresses (RWByteAddressBuffer). */
 		GPOT_RWTEXTURE1D = 50, /**< 1D texture with unordered read/writes. */
 		GPOT_RWTEXTURE2D = 51, /**< 2D texture with unordered read/writes. */
 		GPOT_RWTEXTURE3D = 52, /**< 3D texture with unordered read/writes. */
@@ -517,17 +518,29 @@ namespace b3d
 			}
 		}
 
+		/** Returns true if @p type represents a buffer that shaders access through its element format. */
+		static bool IsTypedBuffer(GpuParameterObjectType type)
+		{
+			return type == GPOT_TYPED_BUFFER || type == GPOT_RWTYPED_BUFFER;
+		}
+
+		/** Returns true if @p type represents a buffer that shaders access as 32-bit words at byte addresses. */
+		static bool IsByteAddressBuffer(GpuParameterObjectType type)
+		{
+			return type == GPOT_BYTE_ADDRESS_BUFFER || type == GPOT_RWBYTE_ADDRESS_BUFFER;
+		}
+
 		/** Returns true if @p type represents a buffer that shaders can write to. */
 		static bool IsReadWriteBuffer(GpuParameterObjectType type)
 		{
 			switch(type)
 			{
 			case GPOT_RWTYPED_BUFFER:
-			case GPOT_RWBYTE_BUFFER:
 			case GPOT_RWSTRUCTURED_BUFFER:
 			case GPOT_RWSTRUCTURED_BUFFER_WITH_COUNTER:
 			case GPOT_RWAPPEND_BUFFER:
 			case GPOT_RWCONSUME_BUFFER:
+			case GPOT_RWBYTE_ADDRESS_BUFFER:
 				return true;
 			default:
 				return false;

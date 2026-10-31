@@ -139,11 +139,11 @@ namespace
 	void AddLightingInputs(InputLayoutBuilder& builder)
 	{
 		builder.AddUniformBuffer("GridParams", InputRegister::kGridParams, gLightGridUniformDefinition.GetSize());
-		builder.AddBuffer("gGridLightOffsetsAndSize", InputRegister::kGridLightOffsetsAndSize, GPOT_BYTE_BUFFER, BF_32X4U);
-		builder.AddBuffer("gGridProbeOffsetsAndSize", InputRegister::kGridProbeOffsetsAndSize, GPOT_BYTE_BUFFER, BF_32X2U);
-		builder.AddBuffer("gLightIndices", InputRegister::kLightIndices, GPOT_BYTE_BUFFER, BF_32X1U);
+		builder.AddBuffer("gGridLightOffsetsAndSize", InputRegister::kGridLightOffsetsAndSize, GPOT_TYPED_BUFFER, BF_32X4U);
+		builder.AddBuffer("gGridProbeOffsetsAndSize", InputRegister::kGridProbeOffsetsAndSize, GPOT_TYPED_BUFFER, BF_32X2U);
+		builder.AddBuffer("gLightIndices", InputRegister::kLightIndices, GPOT_TYPED_BUFFER, BF_32X1U);
 		builder.AddBuffer("gLights", InputRegister::kLights, GPOT_STRUCTURED_BUFFER, BF_UNKNOWN);
-		builder.AddBuffer("gReflectionProbeIndices", InputRegister::kReflectionProbeIndices, GPOT_BYTE_BUFFER, BF_32X1U);
+		builder.AddBuffer("gReflectionProbeIndices", InputRegister::kReflectionProbeIndices, GPOT_TYPED_BUFFER, BF_32X1U);
 		builder.AddBuffer("gReflectionProbes", InputRegister::kReflectionProbes, GPOT_STRUCTURED_BUFFER, BF_UNKNOWN);
 		builder.AddUniformBuffer("ReflProbeParams", InputRegister::kReflectionProbeParams, gGlobalReflectionProbeUniformBufferDefinition.GetSize());
 		builder.AddTexture("gSkyReflectionTex", InputRegister::kSkyReflectionTexture, GPOT_TEXTURECUBE);
@@ -165,13 +165,13 @@ namespace
 		builder.AddTexture("gSizeRotationTex", InputRegister::kGpuParticleSizeAndRotation, GPOT_TEXTURE2D);
 		builder.AddTexture("gCurvesTex", InputRegister::kGpuParticleCurves, GPOT_TEXTURE2D);
 		builder.AddSampler("gCurvesSampler", InputRegister::kGpuParticleCurvesSampler);
-		builder.AddBuffer("gSortedIndices", InputRegister::kGpuParticleSortedIndices, GPOT_BYTE_BUFFER, BF_32X2U);
+		builder.AddBuffer("gSortedIndices", InputRegister::kGpuParticleSortedIndices, GPOT_TYPED_BUFFER, BF_32X2U);
 	}
 
 	/** Adds the view's indices of CPU simulated particles, which the CPU particle layouts add to their base layout. */
 	void AddCpuParticleInputs(InputLayoutBuilder& builder)
 	{
-		builder.AddBuffer("gParticleIndices", InputRegister::kParticleIndices, GPOT_BYTE_BUFFER, BF_32X2U);
+		builder.AddBuffer("gParticleIndices", InputRegister::kParticleIndices, GPOT_TYPED_BUFFER, BF_32X2U);
 	}
 
 	/** Creates a table mapping each SurfaceShaderType to its position in @p types, or to -1 for types not in it. */

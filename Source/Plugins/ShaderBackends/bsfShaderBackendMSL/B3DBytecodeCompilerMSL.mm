@@ -466,7 +466,7 @@ namespace
 			// Typed buffers (Buffer<T>/RWBuffer<T>) compile to texture_buffer<T>, so they reflect with texture metadata instead of a pointer.
 			if(pointerType == nil && textureType != nil && textureType.textureType == MTLTextureTypeTextureBuffer)
 			{
-				information.Type = textureType.access == MTLBindingAccessReadOnly ? GPOT_BYTE_BUFFER : GPOT_RWBYTE_BUFFER;
+				information.Type = textureType.access == MTLBindingAccessReadOnly ? GPOT_TYPED_BUFFER : GPOT_RWTYPED_BUFFER;
 				information.ElementType = MapElementFormat(textureType.textureDataType);
 				outDescription.Buffers[name] = information;
 

@@ -190,6 +190,7 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 #endif
 
 	bool supportsMutableDescriptorType = false;
+	bool supportsRobustness2 = false;
 
 	// Enumerate supported extensions
 	uint32_t availableExtensionCount = 0;
@@ -207,6 +208,8 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 				}
 				else if(strcmp(entry.extensionName, VK_EXT_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME) == 0)
 					supportsMutableDescriptorType = true;
+				else if(strcmp(entry.extensionName, VK_EXT_ROBUSTNESS_2_EXTENSION_NAME) == 0)
+					supportsRobustness2 = true;
 #if B3D_BUILD_TYPE_DEVELOPMENT
 				else if(strcmp(entry.extensionName, VK_KHR_PIPELINE_EXECUTABLE_PROPERTIES_EXTENSION_NAME) == 0)
 				{
@@ -233,6 +236,14 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	mutableDescriptorTypeFeatureProbe.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT;
 	if(supportsMutableDescriptorType)
 		descriptorIndexingFeatureProbe.pNext = &mutableDescriptorTypeFeatureProbe;
+
+	VkPhysicalDeviceRobustness2FeaturesEXT robustness2FeatureProbe = {};
+	robustness2FeatureProbe.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT;
+	if(supportsRobustness2)
+	{
+		robustness2FeatureProbe.pNext = descriptorIndexingFeatureProbe.pNext;
+		descriptorIndexingFeatureProbe.pNext = &robustness2FeatureProbe;
+	}
 
 	VkPhysicalDeviceFeatures2 features2 = {};
 	features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
@@ -265,6 +276,13 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 
 	if(mSupportsBindlessResources)
 		extensions[extensionCount++] = VK_EXT_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	// Only retired bindless slots use null descriptors, and only development builds clear them
+	mSupportsNullDescriptor = mSupportsBindlessResources && robustness2FeatureProbe.nullDescriptor == VK_TRUE;
+	if(mSupportsNullDescriptor)
+		extensions[extensionCount++] = VK_EXT_ROBUSTNESS_2_EXTENSION_NAME;
+#endif
 
 	// Build the enabled-feature pNext chain
 	void* featureChain = nullptr;
@@ -315,6 +333,15 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	}
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
+	VkPhysicalDeviceRobustness2FeaturesEXT robustness2Features = {};
+	if(mSupportsNullDescriptor)
+	{
+		robustness2Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT;
+		robustness2Features.pNext = featureChain;
+		robustness2Features.nullDescriptor = VK_TRUE;
+		featureChain = &robustness2Features;
+	}
+
 	VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR pipelineExecutableFeatures = {};
 	if(supportsPipelineExecutableProperties)
 	{
@@ -1327,17 +1354,21 @@ void VulkanGpuDevice::WriteSamplerSlot(u32 slotIndex, const SamplerState& sample
 	vkUpdateDescriptorSets(mLogicalDevice, 1, &writeInfo, 0, nullptr);
 }
 
-void VulkanGpuDevice::ClearSlot(GpuBindlessHeapType heap, u32 slotIndex)
+void VulkanGpuDevice::ClearResourceSlot(u32 slotIndex, GpuParameterObjectType viewType)
 {
-	// Without the null descriptor feature, a retired resource slot views a dummy buffer instead. Sampler slots keep their
-	// descriptor, as no sampler outlives the heaps for certain.
-	if(heap != GpuBindlessHeapType::Resource)
-		return;
+	// The descriptor type must match the type shaders read the slot as. Without null descriptors, the slot views a dummy buffer
+	// instead, which is only well defined for buffers read as structured or raw.
+	VkDescriptorImageInfo imageInfo;
+	imageInfo.sampler = VK_NULL_HANDLE;
+	imageInfo.imageView = VK_NULL_HANDLE;
+	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 	VkDescriptorBufferInfo bufferInfo;
-	bufferInfo.buffer = mBuiltinResources.DummyStructuredBuffer->GetVulkanResource()->GetVulkanHandle();
+	bufferInfo.buffer = mSupportsNullDescriptor ? VK_NULL_HANDLE : mBuiltinResources.DummyStructuredBuffer->GetVulkanResource()->GetVulkanHandle();
 	bufferInfo.offset = 0;
 	bufferInfo.range = VK_WHOLE_SIZE;
+
+	const VkBufferView bufferView = VK_NULL_HANDLE;
 
 	VkWriteDescriptorSet writeInfo;
 	writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -1346,10 +1377,25 @@ void VulkanGpuDevice::ClearSlot(GpuBindlessHeapType heap, u32 slotIndex)
 	writeInfo.dstBinding = 1;
 	writeInfo.dstArrayElement = slotIndex;
 	writeInfo.descriptorCount = 1;
-	writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 	writeInfo.pImageInfo = nullptr;
-	writeInfo.pBufferInfo = &bufferInfo;
+	writeInfo.pBufferInfo = nullptr;
 	writeInfo.pTexelBufferView = nullptr;
+
+	if(mSupportsNullDescriptor && GpuObjectParameterTypeInformation::IsTexture(viewType))
+	{
+		writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+		writeInfo.pImageInfo = &imageInfo;
+	}
+	else if(mSupportsNullDescriptor && viewType == GPOT_TYPED_BUFFER)
+	{
+		writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+		writeInfo.pTexelBufferView = &bufferView;
+	}
+	else
+	{
+		writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		writeInfo.pBufferInfo = &bufferInfo;
+	}
 
 	vkUpdateDescriptorSets(mLogicalDevice, 1, &writeInfo, 0, nullptr);
 }

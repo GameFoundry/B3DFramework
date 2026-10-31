@@ -119,6 +119,9 @@ namespace b3d
 		/** Verifies creation of buffers and textures at pending, owned and non-owning memory locations, and rejection of invalid ones. */
 		void TestResourceLocations();
 
+		/** Loads, stores and runs atomics through byte address buffers bound to a parameter set, and rejects binding typed buffers raw. */
+		void TestByteAddressBufferAccess();
+
 #if !B3D_PLATFORM_PS5
 		/** Reads back static and dynamic uniform buffers across offset, pipeline and command-buffer changes on Vulkan and D3D12. */
 		void TestDynamicUniformBufferOffsets();

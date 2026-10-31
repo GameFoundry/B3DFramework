@@ -475,7 +475,7 @@ namespace
 			objectInformation->Type = imageTypeInformation.arrayed ? GPOT_TEXTURECUBEARRAY : GPOT_TEXTURECUBE;
 			break;
 		case spv::DimBuffer:
-			objectInformation->Type = GPOT_BYTE_BUFFER;
+			objectInformation->Type = GPOT_TYPED_BUFFER;
 			break;
 		default:
 			break;
@@ -541,7 +541,7 @@ namespace
 			objectInformation->Type = GPOT_RWTEXTURE3D;
 			break;
 		case spv::DimBuffer:
-			objectInformation->Type = GPOT_RWBYTE_BUFFER;
+			objectInformation->Type = GPOT_RWTYPED_BUFFER;
 			break;
 		default:
 			break;
@@ -661,7 +661,7 @@ namespace
 			if (sampledImageInformation)
 			{
 				String name = sampledImageInformation->Name;
-				if (sampledImageInformation->Type == GPOT_BYTE_BUFFER)
+				if (sampledImageInformation->Type == GPOT_TYPED_BUFFER)
 					outParameterDescription.Buffers[std::move(name)] = std::move(sampledImageInformation.value());
 				else
 					outParameterDescription.SampledTextures[std::move(name)] = std::move(sampledImageInformation.value());
@@ -685,7 +685,7 @@ namespace
 			if (sampledImageInformation)
 			{
 				String name = sampledImageInformation->Name;
-				if (sampledImageInformation->Type == GPOT_BYTE_BUFFER)
+				if (sampledImageInformation->Type == GPOT_TYPED_BUFFER)
 					outParameterDescription.Buffers[std::move(name)] = std::move(sampledImageInformation.value());
 				else
 					outParameterDescription.SampledTextures[std::move(name)] = std::move(sampledImageInformation.value());
@@ -702,7 +702,7 @@ namespace
 			if (sampledImageInformation)
 			{
 				String name = sampledImageInformation->Name;
-				if (sampledImageInformation->Type == GPOT_RWBYTE_BUFFER)
+				if (sampledImageInformation->Type == GPOT_RWTYPED_BUFFER)
 					outParameterDescription.Buffers[std::move(name)] = std::move(sampledImageInformation.value());
 				else
 					outParameterDescription.StorageTextures[std::move(name)] = std::move(sampledImageInformation.value());
@@ -937,6 +937,13 @@ TShared<GpuProgramBytecode> GLSLToSPIRV::CompileBytecode(const GpuProgramCreateI
 	if(desc.ShaderReflection != nullptr && desc.ShaderReflection->Parameters != nullptr)
 	{
 		ShaderParameterDescription::IterateMatching(desc.ShaderReflection->Parameters->GetUniformBuffers(), bytecode->ParameterDescription->UniformBuffers, [](const auto& source, auto& outTarget) { outTarget.UsesDynamicOffset = source.UsesDynamicOffset; });
+
+		// SPIR-V declares byte address buffers as storage blocks, like structured buffers, so only the shader reflection tells them apart
+		ShaderParameterDescription::IterateMatching(desc.ShaderReflection->Parameters->GetBufferParameters(), bytecode->ParameterDescription->Buffers, [](const auto& source, auto& outTarget)
+		{
+			if(GpuObjectParameterTypeInformation::IsByteAddressBuffer(source.Type))
+				outTarget.Type = source.Type;
+		});
 	}
 
 	const ShaderEntryPointReflection& entryPointReflection = desc.GetEntryPointReflection();

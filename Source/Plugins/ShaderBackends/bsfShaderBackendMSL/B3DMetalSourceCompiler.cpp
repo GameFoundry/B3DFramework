@@ -118,7 +118,7 @@ namespace
 			for(const Map<String, GpuObjectParameterInformation>::value_type& bufferEntry : parameterDescription.Buffers)
 			{
 				const GpuParameterObjectType bufferType = bufferEntry.second.Type;
-				if(bufferType != GPOT_STRUCTURED_BUFFER && bufferType != GPOT_RWSTRUCTURED_BUFFER && bufferType != GPOT_BYTE_BUFFER && bufferType != GPOT_RWBYTE_BUFFER)
+				if(bufferType != GPOT_STRUCTURED_BUFFER && bufferType != GPOT_RWSTRUCTURED_BUFFER && !GpuObjectParameterTypeInformation::IsTypedBuffer(bufferType) && !GpuObjectParameterTypeInformation::IsByteAddressBuffer(bufferType))
 					AppendError(mResult, StringUtility::Format("Metal storage buffers with counters are not supported: {0}.", bufferEntry.second.Name));
 			}
 
@@ -175,7 +175,7 @@ namespace
 			if(parameterType == GpuParameterType::SampledTexture || parameterType == GpuParameterType::StorageTexture)
 				return true;
 
-			return parameterType == GpuParameterType::StorageBuffer && (information.Type == GPOT_BYTE_BUFFER || information.Type == GPOT_RWBYTE_BUFFER);
+			return parameterType == GpuParameterType::StorageBuffer && GpuObjectParameterTypeInformation::IsTypedBuffer(information.Type);
 		}
 
 		/** Adds one resource category to the Metal argument-buffer layout. */
@@ -294,8 +294,8 @@ namespace
 			const UnorderedSet<String> mappedUniformBufferNames = RenameExactResources(resources.uniform_buffers, mParameterDescription.UniformBuffers, GpuParameterType::UniformBuffer);
 			ReportMissingResources(mParameterDescription.UniformBuffers, mappedUniformBufferNames);
 
-			RenameImageResources(resources.separate_images, mParameterDescription.SampledTextures, GpuParameterType::SampledTexture, GPOT_BYTE_BUFFER);
-			RenameImageResources(resources.storage_images, mParameterDescription.StorageTextures, GpuParameterType::StorageTexture, GPOT_RWBYTE_BUFFER);
+			RenameImageResources(resources.separate_images, mParameterDescription.SampledTextures, GpuParameterType::SampledTexture, GPOT_TYPED_BUFFER);
+			RenameImageResources(resources.storage_images, mParameterDescription.StorageTextures, GpuParameterType::StorageTexture, GPOT_RWTYPED_BUFFER);
 
 			const UnorderedSet<String> mappedStructuredBufferNames = RenameExactResources(resources.storage_buffers, mParameterDescription.Buffers, GpuParameterType::StorageBuffer);
 			mMappedBufferNames.insert(mappedStructuredBufferNames.begin(), mappedStructuredBufferNames.end());

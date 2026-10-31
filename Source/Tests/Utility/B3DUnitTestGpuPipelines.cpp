@@ -70,4 +70,9 @@ namespace b3d
 	{
 		return CreateComputePipeline(device, "BindlessHeapAccess");
 	}
+
+	TShared<GpuComputePipelineState> CreateTestByteAddressBufferAccessPipeline(GpuDevice& device)
+	{
+		return CreateComputePipeline(device, "ByteAddressBufferAccess");
+	}
 } // namespace b3d

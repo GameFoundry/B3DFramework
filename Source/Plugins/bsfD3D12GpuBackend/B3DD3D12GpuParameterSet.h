@@ -90,6 +90,7 @@ namespace b3d
 				GpuParameterType Type = GpuParameterType::Count; /**< Type of the binding. */
 				u32 FirstDataIndex = ~0u; /**< Index of the first array element in the base class's resource data (sequential resource index). */
 				bool IsReadWrite = false; /**< True for storage buffers bound for writing. */
+				GpuBufferViewType BufferViewType = GpuBufferViewType::Typed; /**< How storage buffer views interpret the buffer. */
 
 				/**
 				 * Descriptor copied into GPU-visible slots whose binding is unset: a type-compatible null descriptor, or
@@ -154,10 +155,11 @@ namespace b3d
 			static ResolvedDescriptor ResolveUAV(D3D12Texture* texture, const TextureSurface& surface);
 
 			/**
-			 * Resolves the view of a storage buffer bound at @p slot: its unordered access view if @p isReadWrite, and its shader resource view
-			 * otherwise, viewing the elements as @p format. Falls back to the other view if the buffer lacks the requested one. @p buffer may be null.
+			 * Resolves the view of a storage buffer bound at @p slot to @p binding: its unordered access view if the binding is read-write, and
+			 * its shader resource view otherwise, of the binding's view type. Typed views read the elements as @p format. Falls back to the other
+			 * view if the buffer lacks the requested one. @p buffer may be null.
 			 */
-			ResolvedDescriptor ResolveStorageBuffer(const D3D12GpuBuffer* buffer, GpuBufferFormat format, bool isReadWrite, u32 slot) const;
+			ResolvedDescriptor ResolveStorageBuffer(const D3D12GpuBuffer* buffer, const DescriptorBinding& binding, GpuBufferFormat format, u32 slot) const;
 
 			/**
 			 * Resolves again the descriptors of textures and buffers that recreated their native resource since they were resolved,

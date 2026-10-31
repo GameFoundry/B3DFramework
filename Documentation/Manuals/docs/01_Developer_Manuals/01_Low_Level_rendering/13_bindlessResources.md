@@ -139,4 +139,6 @@ The heaps have a fixed capacity, set when the device is created:
 
 Both are limited by the device: see @b3d::GpuDeviceCapabilities::MaximumBindlessResourceCount and @b3d::GpuDeviceCapabilities::MaximumBindlessSamplerCount. Allocation fails with an error once a heap is full. @b3d::GpuBindlessHeaps::GetStatistics, available through @b3d::GpuDevice::GetBindlessHeaps, reports how many slots are in use.
 
-In development builds, retired slots are cleared so stale indices read null data, and slots still allocated when the device shuts down are reported as leaks, with the name of the resource or sampler that owns them.
+In development builds, slots still allocated when the device shuts down are reported as leaks, with the name of the resource or sampler that owns them. Retired slots are also cleared, so stale indices read zeros:
+ - A retired resource slot gets a null descriptor of the same type as the view it held (texture dimension, typed, structured or raw buffer), as reads through a null descriptor of a different type are undefined. On Vulkan this needs `VK_EXT_robustness2` with the `nullDescriptor` feature. Without it, retired slots hold an empty storage buffer, so only stale structured and raw buffer indices read zeros.
+ - A retired sampler slot gets the point filtered, wrapping global sampler, as samplers have no null descriptor.

@@ -120,8 +120,14 @@ namespace b3d
 		/** Writes the descriptor of @p sampler into sampler heap slot @p slotIndex. Never called for slots that GPU work may still read. */
 		virtual void WriteSamplerSlot(u32 slotIndex, const SamplerState& sampler) = 0;
 
-		/** Writes a null descriptor into slot @p slotIndex of heap @p heap. Never called for slots that GPU work may still read. */
-		virtual void ClearSlot(GpuBindlessHeapType heap, u32 slotIndex) = 0;
+		/**
+		 * Writes a null descriptor into resource heap slot @p slotIndex. Never called for slots that GPU work may still read.
+		 *
+		 * @param	slotIndex	Index of the slot in the resource heap.
+		 * @param	viewType	Type of the view last written into the slot, which stale indices are read as. The null descriptor must
+		 *						match it.
+		 */
+		virtual void ClearResourceSlot(u32 slotIndex, GpuParameterObjectType viewType) = 0;
 	};
 
 	/**
@@ -200,6 +206,7 @@ namespace b3d
 
 			const void* Owner = nullptr; /**< Object the slot is allocated for, or null if the slot isn't allocated. */
 			String OwnerName; /**< Debug name of the viewed resource or sampler. */
+			GpuParameterObjectType ViewType = GPOT_UNKNOWN; /**< Type shaders read the view in a resource heap slot as. */
 			bool IsPendingRelease = false;
 		};
 

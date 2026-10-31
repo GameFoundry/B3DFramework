@@ -46,6 +46,13 @@ GpuBufferCreateInformation createInformation = GpuBufferCreateInformation::Creat
 TShared<render::GpuBuffer> buffer = gpuDevice->CreateGpuBuffer(createInformation);
 ~~~~~~~~~~~~~
 
+Programs can also read and write a structured storage buffer as raw 32-bit words at byte addresses, through the HLSL **ByteAddressBuffer** and **RWByteAddressBuffer** types. Bind the buffer to such a parameter as to any other storage buffer. Only structured storage buffers can be bound this way: binding a simple storage buffer logs an error and leaves the parameter unchanged.
+
+~~~~~~~~~~~~~{.cpp}
+// HLSL: ByteAddressBuffer Words;
+parameterSet->SetStorageBuffer("Words", buffer);
+~~~~~~~~~~~~~
+
 ## Memory placement flags
 The @b3d::GpuBufferFlag flags control where the buffer memory is stored:
  - @b3d::GpuBufferFlag::StoreOnGPU - Buffer is placed in device memory. Fast GPU access, but CPU reads/writes require staging buffers. This is the default for most buffer types.

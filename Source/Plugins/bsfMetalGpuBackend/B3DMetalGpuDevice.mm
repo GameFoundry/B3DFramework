@@ -714,14 +714,14 @@ namespace b3d
 			((u64*)[mBindlessHeapBuffers[(u32)GpuBindlessHeapType::Sampler] contents])[slotIndex] = entry;
 		}
 
-		void MetalGpuDevice::ClearSlot(GpuBindlessHeapType heap, u32 slotIndex)
+		void MetalGpuDevice::ClearResourceSlot(u32 slotIndex, GpuParameterObjectType viewType)
 		{
-			// A retired resource slot points to the zero-filled dummy buffer instead. Sampler slots keep their entry, as no
-			// sampler outlives the heaps for certain.
-			if (heap != GpuBindlessHeapType::Resource)
-				return;
+			u64* entries = (u64*)[mBindlessHeapBuffers[(u32)GpuBindlessHeapType::Resource] contents];
 
-			((u64*)[mBindlessHeapBuffers[(u32)GpuBindlessHeapType::Resource] contents])[slotIndex] = mDummyArgumentBuffer.gpuAddress;
+			// Reads through a null texture return zero. Structured and raw buffers are device pointers, so they point to the
+			// zero-filled dummy buffer instead.
+			const bool isPointer = viewType == GPOT_STRUCTURED_BUFFER || viewType == GPOT_BYTE_ADDRESS_BUFFER;
+			entries[slotIndex] = isPointer ? mDummyArgumentBuffer.gpuAddress : 0;
 		}
 	} // namespace render
 } // namespace b3d

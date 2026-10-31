@@ -246,13 +246,13 @@ namespace
 		switch (type)
 		{
 		case D3D_SIT_UAV_RWSTRUCTURED:					return GPOT_RWSTRUCTURED_BUFFER;
-		case D3D_SIT_UAV_RWBYTEADDRESS:					return GPOT_RWBYTE_BUFFER;
+		case D3D_SIT_UAV_RWBYTEADDRESS:					return GPOT_RWBYTE_ADDRESS_BUFFER;
 		case D3D_SIT_UAV_APPEND_STRUCTURED:				return GPOT_RWAPPEND_BUFFER;
 		case D3D_SIT_UAV_CONSUME_STRUCTURED:			return GPOT_RWCONSUME_BUFFER;
 		case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:		return GPOT_RWSTRUCTURED_BUFFER_WITH_COUNTER;
 		case D3D_SIT_STRUCTURED:						return GPOT_STRUCTURED_BUFFER;
-		case D3D_SIT_BYTEADDRESS:
-		default:										return GPOT_BYTE_BUFFER;
+		case D3D_SIT_BYTEADDRESS:						return GPOT_BYTE_ADDRESS_BUFFER;
+		default:										return GPOT_UNKNOWN;
 		}
 	}
 
@@ -372,9 +372,7 @@ namespace
 				parameterInformation.Slot = MapRegisterToSlot(bindDesc.BindPoint, HLSLRegisterClass::ShaderResource);
 				if (bindDesc.Dimension == D3D_SRV_DIMENSION_BUFFER)
 				{
-					// Buffer<T> - read-only typed buffer. TODO(d3d12-port): no dedicated read-only typed buffer object
-					// type exists; byte buffer is the closest read-only buffer representation.
-					parameterInformation.Type = GPOT_BYTE_BUFFER;
+					parameterInformation.Type = GPOT_TYPED_BUFFER;
 					paramDesc.Buffers[parameterInformation.Name] = parameterInformation;
 				}
 				else
