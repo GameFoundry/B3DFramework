@@ -65,4 +65,9 @@ namespace b3d
 	{
 		return CreateComputePipeline(device, "SlowWriteDispatch");
 	}
+
+	TShared<GpuComputePipelineState> CreateTestBindlessHeapAccessPipeline(GpuDevice& device)
+	{
+		return CreateComputePipeline(device, "BindlessHeapAccess");
+	}
 } // namespace b3d

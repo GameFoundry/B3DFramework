@@ -10,6 +10,7 @@
 #include "GpuBackend/B3DGpuResourceTracker.h"
 #include "B3DMetalTexture.h"
 #include "B3DMetalSamplerState.h"
+#include "B3DMetalUtility.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
 #include "Debug/B3DLog.h"
 
@@ -62,16 +63,6 @@ namespace b3d
 				}
 
 				return true;
-			}
-
-			/** Converts a Tier-2 resource ID into the 64-bit value stored in the argument buffer. */
-			u64 ToArgumentValue(MTLResourceID resourceId)
-			{
-				static_assert(sizeof(MTLResourceID) == sizeof(u64), "Tier-2 argument-buffer resource IDs must be 64-bit values.");
-
-				u64 value;
-				std::memcpy(&value, &resourceId, sizeof(value));
-				return value;
 			}
 
 			/** Returns the stages that reference the binding of @p type at @p slot; no stages when the layout has no such binding. */
@@ -378,7 +369,7 @@ namespace b3d
 							const bool writable = binding.ObjectType == GPOT_RWBYTE_BUFFER;
 							id<MTLTexture> view = buffer != nullptr ? buffer->GetTextureBufferView(data.View.Format, data.View.Offset, data.View.Range, writable) : nil;
 
-							value = view != nil ? ToArgumentValue(view.gpuResourceID) : 0;
+							value = view != nil ? MetalUtility::GetArgumentValue(view.gpuResourceID) : 0;
 							resolvedResource = view;
 							break;
 						}
@@ -398,7 +389,7 @@ namespace b3d
 						nativeHandle = texture != nullptr ? texture->GetMetalTexture() : nil;
 
 						id<MTLTexture> view = texture != nullptr ? texture->GetSubresourceView(data.Surface) : nil;
-						value = view != nil ? ToArgumentValue(view.gpuResourceID) : 0;
+						value = view != nil ? MetalUtility::GetArgumentValue(view.gpuResourceID) : 0;
 						resolvedResource = view;
 						break;
 					}
@@ -410,7 +401,7 @@ namespace b3d
 						if (metalSampler == nil)
 							metalSampler = defaultSampler;
 
-						value = metalSampler != nil ? ToArgumentValue(metalSampler.gpuResourceID) : 0;
+						value = metalSampler != nil ? MetalUtility::GetArgumentValue(metalSampler.gpuResourceID) : 0;
 						break;
 					}
 					default:

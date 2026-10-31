@@ -23,7 +23,7 @@ namespace b3d
 		 */
 
 		/** Represents a single Metal GPU device. */
-		class MetalGpuDevice : public GpuDevice, private IGpuSubmitThreadBackend
+		class MetalGpuDevice : public GpuDevice, private IGpuSubmitThreadBackend, private IGpuBindlessHeap
 		{
 		public:
 			static constexpr const char* kGpuProgramLanguageName = kGpuProgramLanguageMsl;
@@ -94,6 +94,12 @@ namespace b3d
 			 * ranges of its slots, so a render encoder created with it can run the queries of any pool.
 			 */
 			id<MTLBuffer> GetVisibilityResultBuffer() const { return mVisibilityResultBuffer; }
+
+			/**
+			 * Returns the buffer of bindless heap @p heap, an array of 8-byte entries that shaders read as an argument buffer: the
+			 * resource heap binds at buffer index kGpuBindlessParameterSet, and the sampler heap at kMetalSamplerHeapBufferIndex.
+			 */
+			id<MTLBuffer> GetBindlessHeapBuffer(GpuBindlessHeapType heap) const { return mBindlessHeapBuffers[(u32)heap]; }
 
 			/**
 			 * Reserves @p count consecutive slots of the visibility result buffer, and returns the first, or RangeAllocator::kInvalidIndex
@@ -183,6 +189,17 @@ namespace b3d
 
 			/** @} */
 
+			/**
+			 * @name IGpuBindlessHeap implementation
+			 * @{
+			 */
+
+			void WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view) override;
+			void WriteSamplerSlot(u32 slotIndex, const SamplerState& sampler) override;
+			void ClearSlot(GpuBindlessHeapType heap, u32 slotIndex) override;
+
+			/** @} */
+
 			TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
 			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
 			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
@@ -208,6 +225,8 @@ namespace b3d
 			GpuAllocation mDummyArgumentBufferAllocation;
 			id<MTLBuffer> mVisibilityResultBuffer = nil;
 			GpuAllocation mVisibilityResultBufferAllocation;
+			id<MTLBuffer> mBindlessHeapBuffers[(u32)GpuBindlessHeapType::Count] = {};
+			GpuAllocation mBindlessHeapBufferAllocations[(u32)GpuBindlessHeapType::Count];
 
 			/** Timestamp counter heap shared by query pools, and its unallocated slots. */
 			struct CounterHeap

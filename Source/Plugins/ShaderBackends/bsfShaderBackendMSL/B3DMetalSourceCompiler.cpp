@@ -7,6 +7,7 @@
 #include "B3DGLSLToSPIRV.h"
 #include "B3DMetalShaderABI.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
+#include "GpuBackend/B3DGpuBindlessHeap.h"
 
 #include "spirv_cross/spirv_msl.hpp"
 
@@ -321,6 +322,12 @@ namespace
 				: String(mCompiler.get_name(resource.id).c_str());
 		}
 
+		/** Returns whether a reflected resource is a descriptor heap array, which the device binds instead of a parameter set. */
+		bool IsDescriptorHeap(const spirv_cross::Resource& resource) const
+		{
+			return mCompiler.get_decoration(resource.id, spv::DecorationDescriptorSet) == kGpuBindlessParameterSet;
+		}
+
 		/** Renames one reflected resource using its engine parameter information. */
 		template<class TInformation>
 		void RenameResource(const spirv_cross::Resource& resource, GpuParameterType parameterType, const TInformation& information)
@@ -336,6 +343,9 @@ namespace
 			UnorderedSet<String> mappedNames;
 			for(const spirv_cross::Resource& resource : reflectedResources)
 			{
+				if(IsDescriptorHeap(resource))
+					continue;
+
 				const String resourceName = GetResourceName(resource);
 				const typename TEntries::const_iterator found = entries.find(resourceName);
 				if(found == entries.end())
@@ -370,6 +380,9 @@ namespace
 			UnorderedSet<String> mappedTextureNames;
 			for(const spirv_cross::Resource& resource : reflectedResources)
 			{
+				if(IsDescriptorHeap(resource))
+					continue;
+
 				const String resourceName = GetResourceName(resource);
 				const Map<String, GpuObjectParameterInformation>::const_iterator texture = textureEntries.find(resourceName);
 				if(texture != textureEntries.end())
@@ -518,6 +531,68 @@ namespace
 
 			if(!bindingBuilder.GetDynamicUniformBufferOrdinals().empty())
 				compiler.add_discrete_descriptor_set(kDynamicUniformBufferDescriptorSet);
+		}
+
+		// Each descriptor heap is an argument buffer in device memory whose only member is an unsized array of 8-byte entries,
+		// which the typed arrays of the heap alias. An argument buffer fits one unsized array, and SPIRV-Cross only emits
+		// argument buffers for sets 0 to 7, so the sampler heap moves to a set the program leaves unused, and binds at its own
+		// buffer index.
+		u32 usedSetMask = 0;
+		bool usesResourceHeap = false;
+		Vector<spirv_cross::VariableID> samplerHeapArrays;
+		const auto fnFindDescriptorHeaps = [&compiler, &usedSetMask, &usesResourceHeap, &samplerHeapArrays](const spirv_cross::SmallVector<spirv_cross::Resource>& reflectedResources, bool samplers)
+		{
+			for(const spirv_cross::Resource& resource : reflectedResources)
+			{
+				const u32 set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+				if(set != kGpuBindlessParameterSet)
+					usedSetMask |= set < 32 ? 1u << set : 0;
+				else if(samplers)
+					samplerHeapArrays.push_back(resource.id);
+				else
+					usesResourceHeap = true;
+			}
+		};
+
+		fnFindDescriptorHeaps(resources.uniform_buffers, false);
+		fnFindDescriptorHeaps(resources.storage_buffers, false);
+		fnFindDescriptorHeaps(resources.separate_images, false);
+		fnFindDescriptorHeaps(resources.storage_images, false);
+		fnFindDescriptorHeaps(resources.separate_samplers, true);
+
+		if(usesResourceHeap)
+			compiler.set_argument_buffer_device_address_space(kGpuBindlessParameterSet, true);
+
+		if(!samplerHeapArrays.empty())
+		{
+			u32 samplerHeapSet = ~0u;
+			for(u32 set = kGpuBindlessParameterSet; set-- > 0;)
+			{
+				if((usedSetMask & (1u << set)) == 0)
+				{
+					samplerHeapSet = set;
+					break;
+				}
+			}
+
+			if(samplerHeapSet == ~0u)
+			{
+				compilation.Result.ErrorMessage = StringUtility::Format("Metal programs that access SamplerDescriptorHeap must leave one of parameter sets 0 to {0} unused.", kGpuBindlessParameterSet - 1);
+				return compilation;
+			}
+
+			for(spirv_cross::VariableID samplerHeapArray : samplerHeapArrays)
+				compiler.set_decoration(samplerHeapArray, spv::DecorationDescriptorSet, samplerHeapSet);
+
+			compiler.set_argument_buffer_device_address_space(samplerHeapSet, true);
+
+			spirv_cross::MSLResourceBinding samplerHeapBinding;
+			samplerHeapBinding.stage = executionModel;
+			samplerHeapBinding.desc_set = samplerHeapSet;
+			samplerHeapBinding.binding = spirv_cross::kArgumentBufferBinding;
+			samplerHeapBinding.count = 1;
+			samplerHeapBinding.msl_buffer = kMetalSamplerHeapBufferIndex;
+			compiler.add_msl_resource_binding(samplerHeapBinding);
 		}
 
 		compilation.MslSource = compiler.compile();

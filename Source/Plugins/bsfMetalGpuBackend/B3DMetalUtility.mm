@@ -6,6 +6,7 @@
 #include "Debug/B3DLog.h"
 #include "Threading/B3DThreading.h"
 #include <atomic>
+#include <cstring>
 
 namespace b3d
 {
@@ -481,6 +482,15 @@ namespace b3d
 		bool MetalUtility::IsPixelFormatSupported(PixelFormat format, bool gamma)
 		{
 			return GetPixelFormat(format, gamma) != MTLPixelFormatInvalid;
+		}
+
+		u64 MetalUtility::GetArgumentValue(MTLResourceID resourceId)
+		{
+			static_assert(sizeof(MTLResourceID) == sizeof(u64), "Tier 2 argument-buffer resource IDs must be 64-bit values.");
+
+			u64 value;
+			std::memcpy(&value, &resourceId, sizeof(value));
+			return value;
 		}
 	} // namespace render
 } // namespace b3d

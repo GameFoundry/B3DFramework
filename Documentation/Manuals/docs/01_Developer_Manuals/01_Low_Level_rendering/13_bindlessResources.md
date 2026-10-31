@@ -35,6 +35,10 @@ The resource heap holds read-only views only:
 
 The pipeline binds the heaps automatically when one of its programs accesses them. Nothing needs to be set on the command buffer.
 
+On Metal, two more restrictions apply:
+ - `GetDimensions()` can't be called on a `StructuredBuffer<T>` read through the heap.
+ - A program that accesses `SamplerDescriptorHeap` must leave at least one of parameter sets 0 to 6 unused, because the sampler heap takes that set's place in the generated Metal shader.
+
 # Bindless textures and buffers
 
 Create a texture with the @b3d::TextureUsageFlag::Bindless usage flag, or a buffer with the @b3d::GpuBufferFlag::Bindless flag, to give it a heap slot. The slot of its default view is allocated on creation, and @b3d::render::Texture::GetBindlessIndex or @b3d::render::GpuBuffer::GetBindlessIndex return its index.

@@ -757,6 +757,39 @@ namespace b3d
 			}
 		}
 
+		void MetalGpuCommandBuffer::BindBindlessHeaps(bool isGraphics)
+		{
+			const GpuPipelineParameterLayout* pipelineLayout = nullptr;
+			if (isGraphics && mBoundGraphicsPipeline != nullptr)
+				pipelineLayout = mBoundGraphicsPipeline->GetParameterLayout().get();
+			else if (!isGraphics && mBoundComputePipeline != nullptr)
+				pipelineLayout = mBoundComputePipeline->GetParameterLayout().get();
+
+			if (pipelineLayout == nullptr)
+				return;
+
+			// The heaps are resident through the heap allocator's residency set, and only read at rest, so they need no tracking
+			const GpuProgramFeatureFlags features = pipelineLayout->GetProgramFeatures();
+			const auto fnBindHeap = [this, isGraphics, features](GpuProgramFeatureFlag feature, GpuBindlessHeapType heap, u32 bufferIndex)
+			{
+				if (!features.IsSet(feature))
+					return;
+
+				const MTLGPUAddress address = mGpuDevice.GetBindlessHeapBuffer(heap).gpuAddress;
+				if (!isGraphics)
+				{
+					mComputeArgumentTable.SetAddress(address, bufferIndex);
+					return;
+				}
+
+				mVertexArgumentTable.SetAddress(address, bufferIndex);
+				mFragmentArgumentTable.SetAddress(address, bufferIndex);
+			};
+
+			fnBindHeap(GpuProgramFeatureFlag::ResourceDescriptorHeap, GpuBindlessHeapType::Resource, kGpuBindlessParameterSet);
+			fnBindHeap(GpuProgramFeatureFlag::SamplerDescriptorHeap, GpuBindlessHeapType::Sampler, kMetalSamplerHeapBufferIndex);
+		}
+
 		void MetalGpuCommandBuffer::SetVertexBuffers(u32 index, TShared<GpuBuffer>* buffers, u32 bufferCount)
 		{
 			GpuCommandBuffer::SetVertexBuffers(index, buffers, bufferCount);
@@ -920,6 +953,7 @@ namespace b3d
 
 			BindParameterSets(true);
 			BindDynamicUniformBuffers(true);
+			BindBindlessHeaps(true);
 
 			bool skipDraw = false;
 			MetalVertexInput* vertexInput = ResolveVertexInputForDraw(skipDraw);
@@ -1066,6 +1100,7 @@ namespace b3d
 
 			BindParameterSets(false);
 			BindDynamicUniformBuffers(false);
+			BindBindlessHeaps(false);
 			BindPushConstants(false);
 
 			MTLSize threadsPerGroup = MTLSizeMake(workgroupSize[0], workgroupSize[1], workgroupSize[2]);

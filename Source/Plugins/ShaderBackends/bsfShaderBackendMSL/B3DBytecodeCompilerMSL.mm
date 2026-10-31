@@ -7,6 +7,7 @@
 #include "B3DMetalShaderABI.h"
 #include "FileSystem/B3DFileSystem.h"
 #include "GpuBackend/B3DGpuBackend.h"
+#include "GpuBackend/B3DGpuBindlessHeap.h"
 #include "GpuBackend/B3DGpuProgram.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
@@ -600,6 +601,9 @@ namespace
 				continue;
 			}
 
+			if((u32)binding.index == kGpuBindlessParameterSet || (u32)binding.index == kMetalSamplerHeapBufferIndex)
+				continue;
+
 			if(tableStruct == nil)
 			{
 				outBytecode.Messages += StringUtility::Format("Metal reflection found a buffer binding that is not a parameter-set argument buffer: '{0}'.\n", binding.name != nil ? binding.name.UTF8String : "<unnamed>");
@@ -934,6 +938,8 @@ TShared<GpuProgramBytecode> BytecodeCompilerMSL::CompileBytecode(const GpuProgra
 		return bytecode;
 
 	RestoreDeclaredMemberTypes(createInformation.ShaderReflection.get(), *bytecode->ParameterDescription);
+
+	bytecode->ParameterDescription->Features = entryPointReflection.Features;
 
 	bytecode->Instructions.Size = (u32)libraryData.size();
 	bytecode->Instructions.Data = (u8*)B3DAllocate(bytecode->Instructions.Size);

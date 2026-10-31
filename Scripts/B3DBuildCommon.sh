@@ -100,10 +100,11 @@ B3DCleanDependencyFolder() {
 	fi
 }
 
-# Stamps a freshly built dependency folder so the build system treats it as current: .version records the version the
-# source tree requires (read from .reqversion) so CMake doesn't consider the folder out of date, and .builtfromsource
-# records the same so an automatic package download never overwrites the local build and CI knows to publish it.
-# Downloading a published package clears the stamp again. A folder without .reqversion is hand-managed and left alone.
+# Stamps a freshly built dependency folder so the build system treats it as current: .builtfromsource records the
+# version the source tree requires (read from .reqversion), so an automatic package download never overwrites the local
+# build and CI knows to publish it. .version is left to the upload script, as it records the published package the folder
+# holds. Uploading or downloading a published package clears the stamp again. A folder without .reqversion is
+# hand-managed and left alone.
 B3DStampDependencyBuild() {
 	FolderToStamp="$1"
 	if [ -z "$FolderToStamp" ]; then
@@ -117,6 +118,5 @@ B3DStampDependencyBuild() {
 	fi
 
 	BuiltVersion=$(tr -d '\r\n' < "$ReqVersionFile")
-	echo "$BuiltVersion" > "$FolderToStamp/.version"
 	echo "$BuiltVersion" > "$FolderToStamp/.builtfromsource"
 }

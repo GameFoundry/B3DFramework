@@ -60,6 +60,10 @@ namespace b3d
 
 			mClearPipeline.reset();
 
+			// Releases the pinned resources while the resource manager is still alive, and before the heap buffers
+			mCachedSamplerStates.clear();
+			mBindlessHeaps = nullptr;
+
 			// Queues the cached vertex inputs for destroy while the resource manager is still alive
 			mVertexInputManager = nullptr;
 			mResourceManager.reset();
@@ -71,6 +75,14 @@ namespace b3d
 				mHeapAllocator->Free(mNullVertexBuffer, mNullVertexBufferAllocation);
 				mHeapAllocator->Free(mDummyArgumentBuffer, mDummyArgumentBufferAllocation);
 				mHeapAllocator->Free(mVisibilityResultBuffer, mVisibilityResultBufferAllocation);
+				for (u32 heapIndex = 0; heapIndex < (u32)GpuBindlessHeapType::Count; heapIndex++)
+				{
+					if (mBindlessHeapBuffers[heapIndex] != nil)
+						mHeapAllocator->Free(mBindlessHeapBuffers[heapIndex], mBindlessHeapBufferAllocations[heapIndex]);
+
+					mBindlessHeapBuffers[heapIndex] = nil;
+				}
+
 				mHeapAllocator.reset();
 			}
 
@@ -200,6 +212,27 @@ namespace b3d
 
 			std::memset([mDummyArgumentBuffer contents], 0, kDummyArgumentBufferSize);
 
+			// The heaps are written from the CPU, so they live in shared memory. Unused slots hold null entries.
+			const u32 bindlessHeapCapacities[] =
+			{
+				std::min(gGpuBindlessResourceCapacity.Get(), mCapabilities.MaximumBindlessResourceCount),
+				std::min(gGpuBindlessSamplerCapacity.Get(), mCapabilities.MaximumBindlessSamplerCount)
+			};
+
+			static_assert(sizeof(bindlessHeapCapacities) / sizeof(bindlessHeapCapacities[0]) == (u32)GpuBindlessHeapType::Count);
+			for (u32 heapIndex = 0; heapIndex < (u32)GpuBindlessHeapType::Count; heapIndex++)
+			{
+				const u64 heapSize = (u64)bindlessHeapCapacities[heapIndex] * sizeof(u64);
+				mBindlessHeapBuffers[heapIndex] = mHeapAllocator->AllocateBuffer(heapSize, MetalHeapAllocator::kMemoryTypeShared, sharedAllocation, mBindlessHeapBufferAllocations[heapIndex]);
+				if (mBindlessHeapBuffers[heapIndex] == nil)
+					B3D_LOG(Fatal, LogRenderBackend, "Failed to create a {0}-byte bindless heap buffer.", heapSize);
+
+				std::memset([mBindlessHeapBuffers[heapIndex] contents], 0, (size_t)heapSize);
+			}
+
+			IGpuBindlessHeap& bindlessHeap = *this;
+			CreateBindlessHeaps(bindlessHeap, bindlessHeapCapacities[(u32)GpuBindlessHeapType::Resource], bindlessHeapCapacities[(u32)GpuBindlessHeapType::Sampler]);
+
 			IGpuSubmitThreadBackend& submitThreadBackend = *this;
 			mSubmitThread = B3DMakeUnique<GpuSubmitThread>(*this, submitThreadBackend);
 
@@ -247,12 +280,14 @@ namespace b3d
 			mCapabilities.Conventions.NdcYAxis = GpuBackendConventions::Axis::Up;
 			mCapabilities.Conventions.MatrixOrder = GpuBackendConventions::MatrixOrder::ColumnMajor;
 
-			// Metal has 31 vertex-stage buffer slots: parameter-set argument buffers use 0..7, dynamic-offset uniform buffers
-			// 8..15, vertex streams 16..29 and push constants 30
+			// Metal has 31 vertex-stage buffer slots: parameter-set argument buffers use 0..7 (the bindless resource heap 7),
+			// dynamic-offset uniform buffers 8..15, vertex streams 16..28, the bindless sampler heap 29 and push constants 30
 			static_assert(kMetalDynamicUniformBufferIndexBase + kMetalDynamicUniformBufferCount == kMetalVertexBufferSlotBase,
 				"The Metal vertex-stream range must immediately follow the dynamic uniform-buffer range.");
-			static_assert(kMetalVertexBufferSlotEnd == kMetalPushConstantBufferIndex,
-				"The Metal push-constant buffer must immediately follow the vertex-stream range.");
+			static_assert(kMetalVertexBufferSlotEnd == kMetalSamplerHeapBufferIndex && kMetalSamplerHeapBufferIndex + 1 == kMetalPushConstantBufferIndex,
+				"The Metal sampler heap and push-constant buffers must immediately follow the vertex-stream range.");
+			static_assert(kGpuBindlessParameterSet <= kMetalMaximumParameterSetIndex,
+				"The bindless resource heap must bind at a parameter-set buffer index.");
 			mCapabilities.VertexBufferCount = kMetalVertexBufferSlotEnd - kMetalVertexBufferSlotBase;
 			mCapabilities.MaximumPushConstantSize = kMaxPushConstantSizeInBytes;
 			mCapabilities.RenderTargetCount = 8;
@@ -278,6 +313,11 @@ namespace b3d
 
 			// Parameter-set updates validate this same alignment before encoding buffer addresses
 			mCapabilities.MinimumUniformBufferOffsetAlignment = 16;
+
+			// Every sampler written to the sampler heap is an argument buffer sampler, which are limited per device
+			mCapabilities.SetCapability(RSC_BINDLESS_RESOURCES);
+			mCapabilities.MaximumBindlessResourceCount = kMetalMaximumTextureArgumentsPerStage;
+			mCapabilities.MaximumBindlessSamplerCount = (u32)[mMetalDevice maxArgumentBufferSamplerCount];
 
 			mCapabilities.AddShaderProfile(kGpuProgramLanguageName);
 		}
@@ -649,6 +689,39 @@ namespace b3d
 				samplerState->Initialize();
 
 			return samplerState;
+		}
+
+		void MetalGpuDevice::WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view)
+		{
+			u64 entry;
+			if (view.Texture != nullptr)
+				entry = MetalUtility::GetArgumentValue(static_cast<MetalTexture*>(view.Texture)->GetSubresourceView(view.Surface).gpuResourceID);
+			else
+			{
+				auto* buffer = static_cast<MetalGpuBuffer*>(view.Buffer);
+				if (buffer->GetInformation().Type == GpuBufferType::StructuredStorage)
+					entry = buffer->GetMetalBuffer().gpuAddress;
+				else
+					entry = MetalUtility::GetArgumentValue(buffer->GetTextureBufferView(view.Format, 0, 0, false).gpuResourceID);
+			}
+
+			((u64*)[mBindlessHeapBuffers[(u32)GpuBindlessHeapType::Resource] contents])[slotIndex] = entry;
+		}
+
+		void MetalGpuDevice::WriteSamplerSlot(u32 slotIndex, const SamplerState& sampler)
+		{
+			const u64 entry = MetalUtility::GetArgumentValue(static_cast<const MetalSamplerState&>(sampler).GetMetalSampler().gpuResourceID);
+			((u64*)[mBindlessHeapBuffers[(u32)GpuBindlessHeapType::Sampler] contents])[slotIndex] = entry;
+		}
+
+		void MetalGpuDevice::ClearSlot(GpuBindlessHeapType heap, u32 slotIndex)
+		{
+			// A retired resource slot points to the zero-filled dummy buffer instead. Sampler slots keep their entry, as no
+			// sampler outlives the heaps for certain.
+			if (heap != GpuBindlessHeapType::Resource)
+				return;
+
+			((u64*)[mBindlessHeapBuffers[(u32)GpuBindlessHeapType::Resource] contents])[slotIndex] = mDummyArgumentBuffer.gpuAddress;
 		}
 	} // namespace render
 } // namespace b3d

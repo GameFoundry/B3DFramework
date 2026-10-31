@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DGpuBindlessTestSuite.h"
 #include "Utility/B3DGpuBarrierTestUtility.h"
+#include "Utility/B3DUnitTestGpuPipelines.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "GpuBackend/B3DGpuBarriers.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
@@ -20,10 +21,6 @@
 #include "GpuBackend/B3DGpuWorkContext.h"
 #include "GpuBackend/B3DSamplerState.h"
 #include "Image/B3DTexture.h"
-#include "Material/B3DShaderCompiler.h"
-#include "Material/B3DShader.h"
-#include "Material/B3DVariation.h"
-#include "Material/B3DPass.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -70,10 +67,7 @@ GpuBindlessTestSuite::GpuBindlessTestSuite()
 {
 	B3D_ADD_TEST(GpuBindlessTestSuite::TestHeapAllocation)
 	B3D_ADD_TEST(GpuBindlessTestSuite::TestResourceIndices)
-	// Shader compilation is performed on the host; console applications load cooked shaders.
-#if !B3D_PLATFORM_PS5
 	B3D_ADD_TEST(GpuBindlessTestSuite::TestHeapAccess)
-#endif
 }
 
 void GpuBindlessTestSuite::TestHeapAllocation()
@@ -287,80 +281,18 @@ void GpuBindlessTestSuite::TestResourceIndices()
 	}, "GpuBindlessTestSuite::TestResourceIndices", true);
 }
 
-#if !B3D_PLATFORM_PS5
 void GpuBindlessTestSuite::TestHeapAccess()
 {
 	GpuBackend& backend = GpuBackend::Instance();
-	const String backendName = backend.GetBackendName();
-	if(backend.GetDeviceCount() == 0 || (backendName != "bsfD3D12GpuBackend" && backendName != "bsfVulkanGpuBackend"))
+	if(backend.GetDeviceCount() == 0)
 		return;
 
 	const TShared<GpuDevice> device = backend.GetDevice(0);
-	B3D_TEST_ASSERT_MSG(device->GetBindlessHeaps() != nullptr, "The device doesn't support bindless resources.")
 	if(device->GetBindlessHeaps() == nullptr)
 		return;
 
-	const String language = backendName == "bsfD3D12GpuBackend" ? "hlsl" : "vksl";
-
-	const TShared<IShaderCompiler> compiler = ShaderCompilers::Instance().GetCompiler("bsl");
-	B3D_TEST_ASSERT(compiler != nullptr)
-	if(compiler == nullptr)
-		return;
-
-	const String source = R"(
-#include "$ENGINE$\BindlessSamplers.bslinc"
-
-shader BindlessHeapAccess
-{
-	mixin BindlessSamplers;
-
-	code
-	{
-		// The texture index is in the low and the sampler index in the high 16 bits of TextureAndSamplerIndices
-		[pushConstant] cbuffer Indices
-		{
-			uint StructuredIndex;
-			uint TypedIndex;
-			uint TextureAndSamplerIndices;
-		};
-
-		RWStructuredBuffer<uint> Output;
-
-		[numthreads(1, 1, 1)]
-		void csmain()
-		{
-			StructuredBuffer<uint> structuredBuffer = ResourceDescriptorHeap[StructuredIndex];
-			Buffer<uint> typedBuffer = ResourceDescriptorHeap[TypedIndex];
-			Texture2D<float4> sourceTexture = ResourceDescriptorHeap[TextureAndSamplerIndices & 0xFFFF];
-			SamplerState cachedSampler = SamplerDescriptorHeap[TextureAndSamplerIndices >> 16];
-			SamplerState globalSampler = SamplerDescriptorHeap[GetGlobalSamplerIndex(GLOBAL_SAMPLER_FILTER_POINT, GLOBAL_SAMPLER_ADDRESS_CLAMP)];
-
-			Output[0] = structuredBuffer[1];
-			Output[1] = typedBuffer[2];
-			Output[2] = (uint)(sourceTexture.Load(int3(1, 0, 0)).r * 255.0f + 0.5f);
-			Output[3] = (uint)(sourceTexture.SampleLevel(cachedSampler, float2(0.75f, 0.5f), 0).g * 255.0f + 0.5f);
-			Output[4] = (uint)(sourceTexture.SampleLevel(globalSampler, float2(0.25f, 0.5f), 0).b * 255.0f + 0.5f);
-		}
-	};
-};
-)";
-
-	TShared<b3d::Shader> shader;
-	const ShaderCompilerResult result = compiler->Compile("BindlessHeapAccess", source, {}, { language }, true, shader);
-	B3D_TEST_ASSERT_MSG(result.ErrorMessage.empty(), result.ErrorMessage)
-	B3D_TEST_ASSERT(shader != nullptr && shader->GetVariations().size() == 1)
-	if(!result.ErrorMessage.empty() || shader == nullptr || shader->GetVariations().size() != 1)
-		return;
-
-	const TShared<b3d::Variation>& variation = shader->GetVariations().front();
-	B3D_TEST_ASSERT(variation->GetPassCount() == 1)
-	if(variation->GetPassCount() != 1)
-		return;
-
 	// Shaders are resources, which are created outside of the render thread
-	GpuComputePipelineStateCreateInformation pipelineInformation;
-	pipelineInformation.Program = device->CreateGpuProgram(variation->GetPass(0)->GetGpuProgramCreateInformation(GPT_COMPUTE_PROGRAM));
-	const TShared<GpuComputePipelineState> pipeline = device->CreateGpuComputePipelineState(pipelineInformation);
+	const TShared<GpuComputePipelineState> pipeline = CreateTestBindlessHeapAccessPipeline(*device);
 	B3D_TEST_ASSERT(pipeline != nullptr)
 	if(pipeline == nullptr)
 		return;
@@ -472,4 +404,3 @@ shader BindlessHeapAccess
 			B3D_TEST_ASSERT_MSG(actual[outputIndex] == expected[outputIndex], StringUtility::Format("Read through the {0}: {1}, expected {2}.", names[outputIndex], actual[outputIndex], expected[outputIndex]))
 	}, "GpuBindlessTestSuite::TestHeapAccess", true);
 }
-#endif

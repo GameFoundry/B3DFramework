@@ -42,6 +42,12 @@ namespace b3d
 		/** Number of buffer indices reserved for dynamic-offset uniform buffers; Metal buffer slots 16 and above are reserved for vertex streams. */
 		inline constexpr u32 kMetalDynamicUniformBufferCount = 8;
 
+		/**
+		 * Buffer index of the bindless sampler heap. The resource heap binds at the buffer index of its parameter set,
+		 * kGpuBindlessParameterSet. Both heaps are buffers of 8-byte entries, read as argument buffers in device memory.
+		 */
+		inline constexpr u32 kMetalSamplerHeapBufferIndex = 29;
+
 		/** Standalone buffer index used by SPIRV-Cross's push-constant emulation. */
 		inline constexpr u32 kMetalPushConstantBufferIndex = 30;
 

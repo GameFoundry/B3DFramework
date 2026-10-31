@@ -264,7 +264,7 @@ endfunction()
 # @param	dependencyName		Name of the dependency (e.g. 'XShaderCompiler'), used for messages
 # @param	buildScript			File name of the build script in Framework/Scripts (e.g. 'B3DBuildShaderCompiler.sh')
 # @param	dependencyFolder	Folder the script installs the dependency into
-# @param	requiredVersion		Version written to the folder's .version file after a successful build
+# @param	requiredVersion		Version written to the folder's .builtfromsource stamp after a successful build
 function(B3DBuildDependencyFromSource dependencyName buildScript dependencyFolder requiredVersion)
 	set(scriptsFolder ${B3D_FRAMEWORK_ROOT_FOLDER}/Scripts)
 	if(NOT EXISTS ${scriptsFolder}/${buildScript})
@@ -308,12 +308,9 @@ function(B3DBuildDependencyFromSource dependencyName buildScript dependencyFolde
 			"dependency '${dependencyName}' is still missing. See the output above.")
 	endif()
 
-	# The script stamps .version relative to whatever was on disk before. The build satisfies the required version,
-	# so record that instead, otherwise the next configure would try to update the dependency again.
-	file(WRITE ${dependencyFolder}/.version "${requiredVersion}")
-
-	# Mark the folder as holding contents no package server has, so a deployment knows to publish it. The stamp
-	# survives incremental configures and is only cleared when a published package replaces the folder.
+	# Mark the folder as holding contents no package server has, so later configures keep it and a deployment knows to
+	# publish it. The stamp survives incremental configures and is only cleared when a published package replaces the
+	# folder. .version is left to the upload script.
 	file(WRITE ${dependencyFolder}/${B3D_BUILT_FROM_SOURCE_STAMP} "${requiredVersion}")
 	message(STATUS "Built '${dependencyName}' v${requiredVersion} from source.")
 endfunction()

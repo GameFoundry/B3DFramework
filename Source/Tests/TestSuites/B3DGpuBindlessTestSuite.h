@@ -25,12 +25,11 @@ namespace b3d
 		 */
 		void TestResourceIndices();
 
-#if !B3D_PLATFORM_PS5
 		/**
 		 * Dispatches a compute program that reads a structured and a typed buffer and a texture through ResourceDescriptorHeap, sampled
-		 * with a cached and a global sampler through SamplerDescriptorHeap, and verifies the values it writes. Runs on Vulkan and D3D12.
+		 * with a cached and a global sampler through SamplerDescriptorHeap, and verifies the values it writes. Runs on devices that support
+		 * bindless resources.
 		 */
 		void TestHeapAccess();
-#endif
 	};
 } // namespace b3d

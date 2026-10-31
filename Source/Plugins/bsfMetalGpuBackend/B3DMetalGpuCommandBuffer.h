@@ -275,6 +275,9 @@ namespace b3d
 			/** Binds the bound parameter sets' argument buffers to the argument tables of the stages that use them. */
 			void BindParameterSets(bool isGraphics);
 
+			/** Binds the bindless heaps that the bound pipeline accesses to the argument tables of its stages. */
+			void BindBindlessHeaps(bool isGraphics);
+
 			/** Sets @p pipeline on the open render encoder, unless it is already set. */
 			void SetRenderPipelineState(id<MTLRenderPipelineState> pipeline);
 

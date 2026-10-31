@@ -4,6 +4,7 @@
 
 #include "B3DMetalPrerequisites.h"
 #include "B3DMetalResource.h"
+#include "B3DMetalShaderABI.h"
 #include "GpuBackend/B3DGpuVertexInputManager.h"
 
 namespace b3d
@@ -29,9 +30,10 @@ namespace b3d
 
 		/**
 		 * One-past-the-highest vertex-stage buffer slot usable for vertex streams. Metal exposes 31
-		 * vertex-stage buffer slots [0, 31); slot 30 is reserved for the standalone push-constant block.
+		 * vertex-stage buffer slots [0, 31); slot 29 is reserved for the bindless sampler heap and slot 30
+		 * for the standalone push-constant block.
 		 */
-		constexpr u32 kMetalVertexBufferSlotEnd = 30;
+		constexpr u32 kMetalVertexBufferSlotEnd = kMetalSamplerHeapBufferIndex;
 
 		/** Largest attribute index programmable in a MTLVertexDescriptor (Metal exposes attributes [0, 31)). */
 		constexpr u32 kMetalMaxVertexAttributeIndex = 30;

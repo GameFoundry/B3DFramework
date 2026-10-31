@@ -124,6 +124,9 @@ namespace b3d
 			 * buffers perform no hazard tracking.
 			 */
 			static MTLResourceOptions GetResourceOptions(MTLStorageMode storageMode);
+
+			/** Converts a Tier 2 resource ID into the 64-bit value stored in argument buffers and bindless heaps. */
+			static u64 GetArgumentValue(MTLResourceID resourceId);
 		};
 
 		/** @} */
