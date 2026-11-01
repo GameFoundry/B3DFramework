@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Managers/B3DD3D12DescriptorManager.h"
 #include "B3DD3D12GpuDevice.h"
-#include "B3DD3D12BindlessHeaps.h"
 #include "B3DD3D12ResourceManager.h"
 
 #include <algorithm>
@@ -69,6 +68,7 @@ D3D12DescriptorManager::D3D12DescriptorManager(D3D12GpuDevice& device, bool supp
 
 		mFallbackResourceHeapPool = B3DMakeUnique<GpuBindlessHeapPool>(1);
 		mFallbackResourceHeapPool->Initialize(heap);
+		mResourceHeapPool = mFallbackResourceHeapPool.get();
 	}
 }
 
@@ -317,12 +317,16 @@ void D3D12DescriptorManager::WriteTable(const D3D12DescriptorTable& table, TArra
 	device->CopyDescriptors(1, &mirrorStart, &descriptorCount, descriptorCount, sources.Data(), nullptr, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	// Command buffers bind the heap that is current when they record, so other heaps only need the table before they are current again
-	const D3D12DescriptorHeap& currentDescriptorHeap = GetCurrentResourceHeap()->GetDescriptorHeap();
+	const D3D12BindlessHeap* currentHeap = GetCurrentResourceHeap();
+	const D3D12DescriptorHeap& currentDescriptorHeap = currentHeap->GetDescriptorHeap();
 	device->CopyDescriptorsSimple(descriptorCount, currentDescriptorHeap.GetCPUHandle(currentDescriptorHeap.GetTableRegionStart() + table.GetOffset()), mirrorStart,
 		D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-	if(auto* bindlessHeaps = static_cast<D3D12BindlessHeaps*>(mDevice.GetBindlessHeaps()))
-		bindlessHeaps->MarkTableDescriptorsDirty(table.GetOffset(), table.GetDescriptorCount());
+	mResourceHeapPool->ForEachHeap([currentHeap, &table](GpuBindlessHeap& heap)
+	{
+		if(&heap != currentHeap)
+			static_cast<D3D12BindlessHeap&>(heap).MarkTableDescriptorsDirty(table.GetOffset(), table.GetDescriptorCount());
+	});
 }
 
 void D3D12DescriptorManager::CopyDirtyTables(D3D12BindlessHeap& heap)
@@ -353,18 +357,20 @@ void D3D12DescriptorManager::CopyDirtyTables(D3D12BindlessHeap& heap)
 
 D3D12BindlessHeap* D3D12DescriptorManager::GetAndTrackResourceHeap(GpuResourceTracker& resourceTracker)
 {
-	if(GpuBindlessHeaps* bindlessHeaps = mDevice.GetBindlessHeaps())
-		return static_cast<D3D12BindlessHeap*>(bindlessHeaps->GetAndTrackResourceHeap(resourceTracker));
-
-	return static_cast<D3D12BindlessHeap*>(mFallbackResourceHeapPool->GetAndTrack(resourceTracker));
+	return static_cast<D3D12BindlessHeap*>(mResourceHeapPool->GetAndTrack(resourceTracker));
 }
 
 D3D12BindlessHeap* D3D12DescriptorManager::GetCurrentResourceHeap() const
 {
-	if(auto* bindlessHeaps = static_cast<D3D12BindlessHeaps*>(mDevice.GetBindlessHeaps()))
-		return bindlessHeaps->GetCurrentResourceHeap();
+	return static_cast<D3D12BindlessHeap*>(mResourceHeapPool->GetCurrent());
+}
 
-	return static_cast<D3D12BindlessHeap*>(mFallbackResourceHeapPool->GetCurrent());
+void D3D12DescriptorManager::DestroyFallbackResourceHeap()
+{
+	B3D_ASSERT(mFallbackResourceHeapPool == nullptr || mResourceHeapPool == mFallbackResourceHeapPool.get());
+
+	mResourceHeapPool = nullptr;
+	mFallbackResourceHeapPool = nullptr;
 }
 
 D3D12BindlessHeap* D3D12DescriptorManager::CreateResourceHeap(u32 bindlessCapacity)

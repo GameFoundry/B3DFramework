@@ -15,22 +15,22 @@ D3D12BindlessHeaps::D3D12BindlessHeaps(D3D12GpuDevice& device, const IGpuComplet
 
 D3D12BindlessHeaps::~D3D12BindlessHeaps()
 {
+	mDescriptorManager.SetResourceHeapPool(nullptr);
 	Destroy();
+}
+
+bool D3D12BindlessHeaps::Initialize()
+{
+	if(!GpuBindlessHeaps::Initialize())
+		return false;
+
+	mDescriptorManager.SetResourceHeapPool(&GetResourceHeapPool());
+	return true;
 }
 
 D3D12BindlessHeap* D3D12BindlessHeaps::GetCurrentResourceHeap() const
 {
 	return static_cast<D3D12BindlessHeap*>(GetResourceHeapPool().GetCurrent());
-}
-
-void D3D12BindlessHeaps::MarkTableDescriptorsDirty(u32 offset, u32 count)
-{
-	const D3D12BindlessHeap* currentHeap = GetCurrentResourceHeap();
-	GetResourceHeapPool().ForEachHeap([currentHeap, offset, count](GpuBindlessHeap& heap)
-	{
-		if(&heap != currentHeap)
-			static_cast<D3D12BindlessHeap&>(heap).MarkTableDescriptorsDirty(offset, count);
-	});
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE D3D12BindlessHeaps::GetViewHandle(const GpuBindlessResourceView& view) const

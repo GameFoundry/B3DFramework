@@ -156,8 +156,14 @@ namespace b3d
 			/** Copies the live tables @p heap lacks from the table mirror into it, after it became current. Must be called with GetResourceTableMutex() held. */
 			void CopyDirtyTables(D3D12BindlessHeap& heap);
 
+			/**
+			 * Sets the pool of the shader-visible CBV/SRV/UAV heaps of a device with bindless support, which D3D12BindlessHeaps owns. Must
+			 * be set before any table is written or command buffer records, and cleared before the pool is destroyed.
+			 */
+			void SetResourceHeapPool(GpuBindlessHeapPool* pool) { mResourceHeapPool = pool; }
+
 			/** Destroys the CBV/SRV/UAV heap of a device without bindless support. Must be called before the resource manager is destroyed, once no command buffer binds it. */
-			void DestroyFallbackResourceHeap() { mFallbackResourceHeapPool = nullptr; }
+			void DestroyFallbackResourceHeap();
 
 			/** Writes @p source into slot @p slotIndex of the bindless region of the shader-visible sampler heap. Nothing may read the slot. */
 			void WriteBindlessSamplerSlot(u32 slotIndex, D3D12_CPU_DESCRIPTOR_HANDLE source);
@@ -233,6 +239,7 @@ namespace b3d
 			TableRegion mTableRegions[kTableHeapTypeCount];			/**< Table region allocation of the shader-visible heaps, indexed by D3D12DescriptorHeapType. */
 			D3D12DescriptorHeap mSamplerHeap;						/**< Shader-visible sampler heap. */
 			TUnique<GpuBindlessHeapPool> mFallbackResourceHeapPool;	/**< Holds the only CBV/SRV/UAV heap of a device without bindless support, which never switches. Null otherwise. */
+			GpuBindlessHeapPool* mResourceHeapPool = nullptr;		/**< Pool of the shader-visible CBV/SRV/UAV heaps: the fallback, or the one the bindless heaps own. */
 			D3D12DescriptorHeap mTableMirror;						/**< CPU-only copy of the CBV/SRV/UAV table region, holding the latest descriptors of every table. */
 
 			// Fallbacks for resource bindings never set by the caller, indexed by view dimension where applicable

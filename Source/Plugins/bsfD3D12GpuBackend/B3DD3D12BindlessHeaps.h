@@ -33,22 +33,13 @@ namespace b3d
 			D3D12BindlessHeaps(D3D12GpuDevice& device, const IGpuCompletionTracker& completionTracker, const GpuBindlessHeapsCreateInformation& createInformation);
 			~D3D12BindlessHeaps() override;
 
-			/** Returns the current native resource heap. Tables written into it reach every command buffer that gets it. */
-			D3D12BindlessHeap* GetCurrentResourceHeap() const;
-
-			/**
-			 * Marks @p count descriptors of the table region, starting at @p offset, as written into the current native heap only, so
-			 * every other native heap copies them before it is current again. Must be called with the table region mutex held, see
-			 * D3D12DescriptorManager::GetResourceTableMutex().
-			 */
-			void MarkTableDescriptorsDirty(u32 offset, u32 count);
-
 		protected:
 			/**
 			 * @name GpuBindlessHeaps Interface
 			 * @{
 			 */
 
+			bool Initialize() override;
 			bool SwitchResourceHeap(u32 capacity, TArrayView<const GpuBindlessSlotUpdate> updates, const TBitfield<>& liveSlots) override;
 			GpuBindlessHeap* CreateResourceHeap(u32 capacity) override;
 			void CopyResourceSlots(GpuBindlessHeap& destination, TArrayView<const TIndexRange<u32>> ranges) override;
@@ -60,6 +51,9 @@ namespace b3d
 			/** @} */
 
 		private:
+			/** Returns the current native resource heap. */
+			D3D12BindlessHeap* GetCurrentResourceHeap() const;
+
 			/** Returns the CPU-only shader resource view that resource slots holding @p view copy. A null view if it cannot be created. */
 			D3D12_CPU_DESCRIPTOR_HANDLE GetViewHandle(const GpuBindlessResourceView& view) const;
 
