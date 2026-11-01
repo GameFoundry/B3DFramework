@@ -120,6 +120,7 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestDynamicOffsetUniformBufferLayout)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestResourceLocations)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestByteAddressBufferAccess)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestCopyBufferRanges)
 	// Shader compilation is performed on the host; console applications load cooked shaders.
 #if !B3D_PLATFORM_PS5
 	B3D_ADD_TEST(GpuBackendTestSuite::TestDynamicUniformBufferOffsets)
@@ -218,6 +219,79 @@ void GpuBackendTestSuite::TestByteAddressBufferAccess()
 		for(u32 wordIndex = 0; wordIndex < kOutputWordCount; wordIndex++)
 			B3D_TEST_ASSERT_MSG(actual[wordIndex] == expected[wordIndex], StringUtility::Format("Output word {0}: {1}, expected {2}.", wordIndex, actual[wordIndex], expected[wordIndex]))
 	}, "GpuBackendTestSuite::TestByteAddressBufferAccess", true);
+}
+
+void GpuBackendTestSuite::TestCopyBufferRanges()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	GetRenderThread().PostCommand([this, &device]()
+	{
+		static constexpr u32 kWordCount = 64;
+		static constexpr u32 kSentinel = 0xDEADBEEF;
+
+		const TShared<render::GpuBuffer> sentinelUpload = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(kWordCount * sizeof(u32)));
+		const TShared<render::GpuBuffer> patternUpload = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(kWordCount * sizeof(u32)));
+		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kWordCount * sizeof(u32)));
+
+		u32 sentinelWords[kWordCount];
+		u32 patternWords[kWordCount];
+		for(u32 wordIndex = 0; wordIndex < kWordCount; wordIndex++)
+		{
+			sentinelWords[wordIndex] = kSentinel;
+			patternWords[wordIndex] = 0xC0DE0000 + wordIndex;
+		}
+
+		{
+			const render::GpuBufferMappedScope sentinelMapping = sentinelUpload->Map(GpuMapOption::Write);
+			const render::GpuBufferMappedScope patternMapping = patternUpload->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(sentinelMapping.IsValid() && patternMapping.IsValid())
+			if(!sentinelMapping.IsValid() || !patternMapping.IsValid())
+				return;
+
+			memcpy(sentinelMapping.GetMappedMemory(), sentinelWords, sizeof(sentinelWords));
+			memcpy(patternMapping.GetMappedMemory(), patternWords, sizeof(patternWords));
+		}
+
+		// Unsorted, non-adjacent ranges of different sizes, with untouched gaps between them
+		const GpuBufferCopyRange ranges[] =
+		{
+			{ 40 * sizeof(u32), 8 * sizeof(u32), 4 * sizeof(u32) },
+			{ 0, 48 * sizeof(u32), 8 * sizeof(u32) },
+			{ 16 * sizeof(u32), 24 * sizeof(u32), 1 * sizeof(u32) },
+		};
+
+		u32 expected[kWordCount];
+		memcpy(expected, sentinelWords, sizeof(expected));
+		for(const GpuBufferCopyRange& range : ranges)
+			memcpy((u8*)expected + range.DestinationOffset, (const u8*)patternWords + range.SourceOffset, range.Size);
+
+		const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
+
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		const TShared<render::GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
+		const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Copy buffer ranges"));
+
+		commands->IssueBarriers(GpuBufferBarrier(readback, GpuAccessState(), transferWrite));
+		commands->CopyBufferToBuffer(sentinelUpload, readback, 0, 0, kWordCount * sizeof(u32));
+		commands->IssueBarriers(GpuBufferBarrier(readback, transferWrite, transferWrite));
+		commands->CopyBufferToBuffer(patternUpload, readback, TArrayView<const GpuBufferCopyRange>(ranges, std::size(ranges)));
+		commands->IssueBarriers(GpuBarrierTestUtility::CreateReadbackBarrier(readback));
+		context->SubmitCommandBuffer(commands);
+		device->WaitUntilIdle();
+
+		const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
+		B3D_TEST_ASSERT(mapping.IsValid())
+		if(!mapping.IsValid())
+			return;
+
+		const u32* actual = static_cast<const u32*>(mapping.GetMappedMemory());
+		for(u32 wordIndex = 0; wordIndex < kWordCount; wordIndex++)
+			B3D_TEST_ASSERT_MSG(actual[wordIndex] == expected[wordIndex], StringUtility::Format("Word {0}: {1}, expected {2}.", wordIndex, actual[wordIndex], expected[wordIndex]))
+	}, "GpuBackendTestSuite::TestCopyBufferRanges", true);
 }
 
 void GpuBackendTestSuite::TestResourceLocations()

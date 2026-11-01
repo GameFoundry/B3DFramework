@@ -250,8 +250,8 @@ void D3D12GpuCommandBuffer::BindDescriptorHeaps()
 	mResourceHeap = descriptorManager.GetAndTrackResourceHeap(mResourceTracker);
 
 	ID3D12DescriptorHeap* descriptorHeaps[] = {
-		mResourceHeap->GetHeap(),
-		descriptorManager.GetSamplerHeap()
+		mResourceHeap->GetDescriptorHeap().GetHeap(),
+		descriptorManager.GetSamplerHeap().GetHeap()
 	};
 
 	mCommandList->SetDescriptorHeaps((UINT)std::size(descriptorHeaps), descriptorHeaps);
@@ -1157,7 +1157,8 @@ bool D3D12GpuCommandBuffer::BindGpuParameterSets(bool isGraphics)
 			return false;
 
 		if(requiresBind)
-			parameters->BindDescriptors(device, mResourceTracker, mResourceHeap, mCommandList.Get(), isGraphics, parameterLayout->GetDescriptorSetLayout(setIndex), dynamicOffsets);
+			parameters->BindDescriptors(mResourceTracker, mResourceHeap->GetDescriptorHeap(), device.GetDescriptorManager().GetSamplerHeap(), mCommandList.Get(), isGraphics,
+				parameterLayout->GetDescriptorSetLayout(setIndex), dynamicOffsets);
 	}
 
 	if (isGraphics)
@@ -1373,9 +1374,9 @@ Area2I D3D12GpuCommandBuffer::GetRenderPassArea() const
 /* 								COPY COMMANDS                     		*/
 /************************************************************************/
 
-void D3D12GpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length)
+void D3D12GpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> ranges)
 {
-	GpuCommandBuffer::CopyBufferToBuffer(source, destination, sourceOffset, destinationOffset, length);
+	GpuCommandBuffer::CopyBufferToBuffer(source, destination, ranges);
 	EnsureValidThread();
 	B3D_ASSERT(mState == GpuCommandBufferState::Recording && "Command buffer must be in recording state");
 
@@ -1388,15 +1389,18 @@ void D3D12GpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source,
 	// UPLOAD-heap memory is CPU-write-only in D3D12; it cannot be a GPU copy destination. Engine paths must write such buffers through their persistent mapping instead (see GpuBufferUtility::Write).
 	B3D_ENSURE_ONCE_LOG(d3d12Destination->GetD3D12Buffer() == nullptr || d3d12Destination->GetD3D12Buffer()->GetHeapType() != D3D12_HEAP_TYPE_UPLOAD, "D3D12: CopyBufferToBuffer destination '{0}' lives on the UPLOAD heap; the copy is invalid.", destination->GetName());
 
-	mResourceTracker.TrackBufferUsage(d3d12Source->GetD3D12Buffer(), GpuAccessFlag::Read, sourceOffset);
-	mResourceTracker.TrackBufferUsage(d3d12Destination->GetD3D12Buffer(), GpuAccessFlag::Write, destinationOffset);
-
 	ID3D12Resource* sourceResource = d3d12Source->GetD3D12Resource();
 	ID3D12Resource* destinationResource = d3d12Destination->GetD3D12Resource();
 	B3D_ASSERT(sourceResource != nullptr && destinationResource != nullptr && "Source and destination buffers must be valid");
 
-	mCommandList->CopyBufferRegion(destinationResource, d3d12Destination->GetD3D12Buffer()->GetOffset() + destinationOffset,
-		sourceResource, d3d12Source->GetD3D12Buffer()->GetOffset() + sourceOffset, length);
+	for(const GpuBufferCopyRange& range : ranges)
+	{
+		mResourceTracker.TrackBufferUsage(d3d12Source->GetD3D12Buffer(), GpuAccessFlag::Read, range.SourceOffset);
+		mResourceTracker.TrackBufferUsage(d3d12Destination->GetD3D12Buffer(), GpuAccessFlag::Write, range.DestinationOffset);
+
+		mCommandList->CopyBufferRegion(destinationResource, d3d12Destination->GetD3D12Buffer()->GetOffset() + range.DestinationOffset,
+			sourceResource, d3d12Source->GetD3D12Buffer()->GetOffset() + range.SourceOffset, range.Size);
+	}
 }
 
 void D3D12GpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer)

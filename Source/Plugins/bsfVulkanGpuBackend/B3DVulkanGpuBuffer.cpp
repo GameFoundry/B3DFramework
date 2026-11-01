@@ -333,7 +333,8 @@ VulkanBuffer* VulkanGpuBuffer::RelocateInternalBuffer(const GpuAllocation& newAl
 	if(oldBuffer != nullptr)
 	{
 		auto& vulkanCb = static_cast<VulkanGpuCommandBuffer&>(commandBuffer);
-		vulkanCb.CopyBufferToBuffer(oldBuffer, newBuffer, 0, 0, mTotalSize);
+		const VkBufferCopy region{ 0, 0, mTotalSize };
+		vulkanCb.CopyBufferToBuffer(oldBuffer, newBuffer, TArrayView<const VkBufferCopy>(&region, 1));
 	}
 
 	mBuffer = newBuffer;

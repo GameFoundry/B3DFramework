@@ -136,7 +136,8 @@ namespace b3d
 			void EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom) override;
 			void DisableScissorTest() override;
 			void SetStencilReferenceValue(u32 value) override;
-			void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length) override;
+			using GpuCommandBuffer::CopyBufferToBuffer;
+			void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> ranges) override;
 			void CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer) override;
 			void CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset) override;
 			void CopyWindowToBuffer(const TShared<RenderWindow>& source, const TShared<GpuBuffer>& destination) override;
@@ -231,16 +232,14 @@ namespace b3d
 			void UpdateBuffer(VulkanBuffer* destination, u8* data, VkDeviceSize offset, VkDeviceSize length);
 
 			/**
-			 * Copies the contents of the source buffer to the destination buffer. Caller must ensure the provided
-			 * offsets and length are within valid bounds of both buffers.
+			 * Copies regions of the source buffer to the destination buffer. Caller must ensure every region is within valid
+			 * bounds of both buffers.
 			 *
 			 * @param	source				Source buffer to copy from.
 			 * @param	destination			Destination buffer to copy to.
-			 * @param	sourceOffset		Offset into the source buffer, from which to start copying, in bytes.
-			 * @param	destinationOffset	Offset into the destination buffer, at which to place the copied data, in bytes.
-			 * @param	length				Size of the data to copy, in bytes.
+			 * @param	regions				Regions to copy.
 			 */
-			void CopyBufferToBuffer(VulkanBuffer* source, VulkanBuffer* destination, VkDeviceSize sourceOffset, VkDeviceSize destinationOffset, VkDeviceSize length);
+			void CopyBufferToBuffer(VulkanBuffer* source, VulkanBuffer* destination, TArrayView<const VkBufferCopy> regions);
 
 			/**
 			 * Copies the contents of the source buffer to the destination image subresource. Caller must ensure the

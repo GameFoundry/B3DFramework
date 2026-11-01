@@ -12,7 +12,7 @@ namespace b3d
 	{
 		class GpuResourceTracker;
 		class D3D12DescriptorTable;
-		class D3D12BindlessHeap;
+		class D3D12DescriptorHeap;
 		class D3D12GpuParameterSetPool;
 
 		/** @addtogroup D3D12GpuBackend
@@ -30,21 +30,22 @@ namespace b3d
 			void Initialize() override;
 
 			/**
-			 * Prepares packed descriptor tables for binding and sets the root CBVs of bound uniform buffers. On the thread that owns the set,
-			 * flushes the set first (see Flush()), with the packing of the active pipeline.
+			 * Binds the packed descriptor tables and sets the root CBVs of bound uniform buffers. On the thread that owns the set, flushes the
+			 * set first (see Flush()).
 			 *
-			 * @param	device				Device to use for descriptor operations.
 			 * @param	resourceTracker		Command-buffer tracker that retains the emitted descriptor tables.
-			 * @param	heap			Shader-visible CBV/SRV/UAV heap bound on the command list.
-			 * @param	commandList			Command list to bind descriptor heaps and tables to.
+			 * @param	resourceHeap		Shader-visible CBV/SRV/UAV heap bound on the command list.
+			 * @param	samplerHeap			Shader-visible sampler heap bound on the command list.
+			 * @param	commandList			Command list to bind descriptor tables to.
 			 * @param	isGraphics			True if binding for graphics pipeline, false for compute.
-			 * @param	descriptorSetLayout	D3D12 root parameters and table packing expected by the active pipeline.
+			 * @param	descriptorSetLayout	D3D12 root parameters expected by the active pipeline. Must pack the set's tables as the set's own
+			 *								layout does.
 			 * @param	dynamicOffsets		Optional dynamic offset overrides keyed by dynamic-offset index (see
 			 *								GpuPipelineParameterSetLayout::GetDynamicOffsetIndex). An override
 			 *								replaces the bound buffer's suballocation offset for that binding.
 			 */
-			void BindDescriptors(D3D12GpuDevice& device, GpuResourceTracker& resourceTracker, const D3D12BindlessHeap* heap, ID3D12GraphicsCommandList* commandList, bool isGraphics,
-				const D3D12DescriptorSetLayout& descriptorSetLayout, const UnorderedMap<u32, u32>* dynamicOffsets = nullptr);
+			void BindDescriptors(GpuResourceTracker& resourceTracker, const D3D12DescriptorHeap& resourceHeap, const D3D12DescriptorHeap& samplerHeap,
+				ID3D12GraphicsCommandList* commandList, bool isGraphics, const D3D12DescriptorSetLayout& descriptorSetLayout, const UnorderedMap<u32, u32>* dynamicOffsets = nullptr);
 
 			/**
 			 * Tracks the resources consumed by the active pipeline.
@@ -101,20 +102,10 @@ namespace b3d
 				D3D12_CPU_DESCRIPTOR_HANDLE NullDescriptorHandle = { 0 };
 			};
 
-			/** GPU-visible snapshot of one packed descriptor table. */
+			/** GPU-visible snapshot of one descriptor table, packed as the set's own layout packs it. */
 			struct DescriptorTable
 			{
-				DescriptorTable() = default;
-
-				/**
-				 * Returns true if the table is up to date and packed as @p layout packs it. Every pipeline layout packs its own copy of a set's
-				 * tables, so packings are compared by content.
-				 */
-				bool IsCurrent(const D3D12DescriptorTableLayout& layout) const;
-
-				u32 DescriptorCount = 0; /**< Number of descriptors in the packed table. */
-				D3D12DescriptorTable* Resource = nullptr; /**< Tracked GPU-visible descriptor range used by recorded commands. */
-				Vector<D3D12DescriptorBindingLayout> Bindings; /**< Bindings of the packing used to build Resource. */
+				D3D12DescriptorTable* Resource = nullptr; /**< Tracked GPU-visible descriptor range used by recorded commands. Null for empty tables. */
 				bool IsDirty = true; /**< True when the GPU-visible table must be refreshed. */
 			};
 
@@ -178,10 +169,10 @@ namespace b3d
 			}
 
 			/**
-			 * Copies dirty packed tables into GPU-visible descriptor ranges, as seen through @p heap. Reuses a compatible range when
-			 * no command buffer references it; otherwise allocates a new range so recorded work retains its descriptor snapshot.
+			 * Copies dirty tables into GPU-visible descriptor ranges, packed as the set's own layout packs them. Reuses a range when no
+			 * command buffer references it; otherwise allocates a new range so recorded work retains its descriptor snapshot.
 			 */
-			void UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D12DescriptorSetLayout& descriptorSetLayout, const D3D12BindlessHeap* heap);
+			void UpdateGPUDescriptors();
 
 			D3D12GpuDevice& mDevice;
 

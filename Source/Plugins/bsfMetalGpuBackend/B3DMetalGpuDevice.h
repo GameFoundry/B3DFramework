@@ -99,7 +99,7 @@ namespace b3d
 			 * Returns the buffer of bindless heap @p heap, an array of 8-byte entries that shaders read as an argument buffer: the
 			 * resource heap binds at buffer index kGpuBindlessParameterSet, and the sampler heap at kMetalSamplerHeapBufferIndex.
 			 */
-			id<MTLBuffer> GetBindlessHeapBuffer(GpuBindlessHeapType heap) const { return mBindlessHeapBuffers[(u32)heap]; }
+			id<MTLBuffer> GetBindlessHeapBuffer(GpuBindlessHeapType heap) const;
 
 			/**
 			 * Reserves @p count consecutive slots of the visibility result buffer, and returns the first, or RangeAllocator::kInvalidIndex
@@ -230,8 +230,7 @@ namespace b3d
 			GpuAllocation mDummyArgumentBufferAllocation;
 			id<MTLBuffer> mVisibilityResultBuffer = nil;
 			GpuAllocation mVisibilityResultBufferAllocation;
-			id<MTLBuffer> mBindlessHeapBuffers[(u32)GpuBindlessHeapType::Count] = {};
-			GpuAllocation mBindlessHeapBufferAllocations[(u32)GpuBindlessHeapType::Count];
+			TShared<GpuBuffer> mBindlessHeapBuffers[(u32)GpuBindlessHeapType::Count];
 			TShared<GpuCommandBufferPool> mBindlessPatchCommandBufferPool; /**< Created on first use by ApplyResourceUpdates(). */
 
 			/** Timestamp counter heap shared by query pools, and its unallocated slots. */

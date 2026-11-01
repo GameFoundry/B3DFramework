@@ -1471,25 +1471,13 @@ namespace b3d
 				SetEncoderStencilReference(value);
 		}
 
-		void MetalGpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length)
+		void MetalGpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> ranges)
 		{
-			GpuCommandBuffer::CopyBufferToBuffer(source, destination, sourceOffset, destinationOffset, length);
+			GpuCommandBuffer::CopyBufferToBuffer(source, destination, ranges);
 			EnsureValidThread();
 
-			if (!source || !destination || length == 0)
+			if (!source || !destination || ranges.IsEmpty())
 				return;
-
-			if ((sourceOffset % kMetalBufferCopyAlignment) != 0 || (destinationOffset % kMetalBufferCopyAlignment) != 0 || (length % kMetalBufferCopyAlignment) != 0)
-			{
-				B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyBufferToBuffer requires 4-byte-aligned offsets and length on macOS.");
-				return;
-			}
-
-			if (!IsBufferRangeValid(*source, sourceOffset, length) || !IsBufferRangeValid(*destination, destinationOffset, length))
-			{
-				B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyBufferToBuffer range exceeds a buffer's size.");
-				return;
-			}
 
 			// Validated before switching encoders, so a failed copy does not split the current pass
 			auto metalSource = std::static_pointer_cast<MetalGpuBuffer>(source);
@@ -1502,14 +1490,29 @@ namespace b3d
 				return;
 			}
 
-			if (sourceBuffer == destinationBuffer)
+			for (const GpuBufferCopyRange& range : ranges)
 			{
-				const u64 sourceEnd = (u64)sourceOffset + length;
-				const u64 destinationEnd = (u64)destinationOffset + length;
-				if ((u64)sourceOffset < destinationEnd && (u64)destinationOffset < sourceEnd)
+				if ((range.SourceOffset % kMetalBufferCopyAlignment) != 0 || (range.DestinationOffset % kMetalBufferCopyAlignment) != 0 || (range.Size % kMetalBufferCopyAlignment) != 0)
 				{
-					B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyBufferToBuffer does not support overlapping ranges in one buffer.");
+					B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyBufferToBuffer requires 4-byte-aligned offsets and length on macOS.");
 					return;
+				}
+
+				if (!IsBufferRangeValid(*source, range.SourceOffset, range.Size) || !IsBufferRangeValid(*destination, range.DestinationOffset, range.Size))
+				{
+					B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyBufferToBuffer range exceeds a buffer's size.");
+					return;
+				}
+
+				if (sourceBuffer == destinationBuffer)
+				{
+					const u64 sourceEnd = (u64)range.SourceOffset + range.Size;
+					const u64 destinationEnd = (u64)range.DestinationOffset + range.Size;
+					if ((u64)range.SourceOffset < destinationEnd && (u64)range.DestinationOffset < sourceEnd)
+					{
+						B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyBufferToBuffer does not support overlapping ranges in one buffer.");
+						return;
+					}
 				}
 			}
 
@@ -1519,54 +1522,31 @@ namespace b3d
 
 			MetalBuffer* sourceResource = metalSource->GetMetalResource();
 			MetalBuffer* destinationResource = metalDestination->GetMetalResource();
-			if (sourceResource != nullptr)
-				mResourceTracker.TrackBufferUsage(sourceResource, GpuAccessFlag::Read, sourceOffset);
+			for (const GpuBufferCopyRange& range : ranges)
+			{
+				if (sourceResource != nullptr)
+					mResourceTracker.TrackBufferUsage(sourceResource, GpuAccessFlag::Read, range.SourceOffset);
 
-			if (destinationResource != nullptr)
-				mResourceTracker.TrackBufferUsage(destinationResource, GpuAccessFlag::Write, destinationOffset);
-
-			if (mRecordingFailed)
-				return;
-
-			[encoder copyFromBuffer:sourceBuffer
-				sourceOffset:sourceOffset
-				toBuffer:destinationBuffer
-				destinationOffset:destinationOffset
-				size:length];
-
-			mEncoderHasWork = true;
-		}
-
-		void MetalGpuCommandBuffer::PatchMemory(const TShared<GpuBuffer>& source, id<MTLBuffer> destination, TArrayView<const MemoryCopy> copies)
-		{
-			EnsureValidThread();
-
-			if (!B3D_ENSURE(!IsInRenderPass()))
-				return;
-
-			auto metalSource = std::static_pointer_cast<MetalGpuBuffer>(source);
-			id<MTLBuffer> sourceBuffer = metalSource->GetMetalBuffer();
-			if (sourceBuffer == nil || destination == nil)
-				return;
-
-			// Shaders read the patched memory without barriers. Earlier reads must complete before the copies, and later reads must see them.
-			EmitBarrier(MetalStageBarrier(GpuBarrierScope(GpuStageFlag::AllShader, GpuAccessFlag::Read, GpuStageFlag::Transfer, GpuAccessFlag::Write)));
-
-			id<MTL4ComputeCommandEncoder> encoder = OpenComputeEncoder();
-			if (encoder == nil)
-				return;
-
-			if (MetalBuffer* sourceResource = metalSource->GetMetalResource())
-				mResourceTracker.TrackBufferUsage(sourceResource, GpuAccessFlag::Read, 0);
+				if (destinationResource != nullptr)
+					mResourceTracker.TrackBufferUsage(destinationResource, GpuAccessFlag::Write, range.DestinationOffset);
+			}
 
 			if (mRecordingFailed)
 				return;
 
-			for (const MemoryCopy& copy : copies)
-				[encoder copyFromBuffer:sourceBuffer sourceOffset:copy.SourceOffset toBuffer:destination destinationOffset:copy.DestinationOffset size:copy.Size];
+			for (const GpuBufferCopyRange& range : ranges)
+			{
+				if (range.Size == 0)
+					continue;
+
+				[encoder copyFromBuffer:sourceBuffer
+					sourceOffset:range.SourceOffset
+					toBuffer:destinationBuffer
+					destinationOffset:range.DestinationOffset
+					size:range.Size];
+			}
 
 			mEncoderHasWork = true;
-			EmitBarrier(MetalStageBarrier(GpuBarrierScope(GpuStageFlag::Transfer, GpuAccessFlag::Write, GpuStageFlag::AllShader, GpuAccessFlag::Read)));
 		}
 
 		void MetalGpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer)

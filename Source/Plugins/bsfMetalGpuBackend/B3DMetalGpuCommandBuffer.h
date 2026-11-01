@@ -101,21 +101,6 @@ namespace b3d
 			 */
 			void UseDrawableResidency(id<CAMetalDrawable> drawable);
 
-			/** Copy of a range of the source buffer of PatchMemory() into its destination buffer. */
-			struct MemoryCopy
-			{
-				u64 SourceOffset = 0;
-				u64 DestinationOffset = 0;
-				u64 Size = 0;
-			};
-
-			/**
-			 * Records @p copies from @p source into @p destination, ordered after all earlier shader reads on the queue and before all later
-			 * shader reads, which see the copied data. Used to patch memory that shaders read without barriers, such as the bindless heaps.
-			 * Outside of render passes only.
-			 */
-			void PatchMemory(const TShared<GpuBuffer>& source, id<MTLBuffer> destination, TArrayView<const MemoryCopy> copies);
-
 			/**
 			 * @name GpuCommandBuffer Interface
 			 *  @{
@@ -144,7 +129,8 @@ namespace b3d
 			void EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom) override;
 			void DisableScissorTest() override;
 			void SetStencilReferenceValue(u32 value) override;
-			void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length) override;
+			using GpuCommandBuffer::CopyBufferToBuffer;
+			void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> ranges) override;
 			void CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer) override;
 			void CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset) override;
 			void CopyWindowToBuffer(const TShared<RenderWindow>& source, const TShared<GpuBuffer>& destination) override;

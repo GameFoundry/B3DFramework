@@ -503,6 +503,7 @@ void GpuBindlessTestSuite::TestHeapAccess()
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 		const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kOutputCount, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
 		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kOutputCount * sizeof(u32)));
+		// Set once, so the dispatches after the update and growth switches bind a table written while an earlier heap was current
 		const TShared<render::GpuParameterSet> parameterSet = context->GetParameterSetPool().Create(pipeline->GetParameterLayout()->GetSet(0), 0);
 		parameterSet->SetStorageBuffer("Output", output);
 

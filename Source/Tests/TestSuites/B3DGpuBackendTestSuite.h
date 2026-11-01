@@ -122,6 +122,9 @@ namespace b3d
 		/** Loads, stores and runs atomics through byte address buffers bound to a parameter set, and rejects binding typed buffers raw. */
 		void TestByteAddressBufferAccess();
 
+		/** Copies several unsorted, non-adjacent ranges between buffers in one call, and checks the gaps between them are untouched. */
+		void TestCopyBufferRanges();
+
 #if !B3D_PLATFORM_PS5
 		/** Reads back static and dynamic uniform buffers across offset, pipeline and command-buffer changes on Vulkan and D3D12. */
 		void TestDynamicUniformBufferOffsets();

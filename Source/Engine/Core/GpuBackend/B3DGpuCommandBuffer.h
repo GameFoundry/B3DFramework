@@ -434,6 +434,14 @@ namespace b3d
 			GpuTextureSubresourceRange SubresourceRange; /**< Subresources (mips, array layers, aspects) of the surface the barrier applies to. */
 		};
 
+		/** Describes a range of bytes to copy from one buffer to another. */
+		struct GpuBufferCopyRange
+		{
+			u32 SourceOffset = 0; /**< Offset into the source buffer, from which to start copying, in bytes. */
+			u32 DestinationOffset = 0; /**< Offset into the destination buffer, at which to place the copied data, in bytes. */
+			u32 Size = 0; /**< Size of the data to copy, in bytes. */
+		};
+
 		/**
 		 * A list of buffer, texture and render target barriers. Refers to the barriers without copying them, so they must remain
 		 * valid until GpuCommandBuffer::IssueBarriers() returns.
@@ -786,6 +794,16 @@ namespace b3d
 			virtual void SetStencilReferenceValue(u32 value) = 0;
 
 			/**
+			 * Copies ranges of the source buffer to the destination buffer, in order. Caller must ensure every range is within valid bounds of both buffers, and that
+			 * ranges don't overlap within one buffer. Command buffer must not currently be in a render pass.
+			 *
+			 * @param	source				Source buffer to copy from.
+			 * @param	destination			Destination buffer to copy to.
+			 * @param	ranges				Ranges to copy.
+			 */
+			virtual void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> ranges);
+
+			/**
 			 * Copies the contents of the source buffer to the destination buffer. Caller must ensure the provided offsets and length are within valid bounds of both buffers.
 			 * Command buffer must not currently be in a render pass.
 			 *
@@ -795,7 +813,11 @@ namespace b3d
 			 * @param	destinationOffset	Offset into the destination buffer, at which to place the copied data, in bytes.
 			 * @param	length				Size of the data to copy, in bytes.
 			 */
-			virtual void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length);
+			void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length)
+			{
+				const GpuBufferCopyRange range{ sourceOffset, destinationOffset, length };
+				CopyBufferToBuffer(source, destination, TArrayView<const GpuBufferCopyRange>(&range, 1));
+			}
 
 			/**
 			 * Copies data from a buffer to a texture subresource. The buffer must contain pixel data in the same format as the texture, accounting for the required

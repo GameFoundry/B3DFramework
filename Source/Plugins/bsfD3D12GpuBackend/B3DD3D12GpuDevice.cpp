@@ -971,7 +971,7 @@ void D3D12GpuDevice::ClearResourceSlot(u32 slotIndex, GpuParameterObjectType vie
 
 bool D3D12GpuDevice::ApplyResourceUpdates(TArrayView<const GpuBindlessSlotUpdate> updates, const TBitfield<>& liveSlots)
 {
-	return mDescriptorManager->GetResourceHeapPool().ApplyUpdates(updates, liveSlots);
+	return mDescriptorManager->ApplyBindlessResourceUpdates(updates, liveSlots);
 }
 
 bool D3D12GpuDevice::GrowResourceHeap(u32 capacity, const TBitfield<>& liveSlots)

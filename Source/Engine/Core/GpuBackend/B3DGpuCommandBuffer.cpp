@@ -239,7 +239,7 @@ void GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& create
 		createInformation.Target->TickUpdateCount();
 }
 
-void GpuCommandBuffer::CopyBufferToBuffer([[maybe_unused]] const TShared<GpuBuffer>& source, [[maybe_unused]] const TShared<GpuBuffer>& destination, u32 /*sourceOffset*/, u32 /*destinationOffset*/, u32 /*length*/)
+void GpuCommandBuffer::CopyBufferToBuffer([[maybe_unused]] const TShared<GpuBuffer>& source, [[maybe_unused]] const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> /*ranges*/)
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	if(mBarrierValidator != nullptr && source != nullptr && destination != nullptr)

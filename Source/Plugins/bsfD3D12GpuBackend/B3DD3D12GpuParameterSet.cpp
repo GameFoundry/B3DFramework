@@ -362,12 +362,6 @@ D3D12GpuParameters::ResolvedDescriptor D3D12GpuParameters::ResolveStorageBuffer(
 	return output;
 }
 
-bool D3D12GpuParameters::DescriptorTable::IsCurrent(const D3D12DescriptorTableLayout& layout) const
-{
-	return !IsDirty && DescriptorCount == layout.DescriptorCount && std::equal(Bindings.begin(), Bindings.end(), layout.Bindings.begin(), layout.Bindings.end(),
-		IsSameBinding);
-}
-
 bool D3D12GpuParameters::RefreshDescriptors(bool canWrite)
 {
 	bool isStale = false;
@@ -453,11 +447,11 @@ bool D3D12GpuParameters::RefreshDescriptors(bool canWrite)
 	return isStale;
 }
 
-void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D12DescriptorSetLayout& descriptorSetLayout, const D3D12BindlessHeap* heap)
+void D3D12GpuParameters::UpdateGPUDescriptors()
 {
 	// Dirty tables are updated in place only after all command buffers referencing their current range have completed.
 	// Otherwise a new range preserves the descriptor snapshot seen by already recorded work.
-	D3D12DescriptorManager& descriptorManager = device.GetDescriptorManager();
+	D3D12DescriptorManager& descriptorManager = mDevice.GetDescriptorManager();
 
 	auto fnGetNullDescriptor = [&descriptorManager](const D3D12DescriptorBindingLayout& bindingLayout)
 	{
@@ -478,30 +472,19 @@ void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D1
 		}
 	};
 
-	auto fnUpdateTable = [heap, &descriptorManager, &fnGetNullDescriptor](DescriptorTable& table, const D3D12DescriptorTableLayout& tableLayout,
+	auto fnUpdateTable = [&descriptorManager, &fnGetNullDescriptor](DescriptorTable& table, const D3D12DescriptorTableLayout& tableLayout,
 		const UnorderedMap<u32, DescriptorBinding>& bindings, D3D12DescriptorHeapType heapType)
 	{
-		if(table.IsCurrent(tableLayout))
+		if(!table.IsDirty)
 			return;
-
-		table.IsDirty = true;
 
 		if(tableLayout.DescriptorCount == 0)
 		{
-			if(table.Resource != nullptr)
-			{
-				table.Resource->Destroy();
-				table.Resource = nullptr;
-			}
-
-			table.DescriptorCount = 0;
-			table.Bindings.assign(tableLayout.Bindings.begin(), tableLayout.Bindings.end());
 			table.IsDirty = false;
-
 			return;
 		}
 
-		const bool canReuseTable = table.Resource != nullptr && table.DescriptorCount == tableLayout.DescriptorCount && !table.Resource->IsBound();
+		const bool canReuseTable = table.Resource != nullptr && table.Resource->GetDescriptorCount() == tableLayout.DescriptorCount && !table.Resource->IsBound();
 		D3D12DescriptorTable* descriptorTable = canReuseTable ? table.Resource : descriptorManager.AllocateGPUDescriptorTable(heapType, tableLayout.DescriptorCount);
 		if(descriptorTable == nullptr)
 			return;
@@ -529,17 +512,16 @@ void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D1
 		for(const D3D12_CPU_DESCRIPTOR_HANDLE sourceHandle : sourceHandles)
 			B3D_ASSERT(sourceHandle.ptr != 0);
 
-		descriptorTable->Write(sourceHandles, heap);
+		descriptorManager.WriteTable(*descriptorTable, TArrayView<const D3D12_CPU_DESCRIPTOR_HANDLE>(sourceHandles.data(), sourceHandles.size()));
 
 		if(!canReuseTable && table.Resource != nullptr)
 			table.Resource->Destroy();
 
 		table.Resource = descriptorTable;
-		table.DescriptorCount = tableLayout.DescriptorCount;
-		table.Bindings.assign(tableLayout.Bindings.begin(), tableLayout.Bindings.end());
 		table.IsDirty = false;
 	};
 
+	const D3D12DescriptorSetLayout& descriptorSetLayout = static_cast<const D3D12GpuPipelineParameterSetLayout&>(*mParameterSetLayout).GetDescriptorSetLayout();
 	fnUpdateTable(mResourceTable, descriptorSetLayout.ResourceTable, mDescriptorBindings, D3D12DescriptorHeapType::CBV_SRV_UAV);
 	fnUpdateTable(mSamplerTable, descriptorSetLayout.SamplerTable, mSamplerBindings, D3D12DescriptorHeapType::Sampler);
 }
@@ -549,11 +531,11 @@ void D3D12GpuParameters::Flush(TArrayView<const GpuRenderPassAttachmentUsage> at
 	B3D_ASSERT(IsOwnedByThisThread() && "Parameter sets can only be flushed on the thread that owns their pool.");
 
 	RefreshDescriptors(true);
-	UpdateGPUDescriptors(mDevice, static_cast<const D3D12GpuPipelineParameterSetLayout&>(*mParameterSetLayout).GetDescriptorSetLayout(), mDevice.GetDescriptorManager().GetCurrentResourceHeap());
+	UpdateGPUDescriptors();
 }
 
-void D3D12GpuParameters::BindDescriptors(D3D12GpuDevice& device, GpuResourceTracker& resourceTracker, const D3D12BindlessHeap* heap, ID3D12GraphicsCommandList* commandList, bool isGraphics,
-	const D3D12DescriptorSetLayout& descriptorSetLayout, const UnorderedMap<u32, u32>* dynamicOffsets)
+void D3D12GpuParameters::BindDescriptors(GpuResourceTracker& resourceTracker, const D3D12DescriptorHeap& resourceHeap, const D3D12DescriptorHeap& samplerHeap,
+	ID3D12GraphicsCommandList* commandList, bool isGraphics, const D3D12DescriptorSetLayout& descriptorSetLayout, const UnorderedMap<u32, u32>* dynamicOffsets)
 {
 	// A set holds one table per type, packed as its own layout packs it. Flushing writes that packing, and threads that do not own the set
 	// cannot write another one, so only pipelines that pack the set the same way can bind it.
@@ -576,10 +558,10 @@ void D3D12GpuParameters::BindDescriptors(D3D12GpuDevice& device, GpuResourceTrac
 	if(IsOwnedByThisThread())
 	{
 		RefreshDescriptors(true);
-		UpdateGPUDescriptors(device, descriptorSetLayout, heap);
+		UpdateGPUDescriptors();
 	}
 #if B3D_BUILD_TYPE_DEVELOPMENT
-	else if(RefreshDescriptors(false) || !mResourceTable.IsCurrent(descriptorSetLayout.ResourceTable) || !mSamplerTable.IsCurrent(descriptorSetLayout.SamplerTable))
+	else if(RefreshDescriptors(false) || mResourceTable.IsDirty || mSamplerTable.IsDirty)
 	{
 		B3D_LOG(Error, LogRenderBackend, "Parameter set {0} is bound on a thread that does not own it, but was not flushed for the bind. Flush it with "
 			"GpuParameterSet::Flush() on the owner thread first.", GetSet());
@@ -611,10 +593,10 @@ void D3D12GpuParameters::BindDescriptors(D3D12GpuDevice& device, GpuResourceTrac
 			commandList->SetComputeRootConstantBufferView(rootBufferLayout.RootParameterIndex, address);
 	}
 
-	auto fnBindTable = [commandList, isGraphics, heap, &resourceTracker](const DescriptorTable& table, const D3D12DescriptorTableLayout& tableLayout)
+	auto fnBindTable = [commandList, isGraphics, &resourceTracker](const DescriptorTable& table, const D3D12DescriptorTableLayout& tableLayout, const D3D12DescriptorHeap& heap)
 	{
 		// If allocation failed, IsDirty remains set and the previous table must not be rebound with stale descriptors.
-		if(table.DescriptorCount == 0 || table.Resource == nullptr || table.IsDirty)
+		if(table.Resource == nullptr || table.IsDirty)
 			return;
 
 		resourceTracker.TrackResourceUsage(table.Resource, GpuAccessFlag::Read);
@@ -626,6 +608,6 @@ void D3D12GpuParameters::BindDescriptors(D3D12GpuDevice& device, GpuResourceTrac
 			commandList->SetComputeRootDescriptorTable(tableLayout.RootParameterIndex, gpuHandle);
 	};
 
-	fnBindTable(mResourceTable, descriptorSetLayout.ResourceTable);
-	fnBindTable(mSamplerTable, descriptorSetLayout.SamplerTable);
+	fnBindTable(mResourceTable, descriptorSetLayout.ResourceTable, resourceHeap);
+	fnBindTable(mSamplerTable, descriptorSetLayout.SamplerTable, samplerHeap);
 }

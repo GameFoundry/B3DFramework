@@ -852,9 +852,9 @@ void VulkanGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u
 	B3D_INCREMENT_RENDER_STATISTIC(NumComputeCalls);
 }
 
-void VulkanGpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length)
+void VulkanGpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> ranges)
 {
-	GpuCommandBuffer::CopyBufferToBuffer(source, destination, sourceOffset, destinationOffset, length);
+	GpuCommandBuffer::CopyBufferToBuffer(source, destination, ranges);
 	EnsureValidThread();
 
 	auto* vulkanSource = static_cast<VulkanGpuBuffer*>(source.get());
@@ -863,10 +863,19 @@ void VulkanGpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source
 	VulkanBuffer* sourceBuffer = vulkanSource->GetVulkanResource();
 	VulkanBuffer* destinationBuffer = vulkanDestination->GetVulkanResource();
 
-	if(sourceBuffer == nullptr || destinationBuffer == nullptr)
+	if(sourceBuffer == nullptr || destinationBuffer == nullptr || ranges.IsEmpty())
 		return;
 
-	CopyBufferToBuffer(sourceBuffer, destinationBuffer, sourceOffset, destinationOffset, length);
+	FrameAllocatorScope frameScope;
+	FrameVector<VkBufferCopy> regions(ranges.Size());
+	for(u32 rangeIndex = 0; rangeIndex < (u32)ranges.Size(); rangeIndex++)
+	{
+		regions[rangeIndex].srcOffset = ranges[rangeIndex].SourceOffset;
+		regions[rangeIndex].dstOffset = ranges[rangeIndex].DestinationOffset;
+		regions[rangeIndex].size = ranges[rangeIndex].Size;
+	}
+
+	CopyBufferToBuffer(sourceBuffer, destinationBuffer, TArrayView<const VkBufferCopy>(regions.data(), regions.size()));
 }
 
 void VulkanGpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer)
@@ -1846,19 +1855,14 @@ void VulkanGpuCommandBuffer::UpdateBuffer(VulkanBuffer* destination, u8* data, V
 	vkCmdUpdateBuffer(GetVulkanHandle(), destination->GetVulkanHandle(), offset, length, (uint32_t*)data);
 }
 
-void VulkanGpuCommandBuffer::CopyBufferToBuffer(VulkanBuffer* source, VulkanBuffer* destination, VkDeviceSize sourceOffset, VkDeviceSize destinationOffset, VkDeviceSize length)
+void VulkanGpuCommandBuffer::CopyBufferToBuffer(VulkanBuffer* source, VulkanBuffer* destination, TArrayView<const VkBufferCopy> regions)
 {
 	B3D_ENSURE(!IsInRenderPass());
-
-	VkBufferCopy region;
-	region.size = length;
-	region.srcOffset = sourceOffset;
-	region.dstOffset = destinationOffset;
 
 	mResourceTracker.TrackBufferUsage(source, GpuAccessFlag::Read);
 	mResourceTracker.TrackBufferUsage(destination, GpuAccessFlag::Write);
 
-	vkCmdCopyBuffer(GetVulkanHandle(), source->GetVulkanHandle(), destination->GetVulkanHandle(), 1, &region);
+	vkCmdCopyBuffer(GetVulkanHandle(), source->GetVulkanHandle(), destination->GetVulkanHandle(), (u32)regions.Size(), regions.Data());
 }
 
 void VulkanGpuCommandBuffer::CopyBufferToImage(VulkanBuffer* source, VulkanImage* destination, const VkExtent3D& region, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, u32 rowPitch, u32 sliceHeight)
