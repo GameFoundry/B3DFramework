@@ -239,6 +239,24 @@ D3D12GpuCommandBuffer::~D3D12GpuCommandBuffer()
 	mFence.Reset();
 }
 
+void D3D12GpuCommandBuffer::BindDescriptorHeaps()
+{
+	if(mResourceHeap != nullptr)
+		return;
+
+	// The heap stays bound for the rest of the command buffer's lifetime, so bindless slots read the descriptors they had when it
+	// was captured. Heaps must be set before root signatures that index them directly.
+	D3D12DescriptorManager& descriptorManager = GetD3D12GpuDevice().GetDescriptorManager();
+	mResourceHeap = descriptorManager.GetAndTrackResourceHeap(mResourceTracker);
+
+	ID3D12DescriptorHeap* descriptorHeaps[] = {
+		mResourceHeap->GetHeap(),
+		descriptorManager.GetSamplerHeap()
+	};
+
+	mCommandList->SetDescriptorHeaps((UINT)std::size(descriptorHeaps), descriptorHeaps);
+}
+
 void D3D12GpuCommandBuffer::Begin()
 {
 	EnsureValidThread();
@@ -256,17 +274,6 @@ void D3D12GpuCommandBuffer::Begin()
 
 	HRESULT hr = mCommandList->Reset(commandAllocator, nullptr);
 	B3D_ASSERT(SUCCEEDED(hr) && "Failed to reset command list");
-
-	if (GetQueueType() != GQT_TRANSFER)
-	{
-		D3D12DescriptorManager& descriptorManager = GetD3D12GpuDevice().GetDescriptorManager();
-		ID3D12DescriptorHeap* descriptorHeaps[] = {
-			descriptorManager.GetDescriptorHeap(D3D12DescriptorHeapType::CBV_SRV_UAV),
-			descriptorManager.GetDescriptorHeap(D3D12DescriptorHeapType::Sampler)
-		};
-
-		mCommandList->SetDescriptorHeaps((UINT)std::size(descriptorHeaps), descriptorHeaps);
-	}
 
 	mState = GpuCommandBufferState::Recording;
 
@@ -295,6 +302,8 @@ void D3D12GpuCommandBuffer::End()
 	// End render pass if active
 	if (mState == GpuCommandBufferState::RecordingRenderPass)
 		EndRenderPass();
+
+	B3D_ENSURE_LOG(mResourceHeap == nullptr || mResourceHeap->IsCurrent(), "Command buffer '{0}' accessed the bindless heaps and was recorded across the end of a frame. Bindless slots allocated or written after the frame ended may not be valid in it.", mName);
 
 	// Copy the results of every query written during this recording into its pool's readback buffer. The pools are
 	// notified so their results become readable once this command buffer completes on the GPU.
@@ -577,6 +586,7 @@ void D3D12GpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u3
 		mResourceTracker.TrackResourceUsage(pipeline, GpuAccessFlag::Read);
 		mResourceTracker.TrackResourceUsage(rootSignature, GpuAccessFlag::Read);
 
+		BindDescriptorHeaps();
 		mCommandList->SetPipelineState(pipeline->Get());
 		mCommandList->SetComputeRootSignature(rootSignature->Get());
 
@@ -1002,6 +1012,8 @@ bool D3D12GpuCommandBuffer::BindGraphicsPipeline()
 			return false;
 
 		mResourceTracker.TrackResourceUsage(rootSignature, GpuAccessFlag::Read);
+
+		BindDescriptorHeaps();
 		mCommandList->SetGraphicsRootSignature(rootSignature->Get());
 
 		mGraphicsRootSignatureRequiresBind = false;
@@ -1145,7 +1157,7 @@ bool D3D12GpuCommandBuffer::BindGpuParameterSets(bool isGraphics)
 			return false;
 
 		if(requiresBind)
-			parameters->BindDescriptors(device, mResourceTracker, mCommandList.Get(), isGraphics, parameterLayout->GetDescriptorSetLayout(setIndex), dynamicOffsets);
+			parameters->BindDescriptors(device, mResourceTracker, mResourceHeap, mCommandList.Get(), isGraphics, parameterLayout->GetDescriptorSetLayout(setIndex), dynamicOffsets);
 	}
 
 	if (isGraphics)
@@ -1314,6 +1326,7 @@ void D3D12GpuCommandBuffer::Reset()
 		mResourceTracker.NotifyUnbound();
 
 	mResourceTracker.Clear();
+	mResourceHeap = nullptr;
 	mQueueSyncMask = GpuQueueMask();
 
 	ClearBarrierState(wasSubmitted);

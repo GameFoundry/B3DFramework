@@ -52,6 +52,14 @@ namespace b3d
 
 		MetalGpuDevice::~MetalGpuDevice()
 		{
+			// Changes are applied on whichever thread ends the frame, which need not be the thread destroying the device
+			if (mBindlessPatchCommandBufferPool != nullptr)
+			{
+				mBindlessPatchCommandBufferPool->SetThisAsOwnerThread();
+				mBindlessPatchCommandBufferPool->Destroy();
+				mBindlessPatchCommandBufferPool = nullptr;
+			}
+
 			if (mSubmitThread != nullptr)
 			{
 				WaitUntilIdle();
@@ -212,10 +220,15 @@ namespace b3d
 
 			std::memset([mDummyArgumentBuffer contents], 0, kDummyArgumentBufferSize);
 
-			// The heaps are written from the CPU, so they live in shared memory. Unused slots hold null entries.
+			// The heaps are written from the CPU, so they live in shared memory. Unused slots hold null entries. The resource heap is
+			// allocated at its maximum capacity and never grows.
+			u32 resourceCapacity;
+			u32 resourceMaximumCapacity;
+			GetBindlessResourceCapacities(mCapabilities.MaximumBindlessResourceCount, resourceCapacity, resourceMaximumCapacity);
+
 			const u32 bindlessHeapCapacities[] =
 			{
-				std::min(gGpuBindlessResourceCapacity.Get(), mCapabilities.MaximumBindlessResourceCount),
+				resourceMaximumCapacity,
 				std::min(gGpuBindlessSamplerCapacity.Get(), mCapabilities.MaximumBindlessSamplerCount)
 			};
 
@@ -230,8 +243,9 @@ namespace b3d
 				std::memset([mBindlessHeapBuffers[heapIndex] contents], 0, (size_t)heapSize);
 			}
 
-			IGpuBindlessHeap& bindlessHeap = *this;
-			CreateBindlessHeaps(bindlessHeap, bindlessHeapCapacities[(u32)GpuBindlessHeapType::Resource], bindlessHeapCapacities[(u32)GpuBindlessHeapType::Sampler]);
+			IGpuBindlessHeapBackend& bindlessHeap = *this;
+			const u32 resourceHeapCapacity = bindlessHeapCapacities[(u32)GpuBindlessHeapType::Resource];
+			CreateBindlessHeaps(bindlessHeap, resourceHeapCapacity, resourceHeapCapacity, bindlessHeapCapacities[(u32)GpuBindlessHeapType::Sampler]);
 
 			IGpuSubmitThreadBackend& submitThreadBackend = *this;
 			mSubmitThread = B3DMakeUnique<GpuSubmitThread>(*this, submitThreadBackend);
@@ -691,21 +705,77 @@ namespace b3d
 			return samplerState;
 		}
 
+		u64 MetalGpuDevice::GetBindlessResourceEntry(const GpuBindlessResourceView& view) const
+		{
+			if (view.Texture != nullptr)
+				return MetalUtility::GetArgumentValue(static_cast<MetalTexture*>(view.Texture)->GetSubresourceView(view.Surface, false).gpuResourceID);
+
+			auto* buffer = static_cast<MetalGpuBuffer*>(view.Buffer);
+			if (buffer->GetInformation().Type == GpuBufferType::StructuredStorage)
+				return buffer->GetMetalBuffer().gpuAddress;
+
+			return MetalUtility::GetArgumentValue(buffer->GetTextureBufferView(view.Format, 0, 0, false).gpuResourceID);
+		}
+
 		void MetalGpuDevice::WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view)
 		{
-			u64 entry;
-			if (view.Texture != nullptr)
-				entry = MetalUtility::GetArgumentValue(static_cast<MetalTexture*>(view.Texture)->GetSubresourceView(view.Surface, false).gpuResourceID);
-			else
+			((u64*)[mBindlessHeapBuffers[(u32)GpuBindlessHeapType::Resource] contents])[slotIndex] = GetBindlessResourceEntry(view);
+		}
+
+		bool MetalGpuDevice::ApplyResourceUpdates(TArrayView<const GpuBindlessSlotUpdate> updates, const TBitfield<>& liveSlots)
+		{
+			// The new entries go to a staging buffer in slot order, so runs of consecutive slots copy with one command
+			TArray<GpuBindlessSlotUpdate> sortedUpdates(updates.begin(), updates.end());
+			std::sort(sortedUpdates.begin(), sortedUpdates.end(), [](const GpuBindlessSlotUpdate& lhs, const GpuBindlessSlotUpdate& rhs) { return lhs.SlotIndex < rhs.SlotIndex; });
+
+			const TShared<GpuBuffer> staging = CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite((u32)(sortedUpdates.Size() * sizeof(u64))));
+			if (staging == nullptr)
+				return false;
+
 			{
-				auto* buffer = static_cast<MetalGpuBuffer*>(view.Buffer);
-				if (buffer->GetInformation().Type == GpuBufferType::StructuredStorage)
-					entry = buffer->GetMetalBuffer().gpuAddress;
-				else
-					entry = MetalUtility::GetArgumentValue(buffer->GetTextureBufferView(view.Format, 0, 0, false).gpuResourceID);
+				const GpuBufferMappedScope mapping = staging->Map(GpuMapOption::Write);
+				if (!mapping.IsValid())
+					return false;
+
+				u64* entries = static_cast<u64*>(mapping.GetMappedMemory());
+				for (u32 updateIndex = 0; updateIndex < (u32)sortedUpdates.Size(); updateIndex++)
+					entries[updateIndex] = GetBindlessResourceEntry(sortedUpdates[updateIndex].View);
 			}
 
-			((u64*)[mBindlessHeapBuffers[(u32)GpuBindlessHeapType::Resource] contents])[slotIndex] = entry;
+			TArray<MetalGpuCommandBuffer::MemoryCopy> copies;
+			u32 runStart = 0;
+			for (u32 updateIndex = 1; updateIndex <= (u32)sortedUpdates.Size(); updateIndex++)
+			{
+				const bool isRunEnd = updateIndex == (u32)sortedUpdates.Size() || sortedUpdates[updateIndex].SlotIndex != sortedUpdates[updateIndex - 1].SlotIndex + 1;
+				if (!isRunEnd)
+					continue;
+
+				MetalGpuCommandBuffer::MemoryCopy copy;
+				copy.SourceOffset = (u64)runStart * sizeof(u64);
+				copy.DestinationOffset = (u64)sortedUpdates[runStart].SlotIndex * sizeof(u64);
+				copy.Size = (u64)(updateIndex - runStart) * sizeof(u64);
+				copies.Add(copy);
+
+				runStart = updateIndex;
+			}
+
+			if (mBindlessPatchCommandBufferPool == nullptr)
+				mBindlessPatchCommandBufferPool = CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_GRAPHICS));
+			else if (mBindlessPatchCommandBufferPool->GetOwnerThread() != B3D_CURRENT_THREAD_ID)
+				mBindlessPatchCommandBufferPool->SetThisAsOwnerThread();
+
+			const TShared<GpuCommandBuffer> commandBuffer = mBindlessPatchCommandBufferPool->FindOrCreate(GpuCommandBufferCreateInformation::Create("Bindless heap patch"));
+			static_cast<MetalGpuCommandBuffer&>(*commandBuffer).PatchMemory(staging, mBindlessHeapBuffers[(u32)GpuBindlessHeapType::Resource], copies);
+
+			// The patch must not overlap reads on any queue, so it waits for all earlier work. It is submitted before the frame boundary,
+			// so the frame fence makes the next frame's work on every queue wait for it.
+			GpuSubmissionInformation submissionInformation;
+			submissionInformation.CommandBuffer = commandBuffer;
+			submissionInformation.SyncMask = GpuQueueMask::kAll;
+
+			GetQueue(GQT_GRAPHICS, 0)->SubmitCommandBuffer(submissionInformation);
+
+			return true;
 		}
 
 		void MetalGpuDevice::WriteSamplerSlot(u32 slotIndex, const SamplerState& sampler)

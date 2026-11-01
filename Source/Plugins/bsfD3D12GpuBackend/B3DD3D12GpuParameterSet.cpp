@@ -453,11 +453,10 @@ bool D3D12GpuParameters::RefreshDescriptors(bool canWrite)
 	return isStale;
 }
 
-void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D12DescriptorSetLayout& descriptorSetLayout)
+void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D12DescriptorSetLayout& descriptorSetLayout, const D3D12BindlessHeap* heap)
 {
 	// Dirty tables are updated in place only after all command buffers referencing their current range have completed.
 	// Otherwise a new range preserves the descriptor snapshot seen by already recorded work.
-	ID3D12Device* d3d12Device = device.GetD3D12Device();
 	D3D12DescriptorManager& descriptorManager = device.GetDescriptorManager();
 
 	auto fnGetNullDescriptor = [&descriptorManager](const D3D12DescriptorBindingLayout& bindingLayout)
@@ -479,8 +478,8 @@ void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D1
 		}
 	};
 
-	auto fnUpdateTable = [d3d12Device, &descriptorManager, &fnGetNullDescriptor](DescriptorTable& table, const D3D12DescriptorTableLayout& tableLayout,
-		const UnorderedMap<u32, DescriptorBinding>& bindings, D3D12DescriptorHeapType heapType, D3D12_DESCRIPTOR_HEAP_TYPE nativeHeapType)
+	auto fnUpdateTable = [heap, &descriptorManager, &fnGetNullDescriptor](DescriptorTable& table, const D3D12DescriptorTableLayout& tableLayout,
+		const UnorderedMap<u32, DescriptorBinding>& bindings, D3D12DescriptorHeapType heapType)
 	{
 		if(table.IsCurrent(tableLayout))
 			return;
@@ -510,7 +509,6 @@ void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D1
 		FrameAllocatorScope frameScope;
 		FrameVector<D3D12_CPU_DESCRIPTOR_HANDLE> sourceHandles(tableLayout.DescriptorCount, D3D12_CPU_DESCRIPTOR_HANDLE{ 0 });
 
-		const D3D12_CPU_DESCRIPTOR_HANDLE destinationStart = descriptorTable->GetCPUHandle();
 		for(const D3D12DescriptorBindingLayout& bindingLayout : tableLayout.Bindings)
 		{
 			const auto bindingIterator = bindings.find(bindingLayout.Slot);
@@ -531,8 +529,7 @@ void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D1
 		for(const D3D12_CPU_DESCRIPTOR_HANDLE sourceHandle : sourceHandles)
 			B3D_ASSERT(sourceHandle.ptr != 0);
 
-		const UINT destinationRangeSize = tableLayout.DescriptorCount;
-		d3d12Device->CopyDescriptors(1, &destinationStart, &destinationRangeSize, tableLayout.DescriptorCount, sourceHandles.data(), nullptr, nativeHeapType);
+		descriptorTable->Write(sourceHandles, heap);
 
 		if(!canReuseTable && table.Resource != nullptr)
 			table.Resource->Destroy();
@@ -543,8 +540,8 @@ void D3D12GpuParameters::UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D1
 		table.IsDirty = false;
 	};
 
-	fnUpdateTable(mResourceTable, descriptorSetLayout.ResourceTable, mDescriptorBindings, D3D12DescriptorHeapType::CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	fnUpdateTable(mSamplerTable, descriptorSetLayout.SamplerTable, mSamplerBindings, D3D12DescriptorHeapType::Sampler, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+	fnUpdateTable(mResourceTable, descriptorSetLayout.ResourceTable, mDescriptorBindings, D3D12DescriptorHeapType::CBV_SRV_UAV);
+	fnUpdateTable(mSamplerTable, descriptorSetLayout.SamplerTable, mSamplerBindings, D3D12DescriptorHeapType::Sampler);
 }
 
 void D3D12GpuParameters::Flush(TArrayView<const GpuRenderPassAttachmentUsage> attachments)
@@ -552,10 +549,10 @@ void D3D12GpuParameters::Flush(TArrayView<const GpuRenderPassAttachmentUsage> at
 	B3D_ASSERT(IsOwnedByThisThread() && "Parameter sets can only be flushed on the thread that owns their pool.");
 
 	RefreshDescriptors(true);
-	UpdateGPUDescriptors(mDevice, static_cast<const D3D12GpuPipelineParameterSetLayout&>(*mParameterSetLayout).GetDescriptorSetLayout());
+	UpdateGPUDescriptors(mDevice, static_cast<const D3D12GpuPipelineParameterSetLayout&>(*mParameterSetLayout).GetDescriptorSetLayout(), mDevice.GetDescriptorManager().GetCurrentResourceHeap());
 }
 
-void D3D12GpuParameters::BindDescriptors(D3D12GpuDevice& device, GpuResourceTracker& resourceTracker, ID3D12GraphicsCommandList* commandList, bool isGraphics,
+void D3D12GpuParameters::BindDescriptors(D3D12GpuDevice& device, GpuResourceTracker& resourceTracker, const D3D12BindlessHeap* heap, ID3D12GraphicsCommandList* commandList, bool isGraphics,
 	const D3D12DescriptorSetLayout& descriptorSetLayout, const UnorderedMap<u32, u32>* dynamicOffsets)
 {
 	// A set holds one table per type, packed as its own layout packs it. Flushing writes that packing, and threads that do not own the set
@@ -579,7 +576,7 @@ void D3D12GpuParameters::BindDescriptors(D3D12GpuDevice& device, GpuResourceTrac
 	if(IsOwnedByThisThread())
 	{
 		RefreshDescriptors(true);
-		UpdateGPUDescriptors(device, descriptorSetLayout);
+		UpdateGPUDescriptors(device, descriptorSetLayout, heap);
 	}
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	else if(RefreshDescriptors(false) || !mResourceTable.IsCurrent(descriptorSetLayout.ResourceTable) || !mSamplerTable.IsCurrent(descriptorSetLayout.SamplerTable))
@@ -614,7 +611,7 @@ void D3D12GpuParameters::BindDescriptors(D3D12GpuDevice& device, GpuResourceTrac
 			commandList->SetComputeRootConstantBufferView(rootBufferLayout.RootParameterIndex, address);
 	}
 
-	auto fnBindTable = [commandList, isGraphics, &resourceTracker](const DescriptorTable& table, const D3D12DescriptorTableLayout& tableLayout)
+	auto fnBindTable = [commandList, isGraphics, heap, &resourceTracker](const DescriptorTable& table, const D3D12DescriptorTableLayout& tableLayout)
 	{
 		// If allocation failed, IsDirty remains set and the previous table must not be rebound with stale descriptors.
 		if(table.DescriptorCount == 0 || table.Resource == nullptr || table.IsDirty)
@@ -622,7 +619,7 @@ void D3D12GpuParameters::BindDescriptors(D3D12GpuDevice& device, GpuResourceTrac
 
 		resourceTracker.TrackResourceUsage(table.Resource, GpuAccessFlag::Read);
 
-		const D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = table.Resource->GetGPUHandle();
+		const D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = table.Resource->GetGPUHandle(heap);
 		if(isGraphics)
 			commandList->SetGraphicsRootDescriptorTable(tableLayout.RootParameterIndex, gpuHandle);
 		else

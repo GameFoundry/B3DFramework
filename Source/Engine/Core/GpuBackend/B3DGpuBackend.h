@@ -24,8 +24,14 @@ namespace b3d
 	/** Index of the GPU device to use. If negative, the best device is selected automatically. Shared by all backends. */
 	extern B3D_EXPORT TConfigVariable<i32> gGpuPreferredDeviceIndex;
 
-	/** Number of slots in the bindless resource heap, including the invalid slot. Clamped to the device limit. Shared by all backends. */
+	/** Initial number of slots in the bindless resource heap, including the invalid slot. Clamped to gGpuBindlessResourceMaximumCapacity. Shared by all backends. */
 	extern B3D_EXPORT TConfigVariable<u32> gGpuBindlessResourceCapacity;
+
+	/** Number of slots the bindless resource heap may grow to. Clamped to the device limit. */
+	extern B3D_EXPORT TConfigVariable<u32> gGpuBindlessResourceMaximumCapacity;
+
+	/** Fraction of the bindless resource heap that must stay free. The heap grows at the end of a frame once fewer slots are free. */
+	extern B3D_EXPORT TConfigVariable<float> gGpuBindlessResourceGrowthHeadroom;
 
 	/** Number of slots in the bindless sampler heap, including the invalid slot and the global samplers. Clamped to the device limit. Shared by all backends. */
 	extern B3D_EXPORT TConfigVariable<u32> gGpuBindlessSamplerCapacity;

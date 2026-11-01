@@ -3,19 +3,85 @@
 #include "Managers/B3DD3D12DescriptorManager.h"
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12ResourceManager.h"
+#include "CoreObject/B3DRenderThread.h"
 
 #include <algorithm>
 
 using namespace b3d;
 using namespace b3d::render;
 
-D3D12DescriptorTable::D3D12DescriptorTable(D3D12ResourceManager* owner, D3D12DescriptorManager& descriptorManager, D3D12DescriptorHeapType type, u32 startIndex, u32 descriptorCount, D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle)
-	: D3D12Resource(owner, "D3D12 descriptor table"), mDescriptorManager(descriptorManager), mType(type), mStartIndex(startIndex), mDescriptorCount(descriptorCount), mCPUHandle(cpuHandle), mGPUHandle(gpuHandle)
+D3D12BindlessHeap::D3D12BindlessHeap(D3D12ResourceManager* owner, u32 capacity, ComPtr<ID3D12DescriptorHeap> heap, u32 descriptorSize)
+	: TD3D12Resource<GpuBindlessHeap>(owner, capacity), mHeap(std::move(heap)), mDescriptorSize(descriptorSize)
+{
+	mCPUStart = mHeap->GetCPUDescriptorHandleForHeapStart();
+	mGPUStart = mHeap->GetGPUDescriptorHandleForHeapStart();
+}
+
+D3D12DescriptorTable::D3D12DescriptorTable(D3D12ResourceManager* owner, D3D12DescriptorManager& descriptorManager, D3D12DescriptorHeapType type, u32 offset, u32 descriptorCount)
+	: D3D12Resource(owner, "D3D12 descriptor table"), mDescriptorManager(descriptorManager), mType(type), mOffset(offset), mDescriptorCount(descriptorCount)
 { }
 
 D3D12DescriptorTable::~D3D12DescriptorTable()
 {
-	mDescriptorManager.FreeGPUDescriptorRange(mType, mStartIndex, mDescriptorCount);
+	mDescriptorManager.FreeGPUDescriptorRange(mType, mOffset, mDescriptorCount);
+}
+
+void D3D12DescriptorTable::Write(TArrayView<const D3D12_CPU_DESCRIPTOR_HANDLE> sourceHandles, const D3D12BindlessHeap* heap)
+{
+	B3D_ASSERT(sourceHandles.Size() == mDescriptorCount);
+
+	Lock lock(mMutex);
+
+	mSourceHandles.assign(sourceHandles.begin(), sourceHandles.end());
+	mHeapVersions.Clear();
+
+	CopyInto(heap);
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE D3D12DescriptorTable::GetGPUHandle(const D3D12BindlessHeap* heap)
+{
+	if(mType == D3D12DescriptorHeapType::Sampler)
+	{
+		const D3D12DescriptorManager::DescriptorHeap& heap = mDescriptorManager.mHeaps[(u32)mType];
+		return D3D12_GPU_DESCRIPTOR_HANDLE{ heap.GPUStart.ptr + (u64)(heap.TableStart + mOffset) * mDescriptorManager.GetDescriptorSize(mType) };
+	}
+
+	// Nothing that binds this heap reads the table's range with other descriptors: a range is only rewritten or reused once no command
+	// buffer binds it. So copying the descriptors into a heap that lacks them is safe.
+	{
+		Lock lock(mMutex);
+		if(std::find(mHeapVersions.begin(), mHeapVersions.end(), heap->GetVersion()) == mHeapVersions.end())
+			CopyInto(heap);
+	}
+
+	return heap->GetGPUHandle(heap->GetTableRegionStart() + mOffset);
+}
+
+void D3D12DescriptorTable::CopyInto(const D3D12BindlessHeap* heap)
+{
+	D3D12_CPU_DESCRIPTOR_HANDLE destinationStart;
+	D3D12_DESCRIPTOR_HEAP_TYPE nativeType;
+	if(mType == D3D12DescriptorHeapType::Sampler)
+	{
+		const D3D12DescriptorManager::DescriptorHeap& heap = mDescriptorManager.mHeaps[(u32)mType];
+		destinationStart = D3D12_CPU_DESCRIPTOR_HANDLE{ heap.CPUStart.ptr + (SIZE_T)(heap.TableStart + mOffset) * mDescriptorManager.GetDescriptorSize(mType) };
+		nativeType = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+	}
+	else
+	{
+		destinationStart = heap->GetCPUHandle(heap->GetTableRegionStart() + mOffset);
+		nativeType = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+
+		// Only the latest few heaps are remembered, as older heaps are rarely bound again
+		if(mHeapVersions.Size() == mHeapVersions.Capacity())
+			mHeapVersions.Remove(0);
+
+		mHeapVersions.Add(heap->GetVersion());
+	}
+
+	const UINT destinationRangeSize = mDescriptorCount;
+	mDescriptorManager.mDevice.GetD3D12Device()->CopyDescriptors(1, &destinationStart, &destinationRangeSize, mDescriptorCount, mSourceHandles.data(), nullptr,
+		nativeType);
 }
 
 D3D12DescriptorManager::D3D12DescriptorManager(D3D12GpuDevice& device, u32 bindlessResourceCount, u32 bindlessSamplerCount)
@@ -44,7 +110,15 @@ D3D12DescriptorManager::D3D12DescriptorManager(D3D12GpuDevice& device, u32 bindl
 	}
 
 	CreateNullDescriptors();
+
+	IGpuBindlessHeapPoolBackend& poolBackend = *this;
+	mResourceHeapPool = B3DMakeUnique<GpuBindlessHeapPool>(poolBackend, RenderThread::kMaximumFramesInFlight + 1);
+	const bool isHeapCreated = mResourceHeapPool->Initialize(bindlessResourceCount);
+	B3D_ASSERT(isHeapCreated && "Failed to create the shader-visible CBV/SRV/UAV descriptor heap");
+	(void)isHeapCreated;
 }
+
+D3D12DescriptorManager::~D3D12DescriptorManager() = default;
 
 void D3D12DescriptorManager::CreateNullDescriptors()
 {
@@ -197,8 +271,18 @@ void D3D12DescriptorManager::CreateHeaps(u32 bindlessResourceCount, u32 bindless
 		outHeap.TableStart = bindlessCount;
 	};
 
+	// Every shader-visible CBV/SRV/UAV heap shares the table region allocation
+	mHeaps[(u32)D3D12DescriptorHeapType::CBV_SRV_UAV].FreeRanges = RangeAllocator(kResourceTableDescriptorCount);
+	mHeaps[(u32)D3D12DescriptorHeapType::CBV_SRV_UAV].DescriptorCount = kResourceTableDescriptorCount;
+
+	if(bindlessResourceCount > 0)
+	{
+		const bool isMirrorCreated = ResizeBindlessResourceMirror(bindlessResourceCount);
+		B3D_ASSERT(isMirrorCreated && "Failed to create the bindless resource mirror descriptor heap");
+		(void)isMirrorCreated;
+	}
+
 	// Bindless descriptors are at the start of the heaps, so a bindless index equals its heap index
-	fnCreateHeap(mHeaps[(u32)D3D12DescriptorHeapType::CBV_SRV_UAV], D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, bindlessResourceCount + kResourceTableDescriptorCount, true, "Failed to create CBV/SRV/UAV descriptor heap", bindlessResourceCount);
 	fnCreateHeap(mHeaps[(u32)D3D12DescriptorHeapType::Sampler], D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE, true, "Failed to create Sampler descriptor heap", bindlessSamplerCount);
 	fnCreateHeap(mHeaps[(u32)D3D12DescriptorHeapType::RTV], D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 1024, false, "Failed to create RTV descriptor heap");
 	// A depth-stencil framebuffer takes four views (one per read-only combination), so this fits as many framebuffers as the RTV heap
@@ -281,25 +365,133 @@ D3D12DescriptorTable* D3D12DescriptorManager::AllocateGPUDescriptorTable(D3D12De
 		return nullptr;
 	}
 
-	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = heap.CPUStart;
-	cpuHandle.ptr += (heap.TableStart + startIndex) * mDescriptorSizes[(u32)type];
-
-	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = heap.GPUStart;
-	gpuHandle.ptr += (heap.TableStart + startIndex) * mDescriptorSizes[(u32)type];
-
-	return mDevice.GetResourceManager().Create<D3D12DescriptorTable>(*this, type, startIndex, count, cpuHandle, gpuHandle);
+	return mDevice.GetResourceManager().Create<D3D12DescriptorTable>(*this, type, startIndex, count);
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE D3D12DescriptorManager::GetBindlessCPUHandle(D3D12DescriptorHeapType type, u32 slotIndex) const
+D3D12BindlessHeap* D3D12DescriptorManager::GetAndTrackResourceHeap(GpuResourceTracker& resourceTracker)
 {
-	B3D_ASSERT(type == D3D12DescriptorHeapType::CBV_SRV_UAV || type == D3D12DescriptorHeapType::Sampler);
+	return static_cast<D3D12BindlessHeap*>(mResourceHeapPool->GetAndTrack(resourceTracker));
+}
 
-	const DescriptorHeap& heap = mHeaps[(u32)type];
+D3D12BindlessHeap* D3D12DescriptorManager::GetCurrentResourceHeap() const
+{
+	return static_cast<D3D12BindlessHeap*>(mResourceHeapPool->GetCurrent());
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE D3D12DescriptorManager::GetMirrorHandle(u32 slotIndex) const
+{
+	B3D_ASSERT(slotIndex < mBindlessResourceMirrorCapacity);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE handle = mBindlessResourceMirror->GetCPUDescriptorHandleForHeapStart();
+	handle.ptr += (SIZE_T)slotIndex * mDescriptorSizes[(u32)D3D12DescriptorHeapType::CBV_SRV_UAV];
+	return handle;
+}
+
+bool D3D12DescriptorManager::ResizeBindlessResourceMirror(u32 capacity)
+{
+	ID3D12Device* device = mDevice.GetD3D12Device();
+
+	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	heapDesc.NumDescriptors = capacity;
+	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+
+	ComPtr<ID3D12DescriptorHeap> mirror;
+	if(FAILED(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&mirror))))
+		return false;
+
+	if(mBindlessResourceMirror != nullptr)
+	{
+		device->CopyDescriptorsSimple(std::min(capacity, mBindlessResourceMirrorCapacity), mirror->GetCPUDescriptorHandleForHeapStart(),
+			mBindlessResourceMirror->GetCPUDescriptorHandleForHeapStart(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	}
+
+	mBindlessResourceMirror = std::move(mirror);
+	mBindlessResourceMirrorCapacity = capacity;
+	return true;
+}
+
+void D3D12DescriptorManager::WriteBindlessResourceSlot(u32 slotIndex, D3D12_CPU_DESCRIPTOR_HANDLE source)
+{
+	ID3D12Device* device = mDevice.GetD3D12Device();
+
+	const D3D12_CPU_DESCRIPTOR_HANDLE mirrorHandle = GetMirrorHandle(slotIndex);
+	device->CopyDescriptorsSimple(1, mirrorHandle, source, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+	// Work using other heaps was recorded before the write, so it never reads the slot
+	device->CopyDescriptorsSimple(1, GetCurrentResourceHeap()->GetCPUHandle(slotIndex), mirrorHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	mResourceHeapPool->MarkSlotWritten(slotIndex);
+}
+
+void D3D12DescriptorManager::WriteBindlessSamplerSlot(u32 slotIndex, D3D12_CPU_DESCRIPTOR_HANDLE source)
+{
+	const DescriptorHeap& heap = mHeaps[(u32)D3D12DescriptorHeapType::Sampler];
 	B3D_ASSERT(slotIndex < heap.TableStart);
 
-	D3D12_CPU_DESCRIPTOR_HANDLE handle = heap.CPUStart;
-	handle.ptr += slotIndex * mDescriptorSizes[(u32)type];
-	return handle;
+	D3D12_CPU_DESCRIPTOR_HANDLE destination = heap.CPUStart;
+	destination.ptr += (SIZE_T)slotIndex * mDescriptorSizes[(u32)D3D12DescriptorHeapType::Sampler];
+	mDevice.GetD3D12Device()->CopyDescriptorsSimple(1, destination, source, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+}
+
+bool D3D12DescriptorManager::GrowBindlessResourceRegion(u32 capacity, const TBitfield<>& liveSlots)
+{
+	// The mirror is the source the new heap is filled from
+	if(!ResizeBindlessResourceMirror(capacity))
+		return false;
+
+	return mResourceHeapPool->Grow(capacity, liveSlots);
+}
+
+GpuBindlessHeap* D3D12DescriptorManager::CreateHeap(u32 capacity)
+{
+	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	heapDesc.NumDescriptors = capacity + kResourceTableDescriptorCount;
+	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+
+	ComPtr<ID3D12DescriptorHeap> heap;
+	if(FAILED(mDevice.GetD3D12Device()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heap))))
+	{
+		B3D_LOG(Error, LogRenderBackend, "Failed to create a shader-visible CBV/SRV/UAV descriptor heap of {0} descriptors.", heapDesc.NumDescriptors);
+		return nullptr;
+	}
+
+	return mDevice.GetResourceManager().Create<D3D12BindlessHeap>(capacity, std::move(heap), mDescriptorSizes[(u32)D3D12DescriptorHeapType::CBV_SRV_UAV]);
+}
+
+void D3D12DescriptorManager::CopySlots(GpuBindlessHeap& destination, const GpuBindlessHeap& /*current*/, TArrayView<const TIndexRange<u32>> ranges)
+{
+	auto& destinationHeap = static_cast<D3D12BindlessHeap&>(destination);
+
+	FrameAllocatorScope frameScope;
+	FrameVector<D3D12_CPU_DESCRIPTOR_HANDLE> destinationStarts(ranges.Size());
+	FrameVector<D3D12_CPU_DESCRIPTOR_HANDLE> sourceStarts(ranges.Size());
+	FrameVector<UINT> rangeSizes(ranges.Size());
+
+	for(u32 rangeIndex = 0; rangeIndex < (u32)ranges.Size(); rangeIndex++)
+	{
+		const TIndexRange<u32>& range = ranges[rangeIndex];
+		destinationStarts[rangeIndex] = destinationHeap.GetCPUHandle(range.First);
+		sourceStarts[rangeIndex] = GetMirrorHandle(range.First);
+		rangeSizes[rangeIndex] = range.Count;
+	}
+
+	// The mirror holds the latest descriptor of every slot. Source and destination ranges have the same sizes.
+	mDevice.GetD3D12Device()->CopyDescriptors((UINT)ranges.Size(), destinationStarts.data(), rangeSizes.data(), (UINT)ranges.Size(), sourceStarts.data(),
+		rangeSizes.data(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+}
+
+void D3D12DescriptorManager::WriteUpdates(GpuBindlessHeap& destination, TArrayView<const GpuBindlessSlotUpdate> updates)
+{
+	ID3D12Device* device = mDevice.GetD3D12Device();
+	auto& destinationHeap = static_cast<D3D12BindlessHeap&>(destination);
+
+	for(const GpuBindlessSlotUpdate& update : updates)
+	{
+		const D3D12_CPU_DESCRIPTOR_HANDLE mirrorHandle = GetMirrorHandle(update.SlotIndex);
+		device->CopyDescriptorsSimple(1, mirrorHandle, mDevice.GetBindlessViewHandle(update.View), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		device->CopyDescriptorsSimple(1, destinationHeap.GetCPUHandle(update.SlotIndex), mirrorHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	}
 }
 
 void D3D12DescriptorManager::FreeGPUDescriptorRange(D3D12DescriptorHeapType type, u32 startIndex, u32 descriptorCount)
@@ -308,9 +500,4 @@ void D3D12DescriptorManager::FreeGPUDescriptorRange(D3D12DescriptorHeapType type
 	Lock lock(heap.AllocationMutex);
 
 	heap.FreeRanges.Free(startIndex, descriptorCount);
-}
-
-ID3D12DescriptorHeap* D3D12DescriptorManager::GetDescriptorHeap(D3D12DescriptorHeapType type) const
-{
-	return mHeaps[(u32)type].Heap.Get();
 }

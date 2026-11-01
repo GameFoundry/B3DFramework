@@ -41,6 +41,7 @@ namespace b3d
 		class D3D12GpuTimelineFence;
 		class D3D12DescriptorHeap;
 		class D3D12DescriptorManager;
+		class D3D12BindlessHeap;
 		class D3D12QueryHeap;
 
 		/** Maximum number of back buffers reserved by D3D12 render-window surface storage. */

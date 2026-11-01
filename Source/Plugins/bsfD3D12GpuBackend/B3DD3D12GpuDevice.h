@@ -25,7 +25,7 @@ namespace b3d
 		 */
 
 		/** Represents a single GPU device usable by DirectX 12. */
-		class D3D12GpuDevice : public GpuDevice, private IGpuSubmitThreadBackend, private IGpuBindlessHeap
+		class D3D12GpuDevice : public GpuDevice, private IGpuSubmitThreadBackend, private IGpuBindlessHeapBackend
 		{
 		public:
 			static constexpr const char* kGpuProgramLanguageName = kGpuProgramLanguageHlsl;
@@ -87,6 +87,9 @@ namespace b3d
 			/** Returns the descriptor manager that can be used for allocating descriptors. */
 			D3D12DescriptorManager& GetDescriptorManager() const { return *mDescriptorManager; }
 
+			/** Returns the CPU-only shader resource view that bindless resource slots holding @p view copy. A null view if it cannot be created. */
+			D3D12_CPU_DESCRIPTOR_HANDLE GetBindlessViewHandle(const GpuBindlessResourceView& view) const;
+
 			/** Returns a manager that owns the lifetime of manager-allocated D3D12 GPU resources. */
 			D3D12ResourceManager& GetResourceManager() const { return *mResourceManager; }
 
@@ -146,13 +149,16 @@ namespace b3d
 			/** @} */
 
 			/**
-			 * @name IGpuBindlessHeap implementation
+			 * @name IGpuBindlessHeapBackend implementation
 			 * @{
 			 */
 
 			void WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view) override;
 			void WriteSamplerSlot(u32 slotIndex, const SamplerState& sampler) override;
 			void ClearResourceSlot(u32 slotIndex, GpuParameterObjectType viewType) override;
+			bool ApplyResourceUpdates(TArrayView<const GpuBindlessSlotUpdate> updates, const TBitfield<>& liveSlots) override;
+			bool GrowResourceHeap(u32 capacity, const TBitfield<>& liveSlots) override;
+			void ProcessRetiredResourceHeaps() override;
 
 			/** @} */
 

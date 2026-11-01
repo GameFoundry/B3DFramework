@@ -268,6 +268,9 @@ namespace b3d
 			/** Returns the owner GPU device, cast as a D3D12GpuDevice. */
 			D3D12GpuDevice& GetD3D12GpuDevice() const { return static_cast<D3D12GpuDevice&>(mGpuDevice); }
 
+			/** Gets and tracks the current shader-visible CBV/SRV/UAV heap, and binds it with the sampler heap, unless already bound. */
+			void BindDescriptorHeaps();
+
 			u32 mId;
 			ComPtr<ID3D12GraphicsCommandList7> mCommandList;
 			ComPtr<ID3D12CommandAllocator> mCommandAllocator; /**< Allocator of this command buffer only. Null if the pool shares one. */
@@ -277,6 +280,7 @@ namespace b3d
 
 			/** Tracks every resource used on the command buffer: lifetime (bound/use counts) and render pass attachments. */
 			GpuResourceTracker mResourceTracker;
+			D3D12BindlessHeap* mResourceHeap = nullptr; /**< Shader-visible CBV/SRV/UAV heap bound since the first pipeline was bound. Null before. */
 
 			/** Queue the command buffer was submitted on; identifies the queue for NotifyDone. */
 			GpuQueueId mSubmittedQueueId;

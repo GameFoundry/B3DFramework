@@ -254,6 +254,8 @@ void VulkanGpuCommandBuffer::End()
 	if(mIsDebugLabelOpen)
 		EndLabel();
 
+	B3D_ENSURE_LOG(mBindlessHeap == nullptr || mBindlessHeap->IsCurrent(), "Command buffer '{0}' accessed the bindless heaps and was recorded across the end of a frame. Bindless slots allocated or written after the frame ended may not be valid in it.", mName);
+
 	VkResult result = vkEndCommandBuffer(mCommandBufferHandle);
 	B3D_ASSERT(result == VK_SUCCESS);
 
@@ -1386,6 +1388,7 @@ void VulkanGpuCommandBuffer::ClearRecordingState()
 #endif
 
 	mResourceTracker.Clear();
+	mBindlessHeap = nullptr;
 	mQueueSyncMask = GpuQueueMask();
 	mPushConstants.Clear();
 	mGraphicsPushConstantsRequireBind = false;
@@ -1811,7 +1814,16 @@ void VulkanGpuCommandBuffer::BindBindlessHeaps(VkPipelineBindPoint bindPoint, co
 	if(bindlessHeapLayout == pipelineLayout)
 		return;
 
-	const VkDescriptorSet bindlessHeapSet = GetVulkanGpuDevice().GetBindlessHeapSet();
+	// The heap stays bound for the rest of the command buffer's lifetime, so bindless slots read the descriptors they had when it was captured
+	if(mBindlessHeap == nullptr)
+	{
+		mBindlessHeap = GetVulkanGpuDevice().GetAndTrackBindlessHeap(mResourceTracker);
+
+		if(!B3D_ENSURE_LOG(mBindlessHeap != nullptr, "Pipeline accesses the bindless heaps, but the device doesn't support bindless resources."))
+			return;
+	}
+
+	const VkDescriptorSet bindlessHeapSet = mBindlessHeap->GetSet();
 	vkCmdBindDescriptorSets(mCommandBufferHandle, bindPoint, pipelineLayout, kGpuBindlessParameterSet, 1, &bindlessHeapSet, 0, nullptr);
 
 	bindlessHeapLayout = pipelineLayout;

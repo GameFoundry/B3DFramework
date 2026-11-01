@@ -23,7 +23,7 @@ namespace b3d
 		 */
 
 		/** Represents a single Metal GPU device. */
-		class MetalGpuDevice : public GpuDevice, private IGpuSubmitThreadBackend, private IGpuBindlessHeap
+		class MetalGpuDevice : public GpuDevice, private IGpuSubmitThreadBackend, private IGpuBindlessHeapBackend
 		{
 		public:
 			static constexpr const char* kGpuProgramLanguageName = kGpuProgramLanguageMsl;
@@ -190,15 +190,20 @@ namespace b3d
 			/** @} */
 
 			/**
-			 * @name IGpuBindlessHeap implementation
+			 * @name IGpuBindlessHeapBackend implementation
 			 * @{
 			 */
 
 			void WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view) override;
 			void WriteSamplerSlot(u32 slotIndex, const SamplerState& sampler) override;
 			void ClearResourceSlot(u32 slotIndex, GpuParameterObjectType viewType) override;
+			bool ApplyResourceUpdates(TArrayView<const GpuBindlessSlotUpdate> updates, const TBitfield<>& liveSlots) override;
+			bool GrowResourceHeap(u32 capacity, const TBitfield<>& liveSlots) override { return false; }
 
 			/** @} */
+
+			/** Returns the bindless resource heap entry that refers to @p view. */
+			u64 GetBindlessResourceEntry(const GpuBindlessResourceView& view) const;
 
 			TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
 			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
@@ -227,6 +232,7 @@ namespace b3d
 			GpuAllocation mVisibilityResultBufferAllocation;
 			id<MTLBuffer> mBindlessHeapBuffers[(u32)GpuBindlessHeapType::Count] = {};
 			GpuAllocation mBindlessHeapBufferAllocations[(u32)GpuBindlessHeapType::Count];
+			TShared<GpuCommandBufferPool> mBindlessPatchCommandBufferPool; /**< Created on first use by ApplyResourceUpdates(). */
 
 			/** Timestamp counter heap shared by query pools, and its unallocated slots. */
 			struct CounterHeap

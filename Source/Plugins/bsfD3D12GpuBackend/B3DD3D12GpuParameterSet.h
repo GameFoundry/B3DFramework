@@ -12,6 +12,7 @@ namespace b3d
 	{
 		class GpuResourceTracker;
 		class D3D12DescriptorTable;
+		class D3D12BindlessHeap;
 		class D3D12GpuParameterSetPool;
 
 		/** @addtogroup D3D12GpuBackend
@@ -34,6 +35,7 @@ namespace b3d
 			 *
 			 * @param	device				Device to use for descriptor operations.
 			 * @param	resourceTracker		Command-buffer tracker that retains the emitted descriptor tables.
+			 * @param	heap			Shader-visible CBV/SRV/UAV heap bound on the command list.
 			 * @param	commandList			Command list to bind descriptor heaps and tables to.
 			 * @param	isGraphics			True if binding for graphics pipeline, false for compute.
 			 * @param	descriptorSetLayout	D3D12 root parameters and table packing expected by the active pipeline.
@@ -41,7 +43,7 @@ namespace b3d
 			 *								GpuPipelineParameterSetLayout::GetDynamicOffsetIndex). An override
 			 *								replaces the bound buffer's suballocation offset for that binding.
 			 */
-			void BindDescriptors(D3D12GpuDevice& device, GpuResourceTracker& resourceTracker, ID3D12GraphicsCommandList* commandList, bool isGraphics,
+			void BindDescriptors(D3D12GpuDevice& device, GpuResourceTracker& resourceTracker, const D3D12BindlessHeap* heap, ID3D12GraphicsCommandList* commandList, bool isGraphics,
 				const D3D12DescriptorSetLayout& descriptorSetLayout, const UnorderedMap<u32, u32>* dynamicOffsets = nullptr);
 
 			/**
@@ -176,10 +178,10 @@ namespace b3d
 			}
 
 			/**
-			 * Copies dirty packed tables into GPU-visible descriptor ranges. Reuses a compatible range when no command
-			 * buffer references it; otherwise allocates a new range so recorded work retains its descriptor snapshot.
+			 * Copies dirty packed tables into GPU-visible descriptor ranges, as seen through @p heap. Reuses a compatible range when
+			 * no command buffer references it; otherwise allocates a new range so recorded work retains its descriptor snapshot.
 			 */
-			void UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D12DescriptorSetLayout& descriptorSetLayout);
+			void UpdateGPUDescriptors(D3D12GpuDevice& device, const D3D12DescriptorSetLayout& descriptorSetLayout, const D3D12BindlessHeap* heap);
 
 			D3D12GpuDevice& mDevice;
 

@@ -86,6 +86,8 @@ uint4 words = rawBuffer.Load4(byteOffset);
 
 Indices are valid until the resource is destroyed. The slots are reused once the GPU finishes the frame in which the resource was destroyed, so work recorded before the destruction can still read them. Index 0 is never allocated in either heap. It is @b3d::kGpuBindlessInvalidIndex, which the getters return when the resource has no slot.
 
+A command buffer that accesses the heaps must finish recording in the frame it started recording in. At the end of a frame the device may switch to a new native heap, and indices allocated afterwards are only valid in work recorded afterwards. @b3d::render::GpuCommandBuffer::End logs an error for a command buffer recorded across the end of a frame in which the heap switched.
+
 A bindless resource must:
  - be a texture, or a simple or structured storage buffer, with no suballocations,
  - not be aliased or transient, so it can't come from the transient resource allocator or a frame graph,
@@ -133,12 +135,18 @@ shader MyShader
 
 # Configuration
 
-The heaps have a fixed capacity, set when the device is created:
- - `gpu.BindlessResourceCapacity` (default 262144) is the number of resource heap slots.
+The resource heap grows as it fills, and the sampler heap has a fixed capacity:
+ - `gpu.BindlessResourceCapacity` (default 65536) is the initial number of resource heap slots.
+ - `gpu.BindlessResourceMaximumCapacity` (default 1048576) is the number of slots the resource heap may grow to.
+ - `gpu.BindlessResourceGrowthHeadroom` (default 0.25) is the fraction of the resource heap that must stay free. When fewer slots are free at the end of a frame, the heap doubles, up to its maximum capacity.
  - `gpu.BindlessSamplerCapacity` (default 1024) is the number of sampler heap slots, including the global samplers.
 
-Both are limited by the device: see @b3d::GpuDeviceCapabilities::MaximumBindlessResourceCount and @b3d::GpuDeviceCapabilities::MaximumBindlessSamplerCount. Allocation fails with an error once a heap is full. @b3d::GpuBindlessHeaps::GetStatistics, available through @b3d::GpuDevice::GetBindlessHeaps, reports how many slots are in use.
+The capacities are limited by the device: see @b3d::GpuDeviceCapabilities::MaximumBindlessResourceCount and @b3d::GpuDeviceCapabilities::MaximumBindlessSamplerCount. Indices stay valid when the heap grows, and growth needs nothing from the caller.
+
+Slots added by a growth can be allocated right away. Allocation fails with an error when the resource heap is full, either because it is at its maximum capacity (raise `gpu.BindlessResourceMaximumCapacity`), or because more slots were allocated in one frame than the headroom (raise `gpu.BindlessResourceCapacity` or `gpu.BindlessResourceGrowthHeadroom`). On Metal, the resource heap is created at its maximum capacity and never grows.
+
+@b3d::GpuBindlessHeaps::GetStatistics, available through @b3d::GpuDevice::GetBindlessHeaps, reports how many slots are in use, the current and maximum capacities, and how many times the heap grew.
 
 In development builds, slots still allocated when the device shuts down are reported as leaks, with the name of the resource or sampler that owns them. Retired slots are also cleared, so stale indices read zeros:
  - A retired resource slot gets a null descriptor of the same type as the view it held (texture dimension, typed, structured or raw buffer), as reads through a null descriptor of a different type are undefined. On Vulkan this needs `VK_EXT_robustness2` with the `nullDescriptor` feature. Without it, retired slots hold an empty storage buffer, so only stale structured and raw buffer indices read zeros.
- - A retired sampler slot gets the point filtered, wrapping global sampler, as samplers have no null descriptor.
+ - A retired sampler slot gets the point filtered, wrapping global sampler, as samplers have no null descriptor. This happens in all builds.

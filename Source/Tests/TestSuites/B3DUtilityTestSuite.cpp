@@ -432,6 +432,49 @@ void UtilityTestSuite::TestBitfield()
 	// Find
 	B3D_TEST_ASSERT(bitfield.Find(true) == 0);
 	B3D_TEST_ASSERT(bitfield.Find(false) == 5);
+
+	// Resize, starting mid-dword and spanning several dwords
+	const bool lastBit = bitfield[curCount - 1];
+	bitfield.Resize(curCount + 70, true);
+	B3D_TEST_ASSERT(bitfield[curCount - 1] == lastBit);
+	for(u32 j = curCount; j < curCount + 70; j++)
+		B3D_TEST_ASSERT(bitfield[j] == true);
+
+	bitfield.Resize(curCount);
+	bitfield.Resize(curCount + 70, false);
+	B3D_TEST_ASSERT(bitfield[curCount - 1] == lastBit);
+	for(u32 j = curCount; j < curCount + 70; j++)
+		B3D_TEST_ASSERT(bitfield[j] == false);
+
+	// Runs of bits set in both bitfields: one within a dword, one crossing two dword boundaries, one cut by the mask, and one
+	// cut by the count
+	TBitfield bits(false, 200);
+	TBitfield mask(true, 200);
+	for(u32 j = 3; j < 7; j++)
+		bits[j] = true;
+
+	for(u32 j = 30; j < 70; j++)
+		bits[j] = true;
+
+	for(u32 j = 100; j < 110; j++)
+		bits[j] = true;
+
+	mask[105] = false;
+	for(u32 j = 150; j < 200; j++)
+		bits[j] = true;
+
+	TArray<TIndexRange<u64>> runs;
+	bits.ForEachSetRange(mask, 160, [&runs](const TIndexRange<u64>& run) { runs.Add(run); });
+
+	B3D_TEST_ASSERT(runs.Size() == 5);
+	if(runs.Size() == 5)
+	{
+		B3D_TEST_ASSERT(runs[0].First == 3 && runs[0].Count == 4);
+		B3D_TEST_ASSERT(runs[1].First == 30 && runs[1].Count == 40);
+		B3D_TEST_ASSERT(runs[2].First == 100 && runs[2].Count == 5);
+		B3D_TEST_ASSERT(runs[3].First == 106 && runs[3].Count == 4);
+		B3D_TEST_ASSERT(runs[4].First == 150 && runs[4].Count == 10);
+	}
 }
 
 void UtilityTestSuite::TestOctree()

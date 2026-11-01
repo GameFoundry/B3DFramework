@@ -901,7 +901,10 @@ namespace b3d
 			/** Inserts a label at the specified location in the command buffer. This may be used by external tools for easier debugging. */
 			virtual void InsertLabel(const StringView& name) = 0;
 
-			/** Ends command recording on the command buffer and makes it ready for submission. */
+			/**
+			 * Ends command recording on the command buffer and makes it ready for submission. A command buffer that accesses the bindless
+			 * heaps must end in the frame it began recording in, see GpuBindlessHeaps.
+			 */
 			virtual void End() = 0;
 
 			/**

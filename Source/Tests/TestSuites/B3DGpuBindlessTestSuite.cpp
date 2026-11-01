@@ -28,7 +28,7 @@ using namespace b3d::render;
 namespace
 {
 	/** Native heap stub that records the slots written into it. */
-	class RecordingBindlessHeap : public IGpuBindlessHeap
+	class RecordingBindlessHeap : public IGpuBindlessHeapBackend
 	{
 	public:
 		RecordingBindlessHeap() = default;
@@ -41,7 +41,23 @@ namespace
 			ClearedViewTypes.Add(viewType);
 		}
 
+		bool ApplyResourceUpdates(TArrayView<const GpuBindlessSlotUpdate> updates, const TBitfield<>& liveSlots) override
+		{
+			for(const GpuBindlessSlotUpdate& update : updates)
+				UpdatedSlots.Add(update.SlotIndex);
+
+			return true;
+		}
+
+		bool GrowResourceHeap(u32 capacity, const TBitfield<>& liveSlots) override
+		{
+			GrowCapacities.Add(capacity);
+			return true;
+		}
+
 		TArray<u32> ResourceWrites;
+		TArray<u32> UpdatedSlots;
+		TArray<u32> GrowCapacities;
 		TArray<u32> SamplerWrites;
 		TArray<u32> ClearedSlots;
 		TArray<GpuParameterObjectType> ClearedViewTypes;
@@ -71,6 +87,7 @@ GpuBindlessTestSuite::GpuBindlessTestSuite()
 	: TestSuite("GpuBindlessTestSuite")
 {
 	B3D_ADD_TEST(GpuBindlessTestSuite::TestHeapAllocation)
+	B3D_ADD_TEST(GpuBindlessTestSuite::TestHeapChanges)
 	B3D_ADD_TEST(GpuBindlessTestSuite::TestResourceIndices)
 	B3D_ADD_TEST(GpuBindlessTestSuite::TestHeapAccess)
 }
@@ -89,7 +106,7 @@ void GpuBindlessTestSuite::TestHeapAllocation()
 
 	RecordingBindlessHeap nativeHeap;
 	ManualCompletionTracker completionTracker;
-	GpuBindlessHeaps heaps(*device, nativeHeap, completionTracker, 4, 16);
+	GpuBindlessHeaps heaps(*device, nativeHeap, completionTracker, 4, 4, 16);
 
 	const GpuBindlessResourceView view(*buffer, GpuBufferViewType::Typed, BF_UNKNOWN);
 	const int owners[4] = {};
@@ -186,6 +203,101 @@ void GpuBindlessTestSuite::TestHeapAllocation()
 	B3D_TEST_ASSERT(heaps.GetStatistics(GpuBindlessHeapType::Resource).AllocatedCount == 0)
 	B3D_TEST_ASSERT(heaps.GetStatistics(GpuBindlessHeapType::Sampler).AllocatedCount == 0)
 	B3D_TEST_ASSERT(heaps.GetStatistics(GpuBindlessHeapType::Resource).PendingReleaseCount == 0)
+}
+
+void GpuBindlessTestSuite::TestHeapChanges()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	const TShared<render::GpuBuffer> buffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 4));
+	B3D_TEST_ASSERT(buffer != nullptr)
+	if(buffer == nullptr)
+		return;
+
+	RecordingBindlessHeap nativeHeap;
+	ManualCompletionTracker completionTracker;
+	GpuBindlessHeaps heaps(*device, nativeHeap, completionTracker, 8, 16, 16);
+
+	const GpuBindlessResourceView view(*buffer, GpuBufferViewType::Typed, BF_UNKNOWN);
+	const int owners[16] = {};
+
+	// Seven usable slots, so growth starts once fewer than two are free
+	u32 slots[16];
+	for(u32 slotIndex = 0; slotIndex < 5; slotIndex++)
+		slots[slotIndex] = heaps.AllocateResourceSlot(view, &owners[slotIndex]);
+
+	heaps.ApplyPendingChanges();
+	B3D_TEST_ASSERT(nativeHeap.GrowCapacities.Empty())
+
+	slots[5] = heaps.AllocateResourceSlot(view, &owners[5]);
+
+	heaps.ApplyPendingChanges();
+	B3D_TEST_ASSERT(nativeHeap.GrowCapacities.Size() == 1 && nativeHeap.GrowCapacities[0] == 16)
+
+	const GpuBindlessHeapStatistics statistics = heaps.GetStatistics(GpuBindlessHeapType::Resource);
+	B3D_TEST_ASSERT(statistics.Capacity == 16 && statistics.GrowthCount == 1)
+
+	// Slots above the old capacity are allocated right away
+	for(u32 slotIndex = 6; slotIndex < 15; slotIndex++)
+		slots[slotIndex] = heaps.AllocateResourceSlot(view, &owners[slotIndex]);
+
+	B3D_TEST_ASSERT(slots[6] == 7 && slots[7] == 8 && slots[14] == 15)
+
+	// The heap is at its maximum capacity
+	heaps.ApplyPendingChanges();
+	B3D_TEST_ASSERT(nativeHeap.GrowCapacities.Size() == 1)
+	{
+		LoggingScope logs(*this);
+		logs.ExpectError("Increase gpu.BindlessResourceMaximumCapacity.");
+		B3D_TEST_ASSERT(heaps.AllocateResourceSlot(view, &owners[15]) == kGpuBindlessInvalidIndex)
+	}
+
+	// Updates apply once, at the end of the frame. A later update of the same slot replaces an earlier one, and the replaced update's
+	// view is unpinned right away, while the descriptor being replaced is unpinned once the frame of the update completes.
+	PinnedTestBuffer previousTarget;
+	PinnedTestBuffer replacedTarget;
+	heaps.PinResource(previousTarget);
+	heaps.PinResource(replacedTarget);
+
+	completionTracker.CurrentMarker = 2;
+	heaps.UpdateResourceSlot(slots[0], view, &owners[0], &previousTarget);
+	heaps.UpdateResourceSlot(slots[0], view, &owners[0], &replacedTarget);
+	heaps.UpdateResourceSlot(slots[1], view, &owners[1], nullptr);
+
+	// A released slot drops its pending update
+	heaps.ReleaseSlot(GpuBindlessHeapType::Resource, slots[1], &owners[1]);
+
+	completionTracker.CompletedMarker = 2;
+	heaps.ProcessReleases();
+	B3D_TEST_ASSERT(replacedTarget.GetBoundCount() == 0)
+	B3D_TEST_ASSERT(previousTarget.GetBoundCount() == 1)
+
+	completionTracker.CurrentMarker = 3;
+	heaps.ApplyPendingChanges();
+	B3D_TEST_ASSERT(nativeHeap.UpdatedSlots.Size() == 1 && nativeHeap.UpdatedSlots[0] == slots[0])
+	B3D_TEST_ASSERT(heaps.GetStatistics(GpuBindlessHeapType::Resource).UpdateCount == 1)
+
+	heaps.ApplyPendingChanges();
+	B3D_TEST_ASSERT(nativeHeap.UpdatedSlots.Size() == 1)
+
+	heaps.ProcessReleases();
+	B3D_TEST_ASSERT(previousTarget.GetBoundCount() == 1)
+
+	completionTracker.CompletedMarker = 3;
+	heaps.ProcessReleases();
+	B3D_TEST_ASSERT(previousTarget.GetBoundCount() == 0)
+
+	for(u32 slotIndex = 0; slotIndex < 15; slotIndex++)
+	{
+		if(slotIndex != 1)
+			heaps.ReleaseSlot(GpuBindlessHeapType::Resource, slots[slotIndex], &owners[slotIndex]);
+	}
+
+	heaps.ProcessAllReleases();
+	B3D_TEST_ASSERT(heaps.GetStatistics(GpuBindlessHeapType::Resource).AllocatedCount == 0)
 }
 
 void GpuBindlessTestSuite::TestResourceIndices()
@@ -379,7 +491,7 @@ void GpuBindlessTestSuite::TestHeapAccess()
 		samplerInformation.MipmapBias = 0.25f;
 		const TShared<SamplerState> cachedSampler = device->FindOrCreateSamplerState(samplerInformation);
 
-		const u32 indices[] =
+		u32 indices[] =
 		{
 			structuredBuffer->GetBindlessIndex(),
 			typedBuffer->GetBindlessIndex(),
@@ -442,6 +554,88 @@ void GpuBindlessTestSuite::TestHeapAccess()
 		const u32 expected[kOutputCount] = { 101, 202, 50, 60, 30, 102, 103 };
 		fnDispatch("live", commands, expected);
 		commands = nullptr;
+
+		// An update changes the view behind a slot once it is applied, at the end of a frame
+		GpuBindlessHeaps& heaps = *device->GetBindlessHeaps();
+		TShared<render::GpuBuffer> updatedBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 4, inputFlags));
+		B3D_TEST_ASSERT(updatedBuffer != nullptr)
+		if(updatedBuffer == nullptr)
+			return;
+
+		{
+			const render::GpuBufferMappedScope mapping = updatedBuffer->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			u32* elements = static_cast<u32*>(mapping.GetMappedMemory());
+			for(u32 elementIndex = 0; elementIndex < 4; elementIndex++)
+				elements[elementIndex] = 300 + elementIndex;
+		}
+
+		// Both buffers are pinned by their own registrations, so the test's slot can view either
+		const int updatedSlotOwner = 0;
+		const u32 updatedSlot = heaps.AllocateResourceSlot(GpuBindlessResourceView(*structuredBuffer, GpuBufferViewType::Typed, BF_UNKNOWN), &updatedSlotOwner);
+		B3D_TEST_ASSERT(updatedSlot != kGpuBindlessInvalidIndex)
+
+		indices[0] = updatedSlot;
+		fnDispatch("allocated", pool->Create(GpuCommandBufferCreateInformation::Create("Bindless allocated slot access")), expected);
+
+		heaps.UpdateResourceSlot(updatedSlot, GpuBindlessResourceView(*updatedBuffer, GpuBufferViewType::Typed, BF_UNKNOWN), &updatedSlotOwner, nullptr);
+		fnDispatch("pending update", pool->Create(GpuCommandBufferCreateInformation::Create("Bindless pending update access")), expected);
+
+		heaps.ApplyPendingChanges();
+
+		u32 expectedUpdated[kOutputCount];
+		std::copy(std::begin(expected), std::end(expected), std::begin(expectedUpdated));
+		expectedUpdated[0] = 301;
+		fnDispatch("updated", pool->Create(GpuCommandBufferCreateInformation::Create("Bindless updated slot access")), expectedUpdated);
+
+		// Fill the resource heap past its growth headroom. Every slot keeps its view in the grown heap.
+		const GpuBindlessHeapStatistics statisticsBeforeGrowth = heaps.GetStatistics(GpuBindlessHeapType::Resource);
+		TArray<u32> fillerSlots;
+		if(statisticsBeforeGrowth.Capacity < statisticsBeforeGrowth.MaximumCapacity)
+		{
+			const u32 headroomSlotCount = (u32)((float)statisticsBeforeGrowth.Capacity * gGpuBindlessResourceGrowthHeadroom.Get());
+			const u32 freeSlotCount = statisticsBeforeGrowth.Capacity - 1 - statisticsBeforeGrowth.AllocatedCount - statisticsBeforeGrowth.PendingReleaseCount;
+			const GpuBindlessResourceView fillerView(*structuredBuffer, GpuBufferViewType::Typed, BF_UNKNOWN);
+			for(u32 fillerIndex = 0; fillerIndex + headroomSlotCount <= freeSlotCount; fillerIndex++)
+				fillerSlots.Add(heaps.AllocateResourceSlot(fillerView, &updatedSlotOwner));
+
+			heaps.ApplyPendingChanges();
+
+			const GpuBindlessHeapStatistics statisticsAfterGrowth = heaps.GetStatistics(GpuBindlessHeapType::Resource);
+			B3D_TEST_ASSERT(statisticsAfterGrowth.GrowthCount == statisticsBeforeGrowth.GrowthCount + 1)
+			B3D_TEST_ASSERT(statisticsAfterGrowth.Capacity > statisticsBeforeGrowth.Capacity)
+
+			fnDispatch("grown", pool->Create(GpuCommandBufferCreateInformation::Create("Bindless grown heap access")), expectedUpdated);
+
+			// Slots above the old capacity are allocated right away, and only valid in the grown heap
+			const GpuBindlessResourceView grownView(*updatedBuffer, GpuBufferViewType::Typed, BF_UNKNOWN);
+			u32 grownSlot = kGpuBindlessInvalidIndex;
+			while(fillerSlots.Size() < statisticsAfterGrowth.Capacity)
+			{
+				grownSlot = heaps.AllocateResourceSlot(grownView, &updatedSlotOwner);
+				if(grownSlot == kGpuBindlessInvalidIndex)
+					break;
+
+				fillerSlots.Add(grownSlot);
+				if(grownSlot >= statisticsBeforeGrowth.Capacity)
+					break;
+			}
+
+			B3D_TEST_ASSERT(grownSlot != kGpuBindlessInvalidIndex && grownSlot >= statisticsBeforeGrowth.Capacity)
+
+			indices[0] = grownSlot;
+			fnDispatch("grown slot", pool->Create(GpuCommandBufferCreateInformation::Create("Bindless grown slot access")), expectedUpdated);
+		}
+
+		heaps.ReleaseSlot(GpuBindlessHeapType::Resource, updatedSlot, &updatedSlotOwner);
+		for(u32 fillerSlot : fillerSlots)
+			heaps.ReleaseSlot(GpuBindlessHeapType::Resource, fillerSlot, &updatedSlotOwner);
+
+		indices[0] = structuredBuffer->GetBindlessIndex();
+		updatedBuffer = nullptr;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		// Development builds clear retired slots with null descriptors matching the view type, so stale indices read zeros. Nothing

@@ -242,6 +242,22 @@ namespace b3d
 	using RangeF = TRange<float>;
 	using RangeD = TRange<double>;
 
+	/** Range of consecutive indices. */
+	template<typename T>
+	struct TIndexRange
+	{
+		constexpr TIndexRange() = default;
+		constexpr TIndexRange(T first, T count)
+			: First(first), Count(count)
+		{ }
+
+		/** Returns the index one past the last index of the range. */
+		constexpr T GetEnd() const { return First + Count; }
+
+		T First = 0;
+		T Count = 0;
+	};
+
 	/** @} */
 
 	/** @addtogroup Metaprogramming

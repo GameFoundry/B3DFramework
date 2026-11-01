@@ -20,6 +20,13 @@ namespace b3d
 		void TestHeapAllocation();
 
 		/**
+		 * Verifies resource heap growth and slot updates on a native heap stub: growth once free slots drop below the headroom, slots above
+		 * the old capacity only allocated once the backend no longer uses the smaller heap, the maximum capacity, and pending updates that
+		 * are applied once, dropped on release, and unpin their previous targets.
+		 */
+		void TestHeapChanges();
+
+		/**
 		 * Verifies the bindless indices of textures, buffers and samplers: default and additional views, the global samplers, the release of
 		 * slots on destruction and the rejection of resources that can't be bindless.
 		 */
@@ -27,8 +34,9 @@ namespace b3d
 
 		/**
 		 * Dispatches a compute program that reads a structured and a typed buffer and a texture through ResourceDescriptorHeap, sampled
-		 * with a cached and a global sampler through SamplerDescriptorHeap, and verifies the values it writes. Runs on devices that support
-		 * bindless resources.
+		 * with a cached and a global sampler through SamplerDescriptorHeap, and verifies the values it writes. Also verifies that an updated
+		 * slot reads its new view once the update is applied, and that every slot keeps its view when the resource heap grows. Runs on
+		 * devices that support bindless resources.
 		 */
 		void TestHeapAccess();
 	};

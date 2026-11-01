@@ -1537,6 +1537,38 @@ namespace b3d
 			mEncoderHasWork = true;
 		}
 
+		void MetalGpuCommandBuffer::PatchMemory(const TShared<GpuBuffer>& source, id<MTLBuffer> destination, TArrayView<const MemoryCopy> copies)
+		{
+			EnsureValidThread();
+
+			if (!B3D_ENSURE(!IsInRenderPass()))
+				return;
+
+			auto metalSource = std::static_pointer_cast<MetalGpuBuffer>(source);
+			id<MTLBuffer> sourceBuffer = metalSource->GetMetalBuffer();
+			if (sourceBuffer == nil || destination == nil)
+				return;
+
+			// Shaders read the patched memory without barriers. Earlier reads must complete before the copies, and later reads must see them.
+			EmitBarrier(MetalStageBarrier(GpuBarrierScope(GpuStageFlag::AllShader, GpuAccessFlag::Read, GpuStageFlag::Transfer, GpuAccessFlag::Write)));
+
+			id<MTL4ComputeCommandEncoder> encoder = OpenComputeEncoder();
+			if (encoder == nil)
+				return;
+
+			if (MetalBuffer* sourceResource = metalSource->GetMetalResource())
+				mResourceTracker.TrackBufferUsage(sourceResource, GpuAccessFlag::Read, 0);
+
+			if (mRecordingFailed)
+				return;
+
+			for (const MemoryCopy& copy : copies)
+				[encoder copyFromBuffer:sourceBuffer sourceOffset:copy.SourceOffset toBuffer:destination destinationOffset:copy.DestinationOffset size:copy.Size];
+
+			mEncoderHasWork = true;
+			EmitBarrier(MetalStageBarrier(GpuBarrierScope(GpuStageFlag::Transfer, GpuAccessFlag::Write, GpuStageFlag::AllShader, GpuAccessFlag::Read)));
+		}
+
 		void MetalGpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer)
 		{
 			GpuCommandBuffer::CopyBufferToTexture(source, destination, bufferOffset, mipLevel, arrayLayer);

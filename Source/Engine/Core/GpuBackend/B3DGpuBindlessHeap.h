@@ -4,6 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "Threading/B3DThreading.h"
+#include "Utility/B3DBitfield.h"
 
 namespace b3d
 {
@@ -93,26 +94,43 @@ namespace b3d
 		GpuBufferFormat Format = BF_UNKNOWN; /**< Element format of a typed buffer view. BF_UNKNOWN for the buffer's own format. */
 	};
 
+	/** New descriptor of a bindless resource heap slot. */
+	struct GpuBindlessSlotUpdate
+	{
+		GpuBindlessSlotUpdate() = default;
+		GpuBindlessSlotUpdate(u32 slotIndex, const GpuBindlessResourceView& view)
+			: SlotIndex(slotIndex), View(view)
+		{ }
+
+		u32 SlotIndex = kGpuBindlessInvalidIndex;
+		GpuBindlessResourceView View;
+	};
+
+
 	/** Usage counters of a bindless heap. */
 	struct GpuBindlessHeapStatistics
 	{
 		GpuBindlessHeapStatistics() = default;
 
 		u32 Capacity = 0; /**< Number of slots in the heap, including the invalid slot and permanent slots. */
+		u32 MaximumCapacity = 0; /**< Number of slots the heap may grow to. */
 		u32 AllocatedCount = 0; /**< Number of slots allocated and not released. */
 		u32 HighWaterMark = 0; /**< Highest AllocatedCount reached. */
 		u32 PendingReleaseCount = 0; /**< Number of released slots waiting for the GPU before they can be reused. */
 		u32 EvictionCount = 0; /**< Number of unused cached samplers evicted to free sampler slots. */
+		u32 GrowthCount = 0; /**< Number of times the heap grew. */
+		u32 UpdateCount = 0; /**< Number of slot updates applied, see GpuBindlessHeaps::UpdateResourceSlot(). */
+		u32 UpdateBatchCount = 0; /**< Number of times pending slot updates were applied, each a heap switch or a GPU patch. */
 	};
 
 	/**
 	 * Native implementation of the bindless heaps, implemented by the GPU device of each backend that supports bindless resources.
 	 * See GpuBindlessHeaps.
 	 */
-	class B3D_EXPORT IGpuBindlessHeap
+	class B3D_EXPORT IGpuBindlessHeapBackend
 	{
 	public:
-		virtual ~IGpuBindlessHeap() = default;
+		virtual ~IGpuBindlessHeapBackend() = default;
 
 		/** Writes the descriptor of @p view into resource heap slot @p slotIndex. Never called for slots that GPU work may still read. */
 		virtual void WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view) = 0;
@@ -128,6 +146,30 @@ namespace b3d
 		 *						match it.
 		 */
 		virtual void ClearResourceSlot(u32 slotIndex, GpuParameterObjectType viewType) = 0;
+
+		/**
+		 * Changes the descriptors of resource heap slots the GPU may be reading. Work recorded (on backends that switch heaps)
+		 * or executed (on backends that patch the heap in GPU order) before the call keeps reading the old descriptors. Called at the
+		 * end of a frame, before the frame boundary, from the render thread. A GPU patch must wait for all earlier work on every queue,
+		 * and the frame fence makes the next frame's work on every queue wait for it.
+		 *
+		 * @param	updates		New descriptors of allocated slots, at most one per slot.
+		 * @param	liveSlots	Slots whose current descriptors are valid, and may be copied.
+		 * @return				False if the updates could not be applied. They are dropped.
+		 */
+		virtual bool ApplyResourceUpdates(TArrayView<const GpuBindlessSlotUpdate> updates, const TBitfield<>& liveSlots) = 0;
+
+		/**
+		 * Grows the resource heap to @p capacity slots, keeping the descriptors of @p liveSlots. Called at the end of a frame, before the
+		 * frame boundary, from the render thread. Slots above the old capacity are allocated right away, and only work recorded after
+		 * the call uses them.
+		 *
+		 * @return	False if the heap could not grow. It keeps its capacity.
+		 */
+		virtual bool GrowResourceHeap(u32 capacity, const TBitfield<>& liveSlots) = 0;
+
+		/** Releases native heap objects no command buffer uses anymore. Called once per frame. */
+		virtual void ProcessRetiredResourceHeaps() { }
 	};
 
 	/**
@@ -137,19 +179,26 @@ namespace b3d
 	 * A released slot, and the native resource pinned with it, stay alive until the frame of the release completes on the GPU, so work
 	 * recorded before the release can still read it.
 	 *
+	 * The resource heap grows at the end of a frame once fewer than gpu.BindlessResourceGrowthHeadroom of its slots are free, up to
+	 * its maximum capacity.
+	 *
+	 * A command buffer that accesses the heaps must finish recording in the frame it started recording in. The end of a frame may
+	 * switch the native heap that work recorded afterwards uses, and slots allocated or written afterwards are only valid in it.
+	 *
 	 * @note	Thread safe.
 	 */
 	class B3D_EXPORT GpuBindlessHeaps
 	{
 	public:
 		/**
-		 * @param	device				Device that owns the heaps.
-		 * @param	backend				Native implementation of the heaps. Must be ready to write slots.
-		 * @param	completionTracker	Tracker whose current marker is stamped onto released slots. Slots return to use once it reports the marker complete.
-		 * @param	resourceCapacity	Number of slots in the resource heap, including the invalid slot.
-		 * @param	samplerCapacity		Number of slots in the sampler heap, including the invalid slot and the global samplers.
+		 * @param	device						Device that owns the heaps.
+		 * @param	backend						Native implementation of the heaps. Must be ready to write slots.
+		 * @param	completionTracker			Tracker whose current marker is stamped onto released slots. Slots return to use once it reports the marker complete.
+		 * @param	resourceCapacity			Initial number of slots in the resource heap, including the invalid slot.
+		 * @param	resourceMaximumCapacity		Number of slots the resource heap may grow to. At least @p resourceCapacity.
+		 * @param	samplerCapacity				Number of slots in the sampler heap, including the invalid slot and the global samplers.
 		 */
-		GpuBindlessHeaps(GpuDevice& device, IGpuBindlessHeap& backend, const IGpuCompletionTracker& completionTracker, u32 resourceCapacity, u32 samplerCapacity);
+		GpuBindlessHeaps(GpuDevice& device, IGpuBindlessHeapBackend& backend, const IGpuCompletionTracker& completionTracker, u32 resourceCapacity, u32 resourceMaximumCapacity, u32 samplerCapacity);
 
 		/**
 		 * Releases the global samplers and every slot and pin still pending release, and reports slots that were never released. The GPU
@@ -177,6 +226,17 @@ namespace b3d
 		 */
 		u32 AllocateSamplerSlot(const SamplerState& sampler, const void* owner);
 
+		/**
+		 * Replaces the descriptor of allocated resource heap slot @p slotIndex with @p view, at the end of the current frame. Work recorded
+		 * before then keeps reading the old descriptor. A later update of the same slot before then replaces this one.
+		 *
+		 * @param	slotIndex			Allocated resource heap slot.
+		 * @param	view				New view of the slot. Its texture or buffer must be pinned with PinResource() while the slot refers to it.
+		 * @param	owner				Object the slot is allocated for.
+		 * @param	previousTarget		Resource the old descriptor refers to, if it should be unpinned once no work reads the old descriptor. May be null.
+		 */
+		void UpdateResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view, const void* owner, IGpuResource* previousTarget);
+
 		/** Releases slot @p slotIndex of heap @p heap, allocated for @p owner. The slot is reused once the current frame completes on the GPU. */
 		void ReleaseSlot(GpuBindlessHeapType heap, u32 slotIndex, const void* owner);
 
@@ -194,6 +254,12 @@ namespace b3d
 
 		/** Returns released slots and pins to use regardless of GPU progress. The GPU must be idle. */
 		void ProcessAllReleases();
+
+		/**
+		 * Applies pending slot updates, and grows the resource heap if it is running out of free slots. Called by the device at the end
+		 * of each frame, before the frame boundary, from the render thread.
+		 */
+		void ApplyPendingChanges();
 
 		/** Returns usage counters of heap @p heap. */
 		GpuBindlessHeapStatistics GetStatistics(GpuBindlessHeapType heap) const;
@@ -216,8 +282,15 @@ namespace b3d
 			Heap() = default;
 
 			u32 Capacity = 0;
+			u32 MaximumCapacity = 0;
 			u32 NextUnusedSlotIndex = 1; /**< First slot that was never allocated. Slot 0 is the invalid index. */
 			TArray<u32> FreeSlotIndices; /**< Released slots ready for reuse, used in LIFO order. */
+
+			/**
+			 * Slots whose descriptors are valid, so copying them into another native heap object is safe: allocated slots, and in
+			 * development builds also released slots, which hold a null descriptor or a view of a resource still pinned.
+			 */
+			TBitfield<> LiveSlots;
 			GpuBindlessHeapStatistics Statistics;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
@@ -250,19 +323,35 @@ namespace b3d
 			IGpuResource* Resource = nullptr;
 		};
 
+		/** Slot update waiting for the end of the current frame. */
+		struct PendingSlotUpdate
+		{
+			PendingSlotUpdate() = default;
+			PendingSlotUpdate(const GpuBindlessSlotUpdate& update, IGpuResource* previousTarget)
+				: Update(update), PreviousTarget(previousTarget)
+			{ }
+
+			GpuBindlessSlotUpdate Update;
+			IGpuResource* PreviousTarget = nullptr; /**< Unpinned once the update is applied and no work reads the old descriptor. May be null. */
+		};
+
 		/** Takes a free slot of @p heap, or returns kGpuBindlessInvalidIndex if it is full. Must be called with mMutex held. */
 		u32 TakeSlot(Heap& heap, const void* owner, const String& ownerName);
+
+		/** Grows the resource heap if fewer slots than the growth headroom are free. Must be called with mMutex held. */
+		void GrowIfNeeded();
 
 		/** Returns released entries that pass @p fnIsComplete to use. */
 		template<class IsCompleteFunction>
 		void ProcessReleases(IsCompleteFunction fnIsComplete);
 
 		GpuDevice& mDevice;
-		IGpuBindlessHeap& mBackend;
+		IGpuBindlessHeapBackend& mBackend;
 		const IGpuCompletionTracker& mCompletionTracker;
 		Heap mHeaps[(u32)GpuBindlessHeapType::Count];
 		TArray<PendingSlotRelease> mPendingSlotReleases; /**< In release order, so markers ascend. */
 		TArray<PendingUnpin> mPendingUnpins; /**< In release order, so markers ascend. */
+		UnorderedMap<u32, PendingSlotUpdate> mPendingSlotUpdates; /**< Keyed by slot index. */
 		TArray<TShared<SamplerState>> mGlobalSamplers; /**< Indexed by global sampler index minus one. */
 		mutable Mutex mMutex;
 	};

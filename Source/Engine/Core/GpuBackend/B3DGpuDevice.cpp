@@ -4,6 +4,7 @@
 #include "B3DGpuCommandBuffer.h"
 #include "B3DGpuSubmitThread.h"
 #include "Image/B3DTexture.h"
+#include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuProgram.h"
 #include "GpuBackend/B3DGpuVertexInputManager.h"
@@ -58,6 +59,10 @@ void GpuDevice::EndFrame()
 {
 	ASSERT_IF_NOT_RENDER_THREAD
 
+	// Before the frame boundary, so the next frame's work on every queue waits for heap patches through the frame fence
+	if(mBindlessHeaps != nullptr)
+		mBindlessHeaps->ApplyPendingChanges();
+
 	// Signal end-of-frame to the submit thread. This blocks until the previous frame's resources are safe to reuse.
 	if(mSubmitThread != nullptr)
 		mSubmitThread->QueueEndFrameAndWaitForPreviousFrame();
@@ -71,12 +76,18 @@ void GpuDevice::EndFrame()
 		mBindlessHeaps->ProcessReleases();
 }
 
-void GpuDevice::CreateBindlessHeaps(IGpuBindlessHeap& backend, u32 resourceCapacity, u32 samplerCapacity)
+void GpuDevice::CreateBindlessHeaps(IGpuBindlessHeapBackend& backend, u32 resourceCapacity, u32 resourceMaximumCapacity, u32 samplerCapacity)
 {
 	B3D_ASSERT(mBindlessHeaps == nullptr);
 
-	mBindlessHeaps = B3DMakeUnique<GpuBindlessHeaps>(*this, backend, mFrameCompletionTracker, resourceCapacity, samplerCapacity);
+	mBindlessHeaps = B3DMakeUnique<GpuBindlessHeaps>(*this, backend, mFrameCompletionTracker, resourceCapacity, resourceMaximumCapacity, samplerCapacity);
 	mBindlessHeaps->CreateGlobalSamplers();
+}
+
+void GpuDevice::GetBindlessResourceCapacities(u32 deviceMaximumCapacity, u32& outCapacity, u32& outMaximumCapacity)
+{
+	outMaximumCapacity = std::min(gGpuBindlessResourceMaximumCapacity.Get(), deviceMaximumCapacity);
+	outCapacity = std::min(gGpuBindlessResourceCapacity.Get(), outMaximumCapacity);
 }
 
 u32 GpuDevice::EvictUnusedSamplerStates()

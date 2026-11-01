@@ -57,6 +57,7 @@ namespace b3d
 		class Win32VideoMode;
 		class VulkanGpuBuffer;
 		class VulkanGpuDevice;
+		class VulkanBindlessHeap;
 		class VulkanSwapChain;
 		class VulkanFramebuffer;
 		class VulkanDescriptorLayout;

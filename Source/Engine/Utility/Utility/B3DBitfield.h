@@ -74,7 +74,7 @@ namespace b3d
 	 */
 
 	/** Helper template used for specifying types for const and non-const iterator variants for Bitfield. */
-	template <bool CONST, class Allocator>
+	template <bool IsConst, class Allocator>
 	struct TBitfieldIteratorTypes
 	{};
 
@@ -93,12 +93,12 @@ namespace b3d
 	};
 
 	/** Iterator for iterating over individual bits in a Bitfield. */
-	template <bool CONST, class Allocator>
+	template <bool IsConst, class Allocator>
 	class TBitfieldIterator
 	{
 	public:
-		typedef typename TBitfieldIteratorTypes<CONST, Allocator>::ArrayType ArrayType;
-		typedef typename TBitfieldIteratorTypes<CONST, Allocator>::ReferenceType ReferenceType;
+		typedef typename TBitfieldIteratorTypes<IsConst, Allocator>::ArrayType ArrayType;
+		typedef typename TBitfieldIteratorTypes<IsConst, Allocator>::ReferenceType ReferenceType;
 
 		TBitfieldIterator(ArrayType owner, u64 bitIndex, u64 dwordIndex, u32 mask)
 			: mOwner(owner), mBitIndex(bitIndex), mDwordIndex(dwordIndex), mMask(mask)
@@ -316,6 +316,52 @@ namespace b3d
 			return ~0ULL;
 		}
 
+		/**
+		 * Calls @p callback with every run of consecutive bits set in both this bitfield and @p mask, in ascending order. Only the first
+		 * @p count bits are considered. Each run is reported once, as a TIndexRange<u64> of bit indices.
+		 */
+		template<class MaskAllocator, class Callback>
+		void ForEachSetRange(const TBitfield<MaskAllocator>& mask, u64 count, Callback&& callback) const
+		{
+			count = Math::Min(count, Math::Min(mNumBits, mask.Size()));
+			const u64 dwordCount = Math::DivideAndRoundUp(count, kBitsPerDword);
+			const u32 lastDwordBitCount = (u32)(count & (kBitsPerDword - 1));
+
+			TIndexRange<u64> run;
+			for(u64 dwordIndex = 0; dwordIndex < dwordCount; dwordIndex++)
+			{
+				// Bits past the size are undefined
+				u32 bits = mAllocator.GetElements()[dwordIndex] & mask.Data()[dwordIndex];
+				if(dwordIndex == dwordCount - 1 && lastDwordBitCount != 0)
+					bits &= (1u << lastDwordBitCount) - 1;
+
+				while(bits != 0)
+				{
+					const u32 bitIndex = Bitwise::LeastSignificantBit(bits);
+					const u32 unsetAfterRun = ~(bits >> bitIndex);
+					const u32 bitsLeft = (u32)kBitsPerDword - bitIndex;
+					const u32 runLength = unsetAfterRun == 0 ? bitsLeft : Math::Min(Bitwise::LeastSignificantBit(unsetAfterRun), bitsLeft);
+					const u64 first = dwordIndex * kBitsPerDword + bitIndex;
+
+					// A run that reaches the end of a dword may continue in the next one
+					if(run.Count != 0 && run.GetEnd() == first)
+						run.Count += runLength;
+					else
+					{
+						if(run.Count != 0)
+							callback(run);
+
+						run = TIndexRange<u64>(first, runLength);
+					}
+
+					bits = runLength == bitsLeft ? 0 : bits & ~(((1u << runLength) - 1) << bitIndex);
+				}
+			}
+
+			if(run.Count != 0)
+				callback(run);
+		}
+
 		/** Counts the number of values in the bit field. */
 		u64 Count(bool value) const
 		{
@@ -340,9 +386,24 @@ namespace b3d
 			const u64 oldSize = mNumBits;
 			mNumBits = size;
 
-			// TODO: Assign the values more efficiently
-			for(u64 index = oldSize; index < size; ++index)
-				(*this)[index] = value;
+			if(size <= oldSize)
+				return;
+
+			u32* const dwords = mAllocator.GetElements();
+			u64 dwordIndex = oldSize >> kBitsPerDwordLoG2;
+			const u64 endDwordIndex = Math::DivideAndRoundUp(size, kBitsPerDword);
+
+			// The first new bits may share a dword with existing ones
+			const u32 existingBitCount = (u32)(oldSize & (kBitsPerDword - 1));
+			if(existingBitCount != 0)
+			{
+				const u32 existingBitMask = (1u << existingBitCount) - 1;
+				dwords[dwordIndex] = value ? (dwords[dwordIndex] | ~existingBitMask) : (dwords[dwordIndex] & existingBitMask);
+				dwordIndex++;
+			}
+
+			if(dwordIndex < endDwordIndex)
+				memset(dwords + dwordIndex, value ? 0xFF : 0, (size_t)(endDwordIndex - dwordIndex) * sizeof(u32));
 		}
 
 		/**
@@ -455,7 +516,7 @@ namespace b3d
 		// NOLINTEND
 
 	private:
-		template <bool CONST, class Allocator2>
+		template <bool IsConst, class Allocator2>
 		friend class TBitfieldIterator;
 
 		/** Reallocates the internal buffer making enough room for @p bitCapacity (rounded to a multiple of 32-bits). */

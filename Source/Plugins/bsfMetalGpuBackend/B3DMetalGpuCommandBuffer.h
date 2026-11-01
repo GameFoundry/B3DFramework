@@ -101,6 +101,21 @@ namespace b3d
 			 */
 			void UseDrawableResidency(id<CAMetalDrawable> drawable);
 
+			/** Copy of a range of the source buffer of PatchMemory() into its destination buffer. */
+			struct MemoryCopy
+			{
+				u64 SourceOffset = 0;
+				u64 DestinationOffset = 0;
+				u64 Size = 0;
+			};
+
+			/**
+			 * Records @p copies from @p source into @p destination, ordered after all earlier shader reads on the queue and before all later
+			 * shader reads, which see the copied data. Used to patch memory that shaders read without barriers, such as the bindless heaps.
+			 * Outside of render passes only.
+			 */
+			void PatchMemory(const TShared<GpuBuffer>& source, id<MTLBuffer> destination, TArrayView<const MemoryCopy> copies);
+
 			/**
 			 * @name GpuCommandBuffer Interface
 			 *  @{

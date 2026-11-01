@@ -9,6 +9,7 @@
 #include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "Image/B3DTexture.h"
 #include "CoreObject/B3DRenderThread.h"
+#include "Utility/B3DBitwise.h"
 
 using namespace b3d;
 
@@ -43,17 +44,22 @@ bool GpuBindlessResourceView::operator==(const GpuBindlessResourceView& other) c
 	return Texture == other.Texture && Surface == other.Surface && Buffer == other.Buffer && ViewType == other.ViewType && Format == other.Format;
 }
 
-GpuBindlessHeaps::GpuBindlessHeaps(GpuDevice& device, IGpuBindlessHeap& backend, const IGpuCompletionTracker& completionTracker, u32 resourceCapacity, u32 samplerCapacity)
+GpuBindlessHeaps::GpuBindlessHeaps(GpuDevice& device, IGpuBindlessHeapBackend& backend, const IGpuCompletionTracker& completionTracker, u32 resourceCapacity,
+	u32 resourceMaximumCapacity, u32 samplerCapacity)
 	: mDevice(device), mBackend(backend), mCompletionTracker(completionTracker)
 {
-	B3D_ASSERT(samplerCapacity > kGpuGlobalSamplerCount + 1);
+	B3D_ASSERT(samplerCapacity > kGpuGlobalSamplerCount + 1 && resourceMaximumCapacity >= resourceCapacity);
 
 	const u32 capacities[] = { resourceCapacity, samplerCapacity };
+	const u32 maximumCapacities[] = { resourceMaximumCapacity, samplerCapacity };
 	for(u32 heapIndex = 0; heapIndex < (u32)GpuBindlessHeapType::Count; heapIndex++)
 	{
 		Heap& heap = mHeaps[heapIndex];
 		heap.Capacity = capacities[heapIndex];
+		heap.MaximumCapacity = maximumCapacities[heapIndex];
+		heap.LiveSlots.Resize(capacities[heapIndex]);
 		heap.Statistics.Capacity = capacities[heapIndex];
+		heap.Statistics.MaximumCapacity = maximumCapacities[heapIndex];
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		heap.SlotRecords.Resize(capacities[heapIndex]);
@@ -66,6 +72,13 @@ GpuBindlessHeaps::~GpuBindlessHeaps()
 	// Destroying the global samplers releases their slots, which takes the lock
 	mGlobalSamplers.Clear();
 
+	for(const auto& entry : mPendingSlotUpdates)
+	{
+		if(entry.second.PreviousTarget != nullptr)
+			UnpinResource(*entry.second.PreviousTarget);
+	}
+
+	mPendingSlotUpdates.clear();
 	ProcessAllReleases();
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
@@ -134,6 +147,7 @@ u32 GpuBindlessHeaps::TakeSlot(Heap& heap, const void* owner, const String& owne
 	else
 		return kGpuBindlessInvalidIndex;
 
+	heap.LiveSlots[slotIndex] = true;
 	heap.Statistics.AllocatedCount++;
 	heap.Statistics.HighWaterMark = std::max(heap.Statistics.HighWaterMark, heap.Statistics.AllocatedCount);
 
@@ -162,7 +176,18 @@ u32 GpuBindlessHeaps::AllocateResourceSlot(const GpuBindlessResourceView& view, 
 	const u32 slotIndex = TakeSlot(heap, owner, ownerName);
 	if(slotIndex == kGpuBindlessInvalidIndex)
 	{
-		B3D_LOG(Error, LogRenderBackend, "The bindless resource heap is full ({0} slots). Cannot allocate a slot for '{1}'. Increase gpu.BindlessResourceCapacity.", heap.Capacity, ownerName);
+		if(heap.Capacity < heap.MaximumCapacity)
+		{
+			B3D_LOG(Error, LogRenderBackend, "The bindless resource heap is full ({0} slots). Cannot allocate a slot for '{1}'. The heap grows at the end of a frame, "
+				"but more slots were allocated in one frame than its growth headroom. Increase gpu.BindlessResourceCapacity or gpu.BindlessResourceGrowthHeadroom.",
+				heap.Capacity, ownerName);
+		}
+		else
+		{
+			B3D_LOG(Error, LogRenderBackend, "The bindless resource heap is full ({0} slots). Cannot allocate a slot for '{1}'. Increase gpu.BindlessResourceMaximumCapacity.",
+				heap.Capacity, ownerName);
+		}
+
 		return kGpuBindlessInvalidIndex;
 	}
 
@@ -209,6 +234,40 @@ u32 GpuBindlessHeaps::AllocateSamplerSlot(const SamplerState& sampler, const voi
 	return slotIndex;
 }
 
+void GpuBindlessHeaps::UpdateResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view, const void* owner, IGpuResource* previousTarget)
+{
+	if(view.Texture != nullptr && !view.Texture->GetProperties().ValidateSurface(view.Surface, false))
+		return;
+
+	Lock lock(mMutex);
+
+	Heap& heap = mHeaps[(u32)GpuBindlessHeapType::Resource];
+	B3D_ASSERT(slotIndex != kGpuBindlessInvalidIndex && slotIndex < heap.NextUnusedSlotIndex);
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	SlotRecord& record = heap.SlotRecords[slotIndex];
+	if(!B3D_ENSURE_LOG(record.Owner != nullptr && !record.IsPendingRelease, "Bindless slot {0} updated after its release, or never allocated.", slotIndex))
+		return;
+
+	if(!B3D_ENSURE_LOG(record.Owner == owner, "Bindless slot {0} of '{1}' updated by an object other than its owner.", slotIndex, record.OwnerName))
+		return;
+
+	record.ViewType = GetViewObjectType(view);
+#else
+	(void)owner;
+#endif
+
+	const GpuBindlessSlotUpdate update(slotIndex, view);
+	const auto [iterator, isInserted] = mPendingSlotUpdates.try_emplace(slotIndex, update, previousTarget);
+	if(isInserted)
+		return;
+
+	// The replaced update was never applied, so nothing reads its view, but the old descriptor is still read until this one applies
+	iterator->second.Update = update;
+	if(previousTarget != nullptr)
+		mPendingUnpins.Add(PendingUnpin(mCompletionTracker.GetCurrentMarker(), previousTarget));
+}
+
 void GpuBindlessHeaps::ReleaseSlot(GpuBindlessHeapType heapType, u32 slotIndex, const void* owner)
 {
 	Lock lock(mMutex);
@@ -227,7 +286,22 @@ void GpuBindlessHeaps::ReleaseSlot(GpuBindlessHeapType heapType, u32 slotIndex, 
 	record.IsPendingRelease = true;
 #else
 	(void)owner;
+
+	// The slot's descriptor stays as it is, and refers to a resource destroyed once the release completes
+	heap.LiveSlots[slotIndex] = false;
 #endif
+
+	if(heapType == GpuBindlessHeapType::Resource)
+	{
+		const auto iterator = mPendingSlotUpdates.find(slotIndex);
+		if(iterator != mPendingSlotUpdates.end())
+		{
+			if(iterator->second.PreviousTarget != nullptr)
+				mPendingUnpins.Add(PendingUnpin(mCompletionTracker.GetCurrentMarker(), iterator->second.PreviousTarget));
+
+			mPendingSlotUpdates.erase(iterator);
+		}
+	}
 
 	heap.Statistics.AllocatedCount--;
 	heap.Statistics.PendingReleaseCount++;
@@ -271,12 +345,14 @@ void GpuBindlessHeaps::ProcessReleases(IsCompleteFunction fnIsComplete)
 			record = SlotRecord();
 
 			// Nothing reads the slot anymore. A null descriptor makes reads through stale indices well defined, and visible in captures.
-			// Samplers have no null descriptor, so retired sampler slots get a global sampler instead, unless the heaps are being destroyed.
 			if(release.HeapType == GpuBindlessHeapType::Resource)
 				mBackend.ClearResourceSlot(release.SlotIndex, viewType);
-			else if(!mGlobalSamplers.Empty())
-				mBackend.WriteSamplerSlot(release.SlotIndex, *mGlobalSamplers[GetGlobalSamplerIndex(GpuGlobalSamplerFilter::Point, GpuGlobalSamplerAddress::Wrap) - 1]);
 #endif
+
+			// Samplers have no null descriptor, so retired sampler slots get a global sampler instead, unless the heaps are being destroyed. Unlike
+			// resource slots, this happens in all builds, so every sampler slot ever written stays valid for backends to copy.
+			if(release.HeapType == GpuBindlessHeapType::Sampler && !mGlobalSamplers.Empty())
+				mBackend.WriteSamplerSlot(release.SlotIndex, *mGlobalSamplers[GetGlobalSamplerIndex(GpuGlobalSamplerFilter::Point, GpuGlobalSamplerAddress::Wrap) - 1]);
 		}
 
 		mPendingSlotReleases.Erase(mPendingSlotReleases.begin(), mPendingSlotReleases.begin() + completeSlotReleaseCount);
@@ -307,6 +383,75 @@ void GpuBindlessHeaps::ProcessReleases()
 void GpuBindlessHeaps::ProcessAllReleases()
 {
 	ProcessReleases([](u64) { return true; });
+}
+
+void GpuBindlessHeaps::ApplyPendingChanges()
+{
+	Lock lock(mMutex);
+
+	mBackend.ProcessRetiredResourceHeaps();
+
+	Heap& heap = mHeaps[(u32)GpuBindlessHeapType::Resource];
+	if(!mPendingSlotUpdates.empty())
+	{
+		TArray<GpuBindlessSlotUpdate> updates;
+		updates.Reserve((u32)mPendingSlotUpdates.size());
+
+		for(const auto& entry : mPendingSlotUpdates)
+			updates.Add(entry.second.Update);
+
+		if(mBackend.ApplyResourceUpdates(updates, heap.LiveSlots))
+		{
+			heap.Statistics.UpdateCount += (u32)updates.Size();
+			heap.Statistics.UpdateBatchCount++;
+		}
+		else
+			B3D_LOG(Error, LogRenderBackend, "Failed to apply {0} bindless resource slot updates. The slots keep their old descriptors.", updates.Size());
+
+		// Work recorded from now on reads the new descriptors. Work recorded earlier completes with the current frame.
+		for(const auto& entry : mPendingSlotUpdates)
+		{
+			if(entry.second.PreviousTarget != nullptr)
+				mPendingUnpins.Add(PendingUnpin(mCompletionTracker.GetCurrentMarker(), entry.second.PreviousTarget));
+		}
+
+		mPendingSlotUpdates.clear();
+	}
+
+	GrowIfNeeded();
+}
+
+void GpuBindlessHeaps::GrowIfNeeded()
+{
+	Heap& heap = mHeaps[(u32)GpuBindlessHeapType::Resource];
+
+	if(heap.Capacity >= heap.MaximumCapacity)
+		return;
+
+	// Slot 0 is never allocated. Slots pending release are not free yet.
+	const u32 usedSlotCount = heap.NextUnusedSlotIndex - 1 - (u32)heap.FreeSlotIndices.Size();
+	const u32 freeSlotCount = heap.Capacity - 1 - usedSlotCount;
+	if((float)freeSlotCount >= (float)heap.Capacity * gGpuBindlessResourceGrowthHeadroom.Get())
+		return;
+
+	const u32 newCapacity = (u32)std::min((u64)heap.Capacity * 2, (u64)heap.MaximumCapacity);
+	if(!mBackend.GrowResourceHeap(newCapacity, heap.LiveSlots))
+	{
+		B3D_LOG(Warning, LogRenderBackend, "Failed to grow the bindless resource heap from {0} to {1} slots. It stays at {0} slots.", heap.Capacity, newCapacity);
+
+		heap.MaximumCapacity = heap.Capacity;
+		heap.Statistics.MaximumCapacity = heap.Capacity;
+		return;
+	}
+
+	heap.Capacity = newCapacity;
+	heap.LiveSlots.Resize(newCapacity);
+	heap.Statistics.Capacity = newCapacity;
+	heap.Statistics.GrowthCount++;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	heap.SlotRecords.Resize(newCapacity);
+#endif
 }
 
 GpuBindlessHeapStatistics GpuBindlessHeaps::GetStatistics(GpuBindlessHeapType heap) const

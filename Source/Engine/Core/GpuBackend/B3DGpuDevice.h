@@ -427,9 +427,15 @@ namespace b3d
 
 		/**
 		 * Creates the bindless heaps on top of the backend's native heaps, including the global samplers. Must be called once during device
-		 * initialization, after the device can create sampler states.
+		 * initialization, after the device can create sampler states. See GpuBindlessHeaps::GpuBindlessHeaps() for the capacities.
 		 */
-		void CreateBindlessHeaps(IGpuBindlessHeap& backend, u32 resourceCapacity, u32 samplerCapacity);
+		void CreateBindlessHeaps(IGpuBindlessHeapBackend& backend, u32 resourceCapacity, u32 resourceMaximumCapacity, u32 samplerCapacity);
+
+		/**
+		 * Returns the initial and maximum resource heap capacities the backend should create the bindless heaps with, from the
+		 * configuration and @p deviceMaximumCapacity, the most the device supports.
+		 */
+		static void GetBindlessResourceCapacities(u32 deviceMaximumCapacity, u32& outCapacity, u32& outMaximumCapacity);
 
 		/** Removes cached sampler states that nothing outside the cache references. Returns the number of removed sampler states. */
 		u32 EvictUnusedSamplerStates();
