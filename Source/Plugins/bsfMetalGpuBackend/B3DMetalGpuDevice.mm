@@ -1,6 +1,7 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DMetalGpuDevice.h"
+#include "B3DMetalBindlessHeaps.h"
 #include "B3DMetalGpuQueue.h"
 #include "B3DMetalGpuCommandBuffer.h"
 #include "B3DMetalGpuCommandBufferPool.h"
@@ -52,14 +53,6 @@ namespace b3d
 
 		MetalGpuDevice::~MetalGpuDevice()
 		{
-			// Changes are applied on whichever thread ends the frame, which need not be the thread destroying the device
-			if (mBindlessPatchCommandBufferPool != nullptr)
-			{
-				mBindlessPatchCommandBufferPool->SetThisAsOwnerThread();
-				mBindlessPatchCommandBufferPool->Destroy();
-				mBindlessPatchCommandBufferPool = nullptr;
-			}
-
 			if (mSubmitThread != nullptr)
 			{
 				WaitUntilIdle();
@@ -68,11 +61,9 @@ namespace b3d
 
 			mClearPipeline.reset();
 
-			// Releases the pinned resources while the resource manager is still alive, and before the heap buffers
+			// Releases the pinned resources while the resource manager is still alive, then the heaps they were read through
 			mCachedSamplerStates.clear();
 			mBindlessHeaps = nullptr;
-			for (TShared<GpuBuffer>& heapBuffer : mBindlessHeapBuffers)
-				heapBuffer = nullptr;
 
 			// Queues the cached vertex inputs for destroy while the resource manager is still alive
 			mVertexInputManager = nullptr;
@@ -214,32 +205,20 @@ namespace b3d
 
 			std::memset([mDummyArgumentBuffer contents], 0, kDummyArgumentBufferSize);
 
-			// The heaps are written from the CPU, so they live in shared memory. Unused slots hold null entries. The resource heap is
-			// allocated at its maximum capacity and never grows.
+			// The resource heap is allocated at its maximum capacity and never grows, so slot updates patch it
 			u32 resourceCapacity;
 			u32 resourceMaximumCapacity;
 			GetBindlessResourceCapacities(mCapabilities.MaximumBindlessResourceCount, resourceCapacity, resourceMaximumCapacity);
 
-			const u32 bindlessHeapCapacities[] =
-			{
-				resourceMaximumCapacity,
-				std::min(gGpuBindlessSamplerCapacity.Get(), mCapabilities.MaximumBindlessSamplerCount)
-			};
+			GpuBindlessHeapsCreateInformation heapsCreateInformation;
+			heapsCreateInformation.ResourceCapacity = resourceMaximumCapacity;
+			heapsCreateInformation.ResourceMaximumCapacity = resourceMaximumCapacity;
+			heapsCreateInformation.SamplerCapacity = std::min(gGpuBindlessSamplerCapacity.Get(), mCapabilities.MaximumBindlessSamplerCount);
+			heapsCreateInformation.MaximumResourceHeapCount = 1;
+			heapsCreateInformation.UpdateMethod = GpuBindlessUpdateMethod::Patch;
 
-			static_assert(sizeof(bindlessHeapCapacities) / sizeof(bindlessHeapCapacities[0]) == (u32)GpuBindlessHeapType::Count);
-			for (u32 heapIndex = 0; heapIndex < (u32)GpuBindlessHeapType::Count; heapIndex++)
-			{
-				mBindlessHeapBuffers[heapIndex] = CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u64), bindlessHeapCapacities[heapIndex], GpuBufferFlag::StoreOnCPUWithGPUAccess));
-				id<MTLBuffer> heapBuffer = GetBindlessHeapBuffer((GpuBindlessHeapType)heapIndex);
-				if (heapBuffer == nil)
-					B3D_LOG(Fatal, LogRenderBackend, "Failed to create a bindless heap buffer of {0} entries.", bindlessHeapCapacities[heapIndex]);
-
-				std::memset([heapBuffer contents], 0, (size_t)bindlessHeapCapacities[heapIndex] * sizeof(u64));
-			}
-
-			IGpuBindlessHeapBackend& bindlessHeap = *this;
-			const u32 resourceHeapCapacity = bindlessHeapCapacities[(u32)GpuBindlessHeapType::Resource];
-			CreateBindlessHeaps(bindlessHeap, resourceHeapCapacity, resourceHeapCapacity, bindlessHeapCapacities[(u32)GpuBindlessHeapType::Sampler]);
+			if (!CreateBindlessHeaps(B3DMakeUnique<MetalBindlessHeaps>(*this, mFrameCompletionTracker, heapsCreateInformation)))
+				B3D_LOG(Fatal, LogRenderBackend, "Failed to create the bindless heaps.");
 
 			IGpuSubmitThreadBackend& submitThreadBackend = *this;
 			mSubmitThread = B3DMakeUnique<GpuSubmitThread>(*this, submitThreadBackend);
@@ -697,108 +676,6 @@ namespace b3d
 				samplerState->Initialize();
 
 			return samplerState;
-		}
-
-		u64 MetalGpuDevice::GetBindlessResourceEntry(const GpuBindlessResourceView& view) const
-		{
-			if (view.Texture != nullptr)
-				return MetalUtility::GetArgumentValue(static_cast<MetalTexture*>(view.Texture)->GetSubresourceView(view.Surface, false).gpuResourceID);
-
-			auto* buffer = static_cast<MetalGpuBuffer*>(view.Buffer);
-			if (buffer->GetInformation().Type == GpuBufferType::StructuredStorage)
-				return buffer->GetMetalBuffer().gpuAddress;
-
-			return MetalUtility::GetArgumentValue(buffer->GetTextureBufferView(view.Format, 0, 0, false).gpuResourceID);
-		}
-
-		id<MTLBuffer> MetalGpuDevice::GetBindlessHeapBuffer(GpuBindlessHeapType heap) const
-		{
-			const TShared<GpuBuffer>& buffer = mBindlessHeapBuffers[(u32)heap];
-			return buffer != nullptr ? static_cast<MetalGpuBuffer&>(*buffer).GetMetalBuffer() : nil;
-		}
-
-		void MetalGpuDevice::WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view)
-		{
-			((u64*)[GetBindlessHeapBuffer(GpuBindlessHeapType::Resource) contents])[slotIndex] = GetBindlessResourceEntry(view);
-		}
-
-		bool MetalGpuDevice::ApplyResourceUpdates(TArrayView<const GpuBindlessSlotUpdate> updates, const TBitfield<>& liveSlots)
-		{
-			// The new entries go to a staging buffer in slot order, so runs of consecutive slots copy with one command
-			TArray<GpuBindlessSlotUpdate> sortedUpdates(updates.begin(), updates.end());
-			std::sort(sortedUpdates.begin(), sortedUpdates.end(), [](const GpuBindlessSlotUpdate& lhs, const GpuBindlessSlotUpdate& rhs) { return lhs.SlotIndex < rhs.SlotIndex; });
-
-			const TShared<GpuBuffer> staging = CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite((u32)(sortedUpdates.Size() * sizeof(u64))));
-			if (staging == nullptr)
-				return false;
-
-			{
-				const GpuBufferMappedScope mapping = staging->Map(GpuMapOption::Write);
-				if (!mapping.IsValid())
-					return false;
-
-				u64* entries = static_cast<u64*>(mapping.GetMappedMemory());
-				for (u32 updateIndex = 0; updateIndex < (u32)sortedUpdates.Size(); updateIndex++)
-					entries[updateIndex] = GetBindlessResourceEntry(sortedUpdates[updateIndex].View);
-			}
-
-			TArray<GpuBufferCopyRange> copies;
-			u32 runStart = 0;
-			for (u32 updateIndex = 1; updateIndex <= (u32)sortedUpdates.Size(); updateIndex++)
-			{
-				const bool isRunEnd = updateIndex == (u32)sortedUpdates.Size() || sortedUpdates[updateIndex].SlotIndex != sortedUpdates[updateIndex - 1].SlotIndex + 1;
-				if (!isRunEnd)
-					continue;
-
-				GpuBufferCopyRange copy;
-				copy.SourceOffset = runStart * (u32)sizeof(u64);
-				copy.DestinationOffset = sortedUpdates[runStart].SlotIndex * (u32)sizeof(u64);
-				copy.Size = (updateIndex - runStart) * (u32)sizeof(u64);
-				copies.Add(copy);
-
-				runStart = updateIndex;
-			}
-
-			if (mBindlessPatchCommandBufferPool == nullptr)
-				mBindlessPatchCommandBufferPool = CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_GRAPHICS));
-			else if (mBindlessPatchCommandBufferPool->GetOwnerThread() != B3D_CURRENT_THREAD_ID)
-				mBindlessPatchCommandBufferPool->SetThisAsOwnerThread();
-
-			// Shaders read the heap without barriers. Earlier reads must complete before the copies, and later reads must see them.
-			const TShared<GpuBuffer>& heap = mBindlessHeapBuffers[(u32)GpuBindlessHeapType::Resource];
-			const GpuAccessState restingState = GpuBackendUtility::GetRestingState(*heap, GQT_GRAPHICS);
-			const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
-
-			const TShared<GpuCommandBuffer> commandBuffer = mBindlessPatchCommandBufferPool->FindOrCreate(GpuCommandBufferCreateInformation::Create("Bindless heap patch"));
-			commandBuffer->IssueBarriers(GpuBufferBarrier(heap, restingState, transferWrite));
-			commandBuffer->CopyBufferToBuffer(staging, heap, copies);
-			commandBuffer->IssueBarriers(GpuBufferBarrier(heap, transferWrite, restingState));
-
-			// The patch must not overlap reads on any queue, so it waits for all earlier work. It is submitted before the frame boundary,
-			// so the frame fence makes the next frame's work on every queue wait for it.
-			GpuSubmissionInformation submissionInformation;
-			submissionInformation.CommandBuffer = commandBuffer;
-			submissionInformation.SyncMask = GpuQueueMask::kAll;
-
-			GetQueue(GQT_GRAPHICS, 0)->SubmitCommandBuffer(submissionInformation);
-
-			return true;
-		}
-
-		void MetalGpuDevice::WriteSamplerSlot(u32 slotIndex, const SamplerState& sampler)
-		{
-			const u64 entry = MetalUtility::GetArgumentValue(static_cast<const MetalSamplerState&>(sampler).GetMetalSampler().gpuResourceID);
-			((u64*)[GetBindlessHeapBuffer(GpuBindlessHeapType::Sampler) contents])[slotIndex] = entry;
-		}
-
-		void MetalGpuDevice::ClearResourceSlot(u32 slotIndex, GpuParameterObjectType viewType)
-		{
-			u64* entries = (u64*)[GetBindlessHeapBuffer(GpuBindlessHeapType::Resource) contents];
-
-			// Reads through a null texture return zero. Structured and raw buffers are device pointers, so they point to the
-			// zero-filled dummy buffer instead.
-			const bool isPointer = viewType == GPOT_STRUCTURED_BUFFER || viewType == GPOT_BYTE_ADDRESS_BUFFER;
-			entries[slotIndex] = isPointer ? mDummyArgumentBuffer.gpuAddress : 0;
 		}
 	} // namespace render
 } // namespace b3d

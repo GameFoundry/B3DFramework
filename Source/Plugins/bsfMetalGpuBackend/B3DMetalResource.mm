@@ -4,6 +4,7 @@
 #include "B3DMetalResourceManager.h"
 #include "GpuBackend/B3DGpuSwapChain.h"
 #include "GpuBackend/B3DGpuVertexInputManager.h"
+#include "GpuBackend/B3DGpuBindlessHeapPool.h"
 
 namespace b3d::render
 {
@@ -84,4 +85,5 @@ namespace b3d::render
 	template class TMetalResource<IGpuImageResource>;
 	template class TMetalResource<GpuSwapChain>;
 	template class TMetalResource<GpuVertexInput>;
+	template class TMetalResource<GpuBindlessHeap>;
 } // namespace b3d::render

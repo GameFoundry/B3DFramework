@@ -1,6 +1,7 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GpuBackend/B3DGpuBindlessHeap.h"
+#include "GpuBackend/B3DGpuBindlessHeapPool.h"
 #include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuCompletionTracker.h"
@@ -44,14 +45,14 @@ bool GpuBindlessResourceView::operator==(const GpuBindlessResourceView& other) c
 	return Texture == other.Texture && Surface == other.Surface && Buffer == other.Buffer && ViewType == other.ViewType && Format == other.Format;
 }
 
-GpuBindlessHeaps::GpuBindlessHeaps(GpuDevice& device, IGpuBindlessHeapBackend& backend, const IGpuCompletionTracker& completionTracker, u32 resourceCapacity,
-	u32 resourceMaximumCapacity, u32 samplerCapacity)
-	: mDevice(device), mBackend(backend), mCompletionTracker(completionTracker)
+GpuBindlessHeaps::GpuBindlessHeaps(GpuDevice& device, const IGpuCompletionTracker& completionTracker, const GpuBindlessHeapsCreateInformation& createInformation)
+	: mDevice(device), mCompletionTracker(completionTracker), mUpdateMethod(createInformation.UpdateMethod)
+	, mMaximumResourceHeapCount(createInformation.MaximumResourceHeapCount)
 {
-	B3D_ASSERT(samplerCapacity > kGpuGlobalSamplerCount + 1 && resourceMaximumCapacity >= resourceCapacity);
+	B3D_ASSERT(createInformation.SamplerCapacity > kGpuGlobalSamplerCount + 1 && createInformation.ResourceMaximumCapacity >= createInformation.ResourceCapacity);
 
-	const u32 capacities[] = { resourceCapacity, samplerCapacity };
-	const u32 maximumCapacities[] = { resourceMaximumCapacity, samplerCapacity };
+	const u32 capacities[] = { createInformation.ResourceCapacity, createInformation.SamplerCapacity };
+	const u32 maximumCapacities[] = { createInformation.ResourceMaximumCapacity, createInformation.SamplerCapacity };
 	for(u32 heapIndex = 0; heapIndex < (u32)GpuBindlessHeapType::Count; heapIndex++)
 	{
 		Heap& heap = mHeaps[heapIndex];
@@ -69,6 +70,30 @@ GpuBindlessHeaps::GpuBindlessHeaps(GpuDevice& device, IGpuBindlessHeapBackend& b
 
 GpuBindlessHeaps::~GpuBindlessHeaps()
 {
+	B3D_ASSERT(mResourceHeapPool == nullptr && "The subclass destructor must call Destroy().");
+}
+
+bool GpuBindlessHeaps::Initialize()
+{
+	B3D_ASSERT(mResourceHeapPool == nullptr);
+
+	GpuBindlessHeap* heap = CreateResourceHeap(mHeaps[(u32)GpuBindlessHeapType::Resource].Capacity);
+	if(heap == nullptr)
+	{
+		B3D_LOG(Error, LogRenderBackend, "Failed to create the native heap of the bindless resource heap.");
+		return false;
+	}
+
+	mResourceHeapPool = B3DMakeUnique<GpuBindlessHeapPool>(mMaximumResourceHeapCount);
+	mResourceHeapPool->Initialize(heap);
+	return true;
+}
+
+void GpuBindlessHeaps::Destroy()
+{
+	if(mResourceHeapPool == nullptr)
+		return;
+
 	// Destroying the global samplers releases their slots, which takes the lock
 	mGlobalSamplers.Clear();
 
@@ -102,6 +127,8 @@ GpuBindlessHeaps::~GpuBindlessHeaps()
 		}
 	}
 #endif
+
+	mResourceHeapPool = nullptr;
 }
 
 void GpuBindlessHeaps::CreateGlobalSamplers()
@@ -195,8 +222,8 @@ u32 GpuBindlessHeaps::AllocateResourceSlot(const GpuBindlessResourceView& view, 
 	heap.SlotRecords[slotIndex].ViewType = GetViewObjectType(view);
 #endif
 
-	// The backend writes are serialized, since native descriptor writes into one heap are not thread safe
-	mBackend.WriteResourceSlot(slotIndex, view);
+	// The writes are serialized, since native descriptor writes into one native heap are not thread safe
+	WriteResourceSlot(slotIndex, view);
 	return slotIndex;
 }
 
@@ -230,7 +257,7 @@ u32 GpuBindlessHeaps::AllocateSamplerSlot(const SamplerState& sampler, const voi
 		return kGpuBindlessInvalidIndex;
 	}
 
-	mBackend.WriteSamplerSlot(slotIndex, sampler);
+	WriteSamplerSlot(slotIndex, sampler);
 	return slotIndex;
 }
 
@@ -346,13 +373,13 @@ void GpuBindlessHeaps::ProcessReleases(IsCompleteFunction fnIsComplete)
 
 			// Nothing reads the slot anymore. A null descriptor makes reads through stale indices well defined, and visible in captures.
 			if(release.HeapType == GpuBindlessHeapType::Resource)
-				mBackend.ClearResourceSlot(release.SlotIndex, viewType);
+				ClearResourceSlot(release.SlotIndex, viewType);
 #endif
 
 			// Samplers have no null descriptor, so retired sampler slots get a global sampler instead, unless the heaps are being destroyed. Unlike
 			// resource slots, this happens in all builds, so every sampler slot ever written stays valid for backends to copy.
 			if(release.HeapType == GpuBindlessHeapType::Sampler && !mGlobalSamplers.Empty())
-				mBackend.WriteSamplerSlot(release.SlotIndex, *mGlobalSamplers[GetGlobalSamplerIndex(GpuGlobalSamplerFilter::Point, GpuGlobalSamplerAddress::Wrap) - 1]);
+				WriteSamplerSlot(release.SlotIndex, *mGlobalSamplers[GetGlobalSamplerIndex(GpuGlobalSamplerFilter::Point, GpuGlobalSamplerAddress::Wrap) - 1]);
 		}
 
 		mPendingSlotReleases.Erase(mPendingSlotReleases.begin(), mPendingSlotReleases.begin() + completeSlotReleaseCount);
@@ -389,7 +416,7 @@ void GpuBindlessHeaps::ApplyPendingChanges()
 {
 	Lock lock(mMutex);
 
-	mBackend.ProcessRetiredResourceHeaps();
+	mResourceHeapPool->ProcessRetiredHeaps();
 
 	Heap& heap = mHeaps[(u32)GpuBindlessHeapType::Resource];
 	if(!mPendingSlotUpdates.empty())
@@ -400,7 +427,8 @@ void GpuBindlessHeaps::ApplyPendingChanges()
 		for(const auto& entry : mPendingSlotUpdates)
 			updates.Add(entry.second.Update);
 
-		if(mBackend.ApplyResourceUpdates(updates, heap.LiveSlots))
+		const bool isApplied = mUpdateMethod == GpuBindlessUpdateMethod::Patch ? PatchResourceSlots(updates) : SwitchResourceHeap(heap.Capacity, updates, heap.LiveSlots);
+		if(isApplied)
 		{
 			heap.Statistics.UpdateCount += (u32)updates.Size();
 			heap.Statistics.UpdateBatchCount++;
@@ -435,7 +463,7 @@ void GpuBindlessHeaps::GrowIfNeeded()
 		return;
 
 	const u32 newCapacity = (u32)std::min((u64)heap.Capacity * 2, (u64)heap.MaximumCapacity);
-	if(!mBackend.GrowResourceHeap(newCapacity, heap.LiveSlots))
+	if(!SwitchResourceHeap(newCapacity, {}, heap.LiveSlots))
 	{
 		B3D_LOG(Warning, LogRenderBackend, "Failed to grow the bindless resource heap from {0} to {1} slots. It stays at {0} slots.", heap.Capacity, newCapacity);
 
@@ -458,6 +486,51 @@ GpuBindlessHeapStatistics GpuBindlessHeaps::GetStatistics(GpuBindlessHeapType he
 {
 	Lock lock(mMutex);
 	return mHeaps[(u32)heap].Statistics;
+}
+
+GpuBindlessHeap* GpuBindlessHeaps::GetAndTrackResourceHeap(render::GpuResourceTracker& resourceTracker)
+{
+	return mResourceHeapPool->GetAndTrack(resourceTracker);
+}
+
+bool GpuBindlessHeaps::SwitchResourceHeap(u32 capacity, TArrayView<const GpuBindlessSlotUpdate> updates, const TBitfield<>& liveSlots)
+{
+	GpuBindlessHeapPool& pool = *mResourceHeapPool;
+	const u32 currentCapacity = pool.GetCurrent()->GetCapacity();
+	B3D_ASSERT(capacity >= currentCapacity);
+
+	// A pooled native heap only lacks the slots changed since it was last current. A new one lacks every slot.
+	GpuBindlessHeap* heap = capacity == currentCapacity ? pool.TakePooledHeap() : nullptr;
+	const TBitfield<>* slotsToCopy = &liveSlots;
+	if(heap != nullptr)
+		slotsToCopy = &pool.GetDirtySlots(*heap);
+	else
+	{
+		heap = CreateResourceHeap(capacity);
+		if(heap == nullptr)
+			return false;
+	}
+
+	TArray<TIndexRange<u32>> ranges;
+	slotsToCopy->ForEachSetRange(liveSlots, currentCapacity, [&ranges](const TIndexRange<u64>& range)
+	{
+		ranges.Add(TIndexRange<u32>((u32)range.First, (u32)range.Count));
+	});
+
+	if(!ranges.Empty())
+		CopyResourceSlots(*heap, ranges);
+
+	if(!updates.IsEmpty())
+		WriteResourceSlots(*heap, updates);
+
+	pool.MakeCurrent(heap, updates);
+	return true;
+}
+
+bool GpuBindlessHeaps::PatchResourceSlots(TArrayView<const GpuBindlessSlotUpdate> /*updates*/)
+{
+	B3D_ASSERT(false && "Backends that patch resource slots must override PatchResourceSlots().");
+	return false;
 }
 
 GpuBindlessResourceSlots::~GpuBindlessResourceSlots()

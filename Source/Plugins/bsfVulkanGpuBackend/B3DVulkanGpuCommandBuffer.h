@@ -16,6 +16,7 @@
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "Utility/B3DDenseMap.h"
 #include "Utility/B3DVulkanBarrierBatch.h"
+#include "B3DVulkanBindlessHeaps.h"
 
 namespace b3d
 {
@@ -471,7 +472,7 @@ namespace b3d
 			u64 mBoundDescriptorSetMask = 0; /**< Bit per set index prepared by BindGpuParameters() for binding. */
 			VkPipelineLayout mGraphicsBindlessHeapLayout = VK_NULL_HANDLE; /**< Pipeline layout the bindless heap set is bound with for graphics, if bound. */
 			VkPipelineLayout mComputeBindlessHeapLayout = VK_NULL_HANDLE; /**< Pipeline layout the bindless heap set is bound with for compute, if bound. */
-			VulkanBindlessHeap* mBindlessHeap = nullptr; /**< Bindless heap got by the first pipeline that accesses the heaps, whose set stays bound. Null before. */
+			VulkanBindlessHeap* mBindlessHeap = nullptr; /**< Native resource heap got by the first pipeline that accesses the bindless heaps, whose set stays bound. Null before. */
 			GpuPushConstantPayload mPushConstants;
 			bool mGfxPipelineRequiresBind : 1;
 			bool mCmpPipelineRequiresBind : 1;

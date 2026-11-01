@@ -3,6 +3,7 @@
 #include "B3DMetalGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
 #include "B3DMetalGpuDevice.h"
+#include "B3DMetalBindlessHeaps.h"
 #include "B3DMetalGpuQueue.h"
 #include "B3DMetalGpuCommandBufferPool.h"
 #include "B3DMetalGpuProgram.h"
@@ -768,14 +769,22 @@ namespace b3d
 			if (pipelineLayout == nullptr)
 				return;
 
-			// The heaps are resident through the heap allocator's residency set, and only read at rest, so they need no tracking
 			const GpuProgramFeatureFlags features = pipelineLayout->GetProgramFeatures();
-			const auto fnBindHeap = [this, isGraphics, features](GpuProgramFeatureFlag feature, GpuBindlessHeapType heap, u32 bufferIndex)
+			if (!features.IsSetAny(kGpuProgramBindlessFeatures))
+				return;
+
+			auto* heaps = static_cast<MetalBindlessHeaps*>(mGpuDevice.GetBindlessHeaps());
+			if (!B3D_ENSURE_LOG(heaps != nullptr, "Pipeline accesses the bindless heaps, but the device doesn't support bindless resources."))
+				return;
+
+			// The heaps are resident through the heap allocator's residency set, and only read at rest, so they need no tracking. The native
+			// resource heap never switches.
+			const auto fnBindHeap = [this, isGraphics, features, heaps](GpuProgramFeatureFlag feature, GpuBindlessHeapType heap, u32 bufferIndex)
 			{
 				if (!features.IsSet(feature))
 					return;
 
-				const MTLGPUAddress address = mGpuDevice.GetBindlessHeapBuffer(heap).gpuAddress;
+				const MTLGPUAddress address = heaps->GetHeapBuffer(heap).gpuAddress;
 				if (!isGraphics)
 				{
 					mComputeArgumentTable.SetAddress(address, bufferIndex);

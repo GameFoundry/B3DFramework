@@ -28,8 +28,9 @@ namespace b3d
 		class D3D12DescriptorManager;
 
 		/**
-		 * Shader-visible CBV/SRV/UAV heap: the bindless resource region of GetCapacity() descriptors at the start of the
-		 * heap, so a bindless index equals its heap index, followed by the table region. See GpuBindlessHeapPool.
+		 * Shader-visible CBV/SRV/UAV heap: the bindless resource region of GetCapacity() descriptors at the start of the heap, so a
+		 * bindless index equals its heap index, followed by the table region. A native heap of the bindless resource heap, see
+		 * GpuBindlessHeapPool. Devices without bindless support have one, with an empty bindless region.
 		 */
 		class D3D12BindlessHeap : public TD3D12Resource<GpuBindlessHeap>
 		{
@@ -41,9 +42,12 @@ namespace b3d
 
 			/**
 			 * Returns the descriptors of the table region written while the heap was not current, which it must copy before it is current
-			 * again. Guarded by the descriptor manager.
+			 * again. Guarded by the table region mutex, see D3D12DescriptorManager::GetResourceTableMutex().
 			 */
 			TBitfield<>& GetDirtyTableDescriptors() { return mDirtyTableDescriptors; }
+
+			/** Marks @p count descriptors of the table region, starting at @p offset, as written while the heap was not current. */
+			void MarkTableDescriptorsDirty(u32 offset, u32 count);
 
 		private:
 			D3D12DescriptorHeap mHeap;
@@ -85,22 +89,24 @@ namespace b3d
 		 * Resource views live in CPU-only staging heaps; parameter sets copy them into tracked, contiguous shader-visible
 		 * tables before binding. The two must not share a heap, as shader-visible heaps cannot be a descriptor copy source.
 		 *
-		 * The shader-visible CBV/SRV/UAV heaps are pooled (see GpuBindlessHeapPool), so bindless slots the GPU may be reading can
-		 * change, and the bindless region can grow. CPU-only mirrors of the bindless region and of the table region hold the latest
-		 * descriptors, and are the source heaps are filled from when they become current. Tables are written into the current heap
-		 * only, as command buffers bind the heap that is current when they record. There is a single shader-visible sampler heap.
+		 * The shader-visible CBV/SRV/UAV heaps are the native heaps of the bindless resource heap (see D3D12BindlessHeaps), which
+		 * switch so bindless slots the GPU may be reading can change, and the bindless region can grow. A CPU-only mirror of the table
+		 * region holds the latest descriptors of every table, and is the source native heaps are filled from when they become current.
+		 * Tables are written into the current native heap only, as command buffers bind the one that is current when they record.
+		 * There is a single shader-visible sampler heap.
 		 *
 		 * @note Thread safe.
 		 */
-		class D3D12DescriptorManager : private IGpuBindlessHeapPoolBackend
+		class D3D12DescriptorManager
 		{
 		public:
 			/**
-			 * Creates the descriptor heaps and immutable fallback descriptors for @p device. The shader-visible heaps start with
-			 * bindless regions of @p bindlessResourceCount and @p bindlessSamplerCount descriptors, followed by the table regions.
+			 * Creates the descriptor heaps and immutable fallback descriptors for @p device. The shader-visible sampler heap starts with
+			 * a bindless region of @p bindlessSamplerCount descriptors, followed by the table region. Without @p supportsBindlessResources,
+			 * creates the only shader-visible CBV/SRV/UAV heap; otherwise D3D12BindlessHeaps creates them.
 			 */
-			D3D12DescriptorManager(D3D12GpuDevice& device, u32 bindlessResourceCount, u32 bindlessSamplerCount);
-			~D3D12DescriptorManager() override;
+			D3D12DescriptorManager(D3D12GpuDevice& device, bool supportsBindlessResources, u32 bindlessSamplerCount);
+			~D3D12DescriptorManager();
 
 			/** Allocates a descriptor from the CPU-only staging heap of the specified type. */
 			D3D12_CPU_DESCRIPTOR_HANDLE AllocateCPUDescriptor(D3D12DescriptorHeapType type);
@@ -123,7 +129,7 @@ namespace b3d
 			 */
 			void WriteTable(const D3D12DescriptorTable& table, TArrayView<const D3D12_CPU_DESCRIPTOR_HANDLE> sources);
 
-			/** Returns the shader-visible sampler heap. CBV/SRV/UAV heaps are pooled, see GetAndTrackResourceHeap(). */
+			/** Returns the shader-visible sampler heap. CBV/SRV/UAV heaps switch, see GetAndTrackResourceHeap(). */
 			const D3D12DescriptorHeap& GetSamplerHeap() const { return mSamplerHeap; }
 
 			/**
@@ -135,23 +141,26 @@ namespace b3d
 			/** Returns the current shader-visible CBV/SRV/UAV heap. Tables written through it reach command buffers that get it. */
 			D3D12BindlessHeap* GetCurrentResourceHeap() const;
 
-			/** Returns the pool of shader-visible CBV/SRV/UAV heaps. */
-			GpuBindlessHeapPool& GetResourceHeapPool() { return *mResourceHeapPool; }
+			/**
+			 * Creates a shader-visible CBV/SRV/UAV heap with a bindless region of @p bindlessCapacity descriptors, followed by the table
+			 * region. Returns null on failure.
+			 */
+			D3D12BindlessHeap* CreateResourceHeap(u32 bindlessCapacity);
 
-			/** Destroys every shader-visible CBV/SRV/UAV heap. Must be called before the resource manager is destroyed, once no command buffer binds them. */
-			void DestroyResourceHeapPool() { mResourceHeapPool = nullptr; }
+			/**
+			 * Returns the mutex that guards table writes into the shader-visible CBV/SRV/UAV heaps. Switching the current heap must hold it
+			 * from taking the new heap until CopyDirtyTables() completes.
+			 */
+			Mutex& GetResourceTableMutex() { return mTableRegions[(u32)D3D12DescriptorHeapType::CBV_SRV_UAV].RegionMutex; }
 
-			/** Writes @p source into bindless resource slot @p slotIndex of the mirror and of every heap. Nothing may read the slot. */
-			void WriteBindlessResourceSlot(u32 slotIndex, D3D12_CPU_DESCRIPTOR_HANDLE source);
+			/** Copies the live tables @p heap lacks from the table mirror into it, after it became current. Must be called with GetResourceTableMutex() held. */
+			void CopyDirtyTables(D3D12BindlessHeap& heap);
+
+			/** Destroys the CBV/SRV/UAV heap of a device without bindless support. Must be called before the resource manager is destroyed, once no command buffer binds it. */
+			void DestroyFallbackResourceHeap() { mFallbackResourceHeapPool = nullptr; }
 
 			/** Writes @p source into slot @p slotIndex of the bindless region of the shader-visible sampler heap. Nothing may read the slot. */
 			void WriteBindlessSamplerSlot(u32 slotIndex, D3D12_CPU_DESCRIPTOR_HANDLE source);
-
-			/** Switches to a CBV/SRV/UAV heap holding @p updates, see GpuBindlessHeapPool::ApplyUpdates(). Returns false on failure. */
-			bool ApplyBindlessResourceUpdates(TArrayView<const GpuBindlessSlotUpdate> updates, const TBitfield<>& liveSlots);
-
-			/** Grows the bindless resource region to @p capacity descriptors, see GpuBindlessHeapPool::Grow(). Returns false on failure. */
-			bool GrowBindlessResourceRegion(u32 capacity, const TBitfield<>& liveSlots);
 
 			/**
 			 * Returns a CPU descriptor for the default sampler (linear filtering, wrap addressing), used for sampler
@@ -207,31 +216,11 @@ namespace b3d
 				Mutex RegionMutex;
 			};
 
-			/** Creates the descriptor heaps, both the shader-visible ones and the CPU-only staging heaps. */
-			void CreateHeaps(u32 bindlessResourceCount, u32 bindlessSamplerCount);
-
-			/** Replaces the bindless resource mirror with one of @p capacity descriptors, keeping the descriptors of the old one. Returns false on failure. */
-			bool ResizeBindlessResourceMirror(u32 capacity);
-
-			/**
-			 * @name IGpuBindlessHeapPoolBackend implementation
-			 * @{
-			 */
-
-			GpuBindlessHeap* CreateHeap(u32 capacity) override;
-			void CopySlots(GpuBindlessHeap& destination, const GpuBindlessHeap& current, TArrayView<const TIndexRange<u32>> ranges) override;
-			void WriteUpdates(GpuBindlessHeap& destination, TArrayView<const GpuBindlessSlotUpdate> updates) override;
-
-			/** @} */
+			/** Creates the shader-visible sampler heap and the CPU-only heaps. */
+			void CreateHeaps(u32 bindlessSamplerCount);
 
 			/** Creates the null CBV/SRV/UAV descriptors unset resource bindings fall back to. */
 			void CreateNullDescriptors();
-
-			/**
-			 * Copies the live tables @p heap lacks from the table mirror into it, after it became current. Must be called with the mutex of
-			 * the CBV/SRV/UAV table region held since the switch.
-			 */
-			void CopyDirtyTables(D3D12BindlessHeap& heap);
 
 			/** Number of D3D12DescriptorHeapType values. */
 			static constexpr u32 kHeapTypeCount = 4;
@@ -243,8 +232,7 @@ namespace b3d
 			StagingAllocator mStagingAllocators[kHeapTypeCount];	/**< CPU-only heaps of every type, indexed by D3D12DescriptorHeapType. */
 			TableRegion mTableRegions[kTableHeapTypeCount];			/**< Table region allocation of the shader-visible heaps, indexed by D3D12DescriptorHeapType. */
 			D3D12DescriptorHeap mSamplerHeap;						/**< Shader-visible sampler heap. */
-			TUnique<GpuBindlessHeapPool> mResourceHeapPool;			/**< Shader-visible CBV_SRV_UAV heaps. */
-			D3D12DescriptorHeap mBindlessResourceMirror;			/**< CPU-only copy of the bindless region, holding the latest descriptor of every slot. Empty without bindless support. */
+			TUnique<GpuBindlessHeapPool> mFallbackResourceHeapPool;	/**< Holds the only CBV/SRV/UAV heap of a device without bindless support, which never switches. Null otherwise. */
 			D3D12DescriptorHeap mTableMirror;						/**< CPU-only copy of the CBV/SRV/UAV table region, holding the latest descriptors of every table. */
 
 			// Fallbacks for resource bindings never set by the caller, indexed by view dimension where applicable

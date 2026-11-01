@@ -11,8 +11,8 @@ GpuBindlessHeap::GpuBindlessHeap(GpuResourceManager* owner, u32 capacity)
 	mDirtySlots.Resize(capacity);
 }
 
-GpuBindlessHeapPool::GpuBindlessHeapPool(IGpuBindlessHeapPoolBackend& backend, u32 maximumHeapCount)
-	: mBackend(backend), mMaximumHeapCount(std::max(maximumHeapCount, 1u))
+GpuBindlessHeapPool::GpuBindlessHeapPool(u32 maximumHeapCount)
+	: mMaximumHeapCount(std::max(maximumHeapCount, 1u))
 { }
 
 GpuBindlessHeapPool::~GpuBindlessHeapPool()
@@ -29,137 +29,85 @@ GpuBindlessHeapPool::~GpuBindlessHeapPool()
 		heap->Destroy();
 }
 
-bool GpuBindlessHeapPool::Initialize(u32 capacity)
+void GpuBindlessHeapPool::Initialize(GpuBindlessHeap* heap)
 {
-	B3D_ASSERT(mCurrent == nullptr);
-
-	GpuBindlessHeap* heap = mBackend.CreateHeap(capacity);
-	if(heap == nullptr)
-		return false;
+	B3D_ASSERT(mCurrent == nullptr && heap != nullptr);
 
 	heap->mVersion = mNextVersion++;
 	heap->mIsCurrent = true;
 
 	Lock lock(mMutex);
 	mCurrent = heap;
-	return true;
 }
 
 GpuBindlessHeap* GpuBindlessHeapPool::GetAndTrack(render::GpuResourceTracker& resourceTracker)
 {
-	// Tracking under the lock keeps the heap from being reused between the capture and the tracking
+	// Tracking under the lock keeps the native heap from being reused between the capture and the tracking
 	Lock lock(mMutex);
 
 	resourceTracker.TrackResourceUsage(mCurrent, GpuAccessFlag::Read);
 	return mCurrent;
 }
 
-void GpuBindlessHeapPool::CopyLiveSlots(GpuBindlessHeap& destination, const TBitfield<>& slots, const TBitfield<>& liveSlots)
-{
-	TArray<TIndexRange<u32>> ranges;
-	slots.ForEachSetRange(liveSlots, std::min(destination.mCapacity, mCurrent->mCapacity), [&ranges](const TIndexRange<u64>& range)
-	{
-		ranges.Add(TIndexRange<u32>((u32)range.First, (u32)range.Count));
-	});
-
-	if(!ranges.Empty())
-		mBackend.CopySlots(destination, *mCurrent, ranges);
-}
-
-void GpuBindlessHeapPool::MakeCurrent(GpuBindlessHeap* heap)
+GpuBindlessHeap* GpuBindlessHeapPool::TakePooledHeap()
 {
 	Lock lock(mMutex);
+	if(mPooledHeaps.Empty())
+		return nullptr;
+
+	GpuBindlessHeap* heap = mPooledHeaps.Back();
+	mPooledHeaps.Pop();
+	return heap;
+}
+
+void GpuBindlessHeapPool::MakeCurrent(GpuBindlessHeap* heap, TArrayView<const GpuBindlessSlotUpdate> updates)
+{
+	heap->mDirtySlots.Reset(false);
+	heap->mVersion = mNextVersion++;
+
+	Lock lock(mMutex);
+
+	const auto fnMarkDirty = [&updates](GpuBindlessHeap& otherHeap)
+	{
+		for(const GpuBindlessSlotUpdate& update : updates)
+		{
+			if(update.SlotIndex < otherHeap.mCapacity)
+				otherHeap.mDirtySlots[update.SlotIndex] = true;
+		}
+	};
+
+	fnMarkDirty(*mCurrent);
+	for(GpuBindlessHeap* otherHeap : mRetiringHeaps)
+		fnMarkDirty(*otherHeap);
+
+	for(GpuBindlessHeap* otherHeap : mPooledHeaps)
+		fnMarkDirty(*otherHeap);
 
 	mCurrent->mIsCurrent = false;
 	mRetiringHeaps.Add(mCurrent);
 
 	heap->mIsCurrent = true;
 	mCurrent = heap;
-}
 
-bool GpuBindlessHeapPool::ApplyUpdates(TArrayView<const GpuBindlessSlotUpdate> updates, const TBitfield<>& liveSlots)
-{
-	const u32 capacity = mCurrent->mCapacity;
-
-	// A pooled heap only lacks the slots changed since it was last current. A new one lacks every slot.
-	GpuBindlessHeap* heap = nullptr;
+	// Pooled native heaps are too small to be reused once the resource heap grows
+	for(u32 heapIndex = 0; heapIndex < mPooledHeaps.Size();)
 	{
-		Lock lock(mMutex);
-		if(!mPooledHeaps.Empty())
+		if(mPooledHeaps[heapIndex]->mCapacity == heap->mCapacity)
 		{
-			heap = mPooledHeaps.Back();
-			mPooledHeaps.Pop();
+			heapIndex++;
+			continue;
 		}
+
+		mPooledHeaps[heapIndex]->Destroy();
+		mPooledHeaps.Remove(heapIndex);
 	}
-
-	if(heap != nullptr)
-		CopyLiveSlots(*heap, heap->mDirtySlots, liveSlots);
-	else
-	{
-		heap = mBackend.CreateHeap(capacity);
-		if(heap == nullptr)
-			return false;
-
-		CopyLiveSlots(*heap, liveSlots, liveSlots);
-	}
-
-	heap->mDirtySlots.Reset(false);
-	heap->mVersion = mNextVersion++;
-
-	mBackend.WriteUpdates(*heap, updates);
-
-	// Every other heap now lacks the updated slots
-	{
-		Lock lock(mMutex);
-
-		const auto fnMarkDirty = [&updates](GpuBindlessHeap& otherHeap)
-		{
-			for(const GpuBindlessSlotUpdate& update : updates)
-			{
-				if(update.SlotIndex < otherHeap.mCapacity)
-					otherHeap.mDirtySlots[update.SlotIndex] = true;
-			}
-		};
-
-		fnMarkDirty(*mCurrent);
-		for(GpuBindlessHeap* otherHeap : mRetiringHeaps)
-			fnMarkDirty(*otherHeap);
-
-		for(GpuBindlessHeap* otherHeap : mPooledHeaps)
-			fnMarkDirty(*otherHeap);
-	}
-
-	MakeCurrent(heap);
-	return true;
-}
-
-bool GpuBindlessHeapPool::Grow(u32 capacity, const TBitfield<>& liveSlots)
-{
-	B3D_ASSERT(capacity > mCurrent->mCapacity);
-
-	GpuBindlessHeap* heap = mBackend.CreateHeap(capacity);
-	if(heap == nullptr)
-		return false;
-
-	CopyLiveSlots(*heap, liveSlots, liveSlots);
-	heap->mVersion = mNextVersion++;
-
-	MakeCurrent(heap);
-
-	// Pooled heaps are too small to be reused
-	Lock lock(mMutex);
-	for(GpuBindlessHeap* pooledHeap : mPooledHeaps)
-		pooledHeap->Destroy();
-
-	mPooledHeaps.Clear();
-	return true;
 }
 
 void GpuBindlessHeapPool::MarkSlotWritten(u32 slotIndex)
 {
 	Lock lock(mMutex);
 
-	// Retiring heaps are only read by work recorded before the write, but may be pooled later
+	// Retiring native heaps are only read by work recorded before the write, but may be pooled later
 	for(GpuBindlessHeap* heap : mRetiringHeaps)
 	{
 		if(slotIndex < heap->mCapacity)

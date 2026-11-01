@@ -11,7 +11,6 @@
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DGpuBackend.h"
-#include "GpuBackend/B3DGpuBindlessHeapPool.h"
 #include "B3DVulkanResource.h"
 #include "GpuBackend/Allocators/B3DGpuAllocator.h"
 #include "GpuBackend/Allocators/B3DGpuTlsfAllocator.h"
@@ -55,26 +54,7 @@ namespace b3d
 		};
 
 		/** Represents a single GPU device usable by Vulkan. */
-		/**
-		 * One copy of the bindless heap descriptor set holding the sampler heap and GetCapacity() slots of the resource heap, allocated
-		 * from its own pool. See GpuBindlessHeapPool.
-		 */
-		class VulkanBindlessHeap : public TVulkanResource<GpuBindlessHeap>
-		{
-		public:
-			VulkanBindlessHeap(VulkanResourceManager* owner, u32 capacity, VkDevice device, VkDescriptorPool pool, VkDescriptorSet set);
-			~VulkanBindlessHeap() override;
-
-			/** Returns the descriptor set, bound at kGpuBindlessParameterSet. */
-			VkDescriptorSet GetSet() const { return mSet; }
-
-		private:
-			VkDevice mDevice;
-			VkDescriptorPool mPool;
-			VkDescriptorSet mSet;
-		};
-
-		class VulkanGpuDevice : public GpuDevice, private IGpuSubmitThreadBackend, private IGpuBindlessHeapBackend, private IGpuBindlessHeapPoolBackend
+		class VulkanGpuDevice : public GpuDevice, private IGpuSubmitThreadBackend
 		{
 		public:
 			static constexpr const char* kGpuProgramLanguageName = kGpuProgramLanguageVksl;
@@ -168,12 +148,6 @@ namespace b3d
 
 			/** Returns the layout of the bindless heap set, or null if the device doesn't support bindless resources. */
 			VulkanDescriptorLayout* GetBindlessHeapLayout() const { return mBindlessHeapLayout; }
-
-			/**
-			 * Returns the current bindless heap, and tracks it with @p resourceTracker, which keeps it alive and unchanged while
-			 * the command buffer owning the tracker is recording or executing. Null if the device doesn't support bindless resources.
-			 */
-			VulkanBindlessHeap* GetAndTrackBindlessHeap(GpuResourceTracker& resourceTracker);
 
 			/**
 			 * @name Resource Creation
@@ -279,40 +253,6 @@ namespace b3d
 
 			/** @} */
 
-			/**
-			 * @name IGpuBindlessHeapBackend implementation
-			 * @{
-			 */
-
-			void WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view) override;
-			void WriteSamplerSlot(u32 slotIndex, const SamplerState& sampler) override;
-			void ClearResourceSlot(u32 slotIndex, GpuParameterObjectType viewType) override;
-			bool ApplyResourceUpdates(TArrayView<const GpuBindlessSlotUpdate> updates, const TBitfield<>& liveSlots) override;
-			bool GrowResourceHeap(u32 capacity, const TBitfield<>& liveSlots) override;
-			void ProcessRetiredResourceHeaps() override;
-
-			/** @} */
-
-			/**
-			 * @name IGpuBindlessHeapPoolBackend implementation
-			 * @{
-			 */
-
-			GpuBindlessHeap* CreateHeap(u32 capacity) override;
-			void CopySlots(GpuBindlessHeap& destination, const GpuBindlessHeap& current, TArrayView<const TIndexRange<u32>> ranges) override;
-			void WriteUpdates(GpuBindlessHeap& destination, TArrayView<const GpuBindlessSlotUpdate> updates) override;
-
-			/** @} */
-
-			/** Writes the descriptor of @p view into resource slot @p slotIndex of @p heap, or of the current heap if null. */
-			void WriteResourceDescriptor(u32 slotIndex, const GpuBindlessResourceView& view, VulkanBindlessHeap* heap);
-
-			/**
-			 * Writes @p writeInfo, a resource slot write whose destination set is ignored, into the set of the current bindless heap, and
-			 * marks the slot for the other heaps to copy.
-			 */
-			void WriteIntoCurrentHeap(VkWriteDescriptorSet& writeInfo);
-
 			TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
 			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
 			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
@@ -384,9 +324,6 @@ namespace b3d
 			bool mSupportsNullDescriptor = false; /**< True if VK_EXT_robustness2 nullDescriptor is enabled. Development builds only. */
 
 			VulkanDescriptorLayout* mBindlessHeapLayout = nullptr;
-			TUnique<GpuBindlessHeapPool> mBindlessHeapPool;
-			u32 mBindlessSamplerCapacity = 0;
-			u32 mBindlessSamplerSlotCount = 0; /**< One past the highest sampler slot ever written. Every sampler slot below it holds a valid sampler. */
 
 			/** Contains data about a set of queues of a specific type. */
 			struct QueueInfo

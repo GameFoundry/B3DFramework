@@ -426,10 +426,11 @@ namespace b3d
 		void DestroyTransientHeapPools();
 
 		/**
-		 * Creates the bindless heaps on top of the backend's native heaps, including the global samplers. Must be called once during device
-		 * initialization, after the device can create sampler states. See GpuBindlessHeaps::GpuBindlessHeaps() for the capacities.
+		 * Takes ownership of the backend's bindless heaps and initializes them, creating the first native resource heap and the global
+		 * samplers. Must be called once during device initialization, after the device can create sampler states. Returns false and
+		 * destroys the heaps if initialization fails.
 		 */
-		void CreateBindlessHeaps(IGpuBindlessHeapBackend& backend, u32 resourceCapacity, u32 resourceMaximumCapacity, u32 samplerCapacity);
+		bool CreateBindlessHeaps(TUnique<GpuBindlessHeaps> heaps);
 
 		/**
 		 * Returns the initial and maximum resource heap capacities the backend should create the bindless heaps with, from the

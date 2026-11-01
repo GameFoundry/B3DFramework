@@ -27,6 +27,12 @@ namespace b3d
 		void TestHeapChanges();
 
 		/**
+		 * Verifies the native heap pool on its own: switches retire the previous native heap and dirty the updated and later written slots
+		 * in it, retiring native heaps are pooled once unbound and reused with new versions, and growth destroys smaller native heaps.
+		 */
+		void TestHeapPool();
+
+		/**
 		 * Verifies the bindless indices of textures, buffers and samplers: default and additional views, the global samplers, the release of
 		 * slots on destruction and the rejection of resources that can't be bindless.
 		 */

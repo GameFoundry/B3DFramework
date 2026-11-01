@@ -76,12 +76,20 @@ void GpuDevice::EndFrame()
 		mBindlessHeaps->ProcessReleases();
 }
 
-void GpuDevice::CreateBindlessHeaps(IGpuBindlessHeapBackend& backend, u32 resourceCapacity, u32 resourceMaximumCapacity, u32 samplerCapacity)
+bool GpuDevice::CreateBindlessHeaps(TUnique<GpuBindlessHeaps> heaps)
 {
 	B3D_ASSERT(mBindlessHeaps == nullptr);
 
-	mBindlessHeaps = B3DMakeUnique<GpuBindlessHeaps>(*this, backend, mFrameCompletionTracker, resourceCapacity, resourceMaximumCapacity, samplerCapacity);
+	mBindlessHeaps = std::move(heaps);
+	if(!mBindlessHeaps->Initialize())
+	{
+		mBindlessHeaps = nullptr;
+		return false;
+	}
+
+	// Creating the global samplers allocates their slots through GetBindlessHeaps()
 	mBindlessHeaps->CreateGlobalSamplers();
+	return true;
 }
 
 void GpuDevice::GetBindlessResourceCapacities(u32 deviceMaximumCapacity, u32& outCapacity, u32& outMaximumCapacity)

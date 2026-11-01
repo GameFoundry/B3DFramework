@@ -23,7 +23,7 @@ namespace b3d
 		 */
 
 		/** Represents a single Metal GPU device. */
-		class MetalGpuDevice : public GpuDevice, private IGpuSubmitThreadBackend, private IGpuBindlessHeapBackend
+		class MetalGpuDevice : public GpuDevice, private IGpuSubmitThreadBackend
 		{
 		public:
 			static constexpr const char* kGpuProgramLanguageName = kGpuProgramLanguageMsl;
@@ -94,12 +94,6 @@ namespace b3d
 			 * ranges of its slots, so a render encoder created with it can run the queries of any pool.
 			 */
 			id<MTLBuffer> GetVisibilityResultBuffer() const { return mVisibilityResultBuffer; }
-
-			/**
-			 * Returns the buffer of bindless heap @p heap, an array of 8-byte entries that shaders read as an argument buffer: the
-			 * resource heap binds at buffer index kGpuBindlessParameterSet, and the sampler heap at kMetalSamplerHeapBufferIndex.
-			 */
-			id<MTLBuffer> GetBindlessHeapBuffer(GpuBindlessHeapType heap) const;
 
 			/**
 			 * Reserves @p count consecutive slots of the visibility result buffer, and returns the first, or RangeAllocator::kInvalidIndex
@@ -189,22 +183,6 @@ namespace b3d
 
 			/** @} */
 
-			/**
-			 * @name IGpuBindlessHeapBackend implementation
-			 * @{
-			 */
-
-			void WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view) override;
-			void WriteSamplerSlot(u32 slotIndex, const SamplerState& sampler) override;
-			void ClearResourceSlot(u32 slotIndex, GpuParameterObjectType viewType) override;
-			bool ApplyResourceUpdates(TArrayView<const GpuBindlessSlotUpdate> updates, const TBitfield<>& liveSlots) override;
-			bool GrowResourceHeap(u32 capacity, const TBitfield<>& liveSlots) override { return false; }
-
-			/** @} */
-
-			/** Returns the bindless resource heap entry that refers to @p view. */
-			u64 GetBindlessResourceEntry(const GpuBindlessResourceView& view) const;
-
 			TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
 			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
 			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
@@ -230,8 +208,6 @@ namespace b3d
 			GpuAllocation mDummyArgumentBufferAllocation;
 			id<MTLBuffer> mVisibilityResultBuffer = nil;
 			GpuAllocation mVisibilityResultBufferAllocation;
-			TShared<GpuBuffer> mBindlessHeapBuffers[(u32)GpuBindlessHeapType::Count];
-			TShared<GpuCommandBufferPool> mBindlessPatchCommandBufferPool; /**< Created on first use by ApplyResourceUpdates(). */
 
 			/** Timestamp counter heap shared by query pools, and its unallocated slots. */
 			struct CounterHeap

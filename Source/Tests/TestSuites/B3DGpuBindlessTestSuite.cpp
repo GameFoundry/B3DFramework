@@ -9,6 +9,7 @@
 #include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
 #include "GpuBackend/B3DGpuBindlessHeap.h"
+#include "GpuBackend/B3DGpuBindlessHeapPool.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuCompletionTracker.h"
 #include "GpuBackend/B3DGpuDevice.h"
@@ -18,6 +19,7 @@
 #include "GpuBackend/B3DGpuPipelineParameterLayout.h"
 #include "GpuBackend/B3DGpuPipelineState.h"
 #include "GpuBackend/B3DGpuProgram.h"
+#include "GpuBackend/B3DGpuResourceManager.h"
 #include "GpuBackend/B3DGpuWorkContext.h"
 #include "GpuBackend/B3DSamplerState.h"
 #include "Image/B3DTexture.h"
@@ -27,21 +29,90 @@ using namespace b3d::render;
 
 namespace
 {
-	/** Native heap stub that records the slots written into it. */
-	class RecordingBindlessHeap : public IGpuBindlessHeapBackend
+	/** Resource manager of native heap stubs. */
+	class TestResourceManager : public GpuResourceManager
 	{
 	public:
-		RecordingBindlessHeap() = default;
+		using GpuResourceManager::GpuResourceManager;
 
-		void WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view) override { ResourceWrites.Add(slotIndex); }
-		void WriteSamplerSlot(u32 slotIndex, const SamplerState& sampler) override { SamplerWrites.Add(slotIndex); }
+		/** Creates a resource of type @p Type. Destroy it with IGpuResource::Destroy(). */
+		template<class Type, class... Args>
+		Type* Create(Args&&... args)
+		{
+			Type* resource = new(B3DAllocate(sizeof(Type))) Type(this, std::forward<Args>(args)...);
+			RegisterResource(resource);
+			return resource;
+		}
+	};
+
+	/** Native heap stub that counts its destruction. */
+	class CountingBindlessHeap : public GpuBindlessHeap
+	{
+	public:
+		CountingBindlessHeap(GpuResourceManager* owner, u32 capacity, u32& destroyedCount)
+			: GpuBindlessHeap(owner, capacity), mDestroyedCount(destroyedCount)
+		{ }
+
+		~CountingBindlessHeap() override { mDestroyedCount++; }
+
+	private:
+		u32& mDestroyedCount;
+	};
+
+	/** Bindless heaps over native heap stubs, which record the slots written into them. */
+	class RecordingBindlessHeaps : public GpuBindlessHeaps
+	{
+	public:
+		RecordingBindlessHeaps(GpuDevice& device, const IGpuCompletionTracker& completionTracker, const GpuBindlessHeapsCreateInformation& createInformation)
+			: GpuBindlessHeaps(device, completionTracker, createInformation), mResourceManager(device)
+		{
+			const bool isInitialized = Initialize();
+			B3D_ASSERT(isInitialized);
+			(void)isInitialized;
+		}
+
+		~RecordingBindlessHeaps() override
+		{
+			Destroy();
+		}
+
+		/** Returns the information for heaps of the provided capacities that apply updates through PatchResourceSlots(). */
+		static GpuBindlessHeapsCreateInformation GetCreateInformation(u32 resourceCapacity, u32 resourceMaximumCapacity, u32 samplerCapacity)
+		{
+			GpuBindlessHeapsCreateInformation createInformation;
+			createInformation.ResourceCapacity = resourceCapacity;
+			createInformation.ResourceMaximumCapacity = resourceMaximumCapacity;
+			createInformation.SamplerCapacity = samplerCapacity;
+			createInformation.UpdateMethod = GpuBindlessUpdateMethod::Patch;
+			return createInformation;
+		}
+
+		TArray<u32> HeapCapacities; /**< Capacity of every native resource heap created, in creation order. */
+		TArray<u32> ResourceWrites;
+		TArray<u32> UpdatedSlots;
+		TArray<u32> SamplerWrites;
+		TArray<u32> ClearedSlots;
+		TArray<GpuParameterObjectType> ClearedViewTypes;
+
+	protected:
+		GpuBindlessHeap* CreateResourceHeap(u32 capacity) override
+		{
+			HeapCapacities.Add(capacity);
+			return mResourceManager.Create<GpuBindlessHeap>(capacity);
+		}
+
+		void CopyResourceSlots(GpuBindlessHeap& /*destination*/, TArrayView<const TIndexRange<u32>> /*ranges*/) override { }
+		void WriteResourceSlots(GpuBindlessHeap& /*destination*/, TArrayView<const GpuBindlessSlotUpdate> /*updates*/) override { }
+		void WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceView& /*view*/) override { ResourceWrites.Add(slotIndex); }
+		void WriteSamplerSlot(u32 slotIndex, const SamplerState& /*sampler*/) override { SamplerWrites.Add(slotIndex); }
+
 		void ClearResourceSlot(u32 slotIndex, GpuParameterObjectType viewType) override
 		{
 			ClearedSlots.Add(slotIndex);
 			ClearedViewTypes.Add(viewType);
 		}
 
-		bool ApplyResourceUpdates(TArrayView<const GpuBindlessSlotUpdate> updates, const TBitfield<>& liveSlots) override
+		bool PatchResourceSlots(TArrayView<const GpuBindlessSlotUpdate> updates) override
 		{
 			for(const GpuBindlessSlotUpdate& update : updates)
 				UpdatedSlots.Add(update.SlotIndex);
@@ -49,18 +120,8 @@ namespace
 			return true;
 		}
 
-		bool GrowResourceHeap(u32 capacity, const TBitfield<>& liveSlots) override
-		{
-			GrowCapacities.Add(capacity);
-			return true;
-		}
-
-		TArray<u32> ResourceWrites;
-		TArray<u32> UpdatedSlots;
-		TArray<u32> GrowCapacities;
-		TArray<u32> SamplerWrites;
-		TArray<u32> ClearedSlots;
-		TArray<GpuParameterObjectType> ClearedViewTypes;
+	private:
+		TestResourceManager mResourceManager;
 	};
 
 	/** Completion tracker whose GPU progress is set by the test. */
@@ -88,6 +149,7 @@ GpuBindlessTestSuite::GpuBindlessTestSuite()
 {
 	B3D_ADD_TEST(GpuBindlessTestSuite::TestHeapAllocation)
 	B3D_ADD_TEST(GpuBindlessTestSuite::TestHeapChanges)
+	B3D_ADD_TEST(GpuBindlessTestSuite::TestHeapPool)
 	B3D_ADD_TEST(GpuBindlessTestSuite::TestResourceIndices)
 	B3D_ADD_TEST(GpuBindlessTestSuite::TestHeapAccess)
 }
@@ -104,9 +166,8 @@ void GpuBindlessTestSuite::TestHeapAllocation()
 	if(buffer == nullptr)
 		return;
 
-	RecordingBindlessHeap nativeHeap;
 	ManualCompletionTracker completionTracker;
-	GpuBindlessHeaps heaps(*device, nativeHeap, completionTracker, 4, 4, 16);
+	RecordingBindlessHeaps heaps(*device, completionTracker, RecordingBindlessHeaps::GetCreateInformation(4, 4, 16));
 
 	const GpuBindlessResourceView view(*buffer, GpuBufferViewType::Typed, BF_UNKNOWN);
 	const int owners[4] = {};
@@ -119,7 +180,7 @@ void GpuBindlessTestSuite::TestHeapAllocation()
 		B3D_TEST_ASSERT(slots[slotIndex] == slotIndex + 1)
 	}
 
-	B3D_TEST_ASSERT(nativeHeap.ResourceWrites.Size() == 3)
+	B3D_TEST_ASSERT(heaps.ResourceWrites.Size() == 3)
 
 	{
 		LoggingScope logs(*this);
@@ -150,8 +211,8 @@ void GpuBindlessTestSuite::TestHeapAllocation()
 	B3D_TEST_ASSERT(heaps.GetStatistics(GpuBindlessHeapType::Resource).PendingReleaseCount == 0)
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-	B3D_TEST_ASSERT(nativeHeap.ClearedSlots.Size() == 1 && nativeHeap.ClearedSlots[0] == slots[1])
-	B3D_TEST_ASSERT(nativeHeap.ClearedViewTypes[0] == GPOT_STRUCTURED_BUFFER)
+	B3D_TEST_ASSERT(heaps.ClearedSlots.Size() == 1 && heaps.ClearedSlots[0] == slots[1])
+	B3D_TEST_ASSERT(heaps.ClearedViewTypes[0] == GPOT_STRUCTURED_BUFFER)
 #endif
 
 	const u32 reusedSlot = heaps.AllocateResourceSlot(view, &owners[3]);
@@ -193,7 +254,7 @@ void GpuBindlessTestSuite::TestHeapAllocation()
 	const TShared<SamplerState> sampler = device->FindOrCreateSamplerState(SamplerStateCreateInformation());
 	const u32 samplerSlot = heaps.AllocateSamplerSlot(*sampler, &owners[0]);
 	B3D_TEST_ASSERT(samplerSlot == 1)
-	B3D_TEST_ASSERT(nativeHeap.SamplerWrites.Size() == 1 && nativeHeap.SamplerWrites[0] == samplerSlot)
+	B3D_TEST_ASSERT(heaps.SamplerWrites.Size() == 1 && heaps.SamplerWrites[0] == samplerSlot)
 
 	heaps.ReleaseSlot(GpuBindlessHeapType::Sampler, samplerSlot, &owners[0]);
 	heaps.ReleaseSlot(GpuBindlessHeapType::Resource, slots[2], &owners[2]);
@@ -217,9 +278,9 @@ void GpuBindlessTestSuite::TestHeapChanges()
 	if(buffer == nullptr)
 		return;
 
-	RecordingBindlessHeap nativeHeap;
 	ManualCompletionTracker completionTracker;
-	GpuBindlessHeaps heaps(*device, nativeHeap, completionTracker, 8, 16, 16);
+	RecordingBindlessHeaps heaps(*device, completionTracker, RecordingBindlessHeaps::GetCreateInformation(8, 16, 16));
+	B3D_TEST_ASSERT(heaps.HeapCapacities.Size() == 1 && heaps.HeapCapacities[0] == 8)
 
 	const GpuBindlessResourceView view(*buffer, GpuBufferViewType::Typed, BF_UNKNOWN);
 	const int owners[16] = {};
@@ -230,12 +291,12 @@ void GpuBindlessTestSuite::TestHeapChanges()
 		slots[slotIndex] = heaps.AllocateResourceSlot(view, &owners[slotIndex]);
 
 	heaps.ApplyPendingChanges();
-	B3D_TEST_ASSERT(nativeHeap.GrowCapacities.Empty())
+	B3D_TEST_ASSERT(heaps.HeapCapacities.Size() == 1)
 
 	slots[5] = heaps.AllocateResourceSlot(view, &owners[5]);
 
 	heaps.ApplyPendingChanges();
-	B3D_TEST_ASSERT(nativeHeap.GrowCapacities.Size() == 1 && nativeHeap.GrowCapacities[0] == 16)
+	B3D_TEST_ASSERT(heaps.HeapCapacities.Size() == 2 && heaps.HeapCapacities[1] == 16)
 
 	const GpuBindlessHeapStatistics statistics = heaps.GetStatistics(GpuBindlessHeapType::Resource);
 	B3D_TEST_ASSERT(statistics.Capacity == 16 && statistics.GrowthCount == 1)
@@ -248,7 +309,7 @@ void GpuBindlessTestSuite::TestHeapChanges()
 
 	// The heap is at its maximum capacity
 	heaps.ApplyPendingChanges();
-	B3D_TEST_ASSERT(nativeHeap.GrowCapacities.Size() == 1)
+	B3D_TEST_ASSERT(heaps.HeapCapacities.Size() == 2)
 	{
 		LoggingScope logs(*this);
 		logs.ExpectError("Increase gpu.BindlessResourceMaximumCapacity.");
@@ -277,11 +338,11 @@ void GpuBindlessTestSuite::TestHeapChanges()
 
 	completionTracker.CurrentMarker = 3;
 	heaps.ApplyPendingChanges();
-	B3D_TEST_ASSERT(nativeHeap.UpdatedSlots.Size() == 1 && nativeHeap.UpdatedSlots[0] == slots[0])
+	B3D_TEST_ASSERT(heaps.UpdatedSlots.Size() == 1 && heaps.UpdatedSlots[0] == slots[0])
 	B3D_TEST_ASSERT(heaps.GetStatistics(GpuBindlessHeapType::Resource).UpdateCount == 1)
 
 	heaps.ApplyPendingChanges();
-	B3D_TEST_ASSERT(nativeHeap.UpdatedSlots.Size() == 1)
+	B3D_TEST_ASSERT(heaps.UpdatedSlots.Size() == 1)
 
 	heaps.ProcessReleases();
 	B3D_TEST_ASSERT(previousTarget.GetBoundCount() == 1)
@@ -298,6 +359,70 @@ void GpuBindlessTestSuite::TestHeapChanges()
 
 	heaps.ProcessAllReleases();
 	B3D_TEST_ASSERT(heaps.GetStatistics(GpuBindlessHeapType::Resource).AllocatedCount == 0)
+}
+
+void GpuBindlessTestSuite::TestHeapPool()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	TestResourceManager resourceManager(*backend.GetDevice(0));
+	u32 destroyedCount = 0;
+
+	{
+		GpuBindlessHeapPool pool(3);
+
+		GpuBindlessHeap* first = resourceManager.Create<CountingBindlessHeap>(8, destroyedCount);
+		pool.Initialize(first);
+		B3D_TEST_ASSERT(pool.GetCurrent() == first && first->IsCurrent())
+		B3D_TEST_ASSERT(pool.TakePooledHeap() == nullptr)
+
+		// Switching retires the previous native heap, which lacks the updated slots and slots written afterwards
+		GpuBindlessHeap* second = resourceManager.Create<CountingBindlessHeap>(8, destroyedCount);
+		const GpuBindlessSlotUpdate updates[] = { GpuBindlessSlotUpdate(3, GpuBindlessResourceView()) };
+		pool.MakeCurrent(second, TArrayView<const GpuBindlessSlotUpdate>(updates, std::size(updates)));
+		pool.MarkSlotWritten(5);
+
+		B3D_TEST_ASSERT(pool.GetCurrent() == second && second->IsCurrent() && !first->IsCurrent())
+		B3D_TEST_ASSERT(second->GetVersion() != first->GetVersion())
+
+		u32 heapCount = 0;
+		pool.ForEachHeap([&heapCount](GpuBindlessHeap&) { heapCount++; });
+		B3D_TEST_ASSERT(heapCount == 2)
+
+		// A retiring native heap is only pooled once no command buffer binds it
+		first->NotifyBound();
+		pool.ProcessRetiredHeaps();
+		B3D_TEST_ASSERT(pool.TakePooledHeap() == nullptr)
+
+		first->NotifyUnbound();
+		pool.ProcessRetiredHeaps();
+		GpuBindlessHeap* pooled = pool.TakePooledHeap();
+		B3D_TEST_ASSERT(pooled == first)
+
+		u32 dirtySlotCount = 0;
+		pool.GetDirtySlots(*first).ForEachSetRange(pool.GetDirtySlots(*first), 8, [&dirtySlotCount](const TIndexRange<u64>& range) { dirtySlotCount += (u32)range.Count; });
+		B3D_TEST_ASSERT(dirtySlotCount == 2 && pool.GetDirtySlots(*first)[3] && pool.GetDirtySlots(*first)[5])
+
+		// Reuse clears the dirty slots and gives a new version
+		const u64 firstVersion = first->GetVersion();
+		pool.MakeCurrent(first, {});
+		B3D_TEST_ASSERT(first->IsCurrent() && first->GetVersion() != firstVersion && !pool.GetDirtySlots(*first)[3])
+
+		pool.ProcessRetiredHeaps();
+		B3D_TEST_ASSERT(destroyedCount == 0)
+
+		// Growth destroys the pooled native heaps, which are too small, and smaller retiring ones once no command buffer binds them
+		GpuBindlessHeap* grown = resourceManager.Create<CountingBindlessHeap>(16, destroyedCount);
+		pool.MakeCurrent(grown, {});
+		B3D_TEST_ASSERT(destroyedCount == 1)
+
+		pool.ProcessRetiredHeaps();
+		B3D_TEST_ASSERT(destroyedCount == 2 && pool.TakePooledHeap() == nullptr)
+	}
+
+	B3D_TEST_ASSERT(destroyedCount == 3)
 }
 
 void GpuBindlessTestSuite::TestResourceIndices()

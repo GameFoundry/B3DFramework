@@ -1,6 +1,7 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DD3D12GpuDevice.h"
+#include "B3DD3D12BindlessHeaps.h"
 #include "B3DD3D12VertexInput.h"
 #include "B3DD3D12GpuQueue.h"
 #include "String/B3DUnicode.h"
@@ -160,7 +161,7 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter) : mAdapter(adapter)
 
 	// The descriptor manager creates its shader-visible heaps through the resource manager
 	mResourceManager = B3DNew<D3D12ResourceManager>(*this);
-	mDescriptorManager = B3DNew<D3D12DescriptorManager>(*this, bindlessResourceCapacity, bindlessSamplerCapacity);
+	mDescriptorManager = B3DNew<D3D12DescriptorManager>(*this, mSupportsBindlessResources, bindlessSamplerCapacity);
 	mHeapBackend = B3DMakeUnique<D3D12HeapBackend>(*this);
 	mBufferPool = B3DMakeUnique<D3D12BufferPool>(*this);
 
@@ -176,8 +177,16 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter) : mAdapter(adapter)
 
 	if(mSupportsBindlessResources)
 	{
-		IGpuBindlessHeapBackend& bindlessHeap = *this;
-		CreateBindlessHeaps(bindlessHeap, bindlessResourceCapacity, bindlessResourceMaximumCapacity, bindlessSamplerCapacity);
+		GpuBindlessHeapsCreateInformation heapsCreateInformation;
+		heapsCreateInformation.ResourceCapacity = bindlessResourceCapacity;
+		heapsCreateInformation.ResourceMaximumCapacity = bindlessResourceMaximumCapacity;
+		heapsCreateInformation.SamplerCapacity = bindlessSamplerCapacity;
+		heapsCreateInformation.MaximumResourceHeapCount = RenderThread::kMaximumFramesInFlight + 1;
+		heapsCreateInformation.UpdateMethod = GpuBindlessUpdateMethod::SwitchHeap;
+
+		const bool areHeapsCreated = CreateBindlessHeaps(B3DMakeUnique<D3D12BindlessHeaps>(*this, mFrameCompletionTracker, heapsCreateInformation));
+		B3D_ASSERT(areHeapsCreated && "Failed to create the bindless heaps");
+		(void)areHeapsCreated;
 	}
 
 #if B3D_PLATFORM_WIN32
@@ -231,7 +240,7 @@ D3D12GpuDevice::~D3D12GpuDevice()
 
 	mCachedSamplerStates.clear();
 
-	// Releases the pinned resources while the resource manager is still alive
+	// Releases the pinned resources and the shader-visible CBV/SRV/UAV heaps, which are manager-owned resources, while the resource manager is still alive
 	mBindlessHeaps = nullptr;
 
 	// Queues the cached vertex inputs for destroy while the resource manager is still alive
@@ -247,7 +256,7 @@ D3D12GpuDevice::~D3D12GpuDevice()
 	mBufferPool.reset();
 
 	// Shader-visible heaps are manager-owned resources, and descriptor tables free their ranges through the descriptor manager
-	mDescriptorManager->DestroyResourceHeapPool();
+	mDescriptorManager->DestroyFallbackResourceHeap();
 
 	B3DDelete(mResourceManager);
 	B3DDelete(mDescriptorManager);
@@ -932,56 +941,6 @@ float D3D12GpuDevice::ConvertTimestampToMilliseconds(u64 timestamp)
 
 	const double millisecondsPerTick = 1000.0 / (double)mTimestampFrequency;
 	return (float)((double)timestamp * millisecondsPerTick);
-}
-
-D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuDevice::GetBindlessViewHandle(const GpuBindlessResourceView& view) const
-{
-	D3D12_CPU_DESCRIPTOR_HANDLE sourceHandle;
-	if(view.Texture != nullptr)
-		sourceHandle = static_cast<D3D12Texture*>(view.Texture)->GetSRVHandle(view.Surface);
-	else
-	{
-		auto* buffer = static_cast<D3D12GpuBuffer*>(view.Buffer);
-		sourceHandle = buffer->GetSRVHandle(view.ViewType, view.Format);
-	}
-
-	if(!B3D_ENSURE_LOG(sourceHandle.ptr != 0, "Failed to create the view of '{0}' written into a bindless resource slot.",
-		view.Texture != nullptr ? view.Texture->GetName() : view.Buffer->GetName()))
-	{
-		sourceHandle = mDescriptorManager->GetNullSRVHandle(GPOT_TEXTURE2D);
-	}
-
-	return sourceHandle;
-}
-
-void D3D12GpuDevice::WriteResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view)
-{
-	mDescriptorManager->WriteBindlessResourceSlot(slotIndex, GetBindlessViewHandle(view));
-}
-
-void D3D12GpuDevice::WriteSamplerSlot(u32 slotIndex, const SamplerState& sampler)
-{
-	mDescriptorManager->WriteBindlessSamplerSlot(slotIndex, static_cast<const D3D12SamplerState&>(sampler).GetDescriptorHandle());
-}
-
-void D3D12GpuDevice::ClearResourceSlot(u32 slotIndex, GpuParameterObjectType viewType)
-{
-	mDescriptorManager->WriteBindlessResourceSlot(slotIndex, mDescriptorManager->GetNullSRVHandle(viewType));
-}
-
-bool D3D12GpuDevice::ApplyResourceUpdates(TArrayView<const GpuBindlessSlotUpdate> updates, const TBitfield<>& liveSlots)
-{
-	return mDescriptorManager->ApplyBindlessResourceUpdates(updates, liveSlots);
-}
-
-bool D3D12GpuDevice::GrowResourceHeap(u32 capacity, const TBitfield<>& liveSlots)
-{
-	return mDescriptorManager->GrowBindlessResourceRegion(capacity, liveSlots);
-}
-
-void D3D12GpuDevice::ProcessRetiredResourceHeaps()
-{
-	mDescriptorManager->GetResourceHeapPool().ProcessRetiredHeaps();
 }
 
 void D3D12GpuDevice::InitializeCapabilities()

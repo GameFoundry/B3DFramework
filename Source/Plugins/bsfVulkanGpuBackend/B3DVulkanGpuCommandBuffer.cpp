@@ -1826,10 +1826,11 @@ void VulkanGpuCommandBuffer::BindBindlessHeaps(VkPipelineBindPoint bindPoint, co
 	// The heap stays bound for the rest of the command buffer's lifetime, so bindless slots read the descriptors they had when it was captured
 	if(mBindlessHeap == nullptr)
 	{
-		mBindlessHeap = GetVulkanGpuDevice().GetAndTrackBindlessHeap(mResourceTracker);
-
-		if(!B3D_ENSURE_LOG(mBindlessHeap != nullptr, "Pipeline accesses the bindless heaps, but the device doesn't support bindless resources."))
+		GpuBindlessHeaps* heaps = GetVulkanGpuDevice().GetBindlessHeaps();
+		if(!B3D_ENSURE_LOG(heaps != nullptr, "Pipeline accesses the bindless heaps, but the device doesn't support bindless resources."))
 			return;
+
+		mBindlessHeap = static_cast<VulkanBindlessHeap*>(heaps->GetAndTrackResourceHeap(mResourceTracker));
 	}
 
 	const VkDescriptorSet bindlessHeapSet = mBindlessHeap->GetSet();
