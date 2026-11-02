@@ -360,12 +360,8 @@ namespace b3d::render
 			{
 				if(IsRangeInUse(offset, size))
 					B3D_LOG(Warning, LogRenderBackend, "Writing to a buffer that is currently used on the GPU. This will result in undefined behaviour. Buffer: {0}", mName);
-				else if(!options.IsSet(GpuMapOption::NoOverwrite) && !mInformation.Flags.IsSet(GpuBufferFlag::Bindless))
-				{
-					// The bindless heaps keep bindless buffers bound while registered, so binding by command buffers can't be told apart
-					if(IsRangeBound(offset, size))
-						B3D_LOG(Warning, LogRenderBackend, "Writing to a buffer that is currently bound on a command buffer. Previous usages of the buffer will be affected. Buffer: {0}", mName);
-				}
+				else if(!options.IsSet(GpuMapOption::NoOverwrite) && IsRangeBound(offset, size))
+					B3D_LOG(Warning, LogRenderBackend, "Writing to a buffer that is currently bound on a command buffer. Previous usages of the buffer will be affected. Buffer: {0}", mName);
 			}
 		}
 		else

@@ -273,13 +273,15 @@ namespace b3d
 	 *   - NotifyUnbound — command buffer destroyed/reset before submission
 	 *
 	 * The framework does not drive these calls itself; per-command-buffer tracking is each backend's
-	 * concern. The framework only guarantees that, once Destroy() has been called and the bound count
-	 * eventually drops to zero, OnWillDestroy() fires exactly once and the manager frees the resource.
+	 * concern. Independently of command buffers, NotifyPinned / NotifyUnpinned keep the resource alive while
+	 * something else references it, such as a bindless heap descriptor. The framework only guarantees that,
+	 * once Destroy() has been called and both the bound and the pin counts drop to zero, OnWillDestroy() fires
+	 * exactly once and the manager frees the resource.
 	 *
 	 * @par Threading
 	 *
 	 * Notify* may be called from queue-submission threads. Deferred-destroy fires on the thread that
-	 * decrements the bound count to zero. Callers do not need to take external locks.
+	 * decrements the last of the bound and pin counts to zero. Callers do not need to take external locks.
 	 *
 	 * @par Construction
 	 *
@@ -350,6 +352,15 @@ namespace b3d
 		void NotifyUnbound();
 
 		/**
+		 * Keeps the resource alive while something other than a command buffer references it, such as a bindless heap
+		 * descriptor. A pin doesn't count as a binding. Must eventually be followed by a NotifyUnpinned().
+		 */
+		void NotifyPinned();
+
+		/** Releases a pin taken by NotifyPinned(). Destroys the resource if it was the last reference to a destroyed resource. */
+		void NotifyUnpinned();
+
+		/**
 		 * Checks if the resource is currently in use by the GPU.
 		 *
 		 * @note Resource usage is only checked at certain points of the program. This means the resource could be
@@ -394,12 +405,19 @@ namespace b3d
 			return mUsedCount;
 		}
 
+		/** Number of pins currently keeping this resource alive, see NotifyPinned(). */
+		u32 GetPinCount() const
+		{
+			Lock lock(mMutex);
+			return mPinCount;
+		}
+
 		/** Returns queues on which the resource currently has in-flight accesses matching @p useFlags. */
 		GpuQueueMask GetUseInfo(GpuAccessFlags useFlags) const;
 
 		/**
-		 * Queues the resource for destruction. If the resource is currently bound to a command buffer, the actual free
-		 * is deferred until the bound count drops to zero; otherwise the manager frees it immediately. Only valid for
+		 * Queues the resource for destruction. If the resource is currently bound to a command buffer or pinned, the actual
+		 * free is deferred until the bound and pin counts drop to zero; otherwise the manager frees it immediately. Only valid for
 		 * resources constructed with a non-null manager.
 		 *
 		 * Marked virtual so specialty subclasses can wedge in pre-deferral work (e.g. unregistering from a cache,
@@ -432,8 +450,8 @@ namespace b3d
 		}
 
 		/**
-		 * Pre-delete cleanup hook. Fires exactly once, on the thread that decrements the bound count to zero
-		 * after Destroy() has been called. The implementation should release any native handles
+		 * Pre-delete cleanup hook. Fires exactly once, on the thread that decrements the last of the bound and pin
+		 * counts to zero after Destroy() has been called. The implementation should release any native handles
 		 * (ComPtr / id<MTL...> / VkXxx) but must not delete this — the manager handles the B3DDelete that
 		 * follows immediately after this call. Default implementation is empty.
 		 */
@@ -454,6 +472,9 @@ namespace b3d
 
 		/** Aggregate command-buffer binding count. Updated only by IGpuResource under mMutex. */
 		u32 mBountCount = 0;
+
+		/** Number of pins, see NotifyPinned(). Updated only by IGpuResource under mMutex. */
+		u32 mPinCount = 0;
 
 		/** Per-queue in-flight read counts. Guarded by mMutex. */
 		u8 mReadUses[kMaximumGpuQueueCount] = {};

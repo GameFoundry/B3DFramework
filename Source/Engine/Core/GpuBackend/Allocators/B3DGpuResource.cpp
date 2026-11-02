@@ -76,7 +76,7 @@ namespace b3d
 
 			OnNotifyDone(queueId, useFlags);
 
-			destroyImmediately = mBountCount == 0 && mDestroyRequested;
+			destroyImmediately = mBountCount == 0 && mPinCount == 0 && mDestroyRequested;
 		}
 
 		// Safe to check outside of mutex — once queued for destruction, mDestroyRequested cannot be cleared.
@@ -110,7 +110,30 @@ namespace b3d
 
 			mBountCount--;
 
-			destroyImmediately = mBountCount == 0 && mDestroyRequested;
+			destroyImmediately = mBountCount == 0 && mPinCount == 0 && mDestroyRequested;
+		}
+
+		if(destroyImmediately)
+			DestroyImmediately();
+	}
+
+	void IGpuResource::NotifyPinned()
+	{
+		Lock lock(mMutex);
+		B3D_ASSERT(!mDestroyRequested);
+		mPinCount++;
+	}
+
+	void IGpuResource::NotifyUnpinned()
+	{
+		bool destroyImmediately;
+		{
+			Lock lock(mMutex);
+			B3D_ASSERT(mPinCount > 0);
+
+			mPinCount--;
+
+			destroyImmediately = mBountCount == 0 && mPinCount == 0 && mDestroyRequested;
 		}
 
 		if(destroyImmediately)
@@ -127,7 +150,7 @@ namespace b3d
 			B3D_ASSERT(!mDestroyRequested && "IGpuResource::Destroy() called more than once.");
 
 			mDestroyRequested = true;
-			destroy = mBountCount == 0;
+			destroy = mBountCount == 0 && mPinCount == 0;
 		}
 
 		if(destroy)

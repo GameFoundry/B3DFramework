@@ -241,16 +241,16 @@ void GpuBindlessTestSuite::TestHeapAllocation()
 	// A pin keeps the resource bound until the frame of its release completes
 	PinnedTestBuffer pinnedResource;
 	heaps.PinResource(pinnedResource);
-	B3D_TEST_ASSERT(pinnedResource.GetBoundCount() == 1)
+	B3D_TEST_ASSERT(pinnedResource.GetPinCount() == 1)
 
 	completionTracker.CurrentMarker = 6;
 	heaps.UnpinResource(pinnedResource);
 	heaps.ProcessReleases();
-	B3D_TEST_ASSERT(pinnedResource.GetBoundCount() == 1)
+	B3D_TEST_ASSERT(pinnedResource.GetPinCount() == 1)
 
 	completionTracker.CompletedMarker = 6;
 	heaps.ProcessReleases();
-	B3D_TEST_ASSERT(pinnedResource.GetBoundCount() == 0)
+	B3D_TEST_ASSERT(pinnedResource.GetPinCount() == 0)
 
 	// The sampler heap has its own index space
 	const TShared<SamplerState> sampler = device->FindOrCreateSamplerState(SamplerStateCreateInformation());
@@ -335,8 +335,8 @@ void GpuBindlessTestSuite::TestHeapChanges()
 
 	completionTracker.CompletedMarker = 2;
 	heaps.ProcessReleases();
-	B3D_TEST_ASSERT(replacedTarget.GetBoundCount() == 0)
-	B3D_TEST_ASSERT(previousTarget.GetBoundCount() == 1)
+	B3D_TEST_ASSERT(replacedTarget.GetPinCount() == 0)
+	B3D_TEST_ASSERT(previousTarget.GetPinCount() == 1)
 
 	completionTracker.CurrentMarker = 3;
 	heaps.ApplyPendingChanges();
@@ -347,11 +347,11 @@ void GpuBindlessTestSuite::TestHeapChanges()
 	B3D_TEST_ASSERT(heaps.UpdatedSlots.Size() == 1)
 
 	heaps.ProcessReleases();
-	B3D_TEST_ASSERT(previousTarget.GetBoundCount() == 1)
+	B3D_TEST_ASSERT(previousTarget.GetPinCount() == 1)
 
 	completionTracker.CompletedMarker = 3;
 	heaps.ProcessReleases();
-	B3D_TEST_ASSERT(previousTarget.GetBoundCount() == 0)
+	B3D_TEST_ASSERT(previousTarget.GetPinCount() == 0)
 
 	for(u32 slotIndex = 0; slotIndex < 15; slotIndex++)
 	{

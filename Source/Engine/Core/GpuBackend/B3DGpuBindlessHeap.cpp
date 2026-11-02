@@ -338,7 +338,7 @@ void GpuBindlessHeaps::ReleaseSlot(GpuBindlessHeapType heapType, u32 slotIndex, 
 
 void GpuBindlessHeaps::PinResource(IGpuResource& resource)
 {
-	resource.NotifyBound();
+	resource.NotifyPinned();
 }
 
 void GpuBindlessHeaps::UnpinResource(IGpuResource& resource)
@@ -399,7 +399,7 @@ void GpuBindlessHeaps::ProcessReleases(IsCompleteFunction fnIsComplete)
 
 	// Unpinning may destroy the resource, so it runs without the lock held
 	for(IGpuResource* resource : unpinnedResources)
-		resource->NotifyUnbound();
+		resource->NotifyUnpinned();
 }
 
 void GpuBindlessHeaps::ProcessReleases()

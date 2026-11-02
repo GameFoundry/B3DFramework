@@ -48,21 +48,13 @@ namespace
 			!information.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess) && !isStaging && buffer->GetGpuResource() != nullptr;
 	}
 
-	/**
-	 * Returns true if a command buffer that was not submitted yet references the native resource of the texture or buffer that owns
-	 * an allocation. Bindless registration pins the native resource, which counts as one more binding.
-	 */
-	bool IsReferencedByUnsubmittedWork(GpuAllocationOwner owner)
+	/** Returns the native resource of the texture or buffer that owns an allocation. */
+	IGpuResource* GetGpuResource(GpuAllocationOwner owner)
 	{
 		if(const render::Texture* texture = owner.GetTexture())
-		{
-			const u32 pinCount = texture->GetProperties().Usage.IsSet(TextureUsageFlag::Bindless) ? 1 : 0;
-			return texture->GetGpuResource()->GetBoundCount() > pinCount;
-		}
+			return texture->GetGpuResource();
 
-		const render::GpuBuffer* buffer = owner.GetBuffer();
-		const u32 pinCount = buffer->GetInformation().Flags.IsSet(GpuBufferFlag::Bindless) ? 1 : 0;
-		return buffer->GetGpuResource()->GetBoundCount() > pinCount;
+		return owner.GetBuffer()->GetGpuResource();
 	}
 
 	/** Move of a texture or a buffer into the memory of a target created there. */
@@ -134,7 +126,7 @@ void GpuMemoryDefragmenter::Run(GpuWorkContext& gpuContext)
 		Relocation relocation;
 		relocation.Size = move.Source.Size;
 
-		if(!IsReferencedByUnsubmittedWork(move.Owner))
+		if(!GetGpuResource(move.Owner)->IsBound())
 		{
 			if(render::Texture* texture = move.Owner.GetTexture())
 			{
