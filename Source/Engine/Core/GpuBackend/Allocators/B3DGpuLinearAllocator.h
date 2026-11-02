@@ -240,10 +240,9 @@ namespace b3d
 		/**
 		 * Bumps the active page by @p size bytes (with @p alignment) and writes the resulting slot
 		 * to @p out. Rotates pages on overflow and creates a dedicated one-shot heap for oversize
-		 * requests. @p kind must be GpuResourceKind::Linear and @p owner must be null — linear
-		 * allocations don't participate in defragmentation.
+		 * requests. @p kind must be GpuResourceKind::Linear.
 		 */
-		bool TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuAllocation& out);
+		bool TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, GpuAllocation& out);
 
 		/**
 		 * No-op apart from the base-driven GpuAllocation::Reset. Linear allocations don't track
@@ -374,14 +373,12 @@ namespace b3d
 	}
 
 	template <typename HeapBackend>
-	bool TGpuLinearAllocator<HeapBackend>::TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuAllocation& out)
+	bool TGpuLinearAllocator<HeapBackend>::TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, GpuAllocation& out)
 	{
 		B3D_ASSERT(out.Allocator == nullptr);
 		B3D_ASSERT(alignment > 0);
 		B3D_ASSERT(kind == GpuResourceKind::Linear); // Linear pages are buffer-only by convention.
-		B3D_ASSERT(owner == nullptr); // Linear allocations don't participate in defrag.
 		(void)kind;
-		(void)owner;
 
 		// Oversize: dedicated one-shot heap, retired immediately. Active page is left untouched so the
 		// next regular request keeps bumping from where it was.

@@ -167,7 +167,7 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const TShared<Vul
 		mSurfaces[imageIndex].PresentBridgeSemaphore = owner->Create<VulkanSemaphore>("PresentReady");
 
 		// Purposefully not setting parent so these images don't participate in defragmentation
-		mSurfaces[imageIndex].Image = owner->Create<VulkanImage>(colorImageCreateInformation, images[imageIndex], VulkanAllocationResult{}, nullptr);
+		mSurfaces[imageIndex].Image = owner->Create<VulkanImage>(colorImageCreateInformation, images[imageIndex], VulkanAllocationResult{});
 
 		if(mSurfaces[imageIndex].Image != nullptr)
 		{

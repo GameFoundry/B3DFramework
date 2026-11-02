@@ -26,15 +26,13 @@ namespace b3d
 	}
 
 	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
-	bool TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuAllocation& out)
+	bool TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, GpuAllocation& out)
 	{
 		B3D_ASSERT(out.Allocator == nullptr);
 
 		InternalAllocation allocation;
 		if (!mInternal.TryAllocate(size, alignment, allocation, ToTlsfKind(kind)))
 			return false;
-
-		mInternal.SetAllocationOwner(allocation, owner);
 
 		out.Heap = allocation.Heap;
 		out.Offset = allocation.Offset;
@@ -71,7 +69,7 @@ namespace b3d
 	}
 
 	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
-	void TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::SetAllocationOwner(const GpuAllocation& allocation, IGpuResource* owner)
+	void TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::SetAllocationOwner(const GpuAllocation& allocation, GpuAllocationOwner owner)
 	{
 		typename Base::ScopedLock lock(this->GetMutex());
 		B3D_ASSERT(allocation.Allocator == this);
@@ -79,172 +77,109 @@ namespace b3d
 		InternalAllocation internalAllocation;
 		internalAllocation.HeapIndex = allocation.AllocatorData0;
 		internalAllocation.NodeIndex = allocation.AllocatorData1;
-		mInternal.SetAllocationOwner(internalAllocation, owner);
+		mInternal.SetAllocationOwner(internalAllocation, owner.ToOpaque());
 	}
 
 	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
-	bool TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::TryMoveAllocation(u32 sourceNodeIndex, u32 sourceHeapIndex, render::GpuCommandBuffer& commandBuffer, u32& outDestinationHeapIndex, u32& outDestinationNodeIndex)
-	{
-		Heap* sourceHeap = mInternal.GetHeapSlot(sourceHeapIndex);
-
-		// Snapshot source state before TryAllocateInHeapsAtMost — within-heap CarveAllocation may
-		// push_back onto the source heap's pool, which would invalidate any held Node& references.
-		const detail::tlsf::Node& sourceSnapshotRef = sourceHeap->GetNode(sourceNodeIndex);
-		const u64 sourceOffset = sourceSnapshotRef.Offset;
-		const u64 sourceSize = sourceSnapshotRef.Size;
-		IGpuResource* owner = static_cast<IGpuResource*>(sourceSnapshotRef.Owner);
-		const TlsfAllocationKind sourceKind = sourceSnapshotRef.Flags.IsSet(detail::tlsf::NodeFlag::NonLinear) ? TlsfAllocationKind::NonLinear : TlsfAllocationKind::Linear;
-
-		// 1. Reserve a destination slot in the same heap or any lower-index heap
-		InternalAllocation destination;
-		if (!mInternal.TryAllocateInHeapsAtMost(sourceSize, /*alignment=*/1u, sourceHeapIndex, destination, sourceKind))
-			return false;
-
-		// 2. Ensure destination is at a lower offset than the source
-		if (destination.HeapIndex == sourceHeapIndex && destination.Offset >= sourceOffset)
-		{
-			FreeAndReclaimImpl(destination.HeapIndex, destination.NodeIndex);
-			return false;
-		}
-
-		Heap* destHeap = mInternal.GetHeapSlot(destination.HeapIndex);
-
-		// 3. Build the destination GpuAllocation
-		GpuAllocation newAllocation;
-		newAllocation.Heap = destHeap->Handle();
-		newAllocation.Offset = destination.Offset;
-		newAllocation.Size = sourceSize;
-		newAllocation.Allocator = this;
-		newAllocation.AllocatorData0 = destination.HeapIndex;
-		newAllocation.AllocatorData1 = destination.NodeIndex;
-
-		// 4. Notify the owner: depending on DeferralMode it will either re-allocate a brand new IGpuResource
-		//    at the destination allocation (if resource tracking is used), or patch the existing
-		//    resource (if frame tracking is used).
-		IGpuResource* newOwner = owner->MoveAllocation(commandBuffer, newAllocation);
-
-		// 5. Mark the destination with the new owner
-		destHeap->SetNodeOwner(destination.NodeIndex, newOwner);
-
-		// 6. Dispose of the original memory. This depends on deferral mode:
-		//    - ResourceLifecycle - Consumer is tasked with disposing the memory. He should call
-		//      Free() when the old IGpuResource is done being used on the GPU.
-		//    - FrameTracker - The allocator is tasked with disposing the memory. The allocator
-		//      waits for kMaximumFramesInFlight and then releases the memory.
-		//
-		//    In both cases, clear the source node's Owner so any defrag pass issued before the
-		//    source is freed observes the slot as untracked rather than as a phantom candidate.
-		if (mDeferralMode == GpuAllocatorFreeDeferralMode::FrameTracker)
-		{
-			B3D_ASSERT(newOwner == owner &&
-				"FreeDeferralMode::FrameTracker requires MoveAllocation to return the same IGpuResource it was called on. "
-				"Wrapper-swap patterns require FreeDeferralMode::ResourceLifecycle.");
-
-			GpuAllocation sourceSnapshot;
-			sourceSnapshot.Allocator = this;
-			sourceSnapshot.AllocatorData0 = sourceHeapIndex;
-			sourceSnapshot.AllocatorData1 = sourceNodeIndex;
-
-			Base::RetireAllocation(sourceSnapshot);
-		}
-
-		sourceHeap->SetNodeOwner(sourceNodeIndex, nullptr);
-
-		outDestinationHeapIndex = destination.HeapIndex;
-		outDestinationNodeIndex = destination.NodeIndex;
-		return true;
-	}
-
-	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
-	typename TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::DefragmentationStats
-	TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::Defrag(render::GpuCommandBuffer& commandBuffer, const DefragmentationInfo& info)
+	void TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::PlanDefragmentation(const GpuDefragmentationBudget& budget, const Function<bool(GpuAllocationOwner)>& fnIsMovable,
+		TArray<GpuAllocationMove>& outMoves)
 	{
 		typename Base::ScopedLock lock(this->GetMutex());
-		DefragmentationStats stats{};
 
-		// Tracks destination (heap, node) pairs stamped with NodeFlag::DefragDestination so we can
-		// clear the flag at end of pass. Bounded by stats.MovesCompleted ≤ info.MaxAllocationsPerCall.
+		u64 byteCount = 0;
+		u32 moveCount = 0;
+		bool isBudgetExhausted = false;
+
+		// Destinations are flagged for the pass so later iterations neither move them nor count them as candidates
 		Vector<DefragDestinationKey> destinationNodes;
-		if (info.MaxAllocationsPerCall != 0)
-			destinationNodes.reserve(info.MaxAllocationsPerCall);
 
-		// Walk heaps high-index → low-index — newer (typically sparser) heaps drain first.
-		// Destinations land in the same heap (within-heap compaction) or any lower-index heap
-		// (multi-heap drain); both placements rely on NodeFlag::DefragDestination to keep the
-		// destination invisible to subsequent iteration in the same pass.
-		for (i32 outerIndex = (i32)mInternal.GetHeapSlotCount() - 1; outerIndex >= 0; outerIndex--)
+		// Newer heaps (higher index, typically sparser) drain first, into the same heap or any lower-index one. Within a heap,
+		// allocations at high offsets move first into low offsets vacated earlier.
+		for (i32 heapIndexSigned = (i32)mInternal.GetHeapSlotCount() - 1; heapIndexSigned >= 0 && !isBudgetExhausted; heapIndexSigned--)
 		{
-			const u32 heapIndex = (u32)outerIndex;
+			const u32 heapIndex = (u32)heapIndexSigned;
 			if (mInternal.GetHeapSlot(heapIndex) == nullptr)
 				continue;
 
-			Heap& heap = *mInternal.GetHeapSlot(heapIndex);
-			if (heap.NullNodeIndex() == detail::tlsf::Utility::kInvalidIndex)
+			if (mInternal.GetHeapSlot(heapIndex)->NullNodeIndex() == detail::tlsf::Utility::kInvalidIndex)
 				continue;
 
-			// Walk the physical chain backwards (highest offset → lowest) starting just before
-			// the trailing null block. Compaction is more productive draining high-offset
-			// allocations into freshly-vacated low-offset slots.
-			u32 nodeIndex = heap.GetNode(heap.NullNodeIndex()).PrevPhysical;
+			u32 nodeIndex = mInternal.GetHeapSlot(heapIndex)->GetNode(mInternal.GetHeapSlot(heapIndex)->NullNodeIndex()).PrevPhysical;
 			while (nodeIndex != detail::tlsf::Utility::kInvalidIndex)
 			{
-				// Capture the chain link before any state change — TryMoveAllocation may modify
-				// the source node's NextPhysical/PrevPhysical pointers via CarveAllocation when
-				// the destination lands in the same heap.
-				const u32 prevIndex = heap.GetNode(nodeIndex).PrevPhysical;
+				// Reserving a destination in the same heap may grow its node pool, so nodes are copied rather than referenced
+				const detail::tlsf::Node node = mInternal.GetHeapSlot(heapIndex)->GetNode(nodeIndex);
+				const u32 previousNodeIndex = node.PrevPhysical;
 
-				const detail::tlsf::Node& node = heap.GetNode(nodeIndex);
-				if (node.IsFree() || node.IsNullNode() || node.IsDefragDestination())
+				const GpuAllocationOwner owner = GpuAllocationOwner::FromOpaque(node.Owner);
+				if (node.IsFree() || node.IsNullNode() || node.IsDefragDestination() || owner.IsEmpty() || !fnIsMovable(owner))
 				{
-					nodeIndex = prevIndex;
+					nodeIndex = previousNodeIndex;
 					continue;
 				}
 
-				// Untracked slots (owner is null) cannot be relocated - there is no consumer to invoke MoveAllocation on.
-				IGpuResource* owner = static_cast<IGpuResource*>(node.Owner);
-				if (owner == nullptr)
+				if (budget.MaximumMoveCount != 0 && moveCount >= budget.MaximumMoveCount)
 				{
-					nodeIndex = prevIndex;
+					isBudgetExhausted = true;
+					break;
+				}
+
+				// Allocations larger than what is left of the byte budget are skipped, so they don't block smaller ones
+				if (budget.MaximumByteCount != 0 && byteCount + node.Size > budget.MaximumByteCount)
+				{
+					nodeIndex = previousNodeIndex;
 					continue;
 				}
 
-				const u64 sourceSize = node.Size;
+				const TlsfAllocationKind kind = node.Flags.IsSet(detail::tlsf::NodeFlag::NonLinear) ? TlsfAllocationKind::NonLinear : TlsfAllocationKind::Linear;
 
-				if (info.MaxBytesPerCall != 0 && stats.BytesMoved + sourceSize > info.MaxBytesPerCall)
+				InternalAllocation destination;
+				if (!mInternal.TryAllocateInHeapsAtMost(node.Size, node.Alignment, heapIndex, destination, kind))
 				{
-					stats.BudgetExhausted = true;
-					break;
-				}
-				if (info.MaxAllocationsPerCall != 0 && stats.MovesAttempted >= info.MaxAllocationsPerCall)
-				{
-					stats.BudgetExhausted = true;
-					break;
+					nodeIndex = previousNodeIndex;
+					continue;
 				}
 
-				stats.MovesAttempted++;
-				u32 destinationHeapIndex = detail::tlsf::Utility::kInvalidIndex;
-				u32 destinationNodeIndex = detail::tlsf::Utility::kInvalidIndex;
-				if (TryMoveAllocation(nodeIndex, heapIndex, commandBuffer, destinationHeapIndex, destinationNodeIndex))
+				// A move within the heap only helps if it lowers the offset
+				if (destination.HeapIndex == heapIndex && destination.Offset >= node.Offset)
 				{
-					stats.MovesCompleted++;
-					stats.BytesMoved += sourceSize;
-					mInternal.GetHeapSlot(destinationHeapIndex)->SetDefragDestinationFlag(destinationNodeIndex);
-					destinationNodes.push_back({ destinationHeapIndex, destinationNodeIndex });
+					FreeAndReclaimImpl(destination.HeapIndex, destination.NodeIndex);
+					nodeIndex = previousNodeIndex;
+					continue;
 				}
 
-				nodeIndex = prevIndex;
+				mInternal.GetHeapSlot(destination.HeapIndex)->SetDefragDestinationFlag(destination.NodeIndex);
+				destinationNodes.push_back({ destination.HeapIndex, destination.NodeIndex });
+
+				GpuAllocationMove move;
+				move.Owner = owner;
+
+				move.Source.Heap = mInternal.GetHeapSlot(heapIndex)->Handle();
+				move.Source.Offset = node.Offset;
+				move.Source.Size = node.Size;
+				move.Source.Allocator = this;
+				move.Source.AllocatorData0 = heapIndex;
+				move.Source.AllocatorData1 = nodeIndex;
+
+				move.Destination.Heap = mInternal.GetHeapSlot(destination.HeapIndex)->Handle();
+				move.Destination.Offset = destination.Offset;
+				move.Destination.Size = node.Size;
+				move.Destination.Allocator = this;
+				move.Destination.AllocatorData0 = destination.HeapIndex;
+				move.Destination.AllocatorData1 = destination.NodeIndex;
+				outMoves.Add(move);
+
+#if B3D_DEBUG
+				this->mDebugOutstandingAllocations++;
+#endif
+
+				byteCount += node.Size;
+				moveCount++;
+				nodeIndex = previousNodeIndex;
 			}
-
-			if (stats.BudgetExhausted)
-				break;
 		}
 
-		// Clear destination markers — destinations are now ordinary live allocations and become
-		// valid candidates for future Defrag() calls. The marker is in effect only inside this
-		// single Defrag() invocation.
 		for (const DefragDestinationKey& key : destinationNodes)
 			mInternal.GetHeapSlot(key.HeapIndex)->ClearDefragDestinationFlag(key.NodeIndex);
-
-		return stats;
 	}
 } // namespace b3d

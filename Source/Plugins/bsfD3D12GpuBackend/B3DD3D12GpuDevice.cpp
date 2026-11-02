@@ -415,6 +415,20 @@ IGpuAllocator& D3D12GpuDevice::GetPersistentAllocator(u32 memoryType)
 	}
 }
 
+void D3D12GpuDevice::GetPersistentAllocators(TArray<IGpuAllocator*>& outAllocators)
+{
+	{
+		Lock lock(mGpuMemoryAllocatorMutex);
+		for(const TUnique<GpuMemoryAllocator>& allocator : mGpuMemoryAllocators)
+		{
+			if(allocator != nullptr)
+				outAllocators.Add(allocator.get());
+		}
+	}
+
+	mBufferPool->GetPersistentAllocators(outAllocators);
+}
+
 TUnique<IGpuAllocator> D3D12GpuDevice::CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker)
 {
 	// Scratch allocations are only supported for buffers
@@ -715,7 +729,7 @@ HRESULT D3D12GpuDevice::CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, 
 			return E_INVALIDARG;
 
 		const GpuResourceKind resourceKind = resourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER || resourceDesc.Layout == D3D12_TEXTURE_LAYOUT_ROW_MAJOR ? GpuResourceKind::Linear : GpuResourceKind::NonLinear;
-		if(!requestedAllocation.Allocator->TryAllocate(allocationInfo.SizeInBytes, (u32)allocationInfo.Alignment, resourceKind, nullptr, outAllocation))
+		if(!requestedAllocation.Allocator->TryAllocate(allocationInfo.SizeInBytes, (u32)allocationInfo.Alignment, resourceKind, outAllocation))
 			return E_OUTOFMEMORY;
 	}
 	else

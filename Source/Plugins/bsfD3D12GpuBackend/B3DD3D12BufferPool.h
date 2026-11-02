@@ -95,6 +95,9 @@ namespace b3d::render
 		/** Lazily creates and returns the persistent TLSF allocator for @p memoryType. */
 		IGpuAllocator& GetOrCreatePersistentAllocator(MemoryType memoryType);
 
+		/** Appends the persistent allocators created so far to @p outAllocators. */
+		void GetPersistentAllocators(TArray<IGpuAllocator*>& outAllocators);
+
 		/** Creates a context-owned linear allocator for @p memoryType, backed by the shared page pool for that type. */
 		TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker);
 

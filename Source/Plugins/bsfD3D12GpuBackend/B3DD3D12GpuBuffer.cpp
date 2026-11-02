@@ -222,8 +222,25 @@ void D3D12GpuBuffer::ReleaseBuffer()
 
 	mMappedMemory = nullptr;
 
+	SetCurrentAllocation(GpuAllocation());
 	mBuffer->Destroy();
 	mBuffer = nullptr;
+}
+
+void D3D12GpuBuffer::SwapInternalBuffer(GpuBuffer& other)
+{
+	D3D12GpuBuffer& d3d12Other = static_cast<D3D12GpuBuffer&>(other);
+
+	Lock lock(mViewMutex);
+	Lock otherLock(d3d12Other.mViewMutex);
+	std::swap(mBuffer, d3d12Other.mBuffer);
+	std::swap(mMappedMemory, d3d12Other.mMappedMemory);
+	std::swap(mVertexBufferView, d3d12Other.mVertexBufferView);
+	std::swap(mIndexBufferView, d3d12Other.mIndexBufferView);
+	std::swap(mViews, d3d12Other.mViews);
+
+	mResourceGeneration++;
+	d3d12Other.mResourceGeneration++;
 }
 
 void D3D12GpuBuffer::Initialize()
@@ -261,7 +278,7 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 		else
 		{
 			const GpuMemoryRequirements memoryRequirements = device.GetMemoryRequirements(information);
-			if(!mRequestedAllocation.Allocator->TryAllocate(memoryRequirements.Size, (u32)memoryRequirements.Alignment, GpuResourceKind::Linear, nullptr, allocation))
+			if(!mRequestedAllocation.Allocator->TryAllocate(memoryRequirements.Size, (u32)memoryRequirements.Alignment, GpuResourceKind::Linear, allocation))
 			{
 				B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to allocate a placed buffer (size={0}, alignment={1}, type={2}, heapType={3}, resourceFlags={4}).",
 					memoryRequirements.Size, memoryRequirements.Alignment, (u32)information.Type, (u32)heapType, (u32)resourceFlags);
@@ -295,6 +312,7 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 		}
 
 		mBuffer = device.GetResourceManager().Create<D3D12Buffer>(allocation, std::move(resource), heapType, mappedData, mName);
+		SetCurrentAllocation(allocation);
 	}
 	else
 	{
@@ -303,7 +321,7 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 		GpuAllocation allocation;
 		if(!mRequestedAllocation.IsPending())
 			allocation = mRequestedAllocation;
-		else if(!mRequestedAllocation.Allocator->TryAllocate(bufferSize, alignment, GpuResourceKind::Linear, nullptr, allocation))
+		else if(!mRequestedAllocation.Allocator->TryAllocate(bufferSize, alignment, GpuResourceKind::Linear, allocation))
 		{
 			B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to allocate a pooled buffer slice (size={0}, alignment={1}, type={2}, heapType={3}, resourceFlags={4}).",
 				bufferSize, alignment, (u32)information.Type, (u32)heapType, (u32)resourceFlags);
@@ -313,6 +331,7 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 		B3D_ASSERT(D3D12BufferPool::GetMemoryType(static_cast<D3D12BufferPage*>(allocation.Heap)->GetHeapType(), static_cast<D3D12BufferPage*>(allocation.Heap)->GetFlags()) == D3D12BufferPool::GetMemoryType(heapType, resourceFlags) && "Allocation's memory type cannot back the buffer.");
 
 		mBuffer = device.GetResourceManager().Create<D3D12Buffer>(allocation, mName);
+		SetCurrentAllocation(allocation);
 	}
 
 	mMappedMemory = (u8*)mBuffer->GetMappedData();

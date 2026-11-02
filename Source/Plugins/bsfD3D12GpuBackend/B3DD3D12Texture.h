@@ -169,6 +169,8 @@ namespace b3d
 			/** Creates an uncached descriptor of the requested type/surface. */
 			D3D12_CPU_DESCRIPTOR_HANDLE CreateView(const TextureSurface& surface, ViewType type);
 
+			void SwapInternalTexture(Texture& other) override;
+
 			/** Returns whether this texture uses an eagerly created complete-surface SRV. */
 			bool UsesDefaultSRV() const;
 

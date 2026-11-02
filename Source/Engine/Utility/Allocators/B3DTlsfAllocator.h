@@ -186,7 +186,7 @@ namespace b3d
 			Free				= 1u << 0, /**< Set when the node is on a free list (or is the trailing null node). */
 			NullNode			= 1u << 1, /**< Set when the node is the trailing null node of its heap. */
 			NonLinear			= 1u << 2, /**< Set when a live allocation is non-linear (optimally-tiled image). */
-			DefragDestination	= 1u << 3, /**< Set on slots reserved as defrag destinations within the current Defrag() pass; cleared at end of Defrag(). */
+			DefragDestination	= 1u << 3, /**< Set on slots reserved as defrag destinations within the current defragmentation planning pass; cleared at its end. */
 		};
 
 		using NodeFlags = Flags<NodeFlag, u32>;
@@ -209,6 +209,9 @@ namespace b3d
 			u32 NextFree;
 
 			NodeFlags Flags;
+
+			/** Alignment the allocation was requested with, so the allocation can move to memory of the same alignment. */
+			u32 Alignment;
 
 			/**
 			 * Opaque owner tag stamped by the orchestrator (e.g. the owning resource for GPU defragmentation).
@@ -311,8 +314,8 @@ namespace b3d
 
 			/**
 			 * Defrag-destination flag — stamped by the orchestrator on a destination slot reserved
-			 * inside the current Defrag() pass; cleared at end of pass. The flag keeps the destination
-			 * invisible to subsequent iteration in the same Defrag() invocation.
+			 * inside the current defragmentation planning pass; cleared at end of pass. The flag keeps the destination
+			 * invisible to subsequent iteration in the same pass.
 			 */
 			void SetDefragDestinationFlag(u32 nodeIndex) { mPool[nodeIndex].Flags |= NodeFlag::DefragDestination; }
 			void ClearDefragDestinationFlag(u32 nodeIndex) { mPool[nodeIndex].Flags.Unset(NodeFlag::DefragDestination); }

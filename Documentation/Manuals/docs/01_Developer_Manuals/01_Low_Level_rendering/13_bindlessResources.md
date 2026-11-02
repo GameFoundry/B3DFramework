@@ -93,7 +93,7 @@ A bindless resource must:
  - not be aliased or transient, so it can't come from the transient resource allocator or a frame graph,
  - stay at rest. Programs read it through the heap without barriers, so any pass that writes it must return it to its resting state, as frame graph passes do for imported resources.
 
-Bindless resources are never moved by defragmentation, and writes to them never discard their memory, so their indices stay valid.
+Writes to bindless resources never discard their memory. Defragmentation may move them (see @b3d::GpuMemoryDefragmenter), and updates their slots to the moved memory at the end of the frame, so their indices stay valid.
 
 # Samplers
 

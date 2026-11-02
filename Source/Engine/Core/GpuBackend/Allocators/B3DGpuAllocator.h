@@ -62,10 +62,7 @@ namespace b3d
 
 		/**
 		 * Internal mutex holder for GPU allocators. The thread-safe specialization wraps a
-		 * RecursiveMutex; the thread-unsafe specialization is empty. RecursiveMutex is required
-		 * because some derived strategies (e.g. defragmentation) re-enter the allocator through
-		 * the IGpuResource::MoveAllocation callback, which calls SetAllocationOwner under the
-		 * same lock.
+		 * RecursiveMutex; the thread-unsafe specialization is empty.
 		 */
 		template <bool ThreadSafe>
 		struct GpuAllocatorMutex { };
@@ -100,29 +97,27 @@ namespace b3d
 	/** Compile-time assertion that @p T satisfies the GpuHeapBackend trait. */
 	#define B3D_STATIC_ASSERT_HEAP_BACKEND_IS_VALID(T) static_assert(::b3d::detail::CheckHeapBackend<T>::kValid, "Heap backend does not satisfy the GpuHeapBackend trait.")
 
-	/** Controls how a GPU allocator handles allocation release on Free and on defragmentation moves. */
+	/** Controls how a GPU allocator handles allocation release on Free. */
 	enum class GpuAllocatorFreeDeferralMode : u8
 	{
 		/**
 		 * Default for backends without proper IGpuResource lifecycle wiring, and for the 
 		 * linear / scratch allocators. Free queues the allocation against the current frame index; 
-		 * the queue drains when IGpuCompletionTracker::IsMarkerComplete(marker) is true. Defrag
-		 * retires the source slot the same way. Requires a non-null IGpuCompletionTracker.
+		 * the queue drains when IGpuCompletionTracker::IsMarkerComplete(marker) is true. Requires a
+		 * non-null IGpuCompletionTracker.
 		 */
 		FrameTracker,
 
 		/**
 		 * Used by backends that fully implement IGpuResource::Notify* events. Free routes straight to 
 		 * FreeAndReclaimImpl - as its assumed the caller will free memory only after the lifecycle
-		 * reports the resource is no longer being used on the GPU. Similarly, defragment operation
-		 * will not free memory internally, it relies on the tracking to release the resource from
-		 * the old allocation.
+		 * reports the resource is no longer being used on the GPU.
 		 */
 		ResourceLifecycle
 	};
 
 	/**
-	 * CRTP base for GPU allocation strategies. Provides deferred-free and owner-relocation logic.
+	 * CRTP base for GPU allocation strategies. Provides deferred-free logic.
 	 *
 	 * **Threading.** Public entry points (TryAllocate, Free, FreeAndReclaim, ReclaimUnused) acquire an
 	 * allocator-wide RecursiveMutex when @p ThreadPolicy is ThreadSafe (the default).
@@ -140,32 +135,19 @@ namespace b3d
 	public:
 		B3D_STATIC_ASSERT_HEAP_BACKEND_IS_VALID(HeapBackend);
 
-		/** Attempts to allocate @p size bytes with @p alignment. Resource kind defaults to Linear. The allocation is untracked (won't participate in defragmentation). */
+		/** Attempts to allocate @p size bytes with @p alignment. Resource kind defaults to Linear. */
 		bool TryAllocate(u64 size, u32 alignment, GpuAllocation& out)
 		{
-			return TryAllocate(size, alignment, GpuResourceKind::Linear, nullptr, out);
+			return TryAllocate(size, alignment, GpuResourceKind::Linear, out);
 		}
 
-		/**
-		 * Attempts to allocate @p size bytes with @p alignment, tagged with @p kind so the strategy
-		 * can honor buffer-image granularity (if needed by the backend). The allocation is untracked (won't participate in defragmentation).
-		 */
-		bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, GpuAllocation& out)
-		{
-			return TryAllocate(size, alignment, kind, nullptr, out);
-		}
-
-		/**
-		 * Attempts to allocate @p size bytes with @p alignment, tagged with @p kind, and registers
-		 * @p owner as the resource the allocator will call back during defragmentation. Pass
-		 * nullptr if the allocation is untracked (won't participate in defragmentation).
-		 */
-		bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuAllocation& out) override
+		/** @copydoc IGpuAllocator::TryAllocate */
+		bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, GpuAllocation& out) override
 		{
 			ScopedLock lock(mMutex);
 			DebugCheckThreadConfinement();
 
-			const bool success = static_cast<Derived*>(this)->TryAllocateImpl(size, alignment, kind, owner, out);
+			const bool success = static_cast<Derived*>(this)->TryAllocateImpl(size, alignment, kind, out);
 
 #if B3D_DEBUG
 			if (success)
@@ -267,7 +249,7 @@ namespace b3d
 
 		/**
 		 * Returns the allocator-wide mutex holder. Derived strategies acquire a ScopedLock on it
-		 * for paths the base doesn't already wrap (e.g. Defrag, SetAllocationOwner, stats).
+		 * for paths the base doesn't already wrap (e.g. PlanDefragmentation, SetAllocationOwner, stats).
 		 */
 		const MutexHolder& GetMutex() const { return mMutex; }
 

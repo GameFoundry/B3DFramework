@@ -79,12 +79,12 @@ namespace b3d
 			TShared<GpuQueue> GetQueue(GpuQueueType type, u32 index) const override;
 			void WaitUntilIdle() override;
 			void BeginFrame() override;
-			void RunDefragPass(GpuWorkContext& gpuContext) override;
 
 			TShared<GpuCommandBufferPool> CreateGpuCommandBufferPool(const GpuCommandBufferPoolCreateInformation& createInformation) override;
 			GpuMemoryRequirements GetMemoryRequirements(const TextureCreateInformation& createInformation) const override;
 			GpuMemoryRequirements GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const override;
 			IGpuAllocator& GetPersistentAllocator(u32 memoryType) override;
+			void GetPersistentAllocators(TArray<IGpuAllocator*>& outAllocators) override;
 			TShared<GpuQueryPool> CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation) override;
 			TShared<EventQuery> CreateEventQuery() override;
 			TShared<GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
@@ -158,15 +158,11 @@ namespace b3d
 			 * Creates a VkBuffer described by @p createInformation, binds it to memory at @p requestedAllocation and wraps the result in a
 			 * VulkanBuffer. A pending allocation suballocates the memory from its allocator, which must serve the
 			 * buffer's memory type (see GetMemoryRequirements()). An allocation with memory binds the buffer to it; the
-			 * buffer frees it on destruction only if the allocation is owned.
-			 *
-			 * Provide @p parent so the buffer can participate in defragmentation - the parent will be notified
-			 * when it needs to re-allocate the buffer in the new destination. Only valid for allocators that
-			 * support defragmentation.
+			 * buffer frees it on destruction only if the allocation is owned. Outputs the memory the buffer is in to @p outAllocation.
 			 *
 			 * Thread safe if the allocation's allocator is.
 			 */
-			VulkanBuffer* CreateBuffer(const VulkanBufferCreateInformation& createInformation, const GpuAllocation& requestedAllocation, VulkanGpuBuffer* parent);
+			VulkanBuffer* CreateBuffer(const VulkanBufferCreateInformation& createInformation, const GpuAllocation& requestedAllocation, GpuAllocation& outAllocation);
 
 			/**
 			 * Creates a VkImage described by @p createInformation, suballocates compatible memory from the persistent allocators and
@@ -179,15 +175,12 @@ namespace b3d
 
 			/**
 			 * Creates a VkImage described by @p createInformation, binds it to memory at @p requestedAllocation and wraps the result in a
-			 * VulkanImage. Allocation rules match CreateBuffer(const VulkanBufferCreateInformation&, const GpuAllocation&, VulkanGpuBuffer*).
-			 *
-			 * Provide @p parent so the image can participate in defragmentation - the parent will be notified
-			 * when it needs to re-allocate the image in the new destination. Only valid for allocators that
-			 * support defragmentation.
+			 * VulkanImage. Allocation rules match CreateBuffer(const VulkanBufferCreateInformation&, const GpuAllocation&, GpuAllocation&).
+			 * Outputs the memory the image is in to @p outAllocation.
 			 *
 			 * Thread safe if the allocation's allocator is.
 			 */
-			VulkanImage* CreateImage(const VulkanImageCreateInformation& createInformation, const GpuAllocation& requestedAllocation, GpuResourceKind kind, VulkanTexture* parent);
+			VulkanImage* CreateImage(const VulkanImageCreateInformation& createInformation, const GpuAllocation& requestedAllocation, GpuResourceKind kind, GpuAllocation& outAllocation);
 
 			/**
 			 * Returns @p allocation to its allocator's free pool synchronously. The slot becomes
@@ -267,23 +260,11 @@ namespace b3d
 			 */
 			VulkanAllocationResult ResolveAllocation(const GpuAllocation& requestedAllocation, const VkMemoryRequirements& requirements, GpuResourceKind kind) const;
 
-			/**
-			 * Common bind-and-wrap helper for buffers. Binds @p buffer to @p allocation, constructs the
-			 * VulkanBuffer wrapper, and stamps the allocator owner when @p parent is non-null.
-			 */
-			VulkanBuffer* BindBufferToAllocation(const VulkanBufferCreateInformation& createInformation, VkBuffer buffer, const VulkanAllocationResult& allocation, VulkanGpuBuffer* parent);
+			/** Common bind-and-wrap helper for buffers. Binds @p buffer to @p allocation and constructs the VulkanBuffer wrapper. */
+			VulkanBuffer* BindBufferToAllocation(const VulkanBufferCreateInformation& createInformation, VkBuffer buffer, const VulkanAllocationResult& allocation);
 
-			/**
-			 * Common bind-and-wrap helper for images. Binds @p image to @p allocation, constructs the
-			 * VulkanImage wrapper, and stamps the allocator owner when @p parent is non-null.
-			 */
-			VulkanImage* BindBufferToAllocation(const VulkanImageCreateInformation& info, VkImage image, const VulkanAllocationResult& allocation, VulkanTexture* parent);
-
-			/**
-			 * Associates a IGpuResource owner onto an existing allocation, so the allocation participates
-			 * in defragmentation. Untracked wrappers (parent == nullptr) skip this call and stay ineligible.
-			 */
-			void SetAllocationOwner(const VulkanAllocationResult& allocation, IGpuResource* owner);
+			/** Common bind-and-wrap helper for images. Binds @p image to @p allocation and constructs the VulkanImage wrapper. */
+			VulkanImage* BindBufferToAllocation(const VulkanImageCreateInformation& info, VkImage image, const VulkanAllocationResult& allocation);
 
 			/**
 			 * Picks a memory-type index satisfying @p typeBits and the @p required flags, with a preference
@@ -353,10 +334,6 @@ namespace b3d
 
 			/** Transient heap pool of each memory type, owned by GpuDevice. Valid for indices below the memory type count. */
 			IGpuTransientHeapPool* mTransientHeapPools[VK_MAX_MEMORY_TYPES];
-
-			u64 mDefragBudgetBytes = 8ull * 1024 * 1024;
-			u32 mDefragBudgetAllocations = 8;
-			bool mDefragEnabled = false;
 		};
 
 		/** @} */

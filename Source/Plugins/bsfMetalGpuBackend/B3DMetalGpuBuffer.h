@@ -121,9 +121,13 @@ namespace b3d
 
 			void Initialize() override;
 			void RecreateInternalBuffer() override;
+			void SwapInternalBuffer(GpuBuffer& other) override;
 
 		private:
-			/** Creates a new low-level buffer wrapper matching the current buffer properties. Returns null on failure. */
+			/**
+			 * Creates a new low-level buffer wrapper matching the current buffer properties, and makes its memory the buffer's current
+			 * allocation. Returns null on failure.
+			 */
 			MetalBuffer* CreateBuffer();
 
 			MetalGpuDevice& mGpuDevice;

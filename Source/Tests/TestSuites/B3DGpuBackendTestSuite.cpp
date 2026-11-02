@@ -319,7 +319,7 @@ void GpuBackendTestSuite::TestResourceLocations()
 
 	// Owned allocation: the buffer adopts memory allocated by the caller
 	GpuAllocation ownedAllocation;
-	B3D_TEST_ASSERT(bufferAllocator.TryAllocate(bufferRequirements.Size, (u32)bufferRequirements.Alignment, bufferRequirements.Kind, nullptr, ownedAllocation))
+	B3D_TEST_ASSERT(bufferAllocator.TryAllocate(bufferRequirements.Size, (u32)bufferRequirements.Alignment, bufferRequirements.Kind, ownedAllocation))
 	B3D_TEST_ASSERT(ownedAllocation.IsOwned())
 	if(!ownedAllocation.IsOwned())
 		return;
@@ -329,7 +329,7 @@ void GpuBackendTestSuite::TestResourceLocations()
 
 	// Non-owning allocation: the buffer binds to memory that stays owned by the caller
 	GpuAllocation sharedAllocation;
-	B3D_TEST_ASSERT(bufferAllocator.TryAllocate(bufferRequirements.Size, (u32)bufferRequirements.Alignment, bufferRequirements.Kind, nullptr, sharedAllocation))
+	B3D_TEST_ASSERT(bufferAllocator.TryAllocate(bufferRequirements.Size, (u32)bufferRequirements.Alignment, bufferRequirements.Kind, sharedAllocation))
 
 	GpuAllocation nonOwningAllocation = sharedAllocation;
 	nonOwningAllocation.Allocator = nullptr;
@@ -407,7 +407,7 @@ void GpuBackendTestSuite::TestResourceLocations()
 	IGpuAllocator& textureAllocator = device->GetPersistentAllocator(textureRequirements.MemoryType);
 
 	GpuAllocation textureAllocation;
-	B3D_TEST_ASSERT(textureAllocator.TryAllocate(textureRequirements.Size, (u32)textureRequirements.Alignment, textureRequirements.Kind, nullptr, textureAllocation))
+	B3D_TEST_ASSERT(textureAllocator.TryAllocate(textureRequirements.Size, (u32)textureRequirements.Alignment, textureRequirements.Kind, textureAllocation))
 
 	TextureCreateInformation cpuTextureInformation = textureInformation;
 	cpuTextureInformation.Usage = TextureUsageFlag::StoreOnCPUWithGPUAccess;
@@ -416,7 +416,7 @@ void GpuBackendTestSuite::TestResourceLocations()
 	IGpuAllocator& cpuTextureAllocator = device->GetPersistentAllocator(cpuTextureRequirements.MemoryType);
 
 	GpuAllocation cpuTextureAllocation;
-	B3D_TEST_ASSERT(cpuTextureAllocator.TryAllocate(cpuTextureRequirements.Size, (u32)cpuTextureRequirements.Alignment, cpuTextureRequirements.Kind, nullptr, cpuTextureAllocation))
+	B3D_TEST_ASSERT(cpuTextureAllocator.TryAllocate(cpuTextureRequirements.Size, (u32)cpuTextureRequirements.Alignment, cpuTextureRequirements.Kind, cpuTextureAllocation))
 
 	bool pendingTextureCreated = false;
 	bool ownedTextureCreated = false;
@@ -458,7 +458,7 @@ void GpuBackendTestSuite::TestResourceLocations()
 		IGpuAllocator& uniformAllocator = device->GetPersistentAllocator(uniformRequirements.MemoryType);
 
 		GpuAllocation uniformAllocation;
-		B3D_TEST_ASSERT(uniformAllocator.TryAllocate(uniformRequirements.Size, (u32)uniformRequirements.Alignment, uniformRequirements.Kind, nullptr, uniformAllocation))
+		B3D_TEST_ASSERT(uniformAllocator.TryAllocate(uniformRequirements.Size, (u32)uniformRequirements.Alignment, uniformRequirements.Kind, uniformAllocation))
 
 		const TShared<render::GpuBuffer> uniformBuffer = device->CreateGpuBuffer(uniformInformation, uniformAllocation);
 		B3D_TEST_ASSERT(uniformBuffer != nullptr && uniformBuffer->HasFixedLocation())

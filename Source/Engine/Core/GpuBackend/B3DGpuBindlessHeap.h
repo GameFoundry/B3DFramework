@@ -406,7 +406,7 @@ namespace b3d
 
 	/**
 	 * Bindless slots of one texture or buffer: the slot of its default view, created on registration, and slots of other views,
-	 * created on demand. Pins the resource's native object while registered.
+	 * created on demand. Pins the resource's current native object while registered.
 	 *
 	 * @note	Render thread only.
 	 */
@@ -427,6 +427,13 @@ namespace b3d
 		 * call can still use the slots.
 		 */
 		void Unregister(IGpuResource& nativeResource);
+
+		/**
+		 * Points every slot at @p nativeResource, the native resource that replaced @p previousNativeResource when the texture or buffer moved
+		 * to other memory, and moves the pin to it. The slots keep their indices. Work that reads the slots before the update is applied
+		 * keeps reading @p previousNativeResource, which stays pinned until then. See GpuBindlessHeaps::UpdateResourceSlot().
+		 */
+		void Retarget(IGpuResource& previousNativeResource, IGpuResource& nativeResource);
 
 		/** Returns the index of the default view's slot, or kGpuBindlessInvalidIndex if not registered. */
 		u32 GetDefaultIndex() const { return mDefaultIndex; }

@@ -148,6 +148,16 @@ u64 D3D12BufferPool::GetScratchPageSize(MemoryType memoryType)
 	return memoryType == MemoryType::Default || memoryType == MemoryType::DefaultUnorderedAccess ? 8ull * 1024 * 1024 : 4ull * 1024 * 1024;
 }
 
+void D3D12BufferPool::GetPersistentAllocators(TArray<IGpuAllocator*>& outAllocators)
+{
+	Lock lock(mAllocatorMutex);
+	for(const TUnique<PersistentAllocator>& allocator : mPersistentAllocators)
+	{
+		if(allocator != nullptr)
+			outAllocators.Add(allocator.get());
+	}
+}
+
 IGpuAllocator& D3D12BufferPool::GetOrCreatePersistentAllocator(MemoryType memoryType)
 {
 	B3D_ASSERT(memoryType < MemoryType::Count);

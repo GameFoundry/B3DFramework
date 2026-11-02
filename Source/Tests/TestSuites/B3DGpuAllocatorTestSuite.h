@@ -110,17 +110,20 @@ namespace b3d
 		/** Single-heap configuration with a sawtooth pattern compacts allocations toward lower offsets within the same heap. */
 		void TestTlsf_Defrag_SingleHeapWithinHeapCompaction();
 
-		/** Per-call byte budget aborts the walk early and reports BudgetExhausted. */
+		/** The byte budget skips allocations larger than what remains of it without ending the pass, and the move budget limits the move count. */
 		void TestTlsf_Defrag_RespectsBudget();
 
-		/** Allocations whose Owner was left null at TryAllocate time are skipped; tracked allocations are not. */
-		void TestTlsf_Defrag_OnlySkipsUntrackedSlots();
+		/** Allocations without an owner, and owned allocations the movability predicate rejects, are never planned to move. */
+		void TestTlsf_Defrag_SkipsUnownedAndUnmovable();
 
-		/** A tracked allocation whose owner reports GetUseCount > 0 / GetBoundCount > 0 is still moved. */
-		void TestTlsf_Defrag_MovesInFlightResource();
+		/** Freeing the destinations of planned moves cancels them, leaving the owners' allocations in place. */
+		void TestTlsf_Defrag_CancelReleasesDestinations();
 
-		/** MoveAllocation is invoked with a populated new GpuAllocation identifying a live destination slot. */
-		void TestTlsf_Defrag_MoveAllocationReceivesContext();
+		/** Planned moves name the owner, its current allocation as the source, and a lower destination of the same size. */
+		void TestTlsf_Defrag_PlanDescribesMoves();
+
+		/** Destinations of planned moves have the alignment the moved allocations were made with. */
+		void TestTlsf_Defrag_KeepsAlignment();
 
 		/**
 		 * Under FreeDeferralMode::ResourceLifecycle, Free routes straight to FreeAndReclaim;
@@ -135,13 +138,8 @@ namespace b3d
 		 */
 		void TestTlsf_FrameTrackerPolicy_DefersAcrossFrames();
 
-		/**
-		 * Under FreeDeferralMode::ResourceLifecycle, MoveAllocation may return a different
-		 * IGpuResource than the one it was called on (wrapper-swap pattern). The destination slot
-		 * is owned by the returned pointer; the source slot is left for the consumer's destructor to
-		 * free via FreeAndReclaim.
-		 */
-		void TestTlsf_Defrag_LifecycleAllowsSwap();
+		/** Under FreeDeferralMode::ResourceLifecycle, committing moves releases the drained heap immediately. */
+		void TestTlsf_Defrag_ResourceLifecycleReleasesSources();
 
 		/**
 		 * Multiple threads driving concurrent TryAllocate / Free against a single allocator instance
@@ -151,10 +149,8 @@ namespace b3d
 		void TestTlsf_ConcurrentAllocateAndFree();
 
 		/**
-		 * Concurrent allocate/free workers running alongside a defragmentation thread. The defrag
-		 * thread invokes MoveAllocation under the recursive lock; the allocator must not deadlock,
-		 * lose track of slots, or corrupt the heap when a worker re-enters the lock through a freshly
-		 * allocated allocation. Final state is verified to be coherent after all threads join.
+		 * Concurrent allocate/free workers running alongside a thread that plans moves and commits or cancels them. The heaps
+		 * must stay consistent, so every byte is free once all threads are done.
 		 */
 		void TestTlsf_ConcurrentDefragWithAllocateAndFree();
 
@@ -219,9 +215,8 @@ namespace b3d
 		void TestAllocatorIdentity_FreeRoutesByCarriedAllocator();
 
 		/**
-		 * After defragmentation relocates an allocation, the replacement GpuAllocation the allocator hands to
-		 * MoveAllocation still carries the producing allocator, so the moved resource can be freed
-		 * through its (new) carried handle without orphaning the free path.
+		 * The destination of a planned move carries the producing allocator, so an allocation moved into it can be freed
+		 * through the carried handle.
 		 */
 		void TestAllocatorIdentity_DefraggedAllocationFreesThroughCarriedAllocator();
 

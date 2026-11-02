@@ -222,6 +222,11 @@ namespace b3d
 			mImage = newImage;
 		}
 
+		void MetalTexture::SwapInternalTexture(Texture& other)
+		{
+			std::swap(mImage, static_cast<MetalTexture&>(other).mImage);
+		}
+
 		MTLTextureDescriptor* MetalTexture::CreateDescriptor(id<MTLDevice> device, const TextureProperties& properties)
 		{
 			bool useSRGB = properties.UseHardwareSRGB;
@@ -348,6 +353,7 @@ namespace b3d
 
 			GpuAllocation allocation;
 			id<MTLTexture> handle = mGpuDevice.GetHeapAllocator().AllocateTexture(descriptor, mRequestedAllocation, allocation);
+			SetCurrentAllocation(allocation);
 
 			if (handle == nil)
 			{

@@ -38,6 +38,7 @@ namespace b3d
 
 			void Initialize() override {}
 			void RecreateInternalTexture() override {}
+			void SwapInternalTexture(Texture& other) override { std::swap(mAllocation, static_cast<NullTexture&>(other).mAllocation); }
 			GpuTextureMappedScope Map(u32 mipLevel, u32 arrayLayer, GpuMapOptions options) override;
 
 		private:

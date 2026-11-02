@@ -143,6 +143,7 @@ namespace b3d
 			GpuMemoryRequirements GetMemoryRequirements(const TextureCreateInformation& createInformation) const override;
 			GpuMemoryRequirements GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const override;
 			IGpuAllocator& GetPersistentAllocator(u32 memoryType) override;
+			void GetPersistentAllocators(TArray<IGpuAllocator*>& outAllocators) override;
 			TShared<GpuQueryPool> CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation) override;
 			TShared<EventQuery> CreateEventQuery() override;
 			TShared<GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;

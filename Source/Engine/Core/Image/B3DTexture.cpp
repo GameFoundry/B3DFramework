@@ -470,7 +470,7 @@ Texture::Texture(const TextureCreateInformation& createInformation, const GpuAll
 
 void Texture::SetAllocation(const GpuAllocation& allocation, GpuObjectCreateFlags flags)
 {
-	if(!B3D_ENSURE_LOG(!mProperties.Usage.IsSet(TextureUsageFlag::Bindless), "Cannot move bindless texture '{0}'. Bindless textures stay at a fixed location.", mName))
+	if(!B3D_ENSURE_LOG(!mProperties.Usage.IsSet(TextureUsageFlag::Bindless), "Cannot move bindless texture '{0}' to an allocation. Bindless textures keep their contents when they move.", mName))
 		return;
 
 	if(!B3D_ENSURE_LOG(allocation.HasMemory() || allocation.IsPending(), "Cannot move texture '{0}' to an empty allocation.", mName))
@@ -484,6 +484,36 @@ void Texture::SetAllocation(const GpuAllocation& allocation, GpuObjectCreateFlag
 
 	if(IsInitialized())
 		RecreateInternalTexture();
+}
+
+void Texture::Relocate(Texture& target)
+{
+	B3D_ASSERT(!HasFixedLocation() && target.HasFixedLocation());
+
+	IGpuResource* const previousNativeResource = GetGpuResource();
+	const GpuAllocation allocation = target.mCurrentAllocation;
+	const GpuAllocation targetAllocation = mCurrentAllocation;
+
+	// The registration of the old allocation goes before the target can free it
+	SetCurrentAllocation(GpuAllocation());
+	SwapInternalTexture(target);
+	SetCurrentAllocation(allocation);
+	target.SetCurrentAllocation(targetAllocation);
+
+	if(previousNativeResource != nullptr && GetGpuResource() != nullptr)
+		mBindlessSlots.Retarget(*previousNativeResource, *GetGpuResource());
+}
+
+void Texture::SetCurrentAllocation(const GpuAllocation& allocation)
+{
+	if(mIsAllocationOwner)
+		mCurrentAllocation.Allocator->SetAllocationOwner(mCurrentAllocation, GpuAllocationOwner());
+
+	mCurrentAllocation = allocation;
+	mIsAllocationOwner = !HasFixedLocation() && allocation.IsOwned() && allocation.Allocator->SupportsDefragmentation();
+
+	if(mIsAllocationOwner)
+		allocation.Allocator->SetAllocationOwner(allocation, GpuAllocationOwner(*this));
 }
 
 bool Texture::StartsAtRest() const
@@ -509,9 +539,12 @@ void Texture::Initialize()
 
 void Texture::Destroy()
 {
-	// Bindless textures never replace their native resource, so it is the one pinned on registration
+	// The pin moves with the native resource when the texture is relocated, so the current one is pinned
 	if(IGpuResource* nativeResource = GetGpuResource())
 		mBindlessSlots.Unregister(*nativeResource);
+
+	// Before the native resource is destroyed, which may free its allocation
+	SetCurrentAllocation(GpuAllocation());
 
 	RenderProxy::Destroy();
 }
@@ -695,7 +728,7 @@ void TextureUtility::Write(GpuWorkContext& gpuContext, const TShared<Texture>& t
 		return;
 	}
 
-	const bool canDiscardContents = flags.IsSet(TextureWriteFlag::Discard) && !texture->HasFixedLocation();
+	const bool canDiscardContents = flags.IsSet(TextureWriteFlag::Discard) && !texture->HasFixedLocation() && !textureProperties.Usage.IsSet(TextureUsageFlag::Bindless);
 	const bool noOverwrite = flags.IsSet(TextureWriteFlag::NoOverwrite);
 	const bool supportsGPUWrites = textureProperties.Usage.IsSetAny(TextureUsageFlag::AllowUnorderedAccessOnTheGPU);
 

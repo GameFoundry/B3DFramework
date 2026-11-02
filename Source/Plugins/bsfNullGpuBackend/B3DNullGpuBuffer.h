@@ -37,6 +37,7 @@ namespace b3d
 
 			void Initialize() override {}
 			void RecreateInternalBuffer() override {}
+			void SwapInternalBuffer(GpuBuffer& other) override { std::swap(mAllocation, static_cast<NullGpuBuffer&>(other).mAllocation); }
 
 		private:
 			GpuAllocation mAllocation; /**< Memory the buffer is placed at. Freed on destruction if owned. */

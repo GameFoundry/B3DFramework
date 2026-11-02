@@ -63,9 +63,10 @@ void Renderer::EndFrame()
 {
 	GpuWorkContext& gpuContext = GetGpuContext(); // Also ensures we are on the render thread.
 
-	// Record this frame's incremental defragmentation copies into the context's transfer command
-	// buffer, then flush all pending transfers so they execute within the frame being ended.
-	mDevice->RunDefragPass(gpuContext);
+	// Record this frame's defragmentation copies into the context's transfer command buffer, then flush all pending transfers so
+	// they execute within the frame being ended. The device applies pending bindless changes, including those of moved resources,
+	// after the transfers.
+	mDevice->GetMemoryDefragmenter().Run(gpuContext);
 	gpuContext.SubmitTransferCommandBuffers();
 
 	// Device frame-boundary work - signals end-of-frame to the submission thread and blocks until the

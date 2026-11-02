@@ -63,6 +63,8 @@ namespace b3d
 
 			GpuAllocation allocation;
 			id<MTLBuffer> handle = mGpuDevice.GetHeapAllocator().AllocateBuffer(size, mMemoryType, mRequestedAllocation, allocation);
+			SetCurrentAllocation(allocation);
+
 			if (handle == nil)
 			{
 				B3D_LOG(Error, LogRenderBackend, "Failed to create MTLBuffer of {0} bytes.", size);
@@ -96,6 +98,13 @@ namespace b3d
 
 			mBuffer = newBuffer;
 			mMappedMemory = mBuffer != nullptr ? mBuffer->GetMappedMemory() : nullptr;
+		}
+
+		void MetalGpuBuffer::SwapInternalBuffer(GpuBuffer& other)
+		{
+			MetalGpuBuffer& metalOther = static_cast<MetalGpuBuffer&>(other);
+			std::swap(mBuffer, metalOther.mBuffer);
+			std::swap(mMappedMemory, metalOther.mMappedMemory);
 		}
 
 		void MetalGpuBuffer::SetName(const StringView& name)

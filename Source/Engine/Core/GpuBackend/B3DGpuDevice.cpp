@@ -16,7 +16,7 @@
 using namespace b3d;
 
 GpuDevice::GpuDevice()
-	: mVertexInputManager(B3DMakeUnique<render::GpuVertexInputManager>(*this))
+	: mVertexInputManager(B3DMakeUnique<render::GpuVertexInputManager>(*this)), mMemoryDefragmenter(*this)
 { }
 
 GpuDevice::~GpuDevice()
@@ -172,7 +172,7 @@ namespace
 		if(!B3D_ENSURE_LOG(device.GetBindlessHeaps() != nullptr, "Cannot create bindless resource '{0}', the GPU device doesn't support bindless resources.", name))
 			return false;
 
-		return B3D_ENSURE_LOG(!flags.IsSet(GpuObjectCreateFlag::Aliased), "Bindless resource '{0}' cannot be aliased. Bindless resources must stay at rest at a fixed location.", name);
+		return B3D_ENSURE_LOG(!flags.IsSet(GpuObjectCreateFlag::Aliased), "Bindless resource '{0}' cannot be aliased. Bindless resources must stay at rest.", name);
 	}
 
 	/** Checks that a texture described by @p createInformation can be created on @p device with @p flags, logging the reason if it can't. */

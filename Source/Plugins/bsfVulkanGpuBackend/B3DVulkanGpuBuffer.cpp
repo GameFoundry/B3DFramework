@@ -11,8 +11,8 @@
 using namespace b3d;
 using namespace b3d::render;
 
-VulkanBuffer::VulkanBuffer(VulkanResourceManager* owner, const VulkanBufferCreateInformation& createInformation, VkBuffer buffer, VulkanAllocationResult allocation, VulkanGpuBuffer* parent)
-	: TVulkanResource<IGpuBufferResource>(owner, createInformation.VkCreateInfo.sharingMode == VK_SHARING_MODE_CONCURRENT, createInformation.DebugName), mFlags(createInformation.Flags), mBuffer(buffer), mAllocation(allocation), mParent(parent), mMappedMemory(allocation.MappedMemory)
+VulkanBuffer::VulkanBuffer(VulkanResourceManager* owner, const VulkanBufferCreateInformation& createInformation, VkBuffer buffer, VulkanAllocationResult allocation)
+	: TVulkanResource<IGpuBufferResource>(owner, createInformation.VkCreateInfo.sharingMode == VK_SHARING_MODE_CONCURRENT, createInformation.DebugName), mFlags(createInformation.Flags), mBuffer(buffer), mAllocation(allocation), mMappedMemory(allocation.MappedMemory)
 {
 }
 
@@ -29,19 +29,6 @@ VulkanBuffer::~VulkanBuffer()
 	vkDestroyBuffer(device.GetLogical(), mBuffer, gVulkanAllocator);
 
 	device.FreeMemory(mAllocation);
-}
-
-IGpuResource* VulkanBuffer::MoveAllocation(render::GpuCommandBuffer& commandBuffer, const GpuAllocation& newAllocation)
-{
-	B3D_ASSERT(mParent != nullptr && "VulkanBuffer::MoveAllocation invoked on an untracked wrapper (no parent VulkanGpuBuffer).");
-	B3D_ASSERT(mParent->GetVulkanResource() == this && "Parent's mBuffer no longer points at this wrapper — proxy invariant broken.");
-
-	VulkanBuffer* newBuffer = mParent->RelocateInternalBuffer(newAllocation, commandBuffer);
-
-	// Destroy self
-	Destroy();
-
-	return newBuffer;
 }
 
 void VulkanBuffer::SetName(const StringView& name)
@@ -210,7 +197,7 @@ void VulkanGpuBuffer::GetVkMemoryPropertyFlags(const GpuBufferCreateInformation&
 	}
 }
 
-VulkanBuffer* VulkanGpuBuffer::CreateBuffer(VulkanGpuDevice& device, u32 size, bool staging, bool readable, const GpuAllocation& allocation)
+VulkanBuffer* VulkanGpuBuffer::CreateBuffer(VulkanGpuDevice& device, u32 size, bool staging, bool readable, const GpuAllocation& requestedAllocation)
 {
 	// Not allowed to have size 0 buffer
 	if(size == 0)
@@ -218,12 +205,6 @@ VulkanBuffer* VulkanGpuBuffer::CreateBuffer(VulkanGpuDevice& device, u32 size, b
 
 	const GpuBufferType newBufferType = staging ? readable ? GpuBufferType::StagingRead : GpuBufferType::StagingWrite : mInformation.Type;
 	const GpuBufferFlags newBufferFlags = staging ? (GpuBufferFlags)0 : mInformation.Flags;
-
-	// Buffers participate in defragmentation only when they allocate from an allocator that supports it (scratch/linear
-	// allocations and fixed locations don't); such buffers pass `this` as the proxy parent so defrag can notify the
-	// buffer when it needs to reallocate.
-	const bool isDefragmentable = !HasFixedLocation() && mRequestedAllocation.Allocator->SupportsDefragmentation();
-	VulkanGpuBuffer* const proxyParent = (staging || !isDefragmentable) ? nullptr : this;
 
 	const String debugName = staging ? StringUtility::Format("Staging buffer ({0})", mName) : mName;
 
@@ -257,7 +238,9 @@ VulkanBuffer* VulkanGpuBuffer::CreateBuffer(VulkanGpuDevice& device, u32 size, b
 			info.VkCreateInfo.usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 	}
 
-	VulkanBuffer* const vulkanBuffer = device.CreateBuffer(info, allocation, proxyParent);
+	GpuAllocation allocation;
+	VulkanBuffer* const vulkanBuffer = device.CreateBuffer(info, requestedAllocation, allocation);
+	SetCurrentAllocation(allocation);
 
 	if(vulkanBuffer != nullptr)
 		vulkanBuffer->SetName(debugName);
@@ -319,31 +302,10 @@ void VulkanGpuBuffer::RecreateInternalBuffer()
 #endif
 }
 
-VulkanBuffer* VulkanGpuBuffer::RelocateInternalBuffer(const GpuAllocation& newAllocation, render::GpuCommandBuffer& commandBuffer)
+void VulkanGpuBuffer::SwapInternalBuffer(GpuBuffer& other)
 {
-	VulkanBuffer* const oldBuffer = mBuffer;
-
-	const bool isStaging = mInformation.Type == GpuBufferType::StagingRead || mInformation.Type == GpuBufferType::StagingWrite;
-
-	// TODO - Should all buffer really be readable by default?
-	const bool isReadable = mInformation.Type != GpuBufferType::StagingWrite;
-
-	VulkanBuffer* newBuffer = CreateBuffer(GetVulkanDevice(), mTotalSize, isStaging, isReadable, newAllocation);
-
-	if(oldBuffer != nullptr)
-	{
-		auto& vulkanCb = static_cast<VulkanGpuCommandBuffer&>(commandBuffer);
-		const VkBufferCopy region{ 0, 0, mTotalSize };
-		vulkanCb.CopyBufferToBuffer(oldBuffer, newBuffer, TArrayView<const VkBufferCopy>(&region, 1));
-	}
-
-	mBuffer = newBuffer;
-	mMappedMemory = newBuffer->GetMappedMemory();
-
-#if B3D_BUILD_TYPE_DEVELOPMENT
-	if(mBuffer != nullptr)
-		mBuffer->InitializeSuballocationTracking(mInformation.SuballocationCount, mSuballocationSize);
-#endif
-
-	return newBuffer;
+	VulkanGpuBuffer& vulkanOther = static_cast<VulkanGpuBuffer&>(other);
+	std::swap(mBuffer, vulkanOther.mBuffer);
+	std::swap(mMappedMemory, vulkanOther.mMappedMemory);
 }
+

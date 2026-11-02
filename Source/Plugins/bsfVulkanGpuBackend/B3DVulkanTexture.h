@@ -50,14 +50,11 @@ namespace b3d
 			 * @param	image					Internal Vulkan image handle that the wrapper takes ownership of (or refers to, if createInformation.OwnsImage is false).
 			 * @param	allocation				Memory binding for this image, or a default-constructed VulkanAllocationResult for unowned 
 			 *									wrappers (swapchain backbuffers etc.) whose memory is managed externally.
-			 * @param	parent					High-level VulkanTexture proxy that owns this wrapper, or nullptr for transient staging images / unowned wrappers. 
-			 *									Required for the wrapper to participate in defragmentation.
 			 */
-			VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& createInformation, VkImage image, VulkanAllocationResult allocation, VulkanTexture* parent = nullptr);
+			VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& createInformation, VkImage image, VulkanAllocationResult allocation);
 			~VulkanImage();
 
 			void Destroy() override;
-			IGpuResource* MoveAllocation(GpuCommandBuffer& commandBuffer, const GpuAllocation& newAllocation) override;
 
 			/** Returns the internal handle to the Vulkan object. */
 			VkImage GetVulkanHandle() const { return mImage; }
@@ -176,7 +173,6 @@ namespace b3d
 
 			VkImage mImage;
 			VulkanAllocationResult mAllocation;
-			VulkanTexture* mParent = nullptr;
 			VulkanImageView mMainView;
 			VulkanImageView mFramebufferMainView;
 			TextureUsageFlags mUsage;
@@ -239,6 +235,7 @@ namespace b3d
 			void Flush(u32 mipLevel, u32 arrayLayer) override;
 			void Invalidate(u32 mipLevel, u32 arrayLayer) override;
 			void RecreateInternalTexture() override;
+			void SwapInternalTexture(Texture& other) override;
 
 			/** Builds the native image description of a texture with properties @p properties, on device @p device. */
 			static void BuildDescription(const VulkanGpuDevice& device, const TextureProperties& properties, VulkanTextureDescription& outDescription);
@@ -261,28 +258,14 @@ namespace b3d
 			void Initialize() override;
 
 		private:
-			/** Creates a new image at the texture's allocation, matching the current properties. */
+			/** Creates a new image at the texture's allocation, matching the current properties, and makes its memory the texture's current allocation. */
 			VulkanImage* CreateImage();
-
-			/**
-			 * Recreates this proxy's internal VulkanImage at the provided pre-reserved allocation,
-			 * records a GPU-side copy from the current image into the new one on @p commandBuffer. The caller
-			 * is responsible for queuing the old wrapper for destroy.
-			 */
-			VulkanImage* RelocateInternalTexture(const GpuAllocation& newAllocation, render::GpuCommandBuffer& commandBuffer);
 
 			/**
 			 * Builds a VulkanImageCreateInformation reflecting this texture's current shape (CreateInfo, Layout,
 			 * Type, Format, etc.). 
 			 */
 			VulkanImageCreateInformation BuildImageCreateInformation() const;
-
-			/**
-			 * Copies all sub-resources from the source image to the destination image. Caller must ensure the images
-			 * are of the same size. The operation will be queued on the provided command buffer. The system assumes the
-			 * provided image matches the current texture properties (i.e. num faces, mips, size).
-			 */
-			void CopyImageToImage(VulkanGpuCommandBuffer& commandBuffer, VulkanImage* sourceImage, VulkanImage* destinationImage);
 
 			VulkanGpuDevice& mGpuDevice;
 			VulkanImage* mImage = nullptr;

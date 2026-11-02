@@ -571,6 +571,33 @@ void GpuBindlessResourceSlots::Unregister(IGpuResource& nativeResource)
 	mViewSlots.Clear();
 }
 
+void GpuBindlessResourceSlots::Retarget(IGpuResource& previousNativeResource, IGpuResource& nativeResource)
+{
+	ASSERT_IF_NOT_RENDER_THREAD;
+
+	if(mHeaps == nullptr)
+		return;
+
+	mHeaps->PinResource(nativeResource);
+
+	// The first update carries the previous native resource, so its pin is released once the update is applied and its frame completes
+	IGpuResource* previousTarget = &previousNativeResource;
+	if(mDefaultIndex != kGpuBindlessInvalidIndex)
+	{
+		mHeaps->UpdateResourceSlot(mDefaultIndex, mDefaultView, this, previousTarget);
+		previousTarget = nullptr;
+	}
+
+	for(const ViewSlot& viewSlot : mViewSlots)
+	{
+		mHeaps->UpdateResourceSlot(viewSlot.Index, viewSlot.View, this, previousTarget);
+		previousTarget = nullptr;
+	}
+
+	if(previousTarget != nullptr)
+		mHeaps->UnpinResource(previousNativeResource);
+}
+
 u32 GpuBindlessResourceSlots::GetOrCreateIndex(const GpuBindlessResourceView& view)
 {
 	ASSERT_IF_NOT_RENDER_THREAD;

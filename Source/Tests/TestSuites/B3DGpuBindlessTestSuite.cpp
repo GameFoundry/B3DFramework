@@ -14,6 +14,7 @@
 #include "GpuBackend/B3DGpuCompletionTracker.h"
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
+#include "GpuBackend/B3DGpuMemoryDefragmenter.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuParameterSetPool.h"
 #include "GpuBackend/B3DGpuPipelineParameterLayout.h"
@@ -152,6 +153,7 @@ GpuBindlessTestSuite::GpuBindlessTestSuite()
 	B3D_ADD_TEST(GpuBindlessTestSuite::TestHeapPool)
 	B3D_ADD_TEST(GpuBindlessTestSuite::TestResourceIndices)
 	B3D_ADD_TEST(GpuBindlessTestSuite::TestHeapAccess)
+	B3D_ADD_TEST(GpuBindlessTestSuite::TestRelocation)
 }
 
 void GpuBindlessTestSuite::TestHeapAllocation()
@@ -775,4 +777,221 @@ void GpuBindlessTestSuite::TestHeapAccess()
 		fnDispatch("retired", pool->Create(GpuCommandBufferCreateInformation::Create("Bindless retired slot access")), expectedRetired);
 #endif
 	}, "GpuBindlessTestSuite::TestHeapAccess", true);
+}
+
+void GpuBindlessTestSuite::TestRelocation()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	if(device->GetBindlessHeaps() == nullptr)
+		return;
+
+	const TShared<GpuComputePipelineState> pipeline = CreateTestBindlessHeapAccessPipeline(*device);
+	B3D_TEST_ASSERT(pipeline != nullptr)
+	if(pipeline == nullptr)
+		return;
+
+	GetRenderThread().PostCommand([this, &device, &pipeline]()
+	{
+		const GpuBufferFlags bufferFlags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::Bindless;
+		const GpuBufferCreateInformation structuredInformation = GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 4, bufferFlags);
+		const GpuBufferCreateInformation typedInformation = GpuBufferCreateInformation::CreateSimpleStorage(BF_32X1U, 4, bufferFlags);
+
+		TextureCreateInformation textureInformation;
+		textureInformation.Name = "Relocated texture";
+		textureInformation.Width = 2;
+		textureInformation.Height = 1;
+		textureInformation.Format = PF_RGBA8;
+		textureInformation.Usage = TextureUsageFlag::Default | TextureUsageFlag::Bindless;
+
+		TextureCreateInformation renderTargetInformation = textureInformation;
+		renderTargetInformation.Name = "Unmovable render target";
+		renderTargetInformation.Usage = TextureUsageFlag::RenderTarget;
+
+		// Resources created before the tested ones and destroyed once they exist leave free memory below them
+		TArray<TShared<render::GpuBuffer>> fillerBuffers;
+		TArray<TShared<render::Texture>> fillerTextures;
+		for(u32 fillerIndex = 0; fillerIndex < 16; fillerIndex++)
+		{
+			fillerBuffers.Add(device->CreateGpuBuffer(structuredInformation));
+			fillerBuffers.Add(device->CreateGpuBuffer(typedInformation));
+			fillerTextures.Add(device->CreateTexture(textureInformation));
+		}
+
+		const TShared<render::GpuBuffer> structuredBuffer = device->CreateGpuBuffer(structuredInformation);
+		const TShared<render::GpuBuffer> typedBuffer = device->CreateGpuBuffer(typedInformation);
+		const TShared<render::Texture> texture = device->CreateTexture(textureInformation);
+		const TShared<render::GpuBuffer> cpuBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 4, GpuBufferFlag::StoreOnCPUWithGPUAccess));
+		const TShared<render::Texture> renderTarget = device->CreateTexture(renderTargetInformation);
+		B3D_TEST_ASSERT(structuredBuffer != nullptr && typedBuffer != nullptr && texture != nullptr && cpuBuffer != nullptr && renderTarget != nullptr)
+		if(structuredBuffer == nullptr || typedBuffer == nullptr || texture == nullptr || cpuBuffer == nullptr || renderTarget == nullptr)
+			return;
+
+		// The buffers hold (100, 101, 102, 103) and (200, 201, 202, 203). Texel 0 is (10, 20, 30, 40) and texel 1 is (50, 60, 70, 80).
+		const ImageSubresourcePitch pitch = texture->GetStagingBufferPitchForSubresource(0, 0);
+		const TShared<render::GpuBuffer> uploads[] =
+		{
+			device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(4 * sizeof(u32))),
+			device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(4 * sizeof(u32))),
+			device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(pitch.RowPitch * pitch.SliceHeight * sizeof(u32)))
+		};
+
+		for(u32 uploadIndex = 0; uploadIndex < 3; uploadIndex++)
+		{
+			const render::GpuBufferMappedScope mapping = uploads[uploadIndex]->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			u32* words = static_cast<u32*>(mapping.GetMappedMemory());
+			if(uploadIndex < 2)
+			{
+				for(u32 elementIndex = 0; elementIndex < 4; elementIndex++)
+					words[elementIndex] = (uploadIndex + 1) * 100 + elementIndex;
+			}
+			else
+			{
+				words[0] = 10 | (20 << 8) | (30 << 16) | (40u << 24);
+				words[1] = 50 | (60 << 8) | (70 << 16) | (80u << 24);
+			}
+		}
+
+		const GpuAccessState computeWrite(GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write);
+		const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
+		const GpuAccessState textureTransferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write, GpuImageLayout::TransferDestination);
+		const GpuAccessState transferRead(GpuStageFlag::Transfer, GpuAccessFlag::Read);
+		const GpuAccessState hostRead(GpuStageFlag::Host, GpuAccessFlag::Read);
+
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		const TShared<GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
+
+		// Every resource returns to rest after its upload, which is where heaps read it and the defragmenter moves it
+		{
+			const TShared<GpuCommandBuffer> commands = pool->Create(GpuCommandBufferCreateInformation::Create("Relocation upload"));
+			const GpuBufferBarrier uploadBarriers[] = { GpuBufferBarrier(structuredBuffer, GpuAccessState(), transferWrite), GpuBufferBarrier(typedBuffer, GpuAccessState(), transferWrite) };
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(uploadBarriers, 2)));
+			commands->IssueBarriers(GpuTextureBarrier(texture, GpuBarrierTestUtility::GetDiscardedRestingState(*texture), textureTransferWrite));
+
+			commands->CopyBufferToBuffer(uploads[0], structuredBuffer, 0, 0, 4 * sizeof(u32));
+			commands->CopyBufferToBuffer(uploads[1], typedBuffer, 0, 0, 4 * sizeof(u32));
+			commands->CopyBufferToTexture(uploads[2], texture, 0, 0, 0);
+
+			const GpuBufferBarrier restBarriers[] = { GpuBufferBarrier(structuredBuffer, transferWrite, GpuBackendUtility::GetRestingState(*structuredBuffer, GQT_GRAPHICS)),
+				GpuBufferBarrier(typedBuffer, transferWrite, GpuBackendUtility::GetRestingState(*typedBuffer, GQT_GRAPHICS)) };
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(restBarriers, 2)));
+			commands->IssueBarriers(GpuTextureBarrier(texture, textureTransferWrite, GpuBackendUtility::GetRestingState(*texture, GQT_GRAPHICS)));
+
+			context->SubmitCommandBuffer(commands);
+			device->WaitUntilIdle();
+		}
+
+		GpuBindlessHeaps& heaps = *device->GetBindlessHeaps();
+		fillerBuffers.Clear();
+		fillerTextures.Clear();
+		heaps.ProcessAllReleases();
+
+		SamplerStateCreateInformation samplerInformation;
+		samplerInformation.MinFilter = FO_POINT;
+		samplerInformation.MagFilter = FO_POINT;
+		samplerInformation.MipFilter = FO_POINT;
+		samplerInformation.MipmapBias = 0.25f;
+		const TShared<SamplerState> cachedSampler = device->FindOrCreateSamplerState(samplerInformation);
+
+		const u32 indices[] =
+		{
+			structuredBuffer->GetBindlessIndex(),
+			typedBuffer->GetBindlessIndex(),
+			texture->GetBindlessIndex() | (cachedSampler->GetBindlessIndex() << 16),
+			structuredBuffer->GetOrCreateBindlessIndex(GpuBufferViewType::Raw)
+		};
+
+		// Run passes until the tested resources move. Each pass moves the resources highest in memory first, which may be ones other
+		// tests left behind.
+		static constexpr u32 kMovedCount = 3;
+		const IGpuResource* const originalNativeResources[kMovedCount] = { structuredBuffer->GetGpuResource(), typedBuffer->GetGpuResource(), texture->GetGpuResource() };
+		const IGpuResource* const cpuBufferNativeResource = cpuBuffer->GetGpuResource();
+		const IGpuResource* const renderTargetNativeResource = renderTarget->GetGpuResource();
+
+		GpuMemoryDefragmenter& defragmenter = device->GetMemoryDefragmenter();
+		const u64 initialMoveCount = defragmenter.GetStatistics().MoveCount;
+		const bool wasEnabled = gGpuDefragmentation.Get();
+		gGpuDefragmentation.Set(true);
+
+		bool isMoved[kMovedCount] = {};
+		for(u32 passIndex = 0; passIndex < 256; passIndex++)
+		{
+			defragmenter.Run(*context);
+			context->SubmitTransferCommandBuffers(true);
+			heaps.ApplyPendingChanges();
+			device->WaitUntilIdle();
+			heaps.ProcessAllReleases();
+
+			const IGpuResource* const nativeResources[kMovedCount] = { structuredBuffer->GetGpuResource(), typedBuffer->GetGpuResource(), texture->GetGpuResource() };
+			bool isEveryResourceMoved = true;
+			for(u32 resourceIndex = 0; resourceIndex < kMovedCount; resourceIndex++)
+			{
+				isMoved[resourceIndex] |= nativeResources[resourceIndex] != originalNativeResources[resourceIndex];
+				isEveryResourceMoved &= isMoved[resourceIndex];
+			}
+
+			if(isEveryResourceMoved || defragmenter.GetStatistics().LastPassMoveCount == 0)
+				break;
+		}
+
+		gGpuDefragmentation.Set(wasEnabled);
+
+		B3D_TEST_ASSERT(defragmenter.GetStatistics().MoveCount > initialMoveCount)
+		B3D_TEST_ASSERT_MSG(isMoved[0] && isMoved[1] && isMoved[2], StringUtility::Format("Moved: structured buffer {0}, typed buffer {1}, texture {2}.",
+			isMoved[0], isMoved[1], isMoved[2]))
+		B3D_TEST_ASSERT(cpuBuffer->GetGpuResource() == cpuBufferNativeResource)
+		B3D_TEST_ASSERT(renderTarget->GetGpuResource() == renderTargetNativeResource)
+
+		// The moved resources keep their indices, and both bindless and directly bound accesses see their contents
+		B3D_TEST_ASSERT(structuredBuffer->GetBindlessIndex() == indices[0])
+		B3D_TEST_ASSERT(typedBuffer->GetBindlessIndex() == indices[1])
+		B3D_TEST_ASSERT(texture->GetBindlessIndex() == (indices[2] & 0xFFFF))
+		B3D_TEST_ASSERT(structuredBuffer->GetOrCreateBindlessIndex(GpuBufferViewType::Raw) == indices[3])
+
+		static constexpr u32 kOutputCount = 7;
+		const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kOutputCount, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead((kOutputCount + 4) * sizeof(u32)));
+		const TShared<render::GpuParameterSet> parameterSet = context->GetParameterSetPool().Create(pipeline->GetParameterLayout()->GetSet(0), 0);
+		parameterSet->SetStorageBuffer("Output", output);
+
+		const TShared<GpuCommandBuffer> commands = pool->Create(GpuCommandBufferCreateInformation::Create("Relocated resource access"));
+		commands->IssueBarriers(GpuBufferBarrier(output, GpuAccessState(), computeWrite));
+		commands->SetGpuComputePipelineState(pipeline);
+		commands->SetGpuParameterSet(parameterSet);
+		commands->SetPushConstants(0, sizeof(indices), indices);
+		commands->DispatchCompute(1);
+
+		const GpuAccessState structuredRestingState = GpuBackendUtility::GetRestingState(*structuredBuffer, GQT_GRAPHICS);
+		const GpuBufferBarrier copyBarriers[] = { GpuBufferBarrier(output, computeWrite, transferRead), GpuBufferBarrier(structuredBuffer, structuredRestingState, transferRead),
+			GpuBufferBarrier(readback, GpuAccessState(), transferWrite) };
+		commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(copyBarriers, 3)));
+		commands->CopyBufferToBuffer(output, readback, 0, 0, kOutputCount * sizeof(u32));
+		commands->CopyBufferToBuffer(structuredBuffer, readback, 0, kOutputCount * sizeof(u32), 4 * sizeof(u32));
+		commands->IssueBarriers(GpuBufferBarrier(structuredBuffer, transferRead, structuredRestingState));
+		commands->IssueBarriers(GpuBufferBarrier(readback, transferWrite, hostRead));
+		context->SubmitCommandBuffer(commands);
+		device->WaitUntilIdle();
+
+		const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
+		B3D_TEST_ASSERT(mapping.IsValid())
+		if(!mapping.IsValid())
+			return;
+
+		const char* names[kOutputCount + 4] = { "structured buffer", "typed buffer", "texture load", "cached sampler", "global sampler", "raw buffer",
+			"raw buffer wide load", "copy element 0", "copy element 1", "copy element 2", "copy element 3" };
+		const u32 expected[kOutputCount + 4] = { 101, 202, 50, 60, 30, 102, 103, 100, 101, 102, 103 };
+		const u32* actual = static_cast<const u32*>(mapping.GetMappedMemory());
+		for(u32 outputIndex = 0; outputIndex < kOutputCount + 4; outputIndex++)
+		{
+			B3D_TEST_ASSERT_MSG(actual[outputIndex] == expected[outputIndex], StringUtility::Format("Read through the {0} after relocation: {1}, expected {2}.",
+				names[outputIndex], actual[outputIndex], expected[outputIndex]))
+		}
+	}, "GpuBindlessTestSuite::TestRelocation", true);
 }

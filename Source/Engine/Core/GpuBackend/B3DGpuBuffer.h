@@ -56,9 +56,9 @@ namespace b3d
 
 		/**
 		 * Makes the buffer readable by shaders through ResourceDescriptorHeap, at the index returned by render::GpuBuffer::GetBindlessIndex().
-		 * Only valid for simple and structured storage buffers without suballocations. The buffer stays at rest at a fixed location: it cannot
-		 * be aliased or transient, and CPU writes never discard its contents. GPU writes must return it to rest. Requires a device that supports
-		 * bindless resources.
+		 * Only valid for simple and structured storage buffers without suballocations. The buffer stays at rest: it cannot be aliased or
+		 * transient, and CPU writes never discard its contents. GPU writes must return it to rest. Its index stays the same if GPU memory
+		 * defragmentation moves it. Requires a device that supports bindless resources.
 		 */
 		Bindless = 1 << 3
 	};
@@ -693,10 +693,10 @@ namespace b3d::render
 		virtual IGpuResource* GetGpuResource() const { return nullptr; }
 
 		/**
-		 * Returns true if the buffer is fixed to the memory it was created at, or is bindless. Such a buffer never recreates its native
-		 * resource, so writes cannot discard its contents.
+		 * Returns true if the buffer is fixed to the memory it was created at. Such a buffer never recreates its native resource or moves
+		 * to other memory.
 		 */
-		bool HasFixedLocation() const { return !mRequestedAllocation.IsPending() || mInformation.Flags.IsSet(GpuBufferFlag::Bindless); }
+		bool HasFixedLocation() const { return !mRequestedAllocation.IsPending(); }
 
 		/**
 		 * Returns the index of the buffer's default view in the bindless resource heap, or kGpuBindlessInvalidIndex if the buffer wasn't
@@ -732,6 +732,14 @@ namespace b3d::render
 		 * @param	flags		GpuObjectCreateFlag::Aliased if the memory is shared with other resources over time. Other flags are ignored.
 		 */
 		void SetAllocation(const GpuAllocation& allocation, GpuObjectCreateFlags flags);
+
+		/**
+		 * Moves the buffer to the memory of @p target, an initialized buffer of the same description created at a fixed allocation, holding
+		 * a copy of this buffer's contents. Exchanges the native buffers, so @p target holds the old one, moves the allocation ownership,
+		 * and points the bindless slots at the new native buffer. Commands recorded earlier keep using the native buffer they recorded. See
+		 * GpuMemoryDefragmenter.
+		 */
+		void Relocate(GpuBuffer& target);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		/**
@@ -787,6 +795,16 @@ namespace b3d::render
 		/** Recreates the underlying buffer. Note this will clear all currently written data. Old buffer will be released once its done being used. */
 		virtual void RecreateInternalBuffer() = 0;
 
+		/** Exchanges the native buffer, and all state derived from it, with @p other, a buffer of the same description. See Relocate(). */
+		virtual void SwapInternalBuffer(GpuBuffer& other) = 0;
+
+		/**
+		 * Sets the allocation the native buffer lives in. Backends call it after creating a native buffer, before destroying the previous
+		 * one. If the buffer can move (see HasFixedLocation()) and the allocator supports defragmentation, registers the buffer as the
+		 * allocation's owner, see GpuMemoryDefragmenter.
+		 */
+		void SetCurrentAllocation(const GpuAllocation& allocation);
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		/** Logs a warning if the offset we're trying to map is currently being used on GPU, or is bound to any command buffer. */
 		void ValidateMap(u32 offset, u32 size, GpuMapOptions options);
@@ -806,6 +824,9 @@ namespace b3d::render
 		 * by the proxy itself.
 		 */
 		GpuAllocation mRequestedAllocation;
+
+		GpuAllocation mCurrentAllocation; /**< See SetCurrentAllocation(). */
+		bool mIsAllocationOwner = false; /**< True if the buffer is registered as the owner of mCurrentAllocation. */
 
 		u32 mFrameGraphResourceIndex = ~0u; /**< See SetFrameGraphResourceIndex(). */
 		GpuBindlessResourceSlots mBindlessSlots;

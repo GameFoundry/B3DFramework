@@ -56,6 +56,7 @@ namespace b3d
 			GpuMemoryRequirements GetMemoryRequirements(const TextureCreateInformation& createInformation) const override;
 			GpuMemoryRequirements GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const override;
 			IGpuAllocator& GetPersistentAllocator(u32 memoryType) override;
+			void GetPersistentAllocators(TArray<IGpuAllocator*>& outAllocators) override;
 			TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker) override;
 			IGpuTransientHeapPool* GetTransientHeapPool(u32 memoryType) override;
 			TShared<GpuQueryPool> CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation) override;

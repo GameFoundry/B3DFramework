@@ -127,10 +127,14 @@ namespace b3d
 
 			void Initialize() override;
 			void RecreateInternalTexture() override;
+			void SwapInternalTexture(Texture& other) override;
 			GpuTextureMappedScope Map(u32 mipLevel, u32 arrayLayer, GpuMapOptions options) override;
 
 		private:
-			/** Creates a new image wrapper matching the current texture properties. Returns null on failure. */
+			/**
+			 * Creates a new image wrapper matching the current texture properties, and makes its memory the texture's current allocation.
+			 * Returns null on failure.
+			 */
 			MetalImage* CreateImage();
 
 			MetalGpuDevice& mGpuDevice;

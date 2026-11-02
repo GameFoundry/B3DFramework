@@ -12,7 +12,8 @@ namespace b3d
 	class GpuResourceManager;
 	class IGpuResource;
 	struct GpuAllocation;
-	namespace render { class GpuCommandBuffer; }
+	struct GpuAllocationMove;
+	namespace render { class GpuCommandBuffer; class GpuBuffer; class Texture; }
 
 	/** @addtogroup GpuBackend
 	 *  @{
@@ -56,6 +57,51 @@ namespace b3d
 	};
 
 	/**
+	 * Texture or buffer whose native resource lives in a GPU allocation and may move to other memory, see
+	 * GpuMemoryDefragmenter. Empty if the allocation cannot move.
+	 */
+	class GpuAllocationOwner
+	{
+	public:
+		GpuAllocationOwner() = default;
+		explicit GpuAllocationOwner(render::Texture& texture) : mValue((uintptr_t)&texture) {}
+		explicit GpuAllocationOwner(render::GpuBuffer& buffer) : mValue((uintptr_t)&buffer | kBufferTag) {}
+
+		/** Returns the owning texture, or null if the owner is a buffer or empty. */
+		render::Texture* GetTexture() const { return (mValue & kBufferTag) == 0 ? (render::Texture*)mValue : nullptr; }
+
+		/** Returns the owning buffer, or null if the owner is a texture or empty. */
+		render::GpuBuffer* GetBuffer() const { return (mValue & kBufferTag) != 0 ? (render::GpuBuffer*)(mValue & ~kBufferTag) : nullptr; }
+
+		/** Returns true if there is no owner. */
+		bool IsEmpty() const { return mValue == 0; }
+
+		/** Returns the owner as an opaque value allocators store. */
+		void* ToOpaque() const { return (void*)mValue; }
+
+		/** Creates an owner from a value returned by ToOpaque(). */
+		static GpuAllocationOwner FromOpaque(void* value)
+		{
+			GpuAllocationOwner output;
+			output.mValue = (uintptr_t)value;
+			return output;
+		}
+
+	private:
+		/** Set in the low bit of buffer pointers. Textures and buffers are aligned to more than one byte. */
+		static constexpr uintptr_t kBufferTag = 1;
+
+		uintptr_t mValue = 0;
+	};
+
+	/** Limits of the moves one GpuMemoryDefragmenter pass plans. */
+	struct GpuDefragmentationBudget
+	{
+		u64 MaximumByteCount = 0; /**< Maximum number of bytes to move. 0 for no limit. */
+		u32 MaximumMoveCount = 0; /**< Maximum number of allocations to move. 0 for no limit. */
+	};
+
+	/**
 	 * Backend-agnostic GPU memory allocator interface. The CRTP TGpuAllocator family implements this.
 	 */
 	class IGpuAllocator
@@ -65,11 +111,10 @@ namespace b3d
 
 		/**
 		 * Attempts to allocate @p size bytes with @p alignment, tagged with @p kind so the strategy can
-		 * honor buffer-image granularity, and optionally registering @p owner for defragmentation
-		 * callbacks (pass nullptr for an untracked allocation). On success populates @p out — including
-		 * stamping @p out.Allocator with this allocator — and returns true.
+		 * honor buffer-image granularity. On success populates @p out — including stamping @p out.Allocator
+		 * with this allocator — and returns true. The allocation has no owner, see SetAllocationOwner().
 		 */
-		virtual bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuAllocation& out) = 0;
+		virtual bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, GpuAllocation& out) = 0;
 
 		/** Retires @p allocation (deferred free per the allocator's policy) and resets it to the empty state. */
 		virtual void Free(GpuAllocation& allocation) = 0;
@@ -97,12 +142,39 @@ namespace b3d
 		}
 
 		/**
-		 * True when the allocator tracks per-allocation owners and can relocate its allocations during
-		 * defragmentation. Consumers should only register an allocation owner (for defragmentation
-		 * callbacks) with allocators that return true. Default is false; strategies that support
-		 * defragmentation override this.
+		 * True when the allocator tracks allocation owners and plans moves of their allocations, see
+		 * PlanDefragmentation(). Default is false; strategies that support defragmentation override this.
 		 */
 		virtual bool SupportsDefragmentation() const { return false; }
+
+		/**
+		 * Sets the owner of @p allocation, a live allocation produced by this allocator. Only allocations with an owner
+		 * are considered by PlanDefragmentation(). Pass an empty owner before the owner stops referencing the allocation.
+		 * Only valid if SupportsDefragmentation() is true.
+		 */
+		virtual void SetAllocationOwner(const GpuAllocation& allocation, GpuAllocationOwner owner)
+		{
+			(void)allocation;
+			(void)owner;
+			B3D_ENSURE_LOG(false, "The allocator does not support defragmentation.");
+		}
+
+		/**
+		 * Plans moves of owned allocations into lower memory, so that heaps empty out and free memory coalesces. Reserves
+		 * the destination of every move, an owned allocation with no owner. The caller performs each move and commits it
+		 * by moving the owner to the destination with SetAllocationOwner(), or cancels it by freeing the destination.
+		 *
+		 * @param	budget			Limits of the planned moves. Allocations larger than what remains of the byte limit are skipped.
+		 * @param	fnIsMovable		Returns true if the allocation of an owner may move. Called with the allocator locked, so it
+		 *							must not call into the allocator.
+		 * @param	outMoves		Array the planned moves are appended to.
+		 */
+		virtual void PlanDefragmentation(const GpuDefragmentationBudget& budget, const Function<bool(GpuAllocationOwner)>& fnIsMovable, TArray<GpuAllocationMove>& outMoves)
+		{
+			(void)budget;
+			(void)fnIsMovable;
+			(void)outMoves;
+		}
 
 #if B3D_DEBUG
 		/**
@@ -120,9 +192,7 @@ namespace b3d
 	/**
 	 * GPU memory allocation as returned by a GPU memory allocator. Used for freeing the allocation, as well
 	 * as referencing the underlying memory. Each consumer owns their allocation and is the sole writer; the
-	 * allocator only writes to the consumer's allocation once during the initial TryAllocate, and then
-	 * supplies a fresh replacement allocation to IGpuResource::MoveAllocation when defragmentation
-	 * moves the allocation.
+	 * allocator only writes to the consumer's allocation during the initial TryAllocate.
 	 *
 	 * An allocation is in one of four states, determined by which of Heap and Allocator are set:
 	 *  - Empty (neither): refers to nothing.
@@ -175,6 +245,14 @@ namespace b3d
 		}
 	};
 
+	/** Move of an allocation planned by IGpuAllocator::PlanDefragmentation(). */
+	struct GpuAllocationMove
+	{
+		GpuAllocationOwner Owner; /**< Texture or buffer whose native resource lives in Source. */
+		GpuAllocation Source; /**< Allocation the owner's native resource lives in. */
+		GpuAllocation Destination; /**< Reserved allocation to move to. Owned, with no owner until the move is committed. */
+	};
+
 	/** @} */
 
 	/** @addtogroup GpuBackend-Internal
@@ -184,7 +262,7 @@ namespace b3d
 	/**
 	 * Common base for backend GPU resources (VulkanResource, D3D12Resource, MetalResource, NullResource).
 	 * Provides the cross-backend portion of the lifetime state machine — aggregate bound/in-use counters,
-	 * deferred destruction, and the relocation hook used by allocators during defragmentation.
+	 * and deferred destruction.
 	 *
 	 * @par Lifecycle
 	 *
@@ -329,36 +407,6 @@ namespace b3d
 		 * returns, this may already have been freed by the deferred-destroy path.
 		 */
 		virtual void Destroy();
-
-		/**
-		 * Called after the owning allocator has reserved a new home for this resource during defragmentation.
-		 * Inside this call, the consumer's old GpuAllocation is still intact — the implementation can
-		 * read its source heap / offset / size off it. The implementation must:
-		 *   1. Record a copy from the source range to the destination range using @p commandBuffer.
-		 *   2. Recreate any placed backend object (VkBuffer / VkImage / ...) bound to the new memory range.
-		 *   3. Replace the IGpuResource's GpuAllocation with @p newAllocation, so the allocation identifies
-		 *      the destination slot from now on. The IGpuResource holding the new allocation must be returned
-		 *      from MoveAllocation; how this is done depends on the allocator's @c FreeDeferralMode:
-		 *
-		 *      - FreeDeferralMode::ResourceLifecycle: the implementation must create a brand-new IGpuResource,
-				  and call Destroy() on the old one. Resource lifecycle tracking will take care of releasing the
-				  old object's memory once its no longer used on the GPU.
-		 *
-		 *      - FreeDeferralMode::FrameTracker: the implementation must patch the existing IGpuResource
-		 *        in place to the new allocation and return 'this'. The allocator will interally free old memory 
-		 *		  after the IFrameTracker reports it is no longer being used.
-		 *
-		 * @p newAllocation is a backend-agnostic GpuAllocation; the consumer downcasts its opaque
-		 * IGpuHeap* to the concrete backend heap to access native fields and slot identity.
-		 *
-		 * Must succeed; backends should not pick candidates whose recreation can fail.
-		 */
-		virtual IGpuResource* MoveAllocation(render::GpuCommandBuffer& commandBuffer, const GpuAllocation& newAllocation)
-		{
-			(void)commandBuffer;
-			(void)newAllocation;
-			return this;
-		}
 
 	protected:
 		/**

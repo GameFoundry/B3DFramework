@@ -175,6 +175,7 @@ namespace b3d
 
 		protected:
 			void RecreateInternalBuffer() override;
+			void SwapInternalBuffer(GpuBuffer& other) override;
 
 		private:
 			/** Queues the current D3D12Buffer for deferred destruction after dropping its mapped pointer and descriptors. */

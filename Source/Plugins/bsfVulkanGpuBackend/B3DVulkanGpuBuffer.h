@@ -36,13 +36,9 @@ namespace b3d
 			 * @param	createInformation	Describes the buffer being wrapped.
 			 * @param	buffer				Internal Vulkan buffer handle that the wrapper takes ownership of.
 			 * @param	allocation			Memory binding for this buffer.
-			 * @param	parent				High-level VulkanTexture proxy that owns this wrapper, or nullptr for transient staging images / unowned wrappers. 
-			 *								Required for the wrapper to participate in defragmentation.
 			 */
-			VulkanBuffer(VulkanResourceManager* owner, const VulkanBufferCreateInformation& createInformation, VkBuffer buffer, VulkanAllocationResult allocation, VulkanGpuBuffer* parent = nullptr);
+			VulkanBuffer(VulkanResourceManager* owner, const VulkanBufferCreateInformation& createInformation, VkBuffer buffer, VulkanAllocationResult allocation);
 			~VulkanBuffer();
-
-			IGpuResource* MoveAllocation(render::GpuCommandBuffer& commandBuffer, const GpuAllocation& newAllocation) override;
 
 			/** Returns the internal handle to the Vulkan object. */
 			VkBuffer GetVulkanHandle() const { return mBuffer; }
@@ -103,7 +99,6 @@ namespace b3d
 			VkBuffer mBuffer;
 			TInlineArray<ViewInformation, 2> mViews;
 			VulkanAllocationResult mAllocation;
-			VulkanGpuBuffer* mParent = nullptr;
 			void* mMappedMemory = nullptr;
 
 			mutable VkDeviceSize mMappedOffset = 0;
@@ -170,16 +165,14 @@ namespace b3d
 
 			void Initialize() override;
 			void RecreateInternalBuffer() override;
-
-			/** Creates a new buffer at @p allocation for the specified device, matching the current buffer properties. */
-			VulkanBuffer* CreateBuffer(VulkanGpuDevice& device, u32 size, bool staging, bool readable, const GpuAllocation& allocation);
+			void SwapInternalBuffer(GpuBuffer& other) override;
 
 			/**
-			 * Recreates this proxy's internal VulkanBuffer at the provided pre-reserved allocation,
-			 * records a GPU-side copy from the current buffer into the new one on @p commandBuffer. The caller
-			 * is responsible for queuing the old wrapper for destroy.
+			 * Creates a new buffer at @p requestedAllocation for the specified device, matching the current buffer properties, and makes its
+			 * memory the buffer's current allocation.
 			 */
-			VulkanBuffer* RelocateInternalBuffer(const GpuAllocation& newAllocation, render::GpuCommandBuffer& commandBuffer);
+			VulkanBuffer* CreateBuffer(VulkanGpuDevice& device, u32 size, bool staging, bool readable, const GpuAllocation& requestedAllocation);
+
 
 			/** Gets the GPU device the buffer is created on. */
 			VulkanGpuDevice& GetVulkanDevice() const { return static_cast<VulkanGpuDevice&>(mDevice); }

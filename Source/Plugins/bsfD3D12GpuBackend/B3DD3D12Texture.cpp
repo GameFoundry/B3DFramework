@@ -71,8 +71,23 @@ namespace b3d
 			if(mImage == nullptr)
 				return;
 
+			SetCurrentAllocation(GpuAllocation());
 			mImage->Destroy();
 			mImage = nullptr;
+		}
+
+		void D3D12Texture::SwapInternalTexture(Texture& other)
+		{
+			D3D12Texture& d3d12Other = static_cast<D3D12Texture&>(other);
+
+			Lock lock(mViewMutex);
+			Lock otherLock(d3d12Other.mViewMutex);
+			std::swap(mImage, d3d12Other.mImage);
+			std::swap(mDefaultSRV, d3d12Other.mDefaultSRV);
+			std::swap(mViews, d3d12Other.mViews);
+
+			mResourceGeneration++;
+			d3d12Other.mResourceGeneration++;
 		}
 
 		bool D3D12Texture::BuildResourceDescription(const TextureProperties& properties, D3D12_RESOURCE_DESC& outResourceDesc, DXGI_FORMAT& outViewFormat)
@@ -232,6 +247,7 @@ namespace b3d
 			imageCreateInformation.Name = properties.Name;
 
 			mImage = device.GetResourceManager().Create<D3D12Image>(imageCreateInformation);
+			SetCurrentAllocation(allocation);
 
 			if(startsAtRest && isTarget)
 				mImage->RequestRestingTransition(GpuImageLayout::ShaderReadOnly);

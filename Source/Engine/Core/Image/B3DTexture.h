@@ -63,8 +63,8 @@ namespace b3d
 
 		/**
 		 * Makes the texture readable by shaders through ResourceDescriptorHeap, at the index returned by render::Texture::GetBindlessIndex().
-		 * The texture stays at rest at a fixed location: it cannot be aliased or transient, and CPU writes never discard its contents. GPU
-		 * writes must return it to rest. Requires a device that supports bindless resources.
+		 * The texture stays at rest: it cannot be aliased or transient, and CPU writes never discard its contents. GPU writes must return it
+		 * to rest. Its index stays the same if GPU memory defragmentation moves it. Requires a device that supports bindless resources.
 		 */
 		Bindless B3D_SCRIPT_EXPORT(Exclude(true)) = 1 << 15,
 
@@ -588,6 +588,16 @@ namespace b3d
 			/** Recreates the underlying texture. Note this will clear all currently written data. Old texture will be released once its done being used. */
 			virtual void RecreateInternalTexture() = 0;
 
+			/** Exchanges the native texture, and all state derived from it, with @p other, a texture of the same description. See Relocate(). */
+			virtual void SwapInternalTexture(Texture& other) = 0;
+
+			/**
+			 * Sets the allocation the native texture lives in. Backends call it after creating a native texture, before destroying the previous
+			 * one. If the texture can move (see HasFixedLocation()) and the allocator supports defragmentation, registers the texture as the
+			 * allocation's owner, see GpuMemoryDefragmenter.
+			 */
+			void SetCurrentAllocation(const GpuAllocation& allocation);
+
 			/** Returns a pointer to persistently mapped memory, or nullptr if not mappable. */
 			void* GetMappedMemory() const { return mMappedMemory; }
 
@@ -612,10 +622,10 @@ namespace b3d
 			virtual IGpuResource* GetGpuResource() const { return nullptr; }
 
 			/**
-			 * Returns true if the texture is fixed to the memory it was created at, or is bindless. Such a texture never recreates its
-			 * native resource, so writes cannot discard its contents.
+			 * Returns true if the texture is fixed to the memory it was created at. Such a texture never recreates its native resource or
+			 * moves to other memory.
 			 */
-			bool HasFixedLocation() const { return !mRequestedAllocation.IsPending() || mProperties.Usage.IsSet(TextureUsageFlag::Bindless); }
+			bool HasFixedLocation() const { return !mRequestedAllocation.IsPending(); }
 
 			/**
 			 * Returns the index of a view of the whole texture in the bindless resource heap, or kGpuBindlessInvalidIndex if the texture
@@ -646,6 +656,14 @@ namespace b3d
 			 * @param	flags		GpuObjectCreateFlag::Aliased if the memory is shared with other resources over time. Other flags are ignored.
 			 */
 			void SetAllocation(const GpuAllocation& allocation, GpuObjectCreateFlags flags);
+
+			/**
+			 * Moves the texture to the memory of @p target, an initialized texture of the same description created at a fixed allocation,
+			 * holding a copy of this texture's contents. Exchanges the native textures, so @p target holds the old one, moves the allocation
+			 * ownership, and points the bindless slots at the new native texture. Commands recorded earlier keep using the native texture
+			 * they recorded. See GpuMemoryDefragmenter.
+			 */
+			void Relocate(Texture& target);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			/**
@@ -739,6 +757,9 @@ namespace b3d
 			 * by the proxy itself.
 			 */
 			GpuAllocation mRequestedAllocation;
+
+			GpuAllocation mCurrentAllocation; /**< See SetCurrentAllocation(). */
+			bool mIsAllocationOwner = false; /**< True if the texture is registered as the owner of mCurrentAllocation. */
 
 			/**
 			 * True if mRequestedAllocation is memory shared with other resources over time (see GpuObjectCreateFlag::Aliased), so creating the

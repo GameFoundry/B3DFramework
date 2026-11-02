@@ -278,9 +278,12 @@ namespace b3d::render
 
 	void GpuBuffer::Destroy()
 	{
-		// Bindless buffers never replace their native resource, so it is the one pinned on registration
+		// The pin moves with the native resource when the buffer is relocated, so the current one is pinned
 		if(IGpuResource* nativeResource = GetGpuResource())
 			mBindlessSlots.Unregister(*nativeResource);
+
+		// Before the native resource is destroyed, which may free its allocation
+		SetCurrentAllocation(GpuAllocation());
 
 		RenderProxy::Destroy();
 	}
@@ -301,7 +304,7 @@ namespace b3d::render
 
 	void GpuBuffer::SetAllocation(const GpuAllocation& allocation, GpuObjectCreateFlags flags)
 	{
-		if(!B3D_ENSURE_LOG(!mInformation.Flags.IsSet(GpuBufferFlag::Bindless), "Cannot move bindless buffer '{0}'. Bindless buffers stay at a fixed location.", mName))
+		if(!B3D_ENSURE_LOG(!mInformation.Flags.IsSet(GpuBufferFlag::Bindless), "Cannot move bindless buffer '{0}' to an allocation. Bindless buffers keep their contents when they move.", mName))
 			return;
 
 		if(!B3D_ENSURE_LOG(allocation.HasMemory() || allocation.IsPending(), "Cannot move buffer '{0}' to an empty allocation.", mName))
@@ -313,6 +316,36 @@ namespace b3d::render
 		mRequestedAllocation = allocation;
 		if(IsInitialized())
 			RecreateInternalBuffer();
+	}
+
+	void GpuBuffer::Relocate(GpuBuffer& target)
+	{
+		B3D_ASSERT(!HasFixedLocation() && target.HasFixedLocation());
+
+		IGpuResource* const previousNativeResource = GetGpuResource();
+		const GpuAllocation allocation = target.mCurrentAllocation;
+		const GpuAllocation targetAllocation = mCurrentAllocation;
+
+		// The registration of the old allocation goes before the target can free it
+		SetCurrentAllocation(GpuAllocation());
+		SwapInternalBuffer(target);
+		SetCurrentAllocation(allocation);
+		target.SetCurrentAllocation(targetAllocation);
+
+		if(previousNativeResource != nullptr && GetGpuResource() != nullptr)
+			mBindlessSlots.Retarget(*previousNativeResource, *GetGpuResource());
+	}
+
+	void GpuBuffer::SetCurrentAllocation(const GpuAllocation& allocation)
+	{
+		if(mIsAllocationOwner)
+			mCurrentAllocation.Allocator->SetAllocationOwner(mCurrentAllocation, GpuAllocationOwner());
+
+		mCurrentAllocation = allocation;
+		mIsAllocationOwner = !HasFixedLocation() && allocation.IsOwned() && allocation.Allocator->SupportsDefragmentation();
+
+		if(mIsAllocationOwner)
+			allocation.Allocator->SetAllocationOwner(allocation, GpuAllocationOwner(*this));
 	}
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
@@ -436,7 +469,8 @@ namespace b3d::render
 		if(flags.IsSet(GpuBufferWriteFlag::NoOverwrite))
 			mapOptions |= GpuMapOption::NoOverwrite;
 
-		const bool canDiscardBuffer = (flags.IsSet(GpuBufferWriteFlag::Discard) || (offset == 0 && length == buffer->GetTotalSize())) && !buffer->HasFixedLocation();
+		const bool canDiscardBuffer = (flags.IsSet(GpuBufferWriteFlag::Discard) || (offset == 0 && length == buffer->GetTotalSize())) && !buffer->HasFixedLocation()
+			&& !gpuBufferInformation.Flags.IsSet(GpuBufferFlag::Bindless);
 
 		// Check is the GPU currently reading or writing from the buffer
 		const GpuQueueMask useMask = buffer->GetUseMask(GpuAccessFlag::Read | GpuAccessFlag::Write);

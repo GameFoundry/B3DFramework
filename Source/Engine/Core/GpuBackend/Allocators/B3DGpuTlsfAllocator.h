@@ -30,7 +30,7 @@ namespace b3d
 	 * the heap index and pool node index stored in the allocation's two strategy-private slots.
 	 *
 	 * **Threading.** When ThreadPolicy is ThreadSafe (the default), every public entry point — including
-	 * TryAllocate, Free, FreeAndReclaim, ReclaimUnused, Defrag, SetAllocationOwner and the diagnostic accessors —
+	 * TryAllocate, Free, FreeAndReclaim, ReclaimUnused, PlanDefragmentation, SetAllocationOwner and the diagnostic accessors —
 	 * acquires the allocator-wide mutex inherited from TGpuAllocator. When ThreadPolicy is ThreadUnsafe,
 	 * the locking compiles out and the caller is responsible for external synchronization.
 	 *
@@ -84,20 +84,24 @@ namespace b3d
 		 *  @{
 		 */
 
-		bool TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, IGpuResource* owner, GpuAllocation& out);
+		bool TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, GpuAllocation& out);
 		void FreeImpl(GpuAllocation& allocation);
 		void FreeAndReclaimImpl(u32 heapIndex, u32 nodeIndex);
 
-		/**
-		 * Stamps an IGpuResource owner onto a previously-allocated slot. Used by callers that can't
-		 * pass the owner at TryAllocate time (e.g. backends where the allocation is performed before
-		 * the IGpuResource wrapper exists, then the wrapper registers itself post-construction).
-		 * Pass nullptr to clear the owner — the slot remains live but becomes ineligible for defrag.
-		 */
-		void SetAllocationOwner(const GpuAllocation& allocation, IGpuResource* owner);
+		/** @copydoc IGpuAllocator::SetAllocationOwner */
+		void SetAllocationOwner(const GpuAllocation& allocation, GpuAllocationOwner owner) override;
 
-		/** TLSF tracks per-allocation owners and relocates allocations during Defrag. */
+		/** @copydoc IGpuAllocator::SupportsDefragmentation */
 		bool SupportsDefragmentation() const override { return true; }
+
+		/**
+		 * @copydoc IGpuAllocator::PlanDefragmentation
+		 *
+		 * Heaps drain from the highest index, each from its highest offset. An allocation moves to a lower offset in its own
+		 * heap or into a lower-index heap, with the alignment it was allocated with.
+		 */
+		void PlanDefragmentation(const GpuDefragmentationBudget& budget, const Function<bool(GpuAllocationOwner)>& fnIsMovable,
+			TArray<GpuAllocationMove>& outMoves) override;
 
 		/** @} */
 
@@ -119,68 +123,16 @@ namespace b3d
 
 		/** @} */
 
-		/** @name Defragmentation.
-		 *  @{
-		 */
-
-		/** Per-call budget for Defrag. Soft caps that stop the walk early when exceeded. */
-		struct DefragmentationInfo
-		{
-			/** Maximum number of bytes copied per call. 0 = unlimited. */
-			u64 MaxBytesPerCall = 32ull * 1024 * 1024;
-
-			/** Maximum number of moves per call. 0 = unlimited. */
-			u32 MaxAllocationsPerCall = 0;
-		};
-
-		/** Counters reported by Defrag. */
-		struct DefragmentationStats
-		{
-			/** Number of candidate slots that passed eligibility filtering and where a move was attempted. */
-			u32 MovesAttempted = 0;
-
-			/** Number of moves where a destination slot was successfully reserved. */
-			u32 MovesCompleted = 0;
-
-			/** Total bytes covered by completed moves. */
-			u64 BytesMoved = 0;
-
-			/** True if either of the DefragmentationInfo budgets aborted the walk early. */
-			bool BudgetExhausted = false;
-		};
-
-		/**
-		 * Compacts live allocations by moving them into lower-offset / lower-index slots.
-		 * Every tracked allocation (non-null owner) is a candidate.
-		 *
-		 * @param commandBuffer	Command buffer the consumer's recreate-and-copy path records into.
-		 * @param info			Soft per-call budgets.
-		 * @return				Counters for moves attempted / completed and budget-exhausted state.
-		 */
-		DefragmentationStats Defrag(render::GpuCommandBuffer& commandBuffer, const DefragmentationInfo& info = {});
-
-		/** @} */
-
 	private:
 		using InternalAllocation = typename InternalAllocator::Allocation;
 		using Heap = typename InternalAllocator::Heap;
 
-		/** (heap, node) pair tracked across a Defrag() pass for end-of-pass DefragDestination flag clear. */
+		/** (heap, node) pair of a destination reserved in a PlanDefragmentation() pass, flagged until the pass ends. */
 		struct DefragDestinationKey
 		{
 			u32 HeapIndex;
 			u32 NodeIndex;
 		};
-
-		/**
-		 * Reserves a destination slot for the live allocation at @p sourceNodeIndex, dispatches the
-		 * consumer's MoveAllocation, and (under FreeDeferralMode::FrameTracker) retires the source
-		 * allocation against the current frame index. Under FreeDeferralMode::ResourceLifecycle the
-		 * source slot is left untracked and freed by the consumer's destructor. Returns true on a
-		 * successful move and writes the chosen destination heap and node indices to the out
-		 * parameters; false if no destination slot was available within @p sourceHeapIndex inclusive.
-		 */
-		bool TryMoveAllocation(u32 sourceNodeIndex, u32 sourceHeapIndex, render::GpuCommandBuffer& commandBuffer, u32& outDestinationHeapIndex, u32& outDestinationNodeIndex);
 
 		InternalAllocator mInternal;
 		GpuAllocatorFreeDeferralMode mDeferralMode;

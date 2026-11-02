@@ -216,6 +216,8 @@ namespace b3d
 			if (kind == TlsfAllocationKind::NonLinear)
 				allocated.Flags |= NodeFlag::NonLinear;
 
+			allocated.Alignment = alignment;
+
 			// Reset the opaque owner tag — recycled pool slots may carry a stale one. Live nodes are
 			// untracked until the orchestrator explicitly stamps an owner.
 			allocated.Owner = nullptr;

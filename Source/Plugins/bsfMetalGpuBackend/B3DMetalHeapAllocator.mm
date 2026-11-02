@@ -282,7 +282,7 @@ namespace b3d
 			const MTLSizeAndAlign sizeAndAlign = [device heapBufferSizeAndAlignWithLength:length options:options];
 
 			GpuAllocation allocation;
-			if (allocator.TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align, GpuResourceKind::Linear, nullptr, allocation))
+			if (allocator.TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align, GpuResourceKind::Linear, allocation))
 			{
 				MetalGpuHeap& heap = ToMetalGpuHeap(allocation.Heap);
 				if (heap.MemoryType == memoryType)
@@ -351,7 +351,7 @@ namespace b3d
 			const MTLSizeAndAlign sizeAndAlign = [device heapTextureSizeAndAlignWithDescriptor:descriptor];
 
 			GpuAllocation allocation;
-			if (allocator.TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align, GpuResourceKind::NonLinear, nullptr, allocation))
+			if (allocator.TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align, GpuResourceKind::NonLinear, allocation))
 			{
 				MetalGpuHeap& heap = ToMetalGpuHeap(allocation.Heap);
 				id<MTLTexture> texture = [heap.Heap newTextureWithDescriptor:descriptor offset:allocation.Offset];

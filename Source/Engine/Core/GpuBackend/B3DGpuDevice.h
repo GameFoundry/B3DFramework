@@ -16,6 +16,7 @@
 
 #include "B3DGpuSplitBarrier.h"
 #include "B3DGpuBindlessHeap.h"
+#include "B3DGpuMemoryDefragmenter.h"
 
 namespace b3d::render
 {
@@ -133,14 +134,8 @@ namespace b3d
 		 */
 		void EndFrame();
 
-		/**
-		 * Runs an incremental defragmentation pass over the device's persistent GPU memory allocators,
-		 * recording the relocation copies into @p gpuContext's transfer command buffer. 
-		 * No-op on backends without defragmentation support. Render thread only.
-		 *
-		 * @param	gpuContext	Work context whose transfer command buffer receives the relocation copies.
-		 */
-		virtual void RunDefragPass(GpuWorkContext& gpuContext) {}
+		/** Returns the subsystem that moves textures and buffers in persistent GPU memory. */
+		GpuMemoryDefragmenter& GetMemoryDefragmenter() { return mMemoryDefragmenter; }
 
 		/************************************************************************/
 		/* 								CREATION METHODS                   		*/
@@ -208,6 +203,12 @@ namespace b3d
 		 * GetMemoryRequirements(). Thread safe.
 		 */
 		virtual IGpuAllocator& GetPersistentAllocator(u32 memoryType) = 0;
+
+		/**
+		 * Appends every persistent allocator of the device created so far to @p outAllocators, including those of memory not reported by
+		 * GetMemoryRequirements(), such as suballocated buffer pages. Thread safe.
+		 */
+		virtual void GetPersistentAllocators(TArray<IGpuAllocator*>& outAllocators) = 0;
 
 		/**
 		 * Creates a new sampler state, or returns an existing one if one with the same create information was already created.
@@ -466,6 +467,7 @@ namespace b3d
 
 	private:
 		TArray<IGpuTransientHeapPool*> mTransientHeapPools; /**< Owned. */
+		GpuMemoryDefragmenter mMemoryDefragmenter;
 	};
 
 	/** @} */

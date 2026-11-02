@@ -56,8 +56,8 @@ namespace
 	}
 }
 
-VulkanImage::VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& createInformation, VkImage image, VulkanAllocationResult allocation, VulkanTexture* parent)
-	: TVulkanResource<IGpuImageResource>(owner, createInformation.CreateInfo.sharingMode == VK_SHARING_MODE_CONCURRENT, createInformation.DebugName, createInformation.FaceCount, createInformation.MipLevelCount, GetFullAspectFlags(createInformation.Usage, createInformation.Format)), mImage(image), mAllocation(allocation), mParent(parent), mMappedMemory(allocation.MappedMemory), mUsage(createInformation.Usage), mOwnsImage(createInformation.OwnsImage), mIsShaderReadAllowed(createInformation.IsShaderReadAllowed), mDepthSliceCount(createInformation.DepthSliceCount), mTextureType(createInformation.Type)
+VulkanImage::VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& createInformation, VkImage image, VulkanAllocationResult allocation)
+	: TVulkanResource<IGpuImageResource>(owner, createInformation.CreateInfo.sharingMode == VK_SHARING_MODE_CONCURRENT, createInformation.DebugName, createInformation.FaceCount, createInformation.MipLevelCount, GetFullAspectFlags(createInformation.Usage, createInformation.Format)), mImage(image), mAllocation(allocation), mMappedMemory(allocation.MappedMemory), mUsage(createInformation.Usage), mOwnsImage(createInformation.OwnsImage), mIsShaderReadAllowed(createInformation.IsShaderReadAllowed), mDepthSliceCount(createInformation.DepthSliceCount), mTextureType(createInformation.Type)
 {
 	mImageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	mImageViewCI.pNext = nullptr;
@@ -109,19 +109,6 @@ VulkanImage::~VulkanImage()
 		vkDestroyImage(vkDevice, mImage, gVulkanAllocator);
 		device.FreeMemory(mAllocation);
 	}
-}
-
-IGpuResource* VulkanImage::MoveAllocation(render::GpuCommandBuffer& commandBuffer, const GpuAllocation& newAllocation)
-{
-	B3D_ASSERT(mParent != nullptr && "VulkanImage::MoveAllocation invoked on an untracked wrapper (no parent VulkanTexture).");
-	B3D_ASSERT(mParent->GetVulkanResource() == this && "Parent's mImage no longer points at this wrapper — proxy invariant broken.");
-
-	VulkanImage* newImage = mParent->RelocateInternalTexture(newAllocation, commandBuffer);
-
-	// Destroy self
-	Destroy();
-
-	return newImage;
 }
 
 void VulkanImage::Destroy()
@@ -552,10 +539,10 @@ VulkanImage* VulkanTexture::CreateImage()
 {
 	VulkanImageCreateInformation imageInfo = BuildImageCreateInformation();
 
-	// Textures participate in defragmentation only when they allocate from an allocator that supports it, and don't need a fixed location
-	VulkanTexture* const proxyParent = !HasFixedLocation() && mRequestedAllocation.Allocator->SupportsDefragmentation() ? this : nullptr;
+	GpuAllocation allocation;
+	VulkanImage* const vulkanImage = mGpuDevice.CreateImage(imageInfo, mRequestedAllocation, mKind, allocation);
+	SetCurrentAllocation(allocation);
 
-	VulkanImage* const vulkanImage = mGpuDevice.CreateImage(imageInfo, mRequestedAllocation, mKind, proxyParent);
 	if (vulkanImage != nullptr)
 		vulkanImage->SetName(mName);
 
@@ -582,62 +569,6 @@ VulkanImageCreateInformation VulkanTexture::BuildImageCreateInformation() const
 	return imageInfo;
 }
 
-void VulkanTexture::CopyImageToImage(VulkanGpuCommandBuffer& commandBuffer, VulkanImage* sourceImage, VulkanImage* destinationImage)
-{
-	const u32 faceCount = mProperties.GetFaceCount();
-	const u32 mipCount = mProperties.MipMapCount + 1;
-
-	u32 mipWidth = mProperties.Width;
-	u32 mipHeight = mProperties.Height;
-	u32 mipDepth = mProperties.Depth;
-
-	VkImageCopy *const imageRegions = B3DStackAllocate<VkImageCopy>(mipCount);
-
-	for(u32 i = 0; i < mipCount; i++)
-	{
-		VkImageCopy& imageRegion = imageRegions[i];
-
-		imageRegion.srcOffset = { 0, 0, 0 };
-		imageRegion.dstOffset = { 0, 0, 0 };
-		imageRegion.extent = { mipWidth, mipHeight, mipDepth };
-		imageRegion.srcSubresource.baseArrayLayer = 0;
-		imageRegion.srcSubresource.layerCount = faceCount;
-		imageRegion.srcSubresource.mipLevel = i;
-		imageRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		imageRegion.dstSubresource.baseArrayLayer = 0;
-		imageRegion.dstSubresource.layerCount = faceCount;
-		imageRegion.dstSubresource.mipLevel = i;
-		imageRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-
-		if(mipWidth != 1) mipWidth /= 2;
-		if(mipHeight != 1) mipHeight /= 2;
-		if(mipDepth != 1) mipDepth /= 2;
-	}
-
-	GpuTextureSubresourceRange range;
-	range.AspectMask = GpuTextureAspectFlag::Color;
-	range.BaseArrayLayer = 0;
-	range.ArrayLayerCount = faceCount;
-	range.BaseMipLevel = 0;
-	range.MipLevelCount = mipCount;
-
-	GpuImageLayout transferSourceLayout, transferDestinationLayout;
-	if(mUsesGeneralLayout)
-	{
-		transferSourceLayout = GpuImageLayout::General;
-		transferDestinationLayout = GpuImageLayout::General;
-	}
-	else
-	{
-		transferSourceLayout = GpuImageLayout::TransferSource;
-		transferDestinationLayout = GpuImageLayout::TransferDestination;
-	}
-
-	commandBuffer.CopyImageToImage(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, range, range, mipCount, imageRegions);
-
-	B3DStackFree(imageRegions);
-}
-
 void VulkanTexture::RecreateInternalTexture()
 {
 	VulkanImage* const newImage = CreateImage();
@@ -646,25 +577,11 @@ void VulkanTexture::RecreateInternalTexture()
 	mMappedMemory = mImage->GetMappedMemory();
 }
 
-VulkanImage* VulkanTexture::RelocateInternalTexture(const GpuAllocation& newAllocation, render::GpuCommandBuffer& commandBuffer)
+void VulkanTexture::SwapInternalTexture(Texture& other)
 {
-	VulkanImageCreateInformation imageInfo = BuildImageCreateInformation();
-
-	VulkanImage* const oldImage = mImage;
-
-	VulkanImage* newImage = mGpuDevice.CreateImage(imageInfo, newAllocation, mKind, this);
-	if (newImage != nullptr)
-		newImage->SetName(mName);
-
-	// Record the GPU copy from old → new on the supplied command buffer. CopyImageToImage handles all
-	// subresources at once and emits the appropriate layout transitions.
-	auto& vulkanCb = static_cast<VulkanGpuCommandBuffer&>(commandBuffer);
-	CopyImageToImage(vulkanCb, oldImage, newImage);
-
-	mImage = newImage;
-	mMappedMemory = newImage->GetMappedMemory();
-
-	return newImage;
+	VulkanTexture& vulkanOther = static_cast<VulkanTexture&>(other);
+	std::swap(mImage, vulkanOther.mImage);
+	std::swap(mMappedMemory, vulkanOther.mMappedMemory);
 }
 
 render::GpuTextureMappedScope VulkanTexture::Map(u32 mipLevel, u32 arrayLayer, GpuMapOptions options)

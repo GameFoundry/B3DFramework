@@ -356,6 +356,12 @@ namespace b3d
 			return mHeapAllocator->GetAllocator(memoryType);
 		}
 
+		void MetalGpuDevice::GetPersistentAllocators(TArray<IGpuAllocator*>& outAllocators)
+		{
+			for (u32 memoryType = 0; memoryType < MetalHeapAllocator::kMemoryTypeCount; memoryType++)
+				outAllocators.Add(&mHeapAllocator->GetAllocator(memoryType));
+		}
+
 		TShared<Texture> MetalGpuDevice::CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags)
 		{
 			MetalTexture* rawTexture = new(B3DAllocate<MetalTexture>()) MetalTexture(*this, createInformation, allocation, flags);
