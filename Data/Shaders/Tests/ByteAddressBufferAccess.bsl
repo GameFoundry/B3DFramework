@@ -17,11 +17,14 @@ shader ByteAddressBufferAccess
 
 			if(threadId.x == 0)
 			{
+				Output.Store2(20, Input.Load2(4));
+
+#ifndef METAL
+				// The Metal backend doesn't provide the buffer sizes GetDimensions() needs
 				uint inputSize;
 				Input.GetDimensions(inputSize);
-
-				Output.Store2(20, Input.Load2(4));
 				Output.Store(28, inputSize);
+#endif
 			}
 		}
 	};

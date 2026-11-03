@@ -214,7 +214,9 @@ void GpuBackendTestSuite::TestByteAddressBufferAccess()
 		if(!mapping.IsValid())
 			return;
 
-		const u32 expected[kOutputWordCount] = { 101, 102, 103, 104, 4, 101, 102, kInputWordCount * sizeof(u32), 13 };
+		// The shader skips the buffer size query on Metal, leaving its word zeroed
+		const bool isMetal = String(GpuBackend::Instance().GetBackendName()) == "bsfMetalGpuBackend";
+		const u32 expected[kOutputWordCount] = { 101, 102, 103, 104, 4, 101, 102, isMetal ? 0u : kInputWordCount * (u32)sizeof(u32), 13 };
 		const u32* actual = static_cast<const u32*>(mapping.GetMappedMemory());
 		for(u32 wordIndex = 0; wordIndex < kOutputWordCount; wordIndex++)
 			B3D_TEST_ASSERT_MSG(actual[wordIndex] == expected[wordIndex], StringUtility::Format("Output word {0}: {1}, expected {2}.", wordIndex, actual[wordIndex], expected[wordIndex]))
