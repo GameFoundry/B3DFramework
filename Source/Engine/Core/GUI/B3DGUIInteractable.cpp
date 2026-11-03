@@ -192,6 +192,8 @@ void GUIInteractable::NotifyDisabledChanged()
 
 void GUIInteractable::SetStateFlags(GUIElementStates flags)
 {
+	const GUIElementStates previousStateFlags = mStateFlags;
+
 	// A state can bring in its own padding, border and font metrics, so the optimal size needs re-evaluating
 	const GUILogicalSize originalSize = mSizeConstraints.CalculateConstrainedOptimalSize(CalculateUnconstrainedOptimalSize());
 
@@ -204,6 +206,12 @@ void GUIInteractable::SetStateFlags(GUIElementStates flags)
 		MarkLayoutAsDirty();
 	else
 		MarkContentAsDirty();
+
+	// Elements below only see the states that some selector asks for on an ancestor matching this element. A change to any
+	// of those changes the key they build their own style keys on, even if there are no elements below yet.
+	const GUIElementStates statesAffectingDescendants = GetStatesAffectingDescendants();
+	if((GUIStyleSheetStateRulesets::NormalizeState(previousStateFlags) & statesAffectingDescendants) != (GUIStyleSheetStateRulesets::NormalizeState(mStateFlags) & statesAffectingDescendants))
+		RefreshStyleRecursive();
 }
 
 TShared<GUIContextMenu> GUIInteractable::GetContextMenu() const

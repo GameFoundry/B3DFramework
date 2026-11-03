@@ -2,12 +2,17 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DGUIStyleSheetTestSuite.h"
 
+#include "GUI/B3DGUIElementContainer.h"
+#include "GUI/B3DGUILabel.h"
+#include "GUI/B3DGUILayoutY.h"
 #include "GUI/B3DGUIUtility.h"
+#include "GUI/B3DGUIWidget.h"
 #include "GUI/StyleSheet/B3DGUIStyleSheetParser.h"
 #include "Resources/B3DBuiltinResources.h"
 #include "Text/B3DFontFamily.h"
 #include "Text/B3DFontManager.h"
 #include "Resources/B3DResources.h"
+#include "Scene/B3DSceneObject.h"
 #include "String/B3DSourceCode.h"
 
 using namespace b3d;
@@ -114,6 +119,97 @@ namespace
 
 		return stateRulesets;
 	}
+
+	/** Style sheet exercising multiple classes on one element and rules keyed on the state of an ancestor. */
+	constexpr const char* kStyleClassSource =
+		"label.Entry\n"
+		"{\n"
+		"    padding: 1px 1px 1px 1px;\n"
+		"}\n"
+		"\n"
+		"label.Entry.Alternate\n"
+		"{\n"
+		"    padding: 2px 2px 2px 2px;\n"
+		"}\n"
+		"\n"
+		"container.Row:hover label\n"
+		"{\n"
+		"    padding: 7px 7px 7px 7px;\n"
+		"}\n"
+		"\n"
+		"container.Row:checked label.Subtitle\n"
+		"{\n"
+		"    padding: 9px 9px 9px 9px;\n"
+		"}\n";
+
+	/** Minimal styleable, interactive element that can hold child elements. */
+	class TestContainer final : public GUIElementContainer
+	{
+	public:
+		explicit TestContainer(const String& styleClass)
+			: GUIElementContainer(GUISizeConstraints(), styleClass)
+		{ }
+
+		/** Makes @p element a child of the container, removing it from its previous parent. */
+		void AddChild(GUIElement* element) { RegisterChildElement(element); }
+
+		const String& GetStyleSheetId() const override { return StyleId; }
+
+		String StyleId; /**< Id used for style lookup. Only read when the style keys are calculated. */
+	};
+
+	/**
+	 * Same rules as kStyleClassSource, except every descendant combinator is turned into a child combinator, which the
+	 * parser has no syntax for.
+	 */
+	TShared<GUIStyleSheet> CreateParentOfStyleSheet()
+	{
+		const TShared<GUIStyleSheet> parsedStyleSheet = ParseStyleSheet(kStyleClassSource);
+		if(parsedStyleSheet == nullptr)
+			return nullptr;
+
+		TArray<GUIStyleSheetRuleset> rulesets = parsedStyleSheet->GetRulesets();
+		for(auto& ruleset : rulesets)
+		{
+			for(auto& selector : ruleset.SelectorList.Selectors)
+			{
+				if(selector.CombinatorType == GUIStyleSheetCombinatorType::AncestorOf)
+					selector.CombinatorType = GUIStyleSheetCombinatorType::ParentOf;
+			}
+		}
+
+		return GUIStyleSheet::CreateShared(std::move(rulesets));
+	}
+
+	/** Holds a scene object and GUI widget that GUI elements can be parented to, so that they resolve styles from a cascade. */
+	struct TestWidgetScope
+	{
+		explicit TestWidgetScope(const TShared<GUIStyleSheet>& styleSheet)
+		{
+			Cascade = B3DMakeShared<GUIStyleSheetCascade>();
+			Cascade->RegisterStyleSheet(B3DStaticResourceCast<GUIStyleSheet>(GetResources().CreateResourceHandle(styleSheet)), GUIStyleSheet::kBuiltinImportance);
+
+			SceneObject = SceneObject::Create("GUIStyleSheetTestWidget");
+			Widget = SceneObject->AddComponent<GUIWidget>(HCamera()); // No camera, so the widget never renders - the test only needs it to carry the style sheet cascade
+			Widget->SetStyleSheetCascade(Cascade);
+		}
+
+		~TestWidgetScope()
+		{
+			if(SceneObject != nullptr)
+				SceneObject->Destroy(true);
+		}
+
+		TestWidgetScope(const TestWidgetScope&) = delete;
+		TestWidgetScope& operator=(const TestWidgetScope&) = delete;
+
+		/** Parents an element tree to the widget, which is what makes it resolve its styles from the cascade. */
+		void Attach(GUIElement* element) const { element->ChangeParentWidget(Widget.Get()); }
+
+		TShared<GUIStyleSheetCascade> Cascade;
+		HSceneObject SceneObject;
+		HGUIWidget Widget;
+	};
 } // anonymous namespace
 
 GUIStyleSheetTestSuite::GUIStyleSheetTestSuite()
@@ -132,6 +228,14 @@ GUIStyleSheetTestSuite::GUIStyleSheetTestSuite()
 	B3D_ADD_TEST(GUIStyleSheetTestSuite::TestFontFamilyLoadsFacesOnDemand)
 	B3D_ADD_TEST(GUIStyleSheetTestSuite::TestFontStyleParsing)
 	B3D_ADD_TEST(GUIStyleSheetTestSuite::TestTextMetricsAffectMeasuredSize)
+	B3D_ADD_TEST(GUIStyleSheetTestSuite::TestMultipleStyleClassResolution)
+	B3D_ADD_TEST(GUIStyleSheetTestSuite::TestResolvedRulesetCaching)
+	B3D_ADD_TEST(GUIStyleSheetTestSuite::TestAncestorStateRestylesDescendants)
+	B3D_ADD_TEST(GUIStyleSheetTestSuite::TestStateChangeOnlyRestylesWhenRuleDependsOnIt)
+	B3D_ADD_TEST(GUIStyleSheetTestSuite::TestStyleKeyDistinguishesElementParts)
+	B3D_ADD_TEST(GUIStyleSheetTestSuite::TestStyleKeyIgnoresUnobservedAncestors)
+	B3D_ADD_TEST(GUIStyleSheetTestSuite::TestDescendantsFollowAncestorChanges)
+	B3D_ADD_TEST(GUIStyleSheetTestSuite::TestParentOfCombinatorKeepsChildLevel)
 }
 
 void GUIStyleSheetTestSuite::TestChainedPseudoClassParsing()
@@ -580,4 +684,400 @@ void GUIStyleSheetTestSuite::TestTextMetricsAffectMeasuredSize()
 
 	B3D_TEST_ASSERT(spacedSize.Height > defaultSize.Height)
 	B3D_TEST_ASSERT(spacedSize.Width == defaultSize.Width)
+}
+
+void GUIStyleSheetTestSuite::TestMultipleStyleClassResolution()
+{
+	const TShared<GUIStyleSheet> styleSheet = ParseStyleSheet(kStyleClassSource);
+	B3D_TEST_ASSERT(styleSheet != nullptr)
+	if(styleSheet == nullptr)
+		return;
+
+	const TestWidgetScope widgetScope(styleSheet);
+
+	GUILabel* const label = GUILabel::Create(GUIContent(HString("Entry")), "Entry");
+	widgetScope.Attach(label);
+
+	B3D_TEST_ASSERT(label->GetStyleSheetClass() == "Entry")
+	B3D_TEST_ASSERT(label->GetStyleSheetClasses().Size() == 1)
+	B3D_TEST_ASSERT(label->GetPadding().Left == 1)
+
+	// The second class brings in the more specific `label.Entry.Alternate` rule
+	label->AddStyleClass("Alternate");
+	B3D_TEST_ASSERT(label->GetStyleSheetClasses().Size() == 2)
+	B3D_TEST_ASSERT(label->HasStyleClass("Entry") && label->HasStyleClass("Alternate"))
+	B3D_TEST_ASSERT(label->GetPadding().Left == 2)
+
+	// Adding the same class twice must not duplicate it, and toggling it off must restore the previous look
+	label->AddStyleClass("Alternate");
+	B3D_TEST_ASSERT(label->GetStyleSheetClasses().Size() == 2)
+
+	label->ToggleStyleClass("Alternate", false);
+	B3D_TEST_ASSERT(label->GetStyleSheetClasses().Size() == 1)
+	B3D_TEST_ASSERT(!label->HasStyleClass("Alternate"))
+	B3D_TEST_ASSERT(label->GetPadding().Left == 1)
+
+	// Setting the single-class property replaces every class
+	label->AddStyleClass("Alternate");
+	label->SetStyleSheetClass("Alternate");
+	B3D_TEST_ASSERT(label->GetStyleSheetClasses().Size() == 1)
+	B3D_TEST_ASSERT(label->GetStyleSheetClass() == "Alternate")
+	B3D_TEST_ASSERT(label->GetPadding().Left == 0)
+
+	label->ClearStyleClasses();
+	B3D_TEST_ASSERT(label->GetStyleSheetClasses().Empty())
+	B3D_TEST_ASSERT(label->GetStyleSheetClass().empty())
+
+	label->Destroy();
+}
+
+void GUIStyleSheetTestSuite::TestResolvedRulesetCaching()
+{
+	const TShared<GUIStyleSheet> styleSheet = ParseStyleSheet(kStyleClassSource);
+	B3D_TEST_ASSERT(styleSheet != nullptr)
+	if(styleSheet == nullptr)
+		return;
+
+	const TestWidgetScope widgetScope(styleSheet);
+	GUIStyleSheetCascade& cascade = *widgetScope.Cascade;
+
+	GUILabel* const firstLabel = GUILabel::Create(GUIContent(HString("First")), "Entry");
+	GUILabel* const secondLabel = GUILabel::Create(GUIContent(HString("Second")), "Entry");
+	widgetScope.Attach(firstLabel);
+	widgetScope.Attach(secondLabel);
+
+	cascade.ResetResolvedRulesetCache();
+	cascade.ResetResolutionStatistics();
+
+	// Two elements that look the same to every selector must share one resolution
+	const TShared<const GUIStyleSheetStateRulesets> firstRulesets = cascade.BuildStateRulesets(*firstLabel);
+	const TShared<const GUIStyleSheetStateRulesets> secondRulesets = cascade.BuildStateRulesets(*secondLabel);
+
+	B3D_TEST_ASSERT(firstRulesets == secondRulesets)
+	B3D_TEST_ASSERT(cascade.GetResolutionStatistics().RequestCount == 2)
+	B3D_TEST_ASSERT(cascade.GetResolutionStatistics().FullResolutionCount == 1)
+	B3D_TEST_ASSERT(cascade.GetResolutionStatistics().GetCacheHitCount() == 1)
+
+	// Toggling between two class sets must flip between two cached results, resolving each only once
+	firstLabel->AddStyleClass("Alternate");
+	const TShared<const GUIStyleSheetStateRulesets> alternateRulesets = cascade.BuildStateRulesets(*firstLabel);
+	B3D_TEST_ASSERT(alternateRulesets != firstRulesets)
+
+	const u64 fullResolutionsAfterFirstToggle = cascade.GetResolutionStatistics().FullResolutionCount;
+
+	for(u32 toggleIndex = 0; toggleIndex < 8; ++toggleIndex)
+	{
+		const bool isAlternate = (toggleIndex % 2) == 0;
+		firstLabel->ToggleStyleClass("Alternate", isAlternate);
+
+		const TShared<const GUIStyleSheetStateRulesets> toggledRulesets = cascade.BuildStateRulesets(*firstLabel);
+		B3D_TEST_ASSERT(toggledRulesets == (isAlternate ? alternateRulesets : firstRulesets))
+	}
+
+	B3D_TEST_ASSERT(cascade.GetResolutionStatistics().FullResolutionCount == fullResolutionsAfterFirstToggle)
+
+	// Registering another style sheet changes what every element resolves to, so the cache must be dropped
+	const HGUIStyleSheet extraStyleSheet = B3DStaticResourceCast<GUIStyleSheet>(GetResources().CreateResourceHandle(ParseChainedPseudoClassStyleSheet()));
+	widgetScope.Cascade->RegisterStyleSheet(extraStyleSheet, GUIStyleSheet::kUserImportance);
+	cascade.ResetResolutionStatistics();
+
+	cascade.BuildStateRulesets(*firstLabel);
+	B3D_TEST_ASSERT(cascade.GetResolutionStatistics().FullResolutionCount == 1)
+
+	firstLabel->Destroy();
+	secondLabel->Destroy();
+}
+
+void GUIStyleSheetTestSuite::TestAncestorStateRestylesDescendants()
+{
+	const TShared<GUIStyleSheet> styleSheet = ParseStyleSheet(kStyleClassSource);
+	B3D_TEST_ASSERT(styleSheet != nullptr)
+	if(styleSheet == nullptr)
+		return;
+
+	const TestWidgetScope widgetScope(styleSheet);
+
+	// The nested label sits below a layout, which is not a renderable, so restyling has to reach through it
+	TestContainer* const row = B3DNew<TestContainer>("Row");
+	GUILabel* const label = GUILabel::Create(GUIContent(HString("Entry")));
+	GUILabel* const subtitle = GUILabel::Create(GUIContent(HString("Subtitle")), "Subtitle");
+	GUILayoutY* const layout = GUILayoutY::Create();
+	GUILabel* const nestedLabel = layout->AddNewElement<GUILabel>(GUIContent(HString("Nested")));
+
+	row->AddChild(label);
+	row->AddChild(subtitle);
+	row->AddChild(layout);
+	widgetScope.Attach(row);
+
+	B3D_TEST_ASSERT(label->GetPadding().Left == 0)
+	B3D_TEST_ASSERT(nestedLabel->GetPadding().Left == 0)
+
+	// Hovering the container must restyle the labels inside it, not just the container
+	row->AddStateFlags(GUIElementState::Hover);
+	B3D_TEST_ASSERT(label->GetPadding().Left == 7)
+	B3D_TEST_ASSERT(subtitle->GetPadding().Left == 7)
+	B3D_TEST_ASSERT(nestedLabel->GetPadding().Left == 7)
+
+	// The more specific `container.Row:checked label.Subtitle` rule only reaches the label carrying the class
+	row->AddStateFlags(GUIElementState::Checked);
+	B3D_TEST_ASSERT(label->GetPadding().Left == 7)
+	B3D_TEST_ASSERT(subtitle->GetPadding().Left == 9)
+
+	row->RemoveStateFlags(GUIElementState::Hover | GUIElementState::Checked);
+	B3D_TEST_ASSERT(label->GetPadding().Left == 0)
+	B3D_TEST_ASSERT(subtitle->GetPadding().Left == 0)
+	B3D_TEST_ASSERT(nestedLabel->GetPadding().Left == 0)
+
+	row->Destroy();
+}
+
+void GUIStyleSheetTestSuite::TestStateChangeOnlyRestylesWhenRuleDependsOnIt()
+{
+	const TShared<GUIStyleSheet> styleSheet = ParseStyleSheet(kStyleClassSource);
+	B3D_TEST_ASSERT(styleSheet != nullptr)
+	if(styleSheet == nullptr)
+		return;
+
+	const TestWidgetScope widgetScope(styleSheet);
+	GUIStyleSheetCascade& cascade = *widgetScope.Cascade;
+
+	TestContainer* const row = B3DNew<TestContainer>("Row");
+	GUILabel* const rowLabel = GUILabel::Create(GUIContent(HString("Row")));
+	row->AddChild(rowLabel);
+
+	TestContainer* const plain = B3DNew<TestContainer>("Plain");
+	GUILabel* const plainLabel = GUILabel::Create(GUIContent(HString("Plain")));
+	plain->AddChild(plainLabel);
+
+	widgetScope.Attach(row);
+	widgetScope.Attach(plain);
+
+	// The states of both `container.Row` rules are merged, and nothing else depends on an ancestor state
+	const GUIElementStates rowStates = GUIElementState::Hover | GUIElementState::Checked;
+	B3D_TEST_ASSERT(cascade.MatchAncestorSelectors(*row).StatesAffectingDescendants == rowStates)
+	B3D_TEST_ASSERT(row->GetStatesAffectingDescendants() == rowStates)
+	B3D_TEST_ASSERT(plain->GetStatesAffectingDescendants() == GUIElementStates(GUIElementState::Normal))
+	B3D_TEST_ASSERT(rowLabel->GetStatesAffectingDescendants() == GUIElementStates(GUIElementState::Normal))
+
+	// No rule asks for a state on a `container.Plain`, so hovering it must not restyle its children
+	cascade.ResetResolutionStatistics();
+	plain->AddStateFlags(GUIElementState::Hover);
+	B3D_TEST_ASSERT(cascade.GetResolutionStatistics().RequestCount == 0)
+
+	// No rule asks for focus on a `container.Row`, so focusing it must not restyle its children either
+	row->AddStateFlags(GUIElementState::Focus);
+	B3D_TEST_ASSERT(cascade.GetResolutionStatistics().RequestCount == 0)
+
+	// Hover is asked for, so it restyles the label
+	row->AddStateFlags(GUIElementState::Hover);
+	B3D_TEST_ASSERT(cascade.GetResolutionStatistics().RequestCount > 0)
+	B3D_TEST_ASSERT(rowLabel->GetPadding().Left == 7)
+
+	// Once both looks were resolved, hovering again is answered from the cache
+	row->RemoveStateFlags(GUIElementState::Hover);
+	cascade.ResetResolutionStatistics();
+
+	row->AddStateFlags(GUIElementState::Hover);
+	B3D_TEST_ASSERT(cascade.GetResolutionStatistics().RequestCount > 0)
+	B3D_TEST_ASSERT(cascade.GetResolutionStatistics().FullResolutionCount == 0)
+	B3D_TEST_ASSERT(rowLabel->GetPadding().Left == 7)
+
+	row->Destroy();
+	plain->Destroy();
+}
+
+void GUIStyleSheetTestSuite::TestStyleKeyDistinguishesElementParts()
+{
+	const TShared<GUIStyleSheet> styleSheet = ParseStyleSheet(kStyleClassSource);
+	B3D_TEST_ASSERT(styleSheet != nullptr)
+	if(styleSheet == nullptr)
+		return;
+
+	const TestWidgetScope widgetScope(styleSheet);
+
+	// A class and an id of the same name are different things to the selectors
+	TestContainer* const withClass = B3DNew<TestContainer>("Shared");
+	TestContainer* const withId = B3DNew<TestContainer>("");
+	withId->StyleId = "Shared";
+
+	widgetScope.Attach(withClass);
+	widgetScope.Attach(withId);
+
+	B3D_TEST_ASSERT(withClass->GetStyleKey() != withId->GetStyleKey())
+
+	// Selectors only care which classes are present, not the order they were added in
+	TestContainer* const firstThenSecond = B3DNew<TestContainer>("First");
+	firstThenSecond->AddStyleClass("Second");
+
+	TestContainer* const secondThenFirst = B3DNew<TestContainer>("Second");
+	secondThenFirst->AddStyleClass("First");
+
+	widgetScope.Attach(firstThenSecond);
+	widgetScope.Attach(secondThenFirst);
+
+	B3D_TEST_ASSERT(firstThenSecond->GetStyleKey() == secondThenFirst->GetStyleKey())
+
+	withClass->Destroy();
+	withId->Destroy();
+	firstThenSecond->Destroy();
+	secondThenFirst->Destroy();
+}
+
+void GUIStyleSheetTestSuite::TestStyleKeyIgnoresUnobservedAncestors()
+{
+	const TShared<GUIStyleSheet> styleSheet = ParseStyleSheet(kStyleClassSource);
+	B3D_TEST_ASSERT(styleSheet != nullptr)
+	if(styleSheet == nullptr)
+		return;
+
+	const TestWidgetScope widgetScope(styleSheet);
+	GUIStyleSheetCascade& cascade = *widgetScope.Cascade;
+
+	GUILabel* const topLevelLabel = GUILabel::Create(GUIContent(HString("Top")));
+
+	TestContainer* const plain = B3DNew<TestContainer>("Plain");
+	GUILabel* const plainLabel = GUILabel::Create(GUIContent(HString("Plain")));
+	GUILayoutY* const layout = GUILayoutY::Create();
+	GUILabel* const nestedLabel = layout->AddNewElement<GUILabel>(GUIContent(HString("Nested")));
+	plain->AddChild(plainLabel);
+	plain->AddChild(layout);
+
+	TestContainer* const row = B3DNew<TestContainer>("Row");
+	GUILabel* const rowLabel = GUILabel::Create(GUIContent(HString("Row")));
+	row->AddChild(rowLabel);
+
+	TestContainer* const childless = B3DNew<TestContainer>("Plain");
+
+	widgetScope.Attach(topLevelLabel);
+	widgetScope.Attach(plain);
+	widgetScope.Attach(row);
+	widgetScope.Attach(childless);
+
+	// No selector can tell a label inside a plain container from one without a parent, however deep it sits
+	B3D_TEST_ASSERT(plainLabel->GetStyleKey() == topLevelLabel->GetStyleKey())
+	B3D_TEST_ASSERT(nestedLabel->GetStyleKey() == topLevelLabel->GetStyleKey())
+
+	// The row only becomes visible to the selectors of its children once it is in a state they ask for
+	B3D_TEST_ASSERT(rowLabel->GetStyleKey() == topLevelLabel->GetStyleKey())
+
+	row->AddStateFlags(GUIElementState::Hover);
+	B3D_TEST_ASSERT(rowLabel->GetStyleKey() != topLevelLabel->GetStyleKey())
+	B3D_TEST_ASSERT(rowLabel->GetPadding().Left == 7)
+
+	// Changing a class that no ancestor selector can observe restyles the container, but nothing below it
+	cascade.ResetResolutionStatistics();
+	childless->AddStyleClass("Other");
+	const u64 containerOnlyRequestCount = cascade.GetResolutionStatistics().RequestCount;
+
+	cascade.ResetResolutionStatistics();
+	plain->AddStyleClass("Other");
+	B3D_TEST_ASSERT(cascade.GetResolutionStatistics().RequestCount == containerOnlyRequestCount)
+
+	// Gaining the `Row` class makes the container match `container.Row`, but its children only see that once the container
+	// is in a state the rule asks for
+	cascade.ResetResolutionStatistics();
+	plain->AddStyleClass("Row");
+	B3D_TEST_ASSERT(cascade.GetResolutionStatistics().RequestCount == containerOnlyRequestCount)
+
+	plain->AddStateFlags(GUIElementState::Hover);
+	B3D_TEST_ASSERT(plainLabel->GetPadding().Left == 7)
+	B3D_TEST_ASSERT(nestedLabel->GetPadding().Left == 7)
+
+	topLevelLabel->Destroy();
+	plain->Destroy();
+	row->Destroy();
+	childless->Destroy();
+}
+
+void GUIStyleSheetTestSuite::TestDescendantsFollowAncestorChanges()
+{
+	const TShared<GUIStyleSheet> styleSheet = ParseStyleSheet(kStyleClassSource);
+	B3D_TEST_ASSERT(styleSheet != nullptr)
+	if(styleSheet == nullptr)
+		return;
+
+	const TestWidgetScope widgetScope(styleSheet);
+
+	TestContainer* const row = B3DNew<TestContainer>("Row");
+	TestContainer* const plain = B3DNew<TestContainer>("Plain");
+	GUILabel* const movedLabel = GUILabel::Create(GUIContent(HString("Moved")));
+	plain->AddChild(movedLabel);
+
+	widgetScope.Attach(row);
+	widgetScope.Attach(plain);
+
+	// The row has no children yet when it gets hovered, so a child added afterwards must still see the hover
+	row->AddStateFlags(GUIElementState::Hover);
+
+	GUILabel* const addedLabel = GUILabel::Create(GUIContent(HString("Added")));
+	row->AddChild(addedLabel);
+	B3D_TEST_ASSERT(addedLabel->GetPadding().Left == 7)
+
+	// Moving a label into the hovered row and back out restyles it each time
+	row->AddChild(movedLabel);
+	B3D_TEST_ASSERT(movedLabel->GetPadding().Left == 7)
+
+	plain->AddChild(movedLabel);
+	B3D_TEST_ASSERT(movedLabel->GetPadding().Left == 0)
+
+	// A disabled element cannot be hovered, so the elements below it lose the hovered look while the hover flag stays set
+	row->AddStateFlags(GUIElementState::Disabled);
+	B3D_TEST_ASSERT(addedLabel->GetPadding().Left == 0)
+
+	row->RemoveStateFlags(GUIElementState::Disabled);
+	B3D_TEST_ASSERT(addedLabel->GetPadding().Left == 7)
+
+	row->Destroy();
+	plain->Destroy();
+}
+
+void GUIStyleSheetTestSuite::TestParentOfCombinatorKeepsChildLevel()
+{
+	const TShared<GUIStyleSheet> styleSheet = CreateParentOfStyleSheet();
+	B3D_TEST_ASSERT(styleSheet != nullptr)
+	if(styleSheet == nullptr)
+		return;
+
+	const TestWidgetScope widgetScope(styleSheet);
+
+	TestContainer* const row = B3DNew<TestContainer>("Row");
+	GUILabel* const directLabel = GUILabel::Create(GUIContent(HString("Direct")));
+	TestContainer* const plain = B3DNew<TestContainer>("Plain");
+	GUILabel* const nestedLabel = GUILabel::Create(GUIContent(HString("Nested")));
+	TestContainer* const innerPlain = B3DNew<TestContainer>("Plain");
+	GUILabel* const deeperLabel = GUILabel::Create(GUIContent(HString("Deeper")));
+	row->AddChild(directLabel);
+	row->AddChild(plain);
+	plain->AddChild(nestedLabel);
+	plain->AddChild(innerPlain);
+	innerPlain->AddChild(deeperLabel);
+
+	GUILabel* const topLevelLabel = GUILabel::Create(GUIContent(HString("Top")));
+	TestContainer* const outerPlain = B3DNew<TestContainer>("Plain");
+	TestContainer* const outerInnerPlain = B3DNew<TestContainer>("Plain");
+	GUILabel* const unrelatedLabel = GUILabel::Create(GUIContent(HString("Unrelated")));
+	outerPlain->AddChild(outerInnerPlain);
+	outerInnerPlain->AddChild(unrelatedLabel);
+
+	widgetScope.Attach(row);
+	widgetScope.Attach(topLevelLabel);
+	widgetScope.Attach(outerPlain);
+	row->AddStateFlags(GUIElementState::Hover);
+
+	// `container.Row:hover > label` only reaches the label whose direct parent is the row
+	B3D_TEST_ASSERT(directLabel->GetPadding().Left == 7)
+	B3D_TEST_ASSERT(nestedLabel->GetPadding().Left == 0)
+
+	// No selector matches the plain container in between, but it still decides that the row is not the nested label's
+	// parent, so it cannot be left out of the style key
+	B3D_TEST_ASSERT(directLabel->GetStyleKey() != nestedLabel->GetStyleKey())
+
+	// Only the level right below the matched row has to be kept. Further levels, and containers away from any row, can
+	// be left out as with any other combinator.
+	B3D_TEST_ASSERT(deeperLabel->GetStyleKey() == nestedLabel->GetStyleKey())
+	B3D_TEST_ASSERT(unrelatedLabel->GetStyleKey() == topLevelLabel->GetStyleKey())
+
+	row->Destroy();
+	topLevelLabel->Destroy();
+	outerPlain->Destroy();
 }

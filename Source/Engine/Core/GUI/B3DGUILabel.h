@@ -37,7 +37,7 @@ namespace b3d
 		GUILabel(PrivatelyConstruct, const GUIContent& content, const String& styleClass, const GUISizeConstraints& dimensions);
 
 		GUILogicalSize CalculateUnconstrainedOptimalSize() const override;
-		const char* GetStyleSheetElement() const override { return kStyleSheetElementType; }
+		StringView GetStyleSheetElement() const override { return kStyleSheetElementType; }
 
 		/** @} */
 	protected:

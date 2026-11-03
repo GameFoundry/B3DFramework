@@ -38,17 +38,26 @@ const GUIStyleSheetRuleInformation GUIStyleSheetRuleInformation::kInvalid("Inval
 const Color GUIRenderable::kDisabledColor = Color(0.5f, 0.5f, 0.5f, 1.0f);
 
 GUIRenderable::GUIRenderable(String styleClass, const GUISizeConstraints& sizeConstraints)
-	: GUIElement(sizeConstraints), mStyleClass(std::move(styleClass))
+	: GUIElement(sizeConstraints)
 {
 	// Style is set to default here, and the proper one is assigned once GUI element
 	// is assigned to a parent (that's when the active GUI skin becomes known)
+	if(!styleClass.empty())
+		mStyleClasses.Add(std::move(styleClass));
 }
 
 GUIRenderable::GUIRenderable(const char* styleClass, const GUISizeConstraints& sizeConstraints)
-	: GUIElement(sizeConstraints), mStyleClass(styleClass ? styleClass : StringUtility::kBlank)
+	: GUIElement(sizeConstraints)
 {
 	// Style is set to default here, and the proper one is assigned once GUI element
 	// is assigned to a parent (that's when the active GUI skin becomes known)
+	if(styleClass != nullptr && styleClass[0] != '\0')
+		mStyleClasses.Add(String(styleClass));
+}
+
+const String& GUIRenderable::GetStyleSheetClass() const
+{
+	return mStyleClasses.Empty() ? StringUtility::kBlank : mStyleClasses[0];
 }
 
 bool GUIRenderable::IsUsingStyleSheets() const
@@ -91,8 +100,177 @@ void GUIRenderable::GetRenderElementVertexAndIndexData(u32 renderElementIndex, u
 
 void GUIRenderable::SetStyleSheetClass(const String& styleClass)
 {
-	mStyleClass = styleClass;
-	RefreshStyle();
+	TInlineArray<String, 1> newStyleClasses;
+	if(!styleClass.empty())
+		newStyleClasses.Add(styleClass);
+
+	SetStyleClasses(std::move(newStyleClasses));
+}
+
+bool GUIRenderable::HasStyleClass(const String& styleClass) const
+{
+	for(const auto& entry : mStyleClasses)
+	{
+		if(entry == styleClass)
+			return true;
+	}
+
+	return false;
+}
+
+void GUIRenderable::AddStyleClass(const String& styleClass)
+{
+	if(styleClass.empty() || HasStyleClass(styleClass))
+		return;
+
+	const bool wasLayoutOnly = IsLayoutOnly();
+
+	mStyleClasses.Add(styleClass);
+	NotifyStyleClassesChanged(wasLayoutOnly);
+}
+
+void GUIRenderable::RemoveStyleClass(const String& styleClass)
+{
+	for(auto it = mStyleClasses.begin(); it != mStyleClasses.end(); ++it)
+	{
+		if(*it != styleClass)
+			continue;
+
+		const bool wasLayoutOnly = IsLayoutOnly();
+
+		mStyleClasses.Erase(it);
+		NotifyStyleClassesChanged(wasLayoutOnly);
+		return;
+	}
+}
+
+void GUIRenderable::ToggleStyleClass(const String& styleClass, bool enabled)
+{
+	if(enabled)
+		AddStyleClass(styleClass);
+	else
+		RemoveStyleClass(styleClass);
+}
+
+void GUIRenderable::SetStyleClasses(TInlineArray<String, 1> styleClasses)
+{
+	if(styleClasses == mStyleClasses)
+		return;
+
+	const bool wasLayoutOnly = IsLayoutOnly();
+
+	mStyleClasses = std::move(styleClasses);
+	NotifyStyleClassesChanged(wasLayoutOnly);
+}
+
+void GUIRenderable::ClearStyleClasses()
+{
+	if(mStyleClasses.Empty())
+		return;
+
+	const bool wasLayoutOnly = IsLayoutOnly();
+
+	mStyleClasses.Clear();
+	NotifyStyleClassesChanged(wasLayoutOnly);
+}
+
+void GUIRenderable::NotifyStyleClassesChanged(bool wasLayoutOnly)
+{
+	// Gaining the first class or losing the last one can turn a layout-only element into a drawn one, or back
+	if(mParentWidget != nullptr && !IsPendingDestroy() && wasLayoutOnly != IsLayoutOnly())
+	{
+		mParentWidget->UnregisterElement(this);
+		mParentWidget->RegisterElement(this);
+	}
+
+	RefreshStyleRecursive();
+}
+
+u64 GUIRenderable::GetStyleKey() const
+{
+	EnsureStyleKeys();
+	return mStyleKey;
+}
+
+GUIElementStates GUIRenderable::GetStatesAffectingDescendants() const
+{
+	EnsureStyleKeys();
+	return mStatesAffectingDescendants;
+}
+
+const GUIStyleSheetCascade& GUIRenderable::GetActiveStyleSheetCascade() const
+{
+	const GUIWidget* const parentWidget = GetParentWidget();
+	return parentWidget != nullptr ? parentWidget->GetStyleSheetCascade() : GUIStyleSheetCascade::kEmpty;
+}
+
+void GUIRenderable::EnsureStyleKeys() const
+{
+	if(mStyleKeyRevision != GetActiveStyleSheetCascade().GetRevision())
+		UpdateStyleKeys();
+}
+
+void GUIRenderable::UpdateStyleKeys() const
+{
+	const GUIStyleSheetCascade& styleSheetCascade = GetActiveStyleSheetCascade();
+
+	// Layouts in between are not renderables, so skip past them to the closest ancestor that has a style key
+	const GUIRenderable* parentRenderable = nullptr;
+	for(const GUIElement* parent = GetParent(); parent != nullptr && parentRenderable == nullptr; parent = parent->GetParent())
+		parentRenderable = B3DRTTICast<const GUIRenderable>(parent);
+
+	u64 ancestorStyleKey = 0;
+	if(parentRenderable != nullptr)
+	{
+		parentRenderable->EnsureStyleKeys();
+		ancestorStyleKey = parentRenderable->mDescendantStyleKey;
+	}
+
+	// Every value is preceded by the part it came from, so that for example a class and an id of the same name, or a class
+	// on a parent and the type of its child, never produce the same key
+	mStyleKey = ancestorStyleKey;
+	B3DCombineHash(mStyleKey, GUIStyleKeyPart::ElementType);
+	B3DCombineHash(mStyleKey, GetStyleSheetElement());
+
+	// Selectors only care which classes are present, so the order the classes were added in must not affect the key
+	TInlineArray<u64, 4> styleClassHashes;
+	for(const auto& styleClass : mStyleClasses)
+	{
+		u64 styleClassHash = 0;
+		B3DCombineHash(styleClassHash, styleClass);
+		styleClassHashes.Add(styleClassHash);
+	}
+
+	std::sort(styleClassHashes.begin(), styleClassHashes.end());
+	for(u64 styleClassHash : styleClassHashes)
+	{
+		B3DCombineHash(mStyleKey, GUIStyleKeyPart::Class);
+		B3DCombineHash(mStyleKey, styleClassHash);
+	}
+
+	const String& styleId = GetStyleSheetId();
+	if(!styleId.empty())
+	{
+		B3DCombineHash(mStyleKey, GUIStyleKeyPart::Id);
+		B3DCombineHash(mStyleKey, styleId);
+	}
+
+	// Descendants can only observe this element through the ancestor parts of the selectors, so that is all they get. The
+	// element's own state is resolved per state after the lookup, so it is only part of what descendants see.
+	const GUIStyleSheetAncestorMatch ancestorMatch = styleSheetCascade.MatchAncestorSelectors(*this);
+	mStatesAffectingDescendants = ancestorMatch.StatesAffectingDescendants;
+	mHasParentOfMatch = ancestorMatch.HasParentOfMatch;
+
+	// Below a parent constrained by a `>` combinator, this element extends the key even when nothing matches it, so its
+	// descendants do not end up sharing a key with the parent's direct children
+	mDescendantStyleKey = ancestorStyleKey;
+	if(ancestorMatch.IsObservableByDescendants || (parentRenderable != nullptr && parentRenderable->mHasParentOfMatch))
+	{
+		B3DCombineHash(mDescendantStyleKey, GUIStyleKeyPart::Ancestor);
+		B3DCombineHash(mDescendantStyleKey, ancestorMatch.MatchingSelectorsHash);
+	}
+
+	mStyleKeyRevision = styleSheetCascade.GetRevision();
 }
 
 void GUIRenderable::SetTint(const Color& color)
@@ -127,7 +305,12 @@ void GUIRenderable::ChangeParentWidget(GUIWidget* widget)
 	if(IsPendingDestroy())
 		return;
 
+	// The new widget may share the style sheet cascade, in which case the cascade revision alone would not reveal that the
+	// ancestors changed. Every element below goes through here as well.
 	const bool widgetChanged = mParentWidget != widget;
+	if(widgetChanged)
+		mStyleKeyRevision = 0;
+
 	GUIElement::ChangeParentWidget(widget);
 
 	if(widgetChanged)
@@ -262,71 +445,60 @@ const GUIStyleSheetRuleInformation& GUIRenderable::GetPseudoElementStyleSheetRul
 	return mPseudoElementStyleSheetRules[pseudoElementIndex];
 }
 
+void GUIRenderable::RefreshStyleRecursive()
+{
+	const bool hadStyleKeys = mStyleKeyRevision == GetActiveStyleSheetCascade().GetRevision();
+	const u64 previousDescendantStyleKey = mDescendantStyleKey;
+
+	UpdateStyleKeys();
+	RefreshStyle();
+
+	// Elements below build their style keys on the descendant style key, so nothing they match on changed if it did not
+	if(!hadStyleKeys || mDescendantStyleKey != previousDescendantStyleKey)
+		Super::RefreshStyleRecursive();
+}
+
 void GUIRenderable::RefreshStyle()
 {
 	bool anyRuleChanged = false;
-	if(GetStyleSheetElement() != nullptr)
+
+	const GUIStyleSheetCascade& styleSheetCascade = GetActiveStyleSheetCascade();
+
+	TShared<const GUIStyleSheetStateRulesets> newStateRulesets = styleSheetCascade.BuildStateRulesets(*this);
+
+	if(!newStateRulesets)
+		newStateRulesets = GUIStyleSheetStateRulesets::kDefault;
+
+	if(newStateRulesets != mStyleSheetRuleInformation.StateRulesets)
 	{
-		const GUIWidget* parentWidget = GetParentWidget();
-		const GUIStyleSheetCascade& styleSheetCascade = parentWidget != nullptr ? parentWidget->GetStyleSheetCascade() : GUIStyleSheetCascade::kEmpty;
+		mStyleSheetRuleInformation.StateRulesets = newStateRulesets;
+		mStyleSheetRuleInformation.CurrentStateRuleset = nullptr;
 
-		TShared<const GUIStyleSheetStateRulesets> newStateRulesets = styleSheetCascade.BuildStateRulesets(*this);
+		const bool isFixedBefore = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
 
-		if(!newStateRulesets)
-			newStateRulesets = GUIStyleSheetStateRulesets::kDefault;
+		mStyleSheetRuleInformation.CurrentStateRuleset = mStyleSheetRuleInformation.StateRulesets->BuildStateRuleset(mStateFlags);
+		mSizeConstraints.UpdateWithStyleSheetRule(mStyleSheetRuleInformation.CurrentStateRuleset->Rules);
 
-		if(newStateRulesets != mStyleSheetRuleInformation.StateRulesets)
-		{
-			mStyleSheetRuleInformation.StateRulesets = newStateRulesets;
-			mStyleSheetRuleInformation.CurrentStateRuleset = nullptr;
+		const bool isFixedAfter = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
+		if(isFixedBefore != isFixedAfter)
+			RefreshLayoutUpdateParentsForChildren();
 
-			const bool isFixedBefore = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
-
-			mStyleSheetRuleInformation.CurrentStateRuleset = mStyleSheetRuleInformation.StateRulesets->BuildStateRuleset(mStateFlags);
-			mSizeConstraints.UpdateWithStyleSheetRule(mStyleSheetRuleInformation.CurrentStateRuleset->Rules);
-
-			const bool isFixedAfter = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
-			if(isFixedBefore != isFixedAfter)
-				RefreshLayoutUpdateParentsForChildren();
-
-			anyRuleChanged = true;
-		}
-
-		const GUIStyleSheetRules* inheritedRules = mStyleSheetRuleInformation.CurrentStateRuleset != nullptr ? &mStyleSheetRuleInformation.CurrentStateRuleset->Rules : nullptr;
-		for(auto& pseudoElementRuleInformation : mPseudoElementStyleSheetRules)
-		{
-			TShared<const GUIStyleSheetStateRulesets> newPseudoElementStateRulesets = styleSheetCascade.BuildStateRulesets(*this, pseudoElementRuleInformation.PseudoElementName);
-
-			if(!newPseudoElementStateRulesets)
-				newPseudoElementStateRulesets = GUIStyleSheetStateRulesets::kDefault;
-
-			if(pseudoElementRuleInformation.StateRulesets != newPseudoElementStateRulesets)
-			{
-				pseudoElementRuleInformation.StateRulesets = newPseudoElementStateRulesets;
-				pseudoElementRuleInformation.CurrentStateRuleset = pseudoElementRuleInformation.StateRulesets->BuildStateRuleset(mStateFlags, inheritedRules);
-				anyRuleChanged = true;
-			}
-		}
+		anyRuleChanged = true;
 	}
-	else
+
+	const GUIStyleSheetRules* inheritedRules = mStyleSheetRuleInformation.CurrentStateRuleset != nullptr ? &mStyleSheetRuleInformation.CurrentStateRuleset->Rules : nullptr;
+	for(auto& pseudoElementRuleInformation : mPseudoElementStyleSheetRules)
 	{
-		if(mStyleSheetRuleInformation.StateRulesets != nullptr)
-		{
-			mStyleSheetRuleInformation.StateRulesets = nullptr;
-			mStyleSheetRuleInformation.CurrentStateRuleset = nullptr;
+		TShared<const GUIStyleSheetStateRulesets> newPseudoElementStateRulesets = styleSheetCascade.BuildStateRulesets(*this, pseudoElementRuleInformation.PseudoElementName);
 
+		if(!newPseudoElementStateRulesets)
+			newPseudoElementStateRulesets = GUIStyleSheetStateRulesets::kDefault;
+
+		if(pseudoElementRuleInformation.StateRulesets != newPseudoElementStateRulesets)
+		{
+			pseudoElementRuleInformation.StateRulesets = newPseudoElementStateRulesets;
+			pseudoElementRuleInformation.CurrentStateRuleset = pseudoElementRuleInformation.StateRulesets->BuildStateRuleset(mStateFlags, inheritedRules);
 			anyRuleChanged = true;
-		}
-
-		for(auto& pseudoElementRuleInformation : mPseudoElementStyleSheetRules)
-		{
-			if(pseudoElementRuleInformation.StateRulesets != nullptr)
-			{
-				pseudoElementRuleInformation.StateRulesets = nullptr;
-				pseudoElementRuleInformation.CurrentStateRuleset = nullptr;
-
-				anyRuleChanged = true;
-			}
 		}
 	}
 

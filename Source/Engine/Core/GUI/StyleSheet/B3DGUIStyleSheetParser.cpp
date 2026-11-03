@@ -196,11 +196,14 @@ TOptional<GUIStyleSheetSelectorList> GUIStyleSheetParser::TryParseSelectorList()
 			break;
 		case GUIStyleSheetTokenTypes::Colon:
 		{
+			// The name of a pseudo-class or pseudo-element takes an extra token to read, and that token must not swallow the
+			// whitespace behind it - whitespace is the descendant combinator, so consuming it would silently turn
+			// `container:hover label` into a single compound selector
 			if(IsCurrentToken(GUIStyleSheetTokenTypes::Colon))
 			{
 				GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::Colon);
-				
-				TOptional<Token> pseudoElementToken = GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::ElementSelector);
+
+				TOptional<Token> pseudoElementToken = GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::ElementSelector, false);
 				if(!pseudoElementToken)
 					return {};
 
@@ -209,7 +212,7 @@ TOptional<GUIStyleSheetSelectorList> GUIStyleSheetParser::TryParseSelectorList()
 			}
 			else
 			{
-				TOptional<Token> pseudoClassToken = GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::PseudoClassSelector);
+				TOptional<Token> pseudoClassToken = GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::PseudoClassSelector, false);
 				if(!pseudoClassToken)
 					return {};
 
@@ -375,10 +378,10 @@ bool GUIStyleSheetParser::TryParseProperty(GUIStyleSheetRules& inOutValue)
 				inOutValue.OverridenProperties[(u32)GUIStyleSheetPropertyType::BorderTopColor] = true;
 				inOutValue.OverridenProperties[(u32)GUIStyleSheetPropertyType::BorderTopStyle] = true;
 
-				inOutValue.OverridenProperties[(u32)GUIStyleSheetPropertyType::BorderRightWidth] = true;
-				inOutValue.OverridenProperties[(u32)GUIStyleSheetPropertyType::BorderRightColor] = true;
-				inOutValue.OverridenProperties[(u32)GUIStyleSheetPropertyType::BorderRightStyle] = true;
-				
+				inOutValue.OverridenProperties[(u32)GUIStyleSheetPropertyType::BorderBottomWidth] = true;
+				inOutValue.OverridenProperties[(u32)GUIStyleSheetPropertyType::BorderBottomColor] = true;
+				inOutValue.OverridenProperties[(u32)GUIStyleSheetPropertyType::BorderBottomStyle] = true;
+
 				break;
 			}
 
@@ -1669,12 +1672,12 @@ TOptional<GUIStyleSheetParser::Token> GUIStyleSheetParser::GetCurrentTokenAndAdv
 	return previousToken;
 }
 
-TOptional<GUIStyleSheetParser::Token> GUIStyleSheetParser::GetCurrentTokenAndAdvance(TokenType expectedType)
+TOptional<GUIStyleSheetParser::Token> GUIStyleSheetParser::GetCurrentTokenAndAdvance(TokenType expectedType, bool skipWhitespace)
 {
 	if(!mCurrentToken.has_value() || mCurrentToken->GetType() != expectedType)
 		return ErrorUnexpected(expectedType);
 
-	return GetCurrentTokenAndAdvance();
+	return GetCurrentTokenAndAdvance(skipWhitespace);
 }
 
 TOptional<GUIStyleSheetParser::Token> GUIStyleSheetParser::GetCurrentTokenAndAdvance(TokenType expectedType, const String& spelling)

@@ -25,5 +25,13 @@ namespace b3d
 		void TestFontFamilyLoadsFacesOnDemand();
 		void TestFontStyleParsing();
 		void TestTextMetricsAffectMeasuredSize();
+		void TestMultipleStyleClassResolution();
+		void TestResolvedRulesetCaching();
+		void TestAncestorStateRestylesDescendants();
+		void TestStateChangeOnlyRestylesWhenRuleDependsOnIt();
+		void TestStyleKeyDistinguishesElementParts();
+		void TestStyleKeyIgnoresUnobservedAncestors();
+		void TestDescendantsFollowAncestorChanges();
+		void TestParentOfCombinatorKeepsChildLevel();
 	};
 } // namespace b3d

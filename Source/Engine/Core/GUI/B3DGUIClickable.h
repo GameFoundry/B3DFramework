@@ -60,7 +60,7 @@ namespace b3d
 
 		GUILogicalSize CalculateUnconstrainedOptimalSize() const override;
 		u32 GetRenderElementDepthRange() const override;
-		const char* GetStyleSheetElement() const override { return kElementType; }
+		StringView GetStyleSheetElement() const override { return kElementType; }
 
 		/** @} */
 	protected:

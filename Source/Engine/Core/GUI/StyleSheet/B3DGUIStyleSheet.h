@@ -179,6 +179,16 @@ namespace b3d
 
 		/** Checks does the selector matches a GUI element with the provided type/class/id/pseudo-element/pseudo-class. */
 		bool IsMatching(StringView elementType, StringView elementClass = "", StringView elementId = "", StringView pseudoElement = "", StringView pseudoClass = "", bool ignorePseudoClass = false) const;
+
+		/**
+		 * Returns the element state a pseudo-class selector requires.
+		 *
+		 * @param	name		Name of the pseudo-class, without the leading colon.
+		 * @param	outState	State the pseudo-class maps to. Note `normal` maps to GUIElementState::Normal, which is
+		 *						zero and therefore always considered set.
+		 * @return				True if the name is a known pseudo-class. Rulesets using an unknown pseudo-class never apply.
+		 */
+		static bool TryGetPseudoClassState(StringView name, GUIElementStates& outState);
 	};
 
 	/** List of all selectors on a particular GUI style sheet. */
@@ -197,6 +207,16 @@ namespace b3d
 
 		/** Calculates the weight that determines selector specificity, with higher values resulting in more specific selectors (e.g. id selector is more specific than class). */
 		u32 CalculateSpecificity() const;
+
+		/**
+		 * Returns the states the element the selectors apply to (the right-most compound selector) must be in. Pseudo-classes
+		 * on ancestors are not included, as they are resolved while matching.
+		 *
+		 * @param	outStates	States the element must be in.
+		 * @return				False if any pseudo-class on the element is not a known state, in which case the selectors
+		 *						never apply.
+		 */
+		bool TryGetSubjectStates(GUIElementStates& outStates) const;
 
 	private:
 		mutable String mCachedUniqueName;
@@ -287,10 +307,10 @@ namespace b3d
 	/** Contains a set of rules for a particular selector. */
 	struct B3D_EXPORT GUIStyleSheetRuleset : public IReflectable
 	{
+		GUIStyleSheetRuleset() = default;
+
 		GUIStyleSheetSelectorList SelectorList; /**< List of selectors that determines which GUI elements this ruleset applies to. */
 		GUIStyleSheetRules Rules; /**< Properties and their values. */
-
-		GUIStyleSheetRuleset() = default;
 
 		/**	Default value that may be used when no other is available. */
 		static TShared<const GUIStyleSheetRuleset> kDefault;
@@ -326,6 +346,9 @@ namespace b3d
 		 * @return						Build ruleset, or one returned from the internal cache.
 		 */
 		TShared<const GUIStyleSheetRuleset> BuildStateRuleset(GUIElementStates state, const GUIStyleSheetRules* inheritedRules = nullptr) const;
+
+		/** Drops the state flags that cannot apply together, so that mutually exclusive states resolve to a single, predictable look. */
+		static GUIElementStates NormalizeState(GUIElementStates state);
 
 		TInlineArray<StyleSheetRulesetIndices, 4> StyleSheets;
 
@@ -453,10 +476,61 @@ namespace b3d
 		RTTIType* GetRtti() const override;
 	};
 
+	/** Counters describing how often style resolution had to walk the rulesets, as opposed to hitting a cache. */
+	struct GUIStyleSheetResolutionStatistics
+	{
+		u64 RequestCount = 0; /**< Number of BuildStateRulesets() calls. */
+		u64 FullResolutionCount = 0; /**< Number of those calls that had to match the element against the rulesets. */
+
+		/** Number of calls answered straight from the resolved-ruleset cache. */
+		u64 GetCacheHitCount() const { return RequestCount - FullResolutionCount; }
+	};
+
+	/**
+	 * Identifies the part of a GUI element a value folded into its style key came from (see GUIRenderable::GetStyleKey()),
+	 * so that equal names coming from different parts never produce equal keys.
+	 */
+	enum class GUIStyleKeyPart : u8
+	{
+		ElementType,
+		Class,
+		Id,
+		PseudoElement,
+		Ancestor
+	};
+
+	/** What the ancestor parts of a cascade's selectors can observe about a GUI element. See GUIStyleSheetCascade::MatchAncestorSelectors(). */
+	struct GUIStyleSheetAncestorMatch
+	{
+		/** Identifies the ancestor selectors the element matches, including the states they require. */
+		u64 MatchingSelectorsHash = 0;
+
+		/**
+		 * False if no selector can tell anything about the element when matching an element below it, in which case the
+		 * element can be left out of the style keys of the elements below it.
+		 */
+		bool IsObservableByDescendants = false;
+
+		/**
+		 * True if a matched ancestor selector is followed by a `>` combinator. The element's children must then always
+		 * extend the style key, even when nothing matches them, so the elements below them can tell a child of this
+		 * element from a deeper descendant.
+		 */
+		bool HasParentOfMatch = false;
+
+		/**
+		 * States that some ancestor selector matching the element's type, classes and id requires. A change to any other
+		 * state never changes the match.
+		 */
+		GUIElementStates StatesAffectingDescendants = GUIElementState::Normal;
+	};
+
 	/** Contains a set of multiple style sheets, sorted by importance. */
 	class B3D_EXPORT GUIStyleSheetCascade
 	{
 	public:
+		GUIStyleSheetCascade();
+
 		/** Same as GUIStyleSheet::BuildRules(const GUIRenderable&, StringView, StringView, const GUIStyleSheetRules*), except it gathers rules for all style sheets in the cascade. */
 		GUIStyleSheetRules BuildRules(const GUIRenderable& guiElement, StringView pseudoElement = "", StringView pseudoClass = "", const GUIStyleSheetRules* inheritedRules = nullptr) const;
 
@@ -483,6 +557,30 @@ namespace b3d
 		 */
 		void RegisterStyleSheet(const HGUIStyleSheet& styleSheet, i32 importance);
 
+		/**
+		 * Matches @p element against the ancestor parts of every selector in the cascade, i.e. the parts left of a
+		 * combinator such as `container.ListRow:checked` in `container.ListRow:checked label`. This is everything the
+		 * selectors can observe about an element while matching an element below it. For example, with only that rule this
+		 * reports the `Checked` state as relevant for a container carrying the `ListRow` class, and nothing for any other
+		 * element.
+		 */
+		GUIStyleSheetAncestorMatch MatchAncestorSelectors(const GUIRenderable& element) const;
+
+		/**
+		 * Returns a value that differs between cascades, and changes whenever a style sheet is registered. Style keys
+		 * calculated against one revision are not valid for another.
+		 */
+		u64 GetRevision() const { return mRevision; }
+
+		/** Returns counters describing how much work style resolution had to do. Intended for tests and profiling. */
+		const GUIStyleSheetResolutionStatistics& GetResolutionStatistics() const { return mResolutionStatistics; }
+
+		/** Resets the counters returned by GetResolutionStatistics(). */
+		void ResetResolutionStatistics() { mResolutionStatistics = GUIStyleSheetResolutionStatistics(); }
+
+		/** Drops every cached resolution, so the next lookup for each element has to match it against the rulesets again. */
+		void ResetResolvedRulesetCache();
+
 		static const GUIStyleSheetCascade kEmpty; /**< Empty cascade containing no style sheets. */
 
 	private:
@@ -492,9 +590,43 @@ namespace b3d
 			i32 Importance = 0;
 		};
 
-		TInlineArray<StyleSheetWithImportance, 4> mStyleSheets;
+		/**
+		 * Part of a selector that an ancestor of the styled element must match, e.g. `container.ListRow:checked` in
+		 * `container.ListRow:checked label`.
+		 */
+		struct AncestorSelector
+		{
+			TInlineArray<GUIStyleSheetSelector, 2> Selectors; /**< Type, class and id selectors the ancestor must match. An empty list matches any element. */
+			GUIElementStates States = GUIElementState::Normal; /**< States the ancestor must be in. */
 
-		mutable TSharedUnorderedSet<GUIStyleSheetStateRulesets> mCachedStateRulesets; /**< Cached state rulesets to avoid re-building them on every call. */ 
+			/** True if some selector follows this part with a `>` combinator, so it constrains the direct children of the ancestor. Not compared by operator==. */
+			bool IsFollowedByParentOf = false;
+
+			bool operator==(const AncestorSelector& other) const;
+		};
+
+		TInlineArray<StyleSheetWithImportance, 4> mStyleSheets;
+		u64 mRevision;
+
+		TArray<AncestorSelector> mAncestorSelectors; /**< Unique ancestor selectors of all registered style sheets. */
+
+		/**
+		 * Indices into mAncestorSelectors, keyed on the hash of the part and name of the most selective type, class or id
+		 * selector they contain. Lets an element only test the ancestor selectors that could possibly match it.
+		 */
+		UnorderedMap<u64, TInlineArray<u32, 2>> mAncestorSelectorLookup;
+		TArray<u32> mUniversalAncestorSelectors; /**< Indices into mAncestorSelectors of selectors without a type, class or id, which any element can match. */
+
+		mutable TSharedUnorderedSet<GUIStyleSheetStateRulesets> mCachedStateRulesets; /**< Cached state rulesets to avoid re-building them on every call. */
+
+		/**
+		 * Resolved state rulesets, keyed on GUIRenderable::GetStyleKey() combined with the pseudo-element name. Every
+		 * element that looks the same to the selectors as an earlier one is answered from here without touching the
+		 * rulesets, which is what makes toggling a style class a hash lookup rather than a full selector match.
+		 */
+		mutable UnorderedMap<u64, TShared<const GUIStyleSheetStateRulesets>> mResolvedStateRulesets;
+
+		mutable GUIStyleSheetResolutionStatistics mResolutionStatistics;
 	};
 
 	/** @} */

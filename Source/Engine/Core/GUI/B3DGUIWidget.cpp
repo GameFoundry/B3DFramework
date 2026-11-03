@@ -35,6 +35,7 @@ void GUIWidget::SetStyleSheetCascade(const TShared<const GUIStyleSheetCascade>& 
 
 	mStyleSheetCascade = styleSheetCascade;
 
+	// Style keys know which cascade revision they were calculated against, so they recalculate themselves on lookup
 	for(auto& element : mElements)
 		element->RefreshStyle();
 }

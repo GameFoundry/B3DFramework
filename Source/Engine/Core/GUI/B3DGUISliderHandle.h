@@ -61,7 +61,7 @@ namespace b3d
 		/** Returns type name of the GUI element used for finding GUI element styles.  */
 		static const String& GetGuiTypeName();
 
-		const char* GetStyleSheetElement() const override { return "slider-handle"; }
+		StringView GetStyleSheetElement() const override { return "slider-handle"; }
 
 		/**	Gets the current position of the handle, in percent ranging [0.0f, 1.0f]. */
 		float GetHandlePositionInPercent() const { return mHandlePositionInPercent; }

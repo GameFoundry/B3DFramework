@@ -84,7 +84,7 @@ namespace b3d
 		struct PrivatelyConstruct { };
 		GUIListBox(PrivatelyConstruct, const GUIListBoxContent& content, const String& styleName, const GUISizeConstraints& sizeConstraints);
 
-		const char* GetStyleSheetElement() const override { return kElementType; }
+		StringView GetStyleSheetElement() const override { return kElementType; }
 
 		/** @} */
 	protected:

@@ -50,7 +50,7 @@ namespace b3d
 		GUITexture(PrivatelyConstruct, const GUITextureContents& contents, const String& styleName, const GUISizeConstraints& dimensions);
 
 		GUILogicalSize CalculateUnconstrainedOptimalSize() const override;
-		const char* GetStyleSheetElement() const override { return kStyleSheetElementType; }
+		StringView GetStyleSheetElement() const override { return kStyleSheetElementType; }
 
 		/** @} */
 	protected:

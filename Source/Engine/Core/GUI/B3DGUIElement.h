@@ -258,6 +258,12 @@ namespace b3d
 		 */
 
 		/**
+		 * Restyles the elements below this one after something their style sheet selectors can match on changed, such as
+		 * the element's parent. Elements that are styled themselves restyle first, and only continue below them if needed.
+		 */
+		virtual void RefreshStyleRecursive();
+
+		/**
 		 * Calculates optimal sizes of all child elements, as determined by their style and layout options. This is performed recursively
 		 * over all child elements, starting with the bottom-most child element. This should be called before UpdateLayoutRecursive().
 		 */

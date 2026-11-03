@@ -661,10 +661,21 @@ void GUIElement::SetParent(GUIElement* parent)
 		{
 			if(GetParentWidget() != parent->GetParentWidget())
 				ChangeParentWidget(parent->GetParentWidget());
+			else if(GetParentWidget() != nullptr)
+			{
+				// If element style depends on ancestor element, we need to refresh it
+				RefreshStyleRecursive();
+			}
 		}
 		else
 			ChangeParentWidget(nullptr);
 	}
+}
+
+void GUIElement::RefreshStyleRecursive()
+{
+	for(auto& child : mChildren)
+		child->RefreshStyleRecursive();
 }
 
 void GUIElement::RegisterChildElement(GUIElement* element)

@@ -12,6 +12,7 @@
 namespace b3d
 {
 	class GUINavGroup;
+	class GUIStyleSheetCascade;
 
 	/** @addtogroup GUI-Internal
 	 *  @{
@@ -46,22 +47,55 @@ namespace b3d
 		~GUIRenderable() override = default;
 
 		/** Returns the name of the GUI element type to be used for style lookup in the style sheet. */
-		virtual const char* GetStyleSheetElement() const { return nullptr; } // Note: Null style sheet name currently means element doesn't support style-sheets
+		virtual StringView GetStyleSheetElement() const = 0;
 
-		/** Returns a user-specified class that will be used for style lookup in the style sheet. */
+		/**
+		 * Returns the first of the user-specified classes that are used for style lookup in the style sheet, or an empty
+		 * string if the element has no classes. See GetStyleSheetClasses() for the full set.
+		 */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(StyleSheetClass))
-		virtual const String& GetStyleSheetClass() const { return mStyleClass; }
+		const String& GetStyleSheetClass() const;
+
+		/** Returns all user-specified classes that are used for style lookup in the style sheet. */
+		const TInlineArray<String, 1>& GetStyleSheetClasses() const { return mStyleClasses; }
 
 		/** Returns an user-specific ID will be used for style lookup in the style sheet. */
 		virtual const String& GetStyleSheetId() const { return StringUtility::kBlank; }
 
-		/**	Sets new style class to be used by the element. */
+		/**	Replaces all style classes of the element with a single new one. An empty string clears all classes. */
 		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(StyleSheetClass))
 		void SetStyleSheetClass(const String& styleClass);
 
+		/** Checks if the element carries the provided style class. */
+		B3D_SCRIPT_EXPORT()
+		bool HasStyleClass(const String& styleClass) const;
+
+		/** Adds a style class to the element, restyling it. Does nothing if the class is already present. */
+		B3D_SCRIPT_EXPORT()
+		void AddStyleClass(const String& styleClass);
+
+		/** Removes a style class from the element, restyling it. Does nothing if the class is not present. */
+		B3D_SCRIPT_EXPORT()
+		void RemoveStyleClass(const String& styleClass);
+
+		/** Adds or removes a style class depending on @p enabled. */
+		B3D_SCRIPT_EXPORT()
+		void ToggleStyleClass(const String& styleClass, bool enabled);
+
+		/** Replaces all style classes of the element with the provided set. */
+		void SetStyleClasses(TInlineArray<String, 1> styleClasses);
+
+		/** Removes all style classes from the element. */
+		B3D_SCRIPT_EXPORT()
+		void ClearStyleClasses();
+
 		/** Returns true if the GUI elements wants to use the new style sheet approach for styling. */
 		bool IsUsingStyleSheets() const; // TODO - Temporary only while we transition styles out
-		
+
+		/** Returns the set of states the GUI element is currently in. */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(StateFlags))
+		GUIElementStates GetStateFlags() const { return mStateFlags; }
+
 		/**	Sets the tint of the GUI element. */
 		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(Tint))
 		virtual void SetTint(const Color& color);
@@ -174,6 +208,32 @@ namespace b3d
 		void RefreshStyle();
 
 		/**
+		 * Recalculates the style keys and restyles the element, then continues into the elements below it if the key they
+		 * build their own keys on changed.
+		 */
+		void RefreshStyleRecursive() override;
+
+		/**
+		 * Returns a value that identifies everything the style sheet selectors can match on for this element: its type,
+		 * classes and id, plus whatever the ancestor parts of the selectors can observe about its ancestors (see
+		 * GUIStyleSheetCascade::MatchAncestorSelectors()). The element's own state is not part of the key. Two elements
+		 * with an equal style key always resolve to the same set of style sheet rulesets.
+		 */
+		u64 GetStyleKey() const;
+
+		/**
+		 * Returns the states of this element that the style sheet rules of its descendants depend on. A change to any other
+		 * state never needs to restyle the descendants.
+		 */
+		GUIElementStates GetStatesAffectingDescendants() const;
+
+		/**
+		 * Returns true if the element only arranges its children. Such elements are not registered with the parent widget,
+		 * so they are never drawn and never receive input, and cost nothing beyond their layout contribution.
+		 */
+		virtual bool IsLayoutOnly() const { return false; }
+
+		/**
 		 * Returns GUI element depth. This includes widget and area depth, but does not include specific per-render-element
 		 * depth.
 		 */
@@ -191,6 +251,26 @@ namespace b3d
 
 		/**	Method that gets triggered whenever element style changes. */
 		virtual void NotifyStyleChanged() {}
+
+		/**
+		 * Restyles the element and everything below it after its set of style classes changed, and re-registers it with the
+		 * parent widget if that changed the result of IsLayoutOnly().
+		 *
+		 * @param	wasLayoutOnly	Result of IsLayoutOnly() before the classes changed.
+		 */
+		void NotifyStyleClassesChanged(bool wasLayoutOnly);
+
+		/** Returns the style sheet cascade of the parent widget, or an empty cascade if the element is not in a widget. */
+		const GUIStyleSheetCascade& GetActiveStyleSheetCascade() const;
+
+		/**
+		 * Recalculates the style key, the descendant style key and the states affecting descendants if they were never
+		 * calculated, or were calculated against a different revision of the style sheet cascade.
+		 */
+		void EnsureStyleKeys() const;
+
+		/** Recalculates the style key, the descendant style key and the states affecting descendants. */
+		void UpdateStyleKeys() const;
 
 		/**
 		 * Similar to GetAbsoluteContentBounds(), except the bounds are relative to the parent GUI element rather than the
@@ -238,7 +318,13 @@ namespace b3d
 		// Style sheet
 		TInlineArray<GUIStyleSheetRuleInformation, 2> mPseudoElementStyleSheetRules;
 		GUIStyleSheetRuleInformation mStyleSheetRuleInformation;
-		String mStyleClass;
+		TInlineArray<String, 1> mStyleClasses;
+
+		mutable u64 mStyleKey = 0;
+		mutable u64 mDescendantStyleKey = 0; /**< Key descendants build their own style keys on. Covers the ancestors and whatever the ancestor parts of the selectors can observe about this element, including its state. */
+		mutable GUIElementStates mStatesAffectingDescendants = GUIElementState::Normal;
+		mutable bool mHasParentOfMatch = false; /**< See GUIStyleSheetAncestorMatch::HasParentOfMatch. */
+		mutable u64 mStyleKeyRevision = 0; /**< Revision of the style sheet cascade the style keys were calculated against. Zero if they need recalculating. */
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

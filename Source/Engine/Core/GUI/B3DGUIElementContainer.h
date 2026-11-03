@@ -20,7 +20,7 @@ namespace b3d
 		/** @copydoc GUIElement::SetFocus */
 		void SetFocus(bool enabled, bool clear = false) override;
 
-		const char* GetStyleSheetElement() const override { return "container"; }
+		StringView GetStyleSheetElement() const override { return "container"; }
 
 	protected:
 		GUIElementContainer(const GUISizeConstraints& dimensions, const char* style, GUIElementOptions options = GUIElementOptions(0));

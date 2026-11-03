@@ -55,6 +55,7 @@ namespace b3d
 		 */
 
 		GUILogicalSize CalculateUnconstrainedOptimalSize() const override;
+		StringView GetStyleSheetElement() const override { return "viewport"; }
 
 		/** @} */
 

@@ -459,8 +459,15 @@ namespace b3d
 		/** Returns the current token and advances to the next token. */
 		TOptional<Token> GetCurrentTokenAndAdvance(bool skipWhitespace = true);
 
-		/** Returns the current token if it matches the provided type, and advances to the next token. If the type is not matching and error is logged and null is returned. */
-		TOptional<Token> GetCurrentTokenAndAdvance(TokenType expectedType);
+		/**
+		 * Returns the current token if it matches the provided type, and advances to the next token. If the type is not
+		 * matching and error is logged and null is returned.
+		 *
+		 * @param	expectedType	Type the current token must have.
+		 * @param	skipWhitespace	If true, the whitespace following the token is skipped. Selector parsing needs to see
+		 *							that whitespace, because it is the descendant combinator.
+		 */
+		TOptional<Token> GetCurrentTokenAndAdvance(TokenType expectedType, bool skipWhitespace = true);
 
 		/** Returns the current token if it matches the provided type and spelling, and advances to the next token. If the type or spelling is not matching and error is logged and null is returned. */
 		TOptional<Token> GetCurrentTokenAndAdvance(TokenType expectedType, const String& spelling);

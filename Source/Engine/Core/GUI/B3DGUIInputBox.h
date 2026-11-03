@@ -74,7 +74,7 @@ namespace b3d
 	protected:
 		virtual ~GUIInputBox() = default;
 
-		const char* GetStyleSheetElement() const override { return "inputbox"; }
+		StringView GetStyleSheetElement() const override { return "inputbox"; }
 		void UpdateRenderElements() override;
 		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
 		bool DoOnTextInputEvent(const GUITextInputEvent& ev) override;

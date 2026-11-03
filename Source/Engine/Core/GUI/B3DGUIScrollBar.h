@@ -57,7 +57,7 @@ namespace b3d
 		 *  @{
 		 */
 
-		const char* GetStyleSheetElement() const override { return "scrollbar"; }
+		StringView GetStyleSheetElement() const override { return "scrollbar"; }
 
 		/**
 		 * Sets the size of the handle in percent (ranging [0, 1]) of the total scroll bar area.

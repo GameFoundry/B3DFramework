@@ -71,7 +71,7 @@ namespace b3d
 		 *  @{
 		 */
 
-		const char* GetStyleSheetElement() const override { return "slider"; }
+		StringView GetStyleSheetElement() const override { return "slider"; }
 		GUILogicalSize CalculateUnconstrainedOptimalSize() const override;
 
 		/** @} */
