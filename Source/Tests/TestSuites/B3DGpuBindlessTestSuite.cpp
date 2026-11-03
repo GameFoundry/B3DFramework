@@ -812,35 +812,7 @@ void GpuBindlessTestSuite::TestRelocation()
 		renderTargetInformation.Name = "Unmovable render target";
 		renderTargetInformation.Usage = TextureUsageFlag::RenderTarget;
 
-		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
-		GpuBindlessHeaps& heaps = *device->GetBindlessHeaps();
-		GpuMemoryDefragmenter& defragmenter = device->GetMemoryDefragmenter();
-
-		// Runs defragmentation passes until fnIsDone() returns true, or a pass moves nothing
-		const auto fnDefragment = [&context, &device, &heaps, &defragmenter](const auto& fnIsDone)
-		{
-			const bool wasEnabled = gGpuDefragmentation.Get();
-			gGpuDefragmentation.Set(true);
-
-			for(u32 passIndex = 0; passIndex < 256; passIndex++)
-			{
-				defragmenter.Run(*context);
-				context->SubmitTransferCommandBuffers(true);
-				heaps.ApplyPendingChanges();
-				device->WaitUntilIdle();
-				heaps.ProcessAllReleases();
-
-				if(fnIsDone() || defragmenter.GetStatistics().LastPassMoveCount == 0)
-					break;
-			}
-
-			gGpuDefragmentation.Set(wasEnabled);
-		};
-
-		// Memory freed by earlier tests is compacted first, so the resources created below are placed in order after the used memory.
-		// Resources created before the tested ones and destroyed once they exist then leave free memory below them.
-		fnDefragment([]() { return false; });
-
+		// Resources created before the tested ones and destroyed once they exist leave free memory below them
 		TArray<TShared<render::GpuBuffer>> fillerBuffers;
 		TArray<TShared<render::Texture>> fillerTextures;
 		for(u32 fillerIndex = 0; fillerIndex < 16; fillerIndex++)
@@ -894,6 +866,7 @@ void GpuBindlessTestSuite::TestRelocation()
 		const GpuAccessState transferRead(GpuStageFlag::Transfer, GpuAccessFlag::Read);
 		const GpuAccessState hostRead(GpuStageFlag::Host, GpuAccessFlag::Read);
 
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 		const TShared<GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
 
 		// Every resource returns to rest after its upload, which is where heaps read it and the defragmenter moves it
@@ -916,6 +889,7 @@ void GpuBindlessTestSuite::TestRelocation()
 			device->WaitUntilIdle();
 		}
 
+		GpuBindlessHeaps& heaps = *device->GetBindlessHeaps();
 		fillerBuffers.Clear();
 		fillerTextures.Clear();
 		heaps.ProcessAllReleases();
@@ -942,11 +916,20 @@ void GpuBindlessTestSuite::TestRelocation()
 		const IGpuResource* const cpuBufferNativeResource = cpuBuffer->GetGpuResource();
 		const IGpuResource* const renderTargetNativeResource = renderTarget->GetGpuResource();
 
+		GpuMemoryDefragmenter& defragmenter = device->GetMemoryDefragmenter();
 		const u64 initialMoveCount = defragmenter.GetStatistics().MoveCount;
+		const bool wasEnabled = gGpuDefragmentation.Get();
+		gGpuDefragmentation.Set(true);
 
 		bool isMoved[kMovedCount] = {};
-		fnDefragment([&]()
+		for(u32 passIndex = 0; passIndex < 256; passIndex++)
 		{
+			defragmenter.Run(*context);
+			context->SubmitTransferCommandBuffers(true);
+			heaps.ApplyPendingChanges();
+			device->WaitUntilIdle();
+			heaps.ProcessAllReleases();
+
 			const IGpuResource* const nativeResources[kMovedCount] = { structuredBuffer->GetGpuResource(), typedBuffer->GetGpuResource(), texture->GetGpuResource() };
 			bool isEveryResourceMoved = true;
 			for(u32 resourceIndex = 0; resourceIndex < kMovedCount; resourceIndex++)
@@ -955,8 +938,11 @@ void GpuBindlessTestSuite::TestRelocation()
 				isEveryResourceMoved &= isMoved[resourceIndex];
 			}
 
-			return isEveryResourceMoved;
-		});
+			if(isEveryResourceMoved || defragmenter.GetStatistics().LastPassMoveCount == 0)
+				break;
+		}
+
+		gGpuDefragmentation.Set(wasEnabled);
 
 		B3D_TEST_ASSERT(defragmenter.GetStatistics().MoveCount > initialMoveCount)
 		B3D_TEST_ASSERT_MSG(isMoved[0] && isMoved[1] && isMoved[2], StringUtility::Format("Moved: structured buffer {0}, typed buffer {1}, texture {2}.",
