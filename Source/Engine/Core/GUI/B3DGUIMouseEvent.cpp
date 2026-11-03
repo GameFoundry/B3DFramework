@@ -10,6 +10,16 @@ GUIMouseEvent::GUIMouseEvent(bool buttonStates[(int)GUIMouseButton::Count], bool
 	memcpy(mButtonStates, buttonStates, sizeof(mButtonStates));
 }
 
+void GUIMouseEvent::SetNotificationData(GUIMouseEventType type)
+{
+	mType = type;
+	mPosition = GUIPhysicalPoint(kZeroTag);
+	mButton = GUIMouseButton::Left;
+	mDragAmount = GUIPhysicalPoint(kZeroTag);
+	mDragStartPosition = GUIPhysicalPoint(kZeroTag);
+	mWheelScrollAmount = 0.0f;
+}
+
 void GUIMouseEvent::SetMouseOverData(const GUIPhysicalPoint& position)
 {
 	mType = GUIMouseEventType::MouseOver;

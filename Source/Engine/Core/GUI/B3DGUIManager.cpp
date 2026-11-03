@@ -48,7 +48,6 @@
 
 using namespace b3d;
 
-const u32 GUIManager::kDragDistance = 3;
 const float GUIManager::kTooltipHoverTime = 1.0f;
 
 GUIManager::GUIManager()
@@ -163,24 +162,6 @@ void GUIManager::UnregisterWidget(GUIWidget* widget)
 		}
 	}
 
-	for(auto& entry : mElementsUnderPointer)
-	{
-		if(entry.Widget == widget)
-			entry.Widget = nullptr;
-	}
-
-	for(auto& entry : mNewElementsUnderPointer)
-	{
-		if(entry.Widget == widget)
-			entry.Widget = nullptr;
-	}
-
-	for(auto& entry : mActiveElements)
-	{
-		if(entry.Widget == widget)
-			entry.Widget = nullptr;
-	}
-
 	auto widgetId = (u64)widget;
 	GetRenderThread().PostCommand([renderer = mRenderer.get(),
 								widgetId]()
@@ -197,7 +178,7 @@ void GUIManager::Update()
 		float diff = GetTime().GetRealTimeInSeconds() - mTooltipElementHoverStart;
 		if(diff >= kTooltipHoverTime || GetInput().IsButtonHeld(ButtonCode::LeftControl) || GetInput().IsButtonHeld(ButtonCode::RightControl))
 		{
-			for(auto& entry : mElementsUnderPointer)
+			for(const GUIPointerEventTracker::ElementUnderPointer& entry : mPointerEventTracker.GetElementsUnderPointer())
 			{
 				const String& tooltipText = entry.Element->GetTooltip();
 				GUIWidget* parentWidget = entry.Element->GetParentWidget();
@@ -230,24 +211,6 @@ void GUIManager::Update()
 	// Destroy all queued elements (and loop in case any new ones get queued during destruction)
 	do
 	{
-		mNewElementsUnderPointer.clear();
-		for(auto& elementInfo : mElementsUnderPointer)
-		{
-			if(!elementInfo.Element->IsPendingDestroy())
-				mNewElementsUnderPointer.push_back(elementInfo);
-		}
-
-		mElementsUnderPointer.swap(mNewElementsUnderPointer);
-
-		mNewActiveElements.clear();
-		for(auto& elementInfo : mActiveElements)
-		{
-			if(!elementInfo.Element->IsPendingDestroy())
-				mNewActiveElements.push_back(elementInfo);
-		}
-
-		mActiveElements.swap(mNewActiveElements);
-
 		mNewElementsInFocus.clear();
 
 		for(auto& elementInfo : mElementsInFocus)
@@ -423,36 +386,8 @@ void GUIManager::UpdateTextSelectionTexture()
 
 void GUIManager::OnMouseDragEnded(const PointerEvent& event, DragCallbackInfo& dragInfo)
 {
-	GUIMouseButton guiButton = ButtonToGuiButton(event.Button);
-
-	if(DragAndDrop::Instance().IsDragInProgress() && guiButton == GUIMouseButton::Left)
-	{
-		const GUIPhysicalPoint screenPosition = event.ScreenPos.To<GUIPhysicalUnit>();
-		for(auto& elementInfo : mElementsUnderPointer)
-		{
-			GUIPhysicalPoint localPos(kZeroTag);
-
-			if(elementInfo.Widget != nullptr)
-				localPos = GetWidgetRelativePos(elementInfo.Widget, screenPosition);
-
-			bool acceptDrop = true;
-			if(DragAndDrop::Instance().NeedsValidDropTarget())
-			{
-				acceptDrop = elementInfo.Element->AcceptDragAndDrop(localPos, DragAndDrop::Instance().GetDragTypeId());
-			}
-
-			if(acceptDrop)
-			{
-				mMouseEvent.SetDragAndDropDroppedData(localPos, DragAndDrop::Instance().GetDragData());
-				dragInfo.Processed = SendMouseEvent(elementInfo.Element, mMouseEvent);
-
-				if(dragInfo.Processed)
-					return;
-			}
-		}
-	}
-
-	dragInfo.Processed = false;
+	const TOptional<GUIPointerEventTracker::DragAndDropOperation> dragAndDrop = GetDragAndDropOperation();
+	dragInfo.Processed = dragAndDrop && mPointerEventTracker.ProcessDrop(event, *dragAndDrop);
 }
 
 void GUIManager::OnPointerMoved(const PointerEvent& event)
@@ -460,164 +395,13 @@ void GUIManager::OnPointerMoved(const PointerEvent& event)
 	if(event.IsUsed)
 		return;
 
-	bool buttonStates[(int)GUIMouseButton::Count];
-	buttonStates[0] = event.ButtonStates[0];
-	buttonStates[1] = event.ButtonStates[1];
-	buttonStates[2] = event.ButtonStates[2];
-
-	const GUIPhysicalPoint screenPosition = event.ScreenPos.To<GUIPhysicalUnit>();
-	if(FindElementUnderPointer(screenPosition, buttonStates, event.Shift, event.Control, event.Alt))
+	if(UpdateElementsUnderPointer(event))
 		event.IsUsed = true;
 
-	if(mDragState == DragState::HeldWithoutDrag)
-	{
-		u32 dist = (u32)mLastPointerClickPos.CalculateManhattanDistance(screenPosition);
+	if(mPointerEventTracker.ProcessPointerMove(event, GetDragAndDropOperation()))
+		event.IsUsed = true;
 
-		if(dist > kDragDistance)
-		{
-			for(auto& activeElement : mActiveElements)
-			{
-				const GUIPhysicalPoint localPos = GetWidgetRelativePos(activeElement.Widget, screenPosition);
-				const GUIPhysicalPoint localDragStartPos = GetWidgetRelativePos(activeElement.Widget, mLastPointerClickPos);
-
-				mMouseEvent.SetMouseDragStartData(localPos, localDragStartPos);
-				if(SendMouseEvent(activeElement.Element, mMouseEvent))
-					event.IsUsed = true;
-			}
-
-			mDragState = DragState::Dragging;
-			mDragStartPos = screenPosition;
-		}
-	}
-
-	// If mouse is being held down send MouseDrag events
-	if(mDragState == DragState::Dragging)
-	{
-		for(auto& activeElement : mActiveElements)
-		{
-			if(mLastPointerScreenPos != event.ScreenPos)
-			{
-				const GUIPhysicalPoint localPos = GetWidgetRelativePos(activeElement.Widget, screenPosition);
-
-				mMouseEvent.SetMouseDragData(localPos, screenPosition - mDragStartPos);
-				if(SendMouseEvent(activeElement.Element, mMouseEvent))
-					event.IsUsed = true;
-			}
-		}
-
-		mLastPointerScreenPos = event.ScreenPos;
-
-		// Also if drag is in progress send DragAndDrop events
-		if(DragAndDrop::Instance().IsDragInProgress())
-		{
-			bool acceptDrop = true;
-			for(auto& elementInfo : mElementsUnderPointer)
-			{
-				const GUIPhysicalPoint localPos = GetWidgetRelativePos(elementInfo.Widget, screenPosition);
-
-				acceptDrop = true;
-				if(DragAndDrop::Instance().NeedsValidDropTarget())
-				{
-					acceptDrop = elementInfo.Element->AcceptDragAndDrop(localPos, DragAndDrop::Instance().GetDragTypeId());
-				}
-
-				if(acceptDrop)
-				{
-					mMouseEvent.SetDragAndDropDraggedData(localPos, DragAndDrop::Instance().GetDragData());
-					if(SendMouseEvent(elementInfo.Element, mMouseEvent))
-					{
-						event.IsUsed = true;
-						break;
-					}
-				}
-			}
-
-			if(acceptDrop)
-			{
-				if(mActiveCursor != CursorType::ArrowDrag)
-				{
-					Cursor::Instance().SetCursor(CursorType::ArrowDrag);
-					mActiveCursor = CursorType::ArrowDrag;
-				}
-			}
-			else
-			{
-				if(mActiveCursor != CursorType::Deny)
-				{
-					Cursor::Instance().SetCursor(CursorType::Deny);
-					mActiveCursor = CursorType::Deny;
-				}
-			}
-		}
-	}
-	else // Otherwise, send MouseMove events if we are hovering over any element
-	{
-		if(mLastPointerScreenPos != event.ScreenPos)
-		{
-			bool moveProcessed = false;
-			bool hasCustomCursor = false;
-			for(auto& elementInfo : mElementsUnderPointer)
-			{
-				const GUIPhysicalPoint localPos = GetWidgetRelativePos(elementInfo.Widget, screenPosition);
-
-				if(!moveProcessed)
-				{
-					// Send MouseMove event
-					mMouseEvent.SetMouseMoveData(localPos);
-					moveProcessed = SendMouseEvent(elementInfo.Element, mMouseEvent);
-
-					if(moveProcessed)
-						event.IsUsed = true;
-				}
-
-				if(mDragState == DragState::NoDrag)
-				{
-					CursorType newCursor = CursorType::Arrow;
-					if(elementInfo.Element->HasCustomCursor(localPos, newCursor))
-					{
-						if(newCursor != mActiveCursor)
-						{
-							Cursor::Instance().SetCursor(newCursor);
-							mActiveCursor = newCursor;
-						}
-
-						hasCustomCursor = true;
-					}
-				}
-
-				if(moveProcessed)
-					break;
-			}
-
-			// While dragging we don't want to modify the cursor
-			if(mDragState == DragState::NoDrag)
-			{
-				if(!hasCustomCursor)
-				{
-					if(mActiveCursor != CursorType::Arrow)
-					{
-						Cursor::Instance().SetCursor(CursorType::Arrow);
-						mActiveCursor = CursorType::Arrow;
-					}
-				}
-			}
-		}
-
-		mLastPointerScreenPos = event.ScreenPos;
-
-		if(Math::Abs(event.MouseWheelScrollAmount) > 0.00001f)
-		{
-			for(auto& elementInfo : mElementsUnderPointer)
-			{
-				mMouseEvent.SetMouseWheelScrollData(event.MouseWheelScrollAmount);
-				if(SendMouseEvent(elementInfo.Element, mMouseEvent))
-				{
-					event.IsUsed = true;
-					break;
-				}
-			}
-		}
-	}
+	UpdateCursor();
 }
 
 void GUIManager::OnPointerReleased(const PointerEvent& event)
@@ -625,74 +409,13 @@ void GUIManager::OnPointerReleased(const PointerEvent& event)
 	if(event.IsUsed)
 		return;
 
-	bool buttonStates[(int)GUIMouseButton::Count];
-	buttonStates[0] = event.ButtonStates[0];
-	buttonStates[1] = event.ButtonStates[1];
-	buttonStates[2] = event.ButtonStates[2];
-
-	const GUIPhysicalPoint screenPosition = event.ScreenPos.To<GUIPhysicalUnit>();
-	if(FindElementUnderPointer(screenPosition, buttonStates, event.Shift, event.Control, event.Alt))
+	if(UpdateElementsUnderPointer(event))
 		event.IsUsed = true;
 
-	mMouseEvent = GUIMouseEvent(buttonStates, event.Shift, event.Control, event.Alt);
+	if(mPointerEventTracker.ProcessPointerRelease(event))
+		event.IsUsed = true;
 
-	GUIMouseButton guiButton = ButtonToGuiButton(event.Button);
-
-	// Send MouseUp event only if we are over the active element (we don't want to accidentally trigger other elements).
-	// And only activate when a button that originally caused the active state is released, otherwise ignore it.
-	if(mActiveMouseButton == guiButton)
-	{
-		for(auto& elementInfo : mElementsUnderPointer)
-		{
-			auto found = std::find_if(mActiveElements.begin(), mActiveElements.end(), [&](const ElementInfo& x)
-										  { return x.Element == elementInfo.Element; });
-
-			if(found != mActiveElements.end())
-			{
-				const GUIPhysicalPoint localPos = GetWidgetRelativePos(elementInfo.Widget, screenPosition);
-				mMouseEvent.SetMouseUpData(localPos, guiButton);
-
-				if(SendMouseEvent(elementInfo.Element, mMouseEvent))
-				{
-					event.IsUsed = true;
-					break;
-				}
-			}
-		}
-	}
-
-	// Send DragEnd event to whichever element is active
-	bool acceptEndDrag = (mDragState == DragState::Dragging || mDragState == DragState::HeldWithoutDrag) && mActiveMouseButton == guiButton &&
-		(guiButton == GUIMouseButton::Left);
-
-	if(acceptEndDrag)
-	{
-		if(mDragState == DragState::Dragging)
-		{
-			for(auto& activeElement : mActiveElements)
-			{
-				GUIPhysicalPoint localPos = GetWidgetRelativePos(activeElement.Widget, screenPosition);
-
-				mMouseEvent.SetMouseDragEndData(localPos);
-				if(SendMouseEvent(activeElement.Element, mMouseEvent))
-					event.IsUsed = true;
-			}
-		}
-
-		mDragState = DragState::NoDrag;
-	}
-
-	if(mActiveMouseButton == guiButton)
-	{
-		mActiveElements.clear();
-		mActiveMouseButton = GUIMouseButton::Left;
-	}
-
-	if(mActiveCursor != CursorType::Arrow)
-	{
-		Cursor::Instance().SetCursor(CursorType::Arrow);
-		mActiveCursor = CursorType::Arrow;
-	}
+	UpdateCursor();
 }
 
 void GUIManager::OnPointerPressed(const PointerEvent& event)
@@ -700,13 +423,7 @@ void GUIManager::OnPointerPressed(const PointerEvent& event)
 	if(event.IsUsed)
 		return;
 
-	bool buttonStates[(int)GUIMouseButton::Count];
-	buttonStates[0] = event.ButtonStates[0];
-	buttonStates[1] = event.ButtonStates[1];
-	buttonStates[2] = event.ButtonStates[2];
-
-	const GUIPhysicalPoint screenPosition = event.ScreenPos.To<GUIPhysicalUnit>();
-	if(FindElementUnderPointer(screenPosition, buttonStates, event.Shift, event.Control, event.Alt))
+	if(UpdateElementsUnderPointer(event))
 		event.IsUsed = true;
 
 	// Determine elements that gained focus
@@ -715,7 +432,7 @@ void GUIManager::OnPointerPressed(const PointerEvent& event)
 	mCommandEvent = GUICommandEvent();
 
 	// Determine elements that gained focus
-	for(auto& elementInfo : mElementsUnderPointer)
+	for(const GUIPointerEventTracker::ElementUnderPointer& elementInfo : mPointerEventTracker.GetElementsUnderPointer())
 	{
 		auto found = std::find_if(begin(mElementsInFocus), end(mElementsInFocus), [=](const ElementFocusInfo& x)
 									 { return x.Element == elementInfo.Element; });
@@ -723,7 +440,7 @@ void GUIManager::OnPointerPressed(const PointerEvent& event)
 		if(found == mElementsInFocus.end())
 		{
 			bool processed = !elementInfo.Element->GetOptionFlags().IsSet(GUIElementOption::ClickThrough);
-			mNewElementsInFocus.push_back(ElementFocusInfo(elementInfo.Element, elementInfo.Widget, processed));
+			mNewElementsInFocus.push_back(ElementFocusInfo(elementInfo.Element, elementInfo.Element->GetParentWidget(), processed));
 
 			if(processed)
 				break;
@@ -766,55 +483,25 @@ void GUIManager::OnPointerPressed(const PointerEvent& event)
 
 	mElementsInFocus.swap(mNewElementsInFocus);
 
-	// Send mouse press event
-	mMouseEvent = GUIMouseEvent(buttonStates, event.Shift, event.Control, event.Alt);
-	GUIMouseButton guiButton = ButtonToGuiButton(event.Button);
-
-	// We only check for mouse down if mouse isn't already being held down, and we are hovering over an element
-	if(mActiveElements.size() == 0)
-	{
-		mNewActiveElements.clear();
-		for(auto& elementInfo : mElementsUnderPointer)
-		{
-			GUIPhysicalPoint localPos = GetWidgetRelativePos(elementInfo.Widget, screenPosition);
-			mMouseEvent.SetMouseDownData(localPos, guiButton);
-
-			bool processed = SendMouseEvent(elementInfo.Element, mMouseEvent);
-
-			if(guiButton == GUIMouseButton::Left)
-			{
-				mDragState = DragState::HeldWithoutDrag;
-				mLastPointerClickPos = event.ScreenPos.To<GUIPhysicalUnit>();
-			}
-
-			mNewActiveElements.push_back(ElementInfo(elementInfo.Element, elementInfo.Widget));
-			mActiveMouseButton = guiButton;
-
-			if(processed)
-			{
-				event.IsUsed = true;
-				break;
-			}
-		}
-
-		mActiveElements.swap(mNewActiveElements);
-	}
+	if(mPointerEventTracker.ProcessPointerPress(event))
+		event.IsUsed = true;
 
 	// If right click try to open context menu
-	if(buttonStates[2])
+	if(event.ButtonStates[(u32)PointerEventButton::Right])
 	{
-		for(auto& elementInfo : mElementsUnderPointer)
+		for(const GUIPointerEventTracker::ElementUnderPointer& elementInfo : mPointerEventTracker.GetElementsUnderPointer())
 		{
 			TShared<GUIContextMenu> menu = elementInfo.Element->GetContextMenu();
+			GUIWidget* const widget = elementInfo.Element->GetParentWidget();
 
-			if(menu != nullptr && elementInfo.Widget != nullptr)
+			if(menu != nullptr && widget != nullptr)
 			{
-				const RenderWindow* window = GetWidgetWindow(*elementInfo.Widget);
+				const RenderWindow* window = GetWidgetWindow(*widget);
 				if(window != nullptr)
 				{
 					const GUIPhysicalPoint windowPos = window->ScreenToWindowPosition(event.ScreenPos).To<GUIPhysicalUnit>();
 
-					menu->Open(windowPos, *elementInfo.Widget);
+					menu->Open(windowPos, *widget);
 					event.IsUsed = true;
 					break;
 				}
@@ -828,31 +515,11 @@ void GUIManager::OnPointerDoubleClick(const PointerEvent& event)
 	if(event.IsUsed)
 		return;
 
-	bool buttonStates[(int)GUIMouseButton::Count];
-	buttonStates[0] = event.ButtonStates[0];
-	buttonStates[1] = event.ButtonStates[1];
-	buttonStates[2] = event.ButtonStates[2];
-
-	const GUIPhysicalPoint screenPosition = event.ScreenPos.To<GUIPhysicalUnit>();
-	if(FindElementUnderPointer(screenPosition, buttonStates, event.Shift, event.Control, event.Alt))
+	if(UpdateElementsUnderPointer(event))
 		event.IsUsed = true;
 
-	mMouseEvent = GUIMouseEvent(buttonStates, event.Shift, event.Control, event.Alt);
-
-	GUIMouseButton guiButton = ButtonToGuiButton(event.Button);
-
-	// We only check for mouse down if we are hovering over an element
-	for(auto& elementInfo : mElementsUnderPointer)
-	{
-		GUIPhysicalPoint localPos = GetWidgetRelativePos(elementInfo.Widget, screenPosition);
-
-		mMouseEvent.SetMouseDoubleClickData(localPos, guiButton);
-		if(SendMouseEvent(elementInfo.Element, mMouseEvent))
-		{
-			event.IsUsed = true;
-			break;
-		}
-	}
+	if(mPointerEventTracker.ProcessPointerDoubleClick(event))
+		event.IsUsed = true;
 }
 
 void GUIManager::OnInputCommandEntered(InputCommandType commandType)
@@ -934,8 +601,10 @@ void GUIManager::OnVirtualButtonDown(const VirtualButton& button, u32 deviceInde
 	}
 }
 
-bool GUIManager::FindElementUnderPointer(const GUIPhysicalPoint& pointerScreenPos, bool buttonStates[3], bool shift, bool control, bool alt)
+bool GUIManager::UpdateElementsUnderPointer(const PointerEvent& event)
 {
+	const GUIPhysicalPoint pointerScreenPos = event.ScreenPos.To<GUIPhysicalUnit>();
+
 	Vector<const RenderWindow*> widgetWindows;
 	for(auto& widgetInfo : mWidgets)
 		widgetWindows.push_back(GetWidgetWindow(*widgetInfo.Widget));
@@ -955,7 +624,7 @@ bool GUIManager::FindElementUnderPointer(const GUIPhysicalPoint& pointerScreenPo
 	}
 #endif
 
-	mNewElementsUnderPointer.clear();
+	mHitTestElements.Clear();
 
 	const RenderWindow* windowUnderPointer = nullptr;
 	UnorderedSet<const RenderWindow*> uniqueWindows;
@@ -999,7 +668,7 @@ bool GUIManager::FindElementUnderPointer(const GUIPhysicalPoint& pointerScreenPo
 			{
 				// Note: This should only be checking non-culled element (i.e. GUIElement::GetVisibleElements())
 				const Vector<GUIRenderable*>& elements = widget->GetElements();
-				GUIPhysicalPoint localPos = GetWidgetRelativePos(widget, pointerScreenPos);
+				GUIPhysicalPoint localPos = ScreenToWidgetCoords(widget, pointerScreenPos);
 
 				// Elements with lowest depth (most to the front) get handled first
 				for(auto iter = elements.begin(); iter != elements.end(); ++iter)
@@ -1009,20 +678,7 @@ bool GUIManager::FindElementUnderPointer(const GUIPhysicalPoint& pointerScreenPo
 						continue;
 
 					if(!interactableElement->IsHiddenOrCulled() && interactableElement->IsInInteractionBounds(localPos))
-					{
-						ElementInfoUnderPointer elementInfo(interactableElement, widget);
-
-						auto found = std::find_if(mElementsUnderPointer.begin(), mElementsUnderPointer.end(), [=](const ElementInfoUnderPointer& x)
-													 { return x.Element == interactableElement; });
-
-						if(found != mElementsUnderPointer.end())
-						{
-							elementInfo.UsesMouseOver = found->UsesMouseOver;
-							elementInfo.ReceivedMouseOver = found->ReceivedMouseOver;
-						}
-
-						mNewElementsUnderPointer.push_back(elementInfo);
-					}
+						mHitTestElements.Add(interactableElement);
 				}
 			}
 
@@ -1030,112 +686,38 @@ bool GUIManager::FindElementUnderPointer(const GUIPhysicalPoint& pointerScreenPo
 		}
 	}
 
-	std::sort(mNewElementsUnderPointer.begin(), mNewElementsUnderPointer.end(), [](const ElementInfoUnderPointer& a, const ElementInfoUnderPointer& b)
-			  { return a.Element->GetDepth() < b.Element->GetDepth(); });
+	std::sort(mHitTestElements.begin(), mHitTestElements.end(), [](const GUIInteractable* a, const GUIInteractable* b)
+			  { return a->GetDepth() < b->GetDepth(); });
 
-	// Send MouseOut and MouseOver events
-	bool eventProcessed = false;
-
-	for(auto& elementInfo : mNewElementsUnderPointer)
-	{
-		GUIInteractable* element = elementInfo.Element;
-		GUIWidget* widget = elementInfo.Widget;
-
-		if(elementInfo.ReceivedMouseOver)
-		{
-			elementInfo.IsHovering = true;
-			if(elementInfo.UsesMouseOver)
-				break;
-
-			continue;
-		}
-
-		auto found = std::find_if(mActiveElements.begin(), mActiveElements.end(), [&](const ElementInfo& x)
-									 { return x.Element == element; });
-
-		// Send MouseOver event
-		if(mActiveElements.size() == 0 || found != mActiveElements.end())
-		{
-			GUIPhysicalPoint localPos = GetWidgetRelativePos(widget, pointerScreenPos);
-
-			mMouseEvent = GUIMouseEvent(buttonStates, shift, control, alt);
-
-			mMouseEvent.SetMouseOverData(localPos);
-			elementInfo.ReceivedMouseOver = true;
-			elementInfo.IsHovering = true;
-			if(SendMouseEvent(element, mMouseEvent))
-			{
-				eventProcessed = true;
-				elementInfo.UsesMouseOver = true;
-				break;
-			}
-		}
-	}
-
-	// Send DragAndDropLeft event - It is similar to MouseOut events but we send it to all
-	// elements a user might hover over, while we send mouse over/out events only to active elements while dragging
-	if(DragAndDrop::Instance().IsDragInProgress())
-	{
-		for(auto& elementInfo : mElementsUnderPointer)
-		{
-			auto found = std::find_if(mNewElementsUnderPointer.begin(), mNewElementsUnderPointer.end(), [=](const ElementInfoUnderPointer& x)
-										 { return x.Element == elementInfo.Element; });
-
-			if(found == mNewElementsUnderPointer.end())
-			{
-				GUIPhysicalPoint localPos = GetWidgetRelativePos(elementInfo.Widget, pointerScreenPos);
-
-				mMouseEvent.SetDragAndDropLeftData(localPos, DragAndDrop::Instance().GetDragData());
-				if(SendMouseEvent(elementInfo.Element, mMouseEvent))
-				{
-					eventProcessed = true;
-					break;
-				}
-			}
-		}
-	}
-
-	for(auto& elementInfo : mElementsUnderPointer)
-	{
-		GUIInteractable* element = elementInfo.Element;
-		GUIWidget* widget = elementInfo.Widget;
-
-		auto found = std::find_if(mNewElementsUnderPointer.begin(), mNewElementsUnderPointer.end(), [=](const ElementInfoUnderPointer& x)
-									 { return x.Element == element; });
-
-		if(!elementInfo.ReceivedMouseOver)
-			continue;
-
-		if(found == mNewElementsUnderPointer.end() || !found->IsHovering)
-		{
-			auto found2 = std::find_if(mActiveElements.begin(), mActiveElements.end(), [=](const ElementInfo& x)
-										  { return x.Element == element; });
-
-			// Send MouseOut event
-			if(mActiveElements.size() == 0 || found2 != mActiveElements.end())
-			{
-				GUIPhysicalPoint localPos = GetWidgetRelativePos(widget, pointerScreenPos);
-
-				mMouseEvent.SetMouseOutData(localPos);
-				if(SendMouseEvent(element, mMouseEvent))
-				{
-					eventProcessed = true;
-					break;
-				}
-			}
-		}
-	}
-
-	mElementsUnderPointer.swap(mNewElementsUnderPointer);
+	const bool isHandled = mPointerEventTracker.UpdateElementsUnderPointer(mHitTestElements, event, GetDragAndDropOperation());
 
 	// Tooltip
 	HideTooltip();
-	if(mElementsUnderPointer.size() > 0)
+	if(!mPointerEventTracker.GetElementsUnderPointer().IsEmpty())
 		mShowTooltip = true;
 
 	mTooltipElementHoverStart = GetTime().GetRealTimeInSeconds();
 
-	return eventProcessed;
+	return isHandled;
+}
+
+TOptional<GUIPointerEventTracker::DragAndDropOperation> GUIManager::GetDragAndDropOperation() const
+{
+	const DragAndDrop& dragAndDrop = DragAndDrop::Instance();
+	if(!dragAndDrop.IsDragInProgress())
+		return {};
+
+	return GUIPointerEventTracker::DragAndDropOperation{ dragAndDrop.GetDragData(), dragAndDrop.NeedsValidDropTarget() };
+}
+
+void GUIManager::UpdateCursor()
+{
+	const CursorType cursor = mPointerEventTracker.GetCursor();
+	if(cursor == mActiveCursor)
+		return;
+
+	Cursor::Instance().SetCursor(cursor);
+	mActiveCursor = cursor;
 }
 
 void GUIManager::OnTextInput(const TextInputEvent& event)
@@ -1246,43 +828,18 @@ void GUIManager::OnWindowFocusLost(RenderWindow& win)
 // nothing stays in hover state
 void GUIManager::OnMouseLeftWindow(RenderWindow& win)
 {
-	mNewElementsUnderPointer.clear();
-
-	for(auto& elementInfo : mElementsUnderPointer)
+	TArray<GUIInteractable*> windowElements;
+	for(const GUIPointerEventTracker::ElementUnderPointer& entry : mPointerEventTracker.GetElementsUnderPointer())
 	{
-		GUIInteractable* element = elementInfo.Element;
-		GUIWidget* widget = elementInfo.Widget;
-
-		if(widget != nullptr && widget->GetTarget()->GetTarget().get() != &win)
-		{
-			mNewElementsUnderPointer.push_back(elementInfo);
-			continue;
-		}
-
-		auto found = std::find_if(mActiveElements.begin(), mActiveElements.end(), [&](const ElementInfo& x)
-									 { return x.Element == element; });
-
-		// Send MouseOut event
-		if(mActiveElements.size() == 0 || found != mActiveElements.end())
-		{
-			GUIPhysicalPoint localPos = GetWidgetRelativePos(widget, GUIPhysicalPoint(kZeroTag));
-
-			mMouseEvent.SetMouseOutData(localPos);
-			SendMouseEvent(element, mMouseEvent);
-		}
+		const GUIWidget* const widget = entry.Element->GetParentWidget();
+		if(widget == nullptr || widget->GetTarget() == nullptr || widget->GetTarget()->GetTarget().get() == &win)
+			windowElements.Add(entry.Element);
 	}
 
-	mElementsUnderPointer.swap(mNewElementsUnderPointer);
+	mPointerEventTracker.ProcessPointerLeftWindow(windowElements);
 
 	HideTooltip();
-	if(mDragState != DragState::Dragging)
-	{
-		if(mActiveCursor != CursorType::Arrow)
-		{
-			Cursor::Instance().SetCursor(CursorType::Arrow);
-			mActiveCursor = CursorType::Arrow;
-		}
-	}
+	UpdateCursor();
 }
 
 void GUIManager::HideTooltip()
@@ -1316,6 +873,8 @@ bool GUIManager::ProcessDestroyQueueIteration()
 	Stack<GUIElement*> toDestroy = mScheduledForDestruction;
 	mScheduledForDestruction = Stack<GUIElement*>();
 
+	mPointerEventTracker.RemovePendingDestroyElements();
+
 	while(!toDestroy.empty())
 	{
 		B3DDelete(toDestroy.top());
@@ -1333,20 +892,7 @@ void GUIManager::SetInputBridge(const TShared<RenderTexture>& renderTex, const G
 		mInputBridge[renderTex] = element;
 }
 
-GUIMouseButton GUIManager::ButtonToGuiButton(PointerEventButton pointerButton) const
-{
-	if(pointerButton == PointerEventButton::Left)
-		return GUIMouseButton::Left;
-	else if(pointerButton == PointerEventButton::Middle)
-		return GUIMouseButton::Middle;
-	else if(pointerButton == PointerEventButton::Right)
-		return GUIMouseButton::Right;
-
-	B3D_ENSURE_LOG(false, "Provided button is not a GUI supported mouse button.");
-	return GUIMouseButton::Left;
-}
-
-GUIPhysicalPoint GUIManager::GetWidgetRelativePos(const GUIWidget* widget, const GUIPhysicalPoint& screenPos) const
+GUIPhysicalPoint GUIManager::ScreenToWidgetCoords(const GUIWidget* widget, const GUIPhysicalPoint& screenPos) const
 {
 	if(widget == nullptr)
 		return screenPos;
@@ -1540,14 +1086,6 @@ void GUIManager::TabFocusNext()
 
 	// Nothing currently in focus
 	TabFocusFirst();
-}
-
-bool GUIManager::SendMouseEvent(GUIInteractable* element, const GUIMouseEvent& event)
-{
-	if(element->IsPendingDestroy())
-		return false;
-
-	return element->DoOnMouseEvent(event);
 }
 
 bool GUIManager::SendTextInputEvent(GUIInteractable* element, const GUITextInputEvent& event)

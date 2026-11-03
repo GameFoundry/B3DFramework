@@ -152,17 +152,6 @@ namespace b3d
 		/** Transitions the GUI element into the provided set of states, replacing the states it is currently in. */
 		void SetStateFlags(GUIElementStates flags);
 
-		/**
-		 * Returns true if the element's Hover and Active states are set whenever the pointer is inside its interaction
-		 * bounds, including while it is over a child that handles the pointer events.
-		 *
-		 * Pointer events are offered to the elements under the pointer front to back and stop at the first element that
-		 * handles one, which is the right rule for clicks but the wrong one for hover: an element behind another (such as
-		 * a container behind the widgets it holds) would then never learn that the pointer is over it. The GUI manager
-		 * sets the states of such elements itself, from the hit test, regardless of who handled the event.
-		 */
-		virtual bool TracksPointerStateByBounds() const { return false; }
-
 		/**	Checks if the GUI element has a custom cursor and outputs the cursor type if it does. */
 		virtual bool HasCustomCursor(const GUIPhysicalPoint& position, CursorType& type) const { return false; }
 

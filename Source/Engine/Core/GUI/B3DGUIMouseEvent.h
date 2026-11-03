@@ -13,22 +13,99 @@ namespace b3d
 	 *  @{
 	 */
 
-	/**	Types of GUI mouse events. */
+	/**
+	 * Types of GUI mouse events. Each type reaches elements in one of these ways:
+	 *  - Routed: offered to the elements under the pointer front to back, and stops at the first element that handles it
+	 *    by returning true. Elements in front of that one, which ignored it, have received it too, but elements behind it
+	 *    never do. This means the element the pointer is on handles the event, and containers behind it do not see it.
+	 *  - Sent to the pressed elements: the elements MouseDown was routed to when the press began. Usually this is only the
+	 *    element that handled the MouseDown, plus any elements in front of it that ignored it.
+	 *  - Sent to every element the pointer is inside of, directly or through an element it contains. What the element
+	 *    returns is ignored. Containers behind the element the pointer is on receive these as well.
+	 *
+	 * A press captures the pointer while any of its pressed elements remain, meaning they were not destroyed since.
+	 */
 	enum class GUIMouseEventType
 	{
+		/**
+		 * The pointer moved over the element. Routed, once each time the pointer moves over the element. While a press
+		 * captures the pointer, only the pressed elements receive it.
+		 */
 		MouseOver,
+
+		/**
+		 * The pointer is no longer over an element that received MouseOver, either because it moved away or because an
+		 * element in front of it now handles MouseOver. Sent to every such element. While a press captures the pointer,
+		 * only the pressed elements receive it.
+		 */
 		MouseOut,
+
+		/**
+		 * A pointer button was pressed, beginning a press. Routed, and every element it reached becomes a pressed element.
+		 * Not sent while a press captures the pointer.
+		 */
 		MouseDown,
+
+		/**
+		 * The button that began the press was released. Routed, but only among the pressed elements still under the
+		 * pointer, so an element only receives it if it also received the MouseDown.
+		 */
 		MouseUp,
+
+		/** A pointer button was double clicked. Routed. */
 		MouseDoubleClick,
+
+		/** The pointer moved while no drag is in progress. Routed. */
 		MouseMove,
+
+		/** The mouse wheel was scrolled while no drag is in progress. Routed. */
 		MouseWheelScroll,
+
+		/** The pointer moved during a drag that began with MouseDragStart. Sent to the pressed elements. */
 		MouseDrag,
+
+		/** The pointer moved a few pixels away from where the left button was pressed. Sent to the pressed elements. */
 		MouseDragStart,
+
+		/** The left button was released, ending a drag that began with MouseDragStart. Sent to the pressed elements. */
 		MouseDragEnd,
+
+		/**
+		 * The pointer moved during a drag and drop operation (see DragAndDrop). Routed, among the elements under the
+		 * pointer that accept the data being dragged.
+		 */
 		MouseDragAndDropDragged,
+
+		/**
+		 * The data of a drag and drop operation was dropped. Routed, among the elements under the pointer that accept the
+		 * data being dragged.
+		 */
 		MouseDragAndDropDropped,
-		MouseDragAndDropLeft
+
+		/**
+		 * The pointer is no longer over the element during a drag and drop operation. Offered to the elements the pointer
+		 * left, until one of them handles it.
+		 */
+		MouseDragAndDropLeft,
+
+		/**
+		 * The pointer moved inside the element, either directly or into one of the elements it contains. Sent to every
+		 * element the pointer is inside of. While a press captures the pointer, only the elements the pointer was inside
+		 * of when the press began receive it.
+		 */
+		MouseEnter,
+
+		/** The pointer is no longer inside the element or any element it contains. Counterpart to MouseEnter. */
+		MouseLeave,
+
+		/**
+		 * A press began while the pointer was inside the element. Sent to every element the pointer is inside of, except
+		 * disabled ones, regardless of which element handles the MouseDown.
+		 */
+		MousePressBegin,
+
+		/** The press that sent MousePressBegin was released, or the pointer is no longer inside the element. */
+		MousePressEnd
 	};
 
 	/**	Types of GUI mouse buttons. */
@@ -87,7 +164,10 @@ namespace b3d
 		bool IsAltDown() const { return mAlt; }
 
 	private:
-		friend class GUIManager;
+		friend class GUIPointerEventTracker;
+
+		/** Initializes the event as a MouseEnter, MouseLeave, MousePressBegin or MousePressEnd event, which carry no data. */
+		void SetNotificationData(GUIMouseEventType type);
 
 		/**	Initializes the event with MouseOver event data. */
 		void SetMouseOverData(const GUIPhysicalPoint& position);

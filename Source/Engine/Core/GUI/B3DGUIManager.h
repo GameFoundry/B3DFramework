@@ -6,6 +6,7 @@
 #include "B3DPrerequisites.h"
 #include "Renderer/B3DRendererExtension.h"
 #include "GUI/B3DGUIMouseEvent.h"
+#include "GUI/B3DGUIPointerEventTracker.h"
 #include "GUI/B3DGUITextInputEvent.h"
 #include "GUI/B3DGUICommandEvent.h"
 #include "GUI/B3DGUIVirtualButtonEvent.h"
@@ -46,14 +47,6 @@ namespace b3d
 	 */
 	class B3D_EXPORT GUIManager : public Module<GUIManager>
 	{
-		/**	Valid states of a drag and drop operation. */
-		enum class DragState
-		{
-			NoDrag,
-			HeldWithoutDrag,
-			Dragging
-		};
-
 		/**	Container for a GUI widget. */
 		struct WidgetInfo
 		{
@@ -62,31 +55,6 @@ namespace b3d
 			{}
 
 			GUIWidget* Widget;
-		};
-
-		/**	Container for data about a single GUI element and its widget. */
-		struct ElementInfo
-		{
-			ElementInfo(GUIInteractable* element, GUIWidget* widget)
-				: Element(element), Widget(widget)
-			{}
-
-			GUIInteractable* Element;
-			GUIWidget* Widget;
-		};
-
-		/**	Container for data about a single GUI element and its widget currently under the pointer. */
-		struct ElementInfoUnderPointer
-		{
-			ElementInfoUnderPointer(GUIInteractable* element, GUIWidget* widget)
-				: Element(element), Widget(widget), UsesMouseOver(false), ReceivedMouseOver(false), IsHovering(false)
-			{}
-
-			GUIInteractable* Element;
-			GUIWidget* Widget;
-			bool UsesMouseOver;
-			bool ReceivedMouseOver;
-			bool IsHovering;
 		};
 
 		/**	Container for GUI element in focus. */
@@ -207,6 +175,12 @@ namespace b3d
 		GUIPhysicalPoint WindowToBridgedCoords(const TShared<RenderTarget>& target, const GUIPhysicalPoint& windowPos) const;
 
 		/**
+		 * Converts screen coordinates to coordinates relative to the specified widget. If the widget is null, coordinates
+		 * are returned as is.
+		 */
+		GUIPhysicalPoint ScreenToWidgetCoords(const GUIWidget* widget, const GUIPhysicalPoint& screenPos) const;
+
+		/**
 		 * Returns the render window that holds the GUI element that displays the provided render texture.
 		 *
 		 * @param[in]	target	Render texture to find the bridged window for.
@@ -247,16 +221,16 @@ namespace b3d
 		bool ProcessDestroyQueueIteration();
 
 		/**
-		 * Finds a GUI element under the pointer at the specified screen position. This method will also trigger pointer
-		 * move/hover/leave events.
-		 *
-		 * @param[in]	screenMousePos	Position of the pointer in screen coordinates.
-		 * @param[in]	buttonStates	States of the three mouse buttons (left, right, middle).
-		 * @param[in]	shift			Is shift key held.
-		 * @param[in]	control			Is control key held.
-		 * @param[in]	alt				Is alt key held.
+		 * Finds the GUI elements under the pointer and passes them to the pointer event tracker, which sends the
+		 * resulting hover events. Returns true if an element handled one of them.
 		 */
-		bool FindElementUnderPointer(const GUIPhysicalPoint& screenMousePos, bool buttonStates[3], bool shift, bool control, bool alt);
+		bool UpdateElementsUnderPointer(const PointerEvent& event);
+
+		/** Returns the drag and drop operation in progress, if any. */
+		TOptional<GUIPointerEventTracker::DragAndDropOperation> GetDragAndDropOperation() const;
+
+		/** Shows the cursor the pointer event tracker wants shown, if it is not shown already. */
+		void UpdateCursor();
 
 		/**	Called whenever a pointer (for example mouse cursor) is moved. */
 		void OnPointerMoved(const PointerEvent& event);
@@ -291,12 +265,6 @@ namespace b3d
 		/**	Called when the mouse leaves the specified window. */
 		void OnMouseLeftWindow(RenderWindow& win);
 
-		/**	Converts pointer buttons to mouse buttons. */
-		GUIMouseButton ButtonToGuiButton(PointerEventButton pointerButton) const;
-
-		/**	Converts screen coordinates to coordinates relative to the specified widget. */
-		GUIPhysicalPoint GetWidgetRelativePos(const GUIWidget* widget, const GUIPhysicalPoint& screenPos) const;
-
 		/**	Hides the tooltip if any is shown. */
 		void HideTooltip();
 
@@ -305,14 +273,6 @@ namespace b3d
 
 		/** Switches the focus to the next element in the tab group. Usually triggered when the user hits Tab key. */
 		void TabFocusNext();
-
-		/**
-		 * Sends a mouse event to the specified GUI element.
-		 *
-		 * @param[in]	element	Element to send the event to.
-		 * @param[in]	event	Event data.
-		 */
-		bool SendMouseEvent(GUIInteractable* element, const GUIMouseEvent& event);
 
 		/**
 		 * Sends a text input event to the specified GUI element.
@@ -338,7 +298,6 @@ namespace b3d
 		 */
 		bool SendVirtualButtonEvent(GUIInteractable* element, const GUIVirtualButtonEvent& event);
 
-		static const u32 kDragDistance;
 		static const float kTooltipHoverTime;
 
 		static const u32 kMeshHeapInitialNumVerts;
@@ -349,14 +308,8 @@ namespace b3d
 
 		Stack<GUIElement*> mScheduledForDestruction;
 
-		// Element and widget pointer is currently over
-		Vector<ElementInfoUnderPointer> mElementsUnderPointer;
-		Vector<ElementInfoUnderPointer> mNewElementsUnderPointer;
-
-		// Element and widget that's being clicked on
-		GUIMouseButton mActiveMouseButton = GUIMouseButton::Left;
-		Vector<ElementInfo> mActiveElements;
-		Vector<ElementInfo> mNewActiveElements;
+		GUIPointerEventTracker mPointerEventTracker{*this};
+		TArray<GUIInteractable*> mHitTestElements; /**< Hit test output passed to the pointer event tracker, reused between pointer events. */
 
 		// Element and widget that currently have the keyboard focus
 		Vector<ElementFocusInfo> mElementsInFocus;
@@ -373,13 +326,6 @@ namespace b3d
 		GUIInputCaret* mInputCaret = nullptr;
 		GUIInputSelection* mInputSelection = nullptr;
 
-		Vector2I mLastPointerScreenPos{kZeroTag};
-
-		DragState mDragState = DragState::NoDrag;
-		GUIPhysicalPoint mLastPointerClickPos{kZeroTag};
-		GUIPhysicalPoint mDragStartPos{kZeroTag};
-
-		GUIMouseEvent mMouseEvent;
 		GUITextInputEvent mTextInputEvent;
 		GUICommandEvent mCommandEvent;
 		GUIVirtualButtonEvent mVirtualButtonEvent;
