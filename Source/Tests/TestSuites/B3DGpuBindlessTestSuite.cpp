@@ -532,14 +532,15 @@ void GpuBindlessTestSuite::TestResourceIndices()
 		const TShared<SamplerState> globalSampler = device->FindOrCreateSamplerState(pointClampInformation);
 		B3D_TEST_ASSERT(globalSampler->GetBindlessIndex() == GetGlobalSamplerIndex(GpuGlobalSamplerFilter::Point, GpuGlobalSamplerAddress::Clamp))
 
-		SamplerStateCreateInformation biasedInformation = pointClampInformation;
-		biasedInformation.MipmapBias = 0.25f;
+		// Metal ignores mip bias, so a mip clamp makes the sampler differ from the global ones
+		SamplerStateCreateInformation clampedInformation = pointClampInformation;
+		clampedInformation.MipMax = 8.0f;
 
-		const TShared<SamplerState> biasedSampler = device->FindOrCreateSamplerState(biasedInformation);
-		const u32 biasedIndex = biasedSampler->GetBindlessIndex();
-		B3D_TEST_ASSERT(biasedIndex > kGpuGlobalSamplerCount)
-		B3D_TEST_ASSERT(biasedSampler->GetBindlessIndex() == biasedIndex)
-		B3D_TEST_ASSERT(device->FindOrCreateSamplerState(biasedInformation)->GetBindlessIndex() == biasedIndex)
+		const TShared<SamplerState> clampedSampler = device->FindOrCreateSamplerState(clampedInformation);
+		const u32 clampedIndex = clampedSampler->GetBindlessIndex();
+		B3D_TEST_ASSERT(clampedIndex > kGpuGlobalSamplerCount)
+		B3D_TEST_ASSERT(clampedSampler->GetBindlessIndex() == clampedIndex)
+		B3D_TEST_ASSERT(device->FindOrCreateSamplerState(clampedInformation)->GetBindlessIndex() == clampedIndex)
 	}, "GpuBindlessTestSuite::TestResourceIndices", true);
 }
 
@@ -615,7 +616,7 @@ void GpuBindlessTestSuite::TestHeapAccess()
 		samplerInformation.MinFilter = FO_POINT;
 		samplerInformation.MagFilter = FO_POINT;
 		samplerInformation.MipFilter = FO_POINT;
-		samplerInformation.MipmapBias = 0.25f;
+		samplerInformation.MipMax = 8.0f;
 		const TShared<SamplerState> cachedSampler = device->FindOrCreateSamplerState(samplerInformation);
 
 		u32 indices[] =
@@ -811,7 +812,35 @@ void GpuBindlessTestSuite::TestRelocation()
 		renderTargetInformation.Name = "Unmovable render target";
 		renderTargetInformation.Usage = TextureUsageFlag::RenderTarget;
 
-		// Resources created before the tested ones and destroyed once they exist leave free memory below them
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		GpuBindlessHeaps& heaps = *device->GetBindlessHeaps();
+		GpuMemoryDefragmenter& defragmenter = device->GetMemoryDefragmenter();
+
+		// Runs defragmentation passes until fnIsDone() returns true, or a pass moves nothing
+		const auto fnDefragment = [&context, &device, &heaps, &defragmenter](const auto& fnIsDone)
+		{
+			const bool wasEnabled = gGpuDefragmentation.Get();
+			gGpuDefragmentation.Set(true);
+
+			for(u32 passIndex = 0; passIndex < 256; passIndex++)
+			{
+				defragmenter.Run(*context);
+				context->SubmitTransferCommandBuffers(true);
+				heaps.ApplyPendingChanges();
+				device->WaitUntilIdle();
+				heaps.ProcessAllReleases();
+
+				if(fnIsDone() || defragmenter.GetStatistics().LastPassMoveCount == 0)
+					break;
+			}
+
+			gGpuDefragmentation.Set(wasEnabled);
+		};
+
+		// Memory freed by earlier tests is compacted first, so the resources created below are placed in order after the used memory.
+		// Resources created before the tested ones and destroyed once they exist then leave free memory below them.
+		fnDefragment([]() { return false; });
+
 		TArray<TShared<render::GpuBuffer>> fillerBuffers;
 		TArray<TShared<render::Texture>> fillerTextures;
 		for(u32 fillerIndex = 0; fillerIndex < 16; fillerIndex++)
@@ -865,7 +894,6 @@ void GpuBindlessTestSuite::TestRelocation()
 		const GpuAccessState transferRead(GpuStageFlag::Transfer, GpuAccessFlag::Read);
 		const GpuAccessState hostRead(GpuStageFlag::Host, GpuAccessFlag::Read);
 
-		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 		const TShared<GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
 
 		// Every resource returns to rest after its upload, which is where heaps read it and the defragmenter moves it
@@ -888,7 +916,6 @@ void GpuBindlessTestSuite::TestRelocation()
 			device->WaitUntilIdle();
 		}
 
-		GpuBindlessHeaps& heaps = *device->GetBindlessHeaps();
 		fillerBuffers.Clear();
 		fillerTextures.Clear();
 		heaps.ProcessAllReleases();
@@ -897,7 +924,7 @@ void GpuBindlessTestSuite::TestRelocation()
 		samplerInformation.MinFilter = FO_POINT;
 		samplerInformation.MagFilter = FO_POINT;
 		samplerInformation.MipFilter = FO_POINT;
-		samplerInformation.MipmapBias = 0.25f;
+		samplerInformation.MipMax = 8.0f;
 		const TShared<SamplerState> cachedSampler = device->FindOrCreateSamplerState(samplerInformation);
 
 		const u32 indices[] =
@@ -915,20 +942,11 @@ void GpuBindlessTestSuite::TestRelocation()
 		const IGpuResource* const cpuBufferNativeResource = cpuBuffer->GetGpuResource();
 		const IGpuResource* const renderTargetNativeResource = renderTarget->GetGpuResource();
 
-		GpuMemoryDefragmenter& defragmenter = device->GetMemoryDefragmenter();
 		const u64 initialMoveCount = defragmenter.GetStatistics().MoveCount;
-		const bool wasEnabled = gGpuDefragmentation.Get();
-		gGpuDefragmentation.Set(true);
 
 		bool isMoved[kMovedCount] = {};
-		for(u32 passIndex = 0; passIndex < 256; passIndex++)
+		fnDefragment([&]()
 		{
-			defragmenter.Run(*context);
-			context->SubmitTransferCommandBuffers(true);
-			heaps.ApplyPendingChanges();
-			device->WaitUntilIdle();
-			heaps.ProcessAllReleases();
-
 			const IGpuResource* const nativeResources[kMovedCount] = { structuredBuffer->GetGpuResource(), typedBuffer->GetGpuResource(), texture->GetGpuResource() };
 			bool isEveryResourceMoved = true;
 			for(u32 resourceIndex = 0; resourceIndex < kMovedCount; resourceIndex++)
@@ -937,11 +955,8 @@ void GpuBindlessTestSuite::TestRelocation()
 				isEveryResourceMoved &= isMoved[resourceIndex];
 			}
 
-			if(isEveryResourceMoved || defragmenter.GetStatistics().LastPassMoveCount == 0)
-				break;
-		}
-
-		gGpuDefragmentation.Set(wasEnabled);
+			return isEveryResourceMoved;
+		});
 
 		B3D_TEST_ASSERT(defragmenter.GetStatistics().MoveCount > initialMoveCount)
 		B3D_TEST_ASSERT_MSG(isMoved[0] && isMoved[1] && isMoved[2], StringUtility::Format("Moved: structured buffer {0}, typed buffer {1}, texture {2}.",

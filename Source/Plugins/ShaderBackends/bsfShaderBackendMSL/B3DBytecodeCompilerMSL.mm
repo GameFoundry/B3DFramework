@@ -939,6 +939,16 @@ TShared<GpuProgramBytecode> BytecodeCompilerMSL::CompileBytecode(const GpuProgra
 
 	RestoreDeclaredMemberTypes(createInformation.ShaderReflection.get(), *bytecode->ParameterDescription);
 
+	// Metal reflects byte address buffers as pointers, like structured buffers, so only the shader reflection tells them apart
+	if(createInformation.ShaderReflection != nullptr && createInformation.ShaderReflection->Parameters != nullptr)
+	{
+		ShaderParameterDescription::IterateMatching(createInformation.ShaderReflection->Parameters->GetBufferParameters(), bytecode->ParameterDescription->Buffers, [](const auto& source, auto& outTarget)
+		{
+			if(GpuObjectParameterTypeInformation::IsByteAddressBuffer(source.Type))
+				outTarget.Type = source.Type;
+		});
+	}
+
 	bytecode->ParameterDescription->Features = entryPointReflection.Features;
 
 	bytecode->Instructions.Size = (u32)libraryData.size();
