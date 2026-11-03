@@ -106,7 +106,7 @@ void GUIInteractable::ChangeParentWidget(GUIWidget* widget)
 	if(mParentWidget != widget)
 	{
 		// Unregister from current widget's nav-group
-		if(!mNavigationGroup && mParentWidget)
+		if(!mNavigationGroup && mParentWidget && !IsLayoutOnly())
 			mParentWidget->GetDefaultNavGroupInternal()->UnregisterElement(this);
 
 		widgetChanged = true;
@@ -117,9 +117,23 @@ void GUIInteractable::ChangeParentWidget(GUIWidget* widget)
 	if(widgetChanged)
 	{
 		// Register with the new widget's nav-group
-		if(!mNavigationGroup && mParentWidget)
+		if(!mNavigationGroup && mParentWidget && !IsLayoutOnly())
 			mParentWidget->GetDefaultNavGroupInternal()->RegisterElement(this);
 	}
+}
+
+void GUIInteractable::RefreshWidgetRegistration()
+{
+	GUIRenderable::RefreshWidgetRegistration();
+
+	if(mNavigationGroup)
+		return;
+
+	const TShared<GUINavGroup> defaultNavigationGroup = mParentWidget->GetDefaultNavGroupInternal();
+	if(IsLayoutOnly())
+		defaultNavigationGroup->UnregisterElement(this);
+	else
+		defaultNavigationGroup->RegisterElement(this);
 }
 
 void GUIInteractable::SetNavigationGroup(const TShared<GUINavGroup>& navGroup)
@@ -149,7 +163,7 @@ TShared<GUINavGroup> GUIInteractable::GetNavigationGroup() const
 	if(mNavigationGroup)
 		return mNavigationGroup;
 
-	if(mParentWidget)
+	if(mParentWidget && !IsLayoutOnly())
 		return mParentWidget->GetDefaultNavGroupInternal();
 
 	return nullptr;

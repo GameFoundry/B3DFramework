@@ -126,7 +126,7 @@ void GUIRenderable::AddStyleClass(const String& styleClass)
 	const bool wasLayoutOnly = IsLayoutOnly();
 
 	mStyleClasses.Add(styleClass);
-	NotifyStyleClassesChanged(wasLayoutOnly);
+	RefreshStyleAndRegistration(wasLayoutOnly);
 }
 
 void GUIRenderable::RemoveStyleClass(const String& styleClass)
@@ -139,7 +139,7 @@ void GUIRenderable::RemoveStyleClass(const String& styleClass)
 		const bool wasLayoutOnly = IsLayoutOnly();
 
 		mStyleClasses.Erase(it);
-		NotifyStyleClassesChanged(wasLayoutOnly);
+		RefreshStyleAndRegistration(wasLayoutOnly);
 		return;
 	}
 }
@@ -160,7 +160,7 @@ void GUIRenderable::SetStyleClasses(TInlineArray<String, 1> styleClasses)
 	const bool wasLayoutOnly = IsLayoutOnly();
 
 	mStyleClasses = std::move(styleClasses);
-	NotifyStyleClassesChanged(wasLayoutOnly);
+	RefreshStyleAndRegistration(wasLayoutOnly);
 }
 
 void GUIRenderable::ClearStyleClasses()
@@ -171,19 +171,29 @@ void GUIRenderable::ClearStyleClasses()
 	const bool wasLayoutOnly = IsLayoutOnly();
 
 	mStyleClasses.Clear();
-	NotifyStyleClassesChanged(wasLayoutOnly);
+	RefreshStyleAndRegistration(wasLayoutOnly);
 }
 
-void GUIRenderable::NotifyStyleClassesChanged(bool wasLayoutOnly)
+void GUIRenderable::RefreshStyleAndRegistration(bool wasLayoutOnly)
 {
 	// Gaining the first class or losing the last one can turn a layout-only element into a drawn one, or back
-	if(mParentWidget != nullptr && !IsPendingDestroy() && wasLayoutOnly != IsLayoutOnly())
+	if(wasLayoutOnly != IsLayoutOnly())
 	{
-		mParentWidget->UnregisterElement(this);
-		mParentWidget->RegisterElement(this);
+		if(mParentWidget != nullptr && !IsPendingDestroy())
+			RefreshWidgetRegistration();
+
+		// Selectors on the elements below now match through this element, or stop at it, so they all need restyling even if
+		// the key they build on stays the same
+		mStyleKeyRevision = 0;
 	}
 
 	RefreshStyleRecursive();
+}
+
+void GUIRenderable::RefreshWidgetRegistration()
+{
+	mParentWidget->UnregisterElement(this);
+	mParentWidget->RegisterElement(this);
 }
 
 u64 GUIRenderable::GetStyleKey() const
@@ -204,6 +214,18 @@ const GUIStyleSheetCascade& GUIRenderable::GetActiveStyleSheetCascade() const
 	return parentWidget != nullptr ? parentWidget->GetStyleSheetCascade() : GUIStyleSheetCascade::kEmpty;
 }
 
+const GUIRenderable* GUIRenderable::GetStyleParent() const
+{
+	for(const GUIElement* parent = GetParent(); parent != nullptr; parent = parent->GetParent())
+	{
+		const GUIRenderable* const parentRenderable = B3DRTTICast<const GUIRenderable>(parent);
+		if(parentRenderable != nullptr && !parentRenderable->IsLayoutOnly())
+			return parentRenderable;
+	}
+
+	return nullptr;
+}
+
 void GUIRenderable::EnsureStyleKeys() const
 {
 	if(mStyleKeyRevision != GetActiveStyleSheetCascade().GetRevision())
@@ -214,16 +236,25 @@ void GUIRenderable::UpdateStyleKeys() const
 {
 	const GUIStyleSheetCascade& styleSheetCascade = GetActiveStyleSheetCascade();
 
-	// Layouts in between are not renderables, so skip past them to the closest ancestor that has a style key
-	const GUIRenderable* parentRenderable = nullptr;
-	for(const GUIElement* parent = GetParent(); parent != nullptr && parentRenderable == nullptr; parent = parent->GetParent())
-		parentRenderable = B3DRTTICast<const GUIRenderable>(parent);
+	const GUIRenderable* const parentRenderable = GetStyleParent();
 
 	u64 ancestorStyleKey = 0;
 	if(parentRenderable != nullptr)
 	{
 		parentRenderable->EnsureStyleKeys();
 		ancestorStyleKey = parentRenderable->mDescendantStyleKey;
+	}
+
+	// Selectors cannot observe an element that is layout only, so it neither matches anything nor extends the key
+	if(IsLayoutOnly())
+	{
+		mStyleKey = ancestorStyleKey;
+		mDescendantStyleKey = ancestorStyleKey;
+		mStatesAffectingDescendants = GUIElementState::Normal;
+		mHasParentOfMatch = false;
+		mStyleKeyRevision = styleSheetCascade.GetRevision();
+
+		return;
 	}
 
 	// Every value is preceded by the part it came from, so that for example a class and an id of the same name, or a class
@@ -464,7 +495,13 @@ void GUIRenderable::RefreshStyle()
 
 	const GUIStyleSheetCascade& styleSheetCascade = GetActiveStyleSheetCascade();
 
-	TShared<const GUIStyleSheetStateRulesets> newStateRulesets = styleSheetCascade.BuildStateRulesets(*this);
+	// Elements that are layout only never consult the style sheet, and only fall back to the default rules if they were
+	// styled before
+	TShared<const GUIStyleSheetStateRulesets> newStateRulesets;
+	if(!IsLayoutOnly())
+		newStateRulesets = styleSheetCascade.BuildStateRulesets(*this);
+	else if(mStyleSheetRuleInformation.StateRulesets == nullptr)
+		return;
 
 	if(!newStateRulesets)
 		newStateRulesets = GUIStyleSheetStateRulesets::kDefault;

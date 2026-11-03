@@ -1620,6 +1620,10 @@ bool GUIStyleSheetParser::TryParseHexColor(const StringView& toParse, Color& out
 
 	const u32 channelCount = (u32)toParse.size() / 2;
 
+	// A six digit literal says nothing about alpha, which CSS reads as fully opaque. Without this the channel loop would
+	// keep whatever alpha the target color already had.
+	outValue.A = 1.0f;
+
 	auto fnParseColorChannel = [&toParse](u32 channel, float& outValue) -> bool
 	{
 		const char* const data = toParse.data();

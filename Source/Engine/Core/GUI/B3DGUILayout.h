@@ -3,8 +3,10 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
-#include "GUI/B3DGUIElement.h"
+#include "GUI/B3DGUIInteractable.h"
 #include "GUI/B3DGUICulling.h"
+#include "GUI/B3DGUISpriteHelper.h"
+#include "Utility/B3DEvent.h"
 
 namespace b3d
 {
@@ -15,14 +17,22 @@ namespace b3d
 	/**
 	 * Base class for layout GUI element. Layout element positions and sizes any child elements according to element styles
 	 * and layout options.
+	 *
+	 * A layout without a style class only arranges its children: it draws nothing, receives no input, is never registered
+	 * with the parent widget and never consults the style sheet (see IsLayoutOnly()). Giving it a style class, or making it
+	 * interactive, turns it into a `container` element in the style sheet, which draws a background, border, radius and
+	 * shadow, insets its children by its padding and border, and can be restyled per state.
 	 */
-	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUILayout : public GUIElement
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUILayout : public GUIInteractable
 	{
-		using Super = GUIElement;
+		using Super = GUIInteractable;
 	public:
-		GUILayout() = default;
+		GUILayout();
 		GUILayout(const String& styleClass, const GUISizeConstraints& dimensions);
 		virtual ~GUILayout() = default;
+
+		/** Layouts stay class-less when no style class is provided, which is what keeps them layout only. */
+		static constexpr bool kUseTypeNameAsDefaultStyleClass = false;
 
 		/**	Creates a new element and adds it to the layout after all existing elements. */
 		template <class Type, class... Args>
@@ -79,10 +89,45 @@ namespace b3d
 		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(EnableCulling))
 		void SetEnableCulling(bool enable);
 
+		/**
+		 * Makes the layout take part in pointer hit-testing, so that it tracks the `:hover`, `:active` and `:focus` states
+		 * and raises OnClick, OnDoubleClick and OnContextMenu. Elements inside the layout are offered pointer events first,
+		 * and the layout only receives the clicks none of them handled. 
+		 */
+		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(Interactive))
+		void SetInteractive(bool interactive);
+
+		/** @copydoc SetInteractive */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Interactive))
+		bool IsInteractive() const { return mIsInteractive; }
+
+		/** Toggles the `:checked` state of the layout, whether or not it is interactive. */
+		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(Checked))
+		void SetChecked(bool checked);
+
+		/** @copydoc SetChecked */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Checked))
+		bool IsChecked() const { return mStateFlags.IsSet(GUIElementState::Checked); }
+
+		/** Triggered when an interactive layout is clicked, unless an element inside it handled the click. */
+		B3D_SCRIPT_EXPORT()
+		Event<void()> OnClick;
+
+		/** Triggered when an interactive layout is double clicked, unless an element inside it handled the click. */
+		B3D_SCRIPT_EXPORT()
+		Event<void()> OnDoubleClick;
+
+		/** Triggered when an interactive layout is right clicked, unless an element inside it handled the click. */
+		B3D_SCRIPT_EXPORT()
+		Event<void()> OnContextMenu;
+
 	public: // ***** INTERNAL ******
 		/** @name Internal
 		 *  @{
 		 */
+
+		StringView GetStyleSheetElement() const override { return "container"; }
+		bool IsLayoutOnly() const override { return !mIsInteractive && mStyleClasses.Empty(); }
 
 		GUIConstrainedSizeRange GetConstrainedSizeRange() const override { return mConstrainedSizeRange; }
 
@@ -102,11 +147,34 @@ namespace b3d
 		void RegisterChildElement(GUIElement* element) override;
 		void UnregisterChildElement(GUIElement* element) override;
 		void UpdateAbsoluteCoordinatesForChildren() override;
+		void UpdateRenderElements() override;
+		bool DoOnMouseEvent(const GUIMouseEvent& event) override;
+		bool DoOnCommandEvent(const GUICommandEvent& event) override;
+		void NotifyStyleChanged() override;
+
+		/**
+		 * Returns the area the child elements are laid out in, relative to the layout origin. This is the whole layout,
+		 * minus the style padding and border if the layout is styled.
+		 */
+		GUILogicalArea GetChildLayoutArea() const;
+
+		/** Grows the size of the child elements by the style padding and border, giving the size of the layout itself. */
+		GUILogicalSize AddStylePaddingAndBorder(const GUILogicalSize& childrenSize) const;
+
+		/**
+		 * Returns the layout data to hand down to the child elements. This is the layout's own data, except that a styled
+		 * layout moves its children one step towards the viewer, so that its own background is drawn behind them rather
+		 * than at the same depth.
+		 */
+		GUILayoutData GetChildLayoutData() const;
 
 	protected:
 		Vector<GUIConstrainedSizeRange> mChildConstrainedSizeRanges;
 		GUIConstrainedSizeRange mConstrainedSizeRange;
 		TUnique<GUICulling> mCulling;
+
+		GUIBackgroundSprite mBackgroundSprite;
+		bool mIsInteractive = false;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

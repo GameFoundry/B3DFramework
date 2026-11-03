@@ -112,7 +112,8 @@ void GUIWidget::RegisterElement(GUIElement* guiElement)
 {
 	B3D_ASSERT(guiElement != nullptr && !guiElement->IsPendingDestroy());
 
-	if(GUIRenderable* const renderable = B3DRTTICast<GUIRenderable>(guiElement))
+	// Elements that are layout only are never drawn and never receive input, so they are not tracked at all
+	if(GUIRenderable* const renderable = B3DRTTICast<GUIRenderable>(guiElement); renderable != nullptr && !renderable->IsLayoutOnly())
 	{
 		mElements.push_back(renderable);
 		mWidgetIsDirty = true;
@@ -151,7 +152,7 @@ void GUIWidget::UnregisterElement(GUIElement* guiElement)
 
 void GUIWidget::NotifyElementVisibilityChanged(GUIElement* guiElement, bool isVisible)
 {
-	if(GUIRenderable* const renderable = B3DRTTICast<GUIRenderable>(guiElement))
+	if(GUIRenderable* const renderable = B3DRTTICast<GUIRenderable>(guiElement); renderable != nullptr && !renderable->IsLayoutOnly())
 	{
 		if(isVisible)
 		{
@@ -169,13 +170,13 @@ void GUIWidget::MarkMeshDirty(GUIElement* elem)
 {
 	mWidgetIsDirty = true;
 
-	if(GUIRenderable *const renderable = B3DRTTICast<GUIRenderable>(elem))
+	if(GUIRenderable *const renderable = B3DRTTICast<GUIRenderable>(elem); renderable != nullptr && !renderable->IsLayoutOnly())
 		mBatches.MarkMeshDirty(renderable);
 }
 
 void GUIWidget::MarkContentDirty(GUIElement* elem)
 {
-	if(GUIRenderable *const renderable = B3DRTTICast<GUIRenderable>(elem))
+	if(GUIRenderable *const renderable = B3DRTTICast<GUIRenderable>(elem); renderable != nullptr && !renderable->IsLayoutOnly())
 	{
 		if(renderable->IsHiddenOrCulled())
 			return;

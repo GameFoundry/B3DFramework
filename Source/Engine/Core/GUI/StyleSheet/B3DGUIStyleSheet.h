@@ -234,7 +234,7 @@ namespace b3d
 		Size2UI MinimumSize = Size2UI::kZero; /**< If non-zero, GUI element size will expand to fill the available area, respecting the minimum and (optionally) maximum size. In logical pixel units. */
 		Size2UI MaximumSize = Size2UI::kZero; /**< If non-zero, GUI element size will expand to fill the available area, respecting the maximum and (optionally) minimum size. In logical pixel units. */
 
-		Color BackgroundColor; /**< Color of the GUI element background. */
+		Color BackgroundColor = Color::kZero; /**< Color of the GUI element background. Transparent unless a rule sets it, so an element whose rules never mention a background doesn't paint one (matching CSS). */
 		Color Color; /**< Color of the GUI element contents (usually text or icon). */
 		float Opacity = 1.0f; /**< Opacity of the GUI element. This value will affect all aspects of the GUI element (border, background and contents). In range [0, 1]. */
 

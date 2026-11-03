@@ -112,14 +112,24 @@ namespace b3d
 		 */
 
 		/**
+		 * Determines if an element type falls back to its type name when no style class was provided at construction.
+		 * Types that leave this false stay class-less until a class is assigned, which is what lets them opt out of style
+		 * sheet lookup entirely (see GUILayout).
+		 */
+		static constexpr bool kUseTypeNameAsDefaultStyleClass = true;
+
+		/**
 		 * Helper method that returns style class used by an element of a certain type. If override style class is empty, default
-		 * class for that type is returned.
+		 * class for that type is returned, unless the type opted out through kUseTypeNameAsDefaultStyleClass.
 		 */
 		template <class T>
 		static const String& GetStyleClass(const String& overrideStyle)
 		{
-			if(overrideStyle == StringUtility::kBlank)
-				return T::GetGuiTypeName();
+			if constexpr(T::kUseTypeNameAsDefaultStyleClass)
+			{
+				if(overrideStyle == StringUtility::kBlank)
+					return T::GetGuiTypeName();
+			}
 
 			return overrideStyle;
 		}
@@ -229,9 +239,14 @@ namespace b3d
 
 		/**
 		 * Returns true if the element only arranges its children. Such elements are not registered with the parent widget,
-		 * so they are never drawn and never receive input, and cost nothing beyond their layout contribution.
+		 * so they are never drawn and never receive input, and cost nothing beyond their layout contribution. They are
+		 * also invisible to the style sheet: they are never styled, and selectors match through them as if their children
+		 * were children of their parent.
 		 */
 		virtual bool IsLayoutOnly() const { return false; }
+
+		/** Returns the closest ancestor that takes part in style sheet matching, skipping elements that are layout only. */
+		const GUIRenderable* GetStyleParent() const;
 
 		/**
 		 * Returns GUI element depth. This includes widget and area depth, but does not include specific per-render-element
@@ -253,12 +268,18 @@ namespace b3d
 		virtual void NotifyStyleChanged() {}
 
 		/**
-		 * Restyles the element and everything below it after its set of style classes changed, and re-registers it with the
-		 * parent widget if that changed the result of IsLayoutOnly().
+		 * Restyles the element and everything below it, and re-registers it with the parent widget if the result of
+		 * IsLayoutOnly() changed. Call after changing the style classes, or anything else IsLayoutOnly() depends on.
 		 *
-		 * @param	wasLayoutOnly	Result of IsLayoutOnly() before the classes changed.
+		 * @param	wasLayoutOnly	Result of IsLayoutOnly() before the change.
 		 */
-		void NotifyStyleClassesChanged(bool wasLayoutOnly);
+		void RefreshStyleAndRegistration(bool wasLayoutOnly);
+
+		/**
+		 * Re-registers the element with its parent widget after the result of IsLayoutOnly() changed. Only called while the
+		 * element has a parent widget and is not pending destroy.
+		 */
+		virtual void RefreshWidgetRegistration();
 
 		/** Returns the style sheet cascade of the parent widget, or an empty cascade if the element is not in a widget. */
 		const GUIStyleSheetCascade& GetActiveStyleSheetCascade() const;

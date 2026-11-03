@@ -111,6 +111,10 @@ void GUIPanel::UpdateOptimalLayoutSizes()
 		childIndex++;
 	}
 
+	// A styled panel surrounds its children with the padding and border from the style sheet
+	optimalSize = AddStylePaddingAndBorder(optimalSize);
+	minimumSize = AddStylePaddingAndBorder(minimumSize);
+
 	mConstrainedSizeRange = GetSizeConstraints().CalculateConstrainedSizeRange(optimalSize);
 	mConstrainedSizeRange.Minimum.Width = std::max(mConstrainedSizeRange.Minimum.Width, minimumSize.Width);
 	mConstrainedSizeRange.Minimum.Height = std::max(mConstrainedSizeRange.Minimum.Height, minimumSize.Height);
@@ -176,7 +180,7 @@ void GUIPanel::UpdateDepthRangeInternal(GUILayoutData& data)
 
 void GUIPanel::UpdateLayoutForChildren()
 {
-	GUILayoutData childData = mLayoutData;
+	GUILayoutData childData = GetChildLayoutData();
 	UpdateDepthRangeInternal(childData);
 
 	u32 elementCount = (u32)mChildren.size();
@@ -189,7 +193,10 @@ void GUIPanel::UpdateLayoutForChildren()
 		elementSizes = B3DStackNew<GUILogicalSize>(elementCount);
 	}
 
-	GetChildRelativeLayoutAreas(mLayoutData.Size, elementPositions, elementSizes, elementCount, mChildConstrainedSizeRanges);
+	// Children are positioned inside the padding box of a styled panel
+	const GUILogicalArea childLayoutArea = GetChildLayoutArea();
+
+	GetChildRelativeLayoutAreas(GUILogicalSize(childLayoutArea.Width, childLayoutArea.Height), elementPositions, elementSizes, elementCount, mChildConstrainedSizeRanges);
 
 	u32 childIndex = 0;
 
@@ -198,6 +205,8 @@ void GUIPanel::UpdateLayoutForChildren()
 		if(child->IsActive())
 		{
 			childData.RelativePosition = elementPositions[childIndex];
+			childData.RelativePosition.X += childLayoutArea.X;
+			childData.RelativePosition.Y += childLayoutArea.Y;
 			childData.Size = elementSizes[childIndex];
 
 			child->SetLayoutData(childData);

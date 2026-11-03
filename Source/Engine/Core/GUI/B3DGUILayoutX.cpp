@@ -1,7 +1,6 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GUI/B3DGUILayoutX.h"
-#include "GUI/B3DGUIInteractable.h"
 #include "GUI/B3DGUISpace.h"
 #include "Math/B3DMath.h"
 #include "Profiling/B3DProfilerCPU.h"
@@ -58,6 +57,10 @@ void GUILayoutX::UpdateOptimalLayoutSizes()
 
 		childIndex++;
 	}
+
+	// A styled layout surrounds its children with the padding and border from the style sheet
+	optimalSize = AddStylePaddingAndBorder(optimalSize);
+	minSize = AddStylePaddingAndBorder(minSize);
 
 	mConstrainedSizeRange = GetSizeConstraints().CalculateConstrainedSizeRange(optimalSize);
 	mConstrainedSizeRange.Minimum.Width = std::max(mConstrainedSizeRange.Minimum.Width, minSize.Width);
@@ -299,20 +302,13 @@ void GUILayoutX::GetChildRelativeLayoutAreas(const GUILogicalSize& layoutSize, G
 		}
 		outElementSizes[childIndex].Height = elemHeight;
 
-		if(GUIInteractable* const element = B3DRTTICast<GUIInteractable>(child))
-		{
-			const GUILogicalUnit yPadding = element->GetMargins().Top + element->GetMargins().Bottom;
-			GUILogicalUnit yOffset = Math::CeilToInt((float)((i32)layoutSize.Height - (i32)(elemHeight + yPadding)) * 0.5f);
-			yOffset = Math::Max(yOffset, 0);
+		// Children shorter than the layout are centered vertically, while those that stretch to its height end up at the top
+		const GUILogicalUnit yPadding = child->GetMargins().Top + child->GetMargins().Bottom;
+		GUILogicalUnit yOffset = Math::CeilToInt((float)((i32)layoutSize.Height - (i32)(elemHeight + yPadding)) * 0.5f);
+		yOffset = Math::Max(yOffset, 0);
 
-			outElementPositions[childIndex].X = xOffset;
-			outElementPositions[childIndex].Y = yOffset;
-		}
-		else
-		{
-			outElementPositions[childIndex].X = xOffset;
-			outElementPositions[childIndex].Y = 0;
-		}
+		outElementPositions[childIndex].X = xOffset;
+		outElementPositions[childIndex].Y = yOffset;
 
 		xOffset += elemWidth + child->GetMargins().Right;
 		childIndex++;
@@ -331,17 +327,27 @@ void GUILayoutX::UpdateLayoutForChildren()
 		elementSizes = B3DStackNew<GUILogicalSize>(elementCount);
 	}
 
-	GetChildRelativeLayoutAreas(mLayoutData.Size, elementPositions, elementSizes, elementCount, mChildConstrainedSizeRanges, mConstrainedSizeRange.Optimal);
+	// Children are laid out inside the padding box, and their optimal size excludes the padding and border the layout
+	// added to its own optimal size
+	const GUILogicalArea childLayoutArea = GetChildLayoutArea();
+	const GUILogicalSize styleOverhead = AddStylePaddingAndBorder(GUILogicalSize(kZeroTag));
+	const GUILogicalSize childrenOptimalSize(
+		Math::Max((i32)mConstrainedSizeRange.Optimal.Width - (i32)styleOverhead.Width, 0),
+		Math::Max((i32)mConstrainedSizeRange.Optimal.Height - (i32)styleOverhead.Height, 0));
+
+	GetChildRelativeLayoutAreas(GUILogicalSize(childLayoutArea.Width, childLayoutArea.Height), elementPositions, elementSizes, elementCount, mChildConstrainedSizeRanges, childrenOptimalSize);
 
 	// Now that we have all the areas, actually assign them
 	u32 childIndex = 0;
 
-	GUILayoutData childData = mLayoutData;
+	GUILayoutData childData = GetChildLayoutData();
 	for(auto& child : mChildren)
 	{
 		if(child->IsActive())
 		{
 			childData.RelativePosition = elementPositions[childIndex];
+			childData.RelativePosition.X += childLayoutArea.X;
+			childData.RelativePosition.Y += childLayoutArea.Y;
 			childData.Size = elementSizes[childIndex];
 
 			child->SetLayoutData(childData);

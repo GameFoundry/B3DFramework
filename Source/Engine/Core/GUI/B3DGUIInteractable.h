@@ -76,7 +76,8 @@ namespace b3d
 		/**
 		 * Sets a navigation group that determines in what order are GUI elements visited when using a keyboard or gamepad
 		 * to switch between the elements. If you don't set a navigation group the elements will inherit the default
-		 * navigation group from their parent GUIWidget. Also see setNavGroupIndex().
+		 * navigation group from their parent GUIWidget, unless they are layout only (see IsLayoutOnly()). Also see
+		 * setNavGroupIndex().
 		 */
 		void SetNavigationGroup(const TShared<GUINavGroup>& navGroup);
 
@@ -140,7 +141,7 @@ namespace b3d
 		/** Notifies the system the state flag was added or removed. */
 		virtual void NotifyStateFlagsChanged();
 
-		/** Returns the navigation group this element belongs to. See setNavGroup(). */
+		/** Returns the navigation group this element belongs to, or null if it belongs to none. See setNavGroup(). */
 		TShared<GUINavGroup> GetNavigationGroup() const;
 
 		/** Transitions the GUI element into a new state by adding state flags. */
@@ -167,6 +168,8 @@ namespace b3d
 		/** @} */
 
 	protected:
+		void RefreshWidgetRegistration() override;
+
 		GUIElementOptions mOptionFlags;
 
 	private:
