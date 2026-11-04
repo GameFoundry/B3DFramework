@@ -797,25 +797,33 @@ void GpuBindlessTestSuite::TestRelocation()
 
 	GetRenderThread().PostCommand([this, &device, &pipeline]()
 	{
+		// The tested resources are 1 MB each, which is too large for the holes other tests leave in memory. Otherwise they could land in
+		// the lowest of those holes, with nowhere to move to. This way they follow the fillers in the free memory at the end of a heap.
+		static constexpr u32 kBufferElementCount = 256 * 1024;
+		static constexpr u32 kTextureSize = 512;
+
 		const GpuBufferFlags bufferFlags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::Bindless;
-		const GpuBufferCreateInformation structuredInformation = GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 4, bufferFlags);
-		const GpuBufferCreateInformation typedInformation = GpuBufferCreateInformation::CreateSimpleStorage(BF_32X1U, 4, bufferFlags);
+		const GpuBufferCreateInformation structuredInformation = GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kBufferElementCount, bufferFlags);
+		const GpuBufferCreateInformation typedInformation = GpuBufferCreateInformation::CreateSimpleStorage(BF_32X1U, kBufferElementCount, bufferFlags);
 
 		TextureCreateInformation textureInformation;
 		textureInformation.Name = "Relocated texture";
-		textureInformation.Width = 2;
-		textureInformation.Height = 1;
+		textureInformation.Width = kTextureSize;
+		textureInformation.Height = kTextureSize;
 		textureInformation.Format = PF_RGBA8;
 		textureInformation.Usage = TextureUsageFlag::Default | TextureUsageFlag::Bindless;
 
 		TextureCreateInformation renderTargetInformation = textureInformation;
 		renderTargetInformation.Name = "Unmovable render target";
+		renderTargetInformation.Width = 2;
+		renderTargetInformation.Height = 1;
 		renderTargetInformation.Usage = TextureUsageFlag::RenderTarget;
 
-		// Resources created before the tested ones and destroyed once they exist leave free memory below them
+		// Resources created before the tested ones and destroyed once they exist leave free memory below them. There are more of them than
+		// tested resources, as alignment may keep the tested resources from filling the free memory tightly.
 		TArray<TShared<render::GpuBuffer>> fillerBuffers;
 		TArray<TShared<render::Texture>> fillerTextures;
-		for(u32 fillerIndex = 0; fillerIndex < 16; fillerIndex++)
+		for(u32 fillerIndex = 0; fillerIndex < 4; fillerIndex++)
 		{
 			fillerBuffers.Add(device->CreateGpuBuffer(structuredInformation));
 			fillerBuffers.Add(device->CreateGpuBuffer(typedInformation));
@@ -831,7 +839,8 @@ void GpuBindlessTestSuite::TestRelocation()
 		if(structuredBuffer == nullptr || typedBuffer == nullptr || texture == nullptr || cpuBuffer == nullptr || renderTarget == nullptr)
 			return;
 
-		// The buffers hold (100, 101, 102, 103) and (200, 201, 202, 203). Texel 0 is (10, 20, 30, 40) and texel 1 is (50, 60, 70, 80).
+		// The buffers start with (100, 101, 102, 103) and (200, 201, 202, 203). The texture holds (10, 20, 30, 40) and (50, 60, 70, 80), the
+		// latter in the texels the shader expects it in: the right half and the second column, read by samples and by a load respectively.
 		const ImageSubresourcePitch pitch = texture->GetStagingBufferPitchForSubresource(0, 0);
 		const TShared<render::GpuBuffer> uploads[] =
 		{
@@ -855,8 +864,14 @@ void GpuBindlessTestSuite::TestRelocation()
 			}
 			else
 			{
-				words[0] = 10 | (20 << 8) | (30 << 16) | (40u << 24);
-				words[1] = 50 | (60 << 8) | (70 << 16) | (80u << 24);
+				for(u32 row = 0; row < kTextureSize; row++)
+				{
+					for(u32 column = 0; column < kTextureSize; column++)
+					{
+						const bool isSecondValue = column == 1 || column >= kTextureSize / 2;
+						words[row * pitch.RowPitch + column] = isSecondValue ? 50 | (60 << 8) | (70 << 16) | (80u << 24) : 10 | (20 << 8) | (30 << 16) | (40u << 24);
+					}
+				}
 			}
 		}
 
