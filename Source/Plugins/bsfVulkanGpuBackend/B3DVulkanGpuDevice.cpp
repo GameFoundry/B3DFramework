@@ -517,7 +517,8 @@ VulkanGpuDevice::~VulkanGpuDevice()
 	// Releases the pinned resources and the native heaps, which are manager-owned resources, while the resource manager is still alive
 	mBindlessHeaps = nullptr;
 
-	B3DDelete(mBindlessHeapLayout);
+	if (mBindlessHeapLayout != nullptr)
+		B3DDelete(mBindlessHeapLayout);
 
 	// Queues the cached vertex inputs for destroy while the resource manager is still alive
 	mVertexInputManager = nullptr;
