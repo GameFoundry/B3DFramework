@@ -106,26 +106,6 @@ namespace b3d
 		 */
 		static u32 BuildTextQuads(u32 page, const TextGeometry& textGeometry, u32 width, u32 height, GUIHorizontalTextAlignment horzAlign, GUIVerticalTextAlignment vertAlign, SpriteAnchor anchor, Vector2* vertices, Vector2* uv, u32* indices, u32 bufferSizeQuads);
 
-		/**
-		 * Calculates text quads you may use for text rendering, based on the specified text data. Generates quads for all
-		 * pages.
-		 *
-		 * @param	textGeometry	Text geometry to generate offsets for.
-		 * @param	width			Width of the text bounds into which to constrain the text, in pixels.
-		 * @param	height			Height of the text bounds into which to constrain the text, in pixels.
-		 * @param	horzAlign		Specifies how is text horizontally aligned within its bounds.
-		 * @param	vertAlign		Specifies how is text vertically aligned within its bounds.
-		 * @param	anchor			Determines how to anchor the text within the bounds.
-		 * @param	vertices		Output buffer containing quad positions. Must be allocated and of adequate size.
-		 * @param	uv				Output buffer containing quad UV coordinates. Must be allocated and of adequate
-		 *							size. Can be null.
-		 * @param	indices			Output buffer containing quad indices. Must be allocated and of adequate size. Can
-		 *							be null.
-		 * @param	bufferSizeQuads	Size of the output buffers, in number of quads.
-		 * @return					Number of generated quads.
-		 */
-		static u32 BuildTextQuads(const TextGeometry& textGeometry, u32 width, u32 height, GUIHorizontalTextAlignment horzAlign, GUIVerticalTextAlignment vertAlign, SpriteAnchor anchor, Vector2* vertices, Vector2* uv, u32* indices, u32 bufferSizeQuads);
-
 	private:
 		static const int kStaticCharsToBuffer = 25;
 		static const int kStaticBufferSize = kStaticCharsToBuffer * (4 * (2 * sizeof(Vector2)) + (6 * sizeof(u32)));

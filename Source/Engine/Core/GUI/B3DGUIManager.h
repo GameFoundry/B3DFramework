@@ -131,17 +131,6 @@ namespace b3d
 		bool GetCaretBlinkState() const { return mIsCaretOn; }
 
 		/**
-		 * Returns input caret helper tool that allows you to easily position and show an input caret in your GUI controls.
-		 */
-		GUIInputCaret* GetInputCaretTool() const { return mInputCaret; }
-
-		/**
-		 * Returns input selection helper tool that allows you to easily position and show an input selection highlight in
-		 * your GUI controls.
-		 */
-		GUIInputSelection* GetInputSelectionTool() const { return mInputSelection; }
-
-		/**
 		 * Returns an atlas that vector paths are rasterized into. Any GUI element using vector paths will register the path in this atlas.
 		 * GUI manager will then rasterize the shapes before they are needed in GUI rendering.
 		 */
@@ -322,9 +311,6 @@ namespace b3d
 		// Tooltip
 		bool mShowTooltip = false;
 		float mTooltipElementHoverStart = 0.0f;
-
-		GUIInputCaret* mInputCaret = nullptr;
-		GUIInputSelection* mInputSelection = nullptr;
 
 		GUITextInputEvent mTextInputEvent;
 		GUICommandEvent mCommandEvent;

@@ -15,8 +15,6 @@
 #include "Math/B3DArea2.h"
 #include "B3DGUIMeshBatches.h"
 #include "Input/B3DInput.h"
-#include "GUI/B3DGUIInputCaret.h"
-#include "GUI/B3DGUIInputSelection.h"
 #include "GUI/B3DGUIContextMenu.h"
 #include "GUI/B3DDragAndDrop.h"
 #include "GUI/B3DGUIDropDownBoxManager.h"
@@ -67,9 +65,6 @@ GUIManager::GUIManager()
 	mWindowLostFocusConn = RenderWindowManager::Instance().OnFocusLost.Connect([this](RenderWindow& window) { OnWindowFocusLost(window); });
 	mMouseLeftWindowConn = RenderWindowManager::Instance().OnMouseLeftWindow.Connect([this](RenderWindow& window) { OnMouseLeftWindow(window); });
 
-	mInputCaret = B3DNew<GUIInputCaret>();
-	mInputSelection = B3DNew<GUIInputSelection>();
-
 	DragAndDrop::StartUp();
 	mDragEndedConn = DragAndDrop::Instance().OnDragEnded.Connect([this](const PointerEvent& event, DragCallbackInfo& dragInfo) { OnMouseDragEnded(event, dragInfo); });
 
@@ -113,9 +108,6 @@ GUIManager::~GUIManager()
 	mWindowLostFocusConn.Disconnect();
 
 	mMouseLeftWindowConn.Disconnect();
-
-	B3DDelete(mInputCaret);
-	B3DDelete(mInputSelection);
 
 	// Wait until render thread unregisters all widgets, so all GUI vector path resources are released. This needs to be
 	// done before the vector sprite atlas is destroyed.

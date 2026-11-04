@@ -7,6 +7,7 @@
 #include "B3DGUISpriteHelper.h"
 #include "B3DPrerequisites.h"
 #include "GUI/B3DGUIInteractable.h"
+#include "GUI/B3DGUITextLayout.h"
 #include "2D/B3DImageSprite.h"
 #include "2D/B3DTextSprite.h"
 #include "Input/B3DVirtualInput.h"
@@ -72,7 +73,7 @@ namespace b3d
 
 		/** @} */
 	protected:
-		virtual ~GUIInputBox() = default;
+		virtual ~GUIInputBox();
 
 		StringView GetStyleSheetElement() const override { return "inputbox"; }
 		void UpdateRenderElements() override;
@@ -85,41 +86,50 @@ namespace b3d
 		TShared<GUIContextMenu> GetContextMenu() const override;
 
 	private:
-		/** Inserts a new string into the current text at the specified index. */
-		void InsertString(u32 charIndex, const String& string);
-
-		/**	Inserts a new character into the current text at the specified index. */
-		void InsertChar(u32 charIndex, u32 charCode);
-
-		/**	Erases a single character at the specified index. */
-		void EraseChar(u32 charIndex);
+		/** Returns the layout of the current text, refreshed if the text or its style has changed. */
+		const GUITextLayout& GetTextLayout();
 
 		/**
-		 * Deletes text that is currently selected.
+		 * Moves the caret and scrolls it into view.
 		 *
-		 * @param	internal	If internal no filter will be applied after the text is deleted, and no event will be
-		 * 						triggered either.
+		 * @param	position		Position to move the caret to.
+		 * @param	extendSelection	If true the selection grows or shrinks along with the caret. Otherwise it collapses.
 		 */
-		void DeleteSelectedText(bool internal = false);
-
-		/**	Returns currently selected text. */
-		String GetSelectedText();
-
-		/**	Shows the input caret. You must position the caret manually after showing it. */
-		void ShowCaret();
-
-		/**	Hides the input caret. */
-		void HideCaret();
+		void MoveCaret(const GUITextPosition& position, bool extendSelection);
 
 		/**
-		 * Shows selection with the specified anchor position. You must position selection start and end before selection
-		 * will actually render. Anchor position determines selection behavior as the user moves the selection with the
-		 * keyboard.
+		 * Moves the caret one line up or down, or to the start or end of the text if there is no such line.
+		 *
+		 * @param	moveUp			True to move up, false to move down.
+		 * @param	extendSelection	If true the selection grows or shrinks along with the caret. Otherwise it collapses.
 		 */
-		void ShowSelection(u32 anchorCaretPos);
+		void MoveCaretToAdjacentLine(bool moveUp, bool extendSelection);
 
-		/**	Removes any active selection. */
-		void ClearSelection();
+		/**	Selects the entire text, with the caret at its end. Doesn't scroll the text. */
+		void SelectAll();
+
+		/**	Returns true if at least one character is selected. */
+		bool HasSelection() const;
+
+		/**	Returns the index of the first selected character. Equal to the caret's character index if nothing is selected. */
+		u32 GetSelectionStart() const;
+
+		/**	Returns the index of the character after the last selected one. Equal to the caret's character index if nothing is selected. */
+		u32 GetSelectionEnd() const;
+
+		/**
+		 * Replaces a range of characters if the filter accepts the resulting text, and otherwise leaves everything as it is.
+		 * On success the caret is placed after the new text and OnValueChanged is triggered.
+		 *
+		 * @param	startCharacterIndex		Index of the first character to replace.
+		 * @param	endCharacterIndex		Index of the character after the last one to replace.
+		 * @param	replacement				UTF-8 encoded text to insert in place of the range. Can be empty.
+		 * @return							True if the text was replaced.
+		 */
+		bool ReplaceText(u32 startCharacterIndex, u32 endCharacterIndex, const String& replacement);
+
+		/**	Destroys the sprites used for displaying the caret and the selection. */
+		void DestroyEditingSprites();
 
 		/**	Adjusts the text offset (scroll) so that the caret is visible. */
 		void ScrollTextToCaret();
@@ -161,9 +171,12 @@ namespace b3d
 		u32 mCharCount = 0;
 		std::function<bool(const String&)> mFilter;
 
-		bool mCaretShown = false;
-		bool mSelectionShown = false;
-		bool mDragInProgress = false;
+		GUITextLayout mTextLayout; // Released when the input box loses focus
+		GUITextPosition mCaretPosition;
+		u32 mSelectionAnchorIndex = 0; // Index of the character at the fixed end of the selection, while the caret is at the moving end
+		ImageSprite* mCaretSprite = nullptr;
+		Vector<ImageSprite*> mSelectionSprites;
+		Vector<Area2I> mSelectionAreas; // One entry for each sprite in mSelectionSprites, relative to the text
 	};
 
 	/** @} */

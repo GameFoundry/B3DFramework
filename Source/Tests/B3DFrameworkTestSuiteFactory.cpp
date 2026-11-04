@@ -24,6 +24,8 @@
 #include "TestSuites/B3DImporterTestSuite.h"
 #include "TestSuites/B3DGUIStyleSheetTestSuite.h"
 #include "TestSuites/B3DGUIPointerEventTrackerTestSuite.h"
+#include "TestSuites/B3DGUITextLayoutTestSuite.h"
+#include "TestSuites/B3DGUIInputBoxTestSuite.h"
 
 #include "Debug/B3DDebug.h"
 
@@ -63,6 +65,8 @@ namespace b3d
 			registry.RegisterSuite(TestSuite::Create<ImporterTestSuite>());
 			registry.RegisterSuite(TestSuite::Create<GUIStyleSheetTestSuite>());
 			registry.RegisterSuite(TestSuite::Create<GUIPointerEventTrackerTestSuite>());
+			registry.RegisterSuite(TestSuite::Create<GUITextLayoutTestSuite>());
+			registry.RegisterSuite(TestSuite::Create<GUIInputBoxTestSuite>());
 		}
 		else if (layer == TestLayer::Plugins)
 		{

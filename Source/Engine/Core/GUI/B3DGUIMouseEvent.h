@@ -165,6 +165,7 @@ namespace b3d
 
 	private:
 		friend class GUIPointerEventTracker;
+		friend class GUIInputBoxTestSuite;
 
 		/** Initializes the event as a MouseEnter, MouseLeave, MousePressBegin or MousePressEnd event, which carry no data. */
 		void SetNotificationData(GUIMouseEventType type);

@@ -245,7 +245,6 @@ u32 TextGeometry::Line::FillBuffer(u32 page, Vector2* outVertices, Vector2* outU
 		}
 		else
 		{
-			const float letterSpacing = mTextData->GetMetrics().LetterSpacing;
 			const u32 subpixelPositionCount = mTextData->mFontBitmapInformation->SubpixelPositionCount;
 
 			for(u32 characterIndex = word.GetStartCharacterIndex(); characterIndex <= word.GetEndCharacterIndex(); characterIndex++)
@@ -262,12 +261,7 @@ u32 TextGeometry::Line::FillBuffer(u32 page, Vector2* outVertices, Vector2* outU
 				float curY = mTextData->GetBaselineOffset() - currentCharacterInformation.YOffset;
 				const float uvX = currentCharacterInformation.UvX + (float)subpixelPositionIndex * currentCharacterInformation.UvWidth;
 
-				// Kerning of the pair (current, next) moves the next character, so it is part of the current advance
-				float kerning = 0.0f;
-				if((characterIndex + 1) <= word.GetEndCharacterIndex())
-					kerning = GetKerning(currentCharacterInformation, mTextData->GetCharacter(characterIndex + 1).CharId);
-
-				penX += currentCharacterInformation.XAdvance + kerning + letterSpacing;
+				penX += GetCharacterAdvance(word, characterIndex);
 
 				if(currentCharacterInformation.Page != page)
 					continue;
@@ -308,6 +302,45 @@ u32 TextGeometry::Line::FillBuffer(u32 page, Vector2* outVertices, Vector2* outU
 	}
 
 	return quadCount;
+}
+
+void TextGeometry::Line::FillCharacterEdges(float* outEdges, float startX) const
+{
+	float penX = startX;
+	*outEdges++ = penX;
+
+	if(mIsEmpty)
+		return;
+
+	for(u32 wordIndex = mWordStartIndex; wordIndex <= mWordEndIndex; wordIndex++)
+	{
+		const Word& word = mTextData->GetWord(wordIndex);
+
+		if(word.IsSpacer())
+		{
+			penX += word.GetWidth();
+			*outEdges++ = penX;
+			continue;
+		}
+
+		for(u32 characterIndex = word.GetStartCharacterIndex(); characterIndex <= word.GetEndCharacterIndex(); characterIndex++)
+		{
+			penX += GetCharacterAdvance(word, characterIndex);
+			*outEdges++ = penX;
+		}
+	}
+}
+
+float TextGeometry::Line::GetCharacterAdvance(const Word& word, u32 characterIndex) const
+{
+	const CharacterInformation& characterInformation = mTextData->GetCharacter(characterIndex);
+
+	// Kerning of the pair (current, next) moves the next character, so it is part of the current advance
+	float kerning = 0.0f;
+	if((characterIndex + 1) <= word.GetEndCharacterIndex())
+		kerning = GetKerning(characterInformation, mTextData->GetCharacter(characterIndex + 1).CharId);
+
+	return characterInformation.XAdvance + kerning + mTextData->GetMetrics().LetterSpacing;
 }
 
 u32 TextGeometry::Line::GetCharacterCount() const
@@ -399,9 +432,9 @@ TextGeometry::TextGeometry(const U32String& text, const HFont& font, float fontS
 		if(widthIsLimited && wordWrap)
 		{
 			float widthWithChar = 0.0f;
-			if(charIdx == kSpaceChar)
+			if(charId == kSpaceChar)
 				widthWithChar = curLine->GetWidth() + GetSpaceWidth();
-			else if(charIdx == kTabChar)
+			else if(charId == kTabChar)
 				widthWithChar = curLine->GetWidth() + GetSpaceWidth() * 4;
 			else
 				widthWithChar = curLine->CalculateWidthWithChararacter(charDesc);

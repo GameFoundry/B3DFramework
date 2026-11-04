@@ -45,6 +45,7 @@ namespace b3d
 
 	private:
 		friend class GUIManager;
+		friend class GUIInputBoxTestSuite;
 
 		/**	Sets type describing what kind of event this is. */
 		void SetType(GUICommandEventType type) { mType = type; }

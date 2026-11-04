@@ -162,6 +162,16 @@ namespace b3d
 			 */
 			u32 FillBuffer(u32 page, Vector2* outVertices, Vector2* outUVs, u32* outIndices, u32 offset, u32 size, float startX = 0.0f) const;
 
+			/**
+			 * Writes the horizontal edges of all characters on the line in text order. Entry N is the left edge of 
+			 * character N and entry N + 1 its right edge. Edges follow the advance of the characters, not the bounds 
+			 * of their glyphs.
+			 *
+			 * @param	outEdges	Pre-allocated array with space for GetCharacterCount() + 1 entries.
+			 * @param	startX		Horizontal position the line starts at, in pixels.
+			 */
+			void FillCharacterEdges(float* outEdges, float startX = 0.0f) const;
+
 			/**	Checks are we at a word boundary (meaning the next added character will start a new word). */
 			bool IsAtWordBoundary() const;
 
@@ -215,6 +225,14 @@ namespace b3d
 
 			/**	Calculates the line width and height in pixels. */
 			void CalculateBounds();
+
+			/**
+			 * Returns how far the character moves the position of the next character, in pixels.
+			 *
+			 * @param	word			Word containing the character.
+			 * @param	characterIndex	Sequential index of the character in the original string.
+			 */
+			float GetCharacterAdvance(const Word& word, u32 characterIndex) const;
 
 		private:
 			TextGeometry* mTextData = nullptr;

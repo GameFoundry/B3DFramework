@@ -457,8 +457,8 @@ namespace b3d
 	class GUIPanel;
 	class GUIFixedSpace;
 	class GUIFlexibleSpace;
-	class GUIInputCaret;
-	class GUIInputSelection;
+	class GUITextLayout;
+	struct GUITextPosition;
 	struct GUISizeConstraints;
 	class GUIOptions;
 	class GUIToggleGroup;

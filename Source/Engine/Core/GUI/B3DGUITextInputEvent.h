@@ -22,6 +22,7 @@ namespace b3d
 
 	private:
 		friend class GUIManager;
+		friend class GUIInputBoxTestSuite;
 
 		/**	Initializes the event data with the character that was input. */
 		void SetData(u32 inputChar);

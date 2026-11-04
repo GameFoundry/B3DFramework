@@ -22,6 +22,7 @@ namespace b3d
 
 	private:
 		friend class GUIManager;
+		friend class GUIInputBoxTestSuite;
 
 		/**	Initializes the data for the event. */
 		void SetButton(const VirtualButton& button) { mButton = button; }
