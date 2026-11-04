@@ -65,6 +65,12 @@ namespace b3d
 		RSC_WAVE_OPERATIONS = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 13),
 		/** Supports bindless resources: GPU programs can read resources and samplers through ResourceDescriptorHeap and SamplerDescriptorHeap. */
 		RSC_BINDLESS_RESOURCES = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 14),
+
+		/**
+		 * Depth-stencil images must not use split barriers on one queue. 
+		 * TODO: This is a temporary workaround as Vulkan sync validation reports a false hazard for their layout transitions in vkCmdWaitEvents2.
+		 */
+		RSC_NO_DEPTH_STENCIL_SPLIT_BARRIERS = BS_CAPS_VALUE(CAPS_CATEGORY_VULKAN, 0),
 	};
 
 	/** Conventions used for a specific render backend. */

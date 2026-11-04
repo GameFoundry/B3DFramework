@@ -112,8 +112,9 @@ namespace b3d
 
 		/**
 		 * A depth-stencil transient and a color transient are first used by a later pass, on memory no earlier transient of the graph
-		 * used. The color transient's alias acquire is a split barrier released at the start of the graph; the depth-stencil one, which
-		 * gets no split barriers, is a full barrier at the start of the graph.
+		 * used. The color transient's alias acquire is a split barrier released at the start of the graph. So is the depth-stencil one,
+		 * except on backends where depth-stencil images get no split barriers (RSC_NO_DEPTH_STENCIL_SPLIT_BARRIERS), where it is a full
+		 * barrier at the start of the graph.
 		 */
 		void TestTwoAspectAliasAcquire();
 

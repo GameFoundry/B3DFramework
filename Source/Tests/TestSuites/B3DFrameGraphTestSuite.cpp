@@ -1672,7 +1672,7 @@ void FrameGraphTestSuite::TestTwoAspectAliasAcquire()
 			graph.Compile();
 			B3D_TEST_ASSERT(graph.GetStatistics().CulledPassCount == 0)
 			B3D_TEST_ASSERT(graph.GetStatistics().AliasAcquireCount == 3u)
-			B3D_TEST_ASSERT(graph.GetStatistics().SplitAliasAcquireCount == 1u)
+			B3D_TEST_ASSERT(graph.GetStatistics().SplitAliasAcquireCount == (device->GetCapabilities().HasCapability(RSC_NO_DEPTH_STENCIL_SPLIT_BARRIERS) ? 1u : 2u))
 			graph.Execute();
 		}
 

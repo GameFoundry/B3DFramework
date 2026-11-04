@@ -1635,10 +1635,10 @@ namespace b3d::render
 			else if(hasUnusedMemory && submissionFirstPassIndex != compiledIndex)
 			{
 				// Only earlier graphs used the memory, so the release goes at the start of the submission, where it waits for no pass of
-				// this graph, and the acquire rarely waits. Images with two aspects get no split barriers (see the workaround below), so
-				// theirs is a full barrier at the start of the submission instead. No pass of the queue uses the memory before it,
-				// because acquire.Source and the predecessors cover the queue.
-				if(resource.Texture != nullptr && resource.FullRange.GetAspectCount() == 2)
+				// this graph, and the acquire rarely waits. Images with two aspects may get no split barriers (see the workaround below),
+				// and theirs is then a full barrier at the start of the submission instead. No pass of the queue uses the memory before
+				// it, because acquire.Source and the predecessors cover the queue.
+				if(resource.Texture != nullptr && resource.FullRange.GetAspectCount() == 2 && mDevice.GetCapabilities().HasCapability(RSC_NO_DEPTH_STENCIL_SPLIT_BARRIERS))
 				{
 					barrier.AcquirePassIndex = submissionFirstPassIndex;
 					barrier.ReleasePassIndex = (i32)submissionFirstPassIndex - 1;
@@ -1734,14 +1734,17 @@ namespace b3d::render
 		// pipeline barriers with the same scopes are not reported. Not reduced to a minimal repro. Seen with split barriers whose depth and
 		// stencil aspects differ in kind, and with MSAA, where the coverage stencil, the resolved scene depth and the SSR stencil get split
 		// barriers of single aspects. Split barriers between queues use no events, and must stay split.
-		for(CompileContext::PlannedBarrier& barrier : context.PlannedBarriers)
+		if(mDevice.GetCapabilities().HasCapability(RSC_NO_DEPTH_STENCIL_SPLIT_BARRIERS))
 		{
-			const Resource& resource = mResources[barrier.ResourceIndex];
-			if(!barrier.IsSplit || barrier.ReleaseQueueType != barrier.AcquireQueueType || resource.Buffer != nullptr || resource.FullRange.GetAspectCount() != 2)
-				continue;
+			for(CompileContext::PlannedBarrier& barrier : context.PlannedBarriers)
+			{
+				const Resource& resource = mResources[barrier.ResourceIndex];
+				if(!barrier.IsSplit || barrier.ReleaseQueueType != barrier.AcquireQueueType || resource.Buffer != nullptr || resource.FullRange.GetAspectCount() != 2)
+					continue;
 
-			barrier.IsSplit = false;
-			barrier.ReleasePassIndex = (i32)barrier.AcquirePassIndex - 1;
+				barrier.IsSplit = false;
+				barrier.ReleasePassIndex = (i32)barrier.AcquirePassIndex - 1;
+			}
 		}
 
 		// Planned barriers that differ only in their subresource merge into subresource ranges. Each range goes to the list of
