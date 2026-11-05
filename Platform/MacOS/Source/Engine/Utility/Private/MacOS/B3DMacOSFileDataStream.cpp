@@ -157,7 +157,13 @@ void MacOSFileDataStream::FinalizeAsyncRead(AsyncReadRequest* request, size_t by
 
 TShared<DataStream> MacOSFileDataStream::Clone(bool /*copyData*/) const
 {
-	return B3DMakeShared<MacOSFileDataStream>(mPath, mAccess);
+	TShared<MacOSFileDataStream> clone = B3DMakeShared<MacOSFileDataStream>(mPath, mAccess);
+
+	// A writable clone stays closed, as opening it would truncate the file this stream is still writing
+	if(!mAccess.IsSet(FileAccessFlag::Write))
+		clone->Open();
+
+	return clone;
 }
 
 bool MacOSFileDataStream::Close()

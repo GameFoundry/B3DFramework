@@ -536,7 +536,13 @@ bool Win32FileDataStream::Eof() const
 
 TShared<DataStream> Win32FileDataStream::Clone(bool copyData) const
 {
-	return B3DMakeShared<Win32FileDataStream>(mPath, mAccess);
+	TShared<Win32FileDataStream> clone = B3DMakeShared<Win32FileDataStream>(mPath, mAccess);
+
+	// A writable clone stays closed, as opening it would truncate the file this stream is still writing
+	if(!mAccess.IsSet(FileAccessFlag::Write))
+		clone->Open();
+
+	return clone;
 }
 
 bool Win32FileDataStream::Flush()

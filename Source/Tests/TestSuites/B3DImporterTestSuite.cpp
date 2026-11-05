@@ -35,6 +35,7 @@
 #include "Utility/B3DTimer.h"
 #include "FileSystem/B3DFileSystem.h"
 #include "FileSystem/B3DDataStream.h"
+#include "Serialization/B3DBinarySerializer.h"
 #include "B3DApplication.h"
 
 #include <cmath>
@@ -1283,6 +1284,7 @@ ImporterTestSuite::ImporterTestSuite()
 	B3D_ADD_TEST(ImporterTestSuite::TestOggImport_Default)
 	B3D_ADD_TEST(ImporterTestSuite::TestOggImport_KeepCompressed)
 	B3D_ADD_TEST(ImporterTestSuite::TestFlacImport_Default)
+	B3D_ADD_TEST(ImporterTestSuite::TestAudioClipSerialization)
 #endif
 	B3D_ADD_TEST(ImporterTestSuite::TestGpuCompress_BC6H_Psnr)
 	B3D_ADD_TEST(ImporterTestSuite::TestGpuMipmaps_BoxFilter)
@@ -2035,4 +2037,54 @@ void ImporterTestSuite::TestFlacImport_Default()
 	B3D_TEST_ASSERT(clip->GetBitDepth() == 16)
 	B3D_TEST_ASSERT(clip->GetSampleCount() > 0)
 	B3D_TEST_ASSERT(clip->GetLength() > 0.0f)
+}
+
+void ImporterTestSuite::TestAudioClipSerialization()
+{
+	TShared<AudioClipImportOptions> options = AudioClipImportOptions::Create();
+	options->Is3D = false;
+
+	HAudioClip clip = GetImporter().Import<AudioClip>(mOggPath, options);
+	B3D_TEST_ASSERT(clip != nullptr)
+	if(clip == nullptr)
+		return;
+
+	BinarySerializer serializer;
+	const TShared<MemoryDataStream> encodedStream = B3DMakeShared<MemoryDataStream>();
+	serializer.Encode(clip.Get(), encodedStream);
+
+	// A decoded clip that keeps its source data holds the samples it was given, so encoding it again must yield the same bytes
+	const auto fnTestDecode = [this, &serializer, &encodedStream](const TShared<DataStream>& sourceStream)
+	{
+		sourceStream->Seek(0);
+
+		RTTIOperationContext decodeContext;
+		decodeContext.Flags = SF_KeepResourceSourceData;
+
+		const TShared<AudioClip> decodedClip = B3DRTTICast<AudioClip>(serializer.Decode(sourceStream, (u32)sourceStream->Size(), decodeContext));
+		B3D_TEST_ASSERT(decodedClip != nullptr)
+		if(decodedClip == nullptr)
+			return;
+
+		const TShared<MemoryDataStream> reencodedStream = B3DMakeShared<MemoryDataStream>();
+		serializer.Encode(decodedClip.get(), reencodedStream);
+
+		B3D_TEST_ASSERT(reencodedStream->Size() == encodedStream->Size())
+		if(reencodedStream->Size() == encodedStream->Size())
+			B3D_TEST_ASSERT(memcmp(reencodedStream->Data(), encodedStream->Data(), encodedStream->Size()) == 0)
+	};
+
+	fnTestDecode(encodedStream);
+
+	const Path path = FileSystem::GetTemporaryFolderPath() + "b3d-audio-clip-serialization-test";
+	{
+		const TShared<DataStream> fileWriter = FileSystem::CreateAndOpenFile(path);
+		fileWriter->Write(encodedStream->Data(), encodedStream->Size());
+		fileWriter->Close();
+
+		const TShared<DataStream> fileReader = FileSystem::OpenFile(path);
+		fnTestDecode(fileReader);
+	}
+
+	FileSystem::Remove(path);
 }

@@ -201,7 +201,13 @@ bool UnixFileDataStream::Eof() const
 
 TShared<DataStream> UnixFileDataStream::Clone(bool /*copyData*/) const
 {
-	return B3DMakeShared<UnixFileDataStream>(mPath, mAccess);
+	TShared<UnixFileDataStream> clone = B3DMakeShared<UnixFileDataStream>(mPath, mAccess);
+
+	// A writable clone stays closed, as opening it would truncate the file this stream is still writing
+	if(!mAccess.IsSet(FileAccessFlag::Write))
+		clone->Open();
+
+	return clone;
 }
 
 bool UnixFileDataStream::Flush()

@@ -179,7 +179,6 @@ namespace b3d
 			}
 
 			TShared<MemoryDataStream> fontData = B3DMakeShared<MemoryDataStream>(size);
-			fontData->Seek(size); // Forces Size() to be set (the capacity constructor leaves it at 0).
 
 			TAsyncOp<TShared<MemoryDataStream>> readOp = value->ReadAsync((u64)value->Tell(), size, DataRange(fontData->Data(), size));
 			readOp.BlockUntilComplete();

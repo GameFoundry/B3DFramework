@@ -16,6 +16,7 @@ namespace b3d
 		void TestLookupTable();
 		void TestBinarySerialization();
 		void TestDataBlockSerialization();
+		void TestSerializedDataBlockClone();
 		void TestSerializedObject();
 		void TestReadOnlySerialization();
 		void TestRTTIObjectWrapperComparison();

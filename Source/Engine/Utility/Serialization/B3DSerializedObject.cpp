@@ -224,7 +224,9 @@ TShared<ISerialized> SerializedDataBlock::Clone(bool cloneData)
 		}
 
 		auto stream = B3DMakeShared<MemoryDataStream>(Size);
-		stream->Read(stream->Data(), Size);
+
+		Stream->Seek(Offset);
+		Stream->Read(stream->Data(), Size);
 
 		copy->Stream = stream;
 		copy->Offset = 0;
@@ -256,6 +258,8 @@ u64 SerializedDataBlock::CalculateHash() const
 
 			const u64 amountToRead = Math::Min(kBufferSize, remainingSize);
 			const u64 amountRead = copy->Read(readBuffer, amountToRead);
+			if(!B3D_ENSURE(amountRead > 0))
+				break;
 
 			B3DCombineHash(hash, CityHash64((const char*)readBuffer, amountRead));
 
@@ -303,6 +307,9 @@ bool SerializedDataBlock::Equals(const TShared<ISerialized>& other) const
 			const u64 otherAmountRead = otherStreamCopy->Read(otherReadBuffer, amountToRead);
 
 			if(myAmountRead != otherAmountRead)
+				return false;
+
+			if(!B3D_ENSURE(myAmountRead > 0))
 				return false;
 
 			if(memcmp(myReadBuffer, otherReadBuffer, myAmountRead) != 0)

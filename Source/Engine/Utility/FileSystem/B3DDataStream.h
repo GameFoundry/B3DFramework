@@ -185,6 +185,10 @@ namespace b3d
 		 * @param	copyData	If true the internal stream data will be copied as well, otherwise it will just
 		 *						reference the data from the original stream (in which case the caller must ensure the
 		 *						original stream outlives the clone). This is not relevant for file streams.
+		 *
+		 * @note	Cloning a file stream yields an independent stream over the same file, with its own cursor at the start
+		 *			of the file. The clone of a writable file stream is not open and cannot be used, as opening it would
+		 *			truncate the file.
 		 */
 		virtual TShared<DataStream> Clone(bool copyData = true) const = 0;
 
@@ -212,12 +216,12 @@ namespace b3d
 		MemoryDataStream();
 
 		/**
-		 * Initializes a stream with some initial capacity. If more bytes than capacity is written, the stream will
-		 * grow its internal memory storage.
+		 * Initializes a stream holding @p byteCount bytes of uninitialized data, to be filled through Data().
+		 * If more bytes than that are written, the stream will grow its internal memory storage.
 		 *
-		 * @param	capacity	Number of bytes to initially allocate for the internal memory storage.
+		 * @param	byteCount	Number of bytes the stream holds.
 		 */
-		MemoryDataStream(size_t capacity);
+		MemoryDataStream(size_t byteCount);
 
 		/**
 		 * Wrap an existing memory chunk in a stream.
@@ -264,14 +268,14 @@ namespace b3d
 		{ }
 
 		/**
-		 * Create a stream which pre-buffers the contents of another stream. Data from the other buffer will be entirely
-		 * read and stored in an internal buffer.
+		 * Create a stream which pre-buffers the contents of another stream. Data is read from the other stream's current
+		 * position to its end, advancing that position, so the new stream holds only the bytes that remained unread.
 		 */
 		MemoryDataStream(const MemoryDataStream& other);
 
 		/**
-		 * Create a stream which pre-buffers the contents of another stream. Data from the other buffer will be entirely
-		 * read and stored in an internal buffer.
+		 * Create a stream which pre-buffers the contents of another stream. Data is read from the other stream's current
+		 * position to its end, advancing that position, so the new stream holds only the bytes that remained unread.
 		 */
 		MemoryDataStream(const TShared<DataStream>& other);
 

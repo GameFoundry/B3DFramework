@@ -5,10 +5,12 @@
 #include "Debug/B3DDebug.h"
 #include "FileSystem/B3DFileSystem.h"
 #include "FileSystem/B3DDataStream.h"
+#include "Serialization/B3DSerializedObject.h"
 #include "Utility/B3DUUID.h"
 
 #include <algorithm>
 #include <atomic>
+#include <cstring>
 #include <fstream>
 #include <thread>
 
@@ -95,6 +97,11 @@ FileSystemTestSuite::FileSystemTestSuite()
 	B3D_ADD_TEST(FileSystemTestSuite::TestStreamWriteReadRoundtrip);
 	B3D_ADD_TEST(FileSystemTestSuite::TestMemoryStreamCustomDeleter);
 	B3D_ADD_TEST(FileSystemTestSuite::TestMemoryStreamDeleterFixedCapacity);
+	B3D_ADD_TEST(FileSystemTestSuite::TestMemoryStreamSizedConstructor);
+	B3D_ADD_TEST(FileSystemTestSuite::TestMemoryStreamCopy);
+	B3D_ADD_TEST(FileSystemTestSuite::TestMemoryStreamSeekPastCapacity);
+	B3D_ADD_TEST(FileSystemTestSuite::TestFileStreamClone);
+	B3D_ADD_TEST(FileSystemTestSuite::TestSerializedDataBlockFileStream);
 	B3D_ADD_TEST(FileSystemTestSuite::TestOpenFileMissing);
 	B3D_ADD_TEST(FileSystemTestSuite::TestOpenFileAsyncRead);
 	B3D_ADD_TEST(FileSystemTestSuite::TestOpenFileAsyncUserMemory);
@@ -631,6 +638,177 @@ void FileSystemTestSuite::TestMemoryStreamDeleterFixedCapacity()
 		B3D_TEST_ASSERT(String(buffer) == "01234567");
 	}
 	B3D_TEST_ASSERT(deleteCount == 1);
+}
+
+void FileSystemTestSuite::TestMemoryStreamSizedConstructor()
+{
+	static constexpr size_t kByteCount = 16;
+
+	MemoryDataStream stream(kByteCount);
+	B3D_TEST_ASSERT(stream.Size() == kByteCount);
+	B3D_TEST_ASSERT(stream.Tell() == 0);
+	B3D_TEST_ASSERT(!stream.Eof());
+
+	memcpy(stream.Data(), "0123456789ABCDEF", kByteCount);
+
+	// A non-owning clone wraps the reported size, so it must see the bytes filled through Data()
+	{
+		const TShared<DataStream> referencingClone = stream.Clone(false);
+
+		String clonedContent;
+		clonedContent.resize(kByteCount);
+		B3D_TEST_ASSERT(referencingClone->Read(&clonedContent[0], kByteCount) == kByteCount);
+		B3D_TEST_ASSERT(clonedContent == "0123456789ABCDEF");
+	}
+
+	// Growing the buffer must keep the bytes filled through Data()
+	stream.Seek(kByteCount);
+	B3D_TEST_ASSERT(stream.Write("GH", 2) == 2);
+	B3D_TEST_ASSERT(stream.Size() == kByteCount + 2);
+	B3D_TEST_ASSERT(String((const char*)stream.Data(), stream.Size()) == "0123456789ABCDEFGH");
+
+	MemoryDataStream emptyStream((size_t)0);
+	B3D_TEST_ASSERT(emptyStream.Size() == 0);
+	B3D_TEST_ASSERT(emptyStream.Eof());
+}
+
+void FileSystemTestSuite::TestMemoryStreamCopy()
+{
+	const String content = "memory-stream-copy";
+
+	MemoryDataStream source(content.size());
+	memcpy(source.Data(), content.data(), content.size());
+
+	MemoryDataStream copyAssigned;
+	copyAssigned = source;
+	B3D_TEST_ASSERT(copyAssigned.Data() != source.Data());
+	B3D_TEST_ASSERT(String((const char*)copyAssigned.Data(), copyAssigned.Size()) == content);
+
+	MemoryDataStream fullCopy(source);
+	B3D_TEST_ASSERT(fullCopy.Data() != source.Data());
+	B3D_TEST_ASSERT(String((const char*)fullCopy.Data(), fullCopy.Size()) == content);
+	B3D_TEST_ASSERT(source.Eof());
+
+	// Copying from a partially-read source carries over only the remaining bytes, and reports that shorter size
+	static constexpr size_t kConsumedByteCount = 7;
+	source.Seek(kConsumedByteCount);
+
+	MemoryDataStream partialCopy(source);
+	B3D_TEST_ASSERT(String((const char*)partialCopy.Data(), partialCopy.Size()) == content.substr(kConsumedByteCount));
+
+	const TShared<DataStream> sharedSource = source.Clone(false);
+	sharedSource->Seek(kConsumedByteCount);
+
+	MemoryDataStream partialSharedCopy(sharedSource);
+	B3D_TEST_ASSERT(String((const char*)partialSharedCopy.Data(), partialSharedCopy.Size()) == content.substr(kConsumedByteCount));
+}
+
+void FileSystemTestSuite::TestMemoryStreamSeekPastCapacity()
+{
+	MemoryDataStream stream((size_t)10);
+	memcpy(stream.Data(), "0123456789", 10);
+
+	// The target is an absolute position, regardless of where the cursor is or how much room the buffer has
+	B3D_TEST_ASSERT(stream.Seek(25) == 25);
+	B3D_TEST_ASSERT(stream.Tell() == 25);
+	B3D_TEST_ASSERT(stream.Size() == 25);
+	B3D_TEST_ASSERT(memcmp(stream.Data(), "0123456789", 10) == 0);
+
+	B3D_TEST_ASSERT(stream.Seek(8) == 8);
+	B3D_TEST_ASSERT(stream.Seek(100) == 100);
+	B3D_TEST_ASSERT(stream.Tell() == 100);
+	B3D_TEST_ASSERT(stream.Size() == 100);
+	B3D_TEST_ASSERT(memcmp(stream.Data(), "0123456789", 10) == 0);
+
+	// A buffer that can't be reallocated clamps to its end
+	char fixedBuffer[8];
+	MemoryDataStream fixedStream(fixedBuffer, sizeof(fixedBuffer));
+	B3D_TEST_ASSERT(fixedStream.Seek(100) == sizeof(fixedBuffer));
+	B3D_TEST_ASSERT(fixedStream.Size() == sizeof(fixedBuffer));
+}
+
+void FileSystemTestSuite::TestFileStreamClone()
+{
+	const Path path = mTestDirectory + "stream-clone";
+	const String content = "file-stream-clone";
+	CreateFile(path, content);
+
+	// A clone of a read-only stream is readable straight away, with a cursor independent from the original
+	{
+		const TShared<DataStream> source = FileSystem::OpenFile(path);
+		B3D_TEST_ASSERT(source != nullptr);
+		source->Skip(5);
+
+		const TShared<DataStream> clone = source->Clone();
+		B3D_TEST_ASSERT(clone->Tell() == 0);
+		B3D_TEST_ASSERT(clone->Size() == content.size());
+
+		String clonedContent;
+		clonedContent.resize(content.size());
+		B3D_TEST_ASSERT(clone->Read(&clonedContent[0], content.size()) == content.size());
+		B3D_TEST_ASSERT(clonedContent == content);
+		B3D_TEST_ASSERT(source->Tell() == 5);
+	}
+
+	// Cloning a writable stream must not truncate the file being written
+	{
+		const TShared<DataStream> writer = FileSystem::CreateAndOpenFile(path);
+		B3D_TEST_ASSERT(writer != nullptr);
+		writer->Write(content.data(), content.size());
+
+		const TShared<DataStream> clone = writer->Clone();
+		writer->Write(content.data(), content.size());
+		writer->Close();
+	}
+
+	{
+		const TShared<DataStream> reader = FileSystem::OpenFile(path);
+		B3D_TEST_ASSERT(reader != nullptr);
+		B3D_TEST_ASSERT(reader->Size() == content.size() * 2);
+	}
+
+	FileSystem::Remove(path);
+}
+
+void FileSystemTestSuite::TestSerializedDataBlockFileStream()
+{
+	static constexpr u32 kOffset = 4;
+	static constexpr u32 kSize = 8;
+
+	const Path path = mTestDirectory + "data-block-stream";
+	const String content = "0123456789ABCDEF";
+	CreateFile(path, content);
+
+	{
+		const TShared<SerializedDataBlock> fileBlock = B3DMakeShared<SerializedDataBlock>();
+		fileBlock->Stream = FileSystem::OpenFile(path);
+		fileBlock->Offset = kOffset;
+		fileBlock->Size = kSize;
+
+		const TShared<MemoryDataStream> memoryStream = B3DMakeShared<MemoryDataStream>(content.size());
+		memcpy(memoryStream->Data(), content.data(), content.size());
+
+		const TShared<SerializedDataBlock> memoryBlock = B3DMakeShared<SerializedDataBlock>();
+		memoryBlock->Stream = memoryStream;
+		memoryBlock->Offset = kOffset;
+		memoryBlock->Size = kSize;
+
+		B3D_TEST_ASSERT(fileBlock->Equals(memoryBlock));
+		B3D_TEST_ASSERT(memoryBlock->Equals(fileBlock));
+		B3D_TEST_ASSERT(fileBlock->CalculateHash() == memoryBlock->CalculateHash());
+
+		LoggingScope logs(*this);
+		logs.ExpectWarning("Cloning a file stream");
+
+		const TShared<SerializedDataBlock> clone = std::static_pointer_cast<SerializedDataBlock>(fileBlock->Clone(true));
+		const TShared<MemoryDataStream> cloneStream = std::static_pointer_cast<MemoryDataStream>(clone->Stream);
+		B3D_TEST_ASSERT(String((const char*)cloneStream->Data(), cloneStream->Size()) == content.substr(kOffset, kSize));
+
+		memoryStream->Data()[kOffset] ^= 0xFF;
+		B3D_TEST_ASSERT(!fileBlock->Equals(memoryBlock));
+	}
+
+	FileSystem::Remove(path);
 }
 
 void FileSystemTestSuite::TestOpenFileMissing()

@@ -27,6 +27,7 @@ namespace b3d
 		void TestOggImport_Default();
 		void TestOggImport_KeepCompressed();
 		void TestFlacImport_Default();
+		void TestAudioClipSerialization();
 
 		Path mImagePath;
 		Path mOggPath;

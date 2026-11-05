@@ -860,6 +860,7 @@ void FrameGraphTestSuite::TestReadback()
 			GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU);
 
 		TAsyncOp<TShared<MemoryDataStream>> bufferRead;
+		TAsyncOp<TShared<MemoryDataStream>> bufferRangeRead;
 		TAsyncOp<TShared<PixelData>> textureRead;
 		{
 			FrameGraph graph(*test.Context, kGraphName, gTestGraphFlags);
@@ -868,6 +869,7 @@ void FrameGraphTestSuite::TestReadback()
 			test.AddDispatch(graph, "Write", buffer, texture);
 
 			bufferRead = render::GpuBufferUtility::ReadAsync(graph, buffer, 0, kSize * kSize * sizeof(u32));
+			bufferRangeRead = render::GpuBufferUtility::ReadAsync(graph, buffer, sizeof(u32), sizeof(u32));
 			textureRead = render::TextureUtility::ReadAsync(graph, texture);
 
 			// The staging buffers are imported, so the copy passes and the dispatch survive
@@ -878,15 +880,20 @@ void FrameGraphTestSuite::TestReadback()
 
 		// The command buffer's completion callbacks run on this thread while it waits
 		device->WaitUntilIdle();
-		B3D_TEST_ASSERT_MSG(bufferRead.HasCompleted() && textureRead.HasCompleted(), "The reads did not complete with the graph's command buffer.")
-		if(!bufferRead.HasCompleted() || !textureRead.HasCompleted())
+		B3D_TEST_ASSERT_MSG(bufferRead.HasCompleted() && bufferRangeRead.HasCompleted() && textureRead.HasCompleted(), "The reads did not complete with the graph's command buffer.")
+		if(!bufferRead.HasCompleted() || !bufferRangeRead.HasCompleted() || !textureRead.HasCompleted())
 			return;
 
 		const TShared<MemoryDataStream> bufferData = bufferRead.GetReturnValue();
+		const TShared<MemoryDataStream> bufferRangeData = bufferRangeRead.GetReturnValue();
 		const TShared<PixelData> textureData = textureRead.GetReturnValue();
-		B3D_TEST_ASSERT(bufferData != nullptr && textureData != nullptr)
-		if(bufferData == nullptr || textureData == nullptr)
+		B3D_TEST_ASSERT(bufferData != nullptr && bufferRangeData != nullptr && textureData != nullptr)
+		if(bufferData == nullptr || bufferRangeData == nullptr || textureData == nullptr)
 			return;
+
+		B3D_TEST_ASSERT(bufferData->Size() == kSize * kSize * sizeof(u32))
+		B3D_TEST_ASSERT(bufferRangeData->Size() == sizeof(u32))
+		B3D_TEST_ASSERT(memcmp(bufferRangeData->Data(), bufferData->Data() + sizeof(u32), sizeof(u32)) == 0)
 
 		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(reinterpret_cast<const u32*>(bufferData->Data()), kSize), "The buffer read does not hold the dispatch's values.")
 		B3D_TEST_ASSERT_MSG(test.HasDispatchValues(reinterpret_cast<const u32*>(textureData->GetData()), textureData->GetRowPitch() / sizeof(u32)),

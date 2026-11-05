@@ -666,10 +666,6 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(TShared<RTTISche
 						TShared<MemoryDataStream> dataBlockStream = B3DMakeShared<MemoryDataStream>(dataBlockSize);
 						mStream.ReadBytes(dataBlockStream->Data(), dataBlockSize);
 
-						// This ensures the data stream size reports 'dataBlockSize'
-						dataBlockStream->Seek(dataBlockSize);
-						dataBlockStream->Seek(0);
-
 						curField->SetValue(rttiInstance, output.get(), dataBlockStream, dataBlockSize);
 					}
 				}

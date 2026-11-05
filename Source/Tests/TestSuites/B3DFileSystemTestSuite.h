@@ -47,6 +47,11 @@ namespace b3d
 		void TestStreamWriteReadRoundtrip();
 		void TestMemoryStreamCustomDeleter();
 		void TestMemoryStreamDeleterFixedCapacity();
+		void TestMemoryStreamSizedConstructor();
+		void TestMemoryStreamCopy();
+		void TestMemoryStreamSeekPastCapacity();
+		void TestFileStreamClone();
+		void TestSerializedDataBlockFileStream();
 		void TestOpenFileMissing();
 		void TestOpenFileAsyncRead();
 		void TestOpenFileAsyncUserMemory();

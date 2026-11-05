@@ -45,9 +45,22 @@ namespace b3d
 
 		void SetData(AudioClip* obj, const TShared<DataStream>& val, u32 size)
 		{
-			obj->mStreamData = val->Clone(); // Making sure that the AudioClip cannot modify the source stream, which is still used by the deserializer
+			// Making sure that the AudioClip cannot modify the source stream, which is still used by the deserializer
+			if(val->IsFile())
+			{
+				obj->mStreamData = val->Clone();
+				obj->mStreamOffset = (u32)val->Tell();
+			}
+			else
+			{
+				const TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>(size);
+				val->Read(stream->Data(), size);
+
+				obj->mStreamData = stream;
+				obj->mStreamOffset = 0;
+			}
+
 			obj->mStreamSize = size;
-			obj->mStreamOffset = (u32)val->Tell();
 		}
 
 	public:

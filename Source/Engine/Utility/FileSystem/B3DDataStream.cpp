@@ -250,12 +250,13 @@ MemoryDataStream::MemoryDataStream()
 {
 }
 
-MemoryDataStream::MemoryDataStream(size_t capacity)
+MemoryDataStream::MemoryDataStream(size_t byteCount)
 	: DataStream()
 {
-	ReallocateBuffer(capacity);
+	ReallocateBuffer(byteCount);
 	mCursor = mData;
-	mEnd = mCursor + capacity;
+	mEnd = mCursor + byteCount;
+	mSize = byteCount;
 }
 
 MemoryDataStream::MemoryDataStream(void* memory, size_t size)
@@ -291,11 +292,11 @@ MemoryDataStream::MemoryDataStream(const MemoryDataStream& sourceStream)
 	: DataStream()
 {
 	// Copy data from incoming stream
-	mSize = sourceStream.Size();
-	mCapacity = mSize;
+	mCapacity = sourceStream.Size();
 
 	mData = mCursor = static_cast<uint8_t*>(B3DAllocate(mCapacity));
-	mEnd = mData + sourceStream.Read(mData, mSize);
+	mSize = sourceStream.Read(mData, mCapacity);
+	mEnd = mData + mSize;
 
 	B3D_ASSERT(mEnd >= mCursor);
 }
@@ -304,11 +305,11 @@ MemoryDataStream::MemoryDataStream(const TShared<DataStream>& sourceStream)
 	: DataStream()
 {
 	// Copy data from incoming stream
-	mSize = sourceStream->Size();
-	mCapacity = mSize;
+	mCapacity = sourceStream->Size();
 
 	mData = mCursor = static_cast<uint8_t*>(B3DAllocate(mCapacity));
-	mEnd = mData + sourceStream->Read(mData, mSize);
+	mSize = sourceStream->Read(mData, mCapacity);
+	mEnd = mData + mSize;
 
 	B3D_ASSERT(mEnd >= mCursor);
 }
@@ -420,17 +421,13 @@ size_t MemoryDataStream::Skip(size_t byteCount)
 
 size_t MemoryDataStream::Seek(size_t position)
 {
+	const size_t currentOffset = mCursor - mData;
+
 	i64 byteCountToSkip;
 	if(position > mCapacity)
-	{
-		const size_t requiredExtraSpace = position - mCapacity;
-		byteCountToSkip = (i64)EnsureEnoughSpace(requiredExtraSpace);
-	}
+		byteCountToSkip = (i64)EnsureEnoughSpace(position - currentOffset);
 	else
-	{
-		const size_t currentOffset = mCursor - mData;
 		byteCountToSkip = (i64)position - (i64)currentOffset;
-	}
 
 	mCursor += byteCountToSkip;
 	mEnd = Math::Max(mCursor, mEnd);
@@ -522,7 +519,7 @@ void MemoryDataStream::ReallocateBuffer(size_t byteCount)
 	else
 	{
 		mCursor = buffer;
-		mCursor = buffer;
+		mEnd = buffer;
 	}
 
 	mData = buffer;
@@ -656,7 +653,13 @@ bool FileDataStream::Eof() const
 
 TShared<DataStream> FileDataStream::Clone(bool copyData) const
 {
-	return B3DMakeShared<FileDataStream>(mPath, mAccess);
+	TShared<FileDataStream> clone = B3DMakeShared<FileDataStream>(mPath, mAccess);
+
+	// A writable clone stays closed, as opening it would truncate the file this stream is still writing
+	if(!mAccess.IsSet(FileAccessFlag::Write))
+		clone->Open();
+
+	return clone;
 }
 
 bool FileDataStream::Flush()

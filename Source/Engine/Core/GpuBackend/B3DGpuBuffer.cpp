@@ -661,7 +661,7 @@ namespace b3d::render
 			auto fnOnCommandBufferCompleted = [stagingBuffer, length, operation]() mutable
 			{
 				GpuBufferMappedScope mapping = stagingBuffer->Map(GpuMapOption::Read);
-				const TShared<MemoryDataStream> dataStream = B3DMakeShared<MemoryDataStream>(stagingBuffer->GetTotalSize());
+				const TShared<MemoryDataStream> dataStream = B3DMakeShared<MemoryDataStream>(length);
 				memcpy(dataStream->Data(), mapping.GetMappedMemory(), length);
 
 				operation.CompleteOperation(dataStream);

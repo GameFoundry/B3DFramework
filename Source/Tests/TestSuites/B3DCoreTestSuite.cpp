@@ -38,6 +38,7 @@ CoreTestSuite::CoreTestSuite()
 	B3D_ADD_TEST(CoreTestSuite::TestLookupTable)
 	B3D_ADD_TEST(CoreTestSuite::TestBinarySerialization)
 	B3D_ADD_TEST(CoreTestSuite::TestDataBlockSerialization)
+	B3D_ADD_TEST(CoreTestSuite::TestSerializedDataBlockClone)
 	B3D_ADD_TEST(CoreTestSuite::TestSerializedObject)
 	B3D_ADD_TEST(CoreTestSuite::TestReadOnlySerialization)
 	B3D_ADD_TEST(CoreTestSuite::TestRTTIObjectWrapperComparison)
@@ -361,6 +362,35 @@ void CoreTestSuite::TestDataBlockSerialization()
 	B3D_TEST_ASSERT(deserializedObject->StrA == object->StrA);
 	B3D_TEST_ASSERT(deserializedObject->DataBlock == object->DataBlock);
 	B3D_TEST_ASSERT(deserializedObject->DataBlockStreamSize == (u32)object->DataBlock.size());
+}
+
+void CoreTestSuite::TestSerializedDataBlockClone()
+{
+	static constexpr u32 kOffset = 4;
+	static constexpr u32 kSize = 8;
+
+	const TShared<MemoryDataStream> sourceStream = B3DMakeShared<MemoryDataStream>(kOffset + kSize);
+	for(u32 byteIndex = 0; byteIndex < kOffset + kSize; byteIndex++)
+		sourceStream->Data()[byteIndex] = (u8)(byteIndex + 1);
+
+	const TShared<SerializedDataBlock> source = B3DMakeShared<SerializedDataBlock>();
+	source->Stream = sourceStream;
+	source->Offset = kOffset;
+	source->Size = kSize;
+
+	const TShared<SerializedDataBlock> clone = std::static_pointer_cast<SerializedDataBlock>(source->Clone(true));
+	const TShared<MemoryDataStream> cloneStream = std::static_pointer_cast<MemoryDataStream>(clone->Stream);
+	B3D_TEST_ASSERT(clone->Offset == 0);
+	B3D_TEST_ASSERT(cloneStream->Size() == kSize);
+	B3D_TEST_ASSERT(memcmp(cloneStream->Data(), sourceStream->Data() + kOffset, kSize) == 0);
+
+	// Hashing and comparing read through non-owning clones of the stream, which only see the size it reports
+	const TShared<SerializedDataBlock> secondClone = std::static_pointer_cast<SerializedDataBlock>(clone->Clone(true));
+	B3D_TEST_ASSERT(clone->Equals(secondClone));
+	B3D_TEST_ASSERT(clone->CalculateHash() == secondClone->CalculateHash());
+
+	std::static_pointer_cast<MemoryDataStream>(secondClone->Stream)->Data()[0] ^= 0xFF;
+	B3D_TEST_ASSERT(!clone->Equals(secondClone));
 }
 
 void CoreTestSuite::TestSerializedObject()
