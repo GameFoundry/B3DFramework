@@ -26,12 +26,12 @@ namespace b3d
 	}
 
 	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
-	bool TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, GpuAllocation& out)
+	bool TGpuTlsfAllocator<HeapBackend, ThreadPolicy>::TryAllocateImpl(u64 size, u32 alignment, GpuAllocation& out)
 	{
 		B3D_ASSERT(out.Allocator == nullptr);
 
 		InternalAllocation allocation;
-		if (!mInternal.TryAllocate(size, alignment, allocation, ToTlsfKind(kind)))
+		if (!mInternal.TryAllocate(size, alignment, allocation))
 			return false;
 
 		out.Heap = allocation.Heap;
@@ -131,10 +131,8 @@ namespace b3d
 					continue;
 				}
 
-				const TlsfAllocationKind kind = node.Flags.IsSet(detail::tlsf::NodeFlag::NonLinear) ? TlsfAllocationKind::NonLinear : TlsfAllocationKind::Linear;
-
 				InternalAllocation destination;
-				if (!mInternal.TryAllocateInHeapsAtMost(node.Size, node.Alignment, heapIndex, destination, kind))
+				if (!mInternal.TryAllocateInHeapsAtMost(node.Size, node.Alignment, heapIndex, destination))
 				{
 					nodeIndex = previousNodeIndex;
 					continue;

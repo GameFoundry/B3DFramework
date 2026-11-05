@@ -12,134 +12,6 @@ namespace b3d
 	namespace detail::tlsf
 	{
 		//----------------------------------------------------------------------------------------
-		// GranularityTracker definitions
-		//----------------------------------------------------------------------------------------
-
-		inline GranularityTracker::~GranularityTracker()
-		{
-			Destroy();
-		}
-
-		inline bool GranularityTracker::IsConflict(PageCategory a, PageCategory b)
-		{
-			if (a == PageCategory::Free || b == PageCategory::Free)
-				return false;
-
-			return a != b;
-		}
-
-		inline void GranularityTracker::Initialize(u64 heapSize, u64 granularity, u64 disableThreshold)
-		{
-			// Idempotent — covers the "Init twice" sanity case.
-			Destroy();
-
-			if (granularity <= 1 || granularity <= disableThreshold)
-				return;
-
-			B3D_ASSERT(Bitwise::IsPow2(granularity));
-			mGranularity = granularity;
-			mPageShift = (u32)Bitwise::MostSignificantBit(granularity);
-			mPageCount = (u32)((heapSize + granularity - 1) >> mPageShift);
-			mPages = (Page*)B3DAllocate(mPageCount * sizeof(Page));
-			for (u32 pageIndex = 0; pageIndex < mPageCount; pageIndex++)
-			{
-				mPages[pageIndex].Category = PageCategory::Free;
-				mPages[pageIndex].LiveCount = 0;
-			}
-		}
-
-		inline void GranularityTracker::Destroy()
-		{
-			if (mPages != nullptr)
-				B3DFree(mPages);
-
-			mPages = nullptr;
-			mPageCount = 0;
-			mGranularity = 1;
-			mPageShift = 0;
-		}
-
-		inline void GranularityTracker::MarkPages(u64 offset, u64 size, TlsfAllocationKind kind)
-		{
-			if (mPages == nullptr)
-				return;
-
-			const u32 startPage = (u32)(offset >> mPageShift);
-			const u32 endPage = (u32)((offset + size - 1) >> mPageShift);
-			const PageCategory category = (PageCategory)kind;
-
-			if (mPages[startPage].LiveCount == 0 || mPages[startPage].Category == PageCategory::Free)
-				mPages[startPage].Category = category;
-
-			mPages[startPage].LiveCount++;
-
-			if (endPage != startPage)
-			{
-				if (mPages[endPage].LiveCount == 0 || mPages[endPage].Category == PageCategory::Free)
-					mPages[endPage].Category = category;
-
-				mPages[endPage].LiveCount++;
-			}
-		}
-
-		inline void GranularityTracker::UnmarkPages(u64 offset, u64 size)
-		{
-			if (mPages == nullptr)
-				return;
-
-			const u32 startPage = (u32)(offset >> mPageShift);
-			const u32 endPage = (u32)((offset + size - 1) >> mPageShift);
-
-			B3D_ASSERT(mPages[startPage].LiveCount > 0);
-			if (--mPages[startPage].LiveCount == 0)
-				mPages[startPage].Category = PageCategory::Free;
-
-			if (endPage != startPage)
-			{
-				B3D_ASSERT(mPages[endPage].LiveCount > 0);
-				if (--mPages[endPage].LiveCount == 0)
-					mPages[endPage].Category = PageCategory::Free;
-			}
-		}
-
-		inline bool GranularityTracker::CheckAndAlignUp(u64& inOutOffset, u64 size, TlsfAllocationKind kind, u64 blockEnd) const
-		{
-			if (mPages == nullptr)
-				return true;
-
-			if (inOutOffset + size > blockEnd)
-				return false;
-
-			const PageCategory category = (PageCategory)kind;
-			u32 startPage = (u32)(inOutOffset >> mPageShift);
-			if (mPages[startPage].LiveCount > 0 && IsConflict(mPages[startPage].Category, category))
-			{
-				inOutOffset = (inOutOffset + mGranularity - 1) & ~(mGranularity - 1);
-				if (inOutOffset + size > blockEnd)
-					return false;
-
-				startPage++;
-			}
-
-			const u32 endPage = (u32)((inOutOffset + size - 1) >> mPageShift);
-			if (endPage != startPage && mPages[endPage].LiveCount > 0 && IsConflict(mPages[endPage].Category, category))
-				return false;
-
-			return true;
-		}
-
-#if B3D_DEBUG
-		inline void GranularityTracker::AssertEmpty() const
-		{
-			if (mPages == nullptr)
-				return;
-
-			for (u32 pageIndex = 0; pageIndex < mPageCount; pageIndex++)
-				B3D_ASSERT(mPages[pageIndex].LiveCount == 0);
-		}
-#endif
-
-		//----------------------------------------------------------------------------------------
 		// NodePool definitions
 		//----------------------------------------------------------------------------------------
 
@@ -170,7 +42,7 @@ namespace b3d
 		//----------------------------------------------------------------------------------------
 
 		template <typename HeapHandleType>
-		Heap<HeapHandleType>::Heap(HeapHandle handle, u64 size, u64 granularity, u64 granularityDisableThreshold, u64 minAllocationSize)
+		Heap<HeapHandleType>::Heap(HeapHandle handle, u64 size, u64 minAllocationSize)
 			: mHandle(handle), mTotalSize(size), mFreeSize(size), mMinAllocationSize(minAllocationSize)
 		{
 			for (u32 listIndex = 0; listIndex < Utility::kFreeListCount; listIndex++)
@@ -178,8 +50,6 @@ namespace b3d
 
 			for (u32 firstLevel = 0; firstLevel < Utility::kFirstLevelClassCount; firstLevel++)
 				mSecondLevelFreeBitmask[firstLevel] = 0;
-
-			mGranularity.Initialize(size, granularity, granularityDisableThreshold);
 
 			// Trailing null block — covers the entire heap initially. Excluded from the free-list bitmaps;
 			// FindFreeNode falls through to it after the bitmap walk fails.
@@ -198,7 +68,7 @@ namespace b3d
 		}
 
 		template <typename HeapHandleType>
-		bool Heap<HeapHandleType>::TryAllocate(u64 size, u32 alignment, TlsfAllocationKind kind, u32& outNodeIndex)
+		bool Heap<HeapHandleType>::TryAllocate(u64 size, u32 alignment, u32& outNodeIndex)
 		{
 			// Cheap fast-fail: a heap whose total free size is less than the bare request can never fit.
 			// Don't include alignment slack here — the natural-bucket walk in FindFreeNode rejects misaligned
@@ -207,22 +77,17 @@ namespace b3d
 				return false;
 
 			u64 alignedOffset = 0;
-			const u32 candidateNodeIndex = FindFreeNode(size, alignment, kind, alignedOffset);
+			const u32 candidateNodeIndex = FindFreeNode(size, alignment, alignedOffset);
 			if (candidateNodeIndex == Utility::kInvalidIndex)
 				return false;
 
 			const u32 allocatedNodeIndex = CarveAllocation(candidateNodeIndex, alignedOffset, size);
 			Node& allocated = mPool[allocatedNodeIndex];
-			if (kind == TlsfAllocationKind::NonLinear)
-				allocated.Flags |= NodeFlag::NonLinear;
-
 			allocated.Alignment = alignment;
 
 			// Reset the opaque owner tag — recycled pool slots may carry a stale one. Live nodes are
 			// untracked until the orchestrator explicitly stamps an owner.
 			allocated.Owner = nullptr;
-
-			mGranularity.MarkPages(allocated.Offset, allocated.Size, kind);
 
 			mFreeSize -= allocated.Size;
 			mLiveAllocCount++;
@@ -236,8 +101,6 @@ namespace b3d
 		{
 			Node& node = mPool[nodeIndex];
 			B3D_ASSERT(!node.IsFree());
-
-			mGranularity.UnmarkPages(node.Offset, node.Size);
 
 			mFreeSize += node.Size;
 			mLiveAllocCount--;
@@ -301,11 +164,6 @@ namespace b3d
 			finalNode.Flags |= NodeFlag::Free;
 			if (!finalNode.IsNullNode())
 				InsertIntoFreeList(mergedNodeIndex);
-
-			if (mLiveAllocCount == 0)
-			{
-				B3D_DEBUG_ONLY(mGranularity.AssertEmpty());
-			}
 		}
 
 		template <typename HeapHandleType>
@@ -361,16 +219,16 @@ namespace b3d
 		}
 
 		template <typename HeapHandleType>
-		u32 Heap<HeapHandleType>::FindFreeNode(u64 size, u32 alignment, TlsfAllocationKind kind, u64& outAlignedOffset) const
+		u32 Heap<HeapHandleType>::FindFreeNode(u64 size, u32 alignment, u64& outAlignedOffset) const
 		{
 			u32 firstLevel = 0;
 			u32 secondLevel = 0;
 			Utility::SizeToBucket(size, firstLevel, secondLevel);
 
 			// 1. Walk every non-empty bucket at-or-after (firstLevel, secondLevel). The natural bucket
-			// (firstLevel, secondLevel) may or may not contain a fitting node depending on alignment +
-			// granularity slack; strictly larger buckets would always fit absent that slack but a node
-			// can still be rejected by it, so the same per-node check is applied throughout. Shifts use
+			// (firstLevel, secondLevel) may or may not contain a fitting node depending on alignment
+			// slack; strictly larger buckets would always fit absent that slack but a node can still be
+			// rejected by it, so the same per-node check is applied throughout. Shifts use
 			// 1ull to dodge UB at the firstLevel == 32 / secondLevel == kSecondLevelCount boundaries.
 			// The second-level floor only applies on the natural first-level; higher first-levels walk
 			// every set second-level bit (their nodes are strictly larger by construction).
@@ -387,7 +245,7 @@ namespace b3d
 				{
 					const u32 chosenSecondLevel = (u32)Bitwise::LeastSignificantBit(secondLevelBitmask);
 					const u32 listIndex = Utility::GetListIndex(chosenFirstLevel, chosenSecondLevel);
-					const u32 candidateNodeIndex = WalkBucketForFit(listIndex, size, alignment, kind, outAlignedOffset);
+					const u32 candidateNodeIndex = WalkBucketForFit(listIndex, size, alignment, outAlignedOffset);
 					if (candidateNodeIndex != Utility::kInvalidIndex)
 						return candidateNodeIndex;
 
@@ -401,8 +259,8 @@ namespace b3d
 			if (mNullNodeIndex != Utility::kInvalidIndex)
 			{
 				const Node& nullBlock = mPool[mNullNodeIndex];
-				u64 alignedOffset = Utility::AlignUp(nullBlock.Offset, alignment);
-				if (mGranularity.CheckAndAlignUp(alignedOffset, size, kind, nullBlock.Offset + nullBlock.Size) && alignedOffset + size <= nullBlock.Offset + nullBlock.Size)
+				const u64 alignedOffset = Utility::AlignUp(nullBlock.Offset, alignment);
+				if (alignedOffset + size <= nullBlock.Offset + nullBlock.Size)
 				{
 					outAlignedOffset = alignedOffset;
 					return mNullNodeIndex;
@@ -413,17 +271,14 @@ namespace b3d
 		}
 
 		template <typename HeapHandleType>
-		u32 Heap<HeapHandleType>::WalkBucketForFit(u32 listIndex, u64 size, u32 alignment, TlsfAllocationKind kind, u64& outAlignedOffset) const
+		u32 Heap<HeapHandleType>::WalkBucketForFit(u32 listIndex, u64 size, u32 alignment, u64& outAlignedOffset) const
 		{
 			u32 cursor = mFreeListHead[listIndex];
 			while (cursor != Utility::kInvalidIndex)
 			{
 				const Node& node = mPool[cursor];
-				u64 alignedOffset = Utility::AlignUp(node.Offset, alignment);
-
-				// Buffer image granularity: adjust the offset if the start page holds a conflicting allocation. Reject the
-				// candidate when the inflated range would overrun the block or end-page conflict can't be avoided.
-				if (mGranularity.CheckAndAlignUp(alignedOffset, size, kind, node.Offset + node.Size) && alignedOffset + size <= node.Offset + node.Size)
+				const u64 alignedOffset = Utility::AlignUp(node.Offset, alignment);
+				if (alignedOffset + size <= node.Offset + node.Size)
 				{
 					outAlignedOffset = alignedOffset;
 					return cursor;
@@ -561,7 +416,6 @@ namespace b3d
 		B3D_ASSERT(mConfig.InitialHeapSize > 0);
 		B3D_ASSERT(mConfig.MaxHeapSize >= mConfig.InitialHeapSize);
 		B3D_ASSERT(mConfig.MinAllocationSize > 0);
-		B3D_ASSERT(mConfig.Granularity == 1 || Bitwise::IsPow2(mConfig.Granularity));
 		// Guards the bitmap-width constraint — sizes whose MSB exceeds this cap can't be bucketed.
 		B3D_ASSERT(mConfig.MaxHeapSize < (1ull << (detail::tlsf::Utility::kFirstLevelClassCount + detail::tlsf::Utility::kMemoryClassShift)));
 	}
@@ -581,7 +435,7 @@ namespace b3d
 	}
 
 	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
-	bool TTlsfAllocator<HeapBackend, ThreadPolicy>::TryAllocate(u64 size, u32 alignment, Allocation& out, TlsfAllocationKind kind)
+	bool TTlsfAllocator<HeapBackend, ThreadPolicy>::TryAllocate(u64 size, u32 alignment, Allocation& out)
 	{
 		B3D_ASSERT(alignment > 0);
 
@@ -592,7 +446,7 @@ namespace b3d
 		// Try existing heaps oldest-first so empty-spare slots drain before any new heap is created.
 		for (u32 heapIndex = 0; heapIndex < (u32)mHeaps.size(); heapIndex++)
 		{
-			if (TryAllocateFromHeap(heapIndex, requestedSize, alignment, kind, out))
+			if (TryAllocateFromHeap(heapIndex, requestedSize, alignment, out))
 				return true;
 		}
 
@@ -602,7 +456,7 @@ namespace b3d
 		if (newHeapIndex == detail::tlsf::Utility::kInvalidIndex)
 			return false;
 
-		const bool ok = TryAllocateFromHeap(newHeapIndex, requestedSize, alignment, kind, out);
+		const bool ok = TryAllocateFromHeap(newHeapIndex, requestedSize, alignment, out);
 		B3D_ASSERT(ok); // A fresh heap big enough for the request must satisfy it.
 		return ok;
 	}
@@ -692,7 +546,7 @@ namespace b3d
 	}
 
 	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
-	bool TTlsfAllocator<HeapBackend, ThreadPolicy>::TryAllocateInHeapsAtMost(u64 size, u32 alignment, u32 maxHeapIndexInclusive, Allocation& out, TlsfAllocationKind kind)
+	bool TTlsfAllocator<HeapBackend, ThreadPolicy>::TryAllocateInHeapsAtMost(u64 size, u32 alignment, u32 maxHeapIndexInclusive, Allocation& out)
 	{
 		ScopedLock<kThreadSafe> lock(mLockPolicy);
 
@@ -705,7 +559,7 @@ namespace b3d
 		const u32 maxHeapIndex = std::min(maxHeapIndexInclusive, (u32)mHeaps.size() - 1);
 		for (u32 heapIndex = 0; heapIndex <= maxHeapIndex; heapIndex++)
 		{
-			if (TryAllocateFromHeap(heapIndex, requestedSize, alignment, kind, out))
+			if (TryAllocateFromHeap(heapIndex, requestedSize, alignment, out))
 				return true;
 		}
 
@@ -721,8 +575,7 @@ namespace b3d
 			return detail::tlsf::Utility::kInvalidIndex;
 		}
 
-		Heap* heap = B3DNew<Heap>(handle, sizeInBytes,
-			mConfig.Granularity, mConfig.GranularityDisableThreshold, mConfig.MinAllocationSize);
+		Heap* heap = B3DNew<Heap>(handle, sizeInBytes, mConfig.MinAllocationSize);
 
 		// Empty heap counts as a "spare" against the warm-spare budget the moment it's created — it
 		// already has zero live allocations.
@@ -757,7 +610,7 @@ namespace b3d
 	}
 
 	template <typename HeapBackend, ThreadSafetyPolicy ThreadPolicy>
-	bool TTlsfAllocator<HeapBackend, ThreadPolicy>::TryAllocateFromHeap(u32 heapIndex, u64 requestedSize, u32 alignment, TlsfAllocationKind kind, Allocation& out)
+	bool TTlsfAllocator<HeapBackend, ThreadPolicy>::TryAllocateFromHeap(u32 heapIndex, u64 requestedSize, u32 alignment, Allocation& out)
 	{
 		Heap* heap = mHeaps[heapIndex];
 		if (heap == nullptr)
@@ -765,7 +618,7 @@ namespace b3d
 
 		const bool heapWasEmpty = (heap->LiveAllocCount() == 0);
 		u32 nodeIndex = detail::tlsf::Utility::kInvalidIndex;
-		if (!heap->TryAllocate(requestedSize, alignment, kind, nodeIndex))
+		if (!heap->TryAllocate(requestedSize, alignment, nodeIndex))
 			return false;
 
 		if (heapWasEmpty && mEmptyHeapCount > 0)

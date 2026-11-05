@@ -457,13 +457,11 @@ void VulkanTexture::BuildDescription(const VulkanGpuDevice& device, const Textur
 	{
 		outDescription.RequiredMemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 		outDescription.PreferredMemoryFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-		outDescription.Kind = GpuResourceKind::Linear;
 	}
 	else
 	{
 		outDescription.RequiredMemoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 		outDescription.PreferredMemoryFlags = 0;
-		outDescription.Kind = GpuResourceKind::NonLinear;
 	}
 }
 
@@ -476,7 +474,6 @@ void VulkanTexture::Initialize()
 
 	mImageCreateInformation = description.CreateInfo;
 	mInternalFormat = description.InternalFormat;
-	mKind = description.Kind;
 	mDirectlyMappable = description.DirectlyMappable;
 	mSupportsGPUWrites = description.SupportsGPUWrites;
 	mUsesGeneralLayout = description.UsesGeneralLayout;
@@ -540,7 +537,7 @@ VulkanImage* VulkanTexture::CreateImage()
 	VulkanImageCreateInformation imageInfo = BuildImageCreateInformation();
 
 	GpuAllocation allocation;
-	VulkanImage* const vulkanImage = mGpuDevice.CreateImage(imageInfo, mRequestedAllocation, mKind, allocation);
+	VulkanImage* const vulkanImage = mGpuDevice.CreateImage(imageInfo, mRequestedAllocation, allocation);
 	SetCurrentAllocation(allocation);
 
 	if (vulkanImage != nullptr)

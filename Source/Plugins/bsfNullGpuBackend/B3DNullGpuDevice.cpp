@@ -51,7 +51,6 @@ namespace b3d
 			configuration.GrowthFactor = 2;
 			configuration.MaxEmptyHeapCount = 1;
 			configuration.MinAllocationSize = 16;
-			configuration.Granularity = 1;
 			configuration.DeferralMode = GpuAllocatorFreeDeferralMode::ResourceLifecycle;
 
 			mPersistentAllocator = B3DMakeUnique<TGpuTlsfAllocator<NullHeapBackend>>(&mHeapBackend, nullptr, configuration);
@@ -197,7 +196,6 @@ namespace b3d
 			GpuMemoryRequirements output;
 			output.Size = std::max(size, (u64)1) * std::max(properties.SampleCount, 1u);
 			output.Alignment = 256;
-			output.Kind = GpuResourceKind::NonLinear;
 
 			return output;
 		}
@@ -207,7 +205,6 @@ namespace b3d
 			GpuMemoryRequirements output;
 			output.Size = std::max(b3d::GpuBuffer::CalculateTotalBufferSize(createInformation, *this), 1u);
 			output.Alignment = 16;
-			output.Kind = GpuResourceKind::Linear;
 
 			return output;
 		}

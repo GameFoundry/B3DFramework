@@ -166,12 +166,11 @@ namespace b3d
 
 			/**
 			 * Creates a VkImage described by @p createInformation, suballocates compatible memory from the persistent allocators and
-			 * binds the two together, and wraps the result in a VulkanImage. @p kind controls buffer-image
-			 * granularity placement (Non-linear for optimally-tiled images, Linear for linearly-tiled).
+			 * binds the two together, and wraps the result in a VulkanImage.
 			 *
 			 * Thread safe.
 			 */
-			VulkanImage* CreateImage(const VulkanImageCreateInformation& createInformation, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags, GpuResourceKind kind);
+			VulkanImage* CreateImage(const VulkanImageCreateInformation& createInformation, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags);
 
 			/**
 			 * Creates a VkImage described by @p createInformation, binds it to memory at @p requestedAllocation and wraps the result in a
@@ -180,7 +179,7 @@ namespace b3d
 			 *
 			 * Thread safe if the allocation's allocator is.
 			 */
-			VulkanImage* CreateImage(const VulkanImageCreateInformation& createInformation, const GpuAllocation& requestedAllocation, GpuResourceKind kind, GpuAllocation& outAllocation);
+			VulkanImage* CreateImage(const VulkanImageCreateInformation& createInformation, const GpuAllocation& requestedAllocation, GpuAllocation& outAllocation);
 
 			/**
 			 * Returns @p allocation to its allocator's free pool synchronously. The slot becomes
@@ -258,7 +257,7 @@ namespace b3d
 			 * Resolves @p requestedAllocation into the memory a native resource with @p requirements is bound to. A pending allocation
 			 * suballocates from its allocator; an allocation with memory is used as is.
 			 */
-			VulkanAllocationResult ResolveAllocation(const GpuAllocation& requestedAllocation, const VkMemoryRequirements& requirements, GpuResourceKind kind) const;
+			VulkanAllocationResult ResolveAllocation(const GpuAllocation& requestedAllocation, const VkMemoryRequirements& requirements) const;
 
 			/** Common bind-and-wrap helper for buffers. Binds @p buffer to @p allocation and constructs the VulkanBuffer wrapper. */
 			VulkanBuffer* BindBufferToAllocation(const VulkanBufferCreateInformation& createInformation, VkBuffer buffer, const VulkanAllocationResult& allocation);
@@ -272,12 +271,30 @@ namespace b3d
 			 */
 			u32 PickMemoryTypeIndex(u32 typeBits, VkMemoryPropertyFlags required, VkMemoryPropertyFlags preferred) const;
 
+			/** Number of values EncodeMemoryType() can return. */
+			static constexpr u32 kEncodedMemoryTypeCount = VK_MAX_MEMORY_TYPES * 2;
+
 			/**
-			 * Returns the GPU memory allocator backing memory type @p memoryTypeIndex, lazily creating it on
+			 * Returns the value reported as GpuMemoryRequirements::MemoryType for a resource in the Vulkan memory type
+			 * @p memoryTypeIndex. Optimally tiled images report a different value than buffers and linearly tiled images of the same
+			 * Vulkan memory type, so the two use different persistent allocators and never share a persistent heap, and
+			 * VkPhysicalDeviceLimits::bufferImageGranularity does not apply to them. Both values map to one transient heap pool, which
+			 * rounds its placements to that granularity.
+			 */
+			static u32 EncodeMemoryType(u32 memoryTypeIndex, bool isOptimallyTiled) { return memoryTypeIndex * 2 + (isOptimallyTiled ? 1 : 0); }
+
+			/** Returns the Vulkan memory type index of @p memoryType, a value returned by EncodeMemoryType(). */
+			static u32 GetMemoryTypeIndex(u32 memoryType) { return memoryType / 2; }
+
+			/** Returns true if @p memoryType, a value returned by EncodeMemoryType(), holds optimally tiled images. */
+			static bool IsOptimallyTiled(u32 memoryType) { return memoryType % 2 != 0; }
+
+			/**
+			 * Returns the GPU memory allocator backing @p memoryType, a value returned by EncodeMemoryType(), lazily creating it on
 			 * first use. Each allocator owns its own VkDeviceMemory heaps via the shared VulkanHeapBackend
 			 * and is locked to a single memory-type index.
 			 */
-			TGpuTlsfAllocator<VulkanHeapBackend>& GetOrCreateGpuMemoryAllocator(u32 memoryTypeIndex);
+			TGpuTlsfAllocator<VulkanHeapBackend>& GetOrCreateGpuMemoryAllocator(u32 memoryType);
 
 			/**
 			 * Returns the shared linear page pool backing memory type @p memoryTypeIndex, lazily creating it on
@@ -320,8 +337,8 @@ namespace b3d
 
 			TUnique<VulkanHeapBackend> mHeapBackend;
 
-			/** Per-memory-type TLSF allocator pool. Slots are lazily populated on first allocation. */
-			TUnique<TGpuTlsfAllocator<VulkanHeapBackend>> mGpuMemoryAllocators[VK_MAX_MEMORY_TYPES];
+			/** TLSF allocator of each value returned by EncodeMemoryType(). Slots are lazily populated on first allocation. */
+			TUnique<TGpuTlsfAllocator<VulkanHeapBackend>> mGpuMemoryAllocators[kEncodedMemoryTypeCount];
 
 			/** Guards lazy creation of mTlsfAllocators entries. */
 			mutable Mutex mGpuMemoryAllocatorMutex;
@@ -332,7 +349,7 @@ namespace b3d
 			/** Guards lazy creation of mLinearPagePools entries. */
 			mutable Mutex mLinearPagePoolMutex;
 
-			/** Transient heap pool of each memory type, owned by GpuDevice. Valid for indices below the memory type count. */
+			/** Transient heap pool of each Vulkan memory type, owned by GpuDevice. Valid for indices below the memory type count. */
 			IGpuTransientHeapPool* mTransientHeapPools[VK_MAX_MEMORY_TYPES];
 		};
 

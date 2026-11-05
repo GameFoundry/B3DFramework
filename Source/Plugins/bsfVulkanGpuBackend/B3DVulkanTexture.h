@@ -203,7 +203,6 @@ namespace b3d
 			PixelFormat InternalFormat = PF_UNKNOWN; /**< Closest pixel format supported by the device. */
 			VkMemoryPropertyFlags RequiredMemoryFlags = 0; /**< Memory properties the image memory must have. */
 			VkMemoryPropertyFlags PreferredMemoryFlags = 0; /**< Memory properties preferred for the image memory. */
-			GpuResourceKind Kind = GpuResourceKind::NonLinear; /**< Placement kind of the image memory. */
 			bool DirectlyMappable = false; /**< True if the image uses linear tiling, and can be mapped by the CPU. */
 			bool SupportsGPUWrites = false; /**< True if the GPU can write to the image. */
 			bool UsesGeneralLayout = false; /**< True if the image stays in the general layout. */
@@ -272,7 +271,6 @@ namespace b3d
 			PixelFormat mInternalFormat = PF_UNKNOWN;
 
 			VkImageCreateInfo mImageCreateInformation;
-			GpuResourceKind mKind = GpuResourceKind::NonLinear;
 			bool mDirectlyMappable : 1;
 			bool mSupportsGPUWrites : 1;
 			bool mUsesGeneralLayout : 1;

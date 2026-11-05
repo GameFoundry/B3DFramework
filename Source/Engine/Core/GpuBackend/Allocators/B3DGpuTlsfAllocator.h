@@ -15,14 +15,6 @@ namespace b3d
 	 *  @{
 	 */
 
-	// The TLSF heap machinery in detail::tlsf is kind-agnostic (TlsfAllocationKind); GpuResourceKind maps
-	// onto it by value. Guarded here so the casts below stay provably value-preserving.
-	static_assert((u8)GpuResourceKind::Linear == (u8)TlsfAllocationKind::Linear && (u8)GpuResourceKind::NonLinear == (u8)TlsfAllocationKind::NonLinear,
-		"GpuResourceKind values must match TlsfAllocationKind — the TLSF allocator casts between them.");
-
-	/** Maps a GPU resource kind onto the equivalent TLSF allocation kind. */
-	inline TlsfAllocationKind ToTlsfKind(GpuResourceKind kind) { return (TlsfAllocationKind)(u8)kind; }
-
 	/**
 	 * Two-Level Segregated Fit GPU memory allocator. O(1) bitmap-driven bucket lookup, leading-padding
 	 * split for alignment, full coalescing on free, multi-heap growable. One allocator instance manages
@@ -33,12 +25,6 @@ namespace b3d
 	 * TryAllocate, Free, FreeAndReclaim, ReclaimUnused, PlanDefragmentation, SetAllocationOwner and the diagnostic accessors —
 	 * acquires the allocator-wide mutex inherited from TGpuAllocator. When ThreadPolicy is ThreadUnsafe,
 	 * the locking compiles out and the caller is responsible for external synchronization.
-	 *
-	 * **Buffer-image granularity.** A single allocator instance can host mixed linear (buffer / linear image)
-	 * and non-linear (optimally-tiled image) allocations safely; pass the appropriate GpuResourceKind to
-	 * TryAllocate. The configured Granularity (the backend's buffer-image granularity) drives the mandatory padding between conflicting
-	 * neighbors. When the configured granularity is at or below GranularityDisableThreshold the tracker
-	 * is fully inert and adds zero per-allocation overhead.
 	 *
 	 * @tparam HeapBackend	Backend trait satisfying the GpuHeapBackend contract.
 	 * @tparam ThreadPolicy	Compile-time thread-safety policy. ThreadSafe (default) wraps state with a
@@ -60,9 +46,8 @@ namespace b3d
 		using InternalAllocator = TTlsfAllocator<HeapBackend, ThreadUnsafe>;
 
 		/**
-		 * Runtime configuration for the allocator. Extends the general TLSF configuration (heap sizing, growth,
-		 * granularity) with the GPU-only options. For GPU heaps Granularity is the backend's buffer-image
-		 * granularity, e.g. Vulkan's VkPhysicalDeviceLimits::bufferImageGranularity.
+		 * Runtime configuration for the allocator. Extends the general TLSF configuration (heap sizing, growth)
+		 * with the GPU-only options.
 		 */
 		struct Configuration : InternalAllocator::Configuration
 		{
@@ -84,7 +69,7 @@ namespace b3d
 		 *  @{
 		 */
 
-		bool TryAllocateImpl(u64 size, u32 alignment, GpuResourceKind kind, GpuAllocation& out);
+		bool TryAllocateImpl(u64 size, u32 alignment, GpuAllocation& out);
 		void FreeImpl(GpuAllocation& allocation);
 		void FreeAndReclaimImpl(u32 heapIndex, u32 nodeIndex);
 

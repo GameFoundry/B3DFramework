@@ -278,7 +278,7 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 		else
 		{
 			const GpuMemoryRequirements memoryRequirements = device.GetMemoryRequirements(information);
-			if(!mRequestedAllocation.Allocator->TryAllocate(memoryRequirements.Size, (u32)memoryRequirements.Alignment, GpuResourceKind::Linear, allocation))
+			if(!mRequestedAllocation.Allocator->TryAllocate(memoryRequirements.Size, (u32)memoryRequirements.Alignment, allocation))
 			{
 				B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to allocate a placed buffer (size={0}, alignment={1}, type={2}, heapType={3}, resourceFlags={4}).",
 					memoryRequirements.Size, memoryRequirements.Alignment, (u32)information.Type, (u32)heapType, (u32)resourceFlags);
@@ -321,7 +321,7 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 		GpuAllocation allocation;
 		if(!mRequestedAllocation.IsPending())
 			allocation = mRequestedAllocation;
-		else if(!mRequestedAllocation.Allocator->TryAllocate(bufferSize, alignment, GpuResourceKind::Linear, allocation))
+		else if(!mRequestedAllocation.Allocator->TryAllocate(bufferSize, alignment, allocation))
 		{
 			B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to allocate a pooled buffer slice (size={0}, alignment={1}, type={2}, heapType={3}, resourceFlags={4}).",
 				bufferSize, alignment, (u32)information.Type, (u32)heapType, (u32)resourceFlags);

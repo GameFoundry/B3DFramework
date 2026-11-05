@@ -89,21 +89,6 @@ namespace b3d
 		/** Random alloc/free workload — proves no leak, no overlap, full reclaim after clear. */
 		void TestTlsf_RandomStressNoLeak();
 
-		/** With granularity disabled (= 1), Linear/NonLinear allocations interleave without padding. */
-		void TestTlsf_GranularityDisabled();
-
-		/** All-Linear allocations across granularity boundaries don't trigger BIG-driven padding. */
-		void TestTlsf_GranularityHomogeneousNoPadding();
-
-		/** A NonLinear allocation following a Linear one is bumped past the granularity boundary. */
-		void TestTlsf_GranularityLinearVsNonLinearInflatesPadding();
-
-		/** When BIG inflation would overrun the heap, the allocator falls through and creates a new heap. */
-		void TestTlsf_GranularityRejectAndRetryAcrossHeaps();
-
-		/** Freeing a Linear allocation lets a subsequent NonLinear allocation reclaim the page without padding. */
-		void TestTlsf_GranularityFreeReleasesRegion();
-
 		/** Multi-heap drain: live allocations in a higher-index heap migrate to a lower-index heap and the vacated heap is released. */
 		void TestTlsf_Defrag_DrainsHighestHeap();
 

@@ -135,19 +135,13 @@ namespace b3d
 	public:
 		B3D_STATIC_ASSERT_HEAP_BACKEND_IS_VALID(HeapBackend);
 
-		/** Attempts to allocate @p size bytes with @p alignment. Resource kind defaults to Linear. */
-		bool TryAllocate(u64 size, u32 alignment, GpuAllocation& out)
-		{
-			return TryAllocate(size, alignment, GpuResourceKind::Linear, out);
-		}
-
 		/** @copydoc IGpuAllocator::TryAllocate */
-		bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, GpuAllocation& out) override
+		bool TryAllocate(u64 size, u32 alignment, GpuAllocation& out) override
 		{
 			ScopedLock lock(mMutex);
 			DebugCheckThreadConfinement();
 
-			const bool success = static_cast<Derived*>(this)->TryAllocateImpl(size, alignment, kind, out);
+			const bool success = static_cast<Derived*>(this)->TryAllocateImpl(size, alignment, out);
 
 #if B3D_DEBUG
 			if (success)

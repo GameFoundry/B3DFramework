@@ -34,5 +34,8 @@ namespace b3d
 
 		/** Asserts a depth-stencil-shaped image lands in a memory type that includes DEVICE_LOCAL. */
 		void TestDepthStencilUsesDeviceLocal();
+
+		/** Asserts buffers and optimally tiled images use different persistent allocators and heaps. */
+		void TestBuffersAndOptimalImagesUseSeparatePersistentHeaps();
 	};
 } // namespace b3d

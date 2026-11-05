@@ -5,6 +5,8 @@
 #include "B3DVulkanGpuDevice.h"
 #include "B3DVulkanHeapBackend.h"
 #include "GpuBackend/Allocators/B3DGpuTlsfAllocator.h"
+#include "GpuBackend/B3DGpuBuffer.h"
+#include "Image/B3DTexture.h"
 #include "Renderer/B3DRenderer.h"
 
 using namespace b3d;
@@ -29,7 +31,7 @@ namespace
 	 * (rather than invoking the device's lazy slot) so they can run without depending on the
 	 * device's internal symbol exports.
 	 */
-	TGpuTlsfAllocator<VulkanHeapBackend>::Configuration BuildAllocatorConfig(const VkPhysicalDeviceMemoryProperties& memProps, const VkPhysicalDeviceLimits& limits, u32 memoryTypeIndex)
+	TGpuTlsfAllocator<VulkanHeapBackend>::Configuration BuildAllocatorConfig(const VkPhysicalDeviceMemoryProperties& memProps, u32 memoryTypeIndex)
 	{
 		const VkMemoryPropertyFlags flags = memProps.memoryTypes[memoryTypeIndex].propertyFlags;
 		const bool isHostVisible = (flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0;
@@ -41,7 +43,6 @@ namespace
 		configuration.GrowthFactor = 2;
 		configuration.MaxEmptyHeapCount = 1;
 		configuration.MinAllocationSize = 16;
-		configuration.Granularity = limits.bufferImageGranularity;
 
 		configuration.HeapCreateInfo.MemoryTypeBits = (1u << memoryTypeIndex);
 		configuration.HeapCreateInfo.PropertyFlags = flags;
@@ -75,6 +76,7 @@ VulkanAllocatorTestSuite::VulkanAllocatorTestSuite()
 	B3D_ADD_TEST(VulkanAllocatorTestSuite::TestAllocateAndFreeDeviceLocalImage)
 	B3D_ADD_TEST(VulkanAllocatorTestSuite::TestBufferHeapGrowth)
 	B3D_ADD_TEST(VulkanAllocatorTestSuite::TestDepthStencilUsesDeviceLocal)
+	B3D_ADD_TEST(VulkanAllocatorTestSuite::TestBuffersAndOptimalImagesUseSeparatePersistentHeaps)
 }
 
 void VulkanAllocatorTestSuite::TestHostVisibleHeapCreateAndDestroy()
@@ -162,11 +164,11 @@ void VulkanAllocatorTestSuite::TestAllocateAndFreeHostVisibleBuffer()
 	const u32 memoryTypeIndex = PickMemoryType(memProps, requirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 	B3D_TEST_ASSERT(memoryTypeIndex != VK_MAX_MEMORY_TYPES)
 
-	auto config = BuildAllocatorConfig(memProps, device->GetDeviceProperties().limits, memoryTypeIndex);
+	auto config = BuildAllocatorConfig(memProps, memoryTypeIndex);
 	TGpuTlsfAllocator<VulkanHeapBackend> allocator(&device->GetHeapBackend(), &render::GetRenderer()->GetFrameCompletionTracker(), config);
 
 	GpuAllocation allocation;
-	const bool ok = allocator.TryAllocate(requirements.size, (u32)requirements.alignment, GpuResourceKind::Linear, allocation);
+	const bool ok = allocator.TryAllocate(requirements.size, (u32)requirements.alignment, allocation);
 	B3D_TEST_ASSERT(ok)
 	B3D_TEST_ASSERT(allocation.IsOwned())
 	B3D_TEST_ASSERT(ToVulkanGpuHeap(allocation.Heap).Mapped != nullptr)
@@ -217,11 +219,11 @@ void VulkanAllocatorTestSuite::TestAllocateAndFreeDeviceLocalImage()
 	const u32 memoryTypeIndex = PickMemoryType(memProps, requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 	B3D_TEST_ASSERT(memoryTypeIndex != VK_MAX_MEMORY_TYPES)
 
-	auto config = BuildAllocatorConfig(memProps, device->GetDeviceProperties().limits, memoryTypeIndex);
+	auto config = BuildAllocatorConfig(memProps, memoryTypeIndex);
 	TGpuTlsfAllocator<VulkanHeapBackend> allocator(&device->GetHeapBackend(), &render::GetRenderer()->GetFrameCompletionTracker(), config);
 
 	GpuAllocation allocation;
-	const bool ok = allocator.TryAllocate(requirements.size, (u32)requirements.alignment, GpuResourceKind::NonLinear, allocation);
+	const bool ok = allocator.TryAllocate(requirements.size, (u32)requirements.alignment, allocation);
 	B3D_TEST_ASSERT(ok)
 	B3D_TEST_ASSERT(allocation.IsOwned())
 
@@ -261,7 +263,7 @@ void VulkanAllocatorTestSuite::TestBufferHeapGrowth()
 	const u32 memoryTypeIndex = PickMemoryType(memProps, probeReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 	B3D_TEST_ASSERT(memoryTypeIndex != VK_MAX_MEMORY_TYPES)
 
-	auto config = BuildAllocatorConfig(memProps, device->GetDeviceProperties().limits, memoryTypeIndex);
+	auto config = BuildAllocatorConfig(memProps, memoryTypeIndex);
 	// Force a small initial heap so we can validate growth without allocating tens of MiB.
 	config.InitialHeapSize = 4ull * 1024 * 1024;
 	config.MaxHeapSize = 16ull * 1024 * 1024;
@@ -273,7 +275,7 @@ void VulkanAllocatorTestSuite::TestBufferHeapGrowth()
 	GpuAllocation allocations[kAllocCount];
 	for (u32 entryIndex = 0; entryIndex < kAllocCount; entryIndex++)
 	{
-		const bool ok = allocator.TryAllocate(probeReq.size, (u32)probeReq.alignment, GpuResourceKind::Linear, allocations[entryIndex]);
+		const bool ok = allocator.TryAllocate(probeReq.size, (u32)probeReq.alignment, allocations[entryIndex]);
 		B3D_TEST_ASSERT(ok)
 	}
 
@@ -320,4 +322,35 @@ void VulkanAllocatorTestSuite::TestDepthStencilUsesDeviceLocal()
 	B3D_TEST_ASSERT((flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0)
 
 	vkDestroyImage(device->GetLogical(), image, nullptr);
+}
+
+void VulkanAllocatorTestSuite::TestBuffersAndOptimalImagesUseSeparatePersistentHeaps()
+{
+	VulkanGpuDevice* device = GetActiveVulkanDevice();
+	if (device == nullptr)
+		return;
+
+	TextureCreateInformation textureInformation;
+	textureInformation.Name = "Separate heaps test";
+	textureInformation.Width = 64;
+	textureInformation.Height = 64;
+	textureInformation.Format = PF_RGBA8;
+	textureInformation.Usage = TextureUsageFlag::Default;
+
+	const GpuMemoryRequirements bufferRequirements = device->GetMemoryRequirements(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 64));
+	const GpuMemoryRequirements textureRequirements = device->GetMemoryRequirements(textureInformation);
+	B3D_TEST_ASSERT(bufferRequirements.MemoryType != textureRequirements.MemoryType)
+
+	IGpuAllocator& bufferAllocator = device->GetPersistentAllocator(bufferRequirements.MemoryType);
+	IGpuAllocator& textureAllocator = device->GetPersistentAllocator(textureRequirements.MemoryType);
+	B3D_TEST_ASSERT(&bufferAllocator != &textureAllocator)
+
+	GpuAllocation bufferAllocation;
+	GpuAllocation textureAllocation;
+	B3D_TEST_ASSERT(bufferAllocator.TryAllocate(bufferRequirements.Size, (u32)bufferRequirements.Alignment, bufferAllocation))
+	B3D_TEST_ASSERT(textureAllocator.TryAllocate(textureRequirements.Size, (u32)textureRequirements.Alignment, textureAllocation))
+	B3D_TEST_ASSERT(bufferAllocation.Heap != textureAllocation.Heap)
+
+	bufferAllocator.FreeAndReclaim(bufferAllocation);
+	textureAllocator.FreeAndReclaim(textureAllocation);
 }

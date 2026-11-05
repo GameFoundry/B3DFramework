@@ -13,17 +13,6 @@ namespace b3d
 	 */
 
 	/**
-	 * Category of a TLSF allocation, used for granularity conflict tracking. Two allocations of differing kinds are
-	 * never placed within the same granularity page (see TTlsfAllocator::Configuration::Granularity). Callers that
-	 * don't need conflict tracking pass Linear for everything.
-	 */
-	enum class TlsfAllocationKind : u8
-	{
-		Linear = 0, /**< Plain memory (e.g. buffers, linearly-tiled images). */
-		NonLinear = 1, /**< Memory with a conflicting layout (e.g. optimally-tiled images). */
-	};
-
-	/**
 	 * Internal types and helpers for the Two-Level Segregated Fit allocator. Not part of the public
 	 * surface — referenced only inside TTlsfAllocator's / TGpuTlsfAllocator's implementations.
 	 */
@@ -32,81 +21,6 @@ namespace b3d
 		//----------------------------------------------------------------------------------------
 		// Declarations
 		//----------------------------------------------------------------------------------------
-
-		/**
-		 * Helper used by the TLSF allocator to ensure that non-linear allocations are placed at correct alignment
-		 * (granularity). Some GPU backends have different alignment requirements if a non-linear image follows or
-		 * trails a linear memory allocation, which this object helps to track.
-		 *
-		 * One entry per granularity-aligned page. Only the start and end pages of each allocation are ever referenced.
-		 *
-		 * Default-constructed instances are inert (no allocation). Non-copyable.
-		 */
-		class GranularityTracker
-		{
-		public:
-			GranularityTracker() = default;
-			~GranularityTracker();
-
-			GranularityTracker(const GranularityTracker&) = delete;
-			GranularityTracker& operator=(const GranularityTracker&) = delete;
-
-			/**
-			 * Allocate the page table sized for @p heapSize. When @p granularity is <= 1 or
-			 * <= @p disableThreshold the tracker stays inert — every call below short-circuits.
-			 * @p disableThreshold is useful if allocations are guaranteed to be aligned to this
-			 * value regardless of buffer-image granularity.
-			 */
-			void Initialize(u64 heapSize, u64 granularity, u64 disableThreshold);
-
-			/** Releases the page table. Safe to call on an inert tracker. */
-			void Destroy();
-
-			/** True when the page table is allocated and the conflict checks are live. */
-			bool IsEnabled() const { return mPages != nullptr; }
-
-			/** Bumps the refcounts for the start + end pages of @p [offset, offset+size). */
-			void MarkPages(u64 offset, u64 size, TlsfAllocationKind kind);
-
-			/** Decrements the refcounts for the start + end pages; resets category to Free at zero. */
-			void UnmarkPages(u64 offset, u64 size);
-
-			/**
-			 * Adjust @p inOutOffset upward to clear any granularity conflict at the start page;
-			 * return false if the adjusted range overruns @p blockEnd or the end page holds
-			 * a conflicting allocation. Returns true (no-op) when the tracker is inert.
-			 */
-			bool CheckAndAlignUp(u64& inOutOffset, u64 size, TlsfAllocationKind kind, u64 blockEnd) const;
-
-#if B3D_DEBUG
-			/** Asserts every page has zero LiveCount — sanity check when a heap goes empty. */
-			void AssertEmpty() const;
-#endif
-
-		private:
-			/** Allocation-kind category stored per granularity page. */
-			enum class PageCategory : u8
-			{
-				Linear = (u8)TlsfAllocationKind::Linear,
-				NonLinear = (u8)TlsfAllocationKind::NonLinear,
-				Free = 0xFF, /**< Sentinel value for an empty page (no live allocations touch it). */
-			};
-
-			/** Describes one page (memory range as wide as the granularity) and its category. */
-			struct Page
-			{
-				PageCategory Category; /**< PageCategory::Free when no live allocation touches this page. */
-				u16 LiveCount; /**< Number of allocations touching this page. */
-			};
-
-			/** Returns true if two categories cannot exist in the same granularity page. */
-			static bool IsConflict(PageCategory a, PageCategory b);
-
-			Page* mPages = nullptr;
-			u32 mPageCount = 0;
-			u64 mGranularity = 1;
-			u32 mPageShift = 0;
-		};
 
 		/**
 		 * Compile-time constants and pure helper functions shared between Heap and the orchestrators.
@@ -185,8 +99,7 @@ namespace b3d
 		{
 			Free				= 1u << 0, /**< Set when the node is on a free list (or is the trailing null node). */
 			NullNode			= 1u << 1, /**< Set when the node is the trailing null node of its heap. */
-			NonLinear			= 1u << 2, /**< Set when a live allocation is non-linear (optimally-tiled image). */
-			DefragDestination	= 1u << 3, /**< Set on slots reserved as defrag destinations within the current defragmentation planning pass; cleared at its end. */
+			DefragDestination	= 1u << 2, /**< Set on slots reserved as defrag destinations within the current defragmentation planning pass; cleared at its end. */
 		};
 
 		using NodeFlags = Flags<NodeFlag, u32>;
@@ -273,21 +186,21 @@ namespace b3d
 			 * CreateHeap call is the orchestrator's job; this constructor only sets up the per-heap
 			 * bookkeeping and allocates the trailing null block from the heap's own node pool.
 			 */
-			Heap(HeapHandle handle, u64 size, u64 granularity, u64 granularityDisableThreshold, u64 minAllocationSize);
+			Heap(HeapHandle handle, u64 size, u64 minAllocationSize);
 
-			~Heap() = default; // mPool / mGranularity dtors release all node + page storage.
+			~Heap() = default; // mPool's destructor releases all node storage.
 
 			Heap(const Heap&) = delete;
 			Heap& operator=(const Heap&) = delete;
 
 			/**
 			 * Reserves a slot of @p size bytes within this heap: fast-fails on insufficient size, walks
-			 * the TLSF buckets for a fitting free node, carves, marks the granularity pages, updates
-			 * bookkeeping (FreeSize, LiveAllocCount). On success writes the carved node's index to
+			 * the TLSF buckets for a fitting free node, carves, updates bookkeeping (FreeSize,
+			 * LiveAllocCount). On success writes the carved node's index to
 			 * @p outNodeIndex; the caller reads GetNode(outNodeIndex) for offset / size and is responsible
 			 * for stamping Owner and building the public allocation record.
 			 */
-			bool TryAllocate(u64 size, u32 alignment, TlsfAllocationKind kind, u32& outNodeIndex);
+			bool TryAllocate(u64 size, u32 alignment, u32& outNodeIndex);
 
 			/**
 			 * Releases the allocation at @p nodeIndex. Coalesces with adjacent free neighbors and folds
@@ -333,7 +246,6 @@ namespace b3d
 			u32 mFirstLevelFreeBitmask = 0; /**< Bit set if any entry in mSecondLevelFreeBitmask[firstLevel] is non-zero. */
 			u32 mSecondLevelFreeBitmask[Utility::kFirstLevelClassCount]; /**< Bit set when mFreeListHead[(firstLevel, secondLevel)] is non-empty. */
 
-			GranularityTracker mGranularity; /**< Granularity tracker — inert when the allocator is configured with granularity <= 1 or below the threshold. */
 			u64 mMinAllocationSize = 0;
 
 			/** Insert @p nodeIndex into the appropriate (firstLevel, secondLevel) bucket and update bitmaps. */
@@ -343,18 +255,18 @@ namespace b3d
 			void RemoveFromFreeList(u32 nodeIndex);
 
 			/**
-			 * Find a free node that can satisfy a (size, alignment, kind) request. Searches the natural
+			 * Find a free node that can satisfy a (size, alignment) request. Searches the natural
 			 * bucket first (best-fit candidates live there) and walks larger buckets via the bitmaps if
-			 * needed. The returned @p outAlignedOffset folds in both natural alignment and any buffer image
-			 * granularity inflation, so the carver doesn't have to recompute either. Returns kInvalidIndex on miss.
+			 * needed. The returned @p outAlignedOffset folds in the alignment, so the carver doesn't have
+			 * to recompute it. Returns kInvalidIndex on miss.
 			 */
-			u32 FindFreeNode(u64 size, u32 alignment, TlsfAllocationKind kind, u64& outAlignedOffset) const;
+			u32 FindFreeNode(u64 size, u32 alignment, u64& outAlignedOffset) const;
 
 			/**
-			 * Walk a bucket's free list and return the first node large enough to satisfy (size, alignment, kind).
-			 * The returned @p outAlignedOffset contains any buffer image granularity past natural alignment.
+			 * Walk a bucket's free list and return the first node large enough to satisfy (size, alignment).
+			 * The returned @p outAlignedOffset is the aligned offset of the allocation.
 			 */
-			u32 WalkBucketForFit(u32 listIndex, u64 size, u32 alignment, TlsfAllocationKind kind, u64& outAlignedOffset) const;
+			u32 WalkBucketForFit(u32 listIndex, u64 size, u32 alignment, u64& outAlignedOffset) const;
 
 			/**
 			 * Carve a @p size byte allocation starting at @p alignedOffset out of the candidate node, splitting
@@ -412,20 +324,6 @@ namespace b3d
 			/** Allocations smaller than this are rounded up — keeps tiny allocations from over-fragmenting the small bucket. */
 			u64 MinAllocationSize = 16;
 
-			/**
-			 * Granularity in bytes separating allocations of conflicting TlsfAllocationKind (e.g. Vulkan
-			 * buffer-image granularity). Default 1 disables granularity handling at zero cost. Must be a
-			 * power of two when > 1. Irrelevant when every allocation uses the same kind.
-			 */
-			u64 Granularity = 1;
-
-			/**
-			 * Skip the per-heap region table when Granularity is at or below this threshold. At small
-			 * granularities the natural alignment of typical allocations implicitly satisfies the
-			 * constraint, so the tracker's memory cost is wasted. Set to 0 to track every granularity > 1.
-			 */
-			u64 GranularityDisableThreshold = 256;
-
 			/** Backend create-info forwarded verbatim to HeapBackend::CreateHeap on each grow. */
 			typename HeapBackend::HeapCreateInformation HeapCreateInfo{};
 		};
@@ -451,10 +349,9 @@ namespace b3d
 
 		/**
 		 * Allocates @p size bytes at @p alignment (power of two), growing a new backend heap if no existing
-		 * heap can satisfy the request. Returns false when the backend fails to provide a new heap. @p kind
-		 * only matters when Configuration::Granularity is active — see TlsfAllocationKind.
+		 * heap can satisfy the request. Returns false when the backend fails to provide a new heap.
 		 */
-		bool TryAllocate(u64 size, u32 alignment, Allocation& out, TlsfAllocationKind kind = TlsfAllocationKind::Linear);
+		bool TryAllocate(u64 size, u32 alignment, Allocation& out);
 
 		/**
 		 * Releases a previously-allocated slot immediately. Fully-empty heaps beyond the warm-spare budget
@@ -501,7 +398,7 @@ namespace b3d
 		 * below, and never grows a fresh heap. Lets defragmentation place moves into the source heap or
 		 * any older heap without ever expanding committed memory.
 		 */
-		bool TryAllocateInHeapsAtMost(u64 size, u32 alignment, u32 maxHeapIndexInclusive, Allocation& out, TlsfAllocationKind kind = TlsfAllocationKind::Linear);
+		bool TryAllocateInHeapsAtMost(u64 size, u32 alignment, u32 maxHeapIndexInclusive, Allocation& out);
 
 		/** Number of heap slots, including vacated ones (GetHeapSlot returns nullptr for those). */
 		u32 GetHeapSlotCount() const { return (u32)mHeaps.size(); }
@@ -525,7 +422,7 @@ namespace b3d
 		 * heap can't fit the request). Handles the empty-spare bookkeeping and fills @p out on success.
 		 * @p requestedSize has already been rounded up to MinAllocationSize. Caller holds the lock.
 		 */
-		bool TryAllocateFromHeap(u32 heapIndex, u64 requestedSize, u32 alignment, TlsfAllocationKind kind, Allocation& out);
+		bool TryAllocateFromHeap(u32 heapIndex, u64 requestedSize, u32 alignment, Allocation& out);
 
 		HeapBackend* mBackend = nullptr;
 		Configuration mConfig;

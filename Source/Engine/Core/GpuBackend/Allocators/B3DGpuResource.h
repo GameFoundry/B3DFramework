@@ -19,17 +19,6 @@ namespace b3d
 	 *  @{
 	 */
 
-	/**
-	 * Memory-layout category of a GPU allocation. Some APIs require different allocation granularity when
-	 * linear and non-linear entries overlap (i.e. buffer image granularity), and this is used by the allocator
-	 * to respect that.
-	 */
-	enum class GpuResourceKind : u8 // TODO - Rename to GpuResourceMemoryLayout
-	{
-		Linear		= 0,
-		NonLinear	= 1
-	};
-
 	/** Memory a texture or a buffer needs, as reported by the GPU device before the resource is created. */
 	struct GpuMemoryRequirements
 	{
@@ -39,7 +28,6 @@ namespace b3d
 		u32 MemoryType = 0; /**< Backend-defined index of the memory pool the resource must be placed in. */
 		u64 Size = 0; /**< Minimum size of the memory range, in bytes. */
 		u64 Alignment = 1; /**< Required alignment of the memory range's offset, in bytes. */
-		GpuResourceKind Kind = GpuResourceKind::Linear;
 	};
 
 	/**
@@ -110,11 +98,10 @@ namespace b3d
 		virtual ~IGpuAllocator() = default;
 
 		/**
-		 * Attempts to allocate @p size bytes with @p alignment, tagged with @p kind so the strategy can
-		 * honor buffer-image granularity. On success populates @p out — including stamping @p out.Allocator
-		 * with this allocator — and returns true. The allocation has no owner, see SetAllocationOwner().
+		 * Attempts to allocate @p size bytes with @p alignment. On success populates @p out — including stamping
+		 * @p out.Allocator with this allocator — and returns true. The allocation has no owner, see SetAllocationOwner().
 		 */
-		virtual bool TryAllocate(u64 size, u32 alignment, GpuResourceKind kind, GpuAllocation& out) = 0;
+		virtual bool TryAllocate(u64 size, u32 alignment, GpuAllocation& out) = 0;
 
 		/** Retires @p allocation (deferred free per the allocator's policy) and resets it to the empty state. */
 		virtual void Free(GpuAllocation& allocation) = 0;

@@ -123,9 +123,6 @@ namespace b3d
 				// Resources free their memory only once they retire, so it can be reclaimed immediately
 				configuration.DeferralMode = GpuAllocatorFreeDeferralMode::ResourceLifecycle;
 
-				// Placement heaps have no buffer-image granularity, alignment comes from the per-resource size queries
-				configuration.Granularity = 1;
-
 				// Shared memory mostly holds small staging and uniform data, so it starts with smaller heaps
 				if (memoryType == kMemoryTypeShared)
 				{
@@ -215,7 +212,6 @@ namespace b3d
 		{
 			GpuMemoryRequirements output;
 			output.MemoryType = memoryType;
-			output.Kind = GpuResourceKind::Linear;
 
 			id<MTLDevice> device = mDevice.GetMetalDevice();
 			if (device == nil || memoryType >= kMemoryTypeCount)
@@ -235,7 +231,6 @@ namespace b3d
 		GpuMemoryRequirements MetalHeapAllocator::GetTextureMemoryRequirements(MTLTextureDescriptor* descriptor) const
 		{
 			GpuMemoryRequirements output;
-			output.Kind = GpuResourceKind::NonLinear;
 
 			id<MTLDevice> device = mDevice.GetMetalDevice();
 			const u32 memoryType = descriptor != nil ? GetStorageModeMemoryType(descriptor.storageMode) : kMemoryTypeCount;
@@ -282,7 +277,7 @@ namespace b3d
 			const MTLSizeAndAlign sizeAndAlign = [device heapBufferSizeAndAlignWithLength:length options:options];
 
 			GpuAllocation allocation;
-			if (allocator.TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align, GpuResourceKind::Linear, allocation))
+			if (allocator.TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align, allocation))
 			{
 				MetalGpuHeap& heap = ToMetalGpuHeap(allocation.Heap);
 				if (heap.MemoryType == memoryType)
@@ -351,7 +346,7 @@ namespace b3d
 			const MTLSizeAndAlign sizeAndAlign = [device heapTextureSizeAndAlignWithDescriptor:descriptor];
 
 			GpuAllocation allocation;
-			if (allocator.TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align, GpuResourceKind::NonLinear, allocation))
+			if (allocator.TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align, allocation))
 			{
 				MetalGpuHeap& heap = ToMetalGpuHeap(allocation.Heap);
 				id<MTLTexture> texture = [heap.Heap newTextureWithDescriptor:descriptor offset:allocation.Offset];

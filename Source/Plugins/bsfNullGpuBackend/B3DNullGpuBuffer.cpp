@@ -14,7 +14,7 @@ namespace b3d
 			{
 				const GpuMemoryRequirements requirements = device.GetMemoryRequirements(createInformation);
 
-				const bool ok = allocation.Allocator->TryAllocate(requirements.Size, (u32)requirements.Alignment, requirements.Kind, mAllocation);
+				const bool ok = allocation.Allocator->TryAllocate(requirements.Size, (u32)requirements.Alignment, mAllocation);
 				B3D_ASSERT(ok && "Allocator failed to satisfy the allocation request.");
 				(void)ok;
 			}

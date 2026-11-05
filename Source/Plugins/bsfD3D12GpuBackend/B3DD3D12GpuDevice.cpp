@@ -351,7 +351,6 @@ GpuMemoryRequirements D3D12GpuDevice::GetMemoryRequirements(const TextureCreateI
 	output.MemoryType = (u32)D3D12BufferPool::MemoryType::Count + (u32)poolType;
 	output.Size = allocationInfo.SizeInBytes;
 	output.Alignment = allocationInfo.Alignment;
-	output.Kind = resourceDesc.Layout == D3D12_TEXTURE_LAYOUT_ROW_MAJOR ? GpuResourceKind::Linear : GpuResourceKind::NonLinear;
 	return output;
 }
 
@@ -372,7 +371,6 @@ GpuMemoryRequirements D3D12GpuDevice::GetMemoryRequirements(const GpuBufferCreat
 
 	// Buffers keep the buffer pool's memory types either way, so scratch allocators keep slicing buffer pages
 	output.MemoryType = (u32)memoryType;
-	output.Kind = GpuResourceKind::Linear;
 
 	const u32 sliceSize = D3D12GpuBuffer::GetSliceSize(createInformation, b3d::GpuBuffer::CalculateTotalBufferSize(createInformation, *this));
 	if(!mIsTightAlignmentSupported)
@@ -686,7 +684,6 @@ D3D12GpuDevice::GpuMemoryAllocator& D3D12GpuDevice::GetOrCreateGpuMemoryAllocato
 	configuration.GrowthFactor = 2;
 	configuration.MaxEmptyHeapCount = 1;
 	configuration.MinAllocationSize = 16;
-	configuration.Granularity = 1;
 	configuration.DeferralMode = GpuAllocatorFreeDeferralMode::ResourceLifecycle;
 	configuration.HeapCreateInfo.Type = heapType;
 	configuration.HeapCreateInfo.Flags = heapFlags;
@@ -728,8 +725,7 @@ HRESULT D3D12GpuDevice::CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, 
 		if(allocationInfo.SizeInBytes == UINT64_MAX || allocationInfo.Alignment == 0 || allocationInfo.Alignment > UINT32_MAX)
 			return E_INVALIDARG;
 
-		const GpuResourceKind resourceKind = resourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER || resourceDesc.Layout == D3D12_TEXTURE_LAYOUT_ROW_MAJOR ? GpuResourceKind::Linear : GpuResourceKind::NonLinear;
-		if(!requestedAllocation.Allocator->TryAllocate(allocationInfo.SizeInBytes, (u32)allocationInfo.Alignment, resourceKind, outAllocation))
+		if(!requestedAllocation.Allocator->TryAllocate(allocationInfo.SizeInBytes, (u32)allocationInfo.Alignment, outAllocation))
 			return E_OUTOFMEMORY;
 	}
 	else
