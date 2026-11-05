@@ -8,74 +8,39 @@ The example demonstrates how to render a textured cube mesh using the low-level 
 # Overview
 
 The example performs the following operations:
-- Creates GPU programs (vertex and fragment shaders)
-- Creates a graphics pipeline state with blend and depth-stencil states
+- Creates GPU programs and a graphics pipeline state from a BSL shader's pass
 - Creates vertex and index buffers with appropriate vertex descriptions
 - Creates textures and sampler states
-- Sets up render targets
-- Renders a textured cube every frame using command buffers
+- Describes the textures it renders into
+- Renders a textured cube every frame through a frame graph
 - Presents the result to the window
 
 # Setup phase
 
 During setup, all necessary rendering resources are initialized on the render thread (see @b3d::RenderThread for details on executing code on the render thread).
 
-## Creating GPU programs
+## Creating GPU programs and pipeline state
 
-GPU programs are created using **GpuProgramCreateInformation** and the GPU device:
-
-~~~~~~~~~~~~~{.cpp}
-const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
-
-GpuProgramCreateInformation vertexProgramCreateInformation;
-vertexProgramCreateInformation.Type = GPT_VERTEX_PROGRAM;
-vertexProgramCreateInformation.EntryPoint = "main";
-vertexProgramCreateInformation.Language = "hlsl"; // or "glsl" or "vksl"
-vertexProgramCreateInformation.Source = vertexShaderSource;
-
-TShared<GpuProgram> vertexProgram = gpuDevice->CreateGpuProgram(vertexProgramCreateInformation);
-
-GpuProgramCreateInformation fragmentProgramCreateInformation;
-fragmentProgramCreateInformation.Type = GPT_FRAGMENT_PROGRAM;
-fragmentProgramCreateInformation.EntryPoint = "main";
-fragmentProgramCreateInformation.Language = "hlsl";
-fragmentProgramCreateInformation.Source = fragmentShaderSource;
-
-TShared<GpuProgram> fragmentProgram = gpuDevice->CreateGpuProgram(fragmentProgramCreateInformation);
-~~~~~~~~~~~~~
-
-## Creating pipeline state
-
-A graphics pipeline state is created with blend and depth-stencil states:
+The GPU programs and the states they render with come from a shader that ships with the example. Its compiled pass provides everything needed to create the pipeline state through the low-level API:
 
 ~~~~~~~~~~~~~{.cpp}
-BlendStateInformation blendStateInformation;
-blendStateInformation.RenderTargets[0].BlendEnable = true;
-blendStateInformation.RenderTargets[0].RenderTargetWriteMask = 0b0111; // RGB, don't write to alpha
-blendStateInformation.RenderTargets[0].ColorBlendOperation = BO_ADD;
-blendStateInformation.RenderTargets[0].ColorSourceFactor = BF_SOURCE_ALPHA;
-blendStateInformation.RenderTargets[0].ColorDestinationFactor = BF_INV_SOURCE_ALPHA;
+const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
-DepthStencilStateInformation depthStencilStateInformation;
-depthStencilStateInformation.DepthWriteEnable = false;
-depthStencilStateInformation.DepthReadEnable = false;
+// Grab the shader's first variation compatible with the active GPU backend, and ensure it is compiled
+const TShared<Variation> shaderVariation = boxShader->GetCompatibleVariations()[0];
+if(!shaderVariation->IsCompiled())
+	shaderVariation->Compile().BlockUntilComplete();
 
-GpuGraphicsPipelineStateInformation pipelineStateInformation;
-pipelineStateInformation.BlendState = blendStateInformation;
-pipelineStateInformation.DepthStencilState = depthStencilStateInformation;
-pipelineStateInformation.VertexProgram = vertexProgram;
-pipelineStateInformation.FragmentProgram = fragmentProgram;
+const PassInformation& passInformation = shaderVariation->GetPass(0)->GetInformation();
 
-TShared<GpuGraphicsPipelineState> pipelineState = gpuDevice->CreateGpuGraphicsPipelineState(pipelineStateInformation);
-~~~~~~~~~~~~~
+GpuGraphicsPipelineStateCreateInformation pipelineCreateInformation;
+pipelineCreateInformation.VertexProgram = gpuDevice->CreateGpuProgram(passInformation.VertexProgramCreateInformation);
+pipelineCreateInformation.FragmentProgram = gpuDevice->CreateGpuProgram(passInformation.FragmentProgramCreateInformation);
+pipelineCreateInformation.BlendState = passInformation.BlendStateInformation;
+pipelineCreateInformation.RasterizerState = passInformation.RasterizerStateInformation;
+pipelineCreateInformation.DepthStencilState = passInformation.DepthStencilStateInformation;
 
-## Creating GPU parameter sets
-
-GPU parameter sets are allocated from the render thread's work context, using its parameter set pool. The pipeline state's parameter set layout (obtained via `GetParameterLayout()->GetSet()`) selects which descriptor set the parameter set holds uniform buffers, textures, and samplers for:
-
-~~~~~~~~~~~~~{.cpp}
-GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
-TShared<GpuParameterSet> parameterSet = gpuContext.GetParameterSetPool().Create(pipelineState->GetParameterLayout()->GetSet(0), 0);
+TShared<GpuGraphicsPipelineState> pipelineState = gpuDevice->CreateGpuGraphicsPipelineState(pipelineCreateInformation);
 ~~~~~~~~~~~~~
 
 ## Creating vertex description
@@ -142,53 +107,32 @@ samplerStateCreateInformation.MagFilter = FO_POINT;
 TShared<SamplerState> surfaceSampler = gpuDevice->FindOrCreateSamplerState(samplerStateCreateInformation);
 ~~~~~~~~~~~~~
 
-## Creating render targets
+## Describing the render textures
 
-Render targets are created with color and depth attachments:
+The cube renders into a color and a depth texture. The textures are only needed within a frame, so setup only describes them, and the frame graph creates them every frame in memory it reuses between frames:
 
 ~~~~~~~~~~~~~{.cpp}
-TextureCreateInformation colorAttachmentInformation;
-colorAttachmentInformation.Width = 1280;
-colorAttachmentInformation.Height = 720;
-colorAttachmentInformation.Format = PF_RGBA8;
-colorAttachmentInformation.Usage = TextureUsageFlag::RenderTarget;
-colorAttachmentInformation.ClearColor = Color::kBlue;
+TextureCreateInformation colorInformation;
+colorInformation.Width = 1280;
+colorInformation.Height = 720;
+colorInformation.Format = PF_RGBA8;
+colorInformation.Usage = TextureUsageFlag::RenderTarget;
+colorInformation.ClearColor = Color::kBlue;
 
-TShared<Texture> colorAttachment = gpuDevice->CreateTexture(colorAttachmentInformation);
-
-TextureCreateInformation depthAttachmentInformation;
-depthAttachmentInformation.Width = 1280;
-depthAttachmentInformation.Height = 720;
-depthAttachmentInformation.Format = PF_D32;
-depthAttachmentInformation.Usage = TextureUsageFlag::DepthStencil;
-
-TShared<Texture> depthAttachment = gpuDevice->CreateTexture(depthAttachmentInformation);
-
-RenderTextureCreateInformation renderTextureInformation;
-renderTextureInformation.ColorSurfaces[0].Texture = colorAttachment;
-renderTextureInformation.DepthStencilSurface.Texture = depthAttachment;
-
-TShared<RenderTexture> renderTarget = RenderTexture::Create(renderTextureInformation);
+TextureCreateInformation depthInformation;
+depthInformation.Width = 1280;
+depthInformation.Height = 720;
+depthInformation.Format = PF_D32;
+depthInformation.Usage = TextureUsageFlag::DepthStencil;
 ~~~~~~~~~~~~~
 
 # Render phase
 
-Every frame, the following rendering operations are performed using a command buffer.
-
-## Creating command buffer
-
-Command buffers are obtained from the command buffer pool:
-
-~~~~~~~~~~~~~{.cpp}
-const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
-const TShared<GpuCommandBufferPool>& commandBufferPool = RendererManager::Instance().GetActive()->GetCommandBufferPool();
-
-TShared<GpuCommandBuffer> commandBuffer = commandBufferPool->Create(GpuCommandBufferCreateInformation::Create("LowLevelRendering"));
-~~~~~~~~~~~~~
+Every frame, the example describes its GPU work as a [frame graph](../Renderer/frameGraph): a pass that renders the cube into the two textures, and a pass that draws the color texture into the window. The graph records every barrier between the passes.
 
 ## Setting up uniform buffers
 
-Uniform data is written to a GPU buffer and bound to the parameters:
+Uniform data is written to a GPU buffer, which is later bound to the parameters:
 
 ~~~~~~~~~~~~~{.cpp}
 struct UniformBlock
@@ -206,86 +150,94 @@ TShared<GpuBuffer> uniformBuffer = gpuDevice->CreateGpuBuffer(GpuBufferCreateInf
 	GpuBufferMappedScope mappedScope = uniformBuffer->Map(GpuMapOption::Write);
 	memcpy(mappedScope.GetMappedMemory(), &uniformBlock, sizeof(uniformBlock));
 }
-
-parameterSet->SetUniformBuffer("Params", uniformBuffer);
 ~~~~~~~~~~~~~
 
-## Binding textures and samplers
+## Creating the frame graph
 
-Textures and samplers are bound to the GPU parameter set:
+The graph records with the render thread's work context. The window is a resource the graph did not create, so it is imported, while the two textures are created by the graph and only live within it:
 
 ~~~~~~~~~~~~~{.cpp}
-parameterSet->SetSampledTexture("gMainTexture", surfaceTexture);
-parameterSet->SetSamplerState("gMainTexture", surfaceSampler);
+GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
+
+FrameGraph frameGraph(gpuContext, "Low level rendering");
+frameGraph.ImportRenderTarget(renderWindow);
+
+const TShared<Texture> colorTexture = frameGraph.CreateTexture("Box color", colorInformation);
+const TShared<Texture> depthTexture = frameGraph.CreateTexture("Box depth", depthInformation);
 ~~~~~~~~~~~~~
 
-## Beginning render pass
+## Describing the cube pass
 
-A render pass is started with the render target and the target is cleared. The surfaces are cleared to the values they were created with:
+The pass clears both textures to their clear values and renders into them:
 
 ~~~~~~~~~~~~~{.cpp}
-render::RenderPassCreateInformation renderPassInformation(renderTarget);
-renderPassInformation.ClearMask = RT_COLOR_ALL | RT_DEPTH;
-commandBuffer->BeginRenderPass(renderPassInformation);
+FrameGraphRasterPass boxPass;
+boxPass.SetColorAttachment(0, colorTexture, FrameGraphAttachmentLoad::Clear);
+boxPass.SetDepthStencilAttachment(depthTexture, FrameGraphDepthStencilMode::Write, FrameGraphAttachmentLoad::Clear);
 ~~~~~~~~~~~~~
 
-## Binding pipeline and geometry
+## Creating GPU parameter sets
 
-The pipeline state, vertex buffers, index buffer, and vertex description are bound:
+GPU parameter sets are allocated from the render thread's work context, using its parameter set pool. The pipeline state's parameter set layout (obtained via `GetParameterLayout()->GetSet()`) selects which descriptor set the parameter set holds uniform buffers, textures, and samplers for. Adding the set to the pass tells the graph what the pass binds:
 
 ~~~~~~~~~~~~~{.cpp}
-commandBuffer->SetGpuGraphicsPipelineState(pipelineState);
-commandBuffer->SetVertexBuffers(0, &vertexBuffer, 1);
-commandBuffer->SetIndexBuffer(indexBuffer);
-commandBuffer->SetVertexDescription(vertexDescription);
-commandBuffer->SetDrawOperation(DOT_TRIANGLE_LIST);
+const TShared<GpuParameterSet> boxParameters = gpuContext.GetParameterSetPool().Create(pipelineState->GetParameterLayout()->GetSet(0), 0);
+boxPass.AddParameterSet(boxParameters);
+
+boxParameters->SetUniformBuffer("Params", uniformBuffer);
+boxParameters->SetSampledTexture("gMainTexture", surfaceTexture);
+boxParameters->SetSamplerState("gMainTexSamp", surfaceSampler);
 ~~~~~~~~~~~~~
 
-## Binding GPU parameter sets
+The surface texture and the uniform buffer are not resources of the graph. They are at rest, which allows the pass to read them with no further declaration.
 
-GPU parameter sets containing uniform buffers, textures, and samplers are bound:
+## Recording the cube pass
+
+The function added with the pass runs when the graph records it, after the pass's barriers and with the attachments bound. It binds the pipeline state, the geometry and the parameter set, then issues an indexed draw call:
 
 ~~~~~~~~~~~~~{.cpp}
-commandBuffer->SetGpuParameterSet(parameterSet);
+frameGraph.AddRasterPass("Box", std::move(boxPass), [boxParameters, pipelineState, vertexBuffer, indexBuffer, vertexDescription, numIndices, numVertices](FrameGraphPassContext& passContext) mutable
+{
+	GpuCommandBuffer& commandBuffer = passContext.GetCommandBuffer();
+
+	commandBuffer.SetGpuGraphicsPipelineState(pipelineState);
+
+	commandBuffer.SetVertexBuffers(0, &vertexBuffer, 1);
+	commandBuffer.SetIndexBuffer(indexBuffer);
+	commandBuffer.SetVertexDescription(vertexDescription);
+	commandBuffer.SetDrawOperation(DOT_TRIANGLE_LIST);
+
+	commandBuffer.SetGpuParameterSet(boxParameters);
+
+	commandBuffer.DrawIndexed(0, numIndices, 0, numVertices, 1, 0);
+});
 ~~~~~~~~~~~~~
 
-## Drawing
+## Drawing to the window
 
-An indexed draw call is issued:
-
-~~~~~~~~~~~~~{.cpp}
-commandBuffer->DrawIndexed(0, numIndices, 0, numVertices, 1, 0);
-~~~~~~~~~~~~~
-
-## Ending render pass
-
-The render pass is ended after all draw calls have been issued:
+Since the rendering was done to an offscreen texture, the result must be drawn into the window before presenting. A second pass draws a full-screen quad that samples the color texture, using @b3d::render::BlitMat. It overwrites the whole window, so the window's previous contents are not loaded. The material's `Prepare()` creates a parameter set for the pass and adds it to the pass, which is how the graph knows that this pass reads what the previous pass wrote:
 
 ~~~~~~~~~~~~~{.cpp}
-commandBuffer->EndRenderPass();
-~~~~~~~~~~~~~
+BlitMat* const blitMaterial = BlitMat::GetVariation(1, true, false);
 
-## Blitting to the window
+FrameGraphRasterPass blitPass;
+blitPass.SetRenderTarget(renderWindow, FrameGraphAttachmentLoad::DontCare);
 
-Since the rendering was done to an offscreen render target, the result must be copied (blitted) to the render window's back buffer before presenting. Use @b3d::render::RendererUtility::Blit with a @b3d::render::BlitInformation to copy the color attachment to the render window. The static helper @b3d::render::BlitInformation::BlitColor creates a blit descriptor with commonly used settings (no blending, no filtering):
+const TShared<GpuParameterSet> blitParameters = blitMaterial->Prepare(blitPass, colorTexture);
 
-~~~~~~~~~~~~~{.cpp}
-// Get the color attachment from the offscreen render target
-TShared<Texture> colorTexture = renderTarget->GetColorTexture(0);
-
-// Blit the offscreen color attachment to the render window
-TShared<RenderWindow> renderWindow = ...;
-GetRendererUtility().Blit(*commandBuffer, BlitInformation::BlitColor(colorTexture, renderWindow));
+frameGraph.AddRasterPass("Blit to window", std::move(blitPass), [blitMaterial, blitParameters](FrameGraphPassContext& passContext)
+{
+	blitMaterial->Execute(passContext, blitParameters, Area2(0.0f, 0.0f, 1280.0f, 720.0f), false);
+});
 ~~~~~~~~~~~~~
 
 ## Submitting and presenting
 
-Finally, the command buffer is submitted for GPU execution and the render window is presented:
+Finally, the graph places the textures in memory and plans the barriers between the passes, then records and submits the passes. This leaves the window ready to be presented:
 
 ~~~~~~~~~~~~~{.cpp}
-// Submit the command buffer for GPU execution through the render thread's GPU work context
-render::GetRenderer()->GetGpuContext().SubmitCommandBuffer(commandBuffer);
+frameGraph.Compile();
+frameGraph.Execute();
 
-// Present the rendered result to the window
 gpuDevice->PresentRenderWindow(renderWindow);
 ~~~~~~~~~~~~~

@@ -83,7 +83,7 @@ public:
 
 @b3d::RendererViewContext is an additional parameter provided to the **Render()** method. It holds the frame graph of the view (**RendererViewContext::Graph**) and the attachments of the extension's location. **RendererViewContext::SetAttachments()** attaches them to a raster pass, loading their contents, and **RendererViewContext::Viewport** is the area of the attachments the view covers. The graph sets no viewport, so every pass sets one before it draws.
 
-An extension may add any number of passes, including compute passes and passes that render into textures of its own. Passes must not open or close render passes or issue barriers; the graph does both. Since the passes record after **Render()** returns, and after every other view of the render target has added its passes, the pass functions must capture the state they need instead of reading the extension's members when they run.
+An extension may add any number of passes, including compute passes and passes that render into textures of its own (see the [frame graph](../Renderer/frameGraph) manual). Passes must not open or close render passes or issue barriers; the graph does both. Since the passes record after **Render()** returns, and after every other view of the render target has added its passes, the pass functions must capture the state they need instead of reading the extension's members when they run.
 
 # Registering an extension
 Once extension is implemented you need to register it with the renderer by calling @b3d::RendererExtension::Create<T>, where the template parameter is the type of your extension. You must also provide initialization data that will be passed to the extension - this can be null.

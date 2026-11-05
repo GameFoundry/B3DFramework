@@ -52,7 +52,7 @@ Once created, you can record rendering commands by calling methods on the comman
 - @b3d::render::GpuCommandBuffer::IssueBarriers - Issues barriers whose source and destination accesses you provide
 - @b3d::render::GpuCommandBuffer::ReleaseBarriers and @b3d::render::GpuCommandBuffer::AcquireBarriers - Record the two halves of a split barrier. Split barriers can be more efficient than full barriers if there is work in-between the producer and consumer stages, since certain barrier operations can overlap with GPU work.
 
-Command buffers issue no barriers of their own. Work recorded outside of a frame graph must issue a barrier before each use of a resource that needs one, and return the resource to its resting state (@b3d::GpuBackendUtility::GetRestingState) afterwards.
+Command buffers issue no barriers of their own. Work recorded outside of a frame graph must issue a barrier before each use of a resource that needs one, and return the resource to its resting state (@b3d::GpuBackendUtility::GetRestingState) afterwards. See the [barriers](../Low_Level_rendering/barriers) manual for how to do that, and the [frame graph](../Renderer/frameGraph) manual for work that doesn't need to.
 
 ~~~~~~~~~~~~~{.cpp}
 // Begin render pass

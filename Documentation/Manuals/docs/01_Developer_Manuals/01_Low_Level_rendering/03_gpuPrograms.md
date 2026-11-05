@@ -371,6 +371,8 @@ parameterSet->SetUniformBuffer("MyUniformBlock", transient);
 // No need to track frame indices - automatically recycled
 ~~~~~~~~~~~~~
 
+> These are unrelated to the GPU-only resources described in the [transient resources](../Low_Level_rendering/transientResources) manual.
+
 **AllocateTransient()** provides several advantages for per-frame uniform buffers:
 - **No manual frame tracking** - The pool automatically ensures allocations remain valid across frames-in-flight
 - **Better performance** - Avoids creating new buffers every frame

@@ -15,6 +15,7 @@ A context exposes everything a thread needs to submit a unit of GPU work:
  - @b3d::GpuWorkContext::CreateScratchGpuBuffer - Allocates a short-lived, single-use buffer (compute scratch, staging) from the context's scratch allocator. See the [GPU buffers](../Low_Level_rendering/gpuBuffers) manual.
  - @b3d::GpuWorkContext::GetParameterSetPool - Returns the pool that parameter sets allocated through this context are drawn from.
  - @b3d::GpuWorkContext::GetCompletionTracker - Returns the completion tracker the context uses to know when its GPU work has finished, so the memory it used can be reclaimed.
+ - @b3d::GpuWorkContext::GetTransientResourceAllocator - Returns the allocator that places the context's temporary GPU-only resources. See the [transient resources](../Low_Level_rendering/transientResources) manual.
 
 # Obtaining a context
 There are two ways to get a context, depending on whether the work runs on the render thread or on a worker thread.

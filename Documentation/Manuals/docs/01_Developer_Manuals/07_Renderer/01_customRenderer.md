@@ -437,7 +437,7 @@ for (auto& entry : texParams)
 ~~~~~~~~~~~~~
 
 ## Temporary textures and buffers
-Textures and buffers that are only needed within a frame are transients of the frame graph, created with @b3d::render::FrameGraph::CreateTexture and @b3d::render::FrameGraph::CreateBuffer. The graph shares their memory with other transients whose lifetimes don't overlap. Textures and buffers kept across frames, such as shadow maps or history buffers, are created on the **GpuDevice** by the system that keeps them.
+Textures and buffers that are only needed within a frame are transients of the frame graph, created with @b3d::render::FrameGraph::CreateTexture and @b3d::render::FrameGraph::CreateBuffer. The graph shares their memory with other transients whose lifetimes don't overlap. Textures and buffers kept across frames, such as shadow maps or history buffers, are created on the **GpuDevice** by the system that keeps them. See the [frame graph](../Renderer/frameGraph) manual.
 
 ## UniformBufferPools
 @b3d::render::UniformBufferPools is a high-level manager used by the renderer to efficiently handle per-object uniform buffer allocations. It suballocates from large **GpuBuffer** objects via @b3d::render::GpuBufferPool, and shares **GpuParameterSet** instances across objects that happen to land in the same underlying buffer. At draw time only the dynamic buffer offset changes between draws, while the parameter set binding stays the same — minimizing descriptor set switches.

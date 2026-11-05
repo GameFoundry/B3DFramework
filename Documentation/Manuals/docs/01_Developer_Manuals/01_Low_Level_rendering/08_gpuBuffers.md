@@ -69,7 +69,7 @@ TShared<render::GpuBuffer> scratchBuffer = gpuContext.CreateScratchGpuBuffer(Gpu
 ## Memory allocations
 By default a buffer allocates its memory from the device's persistent allocator. You can instead choose where the memory comes from, by passing a @b3d::GpuAllocation to @b3d::GpuDevice::CreateGpuBuffer. Textures accept an allocation through @b3d::GpuDevice::CreateTexture in the same way.
 
-Call @b3d::GpuDevice::GetMemoryRequirements first. The returned @b3d::GpuMemoryRequirements holds the memory type, size, alignment and placement kind the resource needs. A memory type of @b3d::GpuMemoryRequirements::kUnsupportedMemoryType means the device cannot create the resource. @b3d::GpuDevice::GetPersistentAllocator returns the persistent allocator that serves a memory type.
+Call @b3d::GpuDevice::GetMemoryRequirements first. The returned @b3d::GpuMemoryRequirements holds the memory type, size and alignment the resource needs. A memory type of @b3d::GpuMemoryRequirements::kUnsupportedMemoryType means the device cannot create the resource. @b3d::GpuDevice::GetPersistentAllocator returns the persistent allocator that serves a memory type.
 
 An allocation is in one of four states:
  - Pending - only the allocator is set. The resource allocates its memory from that allocator every time it creates its native resource. Create it with @b3d::GpuAllocation::CreatePending. The allocator must serve the resource's memory type.
@@ -87,7 +87,7 @@ TShared<render::GpuBuffer> pendingBuffer = gpuDevice->CreateGpuBuffer(createInfo
 
 // Owned: the buffer adopts memory allocated by the caller, and frees it on destruction
 GpuAllocation allocation;
-if(allocator.TryAllocate(requirements.Size, (u32)requirements.Alignment, requirements.Kind, nullptr, allocation))
+if(allocator.TryAllocate(requirements.Size, (u32)requirements.Alignment, allocation))
 	TShared<render::GpuBuffer> ownedBuffer = gpuDevice->CreateGpuBuffer(createInformation, allocation);
 ~~~~~~~~~~~~~
 
@@ -213,6 +213,8 @@ After that the buffer can be bound as normal, as shown above. This is different 
 When you need many small buffer allocations of the same type, creating a separate **GpuBuffer** for each is wasteful. Buffer pools suballocate from larger backing buffers, reducing GPU resource overhead. Two pool types are provided:
 
 ## TransientGpuBufferPool
+> Unrelated to the GPU-only resources described in the [transient resources](../Low_Level_rendering/transientResources) manual.
+
 @b3d::render::TransientGpuBufferPool is a per-frame allocator where suballocations are automatically recycled after all in-flight frames complete (typically 3 frames). No manual release is needed — just call @b3d::render::TransientGpuBufferPool::AdvanceFrame once per frame after submitting all command buffers.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -253,7 +255,7 @@ TUnique<TrackedGpuBufferSuballocation> tracked = uniformPool.AllocateTracked();
 Both pool types automatically grow by allocating new backing **GpuBuffer** objects when all existing suballocations are in use. Call @b3d::render::GpuBufferPool::Destroy or @b3d::render::TransientGpuBufferPool::Destroy to release all GPU resources when shutting down.
 
 # GPU memory allocators
-Backend buffer and texture creation is layered on top of a backend-private GPU memory allocator. The framework ships @b3d::TGpuTlsfAllocator — a Two-Level Segregated Fit allocator with O(1) bitmap-driven bucket lookup, full coalescing on free, leading-padding alignment splits (including non-power-of-two alignments), multi-heap growth, and optional buffer-image granularity tracking. Backends parameterise the template with their own heap-backend trait; Vulkan uses **VulkanHeapBackend**, while D3D12 uses **D3D12HeapBackend** and **D3D12BufferPageBackend**.
+Backend buffer and texture creation is layered on top of a backend-private GPU memory allocator. The framework ships @b3d::TGpuTlsfAllocator — a Two-Level Segregated Fit allocator with O(1) bitmap-driven bucket lookup, full coalescing on free, leading-padding alignment splits (including non-power-of-two alignments), and multi-heap growth. Backends parameterise the template with their own heap-backend trait.
 
 Each successful **TryAllocate** writes the result into a @b3d::GpuAllocation — a POD that holds the heap handle, byte offset, size, and two strategy-private slot identity fields. Consumers own their allocation; the allocator only writes to it during allocation. Allocators that support defragmentation also track an owner per allocation, set with @b3d::IGpuAllocator::SetAllocationOwner. Allocations without an owner are never moved.
 
