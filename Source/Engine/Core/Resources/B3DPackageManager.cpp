@@ -487,6 +487,7 @@ AcquirePackageLockResult PackageManager::AcquireReadLock(const Path& physicalPac
 			const TShared<RuntimePackageInformation> runtimePackageInformationCopy = std::move(found->second);
 			mPackagesByPath.erase(found);
 
+			runtimePackageInformationCopy->AcquiredWriteLock = false;
 			runtimePackageInformationCopy->LoadSignal.NotifyAll();
 			return AcquirePackageLockResult::NotAcquiredPackageNotFound;
 		}
