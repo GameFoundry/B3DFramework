@@ -219,8 +219,7 @@ FMOD::Sound* FMODAudioClip::CreateStreamingSound() const
 		exInfo.length = mStreamSize;
 		exInfo.fileoffset = mStreamOffset;
 
-		TShared<FileDataStream> fileStream = std::static_pointer_cast<FileDataStream>(mStreamData);
-		pathStr = fileStream->GetPath().ToString();
+		pathStr = mStreamData->GetPath().ToString();
 
 		streamData = pathStr.c_str();
 	}

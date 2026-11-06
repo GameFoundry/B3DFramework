@@ -73,6 +73,8 @@ FileSystemTestSuite::FileSystemTestSuite()
 	B3D_ADD_TEST(FileSystemTestSuite::TestFileSharing);
 	B3D_ADD_TEST(FileSystemTestSuite::TestFileSharingUnderHandlePressure);
 	B3D_ADD_TEST(FileSystemTestSuite::TestConcurrentFileSharing);
+	B3D_ADD_TEST(FileSystemTestSuite::TestReadPathsAgree);
+	B3D_ADD_TEST(FileSystemTestSuite::TestReadAfterDescriptorEviction);
 	B3D_ADD_TEST(FileSystemTestSuite::TestExistsYesFile);
 	B3D_ADD_TEST(FileSystemTestSuite::TestExistsYesDir);
 	B3D_ADD_TEST(FileSystemTestSuite::TestExistsNo);
@@ -248,6 +250,134 @@ void FileSystemTestSuite::TestConcurrentFileSharing()
 		first.join();
 		second.join();
 		B3D_TEST_ASSERT((writers[0] != nullptr) != (writers[1] != nullptr));
+	}
+}
+
+void FileSystemTestSuite::TestReadPathsAgree()
+{
+	// Uses the largest file next to the executable rather than one in the test directory, because a platform may read such
+	// files through a different path than it uses for its temporary folder.
+	Vector<Path> files;
+	Vector<Path> folders;
+	FileSystem::GetChildren(FileSystem::GetExecutableFolderPath(), files, folders);
+
+	Path largestFilePath;
+	u64 largestFileSize = 0;
+	for(const Path& filePath : files)
+	{
+		const u64 fileSize = FileSystem::GetFileSize(filePath);
+		if(fileSize != (u64)-1 && fileSize > largestFileSize)
+		{
+			largestFilePath = filePath;
+			largestFileSize = fileSize;
+		}
+	}
+
+	B3D_TEST_ASSERT(largestFileSize > 0);
+	if(largestFileSize == 0)
+		return;
+
+	TShared<DataStream> stream = FileSystem::OpenFile(largestFilePath, FileAccessFlag::Read | FileAccessFlag::Async);
+	B3D_TEST_ASSERT(stream != nullptr);
+	if(stream == nullptr)
+		return;
+
+	constexpr u64 kMaxByteCount = 64 * 1024 * 1024;
+	const size_t byteCount = (size_t)std::min(largestFileSize, kMaxByteCount);
+
+	// Synchronous read of the whole range
+	Vector<u8> expectedBytes(byteCount);
+	B3D_TEST_ASSERT(stream->Read(expectedBytes.data(), byteCount) == byteCount);
+
+	// Asynchronous read of the whole range
+	{
+		TAsyncOp<TShared<MemoryDataStream>> op = stream->ReadAsync(0, byteCount);
+		op.BlockUntilComplete();
+
+		TShared<MemoryDataStream> data = op.GetReturnValue();
+		B3D_TEST_ASSERT(data != nullptr && data->Size() == byteCount);
+		if(data != nullptr && data->Size() == byteCount)
+			B3D_TEST_ASSERT(std::memcmp(data->Data(), expectedBytes.data(), byteCount) == 0);
+	}
+
+	// Asynchronous reads in chunks, one at a time
+	{
+		constexpr size_t kChunkByteCount = 32 * 1024;
+
+		Vector<u8> chunkedBytes(byteCount);
+		for(size_t offset = 0; offset < byteCount; offset += kChunkByteCount)
+		{
+			const size_t readByteCount = std::min(kChunkByteCount, byteCount - offset);
+
+			TAsyncOp<TShared<MemoryDataStream>> op = stream->ReadAsync(offset, readByteCount, DataRange(chunkedBytes.data() + offset, readByteCount));
+			op.BlockUntilComplete();
+
+			TShared<MemoryDataStream> data = op.GetReturnValue();
+			B3D_TEST_ASSERT(data != nullptr && data->Size() == readByteCount);
+			if(data == nullptr || data->Size() != readByteCount)
+				return;
+		}
+
+		B3D_TEST_ASSERT(chunkedBytes == expectedBytes);
+	}
+
+	// Concurrent asynchronous reads, into user memory
+	{
+		constexpr size_t kConcurrentReadCount = 16;
+		const size_t concurrentByteCount = byteCount / kConcurrentReadCount;
+
+		Vector<u8> concurrentBytes(byteCount);
+		Vector<TAsyncOp<TShared<MemoryDataStream>>> ops;
+		ops.reserve(kConcurrentReadCount + 1);
+		for(size_t readIndex = 0; readIndex < kConcurrentReadCount; ++readIndex)
+		{
+			const size_t offset = readIndex * concurrentByteCount;
+			ops.push_back(stream->ReadAsync(offset, concurrentByteCount, DataRange(concurrentBytes.data() + offset, concurrentByteCount)));
+		}
+
+		const size_t lastOffset = kConcurrentReadCount * concurrentByteCount;
+		ops.push_back(stream->ReadAsync(lastOffset, byteCount - lastOffset, DataRange(concurrentBytes.data() + lastOffset, byteCount - lastOffset)));
+
+		for(TAsyncOp<TShared<MemoryDataStream>>& op : ops)
+		{
+			op.BlockUntilComplete();
+			B3D_TEST_ASSERT(op.GetReturnValue() != nullptr);
+		}
+
+		B3D_TEST_ASSERT(concurrentBytes == expectedBytes);
+	}
+}
+
+void FileSystemTestSuite::TestReadAfterDescriptorEviction()
+{
+	// More readers than a process is guaranteed to hold descriptors for, on distinct files, so that a platform which closes
+	// idle descriptors has to reopen the right file for each reader.
+	constexpr u32 kReaderCount = 300;
+
+	const String contentPrefix = "descriptor-eviction-";
+
+	Vector<TShared<DataStream>> readers;
+	readers.reserve(kReaderCount);
+	for(u32 readerIndex = 0; readerIndex < kReaderCount; ++readerIndex)
+	{
+		const Path path = mTestDirectory + ("eviction-" + ToString(readerIndex));
+		CreateFile(path, contentPrefix + ToString(readerIndex));
+
+		TShared<DataStream> reader = FileSystem::OpenFile(path);
+		B3D_TEST_ASSERT(reader != nullptr);
+		if(reader == nullptr)
+			return;
+
+		readers.push_back(std::move(reader));
+	}
+
+	for(u32 readerIndex = 0; readerIndex < kReaderCount; ++readerIndex)
+	{
+		const String expectedContent = contentPrefix + ToString(readerIndex);
+
+		String content(expectedContent.size(), '\0');
+		B3D_TEST_ASSERT(readers[readerIndex]->Read(content.data(), content.size()) == content.size());
+		B3D_TEST_ASSERT(content == expectedContent);
 	}
 }
 

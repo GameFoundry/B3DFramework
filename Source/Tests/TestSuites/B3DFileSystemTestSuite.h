@@ -22,6 +22,10 @@ namespace b3d
 		void TestFileSharingUnderHandlePressure();
 		/** Verifies simultaneous exclusive opens cannot both succeed. */
 		void TestConcurrentFileSharing();
+		/** Verifies synchronous, asynchronous, chunked and concurrent reads of a large file all return the same bytes. */
+		void TestReadPathsAgree();
+		/** Verifies readers of many distinct files still read the right content after opening more files than descriptors allow. */
+		void TestReadAfterDescriptorEviction();
 
 		void TestExistsYesFile();
 		void TestExistsYesDir();

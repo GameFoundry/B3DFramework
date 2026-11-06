@@ -48,6 +48,9 @@ namespace b3d
 		/** Checks whether the stream reads/writes from a file system. */
 		virtual bool IsFile() const = 0;
 
+		/** Returns the path of the file opened by the stream, or a blank path if the stream isn't over a file. */
+		virtual const Path& GetPath() const { return Path::kBlank; }
+
 		/** Reads data from the buffer and copies it to the specified value. */
 		template <typename T>
 		DataStream& operator>>(T& val);
@@ -393,9 +396,7 @@ namespace b3d
 		TShared<DataStream> Clone(bool copyData = true) const override;
 		bool Flush() override;
 		bool Close() override;
-
-		/** Returns the path of the file opened by the stream. */
-		const Path& GetPath() const { return mPath; }
+		const Path& GetPath() const override { return mPath; }
 
 	protected:
 		Path mPath;

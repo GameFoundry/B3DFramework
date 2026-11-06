@@ -48,9 +48,7 @@ namespace b3d
 		TShared<DataStream> Clone(bool copyData = true) const override;
 		bool Flush() override;
 		bool Close() override;
-
-		/** Returns the path of the file opened by the stream. */
-		const Path& GetPath() const { return mPath; }
+		const Path& GetPath() const override { return mPath; }
 
 	private:
 		/** State for a single in-flight asynchronous read of a single chunk. The OVERLAPPED must be the first member so it can be recovered via CONTAINING_RECORD. */

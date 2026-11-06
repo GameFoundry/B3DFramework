@@ -46,9 +46,7 @@ namespace b3d
 		TShared<DataStream> Clone(bool copyData = true) const override;
 		bool Flush() override;
 		bool Close() override;
-
-		/** Returns the path of the file opened by the stream. */
-		const Path& GetPath() const { return mPath; }
+		const Path& GetPath() const override { return mPath; }
 
 	protected:
 		Path mPath;
