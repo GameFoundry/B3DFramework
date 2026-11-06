@@ -26,7 +26,11 @@ TShared<IReflectable> BinaryCloner::Clone(IReflectable* object, bool shallow)
 
 	TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 	BinarySerializer bs;
-	bs.Encode(object, stream, shallow ? BinarySerializerFlag::Shallow : BinarySerializerFlag::None);
+	if(!bs.Encode(object, stream, shallow ? BinarySerializerFlag::Shallow : BinarySerializerFlag::None))
+	{
+		allocator.Clear();
+		return nullptr;
+	}
 
 	stream->Seek(0);
 	TShared<IReflectable> clonedObject = bs.Decode(stream, (u32)stream->Size());

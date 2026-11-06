@@ -151,7 +151,7 @@ namespace b3d
 		 * Returns original audio data. Only available if @p keepSourceData has been provided on creation.
 		 *
 		 * @param	outSize	Size of the returned stream data, in bytes.
-		 * @return			Stream containing the original audio data.
+		 * @return			Stream containing the original audio data, or null if the clip hasn't kept it.
 		 */
 		virtual TShared<DataStream> GetSourceStream(u32& outSize) = 0;
 

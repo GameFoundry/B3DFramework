@@ -177,7 +177,8 @@ TShared<DataStream> OAAudioClip::GetSourceStream(u32& outSize)
 	Lock lock(mMutex);
 
 	outSize = mSourceStreamSize;
-	mSourceStreamData->Seek(0);
+	if(mSourceStreamData != nullptr)
+		mSourceStreamData->Seek(0);
 
 	return mSourceStreamData;
 }

@@ -351,6 +351,12 @@ TShared<ISerialized> IntermediateSerializer::SerializeDataBlockField(IReflectabl
 	u32 dataBlockSize = 0;
 	TShared<DataStream> blockStream = curField->GetValue(rtti, object, dataBlockSize);
 
+	if(blockStream == nullptr)
+	{
+		B3D_LOG(Error, LogSerialization, "Cannot serialize field '{0}' of type '{1}'. The field has no data to serialize.", field->Name, rtti->GetRttiName());
+		return nullptr;
+	}
+
 	TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>(dataBlockSize);
 	blockStream->Read(stream->Data(), dataBlockSize);
 

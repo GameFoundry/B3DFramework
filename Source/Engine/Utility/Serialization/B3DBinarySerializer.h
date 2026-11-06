@@ -80,11 +80,12 @@ namespace b3d
 		 *									RTTI operation notify methods. Can be used for controlling serialization,
 		 *									maintaining state or sharing information between objects during serialization.
 		 * @param	flags					Flags used for controlling serialization.
+		 * @return							True if the object was encoded. If false, the data written to the stream is incomplete and must not be used.
 		 */
-		void Encode(IReflectable* object, const TShared<DataStream>& stream, RTTIOperationContext& context, BinarySerializerFlags flags = BinarySerializerFlag::None);
+		bool Encode(IReflectable* object, const TShared<DataStream>& stream, RTTIOperationContext& context, BinarySerializerFlags flags = BinarySerializerFlag::None);
 
 		/** Overload of Encode(IReflectable*, const TShared<DataStream>&, BinarySerializerFlags, RTTIOperationContext&) that uses default constructed context. */
-		void Encode(IReflectable* object, const TShared<DataStream>& stream, BinarySerializerFlags flags = BinarySerializerFlag::None);
+		bool Encode(IReflectable* object, const TShared<DataStream>& stream, BinarySerializerFlags flags = BinarySerializerFlag::None);
 
 		/**
 		 * Decodes an object from binary data.

@@ -34,11 +34,8 @@ namespace b3d
 		TShared<DataStream> GetData(AudioClip* obj, u32& size)
 		{
 			TShared<DataStream> stream = obj->GetSourceStream(size);
-			if(stream != nullptr && stream->IsFile())
-			{
-				B3D_LOG(Warning, LogRTTI, "Saving an AudioClip which uses streaming data. Streaming data might not be "
-									  "available if saving to the same file.");
-			}
+			if(stream == nullptr)
+				B3D_LOG(Error, LogRTTI, "Cannot serialize audio clip '{0}'. It doesn't have its source audio data, which clips loaded from a package don't keep.", obj->GetName());
 
 			return stream;
 		}

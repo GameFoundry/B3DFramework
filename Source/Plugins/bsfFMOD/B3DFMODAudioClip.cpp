@@ -328,7 +328,8 @@ void FMODAudioClip::ReleaseStreamingSound(FMOD::Sound* sound)
 TShared<DataStream> FMODAudioClip::GetSourceStream(u32& outSize)
 {
 	outSize = mSourceStreamSize;
-	mSourceStreamData->Seek(0);
+	if(mSourceStreamData != nullptr)
+		mSourceStreamData->Seek(0);
 
 	return mSourceStreamData;
 }

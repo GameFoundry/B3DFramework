@@ -1129,6 +1129,14 @@ bool BinarySerializationContext::SerializeReflectableObject(IReflectable* object
 					u32 dataBlockSize = 0;
 					TShared<DataStream> blockStream = curField->GetValue(rttiInstance, object, dataBlockSize);
 
+					if(blockStream == nullptr)
+					{
+						B3D_LOG(Error, LogSerialization, "Cannot serialize field '{0}' of type '{1}'. The field has no data to serialize.", field->Name, rttiInstance->GetRttiName());
+
+						cleanup();
+						return false;
+					}
+
 					const u64 originalBlockStreamLocation = blockStream->Tell();
 
 					// Data block size
@@ -1314,7 +1322,7 @@ BinarySerializer::BinarySerializer()
 	: mAlloc(&GetFrameAllocator())
 {}
 
-void BinarySerializer::Encode(IReflectable* object, const TShared<DataStream>& stream, RTTIOperationContext& context, BinarySerializerFlags flags)
+bool BinarySerializer::Encode(IReflectable* object, const TShared<DataStream>& stream, RTTIOperationContext& context, BinarySerializerFlags flags)
 {
 	mContext = &context;
 	mBuffer.Seek(0);
@@ -1332,8 +1340,8 @@ void BinarySerializer::Encode(IReflectable* object, const TShared<DataStream>& s
 	// Encode primary object and its value types
 	if(!serializationContext.SerializeReflectableObject(object, objectId, referencedObjectsToSerialize))
 	{
-		B3D_LOG(Error, LogSerialization, "Destination buffer is null or not large enough.");
-		return;
+		mAlloc->Clear();
+		return false;
 	}
 
 	// Encode pointed to objects and their value types
@@ -1355,8 +1363,8 @@ void BinarySerializer::Encode(IReflectable* object, const TShared<DataStream>& s
 
 			if(!serializationContext.SerializeReflectableObject(curObject.get(), curObjectid, referencedObjectsToSerialize))
 			{
-				B3D_LOG(Error, LogSerialization, "Destination buffer is null or not large enough.");
-				return;
+				mAlloc->Clear();
+				return false;
 			}
 
 			foundObjectToProcess = true;
@@ -1379,9 +1387,11 @@ void BinarySerializer::Encode(IReflectable* object, const TShared<DataStream>& s
 	encodedObjects.clear();
 
 	mAlloc->Clear();
+
+	return true;
 }
 
-void BinarySerializer::Encode(IReflectable* object, const TShared<DataStream>& stream, BinarySerializerFlags flags)
+bool BinarySerializer::Encode(IReflectable* object, const TShared<DataStream>& stream, BinarySerializerFlags flags)
 {
 	RTTIOperationContext rttiOperationContext;
 	return Encode(object, stream, rttiOperationContext, flags);
