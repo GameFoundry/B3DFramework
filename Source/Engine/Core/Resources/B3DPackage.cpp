@@ -771,7 +771,7 @@ TShared<Resource> Package::GetResource(const Path& path) const
 	{
 		Lock lock(mMetaDataMutex);
 
-		if (const auto found = mResourceInformationByPath.find(path); found == mResourceInformationByPath.end())
+		if (const auto found = mResourceInformationByPath.find(path); found != mResourceInformationByPath.end())
 			id = found->second->MetaData->Id;
 		else
 		{
