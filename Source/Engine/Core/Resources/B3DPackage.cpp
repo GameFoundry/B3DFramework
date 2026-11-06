@@ -427,22 +427,17 @@ void Package::RemoveResource(const Path& path, bool recursive)
 
 void Package::RemoveResource(const UUID& id, bool recursive)
 {
-	Lock lock(mMetaDataMutex);
-
-	if (const auto found = mResourceInformationByUUID.find(id); found != mResourceInformationByUUID.end())
+	Path path;
 	{
-		const Path& path = found->second->MetaData->Path;
+		Lock lock(mMetaDataMutex);
 
-		if(!recursive)
-		{
-			mResourceInformationByPath.erase(path);
-			mResourceInformationByUUID.erase(found);
-		}
-		else
-		{
-			RemoveResource(path, recursive);
-		}
+		if (const auto found = mResourceInformationByUUID.find(id); found != mResourceInformationByUUID.end())
+			path = found->second->MetaData->Path;
+	}
 
+	if(!path.IsEmpty())
+	{
+		RemoveResource(path, recursive);
 		return;
 	}
 
