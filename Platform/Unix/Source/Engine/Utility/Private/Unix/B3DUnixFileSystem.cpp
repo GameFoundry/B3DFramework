@@ -7,6 +7,8 @@
 
 #include <dirent.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -84,6 +86,35 @@ bool UnixCreateFolder(const String& path)
 	return true;
 }
 
+/**
+ * Holds the lock that file streams take on files they have open, until destroyed. Neither deleting nor renaming a file
+ * checks that lock on its own, so they take it here to conflict with open streams the same way opening a stream would.
+ */
+class UnixFileLock final : INonCopyable
+{
+public:
+	UnixFileLock() = default;
+
+	~UnixFileLock()
+	{
+		if(mFd >= 0)
+			::close(mFd);
+	}
+
+	/** Returns false if a stream has the file open. A file we can't open is left for the following operation to report. */
+	bool Acquire(const String& path)
+	{
+		mFd = ::open(path.c_str(), O_RDONLY | O_NONBLOCK | O_NOFOLLOW | O_CLOEXEC);
+		if(mFd < 0)
+			return true;
+
+		return ::flock(mFd, LOCK_EX | LOCK_NB) == 0 || errno != EWOULDBLOCK;
+	}
+
+private:
+	int mFd = -1;
+};
+
 } // namespace
 
 bool FileSystem::RemoveFile(const Path& path)
@@ -99,6 +130,13 @@ bool FileSystem::RemoveFile(const Path& path)
 	}
 	else
 	{
+		UnixFileLock lock;
+		if(!lock.Acquire(pathStr))
+		{
+			B3D_LOG(Error, LogFileSystem, "Failed to remove file '{0}' because it is in use.", pathStr);
+			return false;
+		}
+
 		if(unlink(pathStr.c_str()))
 		{
 			HANDLE_PATH_ERROR(pathStr, errno);
@@ -125,9 +163,23 @@ bool FileSystem::MoveFile(const Path& oldPath, const Path& newPath)
 {
 	String oldPathStr = oldPath.ToString();
 	String newPathStr = newPath.ToString();
+
+	UnixFileLock lock;
+	if(!lock.Acquire(oldPathStr))
+	{
+		B3D_LOG(Error, LogFileSystem, "Failed to move file '{0}' because it is in use.", oldPathStr);
+		return false;
+	}
+
 	if(std::rename(oldPathStr.c_str(), newPathStr.c_str()) == -1)
 	{
-		// Cross-filesystem copy is likely needed (for example, /tmp to Banshee install dir while copying assets)
+		if(errno != EXDEV)
+		{
+			B3D_LOG(Error, LogFileSystem, "{0}: renaming {1} to {2}: {3}", String(__FUNCTION__), oldPathStr, newPathStr, String(strerror(errno)));
+			return false;
+		}
+
+		// Cross-filesystem copy is needed (for example, /tmp to Banshee install dir while copying assets)
 		// Future fast-path: copy_file_range()/reflink (FICLONE) can avoid the userspace stream copy on same-fs and CoW filesystems.
 		std::ifstream src(oldPathStr.c_str(), std::ios::binary);
 		std::ofstream dst(newPathStr.c_str(), std::ios::binary);

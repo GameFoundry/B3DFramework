@@ -56,7 +56,7 @@ Use @b3d::FileSystem::OpenFile to open an already existing file. By default the 
  - **FileAccessFlag::Async** - Opens the file for asynchronous reads via @b3d::DataStream::ReadAsync (see below). Intended to be combined with **Read**.
  - **FileAccessFlag::Shared** - Allows deliberate concurrent access by readers and writers. Use it on all participating streams and coordinate their reads and writes yourself.
 
-Without **Shared**, multiple readers may open the same file, but a writer requires exclusive access until its stream is closed. Conflicting opens fail. Sharing enforcement is platform-dependent and may only cover engine streams within the current process; do not rely on it for portable cross-process synchronization.
+Without **Shared**, multiple readers may open the same file, but a writer requires exclusive access until its stream is closed. Conflicting opens fail, and so does removing or moving a file while any stream has it open. Sharing enforcement is platform-dependent and may only cover engine streams within the current process; do not rely on it for portable cross-process synchronization.
 
 ~~~~~~~~~~~~~{.cpp}
 // Open an existing file for reading (default)
