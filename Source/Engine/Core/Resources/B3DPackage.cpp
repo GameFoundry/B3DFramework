@@ -479,6 +479,7 @@ void Package::SetResource(const TShared<Resource>& resource, bool markAsDirty)
 	metaDataCopy->ResourceMetaData = resource->GetMetaData();
 
 	const Vector<ResourceDependency> resourceDependencies = Utility::FindResourceDependencies(*resource);
+	metaDataCopy->Dependencies.clear();
 	metaDataCopy->Dependencies.reserve(resourceDependencies.size());
 
 	for(const auto& entry : resourceDependencies)
