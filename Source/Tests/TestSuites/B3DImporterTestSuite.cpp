@@ -35,11 +35,23 @@
 #include "Utility/B3DTimer.h"
 #include "FileSystem/B3DFileSystem.h"
 #include "FileSystem/B3DDataStream.h"
+#include "Serialization/B3DBinaryCloner.h"
 #include "Serialization/B3DBinarySerializer.h"
+#include "Serialization/B3DSerializedObject.h"
+#include "Localization/B3DStringTable.h"
+#include "Image/B3DSpriteTexture.h"
+#include "Resources/B3DResources.h"
+#include "Resources/B3DPackage.h"
+#include "Resources/B3DPackageManager.h"
+#include "Utility/B3DPersistentCache.h"
+#include "Utility/B3DScopeGuard.h"
 #include "B3DApplication.h"
 
+#include <atomic>
+#include <chrono>
 #include <cmath>
 #include <cstring>
+#include <thread>
 
 using namespace b3d;
 
@@ -1285,6 +1297,20 @@ ImporterTestSuite::ImporterTestSuite()
 	B3D_ADD_TEST(ImporterTestSuite::TestOggImport_KeepCompressed)
 	B3D_ADD_TEST(ImporterTestSuite::TestFlacImport_Default)
 	B3D_ADD_TEST(ImporterTestSuite::TestAudioClipSerialization)
+	B3D_ADD_TEST(ImporterTestSuite::TestAudioClipOverwriteWhileStreaming)
+	B3D_ADD_TEST(ImporterTestSuite::TestAudioClipResaveFromPackage)
+	B3D_ADD_TEST(ImporterTestSuite::TestAudioClipCopyToNewPackage)
+	B3D_ADD_TEST(ImporterTestSuite::TestAudioClipFollowsPackageFile)
+	B3D_ADD_TEST(ImporterTestSuite::TestPackageFailedSaveKeepsState)
+	B3D_ADD_TEST(ImporterTestSuite::TestPackageSaveReportsCopiedResources)
+	B3D_ADD_TEST(ImporterTestSuite::TestPackageMoveReservesDestination)
+	B3D_ADD_TEST(ImporterTestSuite::TestPackageWriteLockWithResourceDestroy)
+	B3D_ADD_TEST(ImporterTestSuite::TestPackagePerResourceCompression)
+	B3D_ADD_TEST(ImporterTestSuite::TestPackageMetaDataOnlySave)
+	B3D_ADD_TEST(ImporterTestSuite::TestPackageGetResourceByPath)
+	B3D_ADD_TEST(ImporterTestSuite::TestPackageSetResourceDependencies)
+	B3D_ADD_TEST(ImporterTestSuite::TestPackageRemoveResourceById)
+	B3D_ADD_TEST(ImporterTestSuite::TestPackageConcurrentLockOfMissingPackage)
 #endif
 	B3D_ADD_TEST(ImporterTestSuite::TestGpuCompress_BC6H_Psnr)
 	B3D_ADD_TEST(ImporterTestSuite::TestGpuMipmaps_BoxFilter)
@@ -2087,4 +2113,1156 @@ void ImporterTestSuite::TestAudioClipSerialization()
 	}
 
 	FileSystem::Remove(path);
+}
+
+static HAudioClip ImportTestClip(const Path& path, AudioReadMode readMode, AudioFormat format)
+{
+	TShared<AudioClipImportOptions> options = AudioClipImportOptions::Create();
+	options->Is3D = false;
+	options->ReadMode = readMode;
+	options->Format = format;
+
+	return GetImporter().Import<AudioClip>(path, options);
+}
+
+void ImporterTestSuite::TestAudioClipOverwriteWhileStreaming()
+{
+	const Path folder = FileSystem::GetTemporaryFolderPath() + ("b3d-audio-clip-overwrite-" + UUIDGenerator::GenerateRandom().ToString() + "/");
+	FileSystem::CreateFolder(folder);
+	ScopeGuard removeFolder([&folder]() { FileSystem::Remove(folder, true); });
+
+	const String name = "clip";
+	const Path packagePath = Path::Combine(folder, name + Package::kPackageExtension);
+	const Path resourcePath(packagePath.ToString() + "/" + name);
+	const ResourceSaveOptions saveOptions(true, false);
+	const ResourceLoadOptions loadOptions(false);
+
+	{
+		const HAudioClip importedClip = ImportTestClip(mOggPath, AudioReadMode::Stream, AudioFormat::PCM);
+		B3D_TEST_ASSERT(importedClip != nullptr)
+		if(importedClip == nullptr)
+			return;
+
+		B3D_TEST_ASSERT(GetResources().SaveAsSinglePackage(importedClip, folder, name, saveOptions))
+	}
+
+	GetResources().UnloadAllUnused();
+
+	// A streaming clip in an uncompressed package keeps reading from the package file
+	HAudioClip streamingClip = GetResources().Load<AudioClip>(resourcePath, loadOptions);
+	B3D_TEST_ASSERT(streamingClip != nullptr && streamingClip.IsLoaded(false))
+	if(streamingClip == nullptr || !streamingClip.IsLoaded(false))
+		return;
+
+	B3D_TEST_ASSERT(!CanOpenForWriting(packagePath))
+
+	const u64 streamingPackageSize = FileSystem::GetFileSize(packagePath);
+
+	// Saving over the package makes the clip let go of the file, and replaces the package
+	HAudioClip replacementClip = ImportTestClip(mOggPath, AudioReadMode::LoadCompressed, AudioFormat::VORBIS);
+	B3D_TEST_ASSERT(GetResources().SaveAsSinglePackage(replacementClip, folder, name, saveOptions))
+	B3D_TEST_ASSERT(FileSystem::GetFileSize(packagePath) < streamingPackageSize)
+	B3D_TEST_ASSERT(CanOpenForWriting(packagePath))
+	B3D_TEST_ASSERT(streamingClip.IsLoaded(false))
+
+	const UUID replacementClipId = replacementClip.GetId();
+	replacementClip = nullptr;
+	GetResources().UnloadAllUnused();
+
+	HAudioClip loadedReplacementClip = GetResources().Load<AudioClip>(resourcePath, loadOptions);
+	B3D_TEST_ASSERT(loadedReplacementClip != nullptr && loadedReplacementClip.IsLoaded(false))
+	if(loadedReplacementClip == nullptr || !loadedReplacementClip.IsLoaded(false))
+		return;
+
+	B3D_TEST_ASSERT(loadedReplacementClip.GetId() == replacementClipId)
+	B3D_TEST_ASSERT(loadedReplacementClip->GetFormat() == AudioFormat::VORBIS)
+
+	// A stream the package manager doesn't know about fails the save, and leaves the existing package usable
+	const u64 replacementPackageSize = FileSystem::GetFileSize(packagePath);
+	const HAudioClip unsavableClip = ImportTestClip(mOggPath, AudioReadMode::LoadCompressed, AudioFormat::VORBIS);
+	{
+		const TShared<DataStream> unknownReader = FileSystem::OpenFile(packagePath);
+
+		LoggingScope logScope(*this);
+		logScope.IgnoreError("in use");
+		logScope.IgnoreError("Sharing violation");
+		logScope.ExpectError("Cannot save package");
+
+		B3D_TEST_ASSERT(!GetResources().SaveAsSinglePackage(unsavableClip, folder, name, saveOptions))
+	}
+
+	B3D_TEST_ASSERT(FileSystem::GetFileSize(packagePath) == replacementPackageSize)
+
+#if B3D_PLATFORM == B3D_PLATFORM_WIN32 // Errors logged when the folder cannot be created differ between platforms
+	// A failed save of a package that didn't exist before must not leave the package registered
+	const Path fileInsteadOfFolder = folder + "not-a-folder";
+	FileSystem::CreateAndOpenFile(fileInsteadOfFolder)->Close();
+
+	const Path unreachableFolder = folder + "not-a-folder/";
+	{
+		LoggingScope logScope(*this);
+		logScope.IgnoreError("Invalid path");
+		logScope.IgnoreError("not found");
+		logScope.ExpectError("Cannot save package");
+
+		B3D_TEST_ASSERT(!GetResources().SaveAsSinglePackage(unsavableClip, unreachableFolder, name, saveOptions))
+	}
+
+	TUnique<PackageReadLock> unreachablePackageLock;
+	const AcquirePackageLockResult unreachablePackageLockResult = GetPackageManager().AcquireReadLock(Path::Combine(unreachableFolder, name + Package::kPackageExtension), AcquirePackageReadLockOptions(false, false), unreachablePackageLock);
+	B3D_TEST_ASSERT(unreachablePackageLockResult == AcquirePackageLockResult::NotAcquiredPackageNotFound)
+#endif
+
+	streamingClip = nullptr;
+	loadedReplacementClip = nullptr;
+	GetResources().UnloadAllUnused();
+	GetPackageManager().UnloadPackage(packagePath);
+}
+
+/** Returns the audio data the provided clip would get saved with. Empty if the clip can no longer reach its data. */
+static Vector<u8> ReadClipData(AudioClip& clip)
+{
+	RTTIType* const rtti = AudioClip::GetRttiStatic();
+	auto* const dataField = static_cast<RTTIDataBlockFieldBase*>(rtti->FindField("mData"));
+
+	u32 size = 0;
+	const TShared<DataStream> stream = dataField->GetValue(rtti, &clip, size);
+	if(stream == nullptr)
+		return {};
+
+	Vector<u8> data(size);
+	stream->Read(data.data(), size);
+
+	return data;
+}
+
+/** Audio clip import settings covering each way a clip can hold on to its data after being loaded. */
+struct AudioClipPackageTestCase
+{
+	constexpr AudioClipPackageTestCase(AudioReadMode readMode, AudioFormat format)
+		: ReadMode(readMode), Format(format)
+	{ }
+
+	AudioReadMode ReadMode;
+	AudioFormat Format;
+};
+
+static constexpr AudioClipPackageTestCase kAudioClipPackageTestCases[] =
+{
+	AudioClipPackageTestCase(AudioReadMode::LoadDecompressed, AudioFormat::PCM),
+	AudioClipPackageTestCase(AudioReadMode::LoadCompressed, AudioFormat::PCM),
+	AudioClipPackageTestCase(AudioReadMode::LoadCompressed, AudioFormat::VORBIS),
+	AudioClipPackageTestCase(AudioReadMode::Stream, AudioFormat::PCM),
+	AudioClipPackageTestCase(AudioReadMode::Stream, AudioFormat::VORBIS)
+};
+
+/** Returns true if a clip with the provided settings doesn't keep its data in any form after it is loaded. */
+static bool DropsDataOnLoad(const AudioClipPackageTestCase& testCase)
+{
+	return testCase.ReadMode == AudioReadMode::LoadDecompressed || (testCase.ReadMode == AudioReadMode::LoadCompressed && testCase.Format == AudioFormat::PCM);
+}
+
+void ImporterTestSuite::TestAudioClipResaveFromPackage()
+{
+	const Path folder = FileSystem::GetTemporaryFolderPath() + ("b3d-audio-clip-resave-" + UUIDGenerator::GenerateRandom().ToString() + "/");
+	FileSystem::CreateFolder(folder);
+	ScopeGuard removeFolder([&folder]() { FileSystem::Remove(folder, true); });
+
+	const String name = "clip";
+	const Path packagePath = Path::Combine(folder, name + Package::kPackageExtension);
+	const Path outputPackagePath = Path::Combine(folder, String("output") + Package::kPackageExtension);
+	const Path resourcePath(packagePath.ToString() + "/" + name);
+	const ResourceSaveOptions saveOptions(true, true);
+	const ResourceLoadOptions loadOptions(false);
+
+	for(const AudioClipPackageTestCase& testCase : kAudioClipPackageTestCases)
+	{
+		Vector<u8> expectedData;
+		{
+			const HAudioClip importedClip = ImportTestClip(mOggPath, testCase.ReadMode, testCase.Format);
+			B3D_TEST_ASSERT(importedClip != nullptr)
+			if(importedClip == nullptr)
+				return;
+
+			expectedData = ReadClipData(*importedClip);
+			B3D_TEST_ASSERT(!expectedData.empty())
+			B3D_TEST_ASSERT(GetResources().SaveAsSinglePackage(importedClip, folder, name, saveOptions))
+		}
+
+		GetResources().UnloadAllUnused();
+
+		HAudioClip loadedClip = GetResources().Load<AudioClip>(resourcePath, loadOptions);
+		B3D_TEST_ASSERT(loadedClip != nullptr && loadedClip.IsLoaded(false))
+		if(loadedClip == nullptr || !loadedClip.IsLoaded(false))
+			return;
+
+		B3D_TEST_ASSERT(ReadClipData(*loadedClip) == expectedData)
+
+		// Saving into another package leaves the clip reading from the package it was loaded from
+		{
+			const TShared<Package> outputPackage = Package::Create("output");
+			outputPackage->AddResource(Path(name), loadedClip);
+
+			const TShared<DataStream> outputStream = FileSystem::CreateAndOpenFile(outputPackagePath);
+			const bool outputSaved = outputPackage->Save(outputStream, SavePackageOptions()).IsSuccessful();
+			B3D_TEST_ASSERT(outputStream->Close())
+
+			// A partially written package cannot be read below
+			B3D_TEST_ASSERT(outputSaved)
+			if(!outputSaved)
+				return;
+		}
+
+		B3D_TEST_ASSERT(CanOpenForWriting(outputPackagePath))
+		B3D_TEST_ASSERT(CanOpenForWriting(packagePath) != (testCase.ReadMode == AudioReadMode::Stream))
+		B3D_TEST_ASSERT(ReadClipData(*loadedClip) == expectedData)
+
+		{
+			const TShared<Package> outputPackage = Package::Load(outputPackagePath);
+			B3D_TEST_ASSERT(outputPackage != nullptr)
+			if(outputPackage == nullptr)
+				return;
+
+			const TShared<AudioClip> outputClip = std::static_pointer_cast<AudioClip>(outputPackage->DeserializeResource(Path(name)));
+			B3D_TEST_ASSERT(outputClip != nullptr)
+			if(outputClip != nullptr)
+				B3D_TEST_ASSERT(ReadClipData(*outputClip) == expectedData)
+		}
+
+		// Other users of the clip's serialized data can reach it as well
+		B3D_TEST_ASSERT(B3DRTTIClone(loadedClip.GetShared()) != nullptr)
+
+		// Replacing a different package that happens to contain the same clip doesn't affect the file the clip is reading from
+		const String otherName = "other";
+		const Path otherPackagePath = Path::Combine(folder, otherName + Package::kPackageExtension);
+
+		B3D_TEST_ASSERT(GetResources().SaveAsSinglePackage(loadedClip, folder, otherName, saveOptions))
+		B3D_TEST_ASSERT(GetResources().SaveAsSinglePackage(loadedClip, folder, otherName, saveOptions))
+		B3D_TEST_ASSERT(CanOpenForWriting(packagePath) != (testCase.ReadMode == AudioReadMode::Stream))
+		B3D_TEST_ASSERT(ReadClipData(*loadedClip) == expectedData)
+
+		GetPackageManager().UnloadPackage(otherPackagePath);
+		B3D_TEST_ASSERT(FileSystem::Remove(otherPackagePath))
+		B3D_TEST_ASSERT(ReadClipData(*loadedClip) == expectedData)
+
+		// Saving over the clip's own package encodes the clip again, so the clip cannot know where its data resides in the new file
+		B3D_TEST_ASSERT(GetResources().SaveAsSinglePackage(loadedClip, folder, name, saveOptions))
+		B3D_TEST_ASSERT(loadedClip.IsLoaded(false))
+
+		if(DropsDataOnLoad(testCase))
+		{
+			const u64 packageSize = FileSystem::GetFileSize(packagePath);
+			{
+				LoggingScope logScope(*this);
+				logScope.ExpectError("Cannot serialize audio clip");
+				logScope.IgnoreError("Cannot serialize field");
+				logScope.IgnoreError("Cannot save resource");
+				logScope.ExpectError("Cannot save package");
+
+				B3D_TEST_ASSERT(!GetResources().SaveAsSinglePackage(loadedClip, folder, name, saveOptions))
+			}
+
+			B3D_TEST_ASSERT(FileSystem::GetFileSize(packagePath) == packageSize)
+
+			LoggingScope logScope(*this);
+			logScope.IgnoreError("Cannot serialize audio clip");
+			logScope.IgnoreError("Cannot serialize field");
+
+			B3D_TEST_ASSERT(B3DRTTIClone(loadedClip.GetShared()) == nullptr)
+			SerializedObject::Create(*loadedClip);
+		}
+		else
+		{
+			B3D_TEST_ASSERT(ReadClipData(*loadedClip) == expectedData)
+			B3D_TEST_ASSERT(GetResources().SaveAsSinglePackage(loadedClip, folder, name, saveOptions))
+		}
+
+		loadedClip = nullptr;
+		GetResources().UnloadAllUnused();
+		GetPackageManager().UnloadPackage(packagePath);
+
+		const HAudioClip reloadedClip = GetResources().Load<AudioClip>(resourcePath, loadOptions);
+		B3D_TEST_ASSERT(reloadedClip != nullptr && reloadedClip.IsLoaded(false))
+		if(reloadedClip != nullptr && reloadedClip.IsLoaded(false))
+			B3D_TEST_ASSERT(ReadClipData(*reloadedClip) == expectedData)
+	}
+
+	GetResources().UnloadAllUnused();
+	GetPackageManager().UnloadPackage(packagePath);
+}
+
+void ImporterTestSuite::TestAudioClipCopyToNewPackage()
+{
+	const Path folder = FileSystem::GetTemporaryFolderPath() + ("b3d-audio-clip-copy-" + UUIDGenerator::GenerateRandom().ToString() + "/");
+	FileSystem::CreateFolder(folder);
+	ScopeGuard removeFolder([&folder]() { FileSystem::Remove(folder, true); });
+
+	const String sourceName = "source";
+	const String destinationName = "destination";
+	const Path sourcePackagePath = Path::Combine(folder, sourceName + Package::kPackageExtension);
+	const Path destinationPackagePath = Path::Combine(folder, destinationName + Package::kPackageExtension);
+	const ResourceSaveOptions saveOptions(true, true);
+
+	for(const AudioClipPackageTestCase& testCase : kAudioClipPackageTestCases)
+	{
+		Vector<u8> expectedData;
+		{
+			const HAudioClip importedClip = ImportTestClip(mOggPath, testCase.ReadMode, testCase.Format);
+			B3D_TEST_ASSERT(importedClip != nullptr)
+			if(importedClip == nullptr)
+				return;
+
+			expectedData = ReadClipData(*importedClip);
+			B3D_TEST_ASSERT(GetResources().SaveAsSinglePackage(importedClip, folder, sourceName, saveOptions))
+		}
+
+		GetResources().UnloadAllUnused();
+		GetPackageManager().UnloadPackage(sourcePackagePath);
+
+		// Same steps as the project library's copy operation
+		const UUID destinationId = UUIDGenerator::GenerateRandom();
+		{
+			TUnique<PackageReadLock> sourceLock;
+			B3D_TEST_ASSERT(GetPackageManager().AcquireReadLock(sourcePackagePath, AcquirePackageReadLockOptions(true), sourceLock) == AcquirePackageLockResult::Acquired)
+			if(sourceLock == nullptr)
+				return;
+
+			const TShared<Resource> copiedClip = sourceLock->GetPackage()->DeserializeResource(Path(sourceName));
+			B3D_TEST_ASSERT(copiedClip != nullptr)
+			if(copiedClip == nullptr)
+				return;
+
+			copiedClip->SetId(destinationId);
+
+			const TShared<Package> destinationPackage = Package::Create(destinationName);
+			destinationPackage->AddResource(Path(destinationName), copiedClip);
+
+			PackageManagerSavePackageOptions packageSaveOptions;
+			packageSaveOptions.Overwrite = false;
+
+			B3D_TEST_ASSERT(GetPackageManager().SavePackage(destinationPackage, destinationPackagePath, packageSaveOptions) != nullptr)
+
+			destinationPackage->UnloadAllResources();
+		}
+
+		// Nothing keeps reading from the source package, so it can be removed
+		GetPackageManager().UnloadPackage(sourcePackagePath);
+		B3D_TEST_ASSERT(FileSystem::Remove(sourcePackagePath))
+
+		const HAudioClip destinationClip = GetResources().Load<AudioClip>(Path(destinationPackagePath.ToString() + "/" + destinationName), ResourceLoadOptions(false));
+		B3D_TEST_ASSERT(destinationClip != nullptr && destinationClip.IsLoaded(false))
+		if(destinationClip != nullptr && destinationClip.IsLoaded(false))
+		{
+			B3D_TEST_ASSERT(destinationClip.GetId() == destinationId)
+			B3D_TEST_ASSERT(ReadClipData(*destinationClip) == expectedData)
+		}
+
+		GetResources().UnloadAllUnused();
+		GetPackageManager().UnloadPackage(destinationPackagePath);
+		B3D_TEST_ASSERT(FileSystem::Remove(destinationPackagePath))
+	}
+}
+
+void ImporterTestSuite::TestAudioClipFollowsPackageFile()
+{
+	const Path folder = FileSystem::GetTemporaryFolderPath() + ("b3d-audio-clip-follow-" + UUIDGenerator::GenerateRandom().ToString() + "/");
+	FileSystem::CreateFolder(folder);
+	ScopeGuard removeFolder([&folder]() { FileSystem::Remove(folder, true); });
+
+	const Path packagePath = Path::Combine(folder, String("package") + Package::kPackageExtension);
+	const Path movedPackagePath = Path::Combine(folder, String("moved") + Package::kPackageExtension);
+	const Path clipPath("clip");
+	const Path tablePath("table");
+	const Path renamedTablePath("table-renamed");
+	const Path longTablePath(String(4096, 'x'));
+	const ResourceLoadOptions loadOptions(false);
+
+	u32 willChangeCount = 0;
+	u32 didChangeCount = 0;
+
+	PackageManager& packageManager = GetPackageManager();
+	HEvent willChangeConnection = packageManager.OnPackageFileWillChange.Connect([&willChangeCount](const Package&, const Path&) { willChangeCount++; });
+	HEvent didChangeConnection = packageManager.OnPackageFileDidChange.Connect([&didChangeCount](const PackageFileChange&) { didChangeCount++; });
+	ScopeGuard disconnectEvents([&willChangeConnection, &didChangeConnection]()
+	{
+		willChangeConnection.Disconnect();
+		didChangeConnection.Disconnect();
+	});
+
+	for(const AudioClipPackageTestCase& testCase : kAudioClipPackageTestCases)
+	{
+		const bool readsFromFile = testCase.ReadMode == AudioReadMode::Stream;
+
+		PackageManagerSavePackageOptions saveOptions;
+		saveOptions.MetaDataPaddingByteCount = 256;
+
+		Vector<u8> expectedData;
+		{
+			const HAudioClip importedClip = ImportTestClip(mOggPath, testCase.ReadMode, testCase.Format);
+			B3D_TEST_ASSERT(importedClip != nullptr)
+			if(importedClip == nullptr)
+				return;
+
+			expectedData = ReadClipData(*importedClip);
+
+			const HStringTable table = StringTable::Create();
+
+			const TShared<Package> package = Package::Create("package");
+			package->AddResource(clipPath, importedClip);
+			package->AddResource(tablePath, table);
+
+			B3D_TEST_ASSERT(packageManager.SavePackage(package, packagePath, saveOptions) != nullptr)
+		}
+
+		GetResources().UnloadAllUnused();
+		packageManager.UnloadPackage(packagePath);
+
+		const HAudioClip clip = GetResources().Load<AudioClip>(Path(packagePath.ToString() + "/clip"), loadOptions);
+		B3D_TEST_ASSERT(clip != nullptr && clip.IsLoaded(false))
+		if(clip == nullptr || !clip.IsLoaded(false))
+			return;
+
+		const auto fnTestClip = [this, &clip, &expectedData, readsFromFile](const Path& expectedFilePath)
+		{
+			B3D_TEST_ASSERT(clip.IsLoaded(false))
+			B3D_TEST_ASSERT(ReadClipData(*clip) == expectedData)
+			B3D_TEST_ASSERT(CanOpenForWriting(expectedFilePath) != readsFromFile)
+		};
+
+		fnTestClip(packagePath);
+
+		const auto fnTestNotifications = [this, &willChangeCount, &didChangeCount](u32 expectedCount)
+		{
+			B3D_TEST_ASSERT(willChangeCount == expectedCount)
+			B3D_TEST_ASSERT(didChangeCount == expectedCount)
+
+			willChangeCount = 0;
+			didChangeCount = 0;
+		};
+
+		willChangeCount = 0;
+		didChangeCount = 0;
+
+		// Meta-data save leaves the data in place
+		{
+			TUnique<PackageWriteLock> writeLock;
+			B3D_TEST_ASSERT(packageManager.AcquireWriteLock(packagePath, AcquirePackageWriteLockOptions(), writeLock) == AcquirePackageLockResult::Acquired)
+			if(writeLock == nullptr)
+				return;
+
+			B3D_TEST_ASSERT(writeLock->GetPackage()->SetResourcePath(tablePath, renamedTablePath, false))
+			B3D_TEST_ASSERT(packageManager.SavePackageMetaData(*writeLock))
+		}
+
+		fnTestNotifications(1);
+		fnTestClip(packagePath);
+
+		// Moving the file doesn't move the data within it
+		{
+			TUnique<PackageWriteLock> writeLock;
+			B3D_TEST_ASSERT(packageManager.AcquireWriteLock(packagePath, AcquirePackageWriteLockOptions(), writeLock) == AcquirePackageLockResult::Acquired)
+			if(writeLock == nullptr)
+				return;
+
+			B3D_TEST_ASSERT(packageManager.ChangePhysicalPackagePath(*writeLock, movedPackagePath))
+		}
+
+		fnTestNotifications(1);
+		B3D_TEST_ASSERT(!FileSystem::Exists(packagePath))
+		fnTestClip(movedPackagePath);
+
+		// A full save with larger meta-data moves the data within the file
+		const auto fnCloneWithLongerTablePath = [&packageManager, &movedPackagePath, &renamedTablePath, &longTablePath]() -> TShared<Package>
+		{
+			TUnique<PackageReadLock> readLock;
+			packageManager.AcquireReadLock(movedPackagePath, AcquirePackageReadLockOptions(), readLock);
+			if(readLock == nullptr)
+				return nullptr;
+
+			const TShared<Package> clonedPackage = readLock->GetPackage()->Clone();
+			clonedPackage->SetResourcePath(renamedTablePath, longTablePath, false);
+
+			return clonedPackage;
+		};
+
+		saveOptions.CopyLoadStatesOnOverwrite = true;
+
+		// Unless the save fails, in which case nothing changes
+		{
+			const TShared<Package> clonedPackage = fnCloneWithLongerTablePath();
+			B3D_TEST_ASSERT(clonedPackage != nullptr)
+			if(clonedPackage == nullptr)
+				return;
+
+			const TShared<DataStream> unknownReader = FileSystem::OpenFile(movedPackagePath);
+
+			LoggingScope logScope(*this);
+			logScope.IgnoreError("in use");
+			logScope.IgnoreError("Sharing violation");
+			logScope.ExpectError("Cannot save package");
+
+			B3D_TEST_ASSERT(packageManager.SavePackage(clonedPackage, movedPackagePath, saveOptions) == nullptr)
+		}
+
+		fnTestNotifications(1);
+		fnTestClip(movedPackagePath);
+
+		{
+			const TShared<Package> clonedPackage = fnCloneWithLongerTablePath();
+			B3D_TEST_ASSERT(clonedPackage != nullptr)
+			if(clonedPackage == nullptr)
+				return;
+
+			B3D_TEST_ASSERT(packageManager.SavePackage(clonedPackage, movedPackagePath, saveOptions) != nullptr)
+		}
+
+		fnTestNotifications(1);
+		fnTestClip(movedPackagePath);
+
+		// Once the package is gone the clip remains usable, but only clips that still hold on to the data can be saved
+		packageManager.UnloadPackage(movedPackagePath);
+		fnTestNotifications(1);
+
+		B3D_TEST_ASSERT(FileSystem::Remove(movedPackagePath))
+		B3D_TEST_ASSERT(clip.IsLoaded(false))
+
+		if(DropsDataOnLoad(testCase))
+		{
+			LoggingScope logScope(*this);
+			logScope.IgnoreError("Cannot serialize audio clip");
+
+			B3D_TEST_ASSERT(ReadClipData(*clip).empty())
+		}
+		else
+			B3D_TEST_ASSERT(ReadClipData(*clip) == expectedData)
+
+		GetResources().UnloadAllUnused();
+	}
+}
+
+void ImporterTestSuite::TestPackageFailedSaveKeepsState()
+{
+	const Path folder = FileSystem::GetTemporaryFolderPath() + ("b3d-package-failed-save-" + UUIDGenerator::GenerateRandom().ToString() + "/");
+	FileSystem::CreateFolder(folder);
+	ScopeGuard removeFolder([&folder]() { FileSystem::Remove(folder, true); });
+
+	const String clipName = "clip";
+	const Path clipPackagePath = Path::Combine(folder, clipName + Package::kPackageExtension);
+	const Path packagePath = Path::Combine(folder, String("package") + Package::kPackageExtension);
+	const Path tablePath("table");
+	const Path clipPath("clip");
+	const String tableValue = "value";
+
+	{
+		const HAudioClip importedClip = ImportTestClip(mOggPath, AudioReadMode::LoadDecompressed, AudioFormat::PCM);
+		B3D_TEST_ASSERT(importedClip != nullptr)
+		if(importedClip == nullptr)
+			return;
+
+		B3D_TEST_ASSERT(GetResources().SaveAsSinglePackage(importedClip, folder, clipName, ResourceSaveOptions(true, true)))
+
+		const HStringTable table = StringTable::Create();
+		table->SetString("identifier", StringTable::kDefaultLanguage, tableValue);
+
+		const TShared<Package> savedPackage = Package::Create("package");
+		savedPackage->AddResource(tablePath, table);
+
+		B3D_TEST_ASSERT(GetPackageManager().SavePackage(savedPackage, packagePath, PackageManagerSavePackageOptions()) != nullptr)
+		GetPackageManager().UnloadPackage(packagePath);
+	}
+
+	GetResources().UnloadAllUnused();
+
+	HAudioClip clipWithoutSource = GetResources().Load<AudioClip>(Path(clipPackagePath.ToString() + "/" + clipName), ResourceLoadOptions(false));
+	B3D_TEST_ASSERT(clipWithoutSource != nullptr && clipWithoutSource.IsLoaded(false))
+	if(clipWithoutSource == nullptr || !clipWithoutSource.IsLoaded(false))
+		return;
+
+	// Encoding the clip into its own package makes it lose track of its data, so it cannot be saved anymore
+	B3D_TEST_ASSERT(GetResources().SaveAsSinglePackage(clipWithoutSource, folder, clipName, ResourceSaveOptions(true, false)))
+
+	const TShared<Package> package = Package::Load(packagePath);
+	B3D_TEST_ASSERT(package != nullptr)
+	if(package == nullptr)
+		return;
+
+	package->AddResource(clipPath, clipWithoutSource);
+
+	const TShared<DataStream> saveStream = FileSystem::CreateAndOpenFile(folder + "failed-save");
+
+	// Saving uncompressed would leave the stored table unreadable if its compression type stayed changed
+	SavePackageOptions saveOptions;
+	saveOptions.CompressResources = false;
+	saveOptions.MetaDataPaddingByteCount = 1024;
+	{
+		LoggingScope logScope(*this);
+		logScope.IgnoreError("Cannot serialize audio clip");
+		logScope.IgnoreError("Cannot serialize field");
+		logScope.ExpectError("Cannot save resource");
+
+		B3D_TEST_ASSERT(!package->Save(saveStream, saveOptions).IsSuccessful())
+	}
+
+	saveStream->Close();
+
+	B3D_TEST_ASSERT(package->GetResourceMetaData(tablePath)->CompressionType == CompressionType::Default)
+
+	const TShared<StringTable> loadedTable = std::static_pointer_cast<StringTable>(package->DeserializeResource(tablePath));
+	B3D_TEST_ASSERT(loadedTable != nullptr)
+	if(loadedTable != nullptr)
+		B3D_TEST_ASSERT(loadedTable->GetString("identifier", StringTable::kDefaultLanguage) == tableValue)
+
+	// The persistent cache doesn't add an entry whose package failed to save
+	{
+		const TShared<PersistentCache> cache = PersistentCache::Create();
+		cache->Initialize(folder + "cache/");
+
+		LoggingScope logScope(*this);
+		logScope.IgnoreError("Cannot serialize audio clip");
+		logScope.IgnoreError("Cannot serialize field");
+		logScope.IgnoreError("Cannot save resource");
+		logScope.ExpectError("Cannot add entry");
+
+		const bool isEntryAdded = cache->SetEntry(Path("entry"), clipWithoutSource.GetShared());
+		B3D_TEST_ASSERT(!isEntryAdded)
+		if(!isEntryAdded)
+			B3D_TEST_ASSERT(cache->TryGetEntry(Path("entry")) == nullptr)
+	}
+
+	clipWithoutSource = nullptr;
+	GetResources().UnloadAllUnused();
+	GetPackageManager().UnloadPackage(clipPackagePath);
+
+	// Folder entries have no data to save, unlike a resource that is neither loaded nor stored in the package's file
+	const Path folderPath("folder");
+	{
+		const TShared<Package> packageWithFolder = Package::Load(packagePath);
+		B3D_TEST_ASSERT(packageWithFolder != nullptr)
+		if(packageWithFolder == nullptr)
+			return;
+
+		packageWithFolder->AddResource(folderPath, TShared<Resource>());
+
+		const Path savedPath = folder + "with-folder";
+		const TShared<DataStream> folderSaveStream = FileSystem::CreateAndOpenFile(savedPath);
+		const bool isPackageWithFolderSaved = packageWithFolder->Save(folderSaveStream, SavePackageOptions()).IsSuccessful();
+		folderSaveStream->Close();
+
+		B3D_TEST_ASSERT(isPackageWithFolderSaved)
+		if(!isPackageWithFolderSaved)
+			return;
+
+		const TShared<Package> reloadedPackage = Package::Load(savedPath);
+		B3D_TEST_ASSERT(reloadedPackage != nullptr)
+		if(reloadedPackage != nullptr)
+		{
+			const TShared<StringTable> reloadedTable = std::static_pointer_cast<StringTable>(reloadedPackage->DeserializeResource(tablePath));
+			B3D_TEST_ASSERT(reloadedTable != nullptr)
+			if(reloadedTable != nullptr)
+				B3D_TEST_ASSERT(reloadedTable->GetString("identifier", StringTable::kDefaultLanguage) == tableValue)
+		}
+
+		B3D_TEST_ASSERT(FileSystem::Remove(packagePath))
+
+		const TShared<DataStream> missingDataStream = FileSystem::CreateAndOpenFile(folder + "missing-data");
+		{
+			LoggingScope logScope(*this);
+			logScope.IgnoreWarning("Failed to open file");
+			logScope.ExpectError("Original data for resource cannot be found");
+
+			B3D_TEST_ASSERT(!packageWithFolder->Save(missingDataStream, SavePackageOptions()).IsSuccessful())
+		}
+
+		missingDataStream->Close();
+	}
+}
+
+void ImporterTestSuite::TestPackageSaveReportsCopiedResources()
+{
+	const Path folder = FileSystem::GetTemporaryFolderPath() + ("b3d-package-save-result-" + UUIDGenerator::GenerateRandom().ToString() + "/");
+	FileSystem::CreateFolder(folder);
+	ScopeGuard removeFolder([&folder]() { FileSystem::Remove(folder, true); });
+
+	const Path packagePath = Path::Combine(folder, String("package") + Package::kPackageExtension);
+
+	const HStringTable copiedTable = StringTable::Create();
+	const HStringTable encodedTable = StringTable::Create();
+
+	const TShared<Package> package = Package::Create("package");
+	package->AddResource(Path("copied"), copiedTable);
+	package->AddResource(Path("encoded"), encodedTable);
+
+	SavePackageOptions saveOptions;
+	saveOptions.CompressResources = false;
+
+	// Nothing can be copied the first time resources are saved
+	{
+		const TShared<DataStream> stream = FileSystem::CreateAndOpenFile(packagePath);
+		const TResult<Vector<PackageResourceChange>> result = package->Save(stream, saveOptions);
+		stream->Close();
+
+		B3D_TEST_ASSERT(result.IsSuccessful())
+		B3D_TEST_ASSERT(result.Output.empty())
+	}
+
+	package->AssociateFileWithPackage(packagePath);
+	package->SetResource(encodedTable.GetShared());
+
+	// Only the resource that wasn't encoded again is reported, and the padding is the only thing that moved it
+	static constexpr u32 kPaddingByteCount = 1024;
+	saveOptions.MetaDataPaddingByteCount = kPaddingByteCount;
+
+	const TShared<DataStream> stream = FileSystem::CreateAndOpenFile(folder + "resaved");
+	const TResult<Vector<PackageResourceChange>> result = package->Save(stream, saveOptions);
+	stream->Close();
+
+	B3D_TEST_ASSERT(result.IsSuccessful())
+	B3D_TEST_ASSERT(result.Output.size() == 1)
+	if(result.Output.size() == 1)
+	{
+		B3D_TEST_ASSERT(result.Output[0].Id == copiedTable.GetId())
+		B3D_TEST_ASSERT(result.Output[0].DataOffsetChange == kPaddingByteCount)
+	}
+}
+
+void ImporterTestSuite::TestPackageMoveReservesDestination()
+{
+	const Path folder = FileSystem::GetTemporaryFolderPath() + ("b3d-package-move-" + UUIDGenerator::GenerateRandom().ToString() + "/");
+	FileSystem::CreateFolder(folder);
+	ScopeGuard removeFolder([&folder]() { FileSystem::Remove(folder, true); });
+
+	const Path sourcePath = Path::Combine(folder, String("source") + Package::kPackageExtension);
+	const Path destinationPath = Path::Combine(folder, String("destination") + Package::kPackageExtension);
+	const Path occupiedPath = Path::Combine(folder, String("occupied") + Package::kPackageExtension);
+
+	PackageManager& packageManager = GetPackageManager();
+
+	const TShared<Package> package = Package::Create("package");
+	package->AddResource(Path("table"), StringTable::Create());
+	B3D_TEST_ASSERT(packageManager.SavePackage(package, sourcePath, PackageManagerSavePackageOptions()) != nullptr)
+
+	// While the file is being moved nobody else can claim the destination
+	{
+		TUnique<PackageWriteLock> writeLock;
+		B3D_TEST_ASSERT(packageManager.AcquireWriteLock(sourcePath, AcquirePackageWriteLockOptions(), writeLock) == AcquirePackageLockResult::Acquired)
+		if(writeLock == nullptr)
+			return;
+
+		u32 notificationCount = 0;
+		HEvent connection = packageManager.OnPackageFileWillChange.Connect([this, &packageManager, &destinationPath, &notificationCount](const Package&, const Path&)
+		{
+			notificationCount++;
+
+			TUnique<PackageWriteLock> otherWriteLock;
+			B3D_TEST_ASSERT(packageManager.AcquireWriteLock(destinationPath, AcquirePackageWriteLockOptions(false, false), otherWriteLock) == AcquirePackageLockResult::NotAcquiredWriteLockHeld)
+
+			TUnique<PackageReadLock> otherReadLock;
+			B3D_TEST_ASSERT(packageManager.AcquireReadLock(destinationPath, AcquirePackageReadLockOptions(false, false), otherReadLock) == AcquirePackageLockResult::NotAcquiredWriteLockHeld)
+		});
+
+		B3D_TEST_ASSERT(packageManager.ChangePhysicalPackagePath(*writeLock, destinationPath))
+		connection.Disconnect();
+
+		B3D_TEST_ASSERT(notificationCount == 1)
+	}
+
+	// The package is registered at its new location only
+	{
+		TUnique<PackageReadLock> readLock;
+		B3D_TEST_ASSERT(packageManager.AcquireReadLock(destinationPath, AcquirePackageReadLockOptions(false), readLock) == AcquirePackageLockResult::Acquired)
+		B3D_TEST_ASSERT(readLock != nullptr && readLock->GetPackage() == package)
+
+		TUnique<PackageReadLock> sourceReadLock;
+		B3D_TEST_ASSERT(packageManager.AcquireReadLock(sourcePath, AcquirePackageReadLockOptions(false), sourceReadLock) == AcquirePackageLockResult::NotAcquiredPackageNotFound)
+	}
+
+	// A failed move releases the reserved destination, and leaves the package where it was
+	const TShared<DataStream> occupiedFile = FileSystem::CreateAndOpenFile(occupiedPath);
+	occupiedFile->Close();
+	{
+		TUnique<PackageWriteLock> writeLock;
+		B3D_TEST_ASSERT(packageManager.AcquireWriteLock(destinationPath, AcquirePackageWriteLockOptions(), writeLock) == AcquirePackageLockResult::Acquired)
+		if(writeLock == nullptr)
+			return;
+
+		LoggingScope logScope(*this);
+		logScope.ExpectWarning("another file already exists");
+
+		B3D_TEST_ASSERT(!packageManager.ChangePhysicalPackagePath(*writeLock, occupiedPath))
+	}
+
+	{
+		TUnique<PackageReadLock> occupiedReadLock;
+		B3D_TEST_ASSERT(packageManager.AcquireReadLock(occupiedPath, AcquirePackageReadLockOptions(false), occupiedReadLock) == AcquirePackageLockResult::NotAcquiredPackageNotFound)
+
+		TUnique<PackageReadLock> readLock;
+		B3D_TEST_ASSERT(packageManager.AcquireReadLock(destinationPath, AcquirePackageReadLockOptions(false), readLock) == AcquirePackageLockResult::Acquired)
+	}
+
+	packageManager.UnloadPackage(destinationPath);
+}
+
+void ImporterTestSuite::TestPackageWriteLockWithResourceDestroy()
+{
+	const Path folder = FileSystem::GetTemporaryFolderPath() + ("b3d-package-destroy-" + UUIDGenerator::GenerateRandom().ToString() + "/");
+	FileSystem::CreateFolder(folder);
+	ScopeGuard removeFolder([&folder]() { FileSystem::Remove(folder, true); });
+
+	const String name = "table";
+	const Path packagePath = Path::Combine(folder, name + Package::kPackageExtension);
+
+	{
+		const HStringTable table = StringTable::Create();
+		B3D_TEST_ASSERT(GetResources().SaveAsSinglePackage(table, folder, name, ResourceSaveOptions(true, false)))
+	}
+
+	GetResources().UnloadAllUnused();
+
+	// Without an internal reference, so that releasing this handle destroys the resource
+	HStringTable loadedTable = GetResources().Load<StringTable>(Path(packagePath.ToString() + "/" + name), ResourceLoadOptions(false, true, false));
+	B3D_TEST_ASSERT(loadedTable != nullptr && loadedTable.IsLoaded(false))
+	if(loadedTable == nullptr || !loadedTable.IsLoaded(false))
+		return;
+
+	const UUID tableId = loadedTable.GetId();
+	PackageManager& packageManager = GetPackageManager();
+
+	TUnique<PackageWriteLock> writeLock;
+	B3D_TEST_ASSERT(packageManager.AcquireWriteLock(packagePath, AcquirePackageWriteLockOptions(), writeLock) == AcquirePackageLockResult::Acquired)
+	if(writeLock == nullptr)
+		return;
+
+	// Releasing the last handle waits for the write lock, and resources being notified of a file change must not wait for that release
+	std::thread destroyThread([&loadedTable]() { loadedTable = nullptr; });
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+	packageManager.SavePackageMetaData(*writeLock);
+
+	writeLock = nullptr;
+	destroyThread.join();
+
+	B3D_TEST_ASSERT(!GetResources().IsLoaded(tableId, false))
+
+	packageManager.UnloadPackage(packagePath);
+}
+
+void ImporterTestSuite::TestPackagePerResourceCompression()
+{
+	const Path folder = FileSystem::GetTemporaryFolderPath() + ("b3d-package-compression-" + UUIDGenerator::GenerateRandom().ToString() + "/");
+	FileSystem::CreateFolder(folder);
+	ScopeGuard removeFolder([&folder]() { FileSystem::Remove(folder, true); });
+
+	const Path packagePath = Path::Combine(folder, String("package") + Package::kPackageExtension);
+	const Path uncompressedPackagePath = Path::Combine(folder, String("uncompressed") + Package::kPackageExtension);
+	const Path recompressedPackagePath = Path::Combine(folder, String("recompressed") + Package::kPackageExtension);
+	const Path tablePath("table");
+	const Path clipPath("clip");
+	const String tableValue = "value";
+
+	const auto fnTestCompression = [this, &tablePath, &clipPath](const TShared<Package>& package, CompressionType expectedTableCompression)
+	{
+		B3D_TEST_ASSERT(package->GetResourceMetaData(tablePath)->CompressionType == expectedTableCompression)
+		B3D_TEST_ASSERT(package->GetResourceMetaData(clipPath)->CompressionType == CompressionType::Uncompressed)
+	};
+
+	{
+		const HAudioClip clip = ImportTestClip(mOggPath, AudioReadMode::Stream, AudioFormat::PCM);
+		B3D_TEST_ASSERT(clip != nullptr)
+		if(clip == nullptr)
+			return;
+
+		const HStringTable table = StringTable::Create();
+		table->SetString("identifier", StringTable::kDefaultLanguage, tableValue);
+
+		const TShared<Package> package = Package::Create("package");
+		package->AddResource(clipPath, clip);
+		package->AddResource(tablePath, table);
+
+		B3D_TEST_ASSERT(GetPackageManager().SavePackage(package, packagePath, PackageManagerSavePackageOptions()) != nullptr)
+		fnTestCompression(package, CompressionType::Default);
+	}
+
+	GetResources().UnloadAllUnused();
+	GetPackageManager().UnloadPackage(packagePath);
+
+	// A streaming clip reads from the package file, even though the package is saved with compression
+	{
+		const HAudioClip streamingClip = GetResources().Load<AudioClip>(Path(packagePath.ToString() + "/clip"), ResourceLoadOptions(false));
+		B3D_TEST_ASSERT(streamingClip != nullptr && streamingClip.IsLoaded(false))
+		B3D_TEST_ASSERT(!CanOpenForWriting(packagePath))
+	}
+
+	GetResources().UnloadAllUnused();
+	GetPackageManager().UnloadPackage(packagePath);
+
+	// Resources that aren't loaded must keep to the same rules when they are saved again
+	PackageManagerSavePackageOptions uncompressedSaveOptions;
+	uncompressedSaveOptions.Compress = false;
+
+	const TShared<Package> uncompressedPackage = Package::Load(packagePath);
+	B3D_TEST_ASSERT(uncompressedPackage != nullptr)
+	if(uncompressedPackage == nullptr)
+		return;
+
+	B3D_TEST_ASSERT(GetPackageManager().SavePackage(uncompressedPackage, uncompressedPackagePath, uncompressedSaveOptions) != nullptr)
+	fnTestCompression(uncompressedPackage, CompressionType::Uncompressed);
+	GetPackageManager().UnloadPackage(uncompressedPackagePath);
+
+	const TShared<Package> recompressedPackage = Package::Load(uncompressedPackagePath);
+	B3D_TEST_ASSERT(recompressedPackage != nullptr)
+	if(recompressedPackage == nullptr)
+		return;
+
+	B3D_TEST_ASSERT(GetPackageManager().SavePackage(recompressedPackage, recompressedPackagePath, PackageManagerSavePackageOptions()) != nullptr)
+	fnTestCompression(recompressedPackage, CompressionType::Default);
+	GetPackageManager().UnloadPackage(recompressedPackagePath);
+
+	const TShared<Package> finalPackage = Package::Load(recompressedPackagePath);
+	B3D_TEST_ASSERT(finalPackage != nullptr)
+	if(finalPackage == nullptr)
+		return;
+
+	fnTestCompression(finalPackage, CompressionType::Default);
+	B3D_TEST_ASSERT(finalPackage->DeserializeResource(clipPath) != nullptr)
+
+	const TShared<StringTable> loadedTable = std::static_pointer_cast<StringTable>(finalPackage->DeserializeResource(tablePath));
+	B3D_TEST_ASSERT(loadedTable != nullptr)
+	if(loadedTable != nullptr)
+		B3D_TEST_ASSERT(loadedTable->GetString("identifier", StringTable::kDefaultLanguage) == tableValue)
+}
+
+void ImporterTestSuite::TestPackageMetaDataOnlySave()
+{
+	const Path folder = FileSystem::GetTemporaryFolderPath() + ("b3d-package-meta-data-" + UUIDGenerator::GenerateRandom().ToString() + "/");
+	FileSystem::CreateFolder(folder);
+	ScopeGuard removeFolder([&folder]() { FileSystem::Remove(folder, true); });
+
+	const Path packagePath = Path::Combine(folder, String("package") + Package::kPackageExtension);
+	const Path clipPath("clip");
+	const Path tablePath("table");
+	const Path renamedTablePath("table-with-a-longer-name");
+	const String tableValue = "value";
+
+	const auto fnTestPackage = [this, &packagePath, &clipPath, &tableValue](const Path& expectedTablePath)
+	{
+		const TShared<Package> package = Package::Load(packagePath);
+		B3D_TEST_ASSERT(package != nullptr)
+		if(package == nullptr)
+			return;
+
+		B3D_TEST_ASSERT(package->GetResourceMetaData(clipPath)->CompressionType == CompressionType::Uncompressed)
+		B3D_TEST_ASSERT(package->GetResourceMetaData(expectedTablePath)->CompressionType == CompressionType::Default)
+		B3D_TEST_ASSERT(package->DeserializeResource(clipPath) != nullptr)
+
+		const TShared<StringTable> loadedTable = std::static_pointer_cast<StringTable>(package->DeserializeResource(expectedTablePath));
+		B3D_TEST_ASSERT(loadedTable != nullptr)
+		if(loadedTable != nullptr)
+			B3D_TEST_ASSERT(loadedTable->GetString("identifier", StringTable::kDefaultLanguage) == tableValue)
+	};
+
+	PackageManagerSavePackageOptions saveOptions;
+	saveOptions.MetaDataPaddingByteCount = 1024;
+
+	// Updating the meta-data of a package that was just saved
+	{
+		const HAudioClip clip = ImportTestClip(mOggPath, AudioReadMode::Stream, AudioFormat::PCM);
+		B3D_TEST_ASSERT(clip != nullptr)
+		if(clip == nullptr)
+			return;
+
+		const HStringTable table = StringTable::Create();
+		table->SetString("identifier", StringTable::kDefaultLanguage, tableValue);
+
+		const TShared<Package> package = Package::Create("package");
+		package->AddResource(clipPath, clip);
+		package->AddResource(tablePath, table);
+
+		const TUnique<PackageWriteLock> writeLock = GetPackageManager().SavePackage(package, packagePath, saveOptions);
+		B3D_TEST_ASSERT(writeLock != nullptr)
+		if(writeLock == nullptr)
+			return;
+
+		B3D_TEST_ASSERT(GetPackageManager().SavePackageMetaData(*writeLock))
+	}
+
+	GetResources().UnloadAllUnused();
+	GetPackageManager().UnloadPackage(packagePath);
+
+	fnTestPackage(tablePath);
+
+	// Updating the meta-data of a package loaded from disk, with a loaded clip reading from its file
+	{
+		const HAudioClip streamingClip = GetResources().Load<AudioClip>(Path(packagePath.ToString() + "/clip"), ResourceLoadOptions(false));
+		B3D_TEST_ASSERT(streamingClip != nullptr && streamingClip.IsLoaded(false))
+		B3D_TEST_ASSERT(!CanOpenForWriting(packagePath))
+
+		TUnique<PackageWriteLock> writeLock;
+		B3D_TEST_ASSERT(GetPackageManager().AcquireWriteLock(packagePath, AcquirePackageWriteLockOptions(), writeLock) == AcquirePackageLockResult::Acquired)
+		if(writeLock == nullptr)
+			return;
+
+		B3D_TEST_ASSERT(writeLock->GetPackage()->SetResourcePath(tablePath, renamedTablePath, false))
+		B3D_TEST_ASSERT(GetPackageManager().SavePackageMetaData(*writeLock))
+		B3D_TEST_ASSERT(streamingClip.IsLoaded(false))
+
+		// The clip lets go of the file only for the duration of the write
+		writeLock = nullptr;
+		B3D_TEST_ASSERT(!CanOpenForWriting(packagePath))
+	}
+
+	GetResources().UnloadAllUnused();
+	GetPackageManager().UnloadPackage(packagePath);
+
+	fnTestPackage(renamedTablePath);
+
+	// Meta-data that doesn't fit is not written
+	const u64 packageSize = FileSystem::GetFileSize(packagePath);
+	{
+		B3D_TEST_ASSERT(GetPackageManager().LoadOrGetPackage(packagePath) != nullptr)
+
+		TUnique<PackageWriteLock> writeLock;
+		B3D_TEST_ASSERT(GetPackageManager().AcquireWriteLock(packagePath, AcquirePackageWriteLockOptions(), writeLock) == AcquirePackageLockResult::Acquired)
+		if(writeLock == nullptr)
+			return;
+
+		B3D_TEST_ASSERT(writeLock->GetPackage()->SetResourcePath(renamedTablePath, Path(String(4096, 'x')), false))
+		B3D_TEST_ASSERT(!GetPackageManager().SavePackageMetaData(*writeLock))
+	}
+
+	GetPackageManager().UnloadPackage(packagePath);
+
+	B3D_TEST_ASSERT(FileSystem::GetFileSize(packagePath) == packageSize)
+	fnTestPackage(renamedTablePath);
+
+	// Adding or removing a resource changes what the resource headers must contain, which only a full save can write
+	const auto fnTestListChangeRequiresFullSave = [this, &packagePath, &renamedTablePath, &fnTestPackage](const std::function<void(Package&)>& fnChangePackage)
+	{
+		B3D_TEST_ASSERT(GetPackageManager().LoadOrGetPackage(packagePath) != nullptr)
+		{
+			TUnique<PackageWriteLock> writeLock;
+			B3D_TEST_ASSERT(GetPackageManager().AcquireWriteLock(packagePath, AcquirePackageWriteLockOptions(), writeLock) == AcquirePackageLockResult::Acquired)
+			if(writeLock == nullptr)
+				return;
+
+			fnChangePackage(*writeLock->GetPackage());
+			B3D_TEST_ASSERT(!GetPackageManager().SavePackageMetaData(*writeLock))
+		}
+
+		LoggingScope logScope(*this);
+		logScope.IgnoreError("never saved");
+		GetPackageManager().UnloadPackage(packagePath);
+
+		fnTestPackage(renamedTablePath);
+	};
+
+	const HStringTable addedTable = StringTable::Create();
+	fnTestListChangeRequiresFullSave([&addedTable](Package& package) { package.AddResource(Path("added"), addedTable); });
+	fnTestListChangeRequiresFullSave([&clipPath](Package& package) { package.RemoveResource(clipPath, false); });
+}
+
+void ImporterTestSuite::TestPackageGetResourceByPath()
+{
+	const Path tablePath("table");
+	const HStringTable table = StringTable::Create();
+
+	const TShared<Package> package = Package::Create("package");
+	package->AddResource(tablePath, table);
+
+	B3D_TEST_ASSERT(package->GetResource(tablePath) == table.GetShared())
+
+	LoggingScope logScope(*this);
+	logScope.ExpectWarning("Failed to get resource");
+
+	B3D_TEST_ASSERT(package->GetResource(Path("missing")) == nullptr)
+}
+
+void ImporterTestSuite::TestPackageSetResourceDependencies()
+{
+	const HTexture texture = GetImporter().Import<Texture>(mImagePath, TextureImportOptions::Create());
+	B3D_TEST_ASSERT(texture != nullptr)
+	if(texture == nullptr)
+		return;
+
+	const Path spritePath("sprite");
+	const HSpriteTexture sprite = SpriteTexture::Create(texture);
+
+	const TShared<Package> package = Package::Create("package");
+	package->AddResource(spritePath, sprite);
+	B3D_TEST_ASSERT(package->GetResourceMetaData(spritePath)->Dependencies.size() == 1)
+
+	package->SetResource(sprite.GetShared(), true);
+	package->SetResource(sprite.GetShared(), true);
+	B3D_TEST_ASSERT(package->GetResourceMetaData(spritePath)->Dependencies.size() == 1)
+}
+
+void ImporterTestSuite::TestPackageRemoveResourceById()
+{
+	const Path folderPath("folder");
+	const Path childPath("folder/child");
+	const Path otherPath("other");
+
+	const HStringTable child = StringTable::Create();
+	const HStringTable other = StringTable::Create();
+
+	const TShared<Package> package = Package::Create("package");
+	package->AddResource(folderPath, TShared<Resource>());
+	package->AddResource(childPath, child);
+	package->AddResource(otherPath, other);
+
+	package->RemoveResource(package->GetResourceMetaData(folderPath)->Id, true);
+	B3D_TEST_ASSERT(!package->Contains(folderPath))
+	B3D_TEST_ASSERT(!package->Contains(childPath))
+	B3D_TEST_ASSERT(package->Contains(otherPath))
+
+	package->RemoveResource(other.GetId(), false);
+	B3D_TEST_ASSERT(!package->Contains(otherPath))
+}
+
+void ImporterTestSuite::TestPackageConcurrentLockOfMissingPackage()
+{
+	static constexpr u32 kThreadCount = 4;
+	static constexpr u32 kAttemptCount = 2000;
+
+	const Path packagePath = FileSystem::GetTemporaryFolderPath() + ("b3d-missing-package-" + UUIDGenerator::GenerateRandom().ToString() + Package::kPackageExtension);
+	const TShared<std::atomic<u32>> finishedThreadCount = B3DMakeShared<std::atomic<u32>>(0);
+
+	Vector<std::thread> threads;
+	for(u32 threadIndex = 0; threadIndex < kThreadCount; ++threadIndex)
+	{
+		threads.emplace_back([packagePath, finishedThreadCount]()
+		{
+			for(u32 attempt = 0; attempt < kAttemptCount; ++attempt)
+			{
+				TUnique<PackageReadLock> lock;
+				GetPackageManager().AcquireReadLock(packagePath, AcquirePackageReadLockOptions(), lock);
+			}
+
+			finishedThreadCount->fetch_add(1);
+		});
+	}
+
+	// The failure this looks for is a hang, so it cannot simply wait for the threads
+	const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(30);
+	while(finishedThreadCount->load() != kThreadCount && std::chrono::steady_clock::now() < deadline)
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+	const bool allFinished = finishedThreadCount->load() == kThreadCount;
+	B3D_TEST_ASSERT(allFinished)
+
+	for(std::thread& thread : threads)
+	{
+		if(allFinished)
+			thread.join();
+		else
+			thread.detach();
+	}
+}
+
+bool ImporterTestSuite::CanOpenForWriting(const Path& path)
+{
+	LoggingScope logScope(*this);
+	logScope.IgnoreError("Failed to");
+	logScope.IgnoreWarning("Failed to open file");
+
+	return FileSystem::OpenFile(path, FileAccessFlag::Read | FileAccessFlag::Write) != nullptr;
 }

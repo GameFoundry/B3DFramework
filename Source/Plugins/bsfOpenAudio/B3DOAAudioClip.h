@@ -43,9 +43,14 @@ namespace b3d
 		/** @} */
 	protected:
 		void Initialize() override;
+		void OnPackageFileWillChange(const Path& filePath) override;
+		void OnPackageFileDidChange(const Path& filePath, const TOptional<i64>& dataOffsetChange) override;
 		TShared<DataStream> GetSourceStream(u32& outSize) override;
 
 	private:
+		/** Makes the decoder read from the current stream data, if it differs from the provided stream. The decoder keeps its own reference to the stream it was opened with. */
+		void ReopenVorbisReader(const TShared<DataStream>& previousStream);
+
 		mutable Mutex mMutex;
 		mutable OggVorbisDecoder mVorbisReader;
 		bool mNeedsDecompression = false;

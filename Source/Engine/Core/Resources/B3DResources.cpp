@@ -75,8 +75,19 @@ static bool TryAcquirePackageLockForResourceLoad(const UUID& resourceId, const c
 	return true;
 }
 
+Resources::Resources()
+{
+	PackageManager& packageManager = GetPackageManager();
+
+	mPackageFileWillChangeConnection = packageManager.OnPackageFileWillChange.Connect([this](const Package& package, const Path& filePath) { NotifyPackageFileWillChange(package, filePath); });
+	mPackageFileDidChangeConnection = packageManager.OnPackageFileDidChange.Connect([this](const PackageFileChange& change) { NotifyPackageFileDidChange(change); });
+}
+
 Resources::~Resources()
 {
+	mPackageFileWillChangeConnection.Disconnect();
+	mPackageFileDidChangeConnection.Disconnect();
+
 	UnloadAll();
 }
 
@@ -469,6 +480,12 @@ void Resources::Destroy(ResourceHandleData& handleData)
 	// Notify external systems before we actually destroy it
 	OnResourceDestroyed(resourceId);
 
+	// Must be acquired before locking the loaded resources, as a thread holding a write lock on the package might be waiting on them
+	PackageManager& packageManager = GetPackageManager();
+	TUnique<PackageReadLock> packageReadLock;
+	if(const auto& packagePath = packageManager.TryGetPackagePathForResource(resourceId); packagePath.has_value())
+		packageManager.AcquireReadLock(*packagePath, AcquirePackageReadLockOptions(false, true, "Destroy resource"), packageReadLock);
+
 	{
 		Lock lock(mLoadedResourceMutex);
 
@@ -489,22 +506,15 @@ void Resources::Destroy(ResourceHandleData& handleData)
 			}
 		}
 
-		PackageManager& packageManager = GetPackageManager();
-		if(const auto& packagePath = packageManager.TryGetPackagePathForResource(resourceId); packagePath.has_value())
+		if(packageReadLock != nullptr)
 		{
-			AcquirePackageReadLockOptions readLockOptions(false, true, "Destroy resource");
-			TUnique<PackageReadLock> packageReadLock;
-			const AcquirePackageLockResult lockResult = packageManager.AcquireReadLock(*packagePath, readLockOptions, packageReadLock);
-			if(lockResult != AcquirePackageLockResult::Acquired || packageReadLock == nullptr)
-				return;
-
 			const TShared<Package>& package = packageReadLock->GetPackage();
-			if(!B3D_ENSURE(package != nullptr))
-				return;
-
-			package->UnloadResource(resourceId);
+			if(B3D_ENSURE(package != nullptr))
+				package->UnloadResource(resourceId);
 		}
 	}
+
+	packageReadLock = nullptr;
 
 	if(handleData.Object != nullptr)
 		handleData.Object->Destroy();
@@ -513,30 +523,30 @@ void Resources::Destroy(ResourceHandleData& handleData)
 	handleData.IsCreated = false;
 }
 
-void Resources::SaveAsSinglePackage(const HResource& resource, const Path& folder, const String& name, const ResourceSaveOptions& saveOptions)
+bool Resources::SaveAsSinglePackage(const HResource& resource, const Path& folder, const String& name, const ResourceSaveOptions& saveOptions)
 {
 	if(folder.IsEmpty())
 	{
 		B3D_LOG(Warning, LogResources, "Cannot save resource. Provided folder is empty.");
-		return;
+		return false;
 	}
 
 	if(name.empty())
 	{
 		B3D_LOG(Warning, LogResources, "Cannot save resource. Provided name is empty.");
-		return;
+		return false;
 	}
 
 	if(!folder.IsAbsolute())
 	{
 		B3D_LOG(Warning, LogResources, "Cannot save resource. Provided folder is not absolute.");
-		return;
+		return false;
 	}
 
 	if(!resource.IsLoaded(false))
 	{
 		B3D_LOG(Warning, LogResources, "Cannot save resource at path {0}/{1}.b3d. Provided resource is null or not loaded.", folder, name);
-		return;
+		return false;
 	}
 
 	const String& packageFilename = name + Package::kPackageExtension;
@@ -551,7 +561,7 @@ void Resources::SaveAsSinglePackage(const HResource& resource, const Path& folde
 	packageSaveOptions.VirtualPathPrefix = saveOptions.VirtualPathPrefix;
 
 	PackageManager& packageManager = GetPackageManager();
-	packageManager.SavePackage(package, packagePath, packageSaveOptions);
+	return packageManager.SavePackage(package, packagePath, packageSaveOptions) != nullptr;
 }
 
 void Resources::UpdateHandle(HResource& handle, const TShared<Resource>& resource)
@@ -610,6 +620,53 @@ void Resources::UpdateResourcesFromPackage(const TUnique<PackageWriteLock>& pack
 
 		if(resourceHandle.GetShared() != resource)
 			UpdateHandle(resourceHandle, resource);
+	}
+}
+
+TShared<Resource> Resources::FindLoadedResource(const UUID& resourceId) const
+{
+	Lock lock(mLoadedResourceMutex);
+
+	if(const auto found = mLoadedResourceInformation.find(resourceId); found != mLoadedResourceInformation.end())
+	{
+		if(found->second->ResourceHandle.IsLoaded(false))
+			return found->second->ResourceHandle.GetShared();
+	}
+
+	return nullptr;
+}
+
+void Resources::NotifyPackageFileWillChange(const Package& package, const Path& filePath)
+{
+	const Vector<UUID> packageResourceIds = package.CreateResourceIdList();
+	for(const auto& resourceId : packageResourceIds)
+	{
+		const TShared<Resource> resource = FindLoadedResource(resourceId);
+		if(resource != nullptr)
+			resource->OnPackageFileWillChange(filePath);
+	}
+}
+
+void Resources::NotifyPackageFileDidChange(const PackageFileChange& change)
+{
+	const Vector<UUID> packageResourceIds = change.PreviousPackage.CreateResourceIdList();
+	for(const auto& resourceId : packageResourceIds)
+	{
+		const TShared<Resource> resource = FindLoadedResource(resourceId);
+		if(resource == nullptr)
+			continue;
+
+		TOptional<i64> dataOffsetChange;
+		if(change.ResourceChanges != nullptr)
+		{
+			const auto found = std::find_if(change.ResourceChanges->begin(), change.ResourceChanges->end(), [&resourceId](const PackageResourceChange& entry) { return entry.Id == resourceId; });
+			if(found != change.ResourceChanges->end())
+				dataOffsetChange = found->DataOffsetChange;
+		}
+		else if(!change.FilePath.IsEmpty())
+			dataOffsetChange = 0;
+
+		resource->OnPackageFileDidChange(change.FilePath, dataOffsetChange);
 	}
 }
 

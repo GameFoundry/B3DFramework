@@ -18,6 +18,8 @@ namespace b3d
 		void TestSharedLifetime();
 		/** Verifies reader/writer sharing, release on close, and rollback after a failed open. */
 		void TestFileSharing();
+		/** Verifies a file cannot be removed, moved or replaced while a stream has it open. */
+		void TestFileSharingBlocksRemoveAndMove();
 		/** Verifies a live stream remains protected and readable after many other files have been opened. */
 		void TestFileSharingUnderHandlePressure();
 		/** Verifies simultaneous exclusive opens cannot both succeed. */

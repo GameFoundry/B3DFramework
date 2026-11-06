@@ -50,9 +50,11 @@ void NullAudioClip::Initialize()
 
 TShared<DataStream> NullAudioClip::GetSourceStream(u32& outSize)
 {
+	if(mSourceStreamData == nullptr)
+		return OpenStoredData(outSize);
+
 	outSize = mSourceStreamSize;
-	if(mSourceStreamData != nullptr)
-		mSourceStreamData->Seek(0);
+	mSourceStreamData->Seek(0);
 
 	return mSourceStreamData;
 }

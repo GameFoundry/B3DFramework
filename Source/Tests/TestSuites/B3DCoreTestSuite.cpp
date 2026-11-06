@@ -153,9 +153,7 @@ void CoreTestSuite::TestPersistentCacheLockedEntry()
 
 	TShared<DataStream> lockedStream = FileSystem::OpenFile(packagePath, FileAccessFlag::Read | FileAccessFlag::Write);
 	B3D_TEST_ASSERT(lockedStream != nullptr);
-	SavePackageOptions saveOptions;
-	saveOptions.SaveMetaDataOnly = true;
-	B3D_TEST_ASSERT(originalPackage->Save(lockedStream, saveOptions));
+	B3D_TEST_ASSERT(originalPackage->SaveMetaData(lockedStream));
 
 	const TShared<PersistentCache> reopenedCache = PersistentCache::Create();
 	{
@@ -210,9 +208,7 @@ void CoreTestSuite::TestPersistentCacheVersion()
 	B3D_TEST_ASSERT(metaData->CacheVersion == PersistentCache::kVersion);
 	metaData->CacheVersion = PersistentCache::kVersion - 1;
 	const TShared<DataStream> stream = FileSystem::OpenFile(packagePath, FileAccessFlag::Read | FileAccessFlag::Write);
-	SavePackageOptions saveOptions;
-	saveOptions.SaveMetaDataOnly = true;
-	B3D_TEST_ASSERT(package->Save(stream, saveOptions));
+	B3D_TEST_ASSERT(package->SaveMetaData(stream));
 	B3D_TEST_ASSERT(stream->Close());
 
 	cache->Initialize(cacheFolder);

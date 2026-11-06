@@ -9,6 +9,7 @@ namespace b3d
 {
 	class PackageResourceMetaData;
 	class Package;
+	struct PackageResourceChange;
 
 	/** @addtogroup Resources-Internal
 	 *  @{
@@ -127,6 +128,18 @@ namespace b3d
 		Path ResourcePathWithinPackage; /**< Path to the resource within the package. */
 	};
 
+	/** Describes how the file of a package changed. See PackageManager::OnPackageFileDidChange. */
+	struct PackageFileChange
+	{
+		PackageFileChange(const Package& previousPackage, const Vector<PackageResourceChange>* resourceChanges, const Path& filePath)
+			: PreviousPackage(previousPackage), ResourceChanges(resourceChanges), FilePath(filePath)
+		{ }
+
+		const Package& PreviousPackage; /**< Package that was using the file before the change. */
+		const Vector<PackageResourceChange>* ResourceChanges; /**< Result of Package::Save() if the file was rewritten. Null if the existing data stayed as it was, because only the location of the file or the package meta-data changed, or because the operation failed. */
+		Path FilePath; /**< Location of the file after the change. Empty if the file is no longer in use by the package manager. */
+	};
+
 	/**
 	 * Handles loading, unloading and saving of packages.
 	 *
@@ -135,6 +148,19 @@ namespace b3d
 	class B3D_EXPORT PackageManager : public Module<PackageManager>
 	{
 	public:
+		/**
+		 * Triggered right before the file of a registered package gets replaced, written to, moved or stops being managed. Provides the package
+		 * and the path to its file. Anything holding the file open must release it, or the operation may fail.
+		 *
+		 * Triggered on the thread performing the operation, while it is holding the write lock on the package, so handlers must not lock that package.
+		 */
+		Event<void(const Package&, const Path&)> OnPackageFileWillChange;
+
+		/**
+		 * Triggered once the operation announced by OnPackageFileWillChange has finished, whether it succeeded or not. Same threading rules apply.
+		 */
+		Event<void(const PackageFileChange&)> OnPackageFileDidChange;
+
 		/**
 		 * Loads a package from the provided @p packagePhysicalPath on disk. The package will remain loaded until explicitly unloaded via a call to Unload().
 		 * If you request a package that was previously loaded, the existing package will be returned.
@@ -169,8 +195,11 @@ namespace b3d
 		 * @param package			Package to save. 
 		 * @param destinationPath	Path (including file name) to save the package to.
 		 * @param options			Options to control the save process.
-		 * @return					Write lock on the newly acquired package.
+		 * @return					Write lock on the newly acquired package, or null if the save failed and the package was not written to
+		 *							@p destinationPath. The failure is logged.
 		 *
+		 * @note	If a package at @p destinationPath is already loaded, OnPackageFileWillChange is triggered before the file is replaced. Any stream
+		 *			still open on that file afterwards makes the save fail on platforms that enforce file sharing on removal.
 		 * @note	If the package you are trying to save is managed by the package manager, then a read lock for the package must be acquired.
 		 *			If this is a brand new package not yet registered with the package manager, package can be provided as is, as long as you ensure
 		 *			no other operations are being performed on the package.
@@ -179,7 +208,8 @@ namespace b3d
 		TUnique<PackageWriteLock> SavePackage(const TShared<Package>& package, const Path& destinationPath, const PackageManagerSavePackageOptions& options);
 
 		/**
-		 * Unloads a package at the specified path.
+		 * Unloads a package at the specified path. The file itself stays where it is, but it stops being managed, so OnPackageFileWillChange is
+		 * triggered and the file can be removed afterwards.
 		 *
 		 * @param	packagePath		Physical path to the package to unload.
 		 */
@@ -190,8 +220,9 @@ namespace b3d
 		 *
 		 * @param	packageWriteLock	Write lock for the package to update the physical path for.
 		 * @param	newPath				New physical path for the package.
+		 * @return						True if the package was moved. False if it stayed at its old location, in which case the failure is logged.
 		 */
-		void ChangePhysicalPackagePath(const PackageWriteLock& packageWriteLock, const Path& newPath);
+		bool ChangePhysicalPackagePath(const PackageWriteLock& packageWriteLock, const Path& newPath);
 
 		/**
 		 * Changes the virtual paths for all the resources in the provided package. You should call this if you want to change the virtual path prefix
@@ -203,7 +234,7 @@ namespace b3d
 		void ChangeVirtualPackagePath(const PackageWriteLock& packageWriteLock, const Path& newVirtualPathPrefix);
 
 		/**
-		 * Updates meta-data of a previously saved package.
+		 * Updates meta-data of a previously saved package. The package file gets opened for writing, so OnPackageFileWillChange is triggered first.
 		 * 
 		 * @param	packageWriteLock	Write lock for the package to update the meta-data for.
 		 * @return						True if no errors occurred during the process. False if errors occurred, or if the meta-data doesn't fit in the package,

@@ -362,6 +362,9 @@ void Package::AddResource(const Path& path, const TShared<Resource>& resource)
 
 		for(const auto& entry : resourceDependencies)
 			metaData->Dependencies.push_back(entry.Resource.GetId());
+
+		if(!resource->IsCompressible())
+			metaData->Flags.Set(PackageResourceFlag::DontCompress);
 	}
 	else
 	{
@@ -390,11 +393,19 @@ void Package::AddResource(const Path& path, const TShared<Resource>& resource)
 
 	mResourceInformationByPath[path] = resourceInformation.get();
 	mResourceInformationByUUID[id] = std::move(resourceInformation);
+	mResourceListChanged = true;
 }
 
 void Package::RemoveResource(const Path& path, bool recursive)
 {
 	Lock lock(mMetaDataMutex);
+
+	RemoveResourceUnlocked(path, recursive);
+}
+
+void Package::RemoveResourceUnlocked(const Path& path, bool recursive)
+{
+	mResourceListChanged = true;
 
 	if(!recursive)
 	{
@@ -427,17 +438,14 @@ void Package::RemoveResource(const Path& path, bool recursive)
 
 void Package::RemoveResource(const UUID& id, bool recursive)
 {
-	Path path;
-	{
-		Lock lock(mMetaDataMutex);
+	Lock lock(mMetaDataMutex);
 
-		if (const auto found = mResourceInformationByUUID.find(id); found != mResourceInformationByUUID.end())
-			path = found->second->MetaData->Path;
-	}
-
-	if(!path.IsEmpty())
+	if (const auto found = mResourceInformationByUUID.find(id); found != mResourceInformationByUUID.end())
 	{
-		RemoveResource(path, recursive);
+		// A copy, as the path is stored in the entry being removed
+		const Path path = found->second->MetaData->Path;
+		RemoveResourceUnlocked(path, recursive);
+
 		return;
 	}
 
@@ -479,6 +487,11 @@ void Package::SetResource(const TShared<Resource>& resource, bool markAsDirty)
 
 	for(const auto& entry : resourceDependencies)
 		metaDataCopy->Dependencies.push_back(entry.Resource.GetId());
+
+	if(resource->IsCompressible())
+		metaDataCopy->Flags.Unset(PackageResourceFlag::DontCompress);
+	else
+		metaDataCopy->Flags.Set(PackageResourceFlag::DontCompress);
 
 	resourceInformation->LoadedResource = resource;
 	resourceInformation->MetaData = metaDataCopy;
@@ -953,69 +966,84 @@ TShared<Package> Package::Create(const String& name, const UUID& id)
 	return B3DMakeShared<Package>(name, id);
 }
 
-bool Package::Save(const TShared<DataStream>& stream, const SavePackageOptions& options)
+bool Package::SaveMetaData(const TShared<DataStream>& stream)
 {
 	Lock metaDataLock(mMetaDataMutex);
 
-	const u32 resourceCount = (u32)mResourceInformationByUUID.size();
-	CompressionType* savedCompressionTypesPerResource = B3DStackAllocate<CompressionType>(resourceCount);
+	// Each resource in the meta-data must have a matching resource header, and those stay as they are
+	if(mResourceListChanged)
+		return false;
 
-	auto fnCleanupStack = [savedCompressionTypesPerResource]()
-	{
-		B3DStackFree(savedCompressionTypesPerResource);
-	};
+	// Resource data stays in place, so the new meta-data must fit into the space the old meta-data occupies
+	TShared<MemoryDataStream> metaDataStream = B3DMakeShared<MemoryDataStream>();
+	FileEncoder metaDataEncoder(metaDataStream);
+	metaDataEncoder.Encode(this);
 
-	ScopeGuard cleanupStack(fnCleanupStack);
+	const u64 metaDataSize = (u64)metaDataStream->Tell();
+	if(metaDataSize > mSerializedMetaDataEnd)
+		return false;
 
-	constexpr CompressionType kDefaultCompressionType = CompressionType::Default;
+	mMetaDataPaddingByteCount = mSerializedMetaDataEnd - metaDataSize;
 
-	u32 resourceIndex = 0;
-	for (auto& entryPair : mResourceInformationByUUID)
-	{
-		ResourceInformation* const resourceInformation = entryPair.second.get();
-		const TShared<PackageResourceMetaData>& metaData = resourceInformation->MetaData;
+	FileEncoder fileEncoder(stream);
+	fileEncoder.Encode(this);
 
-		savedCompressionTypesPerResource[resourceIndex] = metaData->CompressionType;
+	return true;
+}
 
-		// Always make a copy and user might be reading from the meta-data, and we cannot modify it in a thread safe way
-		const TShared<PackageResourceMetaData> metaDataCopy = B3DMakeShared<PackageResourceMetaData>();
-		*metaDataCopy = *resourceInformation->MetaData;
+TResult<Vector<PackageResourceChange>> Package::Save(const TShared<DataStream>& stream, const SavePackageOptions& options)
+{
+	using SaveResult = TResult<Vector<PackageResourceChange>>;
 
-		metaDataCopy->CompressionType = options.CompressResources ? kDefaultCompressionType : CompressionType::Uncompressed;
-		entryPair.second->MetaData = metaDataCopy;
-
-		resourceIndex++;
-	}
-
-	if(options.SaveMetaDataOnly)
-	{
-		// Check if the new meta-data fits
-		TShared<MemoryDataStream> metaDataStream = B3DMakeShared<MemoryDataStream>();
-		FileEncoder metaDataEncoder(metaDataStream);
-		metaDataEncoder.Encode(this);	
-
-		const u64 metaDataSize = (u64)metaDataStream->Tell();
-		if(metaDataSize > mSerializedMetaDataEnd)
-			return false;
-
-		mMetaDataPaddingByteCount = mSerializedMetaDataEnd - metaDataSize;
-	}
-	else
-		mMetaDataPaddingByteCount = options.MetaDataPaddingByteCount;
+	Lock metaDataLock(mMetaDataMutex);
 
 	// Package structure:
 	// 1. Meta data
 	// 2. Per-resource headers (uuid, offset, size)
 	// 3. Per-resource data
 
+	const u32 resourceCount = (u32)mResourceInformationByUUID.size();
+
+	FrameAllocatorScope frameScope;
+	FrameVector<TShared<PackageResourceMetaData>> previousMetaDataPerResource(resourceCount);
+
+	u32 resourceIndex = 0;
+	for (auto& entryPair : mResourceInformationByUUID)
+	{
+		ResourceInformation* const resourceInformation = entryPair.second.get();
+		previousMetaDataPerResource[resourceIndex] = resourceInformation->MetaData;
+
+		// Always make a copy and user might be reading from the meta-data, and we cannot modify it in a thread safe way
+		const TShared<PackageResourceMetaData> metaDataCopy = B3DMakeShared<PackageResourceMetaData>();
+		*metaDataCopy = *resourceInformation->MetaData;
+
+		const bool compress = options.CompressResources && !metaDataCopy->Flags.IsSet(PackageResourceFlag::DontCompress);
+		metaDataCopy->CompressionType = compress ? CompressionType::Default : CompressionType::Uncompressed;
+		resourceInformation->MetaData = metaDataCopy;
+
+		resourceIndex++;
+	}
+
+	const u64 previousMetaDataPaddingByteCount = mMetaDataPaddingByteCount;
+	mMetaDataPaddingByteCount = options.MetaDataPaddingByteCount;
+
+	// The package must remain able to read from its existing file if the save fails
+	const auto fnAbortSave = [this, &previousMetaDataPerResource, previousMetaDataPaddingByteCount](const char* errorMessage)
+	{
+		u32 metaDataIndex = 0;
+		for (auto& entry : mResourceInformationByUUID)
+			entry.second->MetaData = previousMetaDataPerResource[metaDataIndex++];
+
+		mMetaDataPaddingByteCount = previousMetaDataPaddingByteCount;
+
+		return SaveResult::Fail(errorMessage);
+	};
+
 	FileEncoder fileEncoder(stream);
 	fileEncoder.Encode(this);
 
 	if(mMetaDataPaddingByteCount > 0)
 		B3D_ENSURE(stream->Skip(mMetaDataPaddingByteCount) == mMetaDataPaddingByteCount);
-
-	if (options.SaveMetaDataOnly)
-		return true;
 
 	BinarySerializer serializer;
 
@@ -1034,32 +1062,47 @@ bool Package::Save(const TShared<DataStream>& stream, const SavePackageOptions& 
 	if(!existingPackagePath.IsEmpty())
 		existingPackageFileStream = FileSystem::OpenFile(existingPackagePath);
 
-	FrameAllocatorScope frameScope;
 	FrameVector<SerializedResourceHeader> resourceHeaders(resourceCount);
+	Vector<PackageResourceChange> resourceChanges;
 
 	resourceIndex = 0;
 	for (auto& entry : mResourceInformationByUUID)
 	{
 		const TShared<Resource>& loadedResource = entry.second->LoadedResource;
-		const CompressionType compressionType = options.CompressResources ? kDefaultCompressionType : CompressionType::Uncompressed;
+		const CompressionType compressionType = entry.second->MetaData->CompressionType;
+		const CompressionType previousCompressionType = previousMetaDataPerResource[resourceIndex]->CompressionType;
 
 		resourceHeaders[resourceIndex].Id = entry.first;
 		resourceHeaders[resourceIndex].OffsetInDataStream = stream->Tell();
 
-		if (loadedResource != nullptr && (entry.second->IsLoadedResourceDirty || entry.second->SizeInDataStream == 0 || existingPackageFileStream == nullptr))
+		if (entry.second->MetaData->Flags.IsSet(PackageResourceFlag::Folder))
 		{
+			resourceHeaders[resourceIndex].SizeInDataStream = 0;
+		}
+		else if (loadedResource != nullptr && (entry.second->IsLoadedResourceDirty || entry.second->SizeInDataStream == 0 || existingPackageFileStream == nullptr))
+		{
+			bool encoded;
 			if (compressionType != CompressionType::Uncompressed)
 			{
 				TShared<MemoryDataStream> serializedResourceStream = B3DMakeShared<MemoryDataStream>();
-				serializer.Encode(loadedResource.get(), serializedResourceStream);
-				serializedResourceStream->Seek(0);
+				encoded = serializer.Encode(loadedResource.get(), serializedResourceStream);
 
-				resourceHeaders[resourceIndex].SizeInDataStream = Compression::Compress(*serializedResourceStream, *stream, 0, compressionType);
+				if(encoded)
+				{
+					serializedResourceStream->Seek(0);
+					resourceHeaders[resourceIndex].SizeInDataStream = Compression::Compress(*serializedResourceStream, *stream, 0, compressionType);
+				}
 			}
 			else
 			{
-				serializer.Encode(loadedResource.get(), stream);
+				encoded = serializer.Encode(loadedResource.get(), stream);
 				resourceHeaders[resourceIndex].SizeInDataStream = stream->Tell() - resourceHeaders[resourceIndex].OffsetInDataStream;
+			}
+
+			if(!encoded)
+			{
+				B3D_LOG(Error, LogResources, "Cannot save resource with id {2} to package {0} ({1}). Failed to serialize the resource.", mName, existingPackagePath, entry.second->MetaData->Id);
+				return fnAbortSave("Failed to serialize a resource.");
 			}
 		}
 		else
@@ -1067,11 +1110,11 @@ bool Package::Save(const TShared<DataStream>& stream, const SavePackageOptions& 
 			if (!existingPackageFileStream || entry.second->SizeInDataStream == 0)
 			{
 				B3D_LOG(Error, LogResources, "Cannot save resource with id {2} to package {0} ({1}). Original data for resource cannot be found in the associated package file.", mName, existingPackagePath, entry.second->MetaData->Id);
-				resourceHeaders[resourceIndex].SizeInDataStream = 0;
+				return fnAbortSave("Original data for a resource cannot be found.");
 			}
 			else
 			{
-				if (savedCompressionTypesPerResource[resourceIndex] == compressionType)
+				if (previousCompressionType == compressionType)
 				{
 					existingPackageFileStream->Seek(entry.second->OffsetInDataStream);
 
@@ -1092,6 +1135,7 @@ bool Package::Save(const TShared<DataStream>& stream, const SavePackageOptions& 
 					B3DStackFree(chunkBuffer);
 
 					resourceHeaders[resourceIndex].SizeInDataStream = entry.second->SizeInDataStream;
+					resourceChanges.push_back(PackageResourceChange(entry.first, (i64)resourceHeaders[resourceIndex].OffsetInDataStream - (i64)entry.second->OffsetInDataStream));
 				}
 				else
 				{
@@ -1099,14 +1143,13 @@ bool Package::Save(const TShared<DataStream>& stream, const SavePackageOptions& 
 
 					u64 uncompressedDataSize;
 					TShared<DataStream> uncompressedDataStream;
-					if(savedCompressionTypesPerResource[resourceIndex] != CompressionType::Uncompressed)
+					if(previousCompressionType != CompressionType::Uncompressed)
 					{
 						uncompressedDataStream = B3DMakeShared<MemoryDataStream>();
-						if(!Compression::Decompress(*existingPackageFileStream, *uncompressedDataStream, entry.second->SizeInDataStream, savedCompressionTypesPerResource[resourceIndex]))
+						if(!Compression::Decompress(*existingPackageFileStream, *uncompressedDataStream, entry.second->SizeInDataStream, previousCompressionType))
 						{
 							B3D_LOG(Error, LogResources, "Cannot save resource with id {2} to package {0} ({1}). Decompression failed for original resource data.", mName, existingPackagePath, entry.second->MetaData->Id);
-							continue;
-
+							return fnAbortSave("Failed to decompress original resource data.");
 						}
 
 						uncompressedDataStream->Seek(0);
@@ -1134,10 +1177,6 @@ bool Package::Save(const TShared<DataStream>& stream, const SavePackageOptions& 
 			}
 		}
 
-		entry.second->OffsetInDataStream = resourceHeaders[resourceIndex].OffsetInDataStream;
-		entry.second->SizeInDataStream = resourceHeaders[resourceIndex].SizeInDataStream;
-		entry.second->IsLoadedResourceDirty = false;
-
 		resourceIndex++;
 	}
 
@@ -1147,7 +1186,20 @@ bool Package::Save(const TShared<DataStream>& stream, const SavePackageOptions& 
 	stream->Seek(dataBlockOffset);
 	stream->Write(resourceHeaders.data(), resourceHeaders.size() * sizeof(SerializedResourceHeader));
 
-	return true;
+	resourceIndex = 0;
+	for (auto& entry : mResourceInformationByUUID)
+	{
+		entry.second->OffsetInDataStream = resourceHeaders[resourceIndex].OffsetInDataStream;
+		entry.second->SizeInDataStream = resourceHeaders[resourceIndex].SizeInDataStream;
+		entry.second->IsLoadedResourceDirty = false;
+
+		resourceIndex++;
+	}
+
+	mSerializedMetaDataEnd = dataBlockOffset;
+	mResourceListChanged = false;
+
+	return SaveResult::Success(std::move(resourceChanges));
 }
 
 void Package::AssociateFileWithPackage(const Path& path)
@@ -1249,7 +1301,7 @@ TShared<Package> Package::Load(const TShared<DataStream>& stream)
 
 	stream->Skip(package->mMetaDataPaddingByteCount);
 
-	package->mSerializedMetaDataEnd = stream->Tell() + package->mMetaDataPaddingByteCount;
+	package->mSerializedMetaDataEnd = stream->Tell();
 	const u32 resourceCount = (u32)package->mResourceInformationByUUID.size();
 
 	Vector<SerializedResourceHeader> headers(resourceCount);

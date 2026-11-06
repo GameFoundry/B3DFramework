@@ -71,6 +71,7 @@ FileSystemTestSuite::FileSystemTestSuite()
 {
 	B3D_ADD_TEST(FileSystemTestSuite::TestSharedLifetime);
 	B3D_ADD_TEST(FileSystemTestSuite::TestFileSharing);
+	B3D_ADD_TEST(FileSystemTestSuite::TestFileSharingBlocksRemoveAndMove);
 	B3D_ADD_TEST(FileSystemTestSuite::TestFileSharingUnderHandlePressure);
 	B3D_ADD_TEST(FileSystemTestSuite::TestConcurrentFileSharing);
 	B3D_ADD_TEST(FileSystemTestSuite::TestReadPathsAgree);
@@ -182,6 +183,45 @@ void FileSystemTestSuite::TestFileSharing()
 	const Path missingPath = mTestDirectory + "sharing-failed-open";
 	B3D_TEST_ASSERT(FileSystem::OpenFile(missingPath) == nullptr);
 	B3D_TEST_ASSERT(FileSystem::CreateAndOpenFile(missingPath) != nullptr);
+}
+
+void FileSystemTestSuite::TestFileSharingBlocksRemoveAndMove()
+{
+	const Path path = mTestDirectory + "sharing-in-use";
+	const Path movedPath = mTestDirectory + "sharing-moved";
+	const Path replacementPath = mTestDirectory + "sharing-replacement";
+	const String content = "unchanged";
+	CreateFile(path, content);
+	CreateFile(replacementPath, "replacement");
+
+	const auto fnTestFileIsProtected = [&](const TShared<DataStream>& stream)
+	{
+		B3D_TEST_ASSERT(stream != nullptr);
+
+		LoggingScope logScope(*this);
+		logScope.IgnoreError("in use");
+		logScope.IgnoreError("Sharing violation");
+
+		B3D_TEST_ASSERT(!FileSystem::Remove(path));
+		B3D_TEST_ASSERT(!FileSystem::Move(path, movedPath));
+		B3D_TEST_ASSERT(!FileSystem::Move(replacementPath, path));
+	};
+
+	fnTestFileIsProtected(FileSystem::OpenFile(path));
+	fnTestFileIsProtected(FileSystem::OpenFile(path, FileAccessFlag::Read | FileAccessFlag::Write));
+
+	B3D_TEST_ASSERT(!FileSystem::Exists(movedPath));
+	B3D_TEST_ASSERT(FileSystem::Exists(replacementPath));
+
+	{
+		const TShared<DataStream> reader = FileSystem::OpenFile(path);
+		B3D_TEST_ASSERT(reader != nullptr && reader->GetAsString() == content);
+	}
+
+	B3D_TEST_ASSERT(FileSystem::Move(path, movedPath));
+	B3D_TEST_ASSERT(FileSystem::Move(replacementPath, movedPath));
+	B3D_TEST_ASSERT(FileSystem::Remove(movedPath));
+	B3D_TEST_ASSERT(!FileSystem::Exists(movedPath));
 }
 
 void FileSystemTestSuite::TestFileSharingUnderHandlePressure()
@@ -831,6 +871,20 @@ void FileSystemTestSuite::TestMemoryStreamCopy()
 
 	MemoryDataStream partialSharedCopy(sharedSource);
 	B3D_TEST_ASSERT(String((const char*)partialSharedCopy.Data(), partialSharedCopy.Size()) == content.substr(kConsumedByteCount));
+
+	// Unlike a copy, a clone covers all of the data, whatever the source's read position, and leaves that position alone
+	source.Seek(kConsumedByteCount);
+
+	const TShared<DataStream> clone = source.Clone();
+	B3D_TEST_ASSERT(clone->Tell() == 0);
+	B3D_TEST_ASSERT(clone->Size() == content.size());
+	B3D_TEST_ASSERT(source.Tell() == kConsumedByteCount);
+
+	String clonedContent;
+	clonedContent.resize(content.size());
+	B3D_TEST_ASSERT(clone->Read(&clonedContent[0], content.size()) == content.size());
+	B3D_TEST_ASSERT(clonedContent == content);
+	B3D_TEST_ASSERT(source.Tell() == kConsumedByteCount);
 }
 
 void FileSystemTestSuite::TestMemoryStreamSeekPastCapacity()

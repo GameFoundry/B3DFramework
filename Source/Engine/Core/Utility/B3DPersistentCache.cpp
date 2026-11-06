@@ -348,11 +348,7 @@ void PersistentCache::WriteDirtyMetaData()
 			package->SetResourceMetaData(resourceUUID, cacheObjectMetaData);
 		}
 
-		SavePackageOptions savePackageOptions;
-		savePackageOptions.CompressResources = true;
-		savePackageOptions.SaveMetaDataOnly = true;
-
-		if(package->Save(packageDataStream, savePackageOptions))
+		if(package->SaveMetaData(packageDataStream))
 		{
 			isMetaDataSaved = B3D_ENSURE(packageDataStream->Close());
 		}
@@ -366,8 +362,10 @@ void PersistentCache::WriteDirtyMetaData()
 			if(!B3D_ENSURE(temporaryFileStream != nullptr))
 				continue;
 
-			savePackageOptions.SaveMetaDataOnly = false;
-			const bool saveResult = package->Save(temporaryFileStream, savePackageOptions);
+			SavePackageOptions savePackageOptions;
+			savePackageOptions.CompressResources = true;
+
+			const bool saveResult = package->Save(temporaryFileStream, savePackageOptions).IsSuccessful();
 			B3D_ENSURE(temporaryFileStream->Close());
 
 			if(!B3D_ENSURE(saveResult))
@@ -730,7 +728,7 @@ bool PersistentCache::SetPackageForEntry(const CacheOperation& operation, const 
 	SavePackageOptions savePackageOptions;
 	savePackageOptions.CompressResources = true;
 
-	package->Save(temporaryFileStream, savePackageOptions);
+	const bool isPackageSaved = package->Save(temporaryFileStream, savePackageOptions).IsSuccessful();
 
 	bool isTemporaryFileMoved = false;
 	ScopeGuard removeTemporaryFileOnFailure([&isTemporaryFileMoved, temporaryPackagePath]()
@@ -742,6 +740,12 @@ bool PersistentCache::SetPackageForEntry(const CacheOperation& operation, const 
 	if(!temporaryFileStream->Close())
 	{
 		B3D_LOG(Error, LogPersistentCache, "Cannot add entry '{0}' to cache. Failed to write to the data stream at path '{1}'.", operation.EntryPath, temporaryPackagePath);
+		return false;
+	}
+
+	if(!isPackageSaved)
+	{
+		B3D_LOG(Error, LogPersistentCache, "Cannot add entry '{0}' to cache. Failed to save the package to the temporary file at path '{1}'.", operation.EntryPath, temporaryPackagePath);
 		return false;
 	}
 

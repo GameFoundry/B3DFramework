@@ -183,15 +183,16 @@ namespace b3d
 		size_t Size() const { return mSize; }
 
 		/**
-		 * Creates a copy of this stream.
+		 * Creates a copy of this stream. The clone covers all of the stream's data, with its own cursor at the start. The
+		 * cursor of this stream doesn't change.
 		 *
 		 * @param	copyData	If true the internal stream data will be copied as well, otherwise it will just
 		 *						reference the data from the original stream (in which case the caller must ensure the
 		 *						original stream outlives the clone). This is not relevant for file streams.
 		 *
-		 * @note	Cloning a file stream yields an independent stream over the same file, with its own cursor at the start
-		 *			of the file. The clone of a writable file stream is not open and cannot be used, as opening it would
-		 *			truncate the file.
+		 * @note	Cloning a file stream yields an independent stream over the same file. The clone of a writable file
+		 *			stream is not open and cannot be used, as opening it would truncate the file. The clone of a read-only
+		 *			file stream that fails to open reports a size of zero.
 		 */
 		virtual TShared<DataStream> Clone(bool copyData = true) const = 0;
 

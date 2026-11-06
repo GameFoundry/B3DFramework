@@ -82,7 +82,7 @@ namespace b3d
 		};
 
 	public:
-		Resources() = default;
+		Resources();
 		~Resources();
 
 		/**
@@ -179,9 +179,10 @@ namespace b3d
 		 * @param	folder			Absolute path to a folder in which to create the package.
 		 * @param	name			Name of the package to create, as well as the name of the resource within the package.
 		 * @param	saveOptions		Options to control the save operation.
+		 * @return					True if the package was saved, false if it wasn't. The failure is logged.
 		 */
 		//B3D_SCRIPT_EXPORT()
-		void SaveAsSinglePackage(const HResource& resource, const Path& folder, const String& name, const ResourceSaveOptions& saveOptions = ResourceSaveOptions());
+		bool SaveAsSinglePackage(const HResource& resource, const Path& folder, const String& name, const ResourceSaveOptions& saveOptions = ResourceSaveOptions());
 
 		/**
 		 * Checks is the resource with the specified UUID loaded.
@@ -306,7 +307,22 @@ namespace b3d
 		/**	Destroys a resource, freeing its memory. */
 		void Destroy(ResourceHandleData& handleData);
 
+		/**
+		 * Returns the resource if it is loaded by the resource system, and null otherwise. Doesn't return a handle because this is used while
+		 * holding a write lock on a package, and releasing the last handle destroys the resource, which needs a read lock on that same package.
+		 */
+		TShared<Resource> FindLoadedResource(const UUID& resourceId) const;
+
+		/** Forwards the change to all resources in the package that are loaded by the resource system, see Resource::OnPackageFileWillChange(). */
+		void NotifyPackageFileWillChange(const Package& package, const Path& filePath);
+
+		/** Forwards the change to all resources in the package that are loaded by the resource system, see Resource::OnPackageFileDidChange(). */
+		void NotifyPackageFileDidChange(const PackageFileChange& change);
+
 	private:
+		HEvent mPackageFileWillChangeConnection;
+		HEvent mPackageFileDidChangeConnection;
+
 		mutable Mutex mLoadedResourceMutex;
 		Mutex mResourceHandleMutex;
 

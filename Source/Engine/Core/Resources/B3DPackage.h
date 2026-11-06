@@ -4,6 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "Utility/B3DCompression.h"
+#include "Utility/B3DResult.h"
 #include "Allocators/B3DPoolAlloc.h"
 #include "Threading/B3DSignal.h"
 
@@ -20,6 +21,7 @@ namespace b3d
 	{
 		None = 0,
 		Folder = 1 << 0, /**< Resource entry represents a folder and has no associated resource data. */
+		DontCompress = 1 << 1, /**< Resource data is always stored uncompressed, no matter which options the package is saved with. See Resource::IsCompressible(). */
 	};
 
 	using PackageResourceFlags = Flags<PackageResourceFlag>;
@@ -188,23 +190,25 @@ namespace b3d
 		Loaded
 	};
 
+	/** Describes a resource whose bytes Package::Save() copied unchanged from the package's existing file. */
+	struct PackageResourceChange
+	{
+		PackageResourceChange(const UUID& id, i64 dataOffsetChange)
+			: Id(id), DataOffsetChange(dataOffsetChange)
+		{ }
+
+		UUID Id; /**< Unique identifier of the resource. */
+		i64 DataOffsetChange; /**< How many bytes the resource's data moved within the file. */
+	};
+
 	/** Options used for controlling the Package::Save operation. */
 	struct SavePackageOptions
 	{
-		bool CompressResources = true; /**<	If true, resources will be compressed before being saved. */
-
-		/**
-		 * If true, the save process will attempt to write only package meta-data, without writing the resource data. This is only
-		 * possible if the new meta-data takes equal or less space than previous meta-data. If new meta-data takes more space
-		 * than existing meta-data, then the whole package will be resaved, as if this option is disabled.
-		 *
-		 * You can reduce the chance the meta-data takes more space than needed by adding MetaDataPaddingByteCount when saving the package.
-		 */
-		bool SaveMetaDataOnly = false;
+		bool CompressResources = true; /**<	If true, resources will be compressed before being saved, except for those that are not compressible. */
 
 		/**
 		 * Number of empty space to insert after the meta-data in the package. This allows you to overwrite the meta-data with larger meta-data in the future,
-		 * without having to re-write the entire package (See the SaveMetaDataOnly option). 
+		 * without having to re-write the entire package (See Package::SaveMetaData()).
 		 */
 		u32 MetaDataPaddingByteCount = 0;
 	};
@@ -422,10 +426,22 @@ namespace b3d
 		 *
 		 * @param	stream		Stream into which to save the package.
 		 * @param	options		Options controlling the save operation.
-		 * @return 				True if successful, false otherwise. If saving meta-data only, if false it returned it means the meta-data doesn't fit
-		 *						and you must attempt to re-save the entire package.
+		 * @return 				On success contains an entry for each resource whose bytes were copied unchanged from the package's existing file.
+		 *						Resources that were encoded, recompressed or decompressed have no entry, and neither do folders. The package is
+		 *						left as it was on failure, but whatever got written to the stream is not usable.
 		 */
-		bool Save(const TShared<DataStream>& stream, const SavePackageOptions& options);
+		TResult<Vector<PackageResourceChange>> Save(const TShared<DataStream>& stream, const SavePackageOptions& options);
+
+		/**
+		 * Overwrites the meta-data of the package's file, without writing the resource data. This is only possible if the new
+		 * meta-data takes equal or less space than the previous meta-data, and if resources weren't added or removed since the
+		 * package was last saved. You can reduce the chance the meta-data takes more space than needed by adding
+		 * SavePackageOptions::MetaDataPaddingByteCount when saving the package.
+		 *
+		 * @param	stream		Stream of the package's file, positioned at its start.
+		 * @return 				True if successful. If false nothing was written, and the whole package needs to be saved using Save().
+		 */
+		bool SaveMetaData(const TShared<DataStream>& stream);
 
 		/** Creates a new empty package. */
 		static TShared<Package> Create(const String& name = StringUtility::kBlank, const UUID& id = UUID::kEmpty);
@@ -464,6 +480,9 @@ namespace b3d
 
 		/** @} */
 	private:
+		/** Removes one or multiple resources from the provided path. The caller must hold the meta-data mutex. */
+		void RemoveResourceUnlocked(const Path& path, bool recursive);
+
 		/**
 		 * Deserializes a resource from a specific location in the package data stream.
 		 *
@@ -501,7 +520,8 @@ namespace b3d
 		UUID mId;
 		Path mAssociatedPackageFilePath; /**< Path to the file in which the package data has been saved. Empty if package hasn't been saved yet. */
 		TShared<PackageMetaData> mPackageMetaData;
-		u64 mSerializedMetaDataEnd = 0;
+		bool mResourceListChanged = false; /**< True if resources were added or removed since the package was last saved or loaded. Only a full save can store such a change. */
+		u64 mSerializedMetaDataEnd = 0; /**< Where the meta-data and its padding end in the package file. 0 if the package has not been saved or loaded yet. */
 		u64 mMetaDataPaddingByteCount = 0; /**< Extra empty bytes in the file after meta-data. Allows meta-data to grow without having to re-write the whole file. */
 
 		UnorderedMap<Path, ResourceInformation*, PathHashFunction<true>, PathEqualsFunction<true>> mResourceInformationByPath;

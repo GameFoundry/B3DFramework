@@ -451,7 +451,12 @@ TShared<DataStream> MemoryDataStream::Clone(bool copyData) const
 	if(!copyData)
 		return B3DMakeShared<MemoryDataStream>(mData, mSize);
 
-	return B3DMakeShared<MemoryDataStream>(*this);
+	// Not using the copy constructor, as that one consumes the source and only copies what remains to be read
+	const TShared<MemoryDataStream> clone = B3DMakeShared<MemoryDataStream>(mSize);
+	if(mSize > 0)
+		memcpy(clone->Data(), mData, mSize);
+
+	return clone;
 }
 
 bool MemoryDataStream::Close()

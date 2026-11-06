@@ -172,13 +172,45 @@ void OAAudioClip::GetSamples(u8* samples, u32 offset, u32 count) const
 	B3D_LOG(Warning, LogRenderBackend, "Attempting to read samples while sample data is not available.");
 }
 
+void OAAudioClip::OnPackageFileWillChange(const Path& filePath)
+{
+	Lock lock(mMutex);
+
+	const TShared<DataStream> previousStream = mStreamData;
+	AudioClip::OnPackageFileWillChange(filePath);
+
+	ReopenVorbisReader(previousStream);
+}
+
+void OAAudioClip::OnPackageFileDidChange(const Path& filePath, const TOptional<i64>& dataOffsetChange)
+{
+	Lock lock(mMutex);
+
+	const TShared<DataStream> previousStream = mStreamData;
+	AudioClip::OnPackageFileDidChange(filePath, dataOffsetChange);
+
+	ReopenVorbisReader(previousStream);
+}
+
+void OAAudioClip::ReopenVorbisReader(const TShared<DataStream>& previousStream)
+{
+	if(!mNeedsDecompression || mStreamData == previousStream)
+		return;
+
+	AudioDataInfo info;
+	if(!mVorbisReader.Open(mStreamData, info, mStreamOffset))
+		B3D_LOG(Error, LogAudio, "Failed decompressing AudioClip stream.");
+}
+
 TShared<DataStream> OAAudioClip::GetSourceStream(u32& outSize)
 {
 	Lock lock(mMutex);
 
+	if(mSourceStreamData == nullptr)
+		return OpenStoredData(outSize);
+
 	outSize = mSourceStreamSize;
-	if(mSourceStreamData != nullptr)
-		mSourceStreamData->Seek(0);
+	mSourceStreamData->Seek(0);
 
 	return mSourceStreamData;
 }

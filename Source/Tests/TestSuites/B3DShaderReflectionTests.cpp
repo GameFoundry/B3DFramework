@@ -37,7 +37,7 @@ void CoreTestSuite::TestShaderRegistryCacheVersion()
 
 		// Check compatibility from package metadata alone, without deserializing shader resources.
 		const TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
-		B3D_TEST_ASSERT(package->Save(stream, SavePackageOptions()))
+		B3D_TEST_ASSERT(package->Save(stream, SavePackageOptions()).IsSuccessful())
 		stream->Seek(0);
 		const TShared<Package> restoredPackage = Package::Load(stream);
 		B3D_TEST_ASSERT(restoredPackage != nullptr)

@@ -137,13 +137,25 @@ TUnique<PackageWriteLock> PackageManager::SavePackage(const TShared<Package>& pa
 
 	const Path& temporarySavePath = FileSystem::GetUniqueTemporaryFilePath();
 	TShared<DataStream> temporaryPackageStream = FileSystem::CreateAndOpenFile(temporarySavePath);
+	if(temporaryPackageStream == nullptr)
+	{
+		B3D_LOG(Error, LogResources, "Cannot save package '{0}'. Failed to create a temporary file at '{1}'.", destinationPath, temporarySavePath);
+		return nullptr;
+	}
 
 	SavePackageOptions savePackageOptions;
 	savePackageOptions.CompressResources = options.Compress;
 	savePackageOptions.MetaDataPaddingByteCount = options.MetaDataPaddingByteCount;
 
-	package->Save(temporaryPackageStream, savePackageOptions);
-	temporaryPackageStream->Close();
+	const TResult<Vector<PackageResourceChange>> saveResult = package->Save(temporaryPackageStream, savePackageOptions);
+	const bool streamClosed = temporaryPackageStream->Close();
+
+	if(!saveResult.IsSuccessful() || !streamClosed)
+	{
+		B3D_LOG(Error, LogResources, "Cannot save package '{0}'. Failed to write the package data.", destinationPath);
+		FileSystem::Remove(temporarySavePath);
+		return nullptr;
+	}
 
 	AcquirePackageWriteLockOptions writeLockOptions(true);
 	writeLockOptions.VirtualPathPrefix = options.VirtualPathPrefix;
@@ -157,17 +169,39 @@ TUnique<PackageWriteLock> PackageManager::SavePackage(const TShared<Package>& pa
 		return nullptr;
 	}
 
-	FileSystem::Remove(destinationPath);
+	const TShared<Package> originalPackage = packageWriteLock->GetPackage();
+	if(originalPackage != nullptr)
+		OnPackageFileWillChange(*originalPackage, destinationPath);
 
 	const Path& destinationParentFolderPath = destinationPath.GetParent();
 	if(!FileSystem::Exists(destinationParentFolderPath))
 		FileSystem::CreateFolder(destinationParentFolderPath);
 
-	FileSystem::Move(temporarySavePath, destinationPath);
+	if(!FileSystem::Move(temporarySavePath, destinationPath))
+	{
+		B3D_LOG(Error, LogResources, "Cannot save package '{0}'. Failed to move the package data into place. Is something else using the file?", destinationPath);
+		FileSystem::Remove(temporarySavePath);
+
+		if(originalPackage != nullptr)
+			OnPackageFileDidChange(PackageFileChange(*originalPackage, nullptr, destinationPath));
+
+		// With no existing package to return to, the entry the write lock created must not stay registered
+		if(originalPackage == nullptr)
+		{
+			Lock lock(mMutex);
+
+			packageWriteLock->RuntimePackageInformation->AcquiredWriteLock = false;
+			packageWriteLock->RuntimePackageInformation->LoadSignal.NotifyAll();
+
+			mPackagesByPath.erase(destinationPath);
+			packageWriteLock->ClearPackageInformation();
+		}
+
+		return nullptr;
+	}
 
 	package->AssociateFileWithPackage(destinationPath);
 
-	const TShared<Package> originalPackage = packageWriteLock->GetPackage();
 	{
 		Lock lock(mMutex);
 		if(originalPackage != nullptr)
@@ -185,6 +219,9 @@ TUnique<PackageWriteLock> PackageManager::SavePackage(const TShared<Package>& pa
 		packageWriteLock->RuntimePackageInformation->LoadedPackage = package;
 		packageWriteLock->RuntimePackageInformation->VirtualPathPrefix = options.VirtualPathPrefix;
 	}
+
+	if(originalPackage != nullptr)
+		OnPackageFileDidChange(PackageFileChange(*originalPackage, &saveResult.Output, destinationPath));
 
 	return packageWriteLock;
 }
@@ -206,7 +243,12 @@ void PackageManager::UnloadPackage(const Path& packagePath)
 	if(!B3D_ENSURE(packageWriteLock != nullptr))
 		return;
 
-	const TShared<Package>& package = packageWriteLock->GetPackage();
+	const TShared<Package> package = packageWriteLock->GetPackage();
+	OnPackageFileWillChange(*package, packagePath);
+
+	// The file itself doesn't change, and removing the package below ends the protection of the write lock
+	OnPackageFileDidChange(PackageFileChange(*package, nullptr, Path::kBlank));
+
 	{
 		Lock lock(mMutex);
 
@@ -220,36 +262,51 @@ void PackageManager::UnloadPackage(const Path& packagePath)
 	}
 }
 
-void PackageManager::ChangePhysicalPackagePath(const PackageWriteLock& packageWriteLock, const Path& newPath)
+bool PackageManager::ChangePhysicalPackagePath(const PackageWriteLock& packageWriteLock, const Path& newPath)
 {
 	if(!newPath.IsAbsolute())
 	{
 		B3D_LOG(Warning, LogResources, "Cannot change physical package path. Provided path '{0}' is not absolute.", newPath);
-		return;
+		return false;
 	}
 
-	const Path& physicalPackagePath = packageWriteLock.RuntimePackageInformation->PhysicalPath;
+	const Path physicalPackagePath = packageWriteLock.RuntimePackageInformation->PhysicalPath;
 	const TShared<Package>& package = packageWriteLock.GetPackage();
 	{
 		Lock lock(mMutex);
 
-		auto foundSourcePackage = mPackagesByPath.find(physicalPackagePath);
+		const auto foundSourcePackage = mPackagesByPath.find(physicalPackagePath);
 		if(!B3D_ENSURE(foundSourcePackage != mPackagesByPath.end()))
-			return;
+			return false;
 
-		if(auto foundDestinationPackage = mPackagesByPath.find(newPath); foundDestinationPackage != mPackagesByPath.end())
+		if(mPackagesByPath.find(newPath) != mPackagesByPath.end())
 		{
 			B3D_LOG(Warning, LogResources, "Cannot change physical package path. Another package already exists at location '{0}'.", newPath);
-			return;
+			return false;
 		}
 
-		TShared<RuntimePackageInformation> runtimePackageInformation = foundSourcePackage->second;
-		mPackagesByPath.erase(foundSourcePackage);
-		mPackagesByPath.insert(std::make_pair(newPath, runtimePackageInformation));
-
-		runtimePackageInformation->PhysicalPath = newPath;
-		package->AssociateFileWithPackage(newPath);
+		// Reserves the destination until the file is in place. Others see the write lock we are holding, and wait for it.
+		mPackagesByPath[newPath] = foundSourcePackage->second;
 	}
+
+	OnPackageFileWillChange(*package, physicalPackagePath);
+
+	const bool moved = FileSystem::Move(physicalPackagePath, newPath, false);
+	{
+		Lock lock(mMutex);
+
+		mPackagesByPath.erase(moved ? physicalPackagePath : newPath);
+
+		if(moved)
+		{
+			packageWriteLock.RuntimePackageInformation->PhysicalPath = newPath;
+			package->AssociateFileWithPackage(newPath);
+		}
+	}
+
+	OnPackageFileDidChange(PackageFileChange(*package, nullptr, moved ? newPath : physicalPackagePath));
+
+	return moved;
 }
 
 void PackageManager::ChangeVirtualPackagePath(const PackageWriteLock& packageWriteLock, const Path& newVirtualPathPrefix)
@@ -287,19 +344,22 @@ bool PackageManager::SavePackageMetaData(const PackageWriteLock& packageWriteLoc
 	const Path& physicalPathToPackage = packageWriteLock.RuntimePackageInformation->PhysicalPath;
 	const TShared<Package>& package = packageWriteLock.GetPackage();
 
-	const TShared<DataStream> packageDataStream = FileSystem::OpenFile(physicalPathToPackage, FileAccessFlag::Read | FileAccessFlag::Write);
-	if(!B3D_ENSURE(packageDataStream != nullptr))
-		return false;
-
 	if(!B3D_ENSURE(package != nullptr))
 		return false;
 
-	SavePackageOptions savePackageOptions;
-	savePackageOptions.CompressResources = true;
-	savePackageOptions.SaveMetaDataOnly = true;
+	OnPackageFileWillChange(*package, physicalPathToPackage);
 
-	bool result = package->Save(packageDataStream, savePackageOptions);
-	B3D_ENSURE(packageDataStream->Close());
+	bool result = false;
+	{
+		const TShared<DataStream> packageDataStream = FileSystem::OpenFile(physicalPathToPackage, FileAccessFlag::Read | FileAccessFlag::Write);
+		if(B3D_ENSURE(packageDataStream != nullptr))
+		{
+			result = package->SaveMetaData(packageDataStream);
+			B3D_ENSURE(packageDataStream->Close());
+		}
+	}
+
+	OnPackageFileDidChange(PackageFileChange(*package, nullptr, physicalPathToPackage));
 	
 	return result;
 }

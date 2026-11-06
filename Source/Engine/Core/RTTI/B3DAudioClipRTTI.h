@@ -35,7 +35,7 @@ namespace b3d
 		{
 			TShared<DataStream> stream = obj->GetSourceStream(size);
 			if(stream == nullptr)
-				B3D_LOG(Error, LogRTTI, "Cannot serialize audio clip '{0}'. It doesn't have its source audio data, which clips loaded from a package don't keep.", obj->GetName());
+				B3D_LOG(Error, LogRTTI, "Cannot serialize audio clip '{0}'. Its audio data isn't available, as the package file it was loaded from no longer contains it.", obj->GetName());
 
 			return stream;
 		}
@@ -47,6 +47,10 @@ namespace b3d
 			{
 				obj->mStreamData = val->Clone();
 				obj->mStreamOffset = (u32)val->Tell();
+
+				obj->mPackageFilePath = val->GetPath();
+				obj->mPackageFileOffset = obj->mStreamOffset;
+				obj->mPackageFileDataSize = size;
 			}
 			else
 			{

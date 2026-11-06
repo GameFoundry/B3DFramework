@@ -63,7 +63,8 @@ namespace b3d
 		 * this is enabled. This will cause extra memory to be used, but can be useful in certain circumstances (for example
 		 * you might require that data to save the audio clip on disk).
 		 *
-		 * When loading audio clip directly from disk, this properly is controlled by the ResourceLoadFlag::KeepSourceData.
+		 * Audio clips loaded from a package don't keep the original data. They read it from the package file if they get
+		 * saved again.
 		 */
 		bool KeepSourceData = true;
 	};
@@ -146,14 +147,27 @@ namespace b3d
 
 		void Initialize() override;
 		bool IsCompressible() const override { return false; } // Compression handled on a case by case basis manually by the audio system
+		void OnPackageFileWillChange(const Path& filePath) override;
+		void OnPackageFileDidChange(const Path& filePath, const TOptional<i64>& dataOffsetChange) override;
 
 		/**
-		 * Returns original audio data. Only available if @p keepSourceData has been provided on creation.
+		 * Returns original audio data, either the copy kept due to @p keepSourceData provided on creation or one provided
+		 * by OpenStoredData().
 		 *
 		 * @param	outSize	Size of the returned stream data, in bytes.
-		 * @return			Stream containing the original audio data, or null if the clip hasn't kept it.
+		 * @return			Stream containing the original audio data, or null if it isn't available.
 		 */
 		virtual TShared<DataStream> GetSourceStream(u32& outSize) = 0;
+
+		/**
+		 * Opens a new stream for reading the original audio data from wherever the clip can still reach it: the clip's own
+		 * stream data, or the package file the clip was loaded from. The returned stream is independent of the one playback
+		 * uses, and is positioned at the start of the data.
+		 *
+		 * @param	outSize	Size of the returned stream data, in bytes.
+		 * @return			Stream containing the original audio data, or null if it isn't available.
+		 */
+		TShared<DataStream> OpenStoredData(u32& outSize) const;
 
 	protected:
 		AudioClipCreateInformation mInformation;
@@ -162,6 +176,13 @@ namespace b3d
 		u32 mStreamOffset = 0;
 		float mLength = 0.0f;
 		TShared<DataStream> mStreamData;
+
+		// Where the original audio data resides in the package file the clip was loaded from. Empty if it wasn't loaded from a
+		// file, or that file no longer contains the data.
+		Path mPackageFilePath;
+		u32 mPackageFileOffset = 0;
+		u32 mPackageFileDataSize = 0;
+		bool mIsPackageFileChanging = false;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

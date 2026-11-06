@@ -72,6 +72,9 @@ bool OggVorbisDecoder::Open(const TShared<DataStream>& stream, AudioDataInfo& in
 	if(stream == nullptr)
 		return false;
 
+	if(mOggVorbisFile.datasource != nullptr)
+		ov_clear(&mOggVorbisFile);
+
 	stream->Seek(offset);
 	mDecoderData.Stream = stream;
 	mDecoderData.Offset = offset;
