@@ -12,7 +12,7 @@
 namespace b3d
 {
 	/**
-	 * Translates the engine's private Vulkan-style shading language (VKSL) into Metal Shading Language (MSL).
+	 * Translates HLSL generated for the Vulkan target into Metal Shading Language (MSL), by way of SPIR-V.
 	 *
 	 * Generated resource names encode the engine binding coordinates required by native Metal reflection.
 	 */
@@ -20,15 +20,15 @@ namespace b3d
 	{
 	public:
 		/**
-		 * Compiles a VKSL GPU program into MSL that uses the native Metal argument-buffer ABI.
+		 * Compiles an HLSL GPU program into MSL that uses the native Metal argument-buffer ABI.
 		 *
-		 * @param	vkslSource				VKSL source containing a single GPU program with a "main" entry point.
-		 * @param	programType				Stage represented by @p vkslSource. Vertex, fragment, and compute stages are supported.
-		 * @param	outReflection			Source metadata for VKSL; its entry-point name is updated to match the generated MSL.
+		 * @param	hlslSource				HLSL source containing a single GPU program, using the entry-point name reserved for its stage.
+		 * @param	programType				Stage represented by @p hlslSource. Vertex, fragment, and compute stages are supported.
+		 * @param	shaderReflection		Source metadata for @p hlslSource.
 		 * @param	outMslSource			Receives the generated MSL source on success; cleared on failure.
 		 * @return							Compilation result. A non-empty error message indicates failure.
 		 */
-		static ShaderCompilerResult Compile(const String& vkslSource, GpuProgramType programType, const TShared<ShaderReflection>& outReflection, String& outMslSource);
+		static ShaderCompilerResult Compile(const String& hlslSource, GpuProgramType programType, const TShared<ShaderReflection>& shaderReflection, String& outMslSource);
 	};
 } // namespace b3d
 

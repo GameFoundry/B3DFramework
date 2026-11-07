@@ -21,11 +21,11 @@ namespace b3d
 		 * Version of the compiler used for compiling Vulkan GPU programs. Tick this whenever the compiler updates in order
 		 * to force bytecode to rebuild.
 		 */
-		inline constexpr u32 kVulkanCompilerVersion = 9;
+		inline constexpr u32 kVulkanCompilerVersion = 12;
 
 		/**
-		 * Constructs the device-independent vksl bytecode compiler (engine VKSL / GLSL source -> SPIR-V via glslang,
-		 * with SPIRV-Cross reflection). The "vksl" suffix matches the engine shading-language id (the first field of
+		 * Constructs the device-independent vksl bytecode compiler (engine HLSL source -> SPIR-V via DXC, with SPIRV-Cross
+		 * reflection). The "vksl" suffix matches the engine shading-language id (the first field of
 		 * B3D_SHADER_CROSS_COMPILE_TARGETS).
 		 */
 		TShared<IGpuBytecodeCompiler> CreateBytecodeCompilervksl();

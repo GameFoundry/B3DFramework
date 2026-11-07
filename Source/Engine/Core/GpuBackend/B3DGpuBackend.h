@@ -57,17 +57,15 @@ namespace b3d
 	inline constexpr const char* kGpuProgramLanguageHlsl = "hlsl";
 
 	/**
-	 * Canonical identifier for the Vulkan-flavored GLSL dialect authored by BSL. Vulkan's native
-	 * language identifier - the backend consumes these through its own glslang pipeline to emit
-	 * SPIR-V.
+	 * Identifier for the HLSL dialect that BSL passes are cross compiled to for the Vulkan backend, which compiles it to
+	 * SPIR-V with DXC.
 	 */
 	inline constexpr const char* kGpuProgramLanguageVksl = "vksl";
 
 	/**
-	 * Identifier for native Metal Shading Language source consumed by the Metal backend. BSL authors
-	 * this target in a Metal-flavored VKSL dialect (same surface syntax as kGpuProgramLanguageVksl but
-	 * with the @c METAL preprocessor define) which is translated to MSL during cross-compilation;
-	 * low-level rendering code provides MSL source directly.
+	 * Identifier for native Metal Shading Language source consumed by the Metal backend. BSL passes are cross compiled to
+	 * the same HLSL dialect as kGpuProgramLanguageVksl, with the @c METAL preprocessor define, which is translated to MSL
+	 * during cross-compilation; low-level rendering code provides MSL source directly.
 	 */
 	inline constexpr const char* kGpuProgramLanguageMsl = "msl";
 

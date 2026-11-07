@@ -191,15 +191,20 @@ void VulkanBarrierTestSuite::TestRepeatedStorageImageDispatch()
 		programInformation.Type = GPT_COMPUTE_PROGRAM;
 		programInformation.Language = VulkanGpuDevice::kGpuProgramLanguageName;
 		programInformation.EntryPoint = "main";
-		programInformation.Source = R"(#version 450
-layout(local_size_x = 8, local_size_y = 8) in;
-layout(set = 0, binding = 0, r32ui) uniform uimage2D OutputImage;
-layout(push_constant) uniform Operation { uint Increment; } operation;
-void main()
+		programInformation.Source = R"(
+[[vk::image_format("r32ui")]] RWTexture2D<uint> OutputImage : register(u0);
+
+struct Operation
 {
-	ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
-	uint value = operation.Increment == 0 ? 1 : imageLoad(OutputImage, pixel).r + 1;
-	imageStore(OutputImage, pixel, uvec4(value));
+	uint Increment;
+};
+
+[[vk::push_constant]] Operation operation;
+
+[numthreads(8, 8, 1)]
+void main(uint3 threadId : SV_DispatchThreadID)
+{
+	OutputImage[threadId.xy] = operation.Increment == 0 ? 1 : OutputImage[threadId.xy] + 1;
 }
 )";
 		const TShared<GpuProgram> program = device->CreateGpuProgram(programInformation);

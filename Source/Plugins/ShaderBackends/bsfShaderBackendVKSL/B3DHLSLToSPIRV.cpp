@@ -1,6 +1,6 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "B3DGLSLToSPIRV.h"
+#include "B3DHLSLToSPIRV.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuPushConstants.h"
 #include "GpuBackend/B3DGpuBindlessHeap.h"
@@ -10,11 +10,10 @@
 #include "Material/B3DShaderParameterDescription.h"
 #include "Math/B3DMath.h"
 #include "Debug/B3DLog.h"
+#include "String/B3DUnicode.h"
 
-#include "glslang/Public/ShaderLang.h"
-#include "glslang/Public/ResourceLimits.h"
-#include "glslang/SPIRV/GlslangToSpv.h"
 #include "spirv_cross/spirv_cross.hpp"
+#include "spirv_cross/spirv_parser.hpp"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -69,7 +68,7 @@ namespace
 		}
 	}
 
-	/** Converts a SPIRVCross type into a B3D GPU data parameter type. */
+	/** Converts a SPIRVCross type into a B3D GPU data parameter type. HLSL matrix rows are SPIR-V matrix columns. */
 	GpuDataParameterType SPIRVCrossTypeToGpuDataParameterType(const spirv_cross::SPIRType& type)
 	{
 		if (type.basetype == spirv_cross::SPIRType::Struct)
@@ -92,25 +91,25 @@ namespace
 				switch (type.vecsize)
 				{
 				case 2: return GPDT_MATRIX_2X2;
-				case 3: return GPDT_MATRIX_3X2;
-				case 4: return GPDT_MATRIX_4X2;
+				case 3: return GPDT_MATRIX_2X3;
+				case 4: return GPDT_MATRIX_2X4;
 				}
 			}
 			else if (type.columns == 3)
 			{
 				switch (type.vecsize)
 				{
-				case 2: return GPDT_MATRIX_2X3;
+				case 2: return GPDT_MATRIX_3X2;
 				case 3: return GPDT_MATRIX_3X3;
-				case 4: return GPDT_MATRIX_4X3;
+				case 4: return GPDT_MATRIX_3X4;
 				}
 			}
 			else if (type.columns == 4)
 			{
 				switch (type.vecsize)
 				{
-				case 2: return GPDT_MATRIX_2X4;
-				case 3: return GPDT_MATRIX_3X4;
+				case 2: return GPDT_MATRIX_4X2;
+				case 3: return GPDT_MATRIX_4X3;
 				case 4: return GPDT_MATRIX_4X4;
 				}
 			}
@@ -132,25 +131,25 @@ namespace
 				switch (type.vecsize)
 				{
 				case 2: return GPDT_DOUBLE_MATRIX_2X2;
-				case 3: return GPDT_DOUBLE_MATRIX_3X2;
-				case 4: return GPDT_DOUBLE_MATRIX_4X2;
+				case 3: return GPDT_DOUBLE_MATRIX_2X3;
+				case 4: return GPDT_DOUBLE_MATRIX_2X4;
 				}
 			}
 			else if (type.columns == 3)
 			{
 				switch (type.vecsize)
 				{
-				case 2: return GPDT_DOUBLE_MATRIX_2X3;
+				case 2: return GPDT_DOUBLE_MATRIX_3X2;
 				case 3: return GPDT_DOUBLE_MATRIX_3X3;
-				case 4: return GPDT_DOUBLE_MATRIX_4X3;
+				case 4: return GPDT_DOUBLE_MATRIX_3X4;
 				}
 			}
 			else if (type.columns == 4)
 			{
 				switch (type.vecsize)
 				{
-				case 2: return GPDT_DOUBLE_MATRIX_2X4;
-				case 3: return GPDT_DOUBLE_MATRIX_3X4;
+				case 2: return GPDT_DOUBLE_MATRIX_4X2;
+				case 3: return GPDT_DOUBLE_MATRIX_4X3;
 				case 4: return GPDT_DOUBLE_MATRIX_4X4;
 				}
 			}
@@ -172,25 +171,25 @@ namespace
 				switch (type.vecsize)
 				{
 				case 2: return GPDT_HALF_MATRIX_2X2;
-				case 3: return GPDT_HALF_MATRIX_3X2;
-				case 4: return GPDT_HALF_MATRIX_4X2;
+				case 3: return GPDT_HALF_MATRIX_2X3;
+				case 4: return GPDT_HALF_MATRIX_2X4;
 				}
 			}
 			else if (type.columns == 3)
 			{
 				switch (type.vecsize)
 				{
-				case 2: return GPDT_HALF_MATRIX_2X3;
+				case 2: return GPDT_HALF_MATRIX_3X2;
 				case 3: return GPDT_HALF_MATRIX_3X3;
-				case 4: return GPDT_HALF_MATRIX_4X3;
+				case 4: return GPDT_HALF_MATRIX_3X4;
 				}
 			}
 			else if (type.columns == 4)
 			{
 				switch (type.vecsize)
 				{
-				case 2: return GPDT_HALF_MATRIX_2X4;
-				case 3: return GPDT_HALF_MATRIX_3X4;
+				case 2: return GPDT_HALF_MATRIX_4X2;
+				case 3: return GPDT_HALF_MATRIX_4X3;
 				case 4: return GPDT_HALF_MATRIX_4X4;
 				}
 			}
@@ -402,7 +401,7 @@ namespace
 		const u32 bufferSize = (u32)compiler.get_declared_struct_size(type);
 
 		GpuUniformBufferInformation uniformBufferInformation;
-		uniformBufferInformation.Name = resource.name;
+		uniformBufferInformation.Name = compiler.get_name(resource.id);
 		uniformBufferInformation.Size = Math::CeilToMultiple(bufferSize / 4u, 4u); // Round to multiple of 16 bytes
 		uniformBufferInformation.IsShareable = true;
 		uniformBufferInformation.Slot = compiler.get_decoration(resource.id, spv::DecorationBinding);
@@ -437,7 +436,7 @@ namespace
 
 		GpuObjectParameterInformation objectInformation;
 		objectInformation.Type = GPOT_UNKNOWN;
-		objectInformation.Name = resource.name;
+		objectInformation.Name = compiler.get_name(resource.id);
 		objectInformation.Slot = compiler.get_decoration(resource.id, spv::DecorationBinding);
 		objectInformation.Set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
 		objectInformation.ArraySize = type.array.empty() ? 1 : type.array[0];
@@ -740,11 +739,11 @@ namespace
 		return true;
 	}
 
-	/**	Holds a GLSL program input attribute used in vertex programs. */
-	struct GLSLAttribute
+	/**	Holds an HLSL vertex program input semantic. */
+	struct VertexAttributeSemantic
 	{
 		/** Constructs a new attribute from a name and a semantic that represents in which way is the attribute used. */
-		GLSLAttribute(const String& name, VertexElementSemantic semantic)
+		VertexAttributeSemantic(const String& name, VertexElementSemantic semantic)
 			: mName(name), mSemantic(semantic)
 		{}
 
@@ -772,23 +771,16 @@ namespace
 
 	bool AttributeNameToElementSemantic(const String& name, VertexElementSemantic& semantic, u16& index)
 	{
-		static GLSLAttribute attributes[] = {
-			GLSLAttribute("bs_position", VES_POSITION),
-			GLSLAttribute("bs_normal", VES_NORMAL),
-			GLSLAttribute("bs_tangent", VES_TANGENT),
-			GLSLAttribute("bs_bitangent", VES_BITANGENT),
-			GLSLAttribute("bs_texcoord", VES_TEXCOORD),
-			GLSLAttribute("bs_color", VES_COLOR),
-			GLSLAttribute("bs_blendweights", VES_BLEND_WEIGHTS),
-			GLSLAttribute("bs_blendindices", VES_BLEND_INDICES),
-			GLSLAttribute("POSITION", VES_POSITION),
-			GLSLAttribute("NORMAL", VES_NORMAL),
-			GLSLAttribute("TANGENT", VES_TANGENT),
-			GLSLAttribute("BITANGENT", VES_BITANGENT),
-			GLSLAttribute("TEXCOORD", VES_TEXCOORD),
-			GLSLAttribute("COLOR", VES_COLOR),
-			GLSLAttribute("BLENDWEIGHT", VES_BLEND_WEIGHTS),
-			GLSLAttribute("BLENDINDICES", VES_BLEND_INDICES)
+		static VertexAttributeSemantic attributes[] = {
+			VertexAttributeSemantic("POSITION", VES_POSITION),
+			VertexAttributeSemantic("NORMAL", VES_NORMAL),
+			VertexAttributeSemantic("TANGENT", VES_TANGENT),
+			VertexAttributeSemantic("BITANGENT", VES_BITANGENT),
+			VertexAttributeSemantic("BINORMAL", VES_BITANGENT),
+			VertexAttributeSemantic("TEXCOORD", VES_TEXCOORD),
+			VertexAttributeSemantic("COLOR", VES_COLOR),
+			VertexAttributeSemantic("BLENDWEIGHT", VES_BLEND_WEIGHTS),
+			VertexAttributeSemantic("BLENDINDICES", VES_BLEND_INDICES)
 		};
 
 		static const u32 kAttributeCount = sizeof(attributes) / sizeof(attributes[0]);
@@ -811,12 +803,12 @@ namespace
 		const spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 		for (const spirv_cross::Resource& input : resources.stage_inputs)
 		{
-			const std::string& attribName = input.name;
+			// DXC names the stage variable of a vertex input after its semantic, with a fixed prefix
+			static const std::string kStageVariablePrefix = "in.var.";
 
-			// Built-in inputs (gl_VertexIndex etc.) carry no user semantic and are typically reflected
-			// separately, but guard against them just in case.
-			if (attribName.compare(0, 3, "gl_") == 0)
-				continue;
+			std::string attribName = compiler.get_name(input.id);
+			if (attribName.compare(0, kStageVariablePrefix.size(), kStageVariablePrefix) == 0)
+				attribName.erase(0, kStageVariablePrefix.size());
 
 			if (!compiler.has_decoration(input.id, spv::DecorationLocation))
 			{
@@ -849,121 +841,84 @@ namespace
 	}
 } // namespace
 
-GLSLToSPIRV::GLSLToSPIRV(const char* compilerId, u32 compilerVersion, bool optimizeSpirv)
-	: mCompilerId(compilerId), mCompilerVersion(compilerVersion), mOptimizeSpirv(optimizeSpirv)
+HLSLToSPIRV::HLSLToSPIRV(const char* compilerId, u32 compilerVersion)
+	: DxcBytecodeCompiler(compilerId, compilerVersion)
+{ }
+
+spirv_cross::ParsedIR HLSLToSPIRV::ParseModule(const u32* words, size_t wordCount)
 {
-	glslang::InitializeProcess();
+	spirv_cross::Parser parser(words, wordCount);
+	parser.parse();
+
+	spirv_cross::ParsedIR& module = parser.get_parsed_ir();
+	module.for_each_typed_id<spirv_cross::SPIRVariable>([&module](u32 id, const spirv_cross::SPIRVariable& variable)
+	{
+		if(variable.storage != spv::StorageClassUniform && variable.storage != spv::StorageClassUniformConstant && variable.storage != spv::StorageClassStorageBuffer)
+			return;
+
+		for(auto& [entryPointId, entryPoint] : module.entry_points)
+		{
+			const auto found = std::find(entryPoint.interface_variables.begin(), entryPoint.interface_variables.end(), spirv_cross::VariableID(id));
+			if(found == entryPoint.interface_variables.end())
+				entryPoint.interface_variables.push_back(id);
+		}
+	});
+
+	return std::move(module);
 }
 
-GLSLToSPIRV::~GLSLToSPIRV()
+void HLSLToSPIRV::AddCompileArguments(Vector<WString>& outArguments) const
 {
-	glslang::FinalizeProcess();
+	const WString bindlessSet = UTF8::ToWide(ToString(kGpuBindlessParameterSet));
+
+	// Register numbers are unique within a set across all register classes, so they're used as binding numbers directly
+	outArguments.push_back(L"-spirv");
+	outArguments.push_back(L"-fspv-target-env=vulkan1.3");
+	outArguments.push_back(L"-fspv-preserve-bindings"); // Parameter sets must be identical regardless of which resources a stage reads.
+	outArguments.push_back(L"-fvk-bind-sampler-heap");
+	outArguments.push_back(L"0");
+	outArguments.push_back(bindlessSet);
+	outArguments.push_back(L"-fvk-bind-resource-heap");
+	outArguments.push_back(L"1");
+	outArguments.push_back(bindlessSet);
 }
 
-bool GLSLToSPIRV::IsUpToDate(const GpuProgramBytecode& bytecode) const
+bool HLSLToSPIRV::ReflectBytecode(const GpuProgramCreateInformation& createInformation, IDxcResult& result, IDxcBlob& program, GpuProgramBytecode& outBytecode)
 {
-	return bytecode.CompilerId == mCompilerId && bytecode.CompilerVersion == mCompilerVersion;
-}
-
-TShared<GpuProgramBytecode> GLSLToSPIRV::CompileBytecode(const GpuProgramCreateInformation& desc)
-{
-	const TBuiltInResource& resources = *GetDefaultResources();
-	glslang::TProgram program;
-
-	EShLanguage glslType = EShLangVertex;
-	switch (desc.Type)
-	{
-	case GPT_FRAGMENT_PROGRAM: glslType = EShLangFragment; break;
-	case GPT_HULL_PROGRAM:     glslType = EShLangTessControl; break;
-	case GPT_DOMAIN_PROGRAM:   glslType = EShLangTessEvaluation; break;
-	case GPT_GEOMETRY_PROGRAM: glslType = EShLangGeometry; break;
-	case GPT_VERTEX_PROGRAM:   glslType = EShLangVertex; break;
-	case GPT_COMPUTE_PROGRAM:  glslType = EShLangCompute; break;
-	default: break;
-	}
-
-	std::vector<u32> spirv;
-	spv::SpvBuildLogger logger;
-
-	const String& source = desc.Source;
-	const char* sourceBytes = source.c_str();
-
-	glslang::TShader shader(glslType);
-	shader.setEnvInput(glslang::EShSourceGlsl, glslType, glslang::EShClientVulkan, 100);
-	shader.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_1);
-	shader.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_3);
-	shader.setStrings(&sourceBytes, 1);
-	shader.setEntryPoint("main");
-
-	TShared<GpuProgramBytecode> bytecode = B3DMakeShared<GpuProgramBytecode>();
-	bytecode->CompilerId = mCompilerId;
-	bytecode->CompilerVersion = mCompilerVersion;
-
-	EShMessages messages = (EShMessages)((int)EShMsgSpvRules | (int)EShMsgVulkanRules);
-	if (!shader.parse(&resources, 450, false, messages))
-	{
-		bytecode->Messages = "Compile error: " + String(shader.getInfoLog());
-		return bytecode;
-	}
-
-	program.addShader(&shader);
-
-	if (!program.link(messages))
-	{
-		bytecode->Messages = "Link error: " + String(program.getInfoLog());
-		return bytecode;
-	}
-
-	program.mapIO();
-
-	glslang::SpvOptions spvOptions;
-	spvOptions.disableOptimizer = !mOptimizeSpirv;
-	spvOptions.optimizeSize = false;
-
-	GlslangToSpv(*program.getIntermediate(glslType), spirv, &logger, &spvOptions);
-
-	spirv_cross::Compiler spirvCompiler(spirv);
+	spirv_cross::Compiler spirvCompiler(ParseModule((const u32*)program.GetBufferPointer(), program.GetBufferSize() / sizeof(u32)));
 
 	// Parse uniforms via SPIRV-Cross reflection.
-	bytecode->ParameterDescription = B3DMakeShared<GpuProgramParameterDescription>();
+	outBytecode.ParameterDescription = B3DMakeShared<GpuProgramParameterDescription>();
 
 	StringStream messageLog;
-	if (!ParseSPIRVCrossUniforms(spirvCompiler, *bytecode->ParameterDescription, messageLog))
+	if (!ParseSPIRVCrossUniforms(spirvCompiler, *outBytecode.ParameterDescription, messageLog))
 	{
-		bytecode->Messages = messageLog.str();
-		return bytecode;
+		outBytecode.Messages = messageLog.str();
+		return false;
 	}
 
-	if(desc.ShaderReflection != nullptr && desc.ShaderReflection->Parameters != nullptr)
+	if(createInformation.ShaderReflection != nullptr && createInformation.ShaderReflection->Parameters != nullptr)
 	{
-		ShaderParameterDescription::IterateMatching(desc.ShaderReflection->Parameters->GetUniformBuffers(), bytecode->ParameterDescription->UniformBuffers, [](const auto& source, auto& outTarget) { outTarget.UsesDynamicOffset = source.UsesDynamicOffset; });
+		ShaderParameterDescription::IterateMatching(createInformation.ShaderReflection->Parameters->GetUniformBuffers(), outBytecode.ParameterDescription->UniformBuffers, [](const auto& source, auto& outTarget) { outTarget.UsesDynamicOffset = source.UsesDynamicOffset; });
 
 		// SPIR-V declares byte address buffers as storage blocks, like structured buffers, so only the shader reflection tells them apart
-		ShaderParameterDescription::IterateMatching(desc.ShaderReflection->Parameters->GetBufferParameters(), bytecode->ParameterDescription->Buffers, [](const auto& source, auto& outTarget)
+		ShaderParameterDescription::IterateMatching(createInformation.ShaderReflection->Parameters->GetBufferParameters(), outBytecode.ParameterDescription->Buffers, [](const auto& source, auto& outTarget)
 		{
 			if(GpuObjectParameterTypeInformation::IsByteAddressBuffer(source.Type))
 				outTarget.Type = source.Type;
 		});
 	}
 
-	const ShaderEntryPointReflection& entryPointReflection = desc.GetEntryPointReflection();
-	bytecode->ParameterDescription->Features = entryPointReflection.Features;
+	const ShaderEntryPointReflection& entryPointReflection = createInformation.GetEntryPointReflection();
+	outBytecode.ParameterDescription->Features = entryPointReflection.Features;
 
 	const String& messageLogString = messageLog.str();
 	if (!messageLogString.empty())
-		bytecode->Messages += messageLogString;
+		outBytecode.Messages += messageLogString;
 
-	// Populate vertex input attributes from the glslang reflection.
-	if (desc.Type == GPT_VERTEX_PROGRAM)
-	{
-		if (!ParseVertexAttributes(spirvCompiler, bytecode->VertexInput, bytecode->Messages))
-			return bytecode;
-	}
+	// Populate vertex input attributes from the SPIR-V stage variables.
+	if (createInformation.Type == GPT_VERTEX_PROGRAM)
+		return ParseVertexAttributes(spirvCompiler, outBytecode.VertexInput, outBytecode.Messages);
 
-	bytecode->Instructions.Size = (u32)spirv.size() * sizeof(u32);
-	bytecode->Instructions.Data = (u8*)B3DAllocate(bytecode->Instructions.Size);
-
-	memcpy(bytecode->Instructions.Data, spirv.data(), bytecode->Instructions.Size);
-
-	return bytecode;
+	return true;
 }

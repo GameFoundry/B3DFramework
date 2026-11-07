@@ -87,5 +87,52 @@ namespace b3d
 			B3D_TEST_ASSERT_EXTERNAL(suite, program.Bytecode->ParameterDescription->UniformBuffers.find("DrawConstants") == program.Bytecode->ParameterDescription->UniformBuffers.end())
 			B3D_LOG(Info, LogGeneric, "Host push-constant compilation: {0}, {1} bytes.", targetLanguage, valueCount * sizeof(u32));
 		}
+
+		// The block is removed from a stage that never reads it. Only Metal also clears it from the shader reflection.
+		const String unreadShaderName = "PushConstantUnread" + targetLanguage;
+		const String unreadSource = "shader " + unreadShaderName + "\n"
+			"{\n"
+			"\tcode\n"
+			"\t{\n"
+			"\t\t[pushConstant]\n"
+			"\t\tcbuffer DrawConstants\n"
+			"\t\t{\n"
+			"\t\t\tuint Value0;\n"
+			"\t\t};\n"
+			"\n"
+			"\t\tfloat4 vsmain() : SV_Position\n"
+			"\t\t{\n"
+			"\t\t\treturn float4((float)Value0, 0.0, 0.0, 1.0);\n"
+			"\t\t}\n"
+			"\n"
+			"\t\tfloat4 fsmain() : SV_Target0\n"
+			"\t\t{\n"
+			"\t\t\treturn float4(0.0, 0.0, 0.0, 1.0);\n"
+			"\t\t}\n"
+			"\t};\n"
+			"};\n";
+
+		TShared<Shader> unreadShader;
+		const ShaderCompilerResult unreadResult = compiler->Compile(unreadShaderName, unreadSource, {}, { targetLanguage }, true, unreadShader);
+		B3D_TEST_ASSERT_EXTERNAL_MSG(suite, unreadResult.ErrorMessage.empty(), unreadShaderName + ": " + unreadResult.ErrorMessage)
+		if(!unreadResult.ErrorMessage.empty() || unreadShader == nullptr || unreadShader->GetVariations().empty() || unreadShader->GetVariations().front()->GetPassCount() == 0)
+		{
+			B3D_TEST_ASSERT_EXTERNAL_MSG(suite, false, unreadShaderName + ": missing compiled pass.")
+			return;
+		}
+
+		const TShared<Pass>& unreadPass = unreadShader->GetVariations().front()->GetPass(0);
+		const GpuProgramCreateInformation& readingProgram = unreadPass->GetGpuProgramCreateInformation(GPT_VERTEX_PROGRAM);
+		const GpuProgramCreateInformation& unreadProgram = unreadPass->GetGpuProgramCreateInformation(GPT_FRAGMENT_PROGRAM);
+		B3D_TEST_ASSERT_EXTERNAL(suite, unreadProgram.GetEntryPointReflection().PushConstantBufferSize == (targetLanguage == "msl" ? 0 : sizeof(u32)))
+		if(readingProgram.Bytecode == nullptr || readingProgram.Bytecode->ParameterDescription == nullptr || unreadProgram.Bytecode == nullptr || unreadProgram.Bytecode->ParameterDescription == nullptr)
+		{
+			B3D_TEST_ASSERT_EXTERNAL_MSG(suite, false, unreadShaderName + ": missing reflection. " + (unreadProgram.Bytecode != nullptr ? unreadProgram.Bytecode->Messages : String()))
+			return;
+		}
+
+		B3D_TEST_ASSERT_EXTERNAL_MSG(suite, unreadProgram.Bytecode->Instructions.Data != nullptr, unreadShaderName + ": " + unreadProgram.Bytecode->Messages)
+		B3D_TEST_ASSERT_EXTERNAL(suite, readingProgram.Bytecode->ParameterDescription->PushConstantBufferSize == sizeof(u32))
+		B3D_TEST_ASSERT_EXTERNAL(suite, unreadProgram.Bytecode->ParameterDescription->PushConstantBufferSize == 0)
 	}
 }

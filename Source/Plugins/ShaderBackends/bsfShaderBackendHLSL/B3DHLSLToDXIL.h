@@ -2,11 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "B3DPrerequisites.h"
-#include "Material/B3DShaderCompiler.h"
-#include <Windows.h>
-#include <dxcapi.h>
-#include <wrl/client.h>
+#include "B3DDxcBytecodeCompiler.h"
 
 namespace b3d
 {
@@ -21,7 +17,7 @@ namespace b3d
 		 * bytecode through the D3D reflection interface to populate parameter and vertex-input descriptions, with
 		 * parameter slots encoded per B3DHLSLShaderABI.h.
 		 */
-		class HLSLToDXIL final : public IGpuBytecodeCompiler
+		class HLSLToDXIL final : public DxcBytecodeCompiler
 		{
 		public:
 			/**
@@ -30,14 +26,8 @@ namespace b3d
 			 */
 			HLSLToDXIL(const char* compilerId, u32 compilerVersion);
 
-			TShared<GpuProgramBytecode> CompileBytecode(const GpuProgramCreateInformation& createInformation) override;
-			bool IsUpToDate(const GpuProgramBytecode& bytecode) const override;
-
-		private:
-			const char* mCompilerId;
-			u32 mCompilerVersion;
-			Microsoft::WRL::ComPtr<IDxcUtils> mUtilities;
-			Microsoft::WRL::ComPtr<IDxcCompiler3> mCompiler;
+		protected:
+			bool ReflectBytecode(const GpuProgramCreateInformation& createInformation, IDxcResult& result, IDxcBlob& program, GpuProgramBytecode& outBytecode) override;
 		};
 
 		/** @} */

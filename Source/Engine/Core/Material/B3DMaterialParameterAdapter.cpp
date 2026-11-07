@@ -238,7 +238,7 @@ Vector<ShaderUniformBuffer> DetermineValidShareableUniformBuffers(const Vector<T
 					break;
 			}
 
-			// Note: Ignoring mismatched buffers for now, because glslang parser doesn't report dead uniform entries,
+			// Note: Ignoring mismatched buffers for now, because shader compilers don't always report dead uniform entries,
 			// meaning identical buffers can have different sets of uniforms reported depending on which are unused.
 			// if (!isBlockValid)
 			//{

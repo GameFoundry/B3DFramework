@@ -11,7 +11,6 @@
 #include "Math/B3DMath.h"
 #include "String/B3DStringFormat.h"
 #include "String/B3DUnicode.h"
-#include "Utility/B3DConfigVariable.h"
 
 #include <d3d12shader.h>
 #include <algorithm>
@@ -20,39 +19,9 @@
 using namespace b3d;
 using namespace b3d::render;
 
-namespace b3d
-{
-	TConfigVariable<bool> gSkipShaderOptimization("d3d12.SkipShaderOptimization",
-		"Compile HLSL shaders with optimizations disabled and debug info attached, so they can be stepped through in a "
-		"shader debugger. Slows down shader execution significantly.", false,
-		ConfigVariableFlag::ReadOnly);
-}
-
 namespace
 {
 	using Microsoft::WRL::ComPtr;
-
-	/** Converts GPU program type to HLSL shader model target. Returns null for unsupported program types. */
-	const wchar_t* GetShaderTarget(GpuProgramType type)
-	{
-		switch (type)
-		{
-		case GPT_VERTEX_PROGRAM:
-			return L"vs_6_6";
-		case GPT_FRAGMENT_PROGRAM:
-			return L"ps_6_6";
-		case GPT_GEOMETRY_PROGRAM:
-			return L"gs_6_6";
-		case GPT_HULL_PROGRAM:
-			return L"hs_6_6";
-		case GPT_DOMAIN_PROGRAM:
-			return L"ds_6_6";
-		case GPT_COMPUTE_PROGRAM:
-			return L"cs_6_6";
-		default:
-			return nullptr;
-		}
-	}
 
 	/** Returns true when a reflected binding is the reserved push-constant carrier. */
 	bool IsPushConstantBufferBinding(const D3D12_SHADER_INPUT_BIND_DESC& bindingDescription)
@@ -719,149 +688,26 @@ namespace
 } // namespace
 
 HLSLToDXIL::HLSLToDXIL(const char* compilerId, u32 compilerVersion)
-	: mCompilerId(compilerId), mCompilerVersion(compilerVersion)
+	: DxcBytecodeCompiler(compilerId, compilerVersion)
+{ }
+
+bool HLSLToDXIL::ReflectBytecode(const GpuProgramCreateInformation& createInformation, IDxcResult& result, IDxcBlob& program, GpuProgramBytecode& outBytecode)
 {
-	DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&mUtilities));
-	DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&mCompiler));
-}
+	if(outBytecode.Messages.empty())
+		outBytecode.Messages = "Shader compiled successfully";
 
-bool HLSLToDXIL::IsUpToDate(const GpuProgramBytecode& bytecode) const
-{
-	return bytecode.CompilerId == mCompilerId && bytecode.CompilerVersion == mCompilerVersion;
-}
-
-TShared<GpuProgramBytecode> HLSLToDXIL::CompileBytecode(const GpuProgramCreateInformation& createInformation)
-{
-	TShared<GpuProgramBytecode> bytecode = B3DMakeShared<GpuProgramBytecode>();
-	bytecode->CompilerId = mCompilerId;
-	bytecode->CompilerVersion = mCompilerVersion;
-
-	if(mUtilities == nullptr || mCompiler == nullptr)
-	{
-		bytecode->Messages = "Failed to initialize the DirectX Shader Compiler.";
-		B3D_LOG(Error, LogRenderBackend, "{0}", bytecode->Messages);
-		return bytecode;
-	}
-
-	const wchar_t* target = GetShaderTarget(createInformation.Type);
-	if (!target)
-	{
-		bytecode->Messages = "Unsupported shader type";
-		return bytecode;
-	}
-
-	// Unoptimized shaders are opt-in even in development builds because they cost significant GPU time.
-	bool skipOptimization = false;
-#if B3D_BUILD_TYPE_DEVELOPMENT
-	skipOptimization = gSkipShaderOptimization.Get();
-#endif
-
-	Array<LPCWSTR, 8> compileArguments;
-	u32 compileArgumentCount = 0;
-	compileArguments[compileArgumentCount++] = L"-Zpc"; // Pack matrices in column-major order.
-	compileArguments[compileArgumentCount++] = L"-Ges"; // Enable strict language checking.
-	compileArguments[compileArgumentCount++] = L"-HV"; // Select the HLSL language version.
-	compileArguments[compileArgumentCount++] = L"2016"; // Use HLSL 2016 language and scoping rules.
-	// Redeclaring a loop variable is valid under the requested legacy HLSL scoping rules.
-	compileArguments[compileArgumentCount++] = L"-Wno-for-redefinition"; // Suppress loop-variable redefinition warnings.
-	if(skipOptimization)
-	{
-		compileArguments[compileArgumentCount++] = L"-Zi"; // Generate debug information.
-		compileArguments[compileArgumentCount++] = L"-Od"; // Disable optimizations.
-		compileArguments[compileArgumentCount++] = L"-Qembed_debug"; // Embed debug information in the shader container.
-	}
-	else
-		compileArguments[compileArgumentCount++] = L"-O3"; // Use optimization level 3.
-
-	const WString sourceName = UTF8::ToWide(!createInformation.Name.empty() ? createInformation.Name : "unnamed_shader");
-	const WString entryPoint = UTF8::ToWide(createInformation.EntryPoint);
-
-	ComPtr<IDxcCompilerArgs> compilerArguments;
-	HRESULT result = mUtilities->BuildArguments(sourceName.c_str(), entryPoint.c_str(), target, compileArguments.data(), compileArgumentCount, nullptr, 0, &compilerArguments);
-	if(FAILED(result))
-	{
-		bytecode->Messages = "Failed to build DirectX Shader Compiler arguments.";
-		B3D_LOG(Error, LogRenderBackend, "Failed to compile shader '{0}': {1} (hr={2}).", createInformation.Name, bytecode->Messages, (u32)result);
-		return bytecode;
-	}
-
-	DxcBuffer sourceBuffer;
-	sourceBuffer.Ptr = createInformation.Source.data();
-	sourceBuffer.Size = createInformation.Source.size();
-	sourceBuffer.Encoding = DXC_CP_UTF8;
-
-	ComPtr<IDxcResult> compilationResult;
-	result = mCompiler->Compile(&sourceBuffer, compilerArguments->GetArguments(), compilerArguments->GetCount(), nullptr, IID_PPV_ARGS(&compilationResult));
-	if(FAILED(result) || compilationResult == nullptr)
-	{
-		bytecode->Messages = "Failed to invoke the DirectX Shader Compiler.";
-		B3D_LOG(Error, LogRenderBackend, "Failed to compile shader '{0}': {1} (hr={2}).", createInformation.Name, bytecode->Messages, (u32)result);
-		return bytecode;
-	}
-
-	ComPtr<IDxcBlobUtf8> diagnostics;
-	compilationResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&diagnostics), nullptr);
-	const String diagnosticMessages = diagnostics != nullptr && diagnostics->GetStringLength() > 0 ? String(diagnostics->GetStringPointer(), diagnostics->GetStringLength()) : String();
-
-	HRESULT compilationStatus;
-	result = compilationResult->GetStatus(&compilationStatus);
-	if(FAILED(result) || FAILED(compilationStatus))
-	{
-		bytecode->Messages = diagnosticMessages.empty() ? "Shader compilation failed with unknown error." : String("Shader compilation failed:\n") + diagnosticMessages;
-
-		// The generated source only exists in memory, so include it in the log with line numbers.
-		StringStream numberedSource;
-		u32 lineNumber = 1;
-		size_t lineStart = 0;
-		while (lineStart <= createInformation.Source.size())
-		{
-			size_t lineEnd = createInformation.Source.find('\n', lineStart);
-			if (lineEnd == String::npos)
-				lineEnd = createInformation.Source.size();
-
-			numberedSource << lineNumber << ": " << createInformation.Source.substr(lineStart, lineEnd - lineStart) << "\n";
-			lineStart = lineEnd + 1;
-			lineNumber++;
-		}
-
-		B3D_LOG(Error, LogRenderBackend, "Failed to compile shader '{0}':\n{1}\nGenerated source:\n{2}", createInformation.Name, bytecode->Messages, numberedSource.str());
-		return bytecode;
-	}
-
-	if (!diagnosticMessages.empty())
-	{
-		bytecode->Messages = String("Shader compiled with warnings:\n") + diagnosticMessages;
-		B3D_LOG(Warning, LogRenderBackend, "Shader '{0}' compiled with warnings:\n{1}", createInformation.Name, diagnosticMessages);
-	}
-	else
-		bytecode->Messages = "Shader compiled successfully";
-
-	if (!ReflectShader(mUtilities.Get(), compilationResult.Get(), createInformation.Type, *bytecode))
-		return bytecode;
+	if (!ReflectShader(mUtilities.Get(), &result, createInformation.Type, outBytecode))
+		return false;
 
 	if(createInformation.ShaderReflection != nullptr && createInformation.ShaderReflection->Parameters != nullptr)
 	{
-		ShaderParameterDescription::IterateMatching(createInformation.ShaderReflection->Parameters->GetUniformBuffers(), bytecode->ParameterDescription->UniformBuffers, [](const auto& source, auto& outTarget) { outTarget.UsesDynamicOffset = source.UsesDynamicOffset; }, [](u32 slot) { return MapRegisterToSlot(slot, HLSLRegisterClass::ConstantBuffer); });
-		AddUnusedDeclarations(*createInformation.ShaderReflection->Parameters, *bytecode->ParameterDescription);
+		ShaderParameterDescription::IterateMatching(createInformation.ShaderReflection->Parameters->GetUniformBuffers(), outBytecode.ParameterDescription->UniformBuffers, [](const auto& source, auto& outTarget) { outTarget.UsesDynamicOffset = source.UsesDynamicOffset; }, [](u32 slot) { return MapRegisterToSlot(slot, HLSLRegisterClass::ConstantBuffer); });
+		AddUnusedDeclarations(*createInformation.ShaderReflection->Parameters, *outBytecode.ParameterDescription);
 	}
 
 	// DXIL reflection doesn't report descriptor heap accesses
 	const ShaderEntryPointReflection& entryPointReflection = createInformation.GetEntryPointReflection();
-	bytecode->ParameterDescription->Features = entryPointReflection.Features;
+	outBytecode.ParameterDescription->Features = entryPointReflection.Features;
 
-	ComPtr<IDxcBlob> shaderBlob;
-	result = compilationResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
-	if(FAILED(result) || shaderBlob == nullptr)
-	{
-		bytecode->Messages = "Failed to retrieve compiled DXIL shader bytecode.";
-		B3D_LOG(Error, LogRenderBackend, "Failed to compile shader '{0}': {1} (hr={2}).", createInformation.Name, bytecode->Messages, (u32)result);
-		return bytecode;
-	}
-
-	const u32 bytecodeSize = (u32)shaderBlob->GetBufferSize();
-	bytecode->Instructions.Data = (u8*)B3DAllocate(bytecodeSize);
-	bytecode->Instructions.Size = bytecodeSize;
-	memcpy(bytecode->Instructions.Data, shaderBlob->GetBufferPointer(), bytecodeSize);
-
-	return bytecode;
+	return true;
 }

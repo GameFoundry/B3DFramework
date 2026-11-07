@@ -937,8 +937,7 @@ ShaderCompilerResult HLSLCrossCompiler::CrossCompile(const String& hlsl, GpuProg
 	const bool compileMetalSource = target.TargetLanguage != nullptr && StringView(target.TargetLanguage) == "MSL";
 	if(compileMetalSource)
 	{
-		xscTarget.TargetLanguage = Xsc::TargetLanguage::VKSL450;
-		xscTarget.KeepsEntryPointNames = false;
+		xscTarget.TargetLanguage = Xsc::TargetLanguage::HLSL6VK;
 	}
 #endif
 
@@ -965,17 +964,17 @@ ShaderCompilerResult HLSLCrossCompiler::Reflect(const String& hlsl, ShaderReflec
 	outReflection.Parameters = nullptr;
 	outReflection.EntryPoints.clear();
 
-	// Reflection without a target uses Vulkan GLSL, since plain GLSL cannot express the bindless heaps
+	// Reflection without a target uses the Vulkan target
 	HLSLCrossCompileTarget reflectionTarget;
-	reflectionTarget.TargetLanguage = Xsc::TargetLanguage::VKSL450;
-	reflectionTarget.PreprocessorDefine = "OPENGL";
+	reflectionTarget.TargetLanguage = Xsc::TargetLanguage::HLSL6VK;
+	reflectionTarget.PreprocessorDefine = "VULKAN";
 
 	if(target != nullptr)
 		reflectionTarget = *target;
 
 #if B3D_PLATFORM_MACOS
 	if(reflectionTarget.TargetLanguage != nullptr && StringView(reflectionTarget.TargetLanguage) == "MSL")
-		reflectionTarget.TargetLanguage = Xsc::TargetLanguage::VKSL450;
+		reflectionTarget.TargetLanguage = Xsc::TargetLanguage::HLSL6VK;
 #endif
 
 	::CrossCompile(hlsl, GPT_VERTEX_PROGRAM, reflectionTarget, true, startBindingSlot, compileResult, outReflection, true);

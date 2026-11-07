@@ -886,17 +886,22 @@ void GpuBackendTestSuite::TestVulkanStorageBufferAccessReflection()
 	createInformation.Type = GPT_COMPUTE_PROGRAM;
 	createInformation.EntryPoint = "main";
 	createInformation.Source = R"(
-#version 450
-layout(local_size_x = 1) in;
-layout(set = 0, binding = 0, std430) readonly buffer ReadOnlyBlock { vec4 Values[]; } readOnlyData;
-layout(set = 0, binding = 1, std430) buffer WritableBlock { vec4 Values[]; } writableData;
-layout(set = 0, binding = 2, std430) writeonly buffer WriteOnlyBlock { vec4 Values[]; } writeOnlyData;
-layout(set = 0, binding = 3, std430) buffer ReadOnlyMemberBlock { readonly vec4 Values[]; } readOnlyMemberData;
-layout(set = 0, binding = 4, std430) buffer MixedMemberBlock { readonly vec4 Input; vec4 Output; } mixedMemberData;
+StructuredBuffer<float4> readOnlyData : register(t0);
+RWStructuredBuffer<float4> writableData : register(u1);
+RWStructuredBuffer<float4> writeOnlyData : register(u2);
+StructuredBuffer<float4> unusedReadOnlyData : register(t3);
+RWStructuredBuffer<float4> unusedWritableData : register(u4);
+cbuffer UnusedParameters : register(b5)
+{
+	float4 UnusedValue;
+};
+
+[numthreads(1, 1, 1)]
 void main()
 {
-	writeOnlyData.Values[0] = readOnlyData.Values[0] + writableData.Values[0] + readOnlyMemberData.Values[0];
-	mixedMemberData.Output = mixedMemberData.Input;
+	// Passing a resource through a local makes DXC list only the resources this stage reads on the entry point
+	StructuredBuffer<float4> source = readOnlyData;
+	writeOnlyData[0] = source[0] + writableData[0];
 }
 )";
 
@@ -910,6 +915,8 @@ void main()
 	if(bytecode->ParameterDescription == nullptr)
 		return;
 
+	// Resources the entry point never reads must still be reflected, as parameter sets are shared between stages
+	B3D_TEST_ASSERT(bytecode->ParameterDescription->UniformBuffers.count("UnusedParameters") == 1)
 	B3D_TEST_ASSERT(bytecode->ParameterDescription->Buffers.size() == 5)
 	for(const auto& [name, buffer] : bytecode->ParameterDescription->Buffers)
 	{

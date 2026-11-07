@@ -4,7 +4,7 @@
 
 #if B3D_PLATFORM_MACOS
 
-#include "B3DGLSLToSPIRV.h"
+#include "B3DHLSLToSPIRV.h"
 #include "B3DMetalShaderABI.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DGpuBindlessHeap.h"
@@ -20,18 +20,18 @@ using namespace b3d::render;
 namespace
 {
 	/**
-	 * Converts VKSL to SPIR-V and retains the reflection required to configure SPIRV-Cross's MSL ABI. The SPIR-V is
-	 * left unoptimized so every resource the source declares survives into the module: Metal binding indices are
-	 * assigned from the declared resource list, which keeps them identical across the stages of a shader even though
-	 * SPIRV-Cross only emits the resources each stage reads.
+	 * Converts HLSL to SPIR-V and retains the reflection required to configure SPIRV-Cross's MSL ABI. Every resource the
+	 * source declares survives into the module: Metal binding indices are assigned from the declared resource list,
+	 * which keeps them identical across the stages of a shader even though SPIRV-Cross only emits the resources each
+	 * stage reads.
 	 */
-	TShared<GpuProgramBytecode> CompileSpirvBytecode(const String& vkslSource, GpuProgramType programType, const TShared<ShaderReflection>& shaderReflection)
+	TShared<GpuProgramBytecode> CompileSpirvBytecode(const String& hlslSource, GpuProgramType programType, const char* entryPointName, const TShared<ShaderReflection>& shaderReflection)
 	{
-		static GLSLToSPIRV converter("MetalSource", 1, false);
+		static HLSLToSPIRV converter("MetalSource", 2);
 
 		GpuProgramCreateInformation createInformation;
-		createInformation.Source = vkslSource;
-		createInformation.EntryPoint = "main";
+		createInformation.Source = hlslSource;
+		createInformation.EntryPoint = entryPointName;
 		createInformation.Language = "vksl";
 		createInformation.Type = programType;
 		createInformation.ShaderReflection = shaderReflection;
@@ -317,9 +317,8 @@ namespace
 		/** Returns the source-level name of a reflected SPIR-V resource. */
 		String GetResourceName(const spirv_cross::Resource& resource) const
 		{
-			return !resource.name.empty()
-				? String(resource.name.c_str())
-				: String(mCompiler.get_name(resource.id).c_str());
+			// The name of the reflected resource is its type name for buffers, which DXC prefixes with "type."
+			return String(mCompiler.get_name(resource.id).c_str());
 		}
 
 		/** Returns whether a reflected resource is a descriptor heap array, which the device binds instead of a parameter set. */
@@ -429,15 +428,15 @@ namespace
 		bool mValid = true;
 	};
 
-	/** Combined result of internal VKSL-to-MSL translation. */
+	/** Combined result of internal HLSL-to-MSL translation. */
 	struct MetalSourceCompilation
 	{
 		ShaderCompilerResult Result;
 		String MslSource;
 	};
 
-	/** Compiles VKSL to MSL and returns the generated source together with any diagnostics. */
-	MetalSourceCompilation CompileMetalSource(const String& vkslSource, GpuProgramType programType, const TShared<ShaderReflection>& shaderReflection)
+	/** Compiles HLSL to MSL and returns the generated source together with any diagnostics. */
+	MetalSourceCompilation CompileMetalSource(const String& hlslSource, GpuProgramType programType, const TShared<ShaderReflection>& shaderReflection)
 	{
 		MetalSourceCompilation compilation;
 		if(programType != GPT_VERTEX_PROGRAM && programType != GPT_FRAGMENT_PROGRAM && programType != GPT_COMPUTE_PROGRAM)
@@ -446,21 +445,21 @@ namespace
 			return compilation;
 		}
 
-		TShared<GpuProgramBytecode> spirvBytecode = CompileSpirvBytecode(vkslSource, programType, shaderReflection);
+		const char* entryPointName = GetEntryPointName(programType);
+		TShared<GpuProgramBytecode> spirvBytecode = CompileSpirvBytecode(hlslSource, programType, entryPointName, shaderReflection);
 		if(spirvBytecode == nullptr || spirvBytecode->Instructions.Data == nullptr || spirvBytecode->Instructions.Size == 0)
 		{
 			compilation.Result.ErrorMessage = spirvBytecode != nullptr && !spirvBytecode->Messages.empty()
 				? spirvBytecode->Messages
-				: "Failed to compile the VKSL intermediate to SPIR-V for Metal source generation.";
+				: "Failed to compile the HLSL intermediate to SPIR-V for Metal source generation.";
 
 			return compilation;
 		}
 
 		B3D_ASSERT((spirvBytecode->Instructions.Size % sizeof(u32)) == 0);
 
-		spirv_cross::CompilerMSL compiler((u32*)spirvBytecode->Instructions.Data, spirvBytecode->Instructions.Size / sizeof(u32));
+		spirv_cross::CompilerMSL compiler(HLSLToSPIRV::ParseModule((const u32*)spirvBytecode->Instructions.Data, spirvBytecode->Instructions.Size / sizeof(u32)));
 		const spv::ExecutionModel executionModel = GetExecutionModel(programType);
-		compiler.rename_entry_point("main", GetEntryPointName(programType), executionModel);
 
 		const spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 		if(resources.push_constant_buffers.size() > 1)
@@ -469,21 +468,17 @@ namespace
 			return compilation;
 		}
 
-		const u32 pushConstantBufferSize = shaderReflection != nullptr && shaderReflection->EntryPoints.count("main") != 0 ? shaderReflection->EntryPoints.at("main").PushConstantBufferSize : 0;
+		// DXC removes the push-constant block from stages that never read it, so only a block that survived can be checked
+		const bool usesPushConstants = !resources.push_constant_buffers.empty();
+		const u32 pushConstantBufferSize = shaderReflection != nullptr && shaderReflection->EntryPoints.count(entryPointName) != 0 ? shaderReflection->EntryPoints.at(entryPointName).PushConstantBufferSize : 0;
 		const u32 reflectedPushConstantBufferSize = spirvBytecode->ParameterDescription != nullptr ? spirvBytecode->ParameterDescription->PushConstantBufferSize : 0;
-		if(reflectedPushConstantBufferSize != pushConstantBufferSize)
+		if(usesPushConstants && reflectedPushConstantBufferSize != pushConstantBufferSize)
 		{
 			compilation.Result.ErrorMessage = StringUtility::Format("Metal SPIR-V push-constant size mismatch: shader reflection reports {0} bytes but SPIR-V reports {1} bytes.", pushConstantBufferSize, reflectedPushConstantBufferSize);
 			return compilation;
 		}
 
-		if((pushConstantBufferSize != 0) != !resources.push_constant_buffers.empty())
-		{
-			compilation.Result.ErrorMessage = "Metal SPIR-V push-constant presence does not match shader reflection.";
-			return compilation;
-		}
-
-		if(pushConstantBufferSize != 0)
+		if(usesPushConstants)
 		{
 			spirv_cross::MSLResourceBinding pushConstantBinding;
 			pushConstantBinding.stage = executionModel;
@@ -493,6 +488,11 @@ namespace
 			pushConstantBinding.msl_buffer = kMetalPushConstantBufferIndex;
 
 			compiler.add_msl_resource_binding(pushConstantBinding);
+		}
+		else if(pushConstantBufferSize != 0)
+		{
+			// The bytecode compiler expects a block for any non-zero size, and Xsc reports one whether or not it survived
+			shaderReflection->EntryPoints.at(entryPointName).PushConstantBufferSize = 0;
 		}
 
 		spirv_cross::CompilerMSL::Options mslOptions;
@@ -612,7 +612,7 @@ namespace
 			return compilation;
 		}
 
-		if(pushConstantBufferSize != 0 && compilation.MslSource.find(StringUtility::Format("[[buffer({0})]]", kMetalPushConstantBufferIndex)) == String::npos)
+		if(usesPushConstants && compilation.MslSource.find(StringUtility::Format("[[buffer({0})]]", kMetalPushConstantBufferIndex)) == String::npos)
 		{
 			compilation.MslSource.clear();
 			compilation.Result.ErrorMessage = "SPIRV-Cross did not emit the Metal push-constant block at the reserved buffer index.";
@@ -623,22 +623,12 @@ namespace
 	}
 }
 
-ShaderCompilerResult MetalSourceCompiler::Compile(const String& vkslSource, GpuProgramType programType, const TShared<ShaderReflection>& outReflection, String& outMslSource)
+ShaderCompilerResult MetalSourceCompiler::Compile(const String& hlslSource, GpuProgramType programType, const TShared<ShaderReflection>& shaderReflection, String& outMslSource)
 {
 	outMslSource.clear();
 
-	MetalSourceCompilation compilation = CompileMetalSource(vkslSource, programType, outReflection);
+	MetalSourceCompilation compilation = CompileMetalSource(hlslSource, programType, shaderReflection);
 	outMslSource = std::move(compilation.MslSource);
-
-	if(compilation.Result.ErrorMessage.empty() && outReflection != nullptr)
-	{
-		auto entryPoint = outReflection->EntryPoints.extract("main");
-		if(!entryPoint.empty())
-		{
-			entryPoint.key() = GetEntryPointName(programType);
-			outReflection->EntryPoints.insert(std::move(entryPoint));
-		}
-	}
 
 	return std::move(compilation.Result);
 }

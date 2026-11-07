@@ -15,7 +15,7 @@ cd Intermediate
 mkdir -p DependencySources
 cd DependencySources
 
-# Pinned SPIRV-Cross version. Matches Vulkan SDK 1.4.321, same as glslang 15.4.0 in B3DBuildGlslang.sh.
+# Pinned SPIRV-Cross version. Matches Vulkan SDK 1.4.321.
 SPIRV_CROSS_VERSION="vulkan-sdk-1.4.321.0"
 
 # Clone from official KhronosGroup repo

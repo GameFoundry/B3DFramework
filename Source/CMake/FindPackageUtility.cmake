@@ -38,7 +38,7 @@ MACRO(B3DEndFindPackage packageName mainLibraryName)
 	else()
 		set_target_properties(${packageName}::${mainLibraryName} PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${${packageName}_INCLUDE_DIR}")
 
-		# Use -I rather than -isystem so bundled includes take priority over system-installed copies (e.g. the Vulkan SDK installs its own SPIRV-Cross/glslang headers into /usr/local/include, which clang searches before -isystem paths)
+		# Use -I rather than -isystem so bundled includes take priority over system-installed copies (e.g. the Vulkan SDK installs its own SPIRV-Cross headers into /usr/local/include, which clang searches before -isystem paths)
 		set_target_properties(${packageName}::${mainLibraryName} PROPERTIES IMPORTED_NO_SYSTEM TRUE)
 		message(STATUS "...${packageName} OK.")
 	endif()

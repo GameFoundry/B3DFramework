@@ -16,7 +16,7 @@ namespace b3d
 
 		GpuProgramType Type = GPT_VERTEX_PROGRAM;
 		Array<u32, 3> ThreadGroupSize = { 1, 1, 1 }; /**< Compute threads per workgroup. */
-		u32 PushConstantBufferSize = 0; /**< Declared push-constant size in bytes. */
+		u32 PushConstantBufferSize = 0; /**< Declared push-constant size in bytes. On Metal, zero if the stage doesn't keep the block after compilation. */
 		GpuProgramFeatureFlags Features; /**< Optional features the entry point uses. */
 	};
 

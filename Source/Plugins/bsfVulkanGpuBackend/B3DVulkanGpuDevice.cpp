@@ -306,6 +306,7 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	vulkan13Features.pNext = featureChain;
 	vulkan13Features.synchronization2 = VK_TRUE;
 	vulkan13Features.maintenance4 = VK_TRUE;
+	vulkan13Features.shaderDemoteToHelperInvocation = VK_TRUE;
 	featureChain = &vulkan13Features;
 
 	VkPhysicalDeviceDescriptorIndexingFeatures descriptorIndexingFeatures = {};

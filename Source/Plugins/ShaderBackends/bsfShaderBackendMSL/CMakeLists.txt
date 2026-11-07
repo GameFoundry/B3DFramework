@@ -13,7 +13,7 @@ B3DSetDefaultLinkAndCompileFlags(bsfShaderBackendMSL)
 
 target_include_directories(bsfShaderBackendMSL PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
-# The vksl bytecode compiler provides the wrapped GLSLToSPIRV class and brings the engine headers, glslang and SPIRV-Cross.
+# The vksl bytecode compiler provides the wrapped HLSLToSPIRV class and brings the engine headers, DXC and SPIRV-Cross.
 target_link_libraries(bsfShaderBackendMSL PUBLIC bsfShaderBackendVKSL)
 
 set_property(TARGET bsfShaderBackendMSL PROPERTY FOLDER Plugins)

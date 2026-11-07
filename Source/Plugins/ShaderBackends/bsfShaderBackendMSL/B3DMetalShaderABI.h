@@ -61,8 +61,8 @@ namespace b3d
 		inline constexpr const char* kMetalResourceNamePrefix = "b3d_msl_r_";
 
 		/**
-		 * Entry-point name generated MSL uses for the given stage. MSL reserves "main", so the
-		 * vksl -> msl translator renames the VKSL entry to the stage's HLSL-convention name.
+		 * Entry-point name generated MSL uses for the given stage. MSL reserves "main", so programs keep the
+		 * stage's HLSL-convention name.
 		 */
 		inline const char* GetMetalStageEntryPointName(GpuProgramType type)
 		{

@@ -146,16 +146,15 @@ B3D_CMAKE_GENERATOR="Ninja" ./B3DBuildSnappy.sh
   - Requires libogg.
 - Build script: `B3DBuildFLAC.sh`
 
-**glslang**
-- glslang version: 15.4.0 (matches Vulkan SDK 1.4.321)
-- SPIRV-Tools / SPIRV-Headers: pinned transitively via glslang's `known_good.json` (fetched by `update_glslang_sources.py`)
-- https://github.com/KhronosGroup/glslang
-- Required by bsfVulkanGpuBackend
-- Compile as a static library
-- Build script: `B3DBuildGlslang.sh`
+**DirectX Shader Compiler**
+- DirectX Shader Compiler version: v1.9.2609
+- https://github.com/microsoft/DirectXShaderCompiler
+- Required by bsfShaderBackendHLSL and bsfShaderBackendVKSL (DXIL and SPIR-V code generation)
+- Prebuilt release on Windows and Linux, built from the same tag on macOS with `ENABLE_SPIRV_CODEGEN`
+- Build script: `B3DBuildDirectXShaderCompiler.sh`
 
 **SPIRV-Cross**
-- SPIRV-Cross version: vulkan-sdk-1.4.321.0 (matches Vulkan SDK 1.4.321, same as glslang above)
+- SPIRV-Cross version: vulkan-sdk-1.4.321.0 (matches Vulkan SDK 1.4.321)
 - https://github.com/KhronosGroup/SPIRV-Cross
 - Required by bsfShaderBackendVKSL and bsfMetalGpuBackend
 - Compile as a static library

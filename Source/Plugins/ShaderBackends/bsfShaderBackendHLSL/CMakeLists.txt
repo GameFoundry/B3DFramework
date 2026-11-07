@@ -6,13 +6,14 @@ find_package(DirectXShaderCompiler REQUIRED)
 
 # Source files and their filters
 B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" B3D_SHADERBACKENDHLSL_SOURCE_FILES)
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "../Shared/" "" B3D_SHADERBACKENDHLSL_SOURCE_FILES)
 
 add_library(bsfShaderBackendHLSL STATIC ${B3D_SHADERBACKENDHLSL_SOURCE_FILES})
 
 B3DSetDefaultLinkAndCompileFlags(bsfShaderBackendHLSL)
 
 # Public so consumers inherit the headers
-target_include_directories(bsfShaderBackendHLSL PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(bsfShaderBackendHLSL PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/../Shared/")
 
 # Engine headers
 if(B3D_MONOLITHIC_BUILD)
