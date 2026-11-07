@@ -559,6 +559,8 @@ bool PhysX::RayCast(const Vector3& origin, const Vector3& unitDirection, const C
 {
 	const PhysXColliderShape& physxColliderShape = static_cast<const PhysXColliderShape&>(colliderShape);
 	PxShape* const pxShape = physxColliderShape.GetPxShape();
+	if(pxShape == nullptr)
+		return false;
 
 	const PxTransform transform = ToPxTransform(colliderShape.GetPosition(), colliderShape.GetRotation());
 
@@ -586,6 +588,8 @@ bool PhysX::RayCast(const Vector3& origin, const Vector3& unitDirection, const C
 	{
 		const PhysXColliderShape& physxColliderShape = static_cast<const PhysXColliderShape&>(*entry);
 		PxShape* const pxShape = physxColliderShape.GetPxShape();
+		if(pxShape == nullptr)
+			continue;
 
 		const PxTransform shapeTransform = ToPxTransform(entry->GetPosition(), entry->GetRotation());
 		const PxTransform combinedTransform = colliderTransform.transform(shapeTransform);

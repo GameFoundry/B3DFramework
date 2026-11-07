@@ -33,7 +33,8 @@ void MeshCollider::SetMesh(const HPhysicsMesh& mesh)
 	if(mMesh == mesh)
 		return;
 
-	if(GetIsTrigger() && mesh->GetType() == PhysicsMeshType::Triangle)
+	const bool isTriangleMesh = mesh.IsValid() && mesh->GetType() == PhysicsMeshType::Triangle;
+	if(GetIsTrigger() && isTriangleMesh)
 	{
 		B3D_LOG(Warning, LogPhysics, "Triangle meshes are not supported on Trigger colliders.");
 		return;
@@ -41,18 +42,19 @@ void MeshCollider::SetMesh(const HPhysicsMesh& mesh)
 
 	mMesh = mesh;
 
+	// Triangle meshes aren't supported on non-kinematic rigidbodies. The parent must be re-evaluated while the shape holds
+	// geometry that the parent can accept: before switching to a triangle mesh, and after switching away from one.
+	if(isTriangleMesh)
+		RefreshParentRigidbody();
+
 	if(B3D_ENSURE(mShapes.Size() == 1))
 		mShapes[0]->SetShape(MeshColliderShapeInformation(mesh));
 
+	if(!isTriangleMesh)
+		RefreshParentRigidbody();
+
 	if(mParentRigidbody != nullptr)
-	{
-		// If triangle mesh its possible the parent can no longer use this collider (they're not supported for
-		// non-kinematic rigidbodies)
-		if(mMesh.IsLoaded() && mMesh->GetType() == PhysicsMeshType::Triangle)
-			RefreshParentRigidbody();
-		else
-			mParentRigidbody->UpdateMassDistribution();
-	}
+		mParentRigidbody->UpdateMassDistribution();
 }
 
 bool MeshCollider::IsValidParent(const HRigidbody& parent) const

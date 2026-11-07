@@ -43,21 +43,44 @@ void PhysXColliderShape::SetScale(const Vector3& scale)
 	UpdateTransform();
 }
 
+void PhysXColliderShape::AttachToActor(PxRigidActor& actor)
+{
+	mActor = &actor;
+
+	if(mShape != nullptr)
+		actor.attachShape(*mShape);
+}
+
+void PhysXColliderShape::DetachFromActor(PxRigidActor& actor)
+{
+	mActor = nullptr;
+
+	if(mShape != nullptr)
+		actor.detachShape(*mShape);
+}
+
 void PhysXColliderShape::SetContactOffset(float value)
 {
-	mShape->setContactOffset(value);
 	Super::SetContactOffset(value);
+
+	if(mShape != nullptr)
+		mShape->setContactOffset(value);
 }
 
 void PhysXColliderShape::SetRestOffset(float value)
 {
-	mShape->setRestOffset(value);
 	Super::SetRestOffset(value);
+
+	if(mShape != nullptr)
+		mShape->setRestOffset(value);
 }
 
 void PhysXColliderShape::SetMaterial(const HPhysicsMaterial& material)
 {
 	Super::SetMaterial(material);
+
+	if(mShape == nullptr)
+		return;
 
 	PhysXMaterial* physXmaterial = nullptr;
 	if(material.IsValid())
@@ -74,6 +97,11 @@ void PhysXColliderShape::SetMaterial(const HPhysicsMaterial& material)
 
 void PhysXColliderShape::SetIsTrigger(bool value)
 {
+	Super::SetIsTrigger(value);
+
+	if(mShape == nullptr)
+		return;
+
 	if(value)
 	{
 		mShape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, false);
@@ -84,8 +112,6 @@ void PhysXColliderShape::SetIsTrigger(bool value)
 		mShape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, false);
 		mShape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
 	}
-
-	Super::SetIsTrigger(value);
 }
 
 void PhysXColliderShape::SetLayer(u64 layer)
@@ -149,7 +175,10 @@ void PhysXColliderShape::SetShape(const MeshColliderShapeInformation& informatio
 
 	const HPhysicsMesh& mesh = information.Mesh;
 	if(!mesh.IsValid())
+	{
+		DestroyShape();
 		return;
+	}
 
 	PhysXMesh* underlyingMesh = static_cast<PhysXMesh*>(mesh->GetImplementation());
 	if(!B3D_ENSURE(underlyingMesh != nullptr))
@@ -160,6 +189,7 @@ void PhysXColliderShape::SetShape(const MeshColliderShapeInformation& informatio
 	if((isConvex && underlyingMesh->GetPxConvexMesh() == nullptr) || (!isConvex && underlyingMesh->GetPxTriangleMesh() == nullptr))
 	{
 		B3D_LOG(Warning, LogPhysics, "Ignoring a mesh collider shape, because its physics mesh has no valid collision data.");
+		DestroyShape();
 		return;
 	}
 
@@ -198,7 +228,8 @@ void PhysXColliderShape::SetGeometry(const physx::PxGeometry& geometry)
 		PxShape* const newShape = GetPhysX().GetPhysX()->createShape(geometry, *underlyingMaterial, true);
 		newShape->userData = this;
 
-		if(mShape != nullptr)
+		const bool replacingShape = mShape != nullptr;
+		if(replacingShape)
 		{
 			newShape->setLocalPose(mShape->getLocalPose());
 			newShape->setFlags(mShape->getFlags());
@@ -215,23 +246,24 @@ void PhysXColliderShape::SetGeometry(const physx::PxGeometry& geometry)
 				newShape->setMaterials(materials, materialCount);
 				newShape->userData = mShape->userData;
 			}
-
-			PxActor* actor = mShape->getActor();
-			if(actor != nullptr)
-			{
-				PxRigidActor* rigidActor = actor->is<PxRigidActor>();
-				if(rigidActor != nullptr)
-				{
-					rigidActor->detachShape(*mShape);
-					rigidActor->attachShape(*newShape);
-				}
-			}
 		}
 
 		DestroyShape();
 		mShape = newShape;
 
 		SetFilter();
+
+		// Properties might have been assigned before the shape had any geometry
+		if(!replacingShape)
+		{
+			SetContactOffset(mContactOffset);
+			SetRestOffset(mRestOffset);
+			SetIsTrigger(mIsTrigger);
+			UpdateTransform();
+		}
+
+		if(mActor != nullptr)
+			mActor->attachShape(*mShape);
 	}
 	else
 	{
@@ -261,7 +293,8 @@ void PhysXColliderShape::UpdateTransform()
 		}
 	}
 
-	mShape->setLocalPose(ToPxTransform(relativeTransform.GetPosition(), relativeTransform.GetRotation()));
+	if(mShape != nullptr)
+		mShape->setLocalPose(ToPxTransform(relativeTransform.GetPosition(), relativeTransform.GetRotation()));
 
 	if (mWorldSpaceScale != relativeTransform.GetScale())
 	{
@@ -272,6 +305,9 @@ void PhysXColliderShape::UpdateTransform()
 
 void PhysXColliderShape::SetFilter()
 {
+	if(mShape == nullptr)
+		return;
+
 	PxFilterData data;
 	memcpy(&data.word0, &mLayer, sizeof(mLayer));
 
@@ -326,6 +362,9 @@ void PhysXColliderShape::DestroyShape()
 {
 	if(mShape == nullptr)
 		return;
+
+	if(PxRigidActor* const actor = mShape->getActor())
+		actor->detachShape(*mShape);
 
 	mShape->userData = nullptr;
 	mShape->release();

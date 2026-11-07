@@ -232,7 +232,7 @@ bool Collider::SetRigidbody(const HRigidbody& rigidbody)
 			}
 		}
 	}
-	else
+	else if(mImplementation != nullptr) // Null during creation, when the collider is being added to an existing rigidbody
 	{
 		for(auto& shape : mShapes)
 			mImplementation->DetachShape(shape);

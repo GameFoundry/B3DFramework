@@ -39,8 +39,17 @@ namespace b3d
 		void SetShape(const CapsuleColliderShapeInformation& information) override;
 		void SetShape(const MeshColliderShapeInformation& information) override;
 
-		/** Returns the underlying PhysX shape object. */
+		/** Returns the underlying PhysX shape object. Null while the shape has no geometry, such as a mesh shape with no mesh. */
 		physx::PxShape* GetPxShape() const { return mShape; }
+
+		/**
+		 * Attaches the shape to the provided actor. A shape with no geometry doesn't exist in PhysX yet, and is attached
+		 * once it receives its geometry.
+		 */
+		void AttachToActor(physx::PxRigidActor& actor);
+
+		/** Detaches the shape from the actor it was attached to using AttachToActor(). */
+		void DetachFromActor(physx::PxRigidActor& actor);
 
 	protected:
 		/**
@@ -61,6 +70,7 @@ namespace b3d
 		void UpdateTransform() override;
 
 		physx::PxShape* mShape = nullptr;
+		physx::PxRigidActor* mActor = nullptr;
 		ColliderShapeType mShapeType = ColliderShapeType::Plane;
 		Vector3 mWorldSpaceScale = Vector3::kOne;
 	};

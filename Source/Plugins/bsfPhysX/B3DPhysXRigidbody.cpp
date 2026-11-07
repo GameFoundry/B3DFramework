@@ -282,8 +282,7 @@ void PhysXRigidbody::AttachShape(const TShared<ColliderShape>& shape)
 	if(!B3D_ENSURE(shape != nullptr))
 		return;
 
-	const PhysXColliderShape& physxShape = static_cast<const PhysXColliderShape&>(*shape);
-	mPxRigidDynamic->attachShape(*physxShape.GetPxShape());
+	static_cast<PhysXColliderShape&>(*shape).AttachToActor(*mPxRigidDynamic);
 }
 
 void PhysXRigidbody::DetachShape(const TShared<ColliderShape>& shape)
@@ -291,8 +290,7 @@ void PhysXRigidbody::DetachShape(const TShared<ColliderShape>& shape)
 	if(!B3D_ENSURE(shape != nullptr))
 		return;
 
-	const PhysXColliderShape& physxShape = static_cast<const PhysXColliderShape&>(*shape);
-	mPxRigidDynamic->detachShape(*physxShape.GetPxShape());
+	static_cast<PhysXColliderShape&>(*shape).DetachFromActor(*mPxRigidDynamic);
 }
 
 void PhysXRigidbody::AddToScene(PhysicsScene& scene)
