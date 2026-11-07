@@ -365,7 +365,10 @@ load_credentials_file() {
 
 	if [[ "$firstContent" != *"="* ]]; then
 		# Legacy 3-line FTP format
-		mapfile -t creds < <(tr -d '\r' < "$credFile")
+		local creds=()
+		while IFS= read -r line || [ -n "$line" ]; do
+			creds+=("${line%$'\r'}")
+		done < "$credFile"
 		[ -z "$B3D_FTP_URL" ]  && B3D_FTP_URL="${creds[0]:-}"
 		[ -z "$B3D_FTP_USER" ] && B3D_FTP_USER="${creds[1]:-}"
 		[ -z "$B3D_FTP_PASS" ] && B3D_FTP_PASS="${creds[2]:-}"
@@ -412,7 +415,7 @@ credential_file_value() {
 resolve_credential() {
 	local key="$1" value=""
 	if [ -n "$PackagePlatform" ]; then
-		local platformKey="${key}_${PackagePlatform^^}"
+		local platformKey="${key}_$(printf '%s' "$PackagePlatform" | tr '[:lower:]' '[:upper:]')"
 		value="${!platformKey:-}"
 		[ -z "$value" ] && value=$(credential_file_value "$platformKey")
 	fi
