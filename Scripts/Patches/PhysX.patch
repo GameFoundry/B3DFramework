@@ -1,3 +1,93 @@
+diff --git a/physx/include/foundation/PxVecMath.h b/physx/include/foundation/PxVecMath.h
+index 4426347..b27acb0 100644
+--- a/physx/include/foundation/PxVecMath.h
++++ b/physx/include/foundation/PxVecMath.h
+@@ -50,6 +50,8 @@
+ 	#define COMPILE_VECTOR_INTRINSICS 1
+ #elif PX_SWITCH
+ 	#define COMPILE_VECTOR_INTRINSICS 1
++#elif PX_OSX && PX_NEON
++	#define COMPILE_VECTOR_INTRINSICS 1
+ #else
+ 	#define COMPILE_VECTOR_INTRINSICS 0
+ #endif
+diff --git a/physx/include/foundation/unix/neon/PxUnixNeonInlineAoS.h b/physx/include/foundation/unix/neon/PxUnixNeonInlineAoS.h
+index ded56aa..c36682d 100644
+--- a/physx/include/foundation/unix/neon/PxUnixNeonInlineAoS.h
++++ b/physx/include/foundation/unix/neon/PxUnixNeonInlineAoS.h
+@@ -3474,7 +3474,7 @@ PX_FORCE_INLINE VecI32V VecI32V_ReinterpretFrom_Vec4V(Vec4V a)
+ 	return vreinterpretq_s32_f32(a);
+ }
+ 
+-#if !PX_SWITCH
++#if !PX_SWITCH && !PX_OSX
+ template <int index>
+ PX_FORCE_INLINE BoolV BSplatElement(BoolV a)
+ {
+@@ -3500,7 +3500,7 @@ template<> PX_FORCE_INLINE BoolV BSplatElement<2>(BoolV a) { return vdupq_lane_u
+ template<> PX_FORCE_INLINE BoolV BSplatElement<3>(BoolV a) { return vdupq_lane_u32(vget_high_u32(a), 1); }
+ #endif
+ 
+-#if !PX_SWITCH
++#if !PX_SWITCH && !PX_OSX
+ template <int index>
+ PX_FORCE_INLINE VecU32V V4U32SplatElement(VecU32V a)
+ {
+@@ -3526,7 +3526,7 @@ template <> PX_FORCE_INLINE VecU32V V4U32SplatElement<2>(VecU32V a) { return vdu
+ template <> PX_FORCE_INLINE VecU32V V4U32SplatElement<3>(VecU32V a) { return vdupq_lane_u32(vget_high_u32(a), 1); }
+ #endif
+ 
+-#if !PX_SWITCH
++#if !PX_SWITCH && !PX_OSX
+ template <int index>
+ PX_FORCE_INLINE Vec4V V4SplatElement(Vec4V a)
+ {
+diff --git a/physx/source/compiler/cmake/linux/CMakeLists.txt b/physx/source/compiler/cmake/linux/CMakeLists.txt
+index 312cf89..6079916 100644
+--- a/physx/source/compiler/cmake/linux/CMakeLists.txt
++++ b/physx/source/compiler/cmake/linux/CMakeLists.txt
+@@ -104,12 +104,17 @@ SET(GCC_WARNINGS "-Wall -Werror \
+ 	-Wno-use-after-free \
+ ")
+ 
+-IF(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
++# Upstream -Weverything list doesn't track Apple's compiler, and warnings in third party code aren't actionable here
++IF(APPLE)
++	SET(CLANG_WARNINGS "-w")
++ENDIF()
++
++IF(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)$")
+ 	# gw: these optimizations are disabled for now. fp-contract causes floating point inaccuracy and deviation in behavior,
+ 	# tree-vrp and delete-null-pointer-checks cause known bugs on some versions of gcc
+ 	IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+ 		SET(AARCH64_FLAGS "-ffp-contract=off -fno-delete-null-pointer-checks -faligned-new")
+-	ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
++	ELSEIF ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+ 		SET(AARCH64_FLAGS "-ffp-contract=off -Wno-unsupported-floating-point-opt")
+ 	ENDIF()
+ ELSE()
+@@ -118,7 +123,7 @@ ENDIF()
+ 
+ SET(COMMON_CXX_FLAGS "-std=c++14 -D_GLIBCXX_USE_CXX11_ABI=1 -fno-rtti -fno-exceptions -ffunction-sections -fdata-sections -fvisibility=hidden ${AARCH64_FLAGS}")
+ 
+-IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
++IF ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+ 	IF ("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "10.0.0")
+ 		SET(PHYSX_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_CXX_FLAGS} -fstrict-aliasing -Wstrict-aliasing=2 -Wno-shadow ${CLANG_WARNINGS}" CACHE INTERNAL "PhysX CXX")
+ 	ELSE()
+diff --git a/physx/source/compiler/cmake/modules/GetCompilerAndPlatform.cmake b/physx/source/compiler/cmake/modules/GetCompilerAndPlatform.cmake
+index 1198ad3..9cb005c 100644
+--- a/physx/source/compiler/cmake/modules/GetCompilerAndPlatform.cmake
++++ b/physx/source/compiler/cmake/modules/GetCompilerAndPlatform.cmake
+@@ -135,6 +135,8 @@ FUNCTION (GetPlatformBinName PLATFORM_BIN_NAME LIBPATH_SUFFIX)
+ 			SET(RETVAL "linux.x86_64")
+ 		ELSEIF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+ 			SET(RETVAL "linux.aarch64")
++		ELSEIF(APPLE)
++			SET(RETVAL "mac.${CMAKE_SYSTEM_PROCESSOR}")
+ 		ENDIF()
+ 	ENDIF()
+ 
 diff --git a/physx/source/compiler/cmake/modules/NvidiaBuildOptions.cmake b/physx/source/compiler/cmake/modules/NvidiaBuildOptions.cmake
 index e9dc893..3272208 100644
 --- a/physx/source/compiler/cmake/modules/NvidiaBuildOptions.cmake
@@ -24,3 +114,78 @@ index 7d5a87a..429ece1 100644
  SET(PHYSX_COMMON_FLAGS_PROFILE "/O2 ${WINCRT_NDEBUG} /Zi")
  SET(PHYSX_COMMON_FLAGS_RELEASE "/O2 ${WINCRT_NDEBUG} /Zi")
  
+diff --git a/physx/source/foundation/FdTempAllocator.cpp b/physx/source/foundation/FdTempAllocator.cpp
+index 7e07ae5..05eab2c 100644
+--- a/physx/source/foundation/FdTempAllocator.cpp
++++ b/physx/source/foundation/FdTempAllocator.cpp
+@@ -64,7 +64,7 @@ void* PxTempAllocator::allocate(size_t size, const char* filename, PxI32 line)
+ 	if(!size)
+ 		return 0;
+ 
+-	PxU32 index = PxMax(PxHighestSetBit(PxU32(size) + sizeof(Chunk) - 1), sMinIndex);
++	PxU32 index = PxMax(PxHighestSetBit(PxU64(PxU32(size) + sizeof(Chunk) - 1)), sMinIndex);
+ 
+ 	Chunk* chunk = 0;
+ 	if(index < sMaxIndex)
+diff --git a/physx/source/foundation/unix/FdUnixFPU.cpp b/physx/source/foundation/unix/FdUnixFPU.cpp
+index 262bec6..8831c5a 100644
+--- a/physx/source/foundation/unix/FdUnixFPU.cpp
++++ b/physx/source/foundation/unix/FdUnixFPU.cpp
+@@ -32,7 +32,7 @@
+ PX_COMPILE_TIME_ASSERT(8 * sizeof(uint32_t) >= sizeof(fenv_t));
+ #endif
+ 
+-#if PX_OSX
++#if PX_OSX && PX_INTEL_FAMILY
+ // osx defines SIMD as standard for floating point operations.
+ #include <xmmintrin.h>
+ #endif
+@@ -41,7 +41,7 @@ physx::PxFPUGuard::PxFPUGuard()
+ {
+ #if defined(__CYGWIN__)
+ #pragma message "FPUGuard::FPUGuard() is not implemented"
+-#elif PX_OSX
++#elif PX_OSX && PX_INTEL_FAMILY
+ 	mControlWords[0] = _mm_getcsr();
+ 	// set default (disable exceptions: _MM_MASK_MASK) and FTZ (_MM_FLUSH_ZERO_ON), DAZ (_MM_DENORMALS_ZERO_ON: (1<<6))
+ 	_mm_setcsr(_MM_MASK_MASK | _MM_FLUSH_ZERO_ON | (1 << 6));
+@@ -66,7 +66,7 @@ physx::PxFPUGuard::~PxFPUGuard()
+ {
+ #if defined(__CYGWIN__)
+ #pragma message "PxFPUGuard::~PxFPUGuard() is not implemented"
+-#elif PX_OSX
++#elif PX_OSX && PX_INTEL_FAMILY
+ 	// restore control word and clear exception flags
+ 	// (setting exception state flags cause exceptions on the first following fp operation)
+ 	_mm_setcsr(mControlWords[0] & ~_MM_EXCEPT_MASK);
+@@ -82,7 +82,7 @@ PX_FOUNDATION_API void physx::PxEnableFPExceptions()
+ #if PX_LINUX && !defined(__EMSCRIPTEN__)
+ 	feclearexcept(FE_ALL_EXCEPT);
+ 	feenableexcept(FE_INVALID | FE_DIVBYZERO | FE_OVERFLOW);
+-#elif PX_OSX
++#elif PX_OSX && PX_INTEL_FAMILY
+ 	// clear any pending exceptions
+ 	// (setting exception state flags cause exceptions on the first following fp operation)
+ 	uint32_t control = _mm_getcsr() & ~_MM_EXCEPT_MASK;
+@@ -98,7 +98,7 @@ PX_FOUNDATION_API void physx::PxDisableFPExceptions()
+ {
+ #if PX_LINUX && !defined(__EMSCRIPTEN__)
+ 	fedisableexcept(FE_ALL_EXCEPT);
+-#elif PX_OSX
++#elif PX_OSX && PX_INTEL_FAMILY
+ 	// clear any pending exceptions
+ 	// (setting exception state flags cause exceptions on the first following fp operation)
+ 	uint32_t control = _mm_getcsr() & ~_MM_EXCEPT_MASK;
+diff --git a/physx/source/physxextensions/src/serialization/SnSerialUtils.cpp b/physx/source/physxextensions/src/serialization/SnSerialUtils.cpp
+index 87f7e44..81dae75 100644
+--- a/physx/source/physxextensions/src/serialization/SnSerialUtils.cpp
++++ b/physx/source/physxextensions/src/serialization/SnSerialUtils.cpp
+@@ -81,7 +81,7 @@ PxU32 getBinaryPlatformTag()
+ 	return sBinaryPlatformTags[3];
+ #elif PX_OSX && PX_X86
+ 	return sBinaryPlatformTags[4];
+-#elif PX_OSX && PX_X64
++#elif PX_OSX && (PX_X64 || PX_A64)
+ 	return sBinaryPlatformTags[5];
+ #elif PX_SWITCH && !PX_A64
+ 	return sBinaryPlatformTags[6];

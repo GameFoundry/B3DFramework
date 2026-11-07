@@ -20,6 +20,19 @@ if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
 	esac
 
 	PhysXPlatformArgs="-A x64 -DTARGET_BUILD_PLATFORM=windows -DPX_OUTPUT_ARCH=x86"
+elif [[ "$Platform" == "darwin"* ]]; then
+	# The release and checked builds below need a multi-config generator, see above.
+	case "$CMakeGenerator" in
+		"Ninja Multi-Config") ;;
+		*)
+			echo "[Error] Building PhysX on macOS requires the Ninja Multi-Config generator, but B3D_CMAKE_GENERATOR is '$CMakeGenerator'."
+			exit 1
+			;;
+	esac
+
+	# PhysX 5 no longer ships macOS project files, but its Unix sources still support Apple platforms, so the Linux
+	# project files are reused with the changes from the patch below.
+	PhysXPlatformArgs="-DTARGET_BUILD_PLATFORM=linux -DPX_OUTPUT_ARCH=arm"
 elif [ -z "$PhysXPlatformArgs" ]; then
 	# Other targets provide PhysXPlatformArgs, and optionally PhysXPlatformPatch, in their platform build fragment
 	echo "[Error] Building PhysX is not supported on platform '$Platform'."
@@ -59,6 +72,7 @@ PhysXRoot="$(pwd)/physx"
 # Apply patch. PhysX's "checked" configuration uses the release CRT, while Banshee's Debug configuration (which maps to
 # checked, see below) uses the debug CRT. The libraries are static, so the mismatch fails the link with LNK2038. The
 # patch builds checked against the debug CRT with _DEBUG instead of NDEBUG, the same as PhysX's own debug configuration.
+# It also ports the Linux project files and the Unix sources to Apple Silicon, including enabling NEON vector math there.
 echo "Applying PhysX patch..."
 git apply "$CurrentDirectory/Patches/PhysX.patch" || exit 1
 if [ -n "$PhysXPlatformPatch" ]; then
