@@ -127,7 +127,9 @@ void PhysXEventCallback::onTrigger(PxTriggerPair* pairs, PxU32 count)
 	for(PxU32 i = 0; i < count; i++)
 	{
 		const PxTriggerPair& pair = pairs[i];
-		if(pair.triggerShape->userData == nullptr)
+
+		// PhysX forbids accessing a removed shape, and without the trigger there is nothing to report the event to
+		if(pair.flags.isSet(PxTriggerPairFlag::eREMOVED_SHAPE_TRIGGER) || pair.triggerShape->userData == nullptr)
 			continue;
 
 		PhysXScene::ContactEventType type;
@@ -175,7 +177,7 @@ void PhysXEventCallback::onTrigger(PxTriggerPair* pairs, PxU32 count)
 
 		PhysXScene::TriggerEvent event;
 		event.Trigger = (ColliderShape*)pair.triggerShape->userData;
-		event.Other = (ColliderShape*)pair.otherShape->userData;
+		event.Other = pair.flags.isSet(PxTriggerPairFlag::eREMOVED_SHAPE_OTHER) ? nullptr : (ColliderShape*)pair.otherShape->userData;
 		event.Type = type;
 
 		mScene.ReportTriggerEvent(event);
@@ -233,8 +235,9 @@ void PhysXEventCallback::onContact(const PxContactPairHeader& pairHeader, const 
 			}
 		}
 
-		event.ColliderShapeA = (ColliderShape*)pair.shapes[0]->userData;
-		event.ColliderShapeB = (ColliderShape*)pair.shapes[1]->userData;
+		// PhysX forbids accessing a removed shape
+		event.ColliderShapeA = pair.flags.isSet(PxContactPairFlag::eREMOVED_SHAPE_0) ? nullptr : (ColliderShape*)pair.shapes[0]->userData;
+		event.ColliderShapeB = pair.flags.isSet(PxContactPairFlag::eREMOVED_SHAPE_1) ? nullptr : (ColliderShape*)pair.shapes[1]->userData;
 
 		mScene.ReportContactEvent(event);
 	}
@@ -346,47 +349,53 @@ void SetUnmappedTriangleIndex(PxU32 faceIndex, const PxShape* shape, PhysicsQuer
 
 void ParseHit(const PxRaycastHit& input, PhysicsQueryHit& output, PxShape* shapeHint = nullptr)
 {
+	PxShape* const shape = shapeHint ? shapeHint : input.shape;
+
 	output.Point = FromPxVector(input.position);
 	output.Normal = FromPxVector(input.normal);
 	output.Distance = input.distance;
 	output.TriangleIdx = input.faceIndex;
-	SetUnmappedTriangleIndex(input.faceIndex, shapeHint ? shapeHint : input.shape, output);
+	SetUnmappedTriangleIndex(input.faceIndex, shape, output);
 	output.Uv = Vector2(input.u, input.v);
 
 	ColliderShape* colliderShape = nullptr;
-	if(input.shape)
-		colliderShape = (ColliderShape*)input.shape->userData;
+	if(shape)
+		colliderShape = (ColliderShape*)shape->userData;
 
 	if(colliderShape != nullptr)
 	{
 		Collider* const collider = colliderShape->GetParentCollider();
 		if(collider != nullptr)
+		{
 			output.Collider = B3DStaticGameObjectCast<Collider>(collider->GetHandle());
-
-		output.ColliderShape = collider->GetShapes()[colliderShape->GetShapeIndexInParent()];
+			output.ColliderShape = collider->GetShapes()[colliderShape->GetShapeIndexInParent()];
+		}
 	}
 }
 
 void ParseHit(const PxSweepHit& input, PhysicsQueryHit& output, PxShape* shapeHint = nullptr)
 {
+	PxShape* const shape = shapeHint ? shapeHint : input.shape;
+
 	output.Point = FromPxVector(input.position);
 	output.Normal = FromPxVector(input.normal);
 	output.Uv = Vector2::kZero;
 	output.Distance = input.distance;
 	output.TriangleIdx = input.faceIndex;
-	SetUnmappedTriangleIndex(input.faceIndex, shapeHint ? shapeHint : input.shape, output);
+	SetUnmappedTriangleIndex(input.faceIndex, shape, output);
 
 	ColliderShape* colliderShape = nullptr;
-	if(input.shape)
-		colliderShape = (ColliderShape*)input.shape->userData;
+	if(shape)
+		colliderShape = (ColliderShape*)shape->userData;
 
 	if(colliderShape != nullptr)
 	{
 		Collider* const collider = colliderShape->GetParentCollider();
 		if(collider != nullptr)
+		{
 			output.Collider = B3DStaticGameObjectCast<Collider>(collider->GetHandle());
-
-		output.ColliderShape = collider->GetShapes()[colliderShape->GetShapeIndexInParent()];
+			output.ColliderShape = collider->GetShapes()[colliderShape->GetShapeIndexInParent()];
+		}
 	}
 }
 
@@ -566,7 +575,7 @@ bool PhysX::RayCast(const Vector3& origin, const Vector3& unitDirection, const C
 
 bool PhysX::RayCast(const Vector3& origin, const Vector3& unitDirection, const Collider& collider, PhysicsQueryHit& hit, float maxDistance) const
 {
-	float nearestHitDistance = FLT_MIN;
+	float nearestHitDistance = FLT_MAX;
 	bool isAnythingHit = false;
 
 	const Transform& transform = collider.SceneObject()->GetTransform();
@@ -794,7 +803,7 @@ bool PhysXScene::SphereCast(const Sphere& sphere, const Vector3& unitDir, Physic
 bool PhysXScene::CapsuleCast(const Capsule& capsule, const Quaternion& rotation, const Vector3& unitDir, PhysicsQueryHit& hit, u64 layer, float max) const
 {
 	PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
-	PxTransform transform = ToPxTransform(capsule.GetCenter(), Quaternion::kIdentity);
+	PxTransform transform = ToPxTransform(capsule.GetCenter(), rotation);
 
 	return Sweep(geometry, transform, unitDir, hit, layer, max);
 }
@@ -845,7 +854,7 @@ Vector<PhysicsQueryHit> PhysXScene::SphereCastAll(const Sphere& sphere, const Ve
 Vector<PhysicsQueryHit> PhysXScene::CapsuleCastAll(const Capsule& capsule, const Quaternion& rotation, const Vector3& unitDir, u64 layer, float max) const
 {
 	PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
-	PxTransform transform = ToPxTransform(capsule.GetCenter(), Quaternion::kIdentity);
+	PxTransform transform = ToPxTransform(capsule.GetCenter(), rotation);
 
 	return SweepAll(geometry, transform, unitDir, layer, max);
 }
@@ -895,7 +904,7 @@ bool PhysXScene::SphereCastAny(const Sphere& sphere, const Vector3& unitDir, u64
 bool PhysXScene::CapsuleCastAny(const Capsule& capsule, const Quaternion& rotation, const Vector3& unitDir, u64 layer, float max) const
 {
 	PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
-	PxTransform transform = ToPxTransform(capsule.GetCenter(), Quaternion::kIdentity);
+	PxTransform transform = ToPxTransform(capsule.GetCenter(), rotation);
 
 	return SweepAny(geometry, transform, unitDir, layer, max);
 }
@@ -934,7 +943,7 @@ Vector<ColliderShape*> PhysXScene::SphereOverlapInternal(const Sphere& sphere, u
 Vector<ColliderShape*> PhysXScene::CapsuleOverlapInternal(const Capsule& capsule, const Quaternion& rotation, u64 layer) const
 {
 	PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
-	PxTransform transform = ToPxTransform(capsule.GetCenter(), Quaternion::kIdentity);
+	PxTransform transform = ToPxTransform(capsule.GetCenter(), rotation);
 
 	return Overlap(geometry, transform, layer);
 }
@@ -973,7 +982,7 @@ bool PhysXScene::SphereOverlapAny(const Sphere& sphere, u64 layer) const
 bool PhysXScene::CapsuleOverlapAny(const Capsule& capsule, const Quaternion& rotation, u64 layer) const
 {
 	PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
-	PxTransform transform = ToPxTransform(capsule.GetCenter(), Quaternion::kIdentity);
+	PxTransform transform = ToPxTransform(capsule.GetCenter(), rotation);
 
 	return OverlapAny(geometry, transform, layer);
 }
@@ -1067,7 +1076,7 @@ u32 PhysXScene::AddBroadPhaseRegion(const AABox& region)
 	u32 handle = mScene->addBroadPhaseRegion(pxRegion, true);
 	mBroadPhaseRegionHandles[id] = handle;
 
-	return handle;
+	return id;
 }
 
 void PhysXScene::RemoveBroadPhaseRegion(u32 regionId)

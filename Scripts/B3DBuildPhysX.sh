@@ -20,7 +20,8 @@ if [[ "$Platform" == "win32" || "$Platform" == "msys" ]]; then
 	esac
 
 	PhysXPlatformArgs="-A x64 -DTARGET_BUILD_PLATFORM=windows -DPX_OUTPUT_ARCH=x86"
-else
+elif [ -z "$PhysXPlatformArgs" ]; then
+	# Other targets provide PhysXPlatformArgs, and optionally PhysXPlatformPatch, in their platform build fragment
 	echo "[Error] Building PhysX is not supported on platform '$Platform'."
 	exit 1
 fi
@@ -49,8 +50,9 @@ if ! git cat-file -e "$PHYSX_COMMIT^{commit}" 2>/dev/null; then
 	git fetch --depth 1 origin $PHYSX_COMMIT || exit 1
 fi
 
-# Forced checkout also reverts the patch applied by a previous run
+# Forced checkout and clean also revert the patches applied by a previous run, including the files they added
 git checkout -q --force $PHYSX_COMMIT || exit 1
+git clean -fdq -- physx || exit 1
 
 PhysXRoot="$(pwd)/physx"
 
@@ -59,6 +61,9 @@ PhysXRoot="$(pwd)/physx"
 # patch builds checked against the debug CRT with _DEBUG instead of NDEBUG, the same as PhysX's own debug configuration.
 echo "Applying PhysX patch..."
 git apply "$CurrentDirectory/Patches/PhysX.patch" || exit 1
+if [ -n "$PhysXPlatformPatch" ]; then
+	git apply "$PhysXPlatformPatch" || exit 1
+fi
 
 # Setup output folders
 OutputFolder="$PlatformDependencyFolder/PhysX"

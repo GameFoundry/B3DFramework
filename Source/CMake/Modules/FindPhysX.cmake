@@ -7,7 +7,7 @@
 
 B3DStartFindPackage(PhysX)
 
-set(PhysX_BUNDLED_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/PhysX)
+B3DGetBundledDependencyFolder(PhysX PhysX_BUNDLED_INSTALL_DIR)
 if(B3D_USE_BUNDLED_LIBRARIES OR NOT PhysX_INSTALL_DIR)
 	set(PhysX_INSTALL_DIR ${PhysX_BUNDLED_INSTALL_DIR} CACHE PATH "Path to PhysX dependency" FORCE)
 endif()

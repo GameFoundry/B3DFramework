@@ -155,7 +155,15 @@ void PhysXColliderShape::SetShape(const MeshColliderShapeInformation& informatio
 	if(!B3D_ENSURE(underlyingMesh != nullptr))
 		return;
 
-	if(mesh->GetType() == PhysicsMeshType::Convex)
+	// A mesh that failed to cook or load has no PhysX mesh, and PhysX cannot create a shape without one
+	const bool isConvex = mesh->GetType() == PhysicsMeshType::Convex;
+	if((isConvex && underlyingMesh->GetPxConvexMesh() == nullptr) || (!isConvex && underlyingMesh->GetPxTriangleMesh() == nullptr))
+	{
+		B3D_LOG(Warning, LogPhysics, "Ignoring a mesh collider shape, because its physics mesh has no valid collision data.");
+		return;
+	}
+
+	if(isConvex)
 	{
 		PxConvexMeshGeometry geometry;
 		geometry.scale = PxMeshScale(ToPxVector(mWorldSpaceScale), PxIdentity);

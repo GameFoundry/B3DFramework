@@ -95,6 +95,11 @@ LimitLinear PhysXD6Joint::GetLimitLinear() const
 
 void PhysXD6Joint::SetLimitLinear(const LimitLinear& limit)
 {
+	// PhysX requires a positive extent, and a default limit has none. Only checked builds of PhysX reject it, so without
+	// this check a limited linear axis would behave differently between configurations.
+	if(limit.Extent <= 0.0f)
+		return;
+
 	PxJointLinearLimit pxLimit(limit.Extent);
 	pxLimit.stiffness = limit.Spring.Stiffness;
 	pxLimit.damping = limit.Spring.Damping;
