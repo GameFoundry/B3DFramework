@@ -96,8 +96,6 @@ void Collider::SetCollisionReportMode(CollisionReportMode mode)
 
 void Collider::OnCreated()
 {
-	const Vector3& scale = SceneObject()->GetTransform().GetScale();
-
 	if(!RefreshParentRigidbody())
 	{
 		const bool updateShapeTransforms = false; // No need as we update them below. Avoid double work.
@@ -114,8 +112,7 @@ void Collider::OnCreated()
 		shape->SetRestOffset(mRestOffset);
 		shape->SetLayer(mLayer);
 		shape->SetMass(mMass);
-		shape->SetScale(scale);
-		// shape->UpdateTransform(); called implicitly by SetScale
+		shape->UpdateTransform(); // Applies the scene object's scale, now that the parent collider is set
 	}
 
 	B3D_ASSERT(mImplementation == nullptr);
@@ -235,7 +232,7 @@ bool Collider::SetRigidbody(const HRigidbody& rigidbody)
 			}
 		}
 	}
-	else
+	else if(mImplementation != nullptr) // Null during creation, when the collider is being added to an existing rigidbody
 	{
 		for(auto& shape : mShapes)
 			mImplementation->DetachShape(shape);

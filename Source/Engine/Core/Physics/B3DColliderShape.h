@@ -302,8 +302,8 @@ namespace b3d
 		float mRestOffset = 0.0f;
 		float mContactOffset = 0.02f;
 		CollisionReportMode mCollisionReportMode = CollisionReportMode::None;
-		bool mContinuousCollisionDetectionEnabled;
-		bool mIsTrigger;
+		bool mContinuousCollisionDetectionEnabled = false;
+		bool mIsTrigger = false;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

@@ -48,21 +48,24 @@ namespace b3d
 			B3D_RTTI_MEMBER_CONTAINER_NAMED(mD6JointDrive, mInformation.Drive, 1)
 
 			B3D_RTTI_MEMBER_NAMED(mLimitLinearExtent, mInformation.LimitLinear.Extent, 5)
-			B3D_RTTI_MEMBER_NAMED(mLimitLinearContactDist, mInformation.LimitTwist.ContactDist, 6)
-			B3D_RTTI_MEMBER_NAMED(mLimitLinearRestitution, mInformation.LimitTwist.Restitution, 7)
-			B3D_RTTI_MEMBER_NAMED(mLimitLinearSpringDamping, mInformation.LimitTwist.Spring.Damping, 8)
-			B3D_RTTI_MEMBER_NAMED(mLimitLinearSpringStiffness, mInformation.LimitTwist.Spring.Stiffness, 9)
+			// B3D_RTTI_MEMBER_NAMED(mLimitLinearContactDist, mInformation.LimitTwist.ContactDist, 6)
+			// B3D_RTTI_MEMBER_NAMED(mLimitLinearRestitution, mInformation.LimitTwist.Restitution, 7)
+			// B3D_RTTI_MEMBER_NAMED(mLimitLinearSpringDamping, mInformation.LimitTwist.Spring.Damping, 8)
+			// B3D_RTTI_MEMBER_NAMED(mLimitLinearSpringStiffness, mInformation.LimitTwist.Spring.Stiffness, 9)
+			B3D_RTTI_MEMBER_NAMED(mLimitLinearRestitution, mInformation.LimitLinear.Restitution, 27)
+			B3D_RTTI_MEMBER_NAMED(mLimitLinearSpringDamping, mInformation.LimitLinear.Spring.Damping, 28)
+			B3D_RTTI_MEMBER_NAMED(mLimitLinearSpringStiffness, mInformation.LimitLinear.Spring.Stiffness, 29)
 
 			B3D_RTTI_MEMBER_NAMED(mLimitTwistLower, mInformation.LimitTwist.Lower, 10)
 			B3D_RTTI_MEMBER_NAMED(mLimitTwistUpper, mInformation.LimitTwist.Upper, 11)
-			B3D_RTTI_MEMBER_NAMED(mLimitTwistContactDist, mInformation.LimitTwist.ContactDist, 12)
+			// B3D_RTTI_MEMBER_NAMED(mLimitTwistContactDist, mInformation.LimitTwist.ContactDist, 12)
 			B3D_RTTI_MEMBER_NAMED(mLimitTwistRestitution, mInformation.LimitTwist.Restitution, 13)
 			B3D_RTTI_MEMBER_NAMED(mLimitTwistSpringDamping, mInformation.LimitTwist.Spring.Damping, 14)
 			B3D_RTTI_MEMBER_NAMED(mLimitTwistSpringStiffness, mInformation.LimitTwist.Spring.Stiffness, 15)
 
 			B3D_RTTI_MEMBER_NAMED(mLimitSwingYLimitAngle, mInformation.LimitSwing.YLimitAngle, 16)
 			B3D_RTTI_MEMBER_NAMED(mLimitSwingZLimitAngle, mInformation.LimitSwing.ZLimitAngle, 17)
-			B3D_RTTI_MEMBER_NAMED(mLimitSwingContactDist, mInformation.LimitSwing.ContactDist, 18)
+			// B3D_RTTI_MEMBER_NAMED(mLimitSwingContactDist, mInformation.LimitSwing.ContactDist, 18)
 			B3D_RTTI_MEMBER_NAMED(mLimitSwingRestitution, mInformation.LimitSwing.Restitution, 19)
 			B3D_RTTI_MEMBER_NAMED(mLimitSwingSpringDamping, mInformation.LimitSwing.Spring.Damping, 20)
 			B3D_RTTI_MEMBER_NAMED(mLimitSwingSpringStiffness, mInformation.LimitSwing.Spring.Stiffness, 21)
@@ -71,6 +74,7 @@ namespace b3d
 			B3D_RTTI_MEMBER_NAMED(mDriveRotation, mInformation.DriveRotation, 23)
 			B3D_RTTI_MEMBER_NAMED(mDriveLinearVelocity, mInformation.DriveLinearVelocity, 24)
 			B3D_RTTI_MEMBER_NAMED(mDriveAngularVelocity, mInformation.DriveAngularVelocity, 25)
+			B3D_RTTI_MEMBER_NAMED(mAngularDriveMode, mInformation.AngularDriveMode, 26)
 		B3D_RTTI_END_MEMBERS
 
 	public:

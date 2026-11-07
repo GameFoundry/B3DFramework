@@ -42,6 +42,7 @@ Match the surrounding code. The rules below are the ones most often gotten wrong
 
 - All types must provide constructors; do not use aggregate brace initialization anywhere.
 - Never use `dynamic_cast` (the engine is built without C++ RTTI on some platforms).
+- Never delete a field from an RTTI type or change what its ID stores. Comment out the old `B3D_RTTI_MEMBER*` line so it stays visible that the ID was used, and give any replacement a new ID. Never re-use an ID, because existing saved data still holds values under it.
 - Don't surround single-line blocks with `{}`.
 - Do not introduce private or internal helper methods with only one caller; inline the code at the call site with a short implementation comment instead.
 - Prefer keeping statements, function calls, declarations, and conditions on a single line, even when long. Do not enforce a fixed maximum line length.

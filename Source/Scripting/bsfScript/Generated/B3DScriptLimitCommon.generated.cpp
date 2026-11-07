@@ -25,7 +25,6 @@ namespace b3d
 	LimitCommon ScriptLimitCommon::FromInterop(const __LimitCommonInterop& value)
 	{
 		LimitCommon output;
-		output.ContactDist = value.ContactDist;
 		output.Restitution = value.Restitution;
 		output.Spring = value.Spring;
 
@@ -35,7 +34,6 @@ namespace b3d
 	__LimitCommonInterop ScriptLimitCommon::ToInterop(const LimitCommon& value)
 	{
 		__LimitCommonInterop output;
-		output.ContactDist = value.ContactDist;
 		output.Restitution = value.Restitution;
 		output.Spring = value.Spring;
 

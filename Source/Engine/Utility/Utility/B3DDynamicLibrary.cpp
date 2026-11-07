@@ -40,5 +40,6 @@ DynamicLibrary::DynamicLibrary(String name)
 
 DynamicLibrary::~DynamicLibrary()
 {
-	Unload();
+	if(!mKeepLoadedUntilExit)
+		Unload();
 }

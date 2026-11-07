@@ -113,7 +113,7 @@ PxQueryHitType::Enum PhysXCharacterController::preFilter(const PxFilterData& fil
 	return PxQueryHitType::eNONE;
 }
 
-PxQueryHitType::Enum PhysXCharacterController::postFilter(const PxFilterData& filterData, const PxQueryHit& hit)
+PxQueryHitType::Enum PhysXCharacterController::postFilter(const PxFilterData& filterData, const PxQueryHit& hit, const PxShape* shape, const PxRigidActor* actor)
 {
 	return PxQueryHitType::eBLOCK;
 }

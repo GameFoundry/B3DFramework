@@ -94,7 +94,7 @@ namespace b3d
 		void onObstacleHit(const physx::PxControllerObstacleHit& hit) override { /* Do nothing */ }
 
 		physx::PxQueryHitType::Enum preFilter(const physx::PxFilterData& filterData, const physx::PxShape* shape, const physx::PxRigidActor* actor, physx::PxHitFlags& queryFlags) override;
-		physx::PxQueryHitType::Enum postFilter(const physx::PxFilterData& filterData, const physx::PxQueryHit& hit) override;
+		physx::PxQueryHitType::Enum postFilter(const physx::PxFilterData& filterData, const physx::PxQueryHit& hit, const physx::PxShape* shape, const physx::PxRigidActor* actor) override;
 		bool filter(const physx::PxController& a, const physx::PxController& b) override;
 
 		CharacterController& mOwner;

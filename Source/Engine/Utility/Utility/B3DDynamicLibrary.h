@@ -39,6 +39,12 @@ namespace b3d
 		/** Unloads the library. Does nothing if library is not loaded. */
 		void Unload();
 
+		/**
+		 * Keeps the library mapped until the process exits, even after this object is destroyed. For libraries that leave
+		 * threads or other callbacks running after their own shutdown.
+		 */
+		void KeepLoadedUntilExit() { mKeepLoadedUntilExit = true; }
+
 		/** Get the name of the library. */
 		const String& GetName() const { return mName; }
 
@@ -62,6 +68,7 @@ namespace b3d
 	protected:
 		const String mName;
 		void* mHandle = nullptr;
+		bool mKeepLoadedUntilExit = false;
 	};
 
 	/** @} */

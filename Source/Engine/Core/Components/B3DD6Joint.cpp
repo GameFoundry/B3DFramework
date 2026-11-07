@@ -97,6 +97,17 @@ void D6Joint::SetLimitSwing(const LimitConeRange& limit)
 		GetImplementation().SetLimitSwing(limit);
 }
 
+void D6Joint::SetAngularDriveMode(D6JointAngularDriveMode mode)
+{
+	if(mInformation.AngularDriveMode == mode)
+		return;
+
+	mInformation.AngularDriveMode = mode;
+
+	if(mImplementation != nullptr)
+		GetImplementation().SetAngularDriveMode(mode, mInformation.Drive);
+}
+
 D6JointDrive D6Joint::GetDrive(D6JointDriveType type) const
 {
 	return mInformation.Drive[(int)type];

@@ -27,7 +27,6 @@ namespace b3d
 		LimitLinearRange output;
 		output.Lower = value.Lower;
 		output.Upper = value.Upper;
-		output.ContactDist = value.ContactDist;
 		output.Restitution = value.Restitution;
 		output.Spring = value.Spring;
 
@@ -39,7 +38,6 @@ namespace b3d
 		__LimitLinearRangeInterop output;
 		output.Lower = value.Lower;
 		output.Upper = value.Upper;
-		output.ContactDist = value.ContactDist;
 		output.Restitution = value.Restitution;
 		output.Spring = value.Spring;
 

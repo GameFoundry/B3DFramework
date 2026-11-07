@@ -179,8 +179,6 @@ Rotation around the X axis cannot be limited using this joint type and is always
 
 You can also specify a **Spring** parameter as @b3d::LimitConeRange::Spring, which controls how the body is pulled back after the limit has been breached. Its values have the same meaning as we described earlier.
 
-Finally, you can specify a contact distance parameter as @b3d::LimitConeRange::ContactDist, which ensures springs have enough time to activate before the body goes past the valid range. This is similar to the tolerance value we talked about regarding distance joints.
-
 ~~~~~~~~~~~~~{.cpp}
 // A limit representing a 90 degree cone, with a soft limit
 LimitConeRange limit;
@@ -188,7 +186,6 @@ limit.YLimitAngle = Degree(90.0f);
 limit.ZLimitAngle = Degree(90.0f);
 
 limit.Restitution = 0.8f;
-limit.ContactDist = -1.0f;
 limit.Spring.Stiffness = 1.0f;
 limit.Spring.Damping = 1.0f;
 
@@ -196,7 +193,7 @@ joint->SetLimit(limit);
 joint->SetFlag(SphericalJointFlag::Limit, true);
 ~~~~~~~~~~~~~
 
-Note that all the joint types that are about to follow have these four properties in their *Limit* structures, so we won't talk about them any further.
+Note that all the joint types that are about to follow have these properties in their *Limit* structures, so we won't talk about them any further.
 
 ## Slider joint
 As the name implies slider joint constrains the body movement to slide along a single axis (X axis in particular). No movement along other axes, or rotation is allowed. For example this could be used for modeling some kind of a piston moving up and down.
@@ -427,6 +424,12 @@ Each degree of freedom can optionally be assigned a drive, which applies either 
 You enable the drive for a specific degree of freedom by calling @b3d::D6Joint::SetDrive, and providing a parameter of type @b3d::D6JointDrive and the type of drive @b3d::D6JointDriveType.
 
 Supported drive types are all the degrees of freedom, as well as a special @b3d::D6JointDriveType::SLERP drive type that performs rotation along all three axes at once.
+
+Linear drives always apply. Rotation can be driven in one of two ways, which you select by calling @b3d::D6Joint::SetAngularDriveMode:
+ - @b3d::D6JointAngularDriveMode::SwingTwist - Each angular axis is driven separately, using the **Twist**, **SwingY** and **SwingZ** drives. This is the default.
+ - @b3d::D6JointAngularDriveMode::SLERP - All angular axes are driven together along the shortest rotation, using the **SLERP** drive. The drive has no effect unless all three angular axes are unlocked.
+
+Drives that belong to the other mode keep their values but have no effect, so you can set the drives and the mode in any order.
 
 **D6JointDrive** contains a set of properties:
  - @b3d::D6JointDrive::Stiffness - Similar purpose as with spring stiffness, except it is used for driving the object instead of stopping it.

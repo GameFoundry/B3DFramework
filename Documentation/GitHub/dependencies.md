@@ -106,10 +106,10 @@ B3D_CMAKE_GENERATOR="Ninja" ./B3DBuildSnappy.sh
 - Build script: `B3DBuildFreeImage.sh`
 
 **PhysX**
-- PhysX 3.4
-- https://github.com/NVIDIAGameWorks/PhysX (branch *3.4*)
+- PhysX 5.9.0
+- https://github.com/NVIDIA-Omniverse/PhysX (tag *110.1-omni-and-physx-5.9.0*)
 - Required by bsfPhysX
-- Compile as a dynamic library on Windows, static library on Linux/macOS (default)
+- Compile as a static library, CPU simulation only
 - Build script: `B3DBuildPhysX.sh`
 
 **OpenAL**

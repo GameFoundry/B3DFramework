@@ -34,27 +34,28 @@ namespace b3d
 		Count
 	};
 
+	/** Determines how the angular drives of a D6 joint rotate the bodies towards the drive target. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) D6JointAngularDriveMode
+	{
+		/** Each angular axis is driven separately, using the Twist, SwingY and SwingZ drives. */
+		SwingTwist,
+		/**
+		 * All angular axes are driven together along the shortest rotation, using the SLERP drive. Has no effect unless
+		 * the Twist, SwingY and SwingZ axes are all unlocked.
+		 */
+		SLERP
+	};
+
 	/** Type of drives that can be used for moving or rotating bodies attached to the joint. */
 	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) D6JointDriveType
 	{
-		X, /**< Linear movement on the X axis using the linear drive model. */
-		Y, /**< Linear movement on the Y axis using the linear drive model. */
-		Z, /**< Linear movement on the Z axis using the linear drive model. */
-		/**
-		 * Rotation around the Y axis using the twist/swing angular drive model. Should not be used together with
-		 * SLERP mode.
-		 */
-		Swing,
-		/**
-		 * Rotation around the Z axis using the twist/swing angular drive model. Should not be used together with
-		 * SLERP mode.
-		 */
-		Twist,
-		/**
-		 * Rotation using spherical linear interpolation. Uses the SLERP angular drive mode which performs rotation
-		 * by interpolating the quaternion values directly over the shortest path (applies to all three axes, which
-		 * they all must be unlocked).
-		 */
+		X, /**< Linear movement on the X axis. */
+		Y, /**< Linear movement on the Y axis. */
+		Z, /**< Linear movement on the Z axis. */
+		Twist, /**< Rotation around the X axis. Only active with D6JointAngularDriveMode::SwingTwist. */
+		SwingY, /**< Rotation around the Y axis. Only active with D6JointAngularDriveMode::SwingTwist. */
+		SwingZ, /**< Rotation around the Z axis. Only active with D6JointAngularDriveMode::SwingTwist. */
+		/** Rotation around all three axes at once. Only active with D6JointAngularDriveMode::SLERP. */
 		SLERP,
 		Count
 	};
@@ -106,6 +107,7 @@ namespace b3d
 
 		TInlineArray<D6JointMotion, (u32)D6JointAxis::Count> Motion;
 		TInlineArray<D6JointDrive, (u32)D6JointDriveType::Count> Drive;
+		D6JointAngularDriveMode AngularDriveMode = D6JointAngularDriveMode::SwingTwist;
 		LimitLinear LimitLinear;
 		LimitAngularRange LimitTwist;
 		LimitConeRange LimitSwing;
@@ -191,8 +193,19 @@ namespace b3d
 		LimitConeRange GetLimitSwing() const { return mInformation.LimitSwing; }
 
 		/**
+		 * Determines how the angular drives rotate the bodies towards the drive target. Drives that belong to the other
+		 * mode keep their values but have no effect, so drives and the mode can be set in any order.
+		 */
+		B3D_SCRIPT_EXPORT(ExportName(AngularDriveMode), Property(Setter))
+		void SetAngularDriveMode(D6JointAngularDriveMode mode);
+
+		/** @copydoc SetAngularDriveMode */
+		B3D_SCRIPT_EXPORT(ExportName(AngularDriveMode), Property(Getter))
+		D6JointAngularDriveMode GetAngularDriveMode() const { return mInformation.AngularDriveMode; }
+
+		/**
 		 * Determines a drive that will attempt to move the specified degree(s) of freedom to the wanted position and
-		 * velocity.
+		 * velocity. Angular drives only apply if they belong to the mode chosen by SetAngularDriveMode().
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(SetDrive))
 		void SetDrive(D6JointDriveType type, const D6JointDrive& drive);
@@ -298,6 +311,18 @@ namespace b3d
 
 		/** @copydoc D6Joint::SetLimitSwing */
 		virtual void SetLimitSwing(const LimitConeRange& limit) = 0;
+
+		/**
+		 * @copydoc D6Joint::SetAngularDriveMode
+		 *
+		 * @param	mode	Mode to activate.
+		 * @param	drives	Current value of every drive, indexed by D6JointDriveType. The drives of the activated mode
+		 *					must have these values once the method returns.
+		 */
+		virtual void SetAngularDriveMode(D6JointAngularDriveMode mode, TArrayView<const D6JointDrive> drives) = 0;
+
+		/** @copydoc D6Joint::GetAngularDriveMode */
+		virtual D6JointAngularDriveMode GetAngularDriveMode() const = 0;
 
 		/** @copydoc D6Joint::GetDrive */
 		virtual D6JointDrive GetDrive(D6JointDriveType type) const = 0;

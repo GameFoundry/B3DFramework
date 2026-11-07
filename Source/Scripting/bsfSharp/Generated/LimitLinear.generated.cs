@@ -19,7 +19,6 @@ namespace b3d
 		{
 			LimitLinear value = new LimitLinear();
 			value.Extent = 0f;
-			value.ContactDist = -1f;
 			value.Restitution = 0f;
 			value.Spring = Spring.Default();
 
@@ -30,14 +29,9 @@ namespace b3d
 		/// Constructs a hard limit. Once the limit is reached the movement of the attached bodies will come to a stop.
 		/// </summary>
 		/// <param name="extent">Distance at which the limit becomes active.</param>
-		/// <param name="contactDist">
-		/// Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached 
-		/// to avoid breaking the limit. Specify -1 for the default.
-		/// </param>
-		public LimitLinear(float extent, float contactDist = -1f)
+		public LimitLinear(float extent)
 		{
 			this.Extent = extent;
-			this.ContactDist = -1f;
 			this.Restitution = 0f;
 			this.Spring = Spring.Default();
 		}
@@ -57,7 +51,6 @@ namespace b3d
 		public LimitLinear(float extent, Spring spring, float restitution = 0f)
 		{
 			this.Extent = extent;
-			this.ContactDist = -1f;
 			this.Restitution = 0f;
 			this.Spring = Spring.Default();
 		}
@@ -68,7 +61,6 @@ namespace b3d
 		public LimitCommon GetBase()
 		{
 			LimitCommon value;
-			value.ContactDist = ContactDist;
 			value.Restitution = Restitution;
 			value.Spring = Spring;
 			return value;
@@ -80,18 +72,12 @@ namespace b3d
 		///</summary>
 		public void SetBase(LimitCommon value)
 		{
-			ContactDist = value.ContactDist;
 			Restitution = value.Restitution;
 			Spring = value.Spring;
 		}
 
 		/// <summary>Distance at which the limit becomes active.</summary>
 		public float Extent;
-		/// <summary>
-		/// Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached 
-		/// to avoid breaking the limit.
-		/// </summary>
-		public float ContactDist;
 		/// <summary>
 		/// Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while 
 		/// those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.

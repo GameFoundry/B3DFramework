@@ -14,7 +14,6 @@ namespace b3d
 	{
 		TRadian<float> Lower;
 		TRadian<float> Upper;
-		float ContactDist;
 		float Restitution;
 		Spring Spring;
 	};

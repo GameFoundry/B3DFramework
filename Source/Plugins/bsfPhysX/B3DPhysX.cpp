@@ -127,7 +127,9 @@ void PhysXEventCallback::onTrigger(PxTriggerPair* pairs, PxU32 count)
 	for(PxU32 i = 0; i < count; i++)
 	{
 		const PxTriggerPair& pair = pairs[i];
-		if(pair.triggerShape->userData == nullptr)
+
+		// PhysX forbids accessing a removed shape, and without the trigger there is nothing to report the event to
+		if(pair.flags.isSet(PxTriggerPairFlag::eREMOVED_SHAPE_TRIGGER) || pair.triggerShape->userData == nullptr)
 			continue;
 
 		PhysXScene::ContactEventType type;
@@ -175,7 +177,7 @@ void PhysXEventCallback::onTrigger(PxTriggerPair* pairs, PxU32 count)
 
 		PhysXScene::TriggerEvent event;
 		event.Trigger = (ColliderShape*)pair.triggerShape->userData;
-		event.Other = (ColliderShape*)pair.otherShape->userData;
+		event.Other = pair.flags.isSet(PxTriggerPairFlag::eREMOVED_SHAPE_OTHER) ? nullptr : (ColliderShape*)pair.otherShape->userData;
 		event.Type = type;
 
 		mScene.ReportTriggerEvent(event);
@@ -233,8 +235,9 @@ void PhysXEventCallback::onContact(const PxContactPairHeader& pairHeader, const 
 			}
 		}
 
-		event.ColliderShapeA = (ColliderShape*)pair.shapes[0]->userData;
-		event.ColliderShapeB = (ColliderShape*)pair.shapes[1]->userData;
+		// PhysX forbids accessing a removed shape
+		event.ColliderShapeA = pair.flags.isSet(PxContactPairFlag::eREMOVED_SHAPE_0) ? nullptr : (ColliderShape*)pair.shapes[0]->userData;
+		event.ColliderShapeB = pair.flags.isSet(PxContactPairFlag::eREMOVED_SHAPE_1) ? nullptr : (ColliderShape*)pair.shapes[1]->userData;
 
 		mScene.ReportContactEvent(event);
 	}
@@ -324,72 +327,75 @@ PxFilterFlags PhysXFilterShader(PxFilterObjectAttributes attr0, PxFilterData dat
 	return PxFilterFlags();
 }
 
-void SetUnmappedTriangleIndex(const PxQueryHit& input, PhysicsQueryHit& output, PxShape* shapeHint = nullptr)
+void SetUnmappedTriangleIndex(PxU32 faceIndex, const PxShape* shape, PhysicsQueryHit& output)
 {
 	// We can only assign a valid unmapped triangle index if the hit geometry is a triangle mesh
 	// and it was created with the flags to store the remapping.
 	// As a fallback, the raw face index is used.
 
-	PxShape* shape = shapeHint ? shapeHint : input.shape;
-
-	if(shape != nullptr && shape->getGeometryType() == PxGeometryType::eTRIANGLEMESH)
+	if(shape != nullptr && shape->getGeometry().getType() == PxGeometryType::eTRIANGLEMESH)
 	{
-		PxTriangleMeshGeometry triMeshGeometry;
-		shape->getTriangleMeshGeometry(triMeshGeometry);
+		const PxTriangleMeshGeometry& triMeshGeometry = static_cast<const PxTriangleMeshGeometry&>(shape->getGeometry());
 
 		if(triMeshGeometry.isValid() && triMeshGeometry.triangleMesh->getTrianglesRemap() != nullptr)
 		{
-			output.UnmappedTriangleIdx = triMeshGeometry.triangleMesh->getTrianglesRemap()[input.faceIndex];
+			output.UnmappedTriangleIdx = triMeshGeometry.triangleMesh->getTrianglesRemap()[faceIndex];
 			return;
 		}
 	}
 
-	output.UnmappedTriangleIdx = input.faceIndex;
+	output.UnmappedTriangleIdx = faceIndex;
 }
 
 void ParseHit(const PxRaycastHit& input, PhysicsQueryHit& output, PxShape* shapeHint = nullptr)
 {
+	PxShape* const shape = shapeHint ? shapeHint : input.shape;
+
 	output.Point = FromPxVector(input.position);
 	output.Normal = FromPxVector(input.normal);
 	output.Distance = input.distance;
 	output.TriangleIdx = input.faceIndex;
-	SetUnmappedTriangleIndex(input, output, shapeHint);
+	SetUnmappedTriangleIndex(input.faceIndex, shape, output);
 	output.Uv = Vector2(input.u, input.v);
 
 	ColliderShape* colliderShape = nullptr;
-	if(input.shape)
-		colliderShape = (ColliderShape*)input.shape->userData;
+	if(shape)
+		colliderShape = (ColliderShape*)shape->userData;
 
 	if(colliderShape != nullptr)
 	{
 		Collider* const collider = colliderShape->GetParentCollider();
 		if(collider != nullptr)
+		{
 			output.Collider = B3DStaticGameObjectCast<Collider>(collider->GetHandle());
-
-		output.ColliderShape = collider->GetShapes()[colliderShape->GetShapeIndexInParent()];
+			output.ColliderShape = collider->GetShapes()[colliderShape->GetShapeIndexInParent()];
+		}
 	}
 }
 
 void ParseHit(const PxSweepHit& input, PhysicsQueryHit& output, PxShape* shapeHint = nullptr)
 {
+	PxShape* const shape = shapeHint ? shapeHint : input.shape;
+
 	output.Point = FromPxVector(input.position);
 	output.Normal = FromPxVector(input.normal);
 	output.Uv = Vector2::kZero;
 	output.Distance = input.distance;
 	output.TriangleIdx = input.faceIndex;
-	SetUnmappedTriangleIndex(input, output, shapeHint);
+	SetUnmappedTriangleIndex(input.faceIndex, shape, output);
 
 	ColliderShape* colliderShape = nullptr;
-	if(input.shape)
-		colliderShape = (ColliderShape*)input.shape->userData;
+	if(shape)
+		colliderShape = (ColliderShape*)shape->userData;
 
 	if(colliderShape != nullptr)
 	{
 		Collider* const collider = colliderShape->GetParentCollider();
 		if(collider != nullptr)
+		{
 			output.Collider = B3DStaticGameObjectCast<Collider>(collider->GetHandle());
-
-		output.ColliderShape = collider->GetShapes()[colliderShape->GetShapeIndexInParent()];
+			output.ColliderShape = collider->GetShapes()[colliderShape->GetShapeIndexInParent()];
+		}
 	}
 }
 
@@ -494,17 +500,8 @@ PhysX::PhysX(const PhysicsCreateInformation& input)
 	mScale.length = input.TypicalLength;
 	mScale.speed = input.TypicalSpeed;
 
-	mFoundation = PxCreateFoundation(PX_FOUNDATION_VERSION, gPhysXAllocator, gPhysXErrorHandler);
+	mFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gPhysXAllocator, gPhysXErrorHandler);
 	mPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *mFoundation, mScale);
-
-	if(input.InitCooking)
-	{
-		// Note: PhysX supports cooking for specific platforms to make the generated results better. Consider
-		// allowing the meshes to be re-cooked when target platform is changed. Right now we just use the default value.
-
-		PxCookingParams cookingParams(mScale);
-		mCooking = PxCreateCooking(PX_PHYSICS_VERSION, *mFoundation, cookingParams);
-	}
 
 	mDefaultMaterial = mPhysics->createMaterial(1.0f, 1.0f, 0.5f);
 }
@@ -512,9 +509,6 @@ PhysX::PhysX(const PhysicsCreateInformation& input)
 PhysX::~PhysX()
 {
 	B3D_ASSERT(mScenes.empty() && "All scenes must be freed before physics system shutdown");
-
-	if(mCooking != nullptr)
-		mCooking->release();
 
 	mPhysics->release();
 	mFoundation->release();
@@ -565,13 +559,15 @@ bool PhysX::RayCast(const Vector3& origin, const Vector3& unitDirection, const C
 {
 	const PhysXColliderShape& physxColliderShape = static_cast<const PhysXColliderShape&>(colliderShape);
 	PxShape* const pxShape = physxColliderShape.GetPxShape();
+	if(pxShape == nullptr)
+		return false;
 
 	const PxTransform transform = ToPxTransform(colliderShape.GetPosition(), colliderShape.GetRotation());
 
 	PxRaycastHit hitInfo;
 	PxU32 maxHits = 1;
 	PxHitFlags hitFlags = PxHitFlag::eDEFAULT | PxHitFlag::eUV;
-	PxU32 hitCount = PxGeometryQuery::raycast(ToPxVector(origin), ToPxVector(unitDirection), pxShape->getGeometry().any(), transform, maxDistance, hitFlags, maxHits, &hitInfo);
+	PxU32 hitCount = PxGeometryQuery::raycast(ToPxVector(origin), ToPxVector(unitDirection), pxShape->getGeometry(), transform, maxDistance, hitFlags, maxHits, &hitInfo);
 
 	if(hitCount > 0)
 		ParseHit(hitInfo, hit, pxShape); // We have to provide a hint for the tested shape, as it is not contained in single-geometry raycast hit results
@@ -581,7 +577,7 @@ bool PhysX::RayCast(const Vector3& origin, const Vector3& unitDirection, const C
 
 bool PhysX::RayCast(const Vector3& origin, const Vector3& unitDirection, const Collider& collider, PhysicsQueryHit& hit, float maxDistance) const
 {
-	float nearestHitDistance = FLT_MIN;
+	float nearestHitDistance = FLT_MAX;
 	bool isAnythingHit = false;
 
 	const Transform& transform = collider.SceneObject()->GetTransform();
@@ -592,6 +588,8 @@ bool PhysX::RayCast(const Vector3& origin, const Vector3& unitDirection, const C
 	{
 		const PhysXColliderShape& physxColliderShape = static_cast<const PhysXColliderShape&>(*entry);
 		PxShape* const pxShape = physxColliderShape.GetPxShape();
+		if(pxShape == nullptr)
+			continue;
 
 		const PxTransform shapeTransform = ToPxTransform(entry->GetPosition(), entry->GetRotation());
 		const PxTransform combinedTransform = colliderTransform.transform(shapeTransform);
@@ -599,7 +597,7 @@ bool PhysX::RayCast(const Vector3& origin, const Vector3& unitDirection, const C
 		PxRaycastHit hitInfo;
 		PxU32 maxHits = 1;
 		PxHitFlags hitFlags = PxHitFlag::eDEFAULT | PxHitFlag::eUV;
-		PxU32 hitCount = PxGeometryQuery::raycast(ToPxVector(origin), ToPxVector(unitDirection), pxShape->getGeometry().any(), combinedTransform, maxDistance, hitFlags, maxHits, &hitInfo);
+		PxU32 hitCount = PxGeometryQuery::raycast(ToPxVector(origin), ToPxVector(unitDirection), pxShape->getGeometry(), combinedTransform, maxDistance, hitFlags, maxHits, &hitInfo);
 
 		if(hitCount > 0 && hitInfo.distance < nearestHitDistance)
 		{
@@ -623,8 +621,7 @@ PhysXScene::PhysXScene(PxPhysics* physics, const PhysicsCreateInformation& input
 	sceneDesc.simulationEventCallback = &mEventCallback;
 	sceneDesc.broadPhaseCallback = &gPhysXBroadphaseCallback;
 
-	// Optionally: eENABLE_KINEMATIC_STATIC_PAIRS, eENABLE_KINEMATIC_PAIRS, eENABLE_PCM
-	sceneDesc.flags = PxSceneFlag::eENABLE_ACTIVETRANSFORMS;
+	sceneDesc.flags = PxSceneFlag::eENABLE_PCM | PxSceneFlag::eENABLE_ACTIVE_ACTORS;
 
 	if(input.Flags.IsSet(PhysicsFlag::CCD_Enable))
 		sceneDesc.flags |= PxSceneFlag::eENABLE_CCD;
@@ -661,7 +658,16 @@ void PhysXScene::FixedUpdate(float step)
 	B3DMarkAllocatorFrame();
 	u8* scratchBuffer = B3DFrameAllocateAligned(kScratchBufferSize, 16);
 
-	mScene->simulate(step, nullptr, scratchBuffer, kScratchBufferSize);
+	if(!mScene->simulate(step, nullptr, scratchBuffer, kScratchBufferSize))
+	{
+		// PhysX reports the reason through the error callback. The active actor list is still from the previous step and
+		// can reference actors released since then, so it must not be read.
+		B3DFrameFreeAligned(scratchBuffer);
+		B3DClearAllocatorFrame();
+
+		mUpdateInProgress = false;
+		return;
+	}
 
 	u32 errorState;
 	if(!mScene->fetchResults(true, &errorState))
@@ -671,20 +677,20 @@ void PhysXScene::FixedUpdate(float step)
 	B3DClearAllocatorFrame();
 
 	// Update rigidbodies with new transforms
-	PxU32 activeTransformCount;
-	const PxActiveTransform* activeTransforms = mScene->getActiveTransforms(activeTransformCount);
+	PxU32 activeActorCount;
+	PxActor** activeActors = mScene->getActiveActors(activeActorCount);
 
-	for(PxU32 transformIndex = 0; transformIndex < activeTransformCount; transformIndex++)
+	for(PxU32 actorIndex = 0; actorIndex < activeActorCount; actorIndex++)
 	{
-		Rigidbody* rigidbody = static_cast<Rigidbody*>(activeTransforms[transformIndex].userData);
+		// The list only contains PxRigidDynamic and PxArticulationLink actors, and the engine creates no articulations
+		const PxRigidActor* actor = static_cast<PxRigidActor*>(activeActors[actorIndex]);
 
-		// Note: This should never happen, as actors gets their userData set to null when they're destroyed. However
-		// in some cases PhysX seems to keep those actors alive for a frame or few, and reports their state here. Until
-		// I find out why I need to perform this check.
-		if(activeTransforms[transformIndex].actor->userData == nullptr)
+		// Character controllers own kinematic actors that have no Rigidbody
+		Rigidbody* rigidbody = static_cast<Rigidbody*>(actor->userData);
+		if(rigidbody == nullptr)
 			continue;
 
-		const PxTransform& transform = activeTransforms[transformIndex].actor2World;
+		const PxTransform transform = actor->getGlobalPose();
 
 		// Note: Make this faster, avoid dereferencing Rigidbody and attempt to access pos/rot destination directly,
 		//       use non-temporal writes
@@ -764,7 +770,7 @@ bool PhysXScene::SweepAny(const PxGeometry& geometry, const PxTransform& tfrm, c
 	filterData.flags |= PxQueryFlag::eANY_HIT;
 	memcpy(&filterData.data.word0, &layer, sizeof(layer));
 
-	return mScene->sweep(geometry, tfrm, ToPxVector(unitDir), maxDist, output, PxHitFlag::eDEFAULT | PxHitFlag::eUV | PxHitFlag::eMESH_ANY, filterData);
+	return mScene->sweep(geometry, tfrm, ToPxVector(unitDir), maxDist, output, PxHitFlag::eDEFAULT | PxHitFlag::eUV | PxHitFlag::eANY_HIT, filterData);
 }
 
 bool PhysXScene::RayCast(const Vector3& origin, const Vector3& unitDir, PhysicsQueryHit& hit, u64 layer, float max) const
@@ -801,7 +807,7 @@ bool PhysXScene::SphereCast(const Sphere& sphere, const Vector3& unitDir, Physic
 bool PhysXScene::CapsuleCast(const Capsule& capsule, const Quaternion& rotation, const Vector3& unitDir, PhysicsQueryHit& hit, u64 layer, float max) const
 {
 	PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
-	PxTransform transform = ToPxTransform(capsule.GetCenter(), Quaternion::kIdentity);
+	PxTransform transform = ToPxTransform(capsule.GetCenter(), rotation);
 
 	return Sweep(geometry, transform, unitDir, hit, layer, max);
 }
@@ -852,7 +858,7 @@ Vector<PhysicsQueryHit> PhysXScene::SphereCastAll(const Sphere& sphere, const Ve
 Vector<PhysicsQueryHit> PhysXScene::CapsuleCastAll(const Capsule& capsule, const Quaternion& rotation, const Vector3& unitDir, u64 layer, float max) const
 {
 	PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
-	PxTransform transform = ToPxTransform(capsule.GetCenter(), Quaternion::kIdentity);
+	PxTransform transform = ToPxTransform(capsule.GetCenter(), rotation);
 
 	return SweepAll(geometry, transform, unitDir, layer, max);
 }
@@ -880,7 +886,7 @@ bool PhysXScene::RayCastAny(const Vector3& origin, const Vector3& unitDir, u64 l
 	filterData.flags |= PxQueryFlag::eANY_HIT;
 	memcpy(&filterData.data.word0, &layer, sizeof(layer));
 
-	return mScene->raycast(ToPxVector(origin), ToPxVector(unitDir), max, output, PxHitFlag::eDEFAULT | PxHitFlag::eUV | PxHitFlag::eMESH_ANY, filterData);
+	return mScene->raycast(ToPxVector(origin), ToPxVector(unitDir), max, output, PxHitFlag::eDEFAULT | PxHitFlag::eUV | PxHitFlag::eANY_HIT, filterData);
 }
 
 bool PhysXScene::BoxCastAny(const AABox& box, const Quaternion& rotation, const Vector3& unitDir, u64 layer, float max) const
@@ -902,7 +908,7 @@ bool PhysXScene::SphereCastAny(const Sphere& sphere, const Vector3& unitDir, u64
 bool PhysXScene::CapsuleCastAny(const Capsule& capsule, const Quaternion& rotation, const Vector3& unitDir, u64 layer, float max) const
 {
 	PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
-	PxTransform transform = ToPxTransform(capsule.GetCenter(), Quaternion::kIdentity);
+	PxTransform transform = ToPxTransform(capsule.GetCenter(), rotation);
 
 	return SweepAny(geometry, transform, unitDir, layer, max);
 }
@@ -941,7 +947,7 @@ Vector<ColliderShape*> PhysXScene::SphereOverlapInternal(const Sphere& sphere, u
 Vector<ColliderShape*> PhysXScene::CapsuleOverlapInternal(const Capsule& capsule, const Quaternion& rotation, u64 layer) const
 {
 	PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
-	PxTransform transform = ToPxTransform(capsule.GetCenter(), Quaternion::kIdentity);
+	PxTransform transform = ToPxTransform(capsule.GetCenter(), rotation);
 
 	return Overlap(geometry, transform, layer);
 }
@@ -980,7 +986,7 @@ bool PhysXScene::SphereOverlapAny(const Sphere& sphere, u64 layer) const
 bool PhysXScene::CapsuleOverlapAny(const Capsule& capsule, const Quaternion& rotation, u64 layer) const
 {
 	PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
-	PxTransform transform = ToPxTransform(capsule.GetCenter(), Quaternion::kIdentity);
+	PxTransform transform = ToPxTransform(capsule.GetCenter(), rotation);
 
 	return OverlapAny(geometry, transform, layer);
 }
@@ -1068,13 +1074,13 @@ u32 PhysXScene::AddBroadPhaseRegion(const AABox& region)
 	u32 id = mNextRegionIdx++;
 
 	PxBroadPhaseRegion pxRegion;
-	pxRegion.bounds = PxBounds3(ToPxVector(region.Minimum), ToPxVector(region.Maximum));
-	pxRegion.userData = (void*)(u64)id;
+	pxRegion.mBounds = PxBounds3(ToPxVector(region.Minimum), ToPxVector(region.Maximum));
+	pxRegion.mUserData = (void*)(u64)id;
 
 	u32 handle = mScene->addBroadPhaseRegion(pxRegion, true);
 	mBroadPhaseRegionHandles[id] = handle;
 
-	return handle;
+	return id;
 }
 
 void PhysXScene::RemoveBroadPhaseRegion(u32 regionId)

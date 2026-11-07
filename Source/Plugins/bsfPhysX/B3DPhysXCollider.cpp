@@ -48,8 +48,7 @@ void PhysXCollider::AttachShape(const TShared<ColliderShape>& shape)
 	if(!B3D_ENSURE(shape != nullptr))
 		return;
 
-	const PhysXColliderShape& physxShape = static_cast<const PhysXColliderShape&>(*shape);
-	mPxRigidStatic->attachShape(*physxShape.GetPxShape());
+	static_cast<PhysXColliderShape&>(*shape).AttachToActor(*mPxRigidStatic);
 }
 
 void PhysXCollider::DetachShape(const TShared<ColliderShape>& shape)
@@ -57,8 +56,7 @@ void PhysXCollider::DetachShape(const TShared<ColliderShape>& shape)
 	if(!B3D_ENSURE(shape != nullptr))
 		return;
 
-	const PhysXColliderShape& physxShape = static_cast<const PhysXColliderShape&>(*shape);
-	mPxRigidStatic->detachShape(*physxShape.GetPxShape());
+	static_cast<PhysXColliderShape&>(*shape).DetachFromActor(*mPxRigidStatic);
 }
 
 void PhysXCollider::SetTransform(const Vector3& position, const Quaternion& rotation)

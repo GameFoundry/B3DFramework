@@ -11,7 +11,6 @@ namespace b3d
 {
 	struct __LimitCommonInterop
 	{
-		float ContactDist;
 		float Restitution;
 		Spring Spring;
 	};

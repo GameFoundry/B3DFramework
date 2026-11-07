@@ -25,6 +25,10 @@ void MonoLoader::Load()
 	#include "B3DMonoLoaderFunctions.h"
 	#undef MONO_API_FUNCTION
 
+	// The runtime can't be fully torn down: its threads outlive mono_jit_cleanup, and it leaves its signal and exception
+	// handlers installed. All of them need the library's code to stay mapped.
+	library->KeepLoadedUntilExit();
+
 	mLibrary = library;
 }
 

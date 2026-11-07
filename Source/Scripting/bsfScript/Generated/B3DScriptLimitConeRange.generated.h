@@ -14,7 +14,6 @@ namespace b3d
 	{
 		TRadian<float> YLimitAngle;
 		TRadian<float> ZLimitAngle;
-		float ContactDist;
 		float Restitution;
 		Spring Spring;
 	};

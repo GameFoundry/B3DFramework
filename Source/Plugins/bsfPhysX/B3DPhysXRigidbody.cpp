@@ -170,7 +170,8 @@ Vector3 PhysXRigidbody::GetInertiaTensor() const
 
 void PhysXRigidbody::SetMaxAngularVelocity(float maxVelocity)
 {
-	mPxRigidDynamic->setMaxAngularVelocity(maxVelocity);
+	// PhysX stores the squared value and rejects anything above 1e16. The default value of FLT_MAX means no limit.
+	mPxRigidDynamic->setMaxAngularVelocity(std::min(maxVelocity, 1.0e16f));
 }
 
 void PhysXRigidbody::SetCenterOfMass(const Vector3& position, const Quaternion& rotation)
@@ -281,8 +282,7 @@ void PhysXRigidbody::AttachShape(const TShared<ColliderShape>& shape)
 	if(!B3D_ENSURE(shape != nullptr))
 		return;
 
-	const PhysXColliderShape& physxShape = static_cast<const PhysXColliderShape&>(*shape);
-	mPxRigidDynamic->attachShape(*physxShape.GetPxShape());
+	static_cast<PhysXColliderShape&>(*shape).AttachToActor(*mPxRigidDynamic);
 }
 
 void PhysXRigidbody::DetachShape(const TShared<ColliderShape>& shape)
@@ -290,8 +290,7 @@ void PhysXRigidbody::DetachShape(const TShared<ColliderShape>& shape)
 	if(!B3D_ENSURE(shape != nullptr))
 		return;
 
-	const PhysXColliderShape& physxShape = static_cast<const PhysXColliderShape&>(*shape);
-	mPxRigidDynamic->detachShape(*physxShape.GetPxShape());
+	static_cast<PhysXColliderShape&>(*shape).DetachFromActor(*mPxRigidDynamic);
 }
 
 void PhysXRigidbody::AddToScene(PhysicsScene& scene)

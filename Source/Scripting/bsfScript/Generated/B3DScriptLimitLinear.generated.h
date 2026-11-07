@@ -12,7 +12,6 @@ namespace b3d
 	struct __LimitLinearInterop
 	{
 		float Extent;
-		float ContactDist;
 		float Restitution;
 		Spring Spring;
 	};
