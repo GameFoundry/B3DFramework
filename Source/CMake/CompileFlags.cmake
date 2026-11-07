@@ -23,7 +23,7 @@ function(B3DSetDefaultCompileAndLinkerFlagsMSVC target)
 	# spaces too.
 	# For some reason this does not apply to the compiler options...
 
-	# /ignore:4099 - prebuilt third-party static libraries (PhysX extensions, glslang, SPIRV-Cross) ship without .pdb files
+	# /ignore:4099 - prebuilt third-party static libraries (glslang, SPIRV-Cross) ship without .pdb files
 	set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS "/DYNAMICBASE /NOLOGO /ignore:4099")
 
 	set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_DEBUG "/DEBUG")

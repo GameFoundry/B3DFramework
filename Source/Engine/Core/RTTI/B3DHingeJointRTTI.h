@@ -26,7 +26,6 @@ namespace b3d
 			B3D_RTTI_MEMBER_NAMED(mDriveFreeSpin, mInformation.Drive.FreeSpin, 4)
 			B3D_RTTI_MEMBER_NAMED(mLimitLower, mInformation.Limit.Lower, 5)
 			B3D_RTTI_MEMBER_NAMED(mLimitUpper, mInformation.Limit.Upper, 6)
-			B3D_RTTI_MEMBER_NAMED(mLimitContactDist, mInformation.Limit.ContactDist, 7)
 			B3D_RTTI_MEMBER_NAMED(mLimitRestitution, mInformation.Limit.Restitution, 8)
 			B3D_RTTI_MEMBER_NAMED(mSpringDamping, mInformation.Limit.Spring.Damping, 9)
 			B3D_RTTI_MEMBER_NAMED(mSpringStiffness, mInformation.Limit.Spring.Stiffness, 10)

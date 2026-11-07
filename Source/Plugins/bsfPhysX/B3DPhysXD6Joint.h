@@ -65,6 +65,32 @@ namespace b3d
 		}
 	}
 
+	/** Converts an engine D6 angular drive mode into the matching PhysX configuration. */
+	inline physx::PxD6AngularDriveConfig::Enum ToPxAngularDriveMode(D6JointAngularDriveMode mode)
+	{
+		switch(mode)
+		{
+		default:
+		case D6JointAngularDriveMode::SwingTwist:
+			return physx::PxD6AngularDriveConfig::eSWING_TWIST;
+		case D6JointAngularDriveMode::SLERP:
+			return physx::PxD6AngularDriveConfig::eSLERP;
+		}
+	}
+
+	/** Converts a PhysX D6 angular drive configuration into the matching engine mode. */
+	inline D6JointAngularDriveMode FromPxAngularDriveMode(physx::PxD6AngularDriveConfig::Enum config)
+	{
+		switch(config)
+		{
+		default:
+		case physx::PxD6AngularDriveConfig::eSWING_TWIST:
+			return D6JointAngularDriveMode::SwingTwist;
+		case physx::PxD6AngularDriveConfig::eSLERP:
+			return D6JointAngularDriveMode::SLERP;
+		}
+	}
+
 	/** PhysX implementation of a D6 joint. */
 	class PhysXD6Joint : public ID6JointImplementation
 	{
@@ -88,7 +114,7 @@ namespace b3d
 		// Begin ID6JointImplementation
 		D6JointMotion GetMotion(D6JointAxis axis) const override { return FromPxMotion(GetPxD6Joint().getMotion(ToPxAxis(axis))); }
 		void SetMotion(D6JointAxis axis, D6JointMotion motion) override { GetPxD6Joint().setMotion(ToPxAxis(axis), ToPxMotion(motion)); }
-		Radian GetTwist() const override { return Radian(GetPxD6Joint().getTwist()); }
+		Radian GetTwist() const override { return Radian(GetPxD6Joint().getTwistAngle()); }
 		Radian GetSwingY() const override { return Radian(GetPxD6Joint().getSwingYAngle()); }
 		Radian GetSwingZ() const override { return Radian(GetPxD6Joint().getSwingZAngle()); }
 		LimitLinear GetLimitLinear() const override;
@@ -97,6 +123,8 @@ namespace b3d
 		void SetLimitTwist(const LimitAngularRange& limit) override;
 		LimitConeRange GetLimitSwing() const override;
 		void SetLimitSwing(const LimitConeRange& limit) override;
+		void SetAngularDriveMode(D6JointAngularDriveMode mode, TArrayView<const D6JointDrive> drives) override;
+		D6JointAngularDriveMode GetAngularDriveMode() const override { return FromPxAngularDriveMode(GetPxD6Joint().getAngularDriveConfig()); }
 		D6JointDrive GetDrive(D6JointDriveType type) const override;
 		void SetDrive(D6JointDriveType type, const D6JointDrive& drive) override;
 		Vector3 GetDrivePosition() const override { return FromPxVector(GetPxD6Joint().getDrivePosition().p); }

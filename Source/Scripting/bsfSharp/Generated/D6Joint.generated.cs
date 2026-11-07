@@ -104,6 +104,18 @@ namespace b3d
 			set { Internal_SetLimitSwing(mCachedPtr, ref value); }
 		}
 
+		/// <summary>
+		/// Determines how the angular drives rotate the bodies towards the drive target. Drives that belong to the other mode 
+		/// keep their values but have no effect, so drives and the mode can be set in any order.
+		/// </summary>
+		[ShowInInspector]
+		[NativeWrapper]
+		public D6JointAngularDriveMode AngularDriveMode
+		{
+			get { return Internal_GetAngularDriveMode(mCachedPtr); }
+			set { Internal_SetAngularDriveMode(mCachedPtr, value); }
+		}
+
 		/// <summary>Returns the drive&apos;s target position relative to the joint&apos;s first body.</summary>
 		[NativeWrapper]
 		public Vector3 DrivePosition
@@ -179,7 +191,8 @@ namespace b3d
 		}
 
 		/// <summary>
-		/// Determines a drive that will attempt to move the specified degree(s) of freedom to the wanted position and velocity.
+		/// Determines a drive that will attempt to move the specified degree(s) of freedom to the wanted position and velocity. 
+		/// Angular drives only apply if they belong to the mode chosen by SetAngularDriveMode().
 		/// </summary>
 		public void SetDrive(D6JointDriveType type, D6JointDrive drive)
 		{
@@ -227,6 +240,10 @@ namespace b3d
 		private static extern void Internal_SetLimitSwing(IntPtr thisPtr, ref LimitConeRange limit);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_GetLimitSwing(IntPtr thisPtr, out LimitConeRange __output);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_SetAngularDriveMode(IntPtr thisPtr, D6JointAngularDriveMode mode);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern D6JointAngularDriveMode Internal_GetAngularDriveMode(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetDrive(IntPtr thisPtr, D6JointDriveType type, ref D6JointDrive drive);
 		[MethodImpl(MethodImplOptions.InternalCall)]

@@ -179,6 +179,8 @@ namespace b3d
 		LimitAngularRange GetLimitTwist() const override { return {}; }
 		void SetLimitSwing(const LimitConeRange& limit) override {}
 		LimitConeRange GetLimitSwing() const override { return {}; }
+		void SetAngularDriveMode(D6JointAngularDriveMode mode, TArrayView<const D6JointDrive> drives) override {}
+		D6JointAngularDriveMode GetAngularDriveMode() const override { return D6JointAngularDriveMode::SwingTwist; }
 		void SetDrive(D6JointDriveType type, const D6JointDrive& drive) override {}
 		D6JointDrive GetDrive(D6JointDriveType type) const override { return {}; }
 		Vector3 GetDrivePosition() const override { return Vector3::kZero; }

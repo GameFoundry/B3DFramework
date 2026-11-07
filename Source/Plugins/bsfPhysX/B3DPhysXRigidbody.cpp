@@ -170,7 +170,8 @@ Vector3 PhysXRigidbody::GetInertiaTensor() const
 
 void PhysXRigidbody::SetMaxAngularVelocity(float maxVelocity)
 {
-	mPxRigidDynamic->setMaxAngularVelocity(maxVelocity);
+	// PhysX stores the squared value and rejects anything above 1e16. The default value of FLT_MAX means no limit.
+	mPxRigidDynamic->setMaxAngularVelocity(std::min(maxVelocity, 1.0e16f));
 }
 
 void PhysXRigidbody::SetCenterOfMass(const Vector3& position, const Quaternion& rotation)

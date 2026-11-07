@@ -13,7 +13,6 @@ namespace b3d
 	{
 		float Lower;
 		float Upper;
-		float ContactDist;
 		float Restitution;
 		Spring Spring;
 	};

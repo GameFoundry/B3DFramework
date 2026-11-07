@@ -20,7 +20,6 @@ namespace b3d
 			LimitAngularRange value = new LimitAngularRange();
 			value.Lower = new Radian(0f);
 			value.Upper = new Radian(0f);
-			value.ContactDist = -1f;
 			value.Restitution = 0f;
 			value.Spring = Spring.Default();
 
@@ -32,15 +31,10 @@ namespace b3d
 		/// </summary>
 		/// <param name="lower">Lower angle of the limit. Must be less than <paramref name="upper"/>.</param>
 		/// <param name="upper">Upper angle of the limit. Must be more than <paramref name="lower"/>.</param>
-		/// <param name="contactDist">
-		/// Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached 
-		/// to avoid breaking the limit. Specify -1 for the default.
-		/// </param>
-		public LimitAngularRange(Radian lower, Radian upper, float contactDist = -1f)
+		public LimitAngularRange(Radian lower, Radian upper)
 		{
 			this.Lower = lower;
 			this.Upper = upper;
-			this.ContactDist = -1f;
 			this.Restitution = 0f;
 			this.Spring = Spring.Default();
 		}
@@ -62,7 +56,6 @@ namespace b3d
 		{
 			this.Lower = lower;
 			this.Upper = upper;
-			this.ContactDist = -1f;
 			this.Restitution = 0f;
 			this.Spring = Spring.Default();
 		}
@@ -73,7 +66,6 @@ namespace b3d
 		public LimitCommon GetBase()
 		{
 			LimitCommon value;
-			value.ContactDist = ContactDist;
 			value.Restitution = Restitution;
 			value.Spring = Spring;
 			return value;
@@ -85,7 +77,6 @@ namespace b3d
 		///</summary>
 		public void SetBase(LimitCommon value)
 		{
-			ContactDist = value.ContactDist;
 			Restitution = value.Restitution;
 			Spring = value.Spring;
 		}
@@ -96,11 +87,6 @@ namespace b3d
 		/// <summary>Upper angle of the limit. Must be less than #lower.</summary>
 		[Range(0f, 359f, false)]
 		public Radian Upper;
-		/// <summary>
-		/// Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached 
-		/// to avoid breaking the limit.
-		/// </summary>
-		public float ContactDist;
 		/// <summary>
 		/// Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while 
 		/// those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.

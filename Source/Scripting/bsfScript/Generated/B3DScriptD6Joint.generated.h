@@ -13,6 +13,7 @@
 #include "../../../Engine/Core/Components/B3DJoint.h"
 #include "../../../Engine/Core/Components/B3DJoint.h"
 #include "../../../Engine/Core/Components/B3DJoint.h"
+#include "../../../Engine/Core/Components/B3DD6Joint.h"
 #include "../../../Engine/Utility/Math/B3DVector3.h"
 #include "../../../Engine/Utility/Math/B3DQuaternion.h"
 
@@ -47,6 +48,8 @@ namespace b3d
 		static void InternalGetLimitTwist(ScriptD6Joint* self, __LimitAngularRangeInterop* __output);
 		static void InternalSetLimitSwing(ScriptD6Joint* self, __LimitConeRangeInterop* limit);
 		static void InternalGetLimitSwing(ScriptD6Joint* self, __LimitConeRangeInterop* __output);
+		static void InternalSetAngularDriveMode(ScriptD6Joint* self, D6JointAngularDriveMode mode);
+		static D6JointAngularDriveMode InternalGetAngularDriveMode(ScriptD6Joint* self);
 		static void InternalSetDrive(ScriptD6Joint* self, D6JointDriveType type, __D6JointDriveInterop* drive);
 		static void InternalGetDrive(ScriptD6Joint* self, D6JointDriveType type, __D6JointDriveInterop* __output);
 		static void InternalGetDrivePosition(ScriptD6Joint* self, TVector3<float>* __output);

@@ -22,7 +22,6 @@ namespace b3d
 			LimitLinearRange value = new LimitLinearRange();
 			value.Lower = 0f;
 			value.Upper = 0f;
-			value.ContactDist = -1f;
 			value.Restitution = 0f;
 			value.Spring = Spring.Default();
 
@@ -34,15 +33,10 @@ namespace b3d
 		/// </summary>
 		/// <param name="lower">Lower distance of the limit. Must be less than <paramref name="upper"/>.</param>
 		/// <param name="upper">Upper distance of the limit. Must be more than <paramref name="lower"/>.</param>
-		/// <param name="contactDist">
-		/// Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached 
-		/// to avoid breaking the limit. Specify -1 for the default.
-		/// </param>
-		public LimitLinearRange(float lower, float upper, float contactDist = -1f)
+		public LimitLinearRange(float lower, float upper)
 		{
 			this.Lower = lower;
 			this.Upper = upper;
-			this.ContactDist = -1f;
 			this.Restitution = 0f;
 			this.Spring = Spring.Default();
 		}
@@ -64,7 +58,6 @@ namespace b3d
 		{
 			this.Lower = lower;
 			this.Upper = upper;
-			this.ContactDist = -1f;
 			this.Restitution = 0f;
 			this.Spring = Spring.Default();
 		}
@@ -75,7 +68,6 @@ namespace b3d
 		public LimitCommon GetBase()
 		{
 			LimitCommon value;
-			value.ContactDist = ContactDist;
 			value.Restitution = Restitution;
 			value.Spring = Spring;
 			return value;
@@ -87,7 +79,6 @@ namespace b3d
 		///</summary>
 		public void SetBase(LimitCommon value)
 		{
-			ContactDist = value.ContactDist;
 			Restitution = value.Restitution;
 			Spring = value.Spring;
 		}
@@ -96,11 +87,6 @@ namespace b3d
 		public float Lower;
 		/// <summary>Upper distance of the limit. Must be more than #lower.</summary>
 		public float Upper;
-		/// <summary>
-		/// Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached 
-		/// to avoid breaking the limit.
-		/// </summary>
-		public float ContactDist;
 		/// <summary>
 		/// Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while 
 		/// those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.

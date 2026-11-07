@@ -47,7 +47,6 @@ LimitAngularRange PhysXHingeJoint::GetLimit() const
 	LimitAngularRange limit;
 	limit.Lower = pxLimit.lower;
 	limit.Upper = pxLimit.upper;
-	limit.ContactDist = pxLimit.contactDistance;
 	limit.Restitution = pxLimit.restitution;
 	limit.Spring.Stiffness = pxLimit.stiffness;
 	limit.Spring.Damping = pxLimit.damping;
@@ -57,7 +56,7 @@ LimitAngularRange PhysXHingeJoint::GetLimit() const
 
 void PhysXHingeJoint::SetLimit(const LimitAngularRange& limit)
 {
-	PxJointAngularLimitPair pxLimit(limit.Lower.GetValueInRadians(), limit.Upper.GetValueInRadians(), limit.ContactDist);
+	PxJointAngularLimitPair pxLimit(limit.Lower.GetValueInRadians(), limit.Upper.GetValueInRadians());
 	pxLimit.stiffness = limit.Spring.Stiffness;
 	pxLimit.damping = limit.Spring.Damping;
 	pxLimit.restitution = limit.Restitution;

@@ -7,9 +7,8 @@
 #include "Physics/B3DPhysics.h"
 #include "Physics/B3DPhysicsCommon.h"
 #include "PxPhysics.h"
-#include "foundation/Px.h"
 #include "characterkinematic/PxControllerManager.h"
-#include "cooking/PxCooking.h"
+#include "common/PxTolerancesScale.h"
 #include "PxSimulationEventCallback.h"
 
 namespace b3d
@@ -47,8 +46,8 @@ namespace b3d
 		/** Returns the main PhysX object. */
 		physx::PxPhysics* GetPhysX() const { return mPhysics; }
 
-		/** Returns the PhysX object used for mesh cooking. */
-		physx::PxCooking* GetCooking() const { return mCooking; }
+		/** Checks if the system was set up to support mesh cooking. */
+		bool IsCookingEnabled() const { return mInitDesc.InitCooking; }
 
 		/** Returns default scale used in the PhysX scene. */
 		physx::PxTolerancesScale GetScale() const { return mScale; }
@@ -63,7 +62,6 @@ namespace b3d
 
 		physx::PxFoundation* mFoundation = nullptr;
 		physx::PxPhysics* mPhysics = nullptr;
-		physx::PxCooking* mCooking = nullptr;
 		physx::PxMaterial* mDefaultMaterial = nullptr;
 		physx::PxTolerancesScale mScale;
 	};

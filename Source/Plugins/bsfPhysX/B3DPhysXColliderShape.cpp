@@ -175,7 +175,7 @@ void PhysXColliderShape::SetShape(const MeshColliderShapeInformation& informatio
 
 void PhysXColliderShape::SetGeometry(const physx::PxGeometry& geometry)
 {
-	if(mShape == nullptr || mShape->getGeometryType() != geometry.getType())
+	if(mShape == nullptr || mShape->getGeometry().getType() != geometry.getType())
 	{
 		PhysXMaterial* material = nullptr;
 		if (mMaterial.IsValid())

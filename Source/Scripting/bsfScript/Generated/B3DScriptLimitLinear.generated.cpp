@@ -26,7 +26,6 @@ namespace b3d
 	{
 		LimitLinear output;
 		output.Extent = value.Extent;
-		output.ContactDist = value.ContactDist;
 		output.Restitution = value.Restitution;
 		output.Spring = value.Spring;
 
@@ -37,7 +36,6 @@ namespace b3d
 	{
 		__LimitLinearInterop output;
 		output.Extent = value.Extent;
-		output.ContactDist = value.ContactDist;
 		output.Restitution = value.Restitution;
 		output.Spring = value.Spring;
 

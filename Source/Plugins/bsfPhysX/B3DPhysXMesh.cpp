@@ -10,19 +10,29 @@
 #include "geometry/PxTriangleMesh.h"
 #include "geometry/PxConvexMesh.h"
 #include "cooking/PxConvexMeshDesc.h"
+#include "cooking/PxCooking.h"
 #include "extensions/PxDefaultStreams.h"
 
 using namespace physx;
 
 using namespace b3d;
 
+/** Copies cooked mesh data into a newly allocated @p outData buffer, using the generic allocator. */
+static void CopyCookedData(const PxDefaultMemoryOutputStream& output, u8** outData, u32& outSize)
+{
+	outSize = (u32)output.getSize();
+	*outData = (u8*)B3DAllocate(outSize);
+
+	memcpy(*outData, output.getData(), outSize);
+}
+
 /**
  * Attempts to cook a convex mesh from the provided mesh data. Assumes the mesh data is not null and contains vertex
- * positions as well as face indices. If the method returns true the resulting convex mesh will be output in the @p
- * data buffer, and its size in @p size. The data buffer will be allocated used the generic allocator and is up to the
- * caller to free it.
+ * positions as well as face indices. If the method returns true the resulting convex mesh will be output in the
+ * @p outData buffer, and its size in @p outSize. The data buffer will be allocated used the generic allocator and is
+ * up to the caller to free it.
  */
-bool CookConvex(PxCooking* cooking, const TShared<MeshData>& meshData, u8** data, u32& size)
+bool CookConvex(const PxCookingParams& cookingParams, const TShared<MeshData>& meshData, u8** outData, u32& outSize)
 {
 	TShared<VertexDescription> vertexDesc = meshData->GetVertexDescription();
 
@@ -33,24 +43,10 @@ bool CookConvex(PxCooking* cooking, const TShared<MeshData>& meshData, u8** data
 	convexDesc.points.data = meshData->GetElementData(VES_POSITION);
 	convexDesc.flags |= PxConvexFlag::eCOMPUTE_CONVEX;
 
-	PxDefaultMemoryOutputStream output;
-	if(cooking->cookConvexMesh(convexDesc, output))
+	PxDefaultMemoryOutputStream hullOutput;
+	if(PxCookConvexMesh(cookingParams, convexDesc, hullOutput))
 	{
-		size = output.getSize();
-		*data = (u8*)B3DAllocate(size);
-
-		memcpy(*data, output.getData(), size);
-		return true;
-	}
-
-	// Try inflating the convex mesh
-	convexDesc.flags |= PxConvexFlag::eINFLATE_CONVEX;
-	if(cooking->cookConvexMesh(convexDesc, output))
-	{
-		size = output.getSize();
-		*data = (u8*)B3DAllocate(size);
-
-		memcpy(*data, output.getData(), size);
+		CopyCookedData(hullOutput, outData, outSize);
 		return true;
 	}
 
@@ -78,14 +74,11 @@ bool CookConvex(PxCooking* cooking, const TShared<MeshData>& meshData, u8** data
 	convexDesc.points.count = 8;
 	convexDesc.points.stride = sizeof(Vector3);
 	convexDesc.points.data = &aabbVerts[0];
-	convexDesc.flags &= ~PxConvexFlag::eINFLATE_CONVEX;
 
-	if(cooking->cookConvexMesh(convexDesc, output))
+	PxDefaultMemoryOutputStream boundsOutput;
+	if(PxCookConvexMesh(cookingParams, convexDesc, boundsOutput))
 	{
-		size = output.getSize();
-		*data = (u8*)B3DAllocate(size);
-
-		memcpy(*data, output.getData(), size);
+		CopyCookedData(boundsOutput, outData, outSize);
 		return true;
 	}
 
@@ -94,17 +87,16 @@ bool CookConvex(PxCooking* cooking, const TShared<MeshData>& meshData, u8** data
 
 /**
  * Attempts to cook a triangle or convex mesh from the provided mesh data. Will log a warning and return false if it is
- * unable to cook the mesh. If the method returns true the resulting convex mesh will be output in the @p data buffer,
- * and its size in @p size. The data buffer will be allocated used the generic allocator and is up to the caller to
- * free it.
+ * unable to cook the mesh. If the method returns true the resulting convex mesh will be output in the @p outData
+ * buffer, and its size in @p outSize. The data buffer will be allocated used the generic allocator and is up to the
+ * caller to free it.
  */
-bool CookMesh(const TShared<MeshData>& meshData, PhysicsMeshType type, u8** data, u32& size)
+bool CookMesh(const TShared<MeshData>& meshData, PhysicsMeshType type, u8** outData, u32& outSize)
 {
 	if(meshData == nullptr)
 		return false;
 
-	PxCooking* cooking = GetPhysX().GetCooking();
-	if(cooking == nullptr)
+	if(!GetPhysX().IsCookingEnabled())
 	{
 		B3D_LOG(Warning, LogPhysics, "Attempting to cook a physics mesh but cooking is not enabled globally.");
 		return false;
@@ -117,9 +109,11 @@ bool CookMesh(const TShared<MeshData>& meshData, PhysicsMeshType type, u8** data
 		return false;
 	}
 
+	const PxCookingParams cookingParams(GetPhysX().GetScale());
+
 	if(type == PhysicsMeshType::Convex)
 	{
-		if(!CookConvex(cooking, meshData, data, size))
+		if(!CookConvex(cookingParams, meshData, outData, outSize))
 		{
 			B3D_LOG(Warning, LogPhysics, "Failed cooking a convex mesh. Perpahs it is too complex? Maximum number of "
 									 "convex vertices is 256.");
@@ -150,13 +144,10 @@ bool CookMesh(const TShared<MeshData>& meshData, PhysicsMeshType type, u8** data
 		}
 
 		PxDefaultMemoryOutputStream output;
-		if(!cooking->cookTriangleMesh(meshDesc, output))
+		if(!PxCookTriangleMesh(cookingParams, meshDesc, output))
 			return false;
 
-		size = output.getSize();
-		*data = (u8*)B3DAllocate(size);
-
-		memcpy(*data, output.getData(), size);
+		CopyCookedData(output, outData, outSize);
 	}
 
 	return true;

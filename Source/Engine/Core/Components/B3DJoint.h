@@ -70,19 +70,12 @@ namespace b3d
 	/** Contains common values used by all Joint limit types. */
 	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Physics), ExportAsStruct(true)) LimitCommon
 	{
-		LimitCommon(float contactDist = -1.0f)
-			: ContactDist(contactDist)
+		LimitCommon()
 		{}
 
 		LimitCommon(const Spring& spring, float restitution = 0.0f)
 			: Restitution(restitution), Spring(spring)
 		{}
-
-		/**
-		 * Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is
-		 * reached to avoid breaking the limit.
-		 */
-		float ContactDist = -1.0f;
 
 		/**
 		 * Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision,
@@ -106,11 +99,9 @@ namespace b3d
 		 *
 		 * @param	lower		Lower distance of the limit. Must be less than @p upper.
 		 * @param	upper		Upper distance of the limit. Must be more than @p lower.
-		 * @param	contactDist	Distance from the limit at which it becomes active. Allows the solver to activate earlier
-		 *						than the limit is reached to avoid breaking the limit. Specify -1 for the default.
 		 */
-		LimitLinearRange(float lower, float upper, float contactDist = -1.0f)
-			: LimitCommon(contactDist), Lower(lower), Upper(upper)
+		LimitLinearRange(float lower, float upper)
+			: Lower(lower), Upper(upper)
 		{}
 
 		/**
@@ -130,8 +121,8 @@ namespace b3d
 
 		bool operator==(const LimitLinearRange& other) const
 		{
-			return Lower == other.Lower && Upper == other.Upper && ContactDist == other.ContactDist &&
-				Restitution == other.Restitution && Spring == other.Spring;
+			return Lower == other.Lower && Upper == other.Upper && Restitution == other.Restitution &&
+				Spring == other.Spring;
 		}
 
 		/** Lower distance of the limit. Must be less than #upper. */
@@ -152,11 +143,9 @@ namespace b3d
 		 * Constructs a hard limit. Once the limit is reached the movement of the attached bodies will come to a stop.
 		 *
 		 * @param	extent		Distance at which the limit becomes active.
-		 * @param	contactDist	Distance from the limit at which it becomes active. Allows the solver to activate earlier
-		 *						than the limit is reached to avoid breaking the limit. Specify -1 for the default.
 		 */
-		LimitLinear(float extent, float contactDist = -1.0f)
-			: LimitCommon(contactDist), Extent(extent)
+		LimitLinear(float extent)
+			: Extent(extent)
 		{}
 
 		/**
@@ -175,8 +164,7 @@ namespace b3d
 
 		bool operator==(const LimitLinear& other) const
 		{
-			return Extent == other.Extent && ContactDist == other.ContactDist && Restitution == other.Restitution &&
-				Spring == other.Spring;
+			return Extent == other.Extent && Restitution == other.Restitution && Spring == other.Spring;
 		}
 
 		/** Distance at which the limit becomes active. */
@@ -195,11 +183,9 @@ namespace b3d
 		 *
 		 * @param	lower		Lower angle of the limit. Must be less than @p upper.
 		 * @param	upper		Upper angle of the limit. Must be more than @p lower.
-		 * @param	contactDist	Distance from the limit at which it becomes active. Allows the solver to activate earlier
-		 *						than the limit is reached to avoid breaking the limit. Specify -1 for the default.
 		 */
-		LimitAngularRange(Radian lower, Radian upper, float contactDist = -1.0f)
-			: LimitCommon(contactDist), Lower(lower), Upper(upper)
+		LimitAngularRange(Radian lower, Radian upper)
+			: Lower(lower), Upper(upper)
 		{}
 
 		/**
@@ -219,8 +205,8 @@ namespace b3d
 
 		bool operator==(const LimitAngularRange& other) const
 		{
-			return Lower == other.Lower && Upper == other.Upper && ContactDist == other.ContactDist &&
-				Restitution == other.Restitution && Spring == other.Spring;
+			return Lower == other.Lower && Upper == other.Upper && Restitution == other.Restitution &&
+				Spring == other.Spring;
 		}
 
 		/** Lower angle of the limit. Must be less than #upper. */
@@ -244,12 +230,9 @@ namespace b3d
 		 *
 		 * @param	yLimitAngle		Y angle of the cone. Movement is constrainted between 0 and this angle on the Y axis.
 		 * @param	zLimitAngle		Z angle of the cone. Movement is constrainted between 0 and this angle on the Z axis.
-		 * @param	contactDist		Distance from the limit at which it becomes active. Allows the solver to activate
-		 *							earlier than the limit is reached to avoid breaking the limit. Specify -1 for the
-		 *							default.
 		 */
-		LimitConeRange(Radian yLimitAngle, Radian zLimitAngle, float contactDist = -1.0f)
-			: LimitCommon(contactDist), YLimitAngle(yLimitAngle), ZLimitAngle(zLimitAngle)
+		LimitConeRange(Radian yLimitAngle, Radian zLimitAngle)
+			: YLimitAngle(yLimitAngle), ZLimitAngle(zLimitAngle)
 		{}
 
 		/**
@@ -270,7 +253,7 @@ namespace b3d
 		bool operator==(const LimitConeRange& other) const
 		{
 			return YLimitAngle == other.YLimitAngle && ZLimitAngle == other.ZLimitAngle &&
-				ContactDist == other.ContactDist && Restitution == other.Restitution && Spring == other.Spring;
+				Restitution == other.Restitution && Spring == other.Spring;
 		}
 
 		/** Y angle of the cone. Movement is constrainted between 0 and this angle on the Y axis. */

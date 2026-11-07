@@ -20,12 +20,34 @@ static PxD6Drive::Enum ToPxDrive(D6JointDriveType drive)
 		return PxD6Drive::eY;
 	case D6JointDriveType::Z:
 		return PxD6Drive::eZ;
-	case D6JointDriveType::Swing:
-		return PxD6Drive::eSWING;
 	case D6JointDriveType::Twist:
 		return PxD6Drive::eTWIST;
+	case D6JointDriveType::SwingY:
+		return PxD6Drive::eSWING1;
+	case D6JointDriveType::SwingZ:
+		return PxD6Drive::eSWING2;
 	case D6JointDriveType::SLERP:
 		return PxD6Drive::eSLERP;
+	}
+}
+
+/**
+ * Checks if a drive belongs to the provided angular drive configuration. PhysX only exposes the drives of the active
+ * configuration. Accessing any other is an error in checked builds and, because eSLERP shares its storage with eSWING2,
+ * can overwrite an unrelated drive in others.
+ */
+static bool IsDriveAccessible(D6JointDriveType drive, PxD6AngularDriveConfig::Enum config)
+{
+	switch(drive)
+	{
+	default:
+		return true;
+	case D6JointDriveType::Twist:
+	case D6JointDriveType::SwingY:
+	case D6JointDriveType::SwingZ:
+		return config == PxD6AngularDriveConfig::eSWING_TWIST;
+	case D6JointDriveType::SLERP:
+		return config == PxD6AngularDriveConfig::eSLERP;
 	}
 }
 
@@ -48,8 +70,7 @@ PhysXD6Joint::PhysXD6Joint(PxPhysics* physx, Joint& owner, const D6JointCreateIn
 	for(u32 i = 0; i < (u32)D6JointAxis::Count; i++)
 		PhysXD6Joint::SetMotion((D6JointAxis)i, createInformation.Motion[i]);
 
-	for(u32 i = 0; i < (u32)D6JointDriveType::Count; i++)
-		PhysXD6Joint::SetDrive((D6JointDriveType)i, createInformation.Drive[i]);
+	PhysXD6Joint::SetAngularDriveMode(createInformation.AngularDriveMode, createInformation.Drive);
 
 	PhysXD6Joint::SetLimitLinear(createInformation.LimitLinear);
 	PhysXD6Joint::SetLimitTwist(createInformation.LimitTwist);
@@ -61,11 +82,10 @@ PhysXD6Joint::PhysXD6Joint(PxPhysics* physx, Joint& owner, const D6JointCreateIn
 
 LimitLinear PhysXD6Joint::GetLimitLinear() const
 {
-	PxJointLinearLimit pxLimit = GetPxD6Joint().getLinearLimit();
+	PxJointLinearLimit pxLimit = GetPxD6Joint().getDistanceLimit();
 
 	LimitLinear limit;
 	limit.Extent = pxLimit.value;
-	limit.ContactDist = pxLimit.contactDistance;
 	limit.Restitution = pxLimit.restitution;
 	limit.Spring.Stiffness = pxLimit.stiffness;
 	limit.Spring.Damping = pxLimit.damping;
@@ -75,12 +95,12 @@ LimitLinear PhysXD6Joint::GetLimitLinear() const
 
 void PhysXD6Joint::SetLimitLinear(const LimitLinear& limit)
 {
-	PxJointLinearLimit pxLimit(GetPhysX().GetScale(), limit.Extent, limit.ContactDist);
+	PxJointLinearLimit pxLimit(limit.Extent);
 	pxLimit.stiffness = limit.Spring.Stiffness;
 	pxLimit.damping = limit.Spring.Damping;
 	pxLimit.restitution = limit.Restitution;
 
-	GetPxD6Joint().setLinearLimit(pxLimit);
+	GetPxD6Joint().setDistanceLimit(pxLimit);
 }
 
 LimitAngularRange PhysXD6Joint::GetLimitTwist() const
@@ -90,7 +110,6 @@ LimitAngularRange PhysXD6Joint::GetLimitTwist() const
 	LimitAngularRange limit;
 	limit.Lower = pxLimit.lower;
 	limit.Upper = pxLimit.upper;
-	limit.ContactDist = pxLimit.contactDistance;
 	limit.Restitution = pxLimit.restitution;
 	limit.Spring.Stiffness = pxLimit.stiffness;
 	limit.Spring.Damping = pxLimit.damping;
@@ -100,7 +119,7 @@ LimitAngularRange PhysXD6Joint::GetLimitTwist() const
 
 void PhysXD6Joint::SetLimitTwist(const LimitAngularRange& limit)
 {
-	PxJointAngularLimitPair pxLimit(limit.Lower.GetValueInRadians(), limit.Upper.GetValueInRadians(), limit.ContactDist);
+	PxJointAngularLimitPair pxLimit(limit.Lower.GetValueInRadians(), limit.Upper.GetValueInRadians());
 	pxLimit.stiffness = limit.Spring.Stiffness;
 	pxLimit.damping = limit.Spring.Damping;
 	pxLimit.restitution = limit.Restitution;
@@ -115,7 +134,6 @@ LimitConeRange PhysXD6Joint::GetLimitSwing() const
 	LimitConeRange limit;
 	limit.YLimitAngle = pxLimit.yAngle;
 	limit.ZLimitAngle = pxLimit.zAngle;
-	limit.ContactDist = pxLimit.contactDistance;
 	limit.Restitution = pxLimit.restitution;
 	limit.Spring.Stiffness = pxLimit.stiffness;
 	limit.Spring.Damping = pxLimit.damping;
@@ -125,7 +143,7 @@ LimitConeRange PhysXD6Joint::GetLimitSwing() const
 
 void PhysXD6Joint::SetLimitSwing(const LimitConeRange& limit)
 {
-	PxJointLimitCone pxLimit(limit.YLimitAngle.GetValueInRadians(), limit.ZLimitAngle.GetValueInRadians(), limit.ContactDist);
+	PxJointLimitCone pxLimit(limit.YLimitAngle.GetValueInRadians(), limit.ZLimitAngle.GetValueInRadians());
 	pxLimit.stiffness = limit.Spring.Stiffness;
 	pxLimit.damping = limit.Spring.Damping;
 	pxLimit.restitution = limit.Restitution;
@@ -133,8 +151,20 @@ void PhysXD6Joint::SetLimitSwing(const LimitConeRange& limit)
 	GetPxD6Joint().setSwingLimit(pxLimit);
 }
 
+void PhysXD6Joint::SetAngularDriveMode(D6JointAngularDriveMode mode, TArrayView<const D6JointDrive> drives)
+{
+	GetPxD6Joint().setAngularDriveConfig(ToPxAngularDriveMode(mode));
+
+	// PhysX resets the drives of a configuration when it becomes active, and ignores those of inactive configurations
+	for(u32 i = 0; i < (u32)D6JointDriveType::Count; i++)
+		SetDrive((D6JointDriveType)i, drives[i]);
+}
+
 D6JointDrive PhysXD6Joint::GetDrive(D6JointDriveType type) const
 {
+	if(!IsDriveAccessible(type, GetPxD6Joint().getAngularDriveConfig()))
+		return D6JointDrive();
+
 	PxD6JointDrive pxDrive = GetPxD6Joint().getDrive(ToPxDrive(type));
 
 	D6JointDrive drive;
@@ -148,6 +178,9 @@ D6JointDrive PhysXD6Joint::GetDrive(D6JointDriveType type) const
 
 void PhysXD6Joint::SetDrive(D6JointDriveType type, const D6JointDrive& drive)
 {
+	if(!IsDriveAccessible(type, GetPxD6Joint().getAngularDriveConfig()))
+		return;
+
 	PxD6JointDrive pxDrive;
 
 	if(drive.Acceleration)

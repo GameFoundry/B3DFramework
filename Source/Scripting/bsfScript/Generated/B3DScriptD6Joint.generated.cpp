@@ -5,10 +5,10 @@
 #include "B3DMonoClass.h"
 #include "B3DMonoUtil.h"
 #include "../../../Engine/Core/Components/B3DD6Joint.h"
-#include "B3DScriptD6JointDrive.generated.h"
 #include "B3DScriptLimitLinear.generated.h"
 #include "B3DScriptLimitAngularRange.generated.h"
 #include "B3DScriptLimitConeRange.generated.h"
+#include "B3DScriptD6JointDrive.generated.h"
 #include "B3DScriptTVector3.generated.h"
 #include "B3DScriptTQuaternion.generated.h"
 
@@ -38,6 +38,8 @@ namespace b3d
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLimitTwist", (void*)&ScriptD6Joint::InternalGetLimitTwist);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLimitSwing", (void*)&ScriptD6Joint::InternalSetLimitSwing);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLimitSwing", (void*)&ScriptD6Joint::InternalGetLimitSwing);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetAngularDriveMode", (void*)&ScriptD6Joint::InternalSetAngularDriveMode);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetAngularDriveMode", (void*)&ScriptD6Joint::InternalGetAngularDriveMode);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetDrive", (void*)&ScriptD6Joint::InternalSetDrive);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetDrive", (void*)&ScriptD6Joint::InternalGetDrive);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetDrivePosition", (void*)&ScriptD6Joint::InternalGetDrivePosition);
@@ -199,6 +201,28 @@ namespace b3d
 		__LimitConeRangeInterop interop__output;
 		interop__output = ScriptLimitConeRange::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptLimitConeRange::GetMetaData()->ScriptClass->GetInternalClass());
+	}
+
+	void ScriptD6Joint::InternalSetAngularDriveMode(ScriptD6Joint* self, D6JointAngularDriveMode mode)
+	{
+		if(!self->IsNativeObjectValid())
+			return;
+
+		static_cast<D6Joint*>(self->GetNativeObject())->SetAngularDriveMode(mode);
+	}
+
+	D6JointAngularDriveMode ScriptD6Joint::InternalGetAngularDriveMode(ScriptD6Joint* self)
+	{
+		D6JointAngularDriveMode tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
+		tmp__output = static_cast<D6Joint*>(self->GetNativeObject())->GetAngularDriveMode();
+
+		D6JointAngularDriveMode __output;
+		__output = tmp__output;
+
+		return __output;
 	}
 
 	void ScriptD6Joint::InternalSetDrive(ScriptD6Joint* self, D6JointDriveType type, __D6JointDriveInterop* drive)

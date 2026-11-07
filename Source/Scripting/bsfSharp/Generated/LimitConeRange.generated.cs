@@ -20,7 +20,6 @@ namespace b3d
 			LimitConeRange value = new LimitConeRange();
 			value.YLimitAngle = new Radian(1.57079637f);
 			value.ZLimitAngle = new Radian(1.57079637f);
-			value.ContactDist = -1f;
 			value.Restitution = 0f;
 			value.Spring = Spring.Default();
 
@@ -36,15 +35,10 @@ namespace b3d
 		/// <param name="zLimitAngle">
 		/// Z angle of the cone. Movement is constrainted between 0 and this angle on the Z axis.
 		/// </param>
-		/// <param name="contactDist">
-		/// Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached 
-		/// to avoid breaking the limit. Specify -1 for the default.
-		/// </param>
-		public LimitConeRange(Radian yLimitAngle, Radian zLimitAngle, float contactDist = -1f)
+		public LimitConeRange(Radian yLimitAngle, Radian zLimitAngle)
 		{
 			this.YLimitAngle = yLimitAngle;
 			this.ZLimitAngle = zLimitAngle;
-			this.ContactDist = -1f;
 			this.Restitution = 0f;
 			this.Spring = Spring.Default();
 		}
@@ -70,7 +64,6 @@ namespace b3d
 		{
 			this.YLimitAngle = yLimitAngle;
 			this.ZLimitAngle = zLimitAngle;
-			this.ContactDist = -1f;
 			this.Restitution = 0f;
 			this.Spring = Spring.Default();
 		}
@@ -81,7 +74,6 @@ namespace b3d
 		public LimitCommon GetBase()
 		{
 			LimitCommon value;
-			value.ContactDist = ContactDist;
 			value.Restitution = Restitution;
 			value.Spring = Spring;
 			return value;
@@ -93,7 +85,6 @@ namespace b3d
 		///</summary>
 		public void SetBase(LimitCommon value)
 		{
-			ContactDist = value.ContactDist;
 			Restitution = value.Restitution;
 			Spring = value.Spring;
 		}
@@ -104,11 +95,6 @@ namespace b3d
 		/// <summary>Z angle of the cone. Movement is constrainted between 0 and this angle on the Z axis.</summary>
 		[Range(0f, 180f, false)]
 		public Radian ZLimitAngle;
-		/// <summary>
-		/// Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached 
-		/// to avoid breaking the limit.
-		/// </summary>
-		public float ContactDist;
 		/// <summary>
 		/// Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while 
 		/// those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.

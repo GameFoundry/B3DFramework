@@ -27,7 +27,6 @@ namespace b3d
 		LimitConeRange output;
 		output.YLimitAngle = value.YLimitAngle;
 		output.ZLimitAngle = value.ZLimitAngle;
-		output.ContactDist = value.ContactDist;
 		output.Restitution = value.Restitution;
 		output.Spring = value.Spring;
 
@@ -39,7 +38,6 @@ namespace b3d
 		__LimitConeRangeInterop output;
 		output.YLimitAngle = value.YLimitAngle;
 		output.ZLimitAngle = value.ZLimitAngle;
-		output.ContactDist = value.ContactDist;
 		output.Restitution = value.Restitution;
 		output.Spring = value.Spring;
 

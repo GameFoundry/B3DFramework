@@ -13,32 +13,22 @@ namespace b3d
 	/// <summary>Type of drives that can be used for moving or rotating bodies attached to the joint.</summary>
 	public enum D6JointDriveType
 	{
-		/// <summary>
-		/// Rotation using spherical linear interpolation. Uses the SLERP angular drive mode which performs rotation by 
-		/// interpolating the quaternion values directly over the shortest path (applies to all three axes, which they all must 
-		/// be unlocked).
-		/// </summary>
-		SLERP = 5,
-		/// <summary>Linear movement on the X axis using the linear drive model.</summary>
+		/// <summary>Rotation around all three axes at once. Only active with D6JointAngularDriveMode::SLERP.</summary>
+		SLERP = 6,
+		/// <summary>Linear movement on the X axis.</summary>
 		X = 0,
-		/// <summary>
-		/// Rotation using spherical linear interpolation. Uses the SLERP angular drive mode which performs rotation by 
-		/// interpolating the quaternion values directly over the shortest path (applies to all three axes, which they all must 
-		/// be unlocked).
-		/// </summary>
-		Count = 6,
-		/// <summary>Linear movement on the Y axis using the linear drive model.</summary>
+		/// <summary>Rotation around all three axes at once. Only active with D6JointAngularDriveMode::SLERP.</summary>
+		Count = 7,
+		/// <summary>Linear movement on the Y axis.</summary>
 		Y = 1,
-		/// <summary>Linear movement on the Z axis using the linear drive model.</summary>
+		/// <summary>Linear movement on the Z axis.</summary>
 		Z = 2,
-		/// <summary>
-		/// Rotation around the Y axis using the twist/swing angular drive model. Should not be used together with SLERP mode.
-		/// </summary>
-		Swing = 3,
-		/// <summary>
-		/// Rotation around the Z axis using the twist/swing angular drive model. Should not be used together with SLERP mode.
-		/// </summary>
-		Twist = 4
+		/// <summary>Rotation around the Y axis. Only active with D6JointAngularDriveMode::SwingTwist.</summary>
+		SwingY = 4,
+		/// <summary>Rotation around the X axis. Only active with D6JointAngularDriveMode::SwingTwist.</summary>
+		Twist = 3,
+		/// <summary>Rotation around the Z axis. Only active with D6JointAngularDriveMode::SwingTwist.</summary>
+		SwingZ = 5
 	}
 
 	/** @} */
