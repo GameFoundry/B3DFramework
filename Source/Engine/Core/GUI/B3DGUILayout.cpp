@@ -67,9 +67,9 @@ void GUILayout::SetInteractive(bool interactive)
 		RefreshStyleAndRegistration(wasLayoutOnly);
 }
 
-void GUILayout::SetChecked(bool checked)
+void GUILayout::SetChecked(bool value)
 {
-	if(checked)
+	if(value)
 		AddStateFlags(GUIElementState::Checked);
 	else
 		RemoveStateFlags(GUIElementState::Checked);

@@ -103,7 +103,7 @@ namespace b3d
 
 		/** Toggles the `:checked` state of the layout, whether or not it is interactive. */
 		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(Checked))
-		void SetChecked(bool checked);
+		void SetChecked(bool value);
 
 		/** @copydoc SetChecked */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Checked))
