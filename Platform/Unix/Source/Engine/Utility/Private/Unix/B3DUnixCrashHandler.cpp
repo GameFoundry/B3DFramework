@@ -60,7 +60,19 @@ CrashHandler::CrashHandler(const CrashHandlerSettings& settings)
 	}
 }
 
-CrashHandler::~CrashHandler() {}
+CrashHandler::~CrashHandler()
+{
+	if(mSettings.DisableCrashSignalHandler)
+		return;
+
+	// The handler reports through this instance, so it must not run past this point
+	i32 signalIndex = 0;
+	for(auto& entry : SIGNALS)
+	{
+		sigaction(entry, &gSavedSignals[signalIndex], nullptr);
+		signalIndex++;
+	}
+}
 
 String CrashHandler::GetCrashTimestamp()
 {
