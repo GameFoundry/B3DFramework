@@ -656,7 +656,7 @@ namespace b3d
 		NSString* titleString = [NSString stringWithUTF8String:createInformation.Title.c_str()];
 
 		[m->Window setAcceptsMouseMovedEvents:YES];
-		[m->Window setReleasedWhenClosed:YES];
+		[m->Window setReleasedWhenClosed:NO];
 		[m->Window setTitle:titleString];
 		[m->Window makeKeyAndOrderFront:nil];
 
