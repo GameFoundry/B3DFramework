@@ -14,8 +14,15 @@
 
 namespace b3d
 {
-	/** Verifies compilation, size metadata and resource separation for every portable push-constant size. */
-	inline void TestPushConstantShaderCompilation(TestSuite& suite, const String& targetLanguage)
+	/**
+	 * Verifies compilation, size metadata and resource separation for every portable push-constant size.
+	 *
+	 * @param suite					Suite that receives the test results.
+	 * @param targetLanguage		Shading language to compile the test shaders to.
+	 * @param reflectsStageReads	True if compiled programs report whether their stage reads the push constants, so a stage
+	 *								that doesn't read them reports a size of zero. Otherwise every stage reports the declared size.
+	 */
+	inline void TestPushConstantShaderCompilation(TestSuite& suite, const String& targetLanguage, bool reflectsStageReads = true)
 	{
 		const TShared<IShaderCompiler> compiler = ShaderCompilers::Instance().GetCompiler("bsl");
 		B3D_TEST_ASSERT_EXTERNAL_MSG(suite, compiler != nullptr, "Host push-constant tests require the BSL compiler.")
@@ -133,6 +140,6 @@ namespace b3d
 
 		B3D_TEST_ASSERT_EXTERNAL_MSG(suite, unreadProgram.Bytecode->Instructions.Data != nullptr, unreadShaderName + ": " + unreadProgram.Bytecode->Messages)
 		B3D_TEST_ASSERT_EXTERNAL(suite, readingProgram.Bytecode->ParameterDescription->PushConstantBufferSize == sizeof(u32))
-		B3D_TEST_ASSERT_EXTERNAL(suite, unreadProgram.Bytecode->ParameterDescription->PushConstantBufferSize == 0)
+		B3D_TEST_ASSERT_EXTERNAL(suite, unreadProgram.Bytecode->ParameterDescription->PushConstantBufferSize == (reflectsStageReads ? 0 : sizeof(u32)))
 	}
 }
