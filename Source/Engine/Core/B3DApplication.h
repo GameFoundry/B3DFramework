@@ -116,6 +116,9 @@ namespace b3d
 		/** Returns the primary GPU on which to perform rendering. */
 		TShared<GpuDevice> GetPrimaryGpuDevice() const { return mPrimaryGpu; }
 
+		/** Returns true if the primary window renders off-screen, with no native window on the desktop. */
+		bool IsHeadless() const { return mInformation.PrimaryWindow.Headless; }
+
 		/**
 		 * Returns a unique identifier of the main thread.
 		 *

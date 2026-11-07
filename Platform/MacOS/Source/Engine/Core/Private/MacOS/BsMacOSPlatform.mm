@@ -227,14 +227,15 @@ namespace b3d
 }
 @end
 
-/** Application delegate implementation that activates the application when it finishes launching. */
+/** Application delegate implementation that activates non-headless applications when they finish launching. */
 @interface BSAppDelegate : NSObject<NSApplicationDelegate>
 @end
 
 @implementation BSAppDelegate : NSObject
 -(void)applicationDidFinishLaunching:(NSNotification *)notification
 {
-	[NSApp activateIgnoringOtherApps:YES];
+	if([NSApp activationPolicy] == NSApplicationActivationPolicyRegular)
+		[NSApp activateIgnoringOtherApps:YES];
 }
 @end
 
@@ -1062,7 +1063,8 @@ namespace b3d
 		[BSApplication sharedApplication];
 
 		[NSApp setDelegate:mData->AppDelegate];
-		[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+
+		[NSApp setActivationPolicy:GetApplication().IsHeadless() ? NSApplicationActivationPolicyAccessory : NSApplicationActivationPolicyRegular];
 
 		CreateApplicationMenu();
 
