@@ -158,9 +158,7 @@ void D3D12DescriptorManager::CreateNullDescriptors()
 	fnCreateNullBufferViews(DXGI_FORMAT_R32_TYPELESS, 0, true, mNullRawBufferSRVHandle, mNullRawBufferUAVHandle);
 
 	// Acceleration structure views exist only on devices with ray tracing. A null one has no acceleration structure address.
-	D3D12_FEATURE_DATA_D3D12_OPTIONS5 options5 = {};
-	const bool supportsRayTracing = SUCCEEDED(d3d12Device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &options5, sizeof(options5))) && options5.RaytracingTier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED;
-	if(supportsRayTracing)
+	if(mDevice.GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES))
 	{
 		mNullAccelerationStructureSRVHandle = AllocateCPUDescriptor(D3D12DescriptorHeapType::CBV_SRV_UAV);
 		if(mNullAccelerationStructureSRVHandle.ptr != 0)

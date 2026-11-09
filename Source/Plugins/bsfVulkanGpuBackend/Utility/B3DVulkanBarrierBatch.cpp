@@ -6,7 +6,8 @@
 using namespace b3d;
 using namespace b3d::render;
 
-VulkanBarrierBatch::VulkanBarrierBatch()
+VulkanBarrierBatch::VulkanBarrierBatch(const VulkanGpuDevice& device)
+	: mDevice(device)
 {
 	Clear();
 }
@@ -18,8 +19,8 @@ void VulkanBarrierBatch::AddBufferBarrier(VkBuffer buffer, const GpuBarrierScope
 
 	// Only writes require Vulkan memory availability. Source reads are ordered through the source stage mask.
 	const GpuAccessFlags sourceAvailabilityAccess = barrier.SourceAccess.IsSet(GpuAccessFlag::Write) ?  GpuAccessFlags(GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::None);
-	VulkanUtility::GetPipelineStageAndAccessMask(barrier.SourceStages, sourceAvailabilityAccess, sourceStages, sourceAccess);
-	VulkanUtility::GetPipelineStageAndAccessMask(barrier.DestinationStages, barrier.DestinationAccess, destinationStages, destinationAccess);
+	VulkanUtility::GetPipelineStageAndAccessMask(mDevice, barrier.SourceStages, sourceAvailabilityAccess, sourceStages, sourceAccess);
+	VulkanUtility::GetPipelineStageAndAccessMask(mDevice, barrier.DestinationStages, barrier.DestinationAccess, destinationStages, destinationAccess);
 
 	if(sourceQueueFamily != destinationQueueFamily)
 		AddBufferBarrier(buffer, sourceStages, sourceAccess, destinationStages, destinationAccess, sourceQueueFamily, destinationQueueFamily, offset, size);
@@ -91,8 +92,8 @@ void VulkanBarrierBatch::AddImageBarrier(VkImage image, const VkImageSubresource
 
 	// Only writes require Vulkan memory availability. Source reads are ordered through the source stage mask.
 	const GpuAccessFlags sourceAvailabilityAccess = barrier.SourceAccess.IsSet(GpuAccessFlag::Write) ?  GpuAccessFlags(GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::None);
-	VulkanUtility::GetPipelineStageAndAccessMask(barrier.SourceStages, sourceAvailabilityAccess, sourceStages, sourceAccess);
-	VulkanUtility::GetPipelineStageAndAccessMask(barrier.DestinationStages, barrier.DestinationAccess, destinationStages, destinationAccess);
+	VulkanUtility::GetPipelineStageAndAccessMask(mDevice, barrier.SourceStages, sourceAvailabilityAccess, sourceStages, sourceAccess);
+	VulkanUtility::GetPipelineStageAndAccessMask(mDevice, barrier.DestinationStages, barrier.DestinationAccess, destinationStages, destinationAccess);
 
 	AddImageBarrier(image, range, sourceStages, sourceAccess, destinationStages, destinationAccess, oldLayout, newLayout, sourceQueueFamily, destinationQueueFamily);
 }
@@ -138,8 +139,8 @@ void VulkanBarrierBatch::AddExecutionBarrier(const GpuBarrierScope& barrier)
 
 	VkPipelineStageFlags sourceStages, destinationStages;
 	VkAccessFlags unusedAccess;
-	VulkanUtility::GetPipelineStageAndAccessMask(barrier.SourceStages, barrier.SourceAccess, sourceStages, unusedAccess);
-	VulkanUtility::GetPipelineStageAndAccessMask(barrier.DestinationStages, barrier.DestinationAccess, destinationStages, unusedAccess);
+	VulkanUtility::GetPipelineStageAndAccessMask(mDevice, barrier.SourceStages, barrier.SourceAccess, sourceStages, unusedAccess);
+	VulkanUtility::GetPipelineStageAndAccessMask(mDevice, barrier.DestinationStages, barrier.DestinationAccess, destinationStages, unusedAccess);
 
 	AddExecutionBarrier(sourceStages, destinationStages);
 }
@@ -161,8 +162,8 @@ void VulkanBarrierBatch::AddMemoryBarrier(const GpuBarrierScope& barrier)
 
 	// Only writes require Vulkan memory availability. Source reads are ordered through an execution dependency.
 	const GpuAccessFlags sourceAvailabilityAccess = barrier.SourceAccess.IsSet(GpuAccessFlag::Write) ?  GpuAccessFlags(GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::None);
-	VulkanUtility::GetPipelineStageAndAccessMask(barrier.SourceStages, sourceAvailabilityAccess, sourceStages, sourceAccess);
-	VulkanUtility::GetPipelineStageAndAccessMask(barrier.DestinationStages, barrier.DestinationAccess, destinationStages, destinationAccess);
+	VulkanUtility::GetPipelineStageAndAccessMask(mDevice, barrier.SourceStages, sourceAvailabilityAccess, sourceStages, sourceAccess);
+	VulkanUtility::GetPipelineStageAndAccessMask(mDevice, barrier.DestinationStages, barrier.DestinationAccess, destinationStages, destinationAccess);
 
 	AddMemoryBarrier(sourceStages, sourceAccess, destinationStages, destinationAccess);
 }

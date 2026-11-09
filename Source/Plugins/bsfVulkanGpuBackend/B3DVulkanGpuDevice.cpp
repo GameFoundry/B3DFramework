@@ -178,7 +178,7 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 
 	// Set up extensions. Required: swapchain, maintenance1, maintenance2. Plus optional ones discovered
 	// below (shader_viewport_index_layer).
-	const char* extensions[12];
+	const char* extensions[16];
 	uint32_t extensionCount = 0;
 
 	extensions[extensionCount++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
@@ -192,6 +192,10 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 
 	bool supportsMutableDescriptorType = false;
 	bool supportsRobustness2 = false;
+	bool supportsAccelerationStructureExtension = false;
+	bool supportsDeferredHostOperationsExtension = false;
+	bool supportsRayQueryExtension = false;
+	bool supportsRayTracingPipelineExtension = false;
 
 	// Enumerate supported extensions
 	uint32_t availableExtensionCount = 0;
@@ -211,6 +215,14 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 					supportsMutableDescriptorType = true;
 				else if(strcmp(entry.extensionName, VK_EXT_ROBUSTNESS_2_EXTENSION_NAME) == 0)
 					supportsRobustness2 = true;
+				else if(strcmp(entry.extensionName, VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME) == 0)
+					supportsAccelerationStructureExtension = true;
+				else if(strcmp(entry.extensionName, VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME) == 0)
+					supportsDeferredHostOperationsExtension = true;
+				else if(strcmp(entry.extensionName, VK_KHR_RAY_QUERY_EXTENSION_NAME) == 0)
+					supportsRayQueryExtension = true;
+				else if(strcmp(entry.extensionName, VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME) == 0)
+					supportsRayTracingPipelineExtension = true;
 #if B3D_BUILD_TYPE_DEVELOPMENT
 				else if(strcmp(entry.extensionName, VK_KHR_PIPELINE_EXECUTABLE_PROPERTIES_EXTENSION_NAME) == 0)
 				{
@@ -244,6 +256,40 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	{
 		robustness2FeatureProbe.pNext = descriptorIndexingFeatureProbe.pNext;
 		descriptorIndexingFeatureProbe.pNext = &robustness2FeatureProbe;
+	}
+
+	// Ray tracing is probed only when it is allowed, so the device reports none of it otherwise
+	const bool probesRayTracing = gGpuRayTracing.Get() && supportsAccelerationStructureExtension && supportsDeferredHostOperationsExtension;
+
+	VkPhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddressFeatureProbe = {};
+	bufferDeviceAddressFeatureProbe.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
+
+	VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatureProbe = {};
+	accelerationStructureFeatureProbe.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
+
+	VkPhysicalDeviceRayQueryFeaturesKHR rayQueryFeatureProbe = {};
+	rayQueryFeatureProbe.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR;
+
+	VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatureProbe = {};
+	rayTracingPipelineFeatureProbe.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR;
+
+	if(probesRayTracing)
+	{
+		bufferDeviceAddressFeatureProbe.pNext = &accelerationStructureFeatureProbe;
+		accelerationStructureFeatureProbe.pNext = descriptorIndexingFeatureProbe.pNext;
+		descriptorIndexingFeatureProbe.pNext = &bufferDeviceAddressFeatureProbe;
+
+		if(supportsRayQueryExtension)
+		{
+			rayQueryFeatureProbe.pNext = descriptorIndexingFeatureProbe.pNext;
+			descriptorIndexingFeatureProbe.pNext = &rayQueryFeatureProbe;
+		}
+
+		if(supportsRayTracingPipelineExtension)
+		{
+			rayTracingPipelineFeatureProbe.pNext = descriptorIndexingFeatureProbe.pNext;
+			descriptorIndexingFeatureProbe.pNext = &rayTracingPipelineFeatureProbe;
+		}
 	}
 
 	VkPhysicalDeviceFeatures2 features2 = {};
@@ -284,6 +330,25 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	if(mSupportsNullDescriptor)
 		extensions[extensionCount++] = VK_EXT_ROBUSTNESS_2_EXTENSION_NAME;
 #endif
+
+	// Acceleration structure builds read their inputs through device addresses. Pipelines also need ray query, because DXC declares
+	// RayQueryKHR in ray generation programs that trace against an acceleration structure.
+	mSupportsAccelerationStructures = probesRayTracing && accelerationStructureFeatureProbe.accelerationStructure == VK_TRUE && bufferDeviceAddressFeatureProbe.bufferDeviceAddress == VK_TRUE;
+	mIsBufferDeviceAddressEnabled = mSupportsAccelerationStructures;
+	mSupportsRayQuery = mSupportsAccelerationStructures && supportsRayQueryExtension && rayQueryFeatureProbe.rayQuery == VK_TRUE;
+	mSupportsRayTracingPipeline = mSupportsRayQuery && supportsRayTracingPipelineExtension && rayTracingPipelineFeatureProbe.rayTracingPipeline == VK_TRUE;
+
+	if(mSupportsAccelerationStructures)
+	{
+		extensions[extensionCount++] = VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME;
+		extensions[extensionCount++] = VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME;
+	}
+
+	if(mSupportsRayQuery)
+		extensions[extensionCount++] = VK_KHR_RAY_QUERY_EXTENSION_NAME;
+
+	if(mSupportsRayTracingPipeline)
+		extensions[extensionCount++] = VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME;
 
 	// Build the enabled-feature pNext chain
 	void* featureChain = nullptr;
@@ -353,6 +418,43 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 		featureChain = &pipelineExecutableFeatures;
 	}
 #endif
+
+	VkPhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddressFeatures = {};
+	if(mIsBufferDeviceAddressEnabled)
+	{
+		bufferDeviceAddressFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
+		bufferDeviceAddressFeatures.pNext = featureChain;
+		bufferDeviceAddressFeatures.bufferDeviceAddress = VK_TRUE;
+		featureChain = &bufferDeviceAddressFeatures;
+	}
+
+	VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures = {};
+	if(mSupportsAccelerationStructures)
+	{
+		accelerationStructureFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
+		accelerationStructureFeatures.pNext = featureChain;
+		accelerationStructureFeatures.accelerationStructure = VK_TRUE;
+		featureChain = &accelerationStructureFeatures;
+	}
+
+	VkPhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures = {};
+	if(mSupportsRayQuery)
+	{
+		rayQueryFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR;
+		rayQueryFeatures.pNext = featureChain;
+		rayQueryFeatures.rayQuery = VK_TRUE;
+		featureChain = &rayQueryFeatures;
+	}
+
+	VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures = {};
+	if(mSupportsRayTracingPipeline)
+	{
+		rayTracingPipelineFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR;
+		rayTracingPipelineFeatures.pNext = featureChain;
+		rayTracingPipelineFeatures.rayTracingPipeline = VK_TRUE;
+		rayTracingPipelineFeatures.rayTraversalPrimitiveCulling = rayTracingPipelineFeatureProbe.rayTraversalPrimitiveCulling;
+		featureChain = &rayTracingPipelineFeatures;
+	}
 
 	VkDeviceCreateInfo deviceInfo;
 	deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -1333,16 +1435,62 @@ void VulkanGpuDevice::InitializeCapabilities()
 	mCapabilities.OptimalBufferToImageCopyOffsetAlignment = (u32)deviceLimits.optimalBufferCopyRowPitchAlignment;
 	mCapabilities.MaximumPushConstantSize = deviceLimits.maxPushConstantsSize;
 
+	VkPhysicalDeviceDescriptorIndexingProperties descriptorIndexingProperties = {};
+	descriptorIndexingProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_PROPERTIES;
+
+	VkPhysicalDeviceAccelerationStructurePropertiesKHR accelerationStructureProperties = {};
+	accelerationStructureProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_PROPERTIES_KHR;
+
+	VkPhysicalDeviceRayTracingPipelinePropertiesKHR rayTracingPipelineProperties = {};
+	rayTracingPipelineProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR;
+
+	VkPhysicalDeviceProperties2 properties2 = {};
+	properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+	properties2.pNext = &descriptorIndexingProperties;
+
+	if(mSupportsAccelerationStructures)
+	{
+		accelerationStructureProperties.pNext = properties2.pNext;
+		properties2.pNext = &accelerationStructureProperties;
+	}
+
+	if(mSupportsRayTracingPipeline)
+	{
+		rayTracingPipelineProperties.pNext = properties2.pNext;
+		properties2.pNext = &rayTracingPipelineProperties;
+	}
+
+	vkGetPhysicalDeviceProperties2(mPhysicalDevice, &properties2);
+
+	if(mSupportsAccelerationStructures)
+	{
+		GpuRayTracingCapabilities& rayTracing = mCapabilities.RayTracing;
+		rayTracing.ScratchOffsetAlignment = accelerationStructureProperties.minAccelerationStructureScratchOffsetAlignment;
+		rayTracing.InstanceSize = sizeof(VkAccelerationStructureInstanceKHR);
+		rayTracing.MaximumInstanceCount = accelerationStructureProperties.maxInstanceCount;
+		rayTracing.MaximumGeometryCount = accelerationStructureProperties.maxGeometryCount;
+		rayTracing.MaximumPrimitiveCount = accelerationStructureProperties.maxPrimitiveCount;
+
+		mCapabilities.SetCapability(RSC_ACCELERATION_STRUCTURES);
+
+		if(mSupportsRayQuery)
+			mCapabilities.SetCapability(RSC_RAY_QUERY);
+
+		if(mSupportsRayTracingPipeline)
+		{
+			rayTracing.ShaderGroupHandleSize = rayTracingPipelineProperties.shaderGroupHandleSize;
+			rayTracing.ShaderRecordAlignment = rayTracingPipelineProperties.shaderGroupHandleAlignment;
+			rayTracing.ShaderTableAlignment = rayTracingPipelineProperties.shaderGroupBaseAlignment;
+			rayTracing.MaximumShaderRecordStride = rayTracingPipelineProperties.maxShaderGroupStride;
+			rayTracing.MaximumRecursionDepth = rayTracingPipelineProperties.maxRayRecursionDepth;
+			rayTracing.SupportsCallablePrograms = true;
+
+			mCapabilities.SetCapability(RSC_RAY_TRACING_PIPELINE);
+		}
+	}
+
 	if(mSupportsBindlessResources)
 	{
-		VkPhysicalDeviceDescriptorIndexingProperties descriptorIndexingProperties = {};
-		descriptorIndexingProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_PROPERTIES;
-
-		VkPhysicalDeviceProperties2 properties2 = {};
-		properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-		properties2.pNext = &descriptorIndexingProperties;
-		vkGetPhysicalDeviceProperties2(mPhysicalDevice, &properties2);
-
 		mCapabilities.MaximumBindlessSamplerCount = std::min(descriptorIndexingProperties.maxPerStageDescriptorUpdateAfterBindSamplers,
 			descriptorIndexingProperties.maxDescriptorSetUpdateAfterBindSamplers);
 

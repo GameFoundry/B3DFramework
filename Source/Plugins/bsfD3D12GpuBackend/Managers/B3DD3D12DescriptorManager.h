@@ -252,7 +252,7 @@ namespace b3d
 			D3D12_CPU_DESCRIPTOR_HANDLE mNullStructuredBufferUAVHandle{};
 			D3D12_CPU_DESCRIPTOR_HANDLE mNullRawBufferSRVHandle{};
 			D3D12_CPU_DESCRIPTOR_HANDLE mNullRawBufferUAVHandle{};
-			D3D12_CPU_DESCRIPTOR_HANDLE mNullAccelerationStructureSRVHandle{}; /**< Zero on devices without ray tracing. */
+			D3D12_CPU_DESCRIPTOR_HANDLE mNullAccelerationStructureSRVHandle{}; /**< Zero on devices without RSC_ACCELERATION_STRUCTURES. */
 		};
 
 		/** @} */

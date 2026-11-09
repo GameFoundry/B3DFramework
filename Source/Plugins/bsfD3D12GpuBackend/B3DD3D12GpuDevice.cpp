@@ -1010,6 +1010,31 @@ void D3D12GpuDevice::InitializeCapabilities()
 		mCapabilities.MaximumBindlessSamplerCount = D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE - D3D12DescriptorManager::kSamplerTableDescriptorCount;
 	}
 
+	// Tier 1.0 has acceleration structures and pipelines, and tier 1.1 adds inline ray tracing. The rest are API constants.
+	D3D12_FEATURE_DATA_D3D12_OPTIONS5 options5 = {};
+	const bool hasOptions5 = SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &options5, sizeof(options5)));
+	if(gGpuRayTracing.Get() && hasOptions5 && options5.RaytracingTier >= D3D12_RAYTRACING_TIER_1_0)
+	{
+		GpuRayTracingCapabilities& rayTracing = mCapabilities.RayTracing;
+		rayTracing.ShaderGroupHandleSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
+		rayTracing.ShaderRecordAlignment = D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT;
+		rayTracing.ShaderTableAlignment = D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT;
+		rayTracing.MaximumShaderRecordStride = D3D12_RAYTRACING_MAX_SHADER_RECORD_STRIDE;
+		rayTracing.MaximumRecursionDepth = D3D12_RAYTRACING_MAX_DECLARABLE_TRACE_RECURSION_DEPTH;
+		rayTracing.ScratchOffsetAlignment = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT;
+		rayTracing.InstanceSize = sizeof(D3D12_RAYTRACING_INSTANCE_DESC);
+		rayTracing.MaximumInstanceCount = D3D12_RAYTRACING_MAX_INSTANCES_PER_TOP_LEVEL_ACCELERATION_STRUCTURE;
+		rayTracing.MaximumGeometryCount = D3D12_RAYTRACING_MAX_GEOMETRIES_PER_BOTTOM_LEVEL_ACCELERATION_STRUCTURE;
+		rayTracing.MaximumPrimitiveCount = D3D12_RAYTRACING_MAX_PRIMITIVES_PER_BOTTOM_LEVEL_ACCELERATION_STRUCTURE;
+		rayTracing.SupportsCallablePrograms = true;
+
+		mCapabilities.SetCapability(RSC_ACCELERATION_STRUCTURES);
+		mCapabilities.SetCapability(RSC_RAY_TRACING_PIPELINE);
+
+		if(options5.RaytracingTier >= D3D12_RAYTRACING_TIER_1_1)
+			mCapabilities.SetCapability(RSC_RAY_QUERY);
+	}
+
 	mCapabilities.Conventions.NdcYAxis = GpuBackendConventions::Axis::Up;
 	mCapabilities.Conventions.MatrixOrder = GpuBackendConventions::MatrixOrder::ColumnMajor;
 

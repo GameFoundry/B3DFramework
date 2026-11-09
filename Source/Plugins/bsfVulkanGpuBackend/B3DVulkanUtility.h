@@ -114,25 +114,15 @@ namespace b3d
 			static bool RangeEquals(const VkImageSubresourceRange& a, const VkImageSubresourceRange& b);
 
 			/**
-			 * Returns pipeline stages based on the resource usage flags. This allows for fine-grained control
-			 * of which shader stages are involved when individual shader stage flags are used (VertexShader,
-			 * FragmentShader, ComputeShader). When using the combined Shader flag or other non-shader usage
-			 * flags, appropriate pipeline stages are determined automatically.
-			 */
-			static VkPipelineStageFlags GetPipelineStageFlags(GpuResourceUseFlags usage, VkAccessFlags accessFlags);
-
-			/** Returns a set of pipeline stages that can are allowed to be used for the specified set of access flags. */
-			static VkPipelineStageFlags GetPipelineStageFlags(VkAccessFlags accessFlags);
-
-			/**
-			 * Converts VulkanResourceAccessTypeFlags and access flags into VkPipelineStageFlags and VkAccessFlags.
+			 * Converts stage and access flags into VkPipelineStageFlags and VkAccessFlags. Stages that @p device doesn't have are left out.
 			 *
-			 * @param accessStage	Vulkan resource access stage flags specifying where is the resource accessed and how.
+			 * @param device		Device the barrier is recorded on.
+			 * @param accessStage	Stages that access the resource, and how.
 			 * @param access		Type of access (read/write) for the resource.
 			 * @param outStages		Output parameter that receives the corresponding Vulkan pipeline stage flags.
 			 * @param outAccessMask Output parameter that receives the corresponding Vulkan access flags.
 			 */
-			static void GetPipelineStageAndAccessMask(GpuStageFlags accessStage, GpuAccessFlags access, VkPipelineStageFlags& outStages, VkAccessFlags& outAccessMask);
+			static void GetPipelineStageAndAccessMask(const VulkanGpuDevice& device, GpuStageFlags accessStage, GpuAccessFlags access, VkPipelineStageFlags& outStages, VkAccessFlags& outAccessMask);
 
 		};
 

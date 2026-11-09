@@ -61,6 +61,7 @@ namespace
 D3D12BarrierTestSuite::D3D12BarrierTestSuite() : TestSuite("D3D12BarrierTestSuite")
 {
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestBufferBarrierScopes)
+	B3D_ADD_TEST(D3D12BarrierTestSuite::TestUnsupportedStageRemoval)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestTextureBarrierScopes)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestTextureBarrierBatch)
 	B3D_ADD_TEST(D3D12BarrierTestSuite::TestPlacedRenderTargetAllocation)
@@ -86,6 +87,51 @@ void D3D12BarrierTestSuite::TestBufferBarrierScopes()
 		GpuAccessFlag::Read, D3D12_RESOURCE_FLAG_NONE);
 	B3D_TEST_ASSERT(indexBufferScope.Sync == D3D12_BARRIER_SYNC_INDEX_INPUT)
 	B3D_TEST_ASSERT(indexBufferScope.Access == D3D12_BARRIER_ACCESS_INDEX_BUFFER)
+
+	const GpuStageFlags destinationStages = GpuStageFlag::ComputeShaderNonUniform;
+	const D3D12_GLOBAL_BARRIER rayTracingUniformBarrier = D3D12BarrierUtility::GetGlobalBufferBarrier(D3D12_RESOURCE_FLAG_NONE,
+		GpuBarrierScope(GpuStageFlag::RayTracingShaderUniform, GpuAccessFlag::Read, destinationStages, GpuAccessFlag::Read));
+	B3D_TEST_ASSERT(rayTracingUniformBarrier.SyncBefore == D3D12_BARRIER_SYNC_RAYTRACING)
+	B3D_TEST_ASSERT(rayTracingUniformBarrier.AccessBefore == D3D12_BARRIER_ACCESS_CONSTANT_BUFFER)
+
+	// Shader writes to a buffer without unordered access leave only the vertex buffer access, which the shader stages cannot name
+	const D3D12_GLOBAL_BARRIER shaderAndVertexBarrier = D3D12BarrierUtility::GetGlobalBufferBarrier(D3D12_RESOURCE_FLAG_NONE,
+		GpuBarrierScope(GpuStageFlag::VertexInputAttributes | GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Read | GpuAccessFlag::Write,
+			destinationStages, GpuAccessFlag::Read));
+	B3D_TEST_ASSERT(shaderAndVertexBarrier.SyncBefore == D3D12_BARRIER_SYNC_ALL_SHADING)
+	B3D_TEST_ASSERT(shaderAndVertexBarrier.AccessBefore == D3D12_BARRIER_ACCESS_VERTEX_BUFFER)
+
+	const D3D12_GLOBAL_BARRIER rayTracingAndVertexBarrier = D3D12BarrierUtility::GetGlobalBufferBarrier(D3D12_RESOURCE_FLAG_NONE,
+		GpuBarrierScope(GpuStageFlag::VertexInputAttributes | GpuStageFlag::RayTracingShaderNonUniform, GpuAccessFlag::Read | GpuAccessFlag::Write,
+			destinationStages, GpuAccessFlag::Read));
+	B3D_TEST_ASSERT(rayTracingAndVertexBarrier.SyncBefore == D3D12_BARRIER_SYNC_ALL)
+	B3D_TEST_ASSERT(rayTracingAndVertexBarrier.AccessBefore == D3D12_BARRIER_ACCESS_VERTEX_BUFFER)
+}
+
+void D3D12BarrierTestSuite::TestUnsupportedStageRemoval()
+{
+	const GpuStageFlags rayTracingShaderStages = GpuStageFlag::RayTracingShaderNonUniform | GpuStageFlag::RayTracingShaderUniform;
+	const GpuStageFlags rayTracingStages = rayTracingShaderStages | GpuStageFlag::AccelerationStructureBuild;
+	const GpuStageFlags allStagesExceptRayTracing = GpuStageFlags(GpuStageFlag::All) & ~rayTracingStages;
+
+	// Without ray tracing, every stage the device has still synchronizes with all work
+	const GpuStageFlags allMaskedStages = D3D12BarrierUtility::RemoveUnsupportedStages(GpuStageFlag::All, allStagesExceptRayTracing);
+	B3D_TEST_ASSERT(allMaskedStages == GpuStageFlags(GpuStageFlag::All))
+	B3D_TEST_ASSERT(D3D12BarrierUtility::GetStageSync(allMaskedStages) == D3D12_BARRIER_SYNC_ALL)
+
+	const GpuStageFlags shaderMaskedStages = D3D12BarrierUtility::RemoveUnsupportedStages(GpuStageFlag::AllShader, allStagesExceptRayTracing);
+	B3D_TEST_ASSERT(shaderMaskedStages == (GpuStageFlags(GpuStageFlag::AllShader) & ~rayTracingShaderStages))
+	B3D_TEST_ASSERT(D3D12BarrierUtility::GetStageSync(shaderMaskedStages) ==
+		(D3D12_BARRIER_SYNC_VERTEX_SHADING | D3D12_BARRIER_SYNC_PIXEL_SHADING | D3D12_BARRIER_SYNC_COMPUTE_SHADING))
+
+	// With ray tracing, leaving its stages out no longer names all work
+	const GpuStageFlags partialStages = D3D12BarrierUtility::RemoveUnsupportedStages(allStagesExceptRayTracing, GpuStageFlag::All);
+	B3D_TEST_ASSERT(partialStages == allStagesExceptRayTracing)
+
+	const D3D12_BARRIER_SYNC partialSync = D3D12BarrierUtility::GetStageSync(partialStages);
+	B3D_TEST_ASSERT(partialSync != D3D12_BARRIER_SYNC_ALL)
+	B3D_TEST_ASSERT((partialSync & (D3D12_BARRIER_SYNC_RAYTRACING | D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE)) == 0)
+	B3D_TEST_ASSERT((partialSync & D3D12_BARRIER_SYNC_COMPUTE_SHADING) != 0)
 }
 
 void D3D12BarrierTestSuite::TestTextureBarrierScopes()

@@ -49,6 +49,13 @@ IGpuHeap* VulkanHeapBackend::CreateHeap(u64 sizeInBytes, const VulkanHeapCreateI
 	allocateInfo.allocationSize = sizeInBytes;
 	allocateInfo.memoryTypeIndex = memoryTypeIndex;
 
+	// Any buffer may be an acceleration structure build input, which the build reads through its device address
+	VkMemoryAllocateFlagsInfo allocateFlagsInfo = {};
+	allocateFlagsInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO;
+	allocateFlagsInfo.flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT;
+	if(mDevice->IsBufferDeviceAddressEnabled())
+		allocateInfo.pNext = &allocateFlagsInfo;
+
 	VkDeviceMemory memory = VK_NULL_HANDLE;
 	VkResult result = vkAllocateMemory(mLogicalDevice, &allocateInfo, gVulkanAllocator, &memory);
 	B3D_ASSERT(result == VK_SUCCESS);

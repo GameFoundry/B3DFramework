@@ -796,78 +796,13 @@ bool VulkanUtility::RangeEquals(const VkImageSubresourceRange& a, const VkImageS
 	return a.baseArrayLayer == b.baseArrayLayer && a.baseMipLevel == b.baseMipLevel && a.layerCount == b.layerCount && a.levelCount == b.levelCount && a.aspectMask == b.aspectMask;
 }
 
-VkPipelineStageFlags VulkanUtility::GetPipelineStageFlags(GpuResourceUseFlags usage, VkAccessFlags accessFlags)
-{
-	VkPipelineStageFlags flags = 0;
-
-	// Handle non-shader usage flags using standard access flag conversion
-	if((accessFlags & VK_ACCESS_INDIRECT_COMMAND_READ_BIT) != 0)
-		flags |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
-
-	if((accessFlags & (VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT)) != 0)
-		flags |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
-
-	// Handle shader stages - use individual flags if specified, otherwise use all shader stages
-	if((accessFlags & (VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT)) != 0)
-	{
-		// Check for individual shader stage flags
-		if(usage.IsSet(GpuResourceUseFlag::StageVertexShader))
-			flags |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
-
-		if(usage.IsSet(GpuResourceUseFlag::StageFragmentShader))
-			flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-
-		if(usage.IsSet(GpuResourceUseFlag::StageComputeShader))
-			flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-
-		// If no individual shader stages are specified, default to all shader stages
-		// (This handles the case where the old Shader flag is used or when combined with other access types)
-		if(flags == 0)
-		{
-			flags |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
-			flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-			flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-
-			// MoltenVK doesn't support geometry and tessellation shaders
-			// Note: Once we upgrade to a newer version they should be supported and we can remove this
-#if !B3D_PLATFORM_MACOS
-			flags |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
-			flags |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
-			flags |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
-#endif
-		}
-	}
-
-	if((accessFlags & VK_ACCESS_INPUT_ATTACHMENT_READ_BIT) != 0)
-		flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-
-	if((accessFlags & (VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT)) != 0)
-		flags |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-	if((accessFlags & (VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)) != 0)
-		flags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-
-	if((accessFlags & (VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT)) != 0)
-		flags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
-
-	if((accessFlags & (VK_ACCESS_HOST_READ_BIT | VK_ACCESS_HOST_WRITE_BIT)) != 0)
-		flags |= VK_PIPELINE_STAGE_HOST_BIT;
-
-	if(flags == 0)
-		flags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-
-	return flags;
-}
-
-VkPipelineStageFlags VulkanUtility::GetPipelineStageFlags(VkAccessFlags accessFlags)
-{
-	return GetPipelineStageFlags(GpuResourceUseFlag::Undefined, accessFlags);
-}
-
-void VulkanUtility::GetPipelineStageAndAccessMask(GpuStageFlags accessStage, GpuAccessFlags access, VkPipelineStageFlags& outStages, VkAccessFlags& outAccessMask)
+void VulkanUtility::GetPipelineStageAndAccessMask(const VulkanGpuDevice& device, GpuStageFlags accessStage, GpuAccessFlags access, VkPipelineStageFlags& outStages, VkAccessFlags& outAccessMask)
 {
 	outStages = 0;
 	outAccessMask = 0;
+
+	// Resting states and stage masks such as GpuStageFlag::All name stages the device may not have
+	accessStage &= device.GetSupportedStageFlags();
 
 	const bool isRead = access.IsSet(GpuAccessFlag::Read);
 	const bool isWrite = access.IsSet(GpuAccessFlag::Write);
@@ -927,6 +862,27 @@ void VulkanUtility::GetPipelineStageAndAccessMask(GpuStageFlags accessStage, Gpu
 	{
 		outStages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 		if(isRead) outAccessMask |= VK_ACCESS_UNIFORM_READ_BIT;
+	}
+
+	if(accessStage.IsSet(GpuStageFlag::RayTracingShaderNonUniform))
+	{
+		outStages |= VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR;
+		if(isRead) outAccessMask |= VK_ACCESS_SHADER_READ_BIT;
+		if(isWrite) outAccessMask |= VK_ACCESS_SHADER_WRITE_BIT;
+	}
+
+	if(accessStage.IsSet(GpuStageFlag::RayTracingShaderUniform))
+	{
+		outStages |= VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR;
+		if(isRead) outAccessMask |= VK_ACCESS_UNIFORM_READ_BIT;
+	}
+
+	// TODO - Build writes (the acceleration structure and its scratch memory) need the acceleration structure access bits, which come with
+	// the acceleration structure buffer type. Build inputs are read like shader resources.
+	if(accessStage.IsSet(GpuStageFlag::AccelerationStructureBuild))
+	{
+		outStages |= VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;
+		if(isRead) outAccessMask |= VK_ACCESS_SHADER_READ_BIT;
 	}
 
 	if(accessStage.IsSet(GpuStageFlag::EarlyFragmentTests))

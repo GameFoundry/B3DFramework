@@ -1212,8 +1212,8 @@ D3D12GpuCommandBufferSubmitInformation D3D12GpuCommandBuffer::PrepareForSubmitOn
 	// Transition the images that requested it to rest (see IGpuImageResource::RequestRestingTransition()). The command buffer's first barrier
 	// from the resting state can be in any stage of the queue, so the transitions make the images available to all of them. Layouts the queue
 	// cannot transition, such as most layouts on copy queues, are transitioned on the graphics queue instead.
-	const GpuBarrierScope restingBarrier(GpuStageFlag::None, GpuAccessFlag::None, GpuStageFlags(GpuStageFlag::All) & GpuBackendUtility::GetQueueStageFlags(queueType),
-		GpuAccessFlag::Read | GpuAccessFlag::Write);
+	const GpuStageFlags restingStages = D3D12BarrierUtility::RemoveUnsupportedStages(GpuBackendUtility::GetQueueStageFlags(queueType), GetD3D12GpuDevice().GetSupportedStageFlags());
+	const GpuBarrierScope restingBarrier(GpuStageFlag::None, GpuAccessFlag::None, restingStages, GpuAccessFlag::Read | GpuAccessFlag::Write);
 
 	D3D12BarrierBatch restingTransitions;
 	D3D12BarrierBatch graphicsRestingTransitions;
@@ -1804,14 +1804,24 @@ bool D3D12GpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarri
 	const GpuQueueType releaseQueueType = transfersQueue ? *split->GetReleaseQueueType() : GetQueueType();
 	const GpuQueueType acquireQueueType = transfersQueue ? *split->GetAcquireQueueType() : GetQueueType();
 
+	// Resting states and stage masks such as GpuStageFlag::All name stages the device may not have, so every scope leaves them out
+	const GpuStageFlags supportedStages = GetD3D12GpuDevice().GetSupportedStageFlags();
+	const auto fnGetScope = [supportedStages](const GpuBarrier& barrier)
+	{
+		return GpuBarrierScope(
+			D3D12BarrierUtility::RemoveUnsupportedStages(barrier.Source.Stages, supportedStages), barrier.Source.Access,
+			D3D12BarrierUtility::RemoveUnsupportedStages(barrier.Destination.Stages, supportedStages), barrier.Destination.Access);
+	};
+
 	// Global barriers
 	GpuBarrierScope aliasScope;
-	const auto fnAddAliasScope = [&aliasScope](const GpuBarrier& barrier)
+	const auto fnAddAliasScope = [&aliasScope, &fnGetScope](const GpuBarrier& barrier)
 	{
-		aliasScope.SourceStages |= barrier.Source.Stages;
-		aliasScope.SourceAccess |= barrier.Source.Access;
-		aliasScope.DestinationStages |= barrier.Destination.Stages;
-		aliasScope.DestinationAccess |= barrier.Destination.Access;
+		const GpuBarrierScope scope = fnGetScope(barrier);
+		aliasScope.SourceStages |= scope.SourceStages;
+		aliasScope.SourceAccess |= scope.SourceAccess;
+		aliasScope.DestinationStages |= scope.DestinationStages;
+		aliasScope.DestinationAccess |= scope.DestinationAccess;
 	};
 
 	D3D12_GLOBAL_BARRIER bufferGlobalBarrier{ D3D12_BARRIER_SYNC_NONE, D3D12_BARRIER_SYNC_NONE, D3D12_BARRIER_ACCESS_NO_ACCESS, D3D12_BARRIER_ACCESS_NO_ACCESS };
@@ -1830,7 +1840,7 @@ bool D3D12GpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarri
 			return;
 		}
 
-		const GpuBarrierScope scope(barrier.Source.Stages, barrier.Source.Access, barrier.Destination.Stages, barrier.Destination.Access);
+		const GpuBarrierScope scope = fnGetScope(barrier);
 		D3D12BufferPage* const page = buffer.GetPage();
 		if(page != nullptr || buffer.GetHeapType() == D3D12_HEAP_TYPE_READBACK)
 		{
@@ -1890,7 +1900,7 @@ bool D3D12GpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarri
 		mResourceTracker.TrackImageUsage(&image, range, trackedAccess);
 
 		// The transition this case records, and the queue type that performs it
-		GpuBarrierScope scope(barrier.Source.Stages, barrier.Source.Access, barrier.Destination.Stages, barrier.Destination.Access);
+		GpuBarrierScope scope = fnGetScope(barrier);
 		GpuImageLayout logicalBeforeLayout = barrier.Source.Layout;
 		GpuImageLayout logicalAfterLayout = barrier.Destination.Layout;
 		D3D12TextureLayout beforeLayout = sourceLayout;

@@ -17,7 +17,8 @@ namespace b3d::render
 	class VulkanBarrierBatch
 	{
 	public:
-		VulkanBarrierBatch();
+		/** Creates a batch for barriers recorded on @p device. Barriers described with backend-independent stages leave out stages it doesn't have. */
+		VulkanBarrierBatch(const VulkanGpuDevice& device);
 
 		/** Adds a buffer memory barrier described using backend-independent stages and access flags. */
 		void AddBufferBarrier(VkBuffer buffer, const GpuBarrierScope& barrier, u32 sourceQueueFamily = VK_QUEUE_FAMILY_IGNORED, u32 destinationQueueFamily = VK_QUEUE_FAMILY_IGNORED, VkDeviceSize offset = 0, VkDeviceSize size = VK_WHOLE_SIZE);
@@ -66,6 +67,7 @@ namespace b3d::render
 		template<class TRecord>
 		void RecordDependencyInformation(TRecord fnRecord) const;
 
+		const VulkanGpuDevice& mDevice;
 		VkMemoryBarrier mMemoryBarrier;
 		TInlineArray<VkBufferMemoryBarrier, 2> mOwnershipBufferBarriers;
 		TInlineArray<VkImageMemoryBarrier, 4> mImageBarriers;

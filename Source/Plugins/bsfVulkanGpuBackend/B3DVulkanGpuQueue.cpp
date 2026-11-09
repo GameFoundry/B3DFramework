@@ -290,12 +290,12 @@ VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageI
 
 	VkPipelineStageFlags sourceStages;
 	VkAccessFlags sourceAccess;
-	VulkanUtility::GetPipelineStageAndAccessMask(restingState.Stages, restingState.Access, sourceStages, sourceAccess);
+	VulkanUtility::GetPipelineStageAndAccessMask(GetDevice(), restingState.Stages, restingState.Access, sourceStages, sourceAccess);
 
 	const GpuTextureSubresourceRange range(0, 1, 0, 1, GpuTextureAspectFlag::Color);
 	const VkImageLayout restingLayout = (VkImageLayout)image.GetNativeLayout(0, 0, GpuTextureAspectFlag::Color);
 
-	VulkanBarrierBatch presentBarrier;
+	VulkanBarrierBatch presentBarrier(GetDevice());
 	presentBarrier.AddImageBarrier(image.GetVulkanHandle(), VulkanUtility::ToVkImageSubresourceRange(range), sourceStages, sourceAccess, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, restingLayout, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 	presentBarrier.Execute(bridgeCommandBuffer->GetVulkanHandle());
 	bridgeCommandBuffer->End();

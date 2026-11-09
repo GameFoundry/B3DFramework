@@ -14,8 +14,11 @@ namespace b3d
 		D3D12BarrierTestSuite();
 
 	private:
-		/** Checks precise logical buffer stage and access mappings. */
+		/** Checks precise logical buffer stage and access mappings, and how barrier source synchronization widens to match the access. */
 		void TestBufferBarrierScopes();
+
+		/** Checks that removing unsupported stages keeps every supported stage synchronizing with all work, and nothing less. */
+		void TestUnsupportedStageRemoval();
 
 		/** Checks logical texture scopes and the conservative layout-derived source scope. */
 		void TestTextureBarrierScopes();

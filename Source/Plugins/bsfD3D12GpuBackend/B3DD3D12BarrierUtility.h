@@ -37,8 +37,11 @@ namespace b3d
 		class D3D12BarrierUtility
 		{
 		public:
-			/** Translates logical execution stages without deriving an access scope. */
+			/** Translates logical execution stages without deriving an access scope. GpuStageFlag::All synchronizes with all work. */
 			static D3D12_BARRIER_SYNC GetStageSync(GpuStageFlags stages);
+
+			/** Returns @p stages without the ones missing from @p supportedStages. Stages that include every supported stage become GpuStageFlag::All. */
+			static GpuStageFlags RemoveUnsupportedStages(GpuStageFlags stages, GpuStageFlags supportedStages);
 
 			/** Converts a logical buffer use into a native enhanced-barrier scope. */
 			static D3D12BarrierScope GetBufferScope(GpuStageFlags stages, GpuAccessFlags access, D3D12_RESOURCE_FLAGS resourceFlags);

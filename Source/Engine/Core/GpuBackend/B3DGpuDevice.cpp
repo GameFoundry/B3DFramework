@@ -6,6 +6,7 @@
 #include "Image/B3DTexture.h"
 #include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/B3DGpuBuffer.h"
+#include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DGpuProgram.h"
 #include "GpuBackend/B3DGpuVertexInputManager.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
@@ -253,6 +254,21 @@ TShared<render::GpuBuffer> GpuDevice::CreateGpuBuffer(const GpuBufferCreateInfor
 		return nullptr;
 
 	return CreateGpuBufferInternal(createInformation, allocation, flags);
+}
+
+render::GpuStageFlags GpuDevice::GetSupportedStageFlags() const
+{
+	using namespace render;
+	const GpuDeviceCapabilities& capabilities = GetCapabilities();
+
+	GpuStageFlags stages = GpuStageFlag::All;
+	if(!capabilities.HasCapability(RSC_RAY_TRACING_PIPELINE))
+		stages &= ~GpuStageFlags(GpuStageFlag::RayTracingShaderNonUniform | GpuStageFlag::RayTracingShaderUniform);
+
+	if(!capabilities.HasCapability(RSC_ACCELERATION_STRUCTURES))
+		stages &= ~GpuStageFlags(GpuStageFlag::AccelerationStructureBuild);
+
+	return stages;
 }
 
 void GpuDevice::DoForEachQueue(const std::function<void(GpuQueue&)>&& callback) const

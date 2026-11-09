@@ -1270,10 +1270,10 @@ VulkanGpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmit
 	// from the resting state can be in any stage of the queue, so the transitions make the images available to all of them.
 	VkPipelineStageFlags restingDestinationStages;
 	VkAccessFlags restingDestinationAccess;
-	VulkanUtility::GetPipelineStageAndAccessMask(GpuStageFlags(GpuStageFlag::All) & GpuBackendUtility::GetQueueStageFlags(queueType), GpuAccessFlag::Read | GpuAccessFlag::Write,
+	VulkanUtility::GetPipelineStageAndAccessMask(GetVulkanGpuDevice(), GpuStageFlags(GpuStageFlag::All) & GpuBackendUtility::GetQueueStageFlags(queueType), GpuAccessFlag::Read | GpuAccessFlag::Write,
 		restingDestinationStages, restingDestinationAccess);
 
-	VulkanBarrierBatch restingTransitions;
+	VulkanBarrierBatch restingTransitions(GetVulkanGpuDevice());
 	for(const auto& entry : mResourceTracker.GetImages())
 	{
 		VulkanImage& image = static_cast<VulkanImage&>(*entry.first);
@@ -2011,15 +2011,15 @@ bool VulkanGpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarr
 
 	// Halves of an ownership transfer each record their own side of the dependency. Only writes require memory availability, source
 	// reads are ordered through the stage mask.
-	const auto fnGetTransferScope = [isRelease](const GpuBarrier& barrier, VkPipelineStageFlags& outStages, VkAccessFlags& outAccess)
+	const auto fnGetTransferScope = [isRelease, &device](const GpuBarrier& barrier, VkPipelineStageFlags& outStages, VkAccessFlags& outAccess)
 	{
 		if(isRelease)
 		{
 			const GpuAccessFlags sourceAccess = barrier.Source.Access.IsSet(GpuAccessFlag::Write) ? GpuAccessFlags(GpuAccessFlag::Write) : GpuAccessFlags(GpuAccessFlag::None);
-			VulkanUtility::GetPipelineStageAndAccessMask(barrier.Source.Stages, sourceAccess, outStages, outAccess);
+			VulkanUtility::GetPipelineStageAndAccessMask(device, barrier.Source.Stages, sourceAccess, outStages, outAccess);
 		}
 		else
-			VulkanUtility::GetPipelineStageAndAccessMask(barrier.Destination.Stages, barrier.Destination.Access, outStages, outAccess);
+			VulkanUtility::GetPipelineStageAndAccessMask(device, barrier.Destination.Stages, barrier.Destination.Access, outStages, outAccess);
 	};
 
 	// Read->read barrier needs to be issued due to stage chaining that Vulkan does. It makes prior writes visible to the new read stages, e.g.:
@@ -2029,7 +2029,7 @@ bool VulkanGpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarr
 		return barrier.Source.Access == GpuAccessFlag::Read && barrier.Destination.Access == GpuAccessFlag::Read;
 	};
 
-	VulkanBarrierBatch batch;
+	VulkanBarrierBatch batch(device);
 	for(const GpuBufferBarrier& barrier : barriers.BufferBarriers)
 	{
 		auto* const gpuBuffer = static_cast<VulkanGpuBuffer*>(barrier.Object.get());

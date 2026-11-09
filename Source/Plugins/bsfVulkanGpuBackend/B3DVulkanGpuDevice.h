@@ -149,6 +149,9 @@ namespace b3d
 			/** Returns the layout of the bindless heap set, or null if the device doesn't support bindless resources. */
 			VulkanDescriptorLayout* GetBindlessHeapLayout() const { return mBindlessHeapLayout; }
 
+			/** Returns true if the bufferDeviceAddress feature is enabled. */
+			bool IsBufferDeviceAddressEnabled() const { return mIsBufferDeviceAddressEnabled; }
+
 			/**
 			 * @name Resource Creation
 			 * @{
@@ -320,6 +323,10 @@ namespace b3d
 			VkPhysicalDeviceMemoryProperties mMemoryProperties;
 			bool mSupportsBindlessResources = false;
 			bool mSupportsNullDescriptor = false; /**< True if VK_EXT_robustness2 nullDescriptor is enabled. Development builds only. */
+			bool mIsBufferDeviceAddressEnabled = false; /**< True if the bufferDeviceAddress feature is enabled. Acceleration structures need it. */
+			bool mSupportsAccelerationStructures = false; /**< True if the accelerationStructure feature is enabled. */
+			bool mSupportsRayQuery = false; /**< True if the rayQuery feature is enabled. */
+			bool mSupportsRayTracingPipeline = false; /**< True if the rayTracingPipeline feature is enabled. */
 
 			VulkanDescriptorLayout* mBindlessHeapLayout = nullptr;
 

@@ -138,11 +138,15 @@ namespace b3d
 			if (stages.IsSetAny(GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::FragmentShaderUniform | GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests | GpuStageFlag::ColorAttachment | GpuStageFlag::Resolve))
 				output |= MTLStageFragment;
 
-			if (stages.IsSetAny(GpuStageFlag::ComputeShaderNonUniform | GpuStageFlag::ComputeShaderUniform))
+			// Metal has no ray tracing pipeline stage. Rays are traced from compute dispatches.
+			if (stages.IsSetAny(GpuStageFlag::ComputeShaderNonUniform | GpuStageFlag::ComputeShaderUniform | GpuStageFlag::RayTracingShaderNonUniform | GpuStageFlag::RayTracingShaderUniform))
 				output |= MTLStageDispatch;
 
 			if (stages.IsSet(GpuStageFlag::Transfer))
 				output |= MTLStageBlit;
+
+			if (stages.IsSet(GpuStageFlag::AccelerationStructureBuild))
+				output |= MTLStageAccelerationStructure;
 
 			return output;
 		}
