@@ -13,7 +13,7 @@ namespace b3d
 	namespace render
 	{
 		MetalGpuProgram::MetalGpuProgram(MetalGpuDevice& gpuDevice, const GpuProgramCreateInformation& createInformation)
-			: GpuProgram(createInformation), mGpuDevice(gpuDevice)
+			: GpuProgram(gpuDevice, createInformation), mGpuDevice(gpuDevice)
 		{
 			const Array<u32, 3>& threadGroupSize = createInformation.Bytecode != nullptr ? createInformation.Bytecode->ThreadGroupSize : createInformation.GetEntryPointReflection().ThreadGroupSize;
 			mWorkgroupSize[0] = threadGroupSize[0];

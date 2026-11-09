@@ -154,8 +154,47 @@ namespace b3d
 		GPT_DOMAIN_PROGRAM, /**< Domain (tesselation evaluation) program. */
 		GPT_HULL_PROGRAM, /**< Hull (tesselation control) program. */
 		GPT_COMPUTE_PROGRAM, /**< Compute program. */
+		GPT_RAY_GENERATION_PROGRAM, /**< Ray tracing program that starts the rays of a ray tracing dispatch. */
+		GPT_MISS_PROGRAM, /**< Ray tracing program that runs when a ray hits nothing. */
+		GPT_CLOSEST_HIT_PROGRAM, /**< Ray tracing program that runs for the closest hit of a ray. */
+		GPT_ANY_HIT_PROGRAM, /**< Ray tracing program that decides whether a candidate hit is accepted. */
+		GPT_INTERSECTION_PROGRAM, /**< Ray tracing program that intersects a ray with procedural geometry. */
+		GPT_CALLABLE_PROGRAM, /**< Ray tracing program that other ray tracing programs call by index. */
 		GPT_COUNT // Keep at end
 	};
+
+	/**
+	 * Number of program types that a graphics or compute pipeline is made of (vertex to compute). Program types from this
+	 * value up to GPT_COUNT are ray tracing program types.
+	 */
+	inline constexpr u32 kGpuRasterComputeProgramTypeCount = GPT_COMPUTE_PROGRAM + 1;
+
+	/** Returns true if the program type is one of the ray tracing program types. */
+	inline bool IsRayTracingProgramType(GpuProgramType type)
+	{
+		return type >= GPT_RAY_GENERATION_PROGRAM && type < GPT_COUNT;
+	}
+
+	/** Returns the display name of the program type, for example "Ray Generation". */
+	inline const char* GetProgramTypeName(GpuProgramType type)
+	{
+		switch(type)
+		{
+		case GPT_VERTEX_PROGRAM: return "Vertex";
+		case GPT_FRAGMENT_PROGRAM: return "Fragment";
+		case GPT_GEOMETRY_PROGRAM: return "Geometry";
+		case GPT_DOMAIN_PROGRAM: return "Domain";
+		case GPT_HULL_PROGRAM: return "Hull";
+		case GPT_COMPUTE_PROGRAM: return "Compute";
+		case GPT_RAY_GENERATION_PROGRAM: return "Ray Generation";
+		case GPT_MISS_PROGRAM: return "Miss";
+		case GPT_CLOSEST_HIT_PROGRAM: return "Closest Hit";
+		case GPT_ANY_HIT_PROGRAM: return "Any Hit";
+		case GPT_INTERSECTION_PROGRAM: return "Intersection";
+		case GPT_CALLABLE_PROGRAM: return "Callable";
+		default: return "Unknown";
+		}
+	}
 
 	/** All possible GPU program stages as a bit mask. */
 	enum class GpuProgramStageBit
@@ -166,7 +205,15 @@ namespace b3d
 		Hull = 1 << GPT_HULL_PROGRAM,
 		Domain = 1 << GPT_DOMAIN_PROGRAM,
 		Geometry = 1 << GPT_GEOMETRY_PROGRAM,
-		Compute = 1 << GPT_COMPUTE_PROGRAM
+		Compute = 1 << GPT_COMPUTE_PROGRAM,
+		RayGeneration = 1 << GPT_RAY_GENERATION_PROGRAM,
+		Miss = 1 << GPT_MISS_PROGRAM,
+		ClosestHit = 1 << GPT_CLOSEST_HIT_PROGRAM,
+		AnyHit = 1 << GPT_ANY_HIT_PROGRAM,
+		Intersection = 1 << GPT_INTERSECTION_PROGRAM,
+		Callable = 1 << GPT_CALLABLE_PROGRAM,
+		AllRaster = Vertex | Fragment | Hull | Domain | Geometry,
+		AllRayTracing = RayGeneration | Miss | ClosestHit | AnyHit | Intersection | Callable
 	};
 
 	using GpuProgramStageBits = Flags<GpuProgramStageBit>;
@@ -177,7 +224,8 @@ namespace b3d
 	{
 		None = 0,
 		ResourceDescriptorHeap = 1 << 0, /**< Reads resources through the bindless resource heap (ResourceDescriptorHeap). */
-		SamplerDescriptorHeap = 1 << 1 /**< Reads samplers through the bindless sampler heap (SamplerDescriptorHeap). */
+		SamplerDescriptorHeap = 1 << 1, /**< Reads samplers through the bindless sampler heap (SamplerDescriptorHeap). */
+		RayQuery = 1 << 2 /**< Traces rays inline, which requires RSC_RAY_QUERY. */
 	};
 
 	using GpuProgramFeatureFlags = Flags<GpuProgramFeatureFlag>;
@@ -277,6 +325,7 @@ namespace b3d
 		StorageTexture,
 		StorageBuffer,
 		Sampler,
+		AccelerationStructure,
 		Count,
 		Unknown,
 	};
@@ -461,6 +510,7 @@ namespace b3d
 		GPOT_RWTEXTURE1DARRAY = 58, /**< 1D texture with multiple array entries and unordered read/writes. */
 		GPOT_RWTEXTURE2DARRAY = 59, /**< 2D texture with multiple array entries and unordered read/writes. */
 		GPOT_RWTEXTURE2DMSARRAY = 60, /**< 2D texture with multiple array entries, samples and unordered read/writes. */
+		GPOT_ACCELERATION_STRUCTURE = 70, /**< Top-level acceleration structure that programs trace rays against (RaytracingAccelerationStructure). */
 		GPOT_UNKNOWN = 0xffff
 	};
 

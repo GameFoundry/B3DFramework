@@ -41,6 +41,9 @@ namespace
 			case GpuParameterType::StorageBuffer:
 				return GpuObjectParameterTypeInformation::IsReadWriteBuffer(objectType) ? D3D12_DESCRIPTOR_RANGE_TYPE_UAV : D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 
+			case GpuParameterType::AccelerationStructure:
+				return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+
 			default:
 				return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 			}

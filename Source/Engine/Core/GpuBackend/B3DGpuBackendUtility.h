@@ -149,15 +149,16 @@ namespace b3d
 		/**
 		 * Returns the resting state of a buffer on queues of @p queueType. A resource outside of the work that declares its state is at
 		 * rest: it may be read in the resting state without a barrier, and whoever writes it brings it back to
-		 * rest. Buffers rest readable as vertex, index and indirect arguments, and from every shader stage. Readback buffers
+		 * rest. Buffers rest readable as vertex, index and indirect arguments, from every shader stage including ray tracing programs, and
+		 * as acceleration structure build inputs. Readback buffers
 		 * (GpuBufferType::StagingRead) rest readable by the host, so a barrier that returns one to rest makes the GPU's writes visible
 		 * to the host. Upload buffers (GpuBufferType::StagingWrite) rest readable by copies, the only GPU work that reads them.
 		 */
 		static render::GpuAccessState GetRestingState(const render::GpuBuffer& buffer, GpuQueueType queueType);
 
 		/**
-		 * Returns the resting state of a texture on queues of @p queueType: sampled from every shader stage in
-		 * GpuImageLayout::ShaderReadOnly. Textures that can be render targets, depth-stencil targets or storage textures, which may have
+		 * Returns the resting state of a texture on queues of @p queueType: sampled from every shader stage, including ray tracing
+		 * programs, in GpuImageLayout::ShaderReadOnly. Textures that can be render targets, depth-stencil targets or storage textures, which may have
 		 * compression metadata, rest with GpuCompressionHint::Compressed: compressed in an encoding sampling can read, without fast-clear
 		 * markers. Other textures have no compression metadata, and rest with GpuCompressionHint::Unknown. See
 		 * GetRestingState(const render::GpuBuffer&, GpuQueueType).

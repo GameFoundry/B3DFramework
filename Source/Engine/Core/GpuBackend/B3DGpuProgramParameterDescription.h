@@ -83,6 +83,7 @@ namespace b3d
 		Map<String, GpuObjectParameterInformation> SampledTextures;
 		Map<String, GpuObjectParameterInformation> StorageTextures;
 		Map<String, GpuObjectParameterInformation> Buffers;
+		Map<String, GpuObjectParameterInformation> AccelerationStructures;
 
 		/** Declared push-constant buffer size in bytes, or zero when the program does not use push constants. */
 		u32 PushConstantBufferSize = 0;

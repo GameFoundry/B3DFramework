@@ -274,34 +274,8 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BS
 
 		auto fnBuildGpuProgramCreateInformation = [&name, &parsedShaderPass](const String& language, const String& entry, ShaderCrossCompileOutput& output, GpuProgramType type) -> GpuProgramCreateInformation
 		{
-			const char* typeString;
-			switch(type)
-			{
-			case GPT_VERTEX_PROGRAM:
-				typeString = "Vertex";
-				break;
-			case GPT_FRAGMENT_PROGRAM:
-				typeString = "Fragment";
-				break;
-			case GPT_GEOMETRY_PROGRAM:
-				typeString = "Geometry";
-				break;
-			case GPT_DOMAIN_PROGRAM:
-				typeString = "Domain";
-				break;
-			case GPT_HULL_PROGRAM:
-				typeString = "Hull";
-				break;
-			case GPT_COMPUTE_PROGRAM:
-				typeString = "Compute";
-				break;
-			default:
-				typeString = "Unknown";
-				break;
-			}
-
 			GpuProgramCreateInformation gpuProgramCreateInformation;
-			gpuProgramCreateInformation.Name = StringUtility::Format("{0} ({1} Program)", name, typeString);
+			gpuProgramCreateInformation.Name = StringUtility::Format("{0} ({1} Program)", name, GetProgramTypeName(type));
 			gpuProgramCreateInformation.Language = language;
 			gpuProgramCreateInformation.EntryPoint = entry;
 			gpuProgramCreateInformation.Source = std::move(output.Source);

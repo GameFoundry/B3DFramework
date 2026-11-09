@@ -238,7 +238,11 @@ namespace b3d
 		/** Initializes the object. The object should not be used before this is called. */
 		virtual void Initialize() { }
 
-		/** Returns whether this program can be supported on the current renderer and hardware. */
+		/**
+		 * Returns whether the device this program was created on can run it. Ray tracing programs need RSC_RAY_TRACING_PIPELINE
+		 * (and GpuRayTracingCapabilities::SupportsCallablePrograms for GPT_CALLABLE_PROGRAM), and programs that trace inline
+		 * (GpuProgramFeatureFlag::RayQuery) need RSC_RAY_QUERY.
+		 */
 		virtual bool IsSupported() const;
 
 		/** Returns true if program was successfully compiled. */
@@ -277,8 +281,9 @@ namespace b3d
 		TShared<GpuProgramBytecode> GetBytecode() const { return mBytecode; }
 
 	protected:
-		GpuProgram(const GpuProgramCreateInformation& createInformation);
+		GpuProgram(GpuDevice& device, const GpuProgramCreateInformation& createInformation);
 
+		GpuDevice& mDevice;
 		bool mNeedsAdjacencyInfo;
 
 		bool mIsCompiled = false;

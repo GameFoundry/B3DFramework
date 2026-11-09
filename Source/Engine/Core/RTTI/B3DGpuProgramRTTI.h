@@ -91,6 +91,7 @@ namespace b3d
 			B3D_RTTI_MEMBER(Buffers, 5)
 			B3D_RTTI_MEMBER(PushConstantBufferSize, 6)
 			B3D_RTTI_MEMBER(Features, 7)
+			B3D_RTTI_MEMBER(AccelerationStructures, 8)
 		B3D_RTTI_END_MEMBERS
 
 	public:

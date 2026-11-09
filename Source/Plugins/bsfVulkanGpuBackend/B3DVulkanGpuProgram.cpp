@@ -40,7 +40,7 @@ void VulkanShaderModule::SetName(const StringView& name)
 }
 
 VulkanGpuProgram::VulkanGpuProgram(VulkanGpuDevice& gpuDevice, const GpuProgramCreateInformation& createInformation)
-	: GpuProgram(createInformation), mGpuDevice(gpuDevice)
+	: GpuProgram(gpuDevice, createInformation), mGpuDevice(gpuDevice)
 {
 }
 

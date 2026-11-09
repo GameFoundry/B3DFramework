@@ -77,9 +77,9 @@ struct ShaderUniformBuffer
 	u32 Slot;
 };
 
-Array<TShared<GpuProgramParameterDescription>, GPT_COUNT> GatherParameterDescriptions(const TShared<Pass>& pass)
+Array<TShared<GpuProgramParameterDescription>, kGpuRasterComputeProgramTypeCount> GatherParameterDescriptions(const TShared<Pass>& pass)
 {
-	Array<TShared<GpuProgramParameterDescription>, GPT_COUNT> parameterDescriptions;
+	Array<TShared<GpuProgramParameterDescription>, kGpuRasterComputeProgramTypeCount> parameterDescriptions;
 
 	const TShared<GpuGraphicsPipelineState>& graphicsPipeline = pass->GetGraphicsPipelineState();
 	if(graphicsPipeline)
@@ -116,9 +116,9 @@ Array<TShared<GpuProgramParameterDescription>, GPT_COUNT> GatherParameterDescrip
 	return parameterDescriptions;
 }
 
-Array<TShared<GpuProgramParameterDescription>, GPT_COUNT> GatherParameterDescriptions(const TShared<render::Pass>& pass)
+Array<TShared<GpuProgramParameterDescription>, kGpuRasterComputeProgramTypeCount> GatherParameterDescriptions(const TShared<render::Pass>& pass)
 {
-	Array<TShared<GpuProgramParameterDescription>, GPT_COUNT> parameterDescriptions;
+	Array<TShared<GpuProgramParameterDescription>, kGpuRasterComputeProgramTypeCount> parameterDescriptions;
 
 	// Make sure all gpu programs are fully loaded
 	const TShared<GpuGraphicsPipelineState>& graphicsPipeline = pass->GetGraphicsPipelineState();
@@ -488,7 +488,7 @@ TShared<render::GpuParameterSet> CreateGpuParameterSet<true>(const TShared<GpuPi
 }
 
 template <bool IsRenderProxy>
-const u32 TMaterialParameterAdapter<IsRenderProxy>::kNumStages = 6;
+const u32 TMaterialParameterAdapter<IsRenderProxy>::kNumStages = kGpuRasterComputeProgramTypeCount;
 
 template <bool IsRenderProxy>
 TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const TShared<VariationType>& variation, const ShaderType& shader, const TShared<MaterialParametersType>& materialParameters)
@@ -498,23 +498,22 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const TShare
 
 	// Create GpuParameterSet for each pass and descriptor set
 	Vector<TShared<GpuProgramParameterDescription>> allParameterDescriptions;
-	Vector<Array<TShared<GpuProgramParameterDescription>, GPT_COUNT>> parameterDescriptionsPerPass;
+	Vector<Array<TShared<GpuProgramParameterDescription>, kGpuRasterComputeProgramTypeCount>> parameterDescriptionsPerPass;
 	for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 	{
 		TShared<PassType> curPass = variation->GetPass(passIndex);
 
 		TShared<GpuPipelineParameterLayout> parameterLayout;
 		TShared<GpuGraphicsPipelineState> gfxPipeline = curPass->GetGraphicsPipelineState();
+		TShared<GpuComputePipelineState> computePipeline = curPass->GetComputePipelineState();
 		if(gfxPipeline != nullptr)
 			parameterLayout = gfxPipeline->GetParameterLayout();
-		else
-		{
-			TShared<GpuComputePipelineState> computePipeline = curPass->GetComputePipelineState();
+		else if(computePipeline != nullptr)
 			parameterLayout = computePipeline->GetParameterLayout();
-		}
 
-		// Create one GpuParameterSet for each descriptor set that has resources
-		const u32 setCount = parameterLayout->GetSetCount();
+		// Create one GpuParameterSet for each descriptor set that has resources. Passes without a graphics or compute
+		// pipeline (ray tracing passes) have no material parameters.
+		const u32 setCount = parameterLayout != nullptr ? parameterLayout->GetSetCount() : 0;
 		mGpuParametersPerPass[passIndex].Resize(setCount);
 		for(u32 setIndex = 0; setIndex < setCount; setIndex++)
 		{
@@ -564,7 +563,7 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const TShare
 	for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 	{
 		TInlineArray<TShared<GpuParametersType>, 4>& gpuParametersForPass = mGpuParametersPerPass[passIndex];
-		const Array<TShared<GpuProgramParameterDescription>, GPT_COUNT>& parameterDescriptionsForPass = parameterDescriptionsPerPass[passIndex];
+		const Array<TShared<GpuProgramParameterDescription>, kGpuRasterComputeProgramTypeCount>& parameterDescriptionsForPass = parameterDescriptionsPerPass[passIndex];
 
 		for(u32 j = 0; j < kNumStages; j++)
 		{
@@ -673,7 +672,7 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const TShare
 		u32* stageOffsets = offsets;
 		for(u32 i = 0; i < passCount; i++)
 		{
-			const Array<TShared<GpuProgramParameterDescription>, GPT_COUNT>& parameterDescriptionsForPass = parameterDescriptionsPerPass[i];
+			const Array<TShared<GpuProgramParameterDescription>, kGpuRasterComputeProgramTypeCount>& parameterDescriptionsForPass = parameterDescriptionsPerPass[i];
 			for(u32 j = 0; j < kNumStages; j++)
 			{
 				auto fnProcessObjectParams = [&](const Map<String, GpuObjectParameterInformation>& gpuParams,
@@ -800,7 +799,7 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const TShare
 		{
 			for(u32 i = 0; i < passCount; i++)
 			{
-				const Array<TShared<GpuProgramParameterDescription>, GPT_COUNT>& parameterDescriptionsForPass = parameterDescriptionsPerPass[i];
+				const Array<TShared<GpuProgramParameterDescription>, kGpuRasterComputeProgramTypeCount>& parameterDescriptionsForPass = parameterDescriptionsPerPass[i];
 				for(u32 j = 0; j < kNumStages; j++)
 				{
 					TShared<GpuProgramParameterDescription> curDesc = parameterDescriptionsForPass[j];

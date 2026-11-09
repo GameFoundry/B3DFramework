@@ -31,9 +31,10 @@ namespace b3d
 		/**
 		 * Determines on which pipeline stage and in what manner a resource is being accessed. Combined with read/write
 		 * access flags this uniquely determines the synchronization (pipeline/cache barriers) a backend must issue.
-		 * Each backend maps these logical stages to its native pipeline stage and access/cache masks.
+		 * Each backend maps these logical stages to its native pipeline stage and access/cache masks. The ray tracing and acceleration
+		 * structure build stages may be used on any device: devices without ray tracing ignore them.
 		 */
-		enum class GpuStageFlag : u16
+		enum class GpuStageFlag : u32
 		{
 			None							= 0,
 			DrawIndirect					= 1 << 0,	/**< Indirect draw/dispatch argument fetch. */
@@ -51,13 +52,16 @@ namespace b3d
 			Transfer						= 1 << 12,	/**< Copy/blit/clear transfer operations. */
 			Host							= 1 << 13,	/**< Access by the host (CPU). */
 			Resolve							= 1 << 14,	/**< Multisample resolve operations. */
+			RayTracingShaderNonUniform		= 1 << 15,	/**< Non-uniform (sampled/storage) access in any ray tracing program. */
+			RayTracingShaderUniform			= 1 << 16,	/**< Uniform/constant buffer access in any ray tracing program. */
+			AccelerationStructureBuild		= 1 << 17,	/**< Acceleration structure builds, reading their inputs and writing the result. */
 
-			AllShader = VertexShaderNonUniform | FragmentShaderNonUniform | ComputeShaderNonUniform | VertexShaderUniform | FragmentShaderUniform | ComputeShaderUniform,
-			All = AllShader | DrawIndirect | VertexInputAttributes | VertexInputIndices | EarlyFragmentTests | LateFragmentTests | ColorAttachment | Transfer | Host | Resolve
+			AllShader = VertexShaderNonUniform | FragmentShaderNonUniform | ComputeShaderNonUniform | RayTracingShaderNonUniform | VertexShaderUniform | FragmentShaderUniform | ComputeShaderUniform | RayTracingShaderUniform,
+			All = AllShader | DrawIndirect | VertexInputAttributes | VertexInputIndices | EarlyFragmentTests | LateFragmentTests | ColorAttachment | Transfer | Host | Resolve | AccelerationStructureBuild
 		};
 
-		typedef Flags<GpuStageFlag, u16> GpuStageFlags;
-		B3D_FLAGS_OPERATORS_EXT(GpuStageFlag, u16)
+		typedef Flags<GpuStageFlag, u32> GpuStageFlags;
+		B3D_FLAGS_OPERATORS_EXT(GpuStageFlag, u32)
 
 		/** Additional behavior requested when issuing a buffer or an image barrier. */
 		enum class GpuBarrierFlag : u8

@@ -121,7 +121,7 @@ namespace b3d
 
 			// Texture units per stage
 			constexpr u16 textureUnitsPerStage = 16;
-			for (u32 i = 0; i < GPT_COUNT; i++)
+			for (u32 i = 0; i < kGpuRasterComputeProgramTypeCount; i++)
 			{
 				mCapabilities.SampledTexturesPerStage[i] = textureUnitsPerStage;
 				mCapabilities.UniformBufferCountPerStage[i] = 16;
@@ -132,8 +132,8 @@ namespace b3d
 			mCapabilities.StorageTexturesPerStage[GPT_COMPUTE_PROGRAM] = 8;
 
 			// Calculate combined totals
-			mCapabilities.TotalSampledTexturesCount = textureUnitsPerStage * GPT_COUNT;
-			mCapabilities.TotalUniformBuffersCount = 16 * GPT_COUNT;
+			mCapabilities.TotalSampledTexturesCount = textureUnitsPerStage * kGpuRasterComputeProgramTypeCount;
+			mCapabilities.TotalUniformBuffersCount = 16 * kGpuRasterComputeProgramTypeCount;
 			mCapabilities.TotalStorageTexturesCount = 16;
 
 			mCapabilities.GeometryProgramNumOutputVertices = 1024;

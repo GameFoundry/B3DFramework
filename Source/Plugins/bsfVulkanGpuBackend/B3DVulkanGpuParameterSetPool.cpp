@@ -16,7 +16,7 @@ namespace b3d::render
 
 	VkDescriptorPool VulkanGpuParameterSetPool::CreateVkDescriptorPool() const
 	{
-		VkDescriptorPoolSize poolSizes[9];
+		VkDescriptorPoolSize poolSizes[10];
 		poolSizes[0].type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 		poolSizes[0].descriptorCount = mInformation.MaxSampledImages;
 
@@ -44,11 +44,21 @@ namespace b3d::render
 		poolSizes[8].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 		poolSizes[8].descriptorCount = mInformation.MaxStorageBuffers;
 
+		u32 poolSizeCount = 9;
+
+		// The descriptor type exists only when the acceleration structure extension is enabled
+		if(mDevice.GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES))
+		{
+			poolSizes[poolSizeCount].type = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+			poolSizes[poolSizeCount].descriptorCount = mInformation.MaxAccelerationStructures;
+			poolSizeCount++;
+		}
+
 		VkDescriptorPoolCreateInfo poolCreateInformation;
 		poolCreateInformation.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		poolCreateInformation.pNext = nullptr;
 		poolCreateInformation.maxSets = mInformation.MaxSets;
-		poolCreateInformation.poolSizeCount = sizeof(poolSizes) / sizeof(poolSizes[0]);
+		poolCreateInformation.poolSizeCount = poolSizeCount;
 		poolCreateInformation.pPoolSizes = poolSizes;
 
 		// Transient mode: no individual free, enables O(1) reset

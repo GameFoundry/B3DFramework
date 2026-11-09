@@ -91,6 +91,10 @@ Result GpuProgramParameterDescription::TryCombine(const GpuProgramParameterDescr
 	if(Result result = fnCombineObjectParameters(Samplers, other.Samplers); !result.IsSuccessful())
 		return result;
 
+	// Combine acceleration structures
+	if(Result result = fnCombineObjectParameters(AccelerationStructures, other.AccelerationStructures); !result.IsSuccessful())
+		return result;
+
 	// Combine uniform buffer members
 	for(const auto& entry : other.UniformBufferMembers)
 	{
@@ -126,6 +130,7 @@ void GpuProgramParameterDescription::SplitBySet(TInlineArray<GpuProgramParameter
 	fnSplitMap(StorageTextures, [](GpuProgramParameterDescription& desc) -> auto& { return desc.StorageTextures; });
 	fnSplitMap(Buffers, [](GpuProgramParameterDescription& desc) -> auto& { return desc.Buffers; });
 	fnSplitMap(Samplers, [](GpuProgramParameterDescription& desc) -> auto& { return desc.Samplers; });
+	fnSplitMap(AccelerationStructures, [](GpuProgramParameterDescription& desc) -> auto& { return desc.AccelerationStructures; });
 
 	for(const auto& entry : UniformBufferMembers)
 	{

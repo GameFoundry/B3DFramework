@@ -91,6 +91,7 @@ VulkanGpuPipelineParameterSetLayout::VulkanGpuPipelineParameterSetLayout(VulkanG
 	fnSetUniformBindings(mUniformsPerType[(u32)GpuParameterType::UniformBuffer]);
 	fnSetBindings(mUniformsPerType[(u32)GpuParameterType::SampledTexture], VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
 	fnSetBindings(mUniformsPerType[(u32)GpuParameterType::StorageTexture], VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+	fnSetBindings(mUniformsPerType[(u32)GpuParameterType::AccelerationStructure], VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR);
 
 	// Set up sampler bindings
 	for(auto& entry : mUniformsPerType[(u32)GpuParameterType::Sampler])

@@ -18,21 +18,6 @@ using namespace b3d;
 
 namespace
 {
-	/** Human-readable name for a GPU program type, for cook diagnostics. */
-	const char* GetProgramTypeName(GpuProgramType type)
-	{
-		switch(type)
-		{
-		case GPT_VERTEX_PROGRAM: return "vertex";
-		case GPT_FRAGMENT_PROGRAM: return "fragment";
-		case GPT_GEOMETRY_PROGRAM: return "geometry";
-		case GPT_DOMAIN_PROGRAM: return "domain";
-		case GPT_HULL_PROGRAM: return "hull";
-		case GPT_COMPUTE_PROGRAM: return "compute";
-		default: return "unknown";
-		}
-	}
-
 	/** How a single cooked variation should be handled, based on the state of its compiled programs. */
 	enum class VariationBytecodeState
 	{
@@ -177,7 +162,7 @@ ShaderCooker::CookItemResult ShaderCooker::CookItem(const ShaderCookItem& item, 
 		switch(bytecodeCompiler == nullptr ? VariationBytecodeState::Complete : DetermineVariationBytecodeState(*variationData, *bytecodeCompiler, offendingProgramType))
 		{
 		case VariationBytecodeState::UnsupportedStage:
-			B3D_LOG(Warning, LogResources, "Shader cook skipped variation \"{0}\" of \"{1}\": it uses a {2} program, which the \"{3}\" bytecode compiler does not support. The variation will be unavailable on this platform.",
+			B3D_LOG(Warning, LogResources, "Shader cook skipped variation \"{0}\" of \"{1}\": it uses the {2} program type, which the \"{3}\" bytecode compiler does not support. The variation will be unavailable on this platform.",
 				variationParameters.CreateVariationName(), item.Name, GetProgramTypeName(offendingProgramType), language);
 			++outSkippedVariationCount;
 			continue;

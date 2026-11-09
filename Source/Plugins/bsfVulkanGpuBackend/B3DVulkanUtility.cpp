@@ -388,11 +388,23 @@ VkShaderStageFlagBits VulkanUtility::GetShaderStage(GpuProgramType type)
 		return VK_SHADER_STAGE_VERTEX_BIT;
 	case GPT_COMPUTE_PROGRAM:
 		return VK_SHADER_STAGE_COMPUTE_BIT;
+	case GPT_RAY_GENERATION_PROGRAM:
+		return VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+	case GPT_MISS_PROGRAM:
+		return VK_SHADER_STAGE_MISS_BIT_KHR;
+	case GPT_CLOSEST_HIT_PROGRAM:
+		return VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
+	case GPT_ANY_HIT_PROGRAM:
+		return VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+	case GPT_INTERSECTION_PROGRAM:
+		return VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
+	case GPT_CALLABLE_PROGRAM:
+		return VK_SHADER_STAGE_CALLABLE_BIT_KHR;
 	default:
 		break;
 	}
 
-	// Unsupported type
+	B3D_ASSERT(false && "Unknown GPU program type");
 	return VK_SHADER_STAGE_VERTEX_BIT;
 }
 
@@ -416,6 +428,24 @@ VkShaderStageFlags VulkanUtility::GetShaderStages(const GpuProgramStageBits& sta
 
 	if(stages.IsSet(GpuProgramStageBit::Compute))
 		flags |= VK_SHADER_STAGE_COMPUTE_BIT;
+
+	if(stages.IsSet(GpuProgramStageBit::RayGeneration))
+		flags |= VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+
+	if(stages.IsSet(GpuProgramStageBit::Miss))
+		flags |= VK_SHADER_STAGE_MISS_BIT_KHR;
+
+	if(stages.IsSet(GpuProgramStageBit::ClosestHit))
+		flags |= VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
+
+	if(stages.IsSet(GpuProgramStageBit::AnyHit))
+		flags |= VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+
+	if(stages.IsSet(GpuProgramStageBit::Intersection))
+		flags |= VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
+
+	if(stages.IsSet(GpuProgramStageBit::Callable))
+		flags |= VK_SHADER_STAGE_CALLABLE_BIT_KHR;
 
 	return flags;
 }

@@ -70,7 +70,11 @@ namespace b3d
 		/** Gets the stencil reference value that is used when performing operations using the stencil buffer. */
 		u32 GetStencilRefValue() const { return mData.StencilRefValue; }
 
-		/** Returns the GPU program descriptor for the specified GPU program type. */
+		/**
+		 * Returns the GPU program descriptor for the specified GPU program type.
+		 *
+		 * @param type	A graphics or compute program type (below kGpuRasterComputeProgramTypeCount).
+		 */
 		const GpuProgramCreateInformation& GetGpuProgramCreateInformation(GpuProgramType type) const;
 
 		/** Returns the pass description, including the compiled GPU program bytecode. */

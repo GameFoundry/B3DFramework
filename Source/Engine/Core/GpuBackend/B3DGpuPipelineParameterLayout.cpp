@@ -83,6 +83,9 @@ GpuPipelineParameterSetLayout::GpuPipelineParameterSetLayout(const GpuProgramPar
 	for(auto& sampler : parameterDescription.Samplers)
 		fnRegisterUniforms(sampler.second, sampler.second.ArraySize, GpuParameterType::Sampler, sampler.second.Type, sampler.second.ElementType);
 
+	for(auto& accelerationStructure : parameterDescription.AccelerationStructures)
+		fnRegisterUniforms(accelerationStructure.second, accelerationStructure.second.ArraySize, GpuParameterType::AccelerationStructure, accelerationStructure.second.Type, BF_UNKNOWN);
+
 	// Register uniform information in per-slot and per-type arrays
 	for(auto it = mUniformMap.begin(); it != mUniformMap.end();)
 	{
@@ -192,6 +195,7 @@ GpuPipelineParameterSetLayout::GpuPipelineParameterSetLayout(const GpuProgramPar
 	fnCalculateSequentialIndices(GpuParameterType::StorageTexture);
 	fnCalculateSequentialIndices(GpuParameterType::StorageBuffer);
 	fnCalculateSequentialIndices(GpuParameterType::Sampler);
+	fnCalculateSequentialIndices(GpuParameterType::AccelerationStructure);
 
 	// Assign dynamic offset indices to flagged uniform buffers in slot order (Vulkan requires binding number order). This must match the order in VulkanGpuParameterSet::PrepareForBind
 	u32 nextDynamicOffsetIndex = 0;

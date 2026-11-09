@@ -88,8 +88,9 @@ namespace b3d
 			StageVertexShader = 1 << 8, /**< Access in vertex shader. */
 			StageFragmentShader = 1 << 9, /**< Access in fragment shader. */
 			StageComputeShader = 1 << 10, /**< Access in compute shader. */
+			StageRayTracingShader = 1 << 12, /**< Access in any ray tracing program. */
 
-			AnyStage = StageVertexShader | StageFragmentShader | StageComputeShader
+			AnyStage = StageVertexShader | StageFragmentShader | StageComputeShader | StageRayTracingShader
 		};
 
 		typedef Flags<GpuResourceUseFlag> GpuResourceUseFlags;

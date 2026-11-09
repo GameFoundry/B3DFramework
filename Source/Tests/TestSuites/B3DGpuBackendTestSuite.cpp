@@ -1146,6 +1146,10 @@ void GpuBackendTestSuite::TestQueueStageFlags()
 	B3D_TEST_ASSERT(GpuBackendUtility::GetQueueStageFlags(GQT_GRAPHICS) == GpuStageFlag::All)
 	B3D_TEST_ASSERT(GpuBackendUtility::GetQueueStageFlags(GQT_COMPUTE).IsSet(GpuStageFlag::ComputeShaderNonUniform))
 	B3D_TEST_ASSERT(!GpuBackendUtility::GetQueueStageFlags(GQT_COMPUTE).IsSetAny(GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::FragmentShaderNonUniform))
+
+	// Ray tracing dispatches and acceleration structure builds run on graphics and compute queues
+	const GpuStageFlags rayTracingStages = GpuStageFlag::RayTracingShaderNonUniform | GpuStageFlag::RayTracingShaderUniform | GpuStageFlag::AccelerationStructureBuild;
+	B3D_TEST_ASSERT(GpuBackendUtility::GetQueueStageFlags(GQT_COMPUTE).IsSetAll(rayTracingStages))
 	B3D_TEST_ASSERT(GpuBackendUtility::GetQueueStageFlags(GQT_TRANSFER) == (GpuStageFlag::Transfer | GpuStageFlag::Host))
 }
 

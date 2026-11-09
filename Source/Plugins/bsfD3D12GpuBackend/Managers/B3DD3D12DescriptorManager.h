@@ -183,9 +183,10 @@ namespace b3d
 			D3D12_CPU_DESCRIPTOR_HANDLE GetNullCBVHandle() const { return mNullCBVHandle; }
 
 			/**
-			 * Returns a null SRV descriptor for a read-only texture or buffer that shaders read as @p type, used for bindings the
-			 * caller never set and for retired bindless slots. Shader reads through it return zero. The view dimension, and the
-			 * stride and flags of buffer views, match @p type, as the null-descriptor guarantees only hold for a matching view.
+			 * Returns a null SRV descriptor for a read-only texture, buffer or acceleration structure that shaders read as @p type,
+			 * used for bindings the caller never set and for retired bindless slots. Shader reads through it return zero, and rays
+			 * traced against a null acceleration structure miss. The view dimension, and the stride and flags of buffer views, match
+			 * @p type, as the null-descriptor guarantees only hold for a matching view.
 			 */
 			D3D12_CPU_DESCRIPTOR_HANDLE GetNullSRVHandle(GpuParameterObjectType type) const;
 
@@ -251,6 +252,7 @@ namespace b3d
 			D3D12_CPU_DESCRIPTOR_HANDLE mNullStructuredBufferUAVHandle{};
 			D3D12_CPU_DESCRIPTOR_HANDLE mNullRawBufferSRVHandle{};
 			D3D12_CPU_DESCRIPTOR_HANDLE mNullRawBufferUAVHandle{};
+			D3D12_CPU_DESCRIPTOR_HANDLE mNullAccelerationStructureSRVHandle{}; /**< Zero on devices without ray tracing. */
 		};
 
 		/** @} */

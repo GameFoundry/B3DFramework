@@ -39,6 +39,7 @@ namespace b3d
 		u32 MaxSamplers = 2048;
 		u32 MaxCombinedImageSamplers = 2048;
 		u32 MaxUniformBuffersDynamic = 1024;
+		u32 MaxAccelerationStructures = 256; /**< Ignored on devices without RSC_ACCELERATION_STRUCTURES. */
 	};
 
 	/** Creation information for GpuParameterSetPool. */

@@ -42,6 +42,13 @@ namespace b3d
 	 */
 	extern B3D_EXPORT TConfigVariable<float> gGpuBindlessSamplerEvictionThreshold;
 
+	/**
+	 * Allows devices to report the ray tracing capabilities (RSC_ACCELERATION_STRUCTURES, RSC_RAY_QUERY and RSC_RAY_TRACING_PIPELINE) the
+	 * GPU supports. When disabled, devices report none of them, as if the GPU had no ray tracing support. Enabled by default. Shared by all
+	 * backends.
+	 */
+	extern B3D_EXPORT TConfigVariable<bool> gGpuRayTracing;
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	/**
 	 * When enabled, backends log how long the driver takes to create each compute pipeline. With the driver's shader cache

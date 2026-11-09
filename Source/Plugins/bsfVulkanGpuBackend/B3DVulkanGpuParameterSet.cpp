@@ -154,7 +154,15 @@ void VulkanGpuParameterSet::Initialize()
 		const u32 slot = perSetBindings[layoutBindingIndex].binding;
 
 		const bool isSampler = writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLER;
-		if(isSampler)
+		if(writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR)
+		{
+			// TODO - Acceleration structures can't be assigned to parameter sets yet, so these bindings have nothing to write. A set
+			// with one must not be bound until they can.
+			writeSetInfo.pImageInfo = nullptr;
+			writeSetInfo.pBufferInfo = nullptr;
+			writeSetInfo.pTexelBufferView = nullptr;
+		}
+		else if(isSampler)
 		{
 			const u32 usedResourceSequentialIndex = vulkanGpuPipelineParameterSetLayout.GetUsedResourceSequentialIndex(slot, 0);
 

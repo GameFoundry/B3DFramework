@@ -156,6 +156,24 @@ void D3D12DescriptorManager::CreateNullDescriptors()
 
 	fnCreateNullBufferViews(DXGI_FORMAT_UNKNOWN, sizeof(u32), false, mNullStructuredBufferSRVHandle, mNullStructuredBufferUAVHandle);
 	fnCreateNullBufferViews(DXGI_FORMAT_R32_TYPELESS, 0, true, mNullRawBufferSRVHandle, mNullRawBufferUAVHandle);
+
+	// Acceleration structure views exist only on devices with ray tracing. A null one has no acceleration structure address.
+	D3D12_FEATURE_DATA_D3D12_OPTIONS5 options5 = {};
+	const bool supportsRayTracing = SUCCEEDED(d3d12Device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &options5, sizeof(options5))) && options5.RaytracingTier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED;
+	if(supportsRayTracing)
+	{
+		mNullAccelerationStructureSRVHandle = AllocateCPUDescriptor(D3D12DescriptorHeapType::CBV_SRV_UAV);
+		if(mNullAccelerationStructureSRVHandle.ptr != 0)
+		{
+			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+			srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
+			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			srvDesc.RaytracingAccelerationStructure.Location = 0;
+
+			d3d12Device->CreateShaderResourceView(nullptr, &srvDesc, mNullAccelerationStructureSRVHandle);
+		}
+	}
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE D3D12DescriptorManager::GetNullSRVHandle(GpuParameterObjectType type) const
@@ -173,6 +191,9 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12DescriptorManager::GetNullSRVHandle(GpuParamete
 	case GPOT_TEXTURECUBEARRAY:		return mNullSRVHandles[D3D12_SRV_DIMENSION_TEXTURECUBEARRAY];
 	case GPOT_STRUCTURED_BUFFER:	return mNullStructuredBufferSRVHandle;
 	case GPOT_BYTE_ADDRESS_BUFFER:	return mNullRawBufferSRVHandle;
+	case GPOT_ACCELERATION_STRUCTURE:
+		// Devices without ray tracing can't create programs that read acceleration structures, so the buffer view only fills the slot
+		return mNullAccelerationStructureSRVHandle.ptr != 0 ? mNullAccelerationStructureSRVHandle : mNullSRVHandles[D3D12_SRV_DIMENSION_BUFFER];
 	default:
 		return GpuObjectParameterTypeInformation::IsBuffer(type) ? mNullSRVHandles[D3D12_SRV_DIMENSION_BUFFER] : mNullSRVHandles[D3D12_SRV_DIMENSION_TEXTURE2D];
 	}

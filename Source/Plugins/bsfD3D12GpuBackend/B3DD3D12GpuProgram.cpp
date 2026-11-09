@@ -11,7 +11,7 @@ using namespace b3d;
 using namespace b3d::render;
 
 D3D12GpuProgram::D3D12GpuProgram(const GpuProgramCreateInformation& createInformation, GpuDevice& device)
-	: GpuProgram(createInformation), mGpuDevice(device)
+	: GpuProgram(device, createInformation), mGpuDevice(device)
 {
 }
 

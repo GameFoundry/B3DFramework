@@ -103,6 +103,9 @@ void D3D12GpuParameters::Initialize()
 			case GpuParameterType::Sampler:
 				binding.NullDescriptorHandle = descriptorManager.GetDefaultSamplerCPUHandle();
 				break;
+			case GpuParameterType::AccelerationStructure:
+				binding.NullDescriptorHandle = descriptorManager.GetNullSRVHandle(uniformInformation->ObjectType);
+				break;
 			default:
 				break;
 			}
@@ -467,6 +470,8 @@ void D3D12GpuParameters::UpdateGPUDescriptors()
 			return GpuObjectParameterTypeInformation::IsReadWriteBuffer(bindingLayout.ObjectType) ? descriptorManager.GetNullUAVHandle(bindingLayout.ObjectType) : descriptorManager.GetNullSRVHandle(bindingLayout.ObjectType);
 		case GpuParameterType::Sampler:
 			return descriptorManager.GetDefaultSamplerCPUHandle();
+		case GpuParameterType::AccelerationStructure:
+			return descriptorManager.GetNullSRVHandle(bindingLayout.ObjectType);
 		default:
 			return D3D12_CPU_DESCRIPTOR_HANDLE{ 0 };
 		}

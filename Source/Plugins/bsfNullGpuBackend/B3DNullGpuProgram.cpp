@@ -8,10 +8,8 @@ namespace b3d
 	namespace render
 	{
 		NullGpuProgram::NullGpuProgram(NullGpuDevice& gpuDevice, const GpuProgramCreateInformation& createInformation)
-			: GpuProgram(createInformation)
+			: GpuProgram(gpuDevice, createInformation)
 		{
-			(void)gpuDevice; // Unused parameter
-
 			// Mark as compiled immediately since we don't actually compile anything
 			mIsCompiled = true;
 		}

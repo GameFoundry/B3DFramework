@@ -65,6 +65,12 @@ namespace b3d
 		RSC_WAVE_OPERATIONS = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 13),
 		/** Supports bindless resources: GPU programs can read resources and samplers through ResourceDescriptorHeap and SamplerDescriptorHeap. */
 		RSC_BINDLESS_RESOURCES = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 14),
+		/** Builds acceleration structures and traces rays against them, inline (RSC_RAY_QUERY), through ray tracing pipelines (RSC_RAY_TRACING_PIPELINE) or both. */
+		RSC_ACCELERATION_STRUCTURES = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 15),
+		/** Supports inline ray tracing (RayTraceClosest and RayTraceAny) in GPU programs of any type. */
+		RSC_RAY_QUERY = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 16),
+		/** Supports ray tracing programs (GPT_RAY_GENERATION_PROGRAM to GPT_CALLABLE_PROGRAM) and the pipelines that run them. */
+		RSC_RAY_TRACING_PIPELINE = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 17),
 
 		/**
 		 * Depth-stencil images must not use split barriers on one queue. 
@@ -131,6 +137,46 @@ namespace b3d
 		i32 Minor = 0;
 		i32 Release = 0;
 		i32 Build = 0;
+	};
+
+	/**
+	 * Limits and layout requirements of ray tracing. Values that describe ray tracing pipelines and their shader tables are zero on
+	 * devices without RSC_RAY_TRACING_PIPELINE, and the remaining values are zero on devices without RSC_ACCELERATION_STRUCTURES.
+	 */
+	struct B3D_EXPORT GpuRayTracingCapabilities
+	{
+		/** Size in bytes of the handle that identifies a ray tracing program group in a shader table record. */
+		u32 ShaderGroupHandleSize = 0;
+
+		/** Alignment in bytes of each record in a shader table. */
+		u32 ShaderRecordAlignment = 0;
+
+		/** Alignment in bytes of the start of each shader table. */
+		u32 ShaderTableAlignment = 0;
+
+		/** Maximum distance in bytes between consecutive records of a shader table. */
+		u32 MaximumShaderRecordStride = 0;
+
+		/** Maximum number of nested ray traces a ray tracing pipeline can perform. */
+		u32 MaximumRecursionDepth = 0;
+
+		/** Alignment in bytes of the scratch memory offset that an acceleration structure build uses. */
+		u32 ScratchOffsetAlignment = 0;
+
+		/** Size in bytes of one acceleration structure instance in the layout the device reads. */
+		u32 InstanceSize = 0;
+
+		/** Maximum number of instances in a top-level acceleration structure. */
+		u64 MaximumInstanceCount = 0;
+
+		/** Maximum number of geometries in a bottom-level acceleration structure. */
+		u64 MaximumGeometryCount = 0;
+
+		/** Maximum number of triangles or procedural primitives in a bottom-level acceleration structure, across all of its geometries. */
+		u64 MaximumPrimitiveCount = 0;
+
+		/** True if ray tracing pipelines can contain GPT_CALLABLE_PROGRAM programs. */
+		bool SupportsCallablePrograms = false;
 	};
 
 	/** Types of GPU vendors. */
@@ -225,6 +271,9 @@ namespace b3d
 
 		/** Returns various conventions expected by the render backend. */
 		GpuBackendConventions Conventions;
+
+		/** Limits and layout requirements of ray tracing. */
+		GpuRayTracingCapabilities RayTracing;
 
 		/** Native type used for vertex colors. */
 		VertexElementType VertexColorType = VET_COLOR_ABGR;

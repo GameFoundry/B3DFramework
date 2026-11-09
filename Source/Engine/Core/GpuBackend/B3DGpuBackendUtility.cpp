@@ -172,6 +172,9 @@ GpuResourceUseFlags GpuBackendUtility::GetShaderResourceUseFlags(GpuProgramStage
 	if(stages.IsSet(GpuProgramStageBit::Compute))
 		output |= GpuResourceUseFlag::StageComputeShader;
 
+	if(stages.IsSetAny(GpuProgramStageBit::AllRayTracing))
+		output |= GpuResourceUseFlag::StageRayTracingShader;
+
 	return output;
 }
 
@@ -190,9 +193,12 @@ GpuStageFlags GpuBackendUtility::GetStageFlags(GpuResourceUseFlags usage)
 		if(usage.IsSet(GpuResourceUseFlag::StageComputeShader))
 			accessStageFlags |= GpuStageFlag::ComputeShaderNonUniform;
 
+		if(usage.IsSet(GpuResourceUseFlag::StageRayTracingShader))
+			accessStageFlags |= GpuStageFlag::RayTracingShaderNonUniform;
+
 		// Assume all stages if none are set explicitly
 		if(!usage.IsSetAny(GpuResourceUseFlag::AnyStage))
-			accessStageFlags |= GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::ComputeShaderNonUniform;
+			accessStageFlags |= GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::ComputeShaderNonUniform | GpuStageFlag::RayTracingShaderNonUniform;
 	}
 
 	if(usage.IsSet(GpuResourceUseFlag::IndexBuffer))
@@ -212,9 +218,12 @@ GpuStageFlags GpuBackendUtility::GetStageFlags(GpuResourceUseFlags usage)
 		if(usage.IsSet(GpuResourceUseFlag::StageComputeShader))
 			accessStageFlags |= GpuStageFlag::ComputeShaderUniform;
 
+		if(usage.IsSet(GpuResourceUseFlag::StageRayTracingShader))
+			accessStageFlags |= GpuStageFlag::RayTracingShaderUniform;
+
 		// Assume all stages if none are set explicitly
 		if(!usage.IsSetAny(GpuResourceUseFlag::AnyStage))
-			accessStageFlags |= GpuStageFlag::VertexShaderUniform | GpuStageFlag::FragmentShaderUniform | GpuStageFlag::ComputeShaderUniform;
+			accessStageFlags |= GpuStageFlag::VertexShaderUniform | GpuStageFlag::FragmentShaderUniform | GpuStageFlag::ComputeShaderUniform | GpuStageFlag::RayTracingShaderUniform;
 	}
 
 	if(usage.IsSet(GpuResourceUseFlag::Transfer))
@@ -240,7 +249,8 @@ GpuStageFlags GpuBackendUtility::GetQueueStageFlags(GpuQueueType queueType)
 	switch(queueType)
 	{
 	case GQT_COMPUTE:
-		return GpuStageFlag::ComputeShaderUniform | GpuStageFlag::ComputeShaderNonUniform | GpuStageFlag::DrawIndirect | GpuStageFlag::Transfer | GpuStageFlag::Host;
+		return GpuStageFlag::ComputeShaderUniform | GpuStageFlag::ComputeShaderNonUniform | GpuStageFlag::RayTracingShaderUniform | GpuStageFlag::RayTracingShaderNonUniform |
+			GpuStageFlag::AccelerationStructureBuild | GpuStageFlag::DrawIndirect | GpuStageFlag::Transfer | GpuStageFlag::Host;
 	case GQT_TRANSFER:
 		return GpuStageFlag::Transfer | GpuStageFlag::Host;
 	default:
@@ -278,6 +288,9 @@ const char* GpuBackendUtility::GetAccessStageName(GpuStageFlag flag)
 	case GpuStageFlag::Transfer: return "Transfer";
 	case GpuStageFlag::Host: return "Host";
 	case GpuStageFlag::Resolve: return "Resolve";
+	case GpuStageFlag::RayTracingShaderNonUniform: return "RayTracingShaderNonUniform";
+	case GpuStageFlag::RayTracingShaderUniform: return "RayTracingShaderUniform";
+	case GpuStageFlag::AccelerationStructureBuild: return "AccelerationStructureBuild";
 	case GpuStageFlag::AllShader: return "AllShader";
 	case GpuStageFlag::All: return "All";
 	default: return "Unknown";
@@ -496,13 +509,17 @@ GpuAccessState GpuBackendUtility::GetRestingState(const render::GpuBuffer& buffe
 	if(buffer.GetInformation().Type == GpuBufferType::StagingWrite)
 		return GpuAccessState(GetQueueStageFlags(queueType) & GpuStageFlag::Transfer, GpuAccessFlag::Read);
 
-	const GpuStageFlags stages = GpuStageFlag::DrawIndirect | GpuStageFlag::VertexInputAttributes | GpuStageFlag::VertexInputIndices | GpuStageFlag::AllShader;
+	// Acceleration structure builds read ordinary buffers as their geometry and instance inputs
+	const GpuStageFlags stages = GpuStageFlag::DrawIndirect | GpuStageFlag::VertexInputAttributes | GpuStageFlag::VertexInputIndices | GpuStageFlag::AllShader | GpuStageFlag::AccelerationStructureBuild;
 	return GpuAccessState(stages & GetQueueStageFlags(queueType), GpuAccessFlag::Read);
 }
 
 GpuAccessState GpuBackendUtility::GetRestingState(const render::Texture& texture, GpuQueueType queueType)
 {
-	const GpuStageFlags stages = GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::ComputeShaderNonUniform;
+	// Ray tracing programs read textures through the bindless heap, which declares no accesses, so resting textures must already be
+	// readable there
+	const GpuStageFlags stages = GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::ComputeShaderNonUniform |
+		GpuStageFlag::RayTracingShaderNonUniform;
 
 	// Only render targets, depth-stencil targets and storage textures can have compression metadata. Whoever leaves their write state
 	// resolves fast clears on the way back to rest, so sampling reads the contents directly.

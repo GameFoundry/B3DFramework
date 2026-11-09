@@ -20,6 +20,8 @@ namespace b3d
 		"Number of slots in the bindless sampler heap. Clamped to the device limit.", 1024, ConfigVariableFlag::ReadOnly);
 	TConfigVariable<float> gGpuBindlessSamplerEvictionThreshold("gpu.BindlessSamplerEvictionThreshold",
 		"Fraction of the bindless sampler heap that, once allocated, makes new sampler slots first evict cached samplers nothing else references.", 0.9f);
+	TConfigVariable<bool> gGpuRayTracing("gpu.RayTracing",
+		"Allows devices to report the GPU's ray tracing support. When disabled, devices report none, as if the GPU had none.", true, ConfigVariableFlag::ReadOnly);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	TConfigVariable<bool> gGpuDumpPipelineTimings("gpu.DumpPipelineTimings",

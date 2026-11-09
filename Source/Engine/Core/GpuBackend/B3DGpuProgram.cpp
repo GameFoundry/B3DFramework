@@ -2,6 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GpuBackend/B3DGpuProgram.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
+#include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "RTTI/B3DGpuProgramRTTI.h"
 
 using namespace b3d;
@@ -92,8 +94,8 @@ RTTIType* GpuResourceTableLayout::GetRtti() const
 	return GpuResourceTableLayout::GetRttiStatic();
 }
 
-GpuProgram::GpuProgram(const GpuProgramCreateInformation& createInformation)
-	: mNeedsAdjacencyInfo(createInformation.RequiresAdjacency), mLanguage(createInformation.Language), mName(createInformation.Name), mType(createInformation.Type), mEntryPoint(createInformation.EntryPoint), mSource(createInformation.Source), mShaderReflection(createInformation.ShaderReflection), mBytecode(createInformation.Bytecode)
+GpuProgram::GpuProgram(GpuDevice& device, const GpuProgramCreateInformation& createInformation)
+	: mDevice(device), mNeedsAdjacencyInfo(createInformation.RequiresAdjacency), mLanguage(createInformation.Language), mName(createInformation.Name), mType(createInformation.Type), mEntryPoint(createInformation.EntryPoint), mSource(createInformation.Source), mShaderReflection(createInformation.ShaderReflection), mBytecode(createInformation.Bytecode)
 {
 	mParametersDescription = B3DMakeShared<GpuProgramParameterDescription>();
 }
@@ -103,7 +105,27 @@ GpuProgram::~GpuProgram()
 
 bool GpuProgram::IsSupported() const
 {
-	return true;
+	const GpuDeviceCapabilities& capabilities = mDevice.GetCapabilities();
+	if(IsRayTracingProgramType(mType) && !capabilities.HasCapability(RSC_RAY_TRACING_PIPELINE))
+		return false;
+
+	if(mType == GPT_CALLABLE_PROGRAM && !capabilities.RayTracing.SupportsCallablePrograms)
+		return false;
+
+	// Programs compiled from source carry the features in their entry point reflection, and programs created from bytecode alone in
+	// their parameter description
+	GpuProgramFeatureFlags features;
+	if(mShaderReflection != nullptr)
+	{
+		const auto found = mShaderReflection->EntryPoints.find(mEntryPoint);
+		if(found != mShaderReflection->EntryPoints.end())
+			features |= found->second.Features;
+	}
+
+	if(mBytecode != nullptr && mBytecode->ParameterDescription != nullptr)
+		features |= mBytecode->ParameterDescription->Features;
+
+	return !features.IsSet(GpuProgramFeatureFlag::RayQuery) || capabilities.HasCapability(RSC_RAY_QUERY);
 }
 /************************************************************************/
 /* 								SERIALIZATION                      		*/

@@ -61,7 +61,7 @@ namespace b3d
 		/** Information about all object parameters for a specific pass. */
 		struct PassParamInfo
 		{
-			StageParamInfo Stages[GPT_COUNT];
+			StageParamInfo Stages[kGpuRasterComputeProgramTypeCount];
 		};
 
 	public:
@@ -141,7 +141,7 @@ namespace b3d
 		/** All bindings for GPU uniform buffers, for a single pass. */
 		struct PassUniformBufferBindings
 		{
-			UniformBufferBinding Bindings[GPT_COUNT];
+			UniformBufferBinding Bindings[kGpuRasterComputeProgramTypeCount];
 		};
 
 		/** Information about a uniform buffer. */

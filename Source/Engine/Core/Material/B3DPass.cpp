@@ -52,6 +52,8 @@ const GpuProgramCreateInformation& TPass<IsRenderProxy>::GetGpuProgramCreateInfo
 	switch(type)
 	{
 	default:
+		B3D_ASSERT(false && "Only graphics and compute program types have a single program per pass");
+		[[fallthrough]];
 	case GPT_VERTEX_PROGRAM:
 		return mData.VertexProgramCreateInformation;
 	case GPT_FRAGMENT_PROGRAM:
