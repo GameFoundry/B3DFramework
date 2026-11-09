@@ -207,7 +207,7 @@ shader VectorGraphics
 			outPosition.zw = float2(0.0f, 1.0f);
 
 			outUV = inUV;
-			outVertexPosition = inPosition;
+			outVertexPosition = inPosition.xy;
         }
 
 		float NVGRoundRect(float2 pt, float2 ext, float rad)

@@ -127,6 +127,7 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestHostPushConstantShaderCompilation)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestVulkanStorageBufferAccessReflection)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestHlslShaderModel66Compilation)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestRayTracingBytecodeReflection)
 #endif
 #if B3D_PLATFORM_MACOS
 	B3D_ADD_TEST(GpuBackendTestSuite::TestMetalDynamicUniformBufferReflection)
@@ -1139,6 +1140,194 @@ float4 main(float2 uv : TEXCOORD0) : SV_Target0
 	fxcBytecode.CompilerVersion = 6;
 	B3D_TEST_ASSERT(!compiler->IsUpToDate(fxcBytecode))
 #endif
+}
+
+void GpuBackendTestSuite::TestRayTracingBytecodeReflection()
+{
+	// Every program also calls a helper function, which reflection mustn't mistake for the program's own function
+	const String declarations = R"(
+RaytracingAccelerationStructure Scene : register(t0);
+RWTexture2D<float4> Output : register(u1);
+
+struct Payload
+{
+	float4 Color;
+};
+
+struct SphereAttributes
+{
+	float3 Normal;
+};
+
+struct CallableData
+{
+	float4 Value;
+};
+
+float4 Darken(float4 color)
+{
+	return color * 0.5f;
+}
+)";
+
+	struct ProgramSource
+	{
+		GpuProgramType Type;
+		const char* EntryPoint;
+		const char* Body;
+	};
+
+	const ProgramSource programSources[] =
+	{
+		{ GPT_RAY_GENERATION_PROGRAM, "RayGen", R"(
+[shader("raygeneration")]
+void RayGen()
+{
+	RayDesc ray;
+	ray.Origin = float3(DispatchRaysIndex().xy, 0.0f);
+	ray.TMin = 0.0f;
+	ray.Direction = float3(0.0f, 0.0f, 1.0f);
+	ray.TMax = 1000.0f;
+
+	Payload payload = (Payload)0;
+	TraceRay(Scene, RAY_FLAG_NONE, 0xFF, 0, 1, 0, ray, payload);
+	Output[DispatchRaysIndex().xy] = Darken(payload.Color);
+}
+)" },
+		{ GPT_MISS_PROGRAM, "Miss", R"(
+[shader("miss")]
+void Miss(inout Payload payload)
+{
+	payload.Color = Darken(float4(0.0f, 0.0f, 1.0f, 1.0f));
+}
+)" },
+		{ GPT_CLOSEST_HIT_PROGRAM, "ClosestHit", R"(
+[shader("closesthit")]
+void ClosestHit(inout Payload payload, in BuiltInTriangleIntersectionAttributes attributes)
+{
+	payload.Color = Darken(float4(attributes.barycentrics, 0.0f, 1.0f));
+}
+)" },
+		{ GPT_ANY_HIT_PROGRAM, "AnyHit", R"(
+[shader("anyhit")]
+void AnyHit(inout Payload payload, in BuiltInTriangleIntersectionAttributes attributes)
+{
+	if(Darken(float4(attributes.barycentrics, 0.0f, 1.0f)).x > 0.25f)
+		IgnoreHit();
+}
+)" },
+		{ GPT_INTERSECTION_PROGRAM, "Intersection", R"(
+[shader("intersection")]
+void Intersection()
+{
+	SphereAttributes attributes;
+	attributes.Normal = Darken(float4(ObjectRayDirection(), 0.0f)).xyz;
+	ReportHit(RayTCurrent(), 0, attributes);
+}
+)" },
+		{ GPT_CALLABLE_PROGRAM, "Callable", R"(
+[shader("callable")]
+void Callable(inout CallableData data)
+{
+	data.Value = Darken(data.Value);
+}
+)" },
+	};
+
+	const String inlineSource = R"(
+RaytracingAccelerationStructure Scene : register(t0);
+RWStructuredBuffer<float> Distances : register(u1);
+
+[numthreads(8, 1, 1)]
+void main(uint3 threadId : SV_DispatchThreadID)
+{
+	RayDesc ray;
+	ray.Origin = float3(threadId.x, 0.0f, 0.0f);
+	ray.TMin = 0.0f;
+	ray.Direction = float3(0.0f, 0.0f, 1.0f);
+	ray.TMax = 1000.0f;
+
+	RayQuery<RAY_FLAG_NONE> query;
+	query.TraceRayInline(Scene, RAY_FLAG_NONE, 0xFF, ray);
+	query.Proceed();
+	Distances[threadId.x] = query.CommittedStatus() == COMMITTED_TRIANGLE_HIT ? query.CommittedRayT() : -1.0f;
+}
+)";
+
+	Vector<String> languages = { "vksl" };
+#if B3D_PLATFORM_WIN32
+	languages.push_back("hlsl");
+#endif
+
+	for(const String& language : languages)
+	{
+		const TShared<IGpuBytecodeCompiler> compiler = ShaderCompilers::Instance().GetBytecodeCompiler(language);
+		B3D_TEST_ASSERT_MSG(compiler != nullptr, language)
+		if(compiler == nullptr)
+			continue;
+
+		auto fnCompile = [this, &compiler, &language](GpuProgramType type, const String& entryPoint, const String& source) -> TShared<GpuProgramBytecode>
+		{
+			GpuProgramCreateInformation createInformation;
+			createInformation.Name = String("RayTracing_") + GetProgramTypeName(type);
+			createInformation.Source = source;
+			createInformation.EntryPoint = entryPoint;
+			createInformation.Language = language;
+			createInformation.Type = type;
+
+			const TShared<GpuProgramBytecode> bytecode = compiler->CompileBytecode(createInformation);
+			const bool isCompiled = bytecode != nullptr && bytecode->Instructions.Data != nullptr && bytecode->ParameterDescription != nullptr;
+			B3D_TEST_ASSERT_MSG(isCompiled, language + " " + createInformation.Name + ": " + (bytecode != nullptr ? bytecode->Messages : String()))
+
+			return isCompiled ? bytecode : nullptr;
+		};
+
+		// The acceleration structure is a parameter of its own, and on D3D12 also a resource table binding of its own
+		auto fnCheckScene = [this, &language](const GpuProgramBytecode& bytecode, GpuProgramType type)
+		{
+			const String context = language + " " + GetProgramTypeName(type);
+			const GpuProgramParameterDescription& parameterDescription = *bytecode.ParameterDescription;
+			const auto found = parameterDescription.AccelerationStructures.find("Scene");
+			B3D_TEST_ASSERT_MSG(parameterDescription.AccelerationStructures.size() == 1 && found != parameterDescription.AccelerationStructures.end(), context)
+			B3D_TEST_ASSERT_MSG(parameterDescription.Buffers.count("Scene") == 0 && parameterDescription.SampledTextures.count("Scene") == 0, context)
+			if(found == parameterDescription.AccelerationStructures.end())
+				return;
+
+			B3D_TEST_ASSERT_MSG(found->second.Type == GPOT_ACCELERATION_STRUCTURE && found->second.Set == 0 && found->second.ArraySize == 1, context)
+
+			if(language == "hlsl")
+			{
+				B3D_TEST_ASSERT_MSG(bytecode.ResourceTableLayout != nullptr, context)
+				if(bytecode.ResourceTableLayout == nullptr)
+					return;
+
+				u32 accelerationStructureEntryCount = 0;
+				for(const GpuDescriptorTableEntry& entry : bytecode.ResourceTableLayout->Entries)
+				{
+					if(entry.Kind == GpuDescriptorEntryKind::Resource && entry.Type == GpuParameterType::AccelerationStructure)
+					{
+						B3D_TEST_ASSERT_MSG(entry.Slot == found->second.Slot && entry.DescriptorCount == 1, context)
+						accelerationStructureEntryCount++;
+					}
+				}
+
+				B3D_TEST_ASSERT_MSG(accelerationStructureEntryCount == 1, context)
+			}
+		};
+
+		for(const ProgramSource& programSource : programSources)
+		{
+			const TShared<GpuProgramBytecode> bytecode = fnCompile(programSource.Type, programSource.EntryPoint, declarations + programSource.Body);
+
+			// DXIL reflects only the resources a program uses, while SPIR-V keeps every declared resource
+			if(bytecode != nullptr && (programSource.Type == GPT_RAY_GENERATION_PROGRAM || language == "vksl"))
+				fnCheckScene(*bytecode, programSource.Type);
+		}
+
+		const TShared<GpuProgramBytecode> inlineBytecode = fnCompile(GPT_COMPUTE_PROGRAM, "main", inlineSource);
+		if(inlineBytecode != nullptr)
+			fnCheckScene(*inlineBytecode, GPT_COMPUTE_PROGRAM);
+	}
 }
 
 void GpuBackendTestSuite::TestQueueStageFlags()

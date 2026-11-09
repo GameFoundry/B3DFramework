@@ -28,7 +28,7 @@ shader PPEncodeDepth
 		
 		float4 fsmain(VStoFS input) : SV_Target0
 		{
-			float deviceZ = gInputTex.Sample(gInputSamp, input.uv0);
+			float deviceZ = gInputTex.Sample(gInputSamp, input.uv0).r;
 			float viewZ = convertFromDeviceZ(deviceZ);
 		
 			float alpha = 1.0f - saturate((viewZ - gNear) / (gFar - gNear));

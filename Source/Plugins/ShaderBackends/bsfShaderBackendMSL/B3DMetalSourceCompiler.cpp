@@ -123,13 +123,14 @@ namespace
 			}
 
 			// Resource classes must be added in the same order used by the runtime argument-buffer ABI.
-			static_assert(kTypeOrderUniformBuffer == 0 && kTypeOrderSampledTexture == 1 && kTypeOrderStorageTexture == 2 && kTypeOrderStorageBuffer == 3 && kTypeOrderSampler == 4, "Metal argument-buffer resource order changed; update binding construction below.");
+			static_assert(kTypeOrderUniformBuffer == 0 && kTypeOrderSampledTexture == 1 && kTypeOrderStorageTexture == 2 && kTypeOrderStorageBuffer == 3 && kTypeOrderSampler == 4 && kTypeOrderAccelerationStructure == 5, "Metal argument-buffer resource order changed; update binding construction below.");
 
 			AddResources(parameterDescription.UniformBuffers, GpuParameterType::UniformBuffer);
 			AddResources(parameterDescription.SampledTextures, GpuParameterType::SampledTexture);
 			AddResources(parameterDescription.StorageTextures, GpuParameterType::StorageTexture);
 			AddResources(parameterDescription.Buffers, GpuParameterType::StorageBuffer);
 			AddResources(parameterDescription.Samplers, GpuParameterType::Sampler);
+			AddResources(parameterDescription.AccelerationStructures, GpuParameterType::AccelerationStructure);
 
 			if(mTextureArgumentCount > kMetalMaximumTextureArgumentsPerStage)
 				AppendError(mResult, StringUtility::Format("Metal shader exceeds the Apple7 Tier-2 texture argument limit: {0} > {1}.", mTextureArgumentCount, kMetalMaximumTextureArgumentsPerStage));
@@ -254,7 +255,7 @@ namespace
 					binding.msl_sampler = (u32)nextArgumentIndex;
 					mSamplerArgumentCount += argumentCount;
 				}
-				else
+				else // Buffers and acceleration structures
 					binding.msl_buffer = (u32)nextArgumentIndex;
 
 				nextArgumentIndex += argumentCount;
@@ -303,6 +304,9 @@ namespace
 			const UnorderedSet<String> mappedSamplerNames = RenameExactResources(resources.separate_samplers, mParameterDescription.Samplers, GpuParameterType::Sampler);
 			ReportMissingResources(mParameterDescription.Samplers, mappedSamplerNames);
 			ReportMissingResources(mParameterDescription.Buffers, mMappedBufferNames);
+
+			const UnorderedSet<String> mappedAccelerationStructureNames = RenameExactResources(resources.acceleration_structures, mParameterDescription.AccelerationStructures, GpuParameterType::AccelerationStructure);
+			ReportMissingResources(mParameterDescription.AccelerationStructures, mappedAccelerationStructureNames);
 
 			if(!resources.sampled_images.empty())
 			{
@@ -441,7 +445,7 @@ namespace
 		MetalSourceCompilation compilation;
 		if(programType != GPT_VERTEX_PROGRAM && programType != GPT_FRAGMENT_PROGRAM && programType != GPT_COMPUTE_PROGRAM)
 		{
-			compilation.Result.ErrorMessage = "The macOS Metal backend does not support geometry or tessellation shader stages.";
+			compilation.Result.ErrorMessage = "The macOS Metal backend only supports vertex, fragment and compute programs.";
 			return compilation;
 		}
 
@@ -558,6 +562,7 @@ namespace
 		fnFindDescriptorHeaps(resources.storage_buffers, false);
 		fnFindDescriptorHeaps(resources.separate_images, false);
 		fnFindDescriptorHeaps(resources.storage_images, false);
+		fnFindDescriptorHeaps(resources.acceleration_structures, false);
 		fnFindDescriptorHeaps(resources.separate_samplers, true);
 
 		if(usesResourceHeap)

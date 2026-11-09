@@ -180,7 +180,7 @@ shader GpuParticleSimulate
 			float3 uv = mul(gWorldToField, float4(pos, 1.0f)).xyz;
 			uv -= floor(uv * gFieldTiling);
 			
-			float3 smp = gVectorFieldTex.Sample(gVectorFieldSampler, uv);
+			float3 smp = gVectorFieldTex.Sample(gVectorFieldSampler, uv).xyz;
 			smp = mul(gFieldToWorld, smp);
 			
 			velocity = gFieldIntensity * gFieldTightness * smp;

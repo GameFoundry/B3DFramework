@@ -247,8 +247,14 @@ namespace
 		return Math::CeilToMultiple(totalSize / elementCount, 4u);
 	}
 
-	/** Reflects constant buffers and their members. */
-	bool ReflectConstantBuffers(ID3D12ShaderReflection* reflection, const D3D12_SHADER_DESC& shaderDesc, GpuProgramParameterDescription& parameterDescription, String& outMessages)
+	/**
+	 * Reflects constant buffers and their members.
+	 *
+	 * @tparam	TReflection		ID3D12ShaderReflection for a shader, or ID3D12FunctionReflection for a library function.
+	 * @tparam	TDescription	Description of @p reflection: D3D12_SHADER_DESC or D3D12_FUNCTION_DESC.
+	 */
+	template<class TReflection, class TDescription>
+	bool ReflectConstantBuffers(TReflection* reflection, const TDescription& shaderDesc, GpuProgramParameterDescription& parameterDescription, String& outMessages)
 	{
 		for (u32 bufferIndex = 0; bufferIndex < shaderDesc.ConstantBuffers; bufferIndex++)
 		{
@@ -322,8 +328,9 @@ namespace
 		return true;
 	}
 
-	/** Reflects bound resources (textures, samplers, UAVs, etc.). */
-	void ReflectBoundResources(ID3D12ShaderReflection* reflection, const D3D12_SHADER_DESC& shaderDesc, GpuProgramParameterDescription& paramDesc)
+	/** Reflects bound resources (textures, samplers, UAVs, etc.). See ReflectConstantBuffers() for the template parameters. */
+	template<class TReflection, class TDescription>
+	void ReflectBoundResources(TReflection* reflection, const TDescription& shaderDesc, GpuProgramParameterDescription& paramDesc)
 	{
 		for (u32 resourceIndex = 0; resourceIndex < shaderDesc.BoundResources; resourceIndex++)
 		{
@@ -387,6 +394,12 @@ namespace
 				parameterInformation.Slot = MapRegisterToSlot(bindDesc.BindPoint, HLSLRegisterClass::ShaderResource);
 				parameterInformation.Type = GetBufferObjectType(bindDesc.Type);
 				paramDesc.Buffers[parameterInformation.Name] = parameterInformation;
+				break;
+
+			case D3D_SIT_RTACCELERATIONSTRUCTURE:
+				parameterInformation.Slot = MapRegisterToSlot(bindDesc.BindPoint, HLSLRegisterClass::ShaderResource);
+				parameterInformation.Type = GPOT_ACCELERATION_STRUCTURE;
+				paramDesc.AccelerationStructures[parameterInformation.Name] = parameterInformation;
 				break;
 
 			case D3D_SIT_CBUFFER:
@@ -471,6 +484,11 @@ namespace
 			outRegisterClass = HLSLRegisterClass::ShaderResource;
 			return true;
 
+		case D3D_SIT_RTACCELERATIONSTRUCTURE:
+			outType = GpuParameterType::AccelerationStructure;
+			outRegisterClass = HLSLRegisterClass::ShaderResource;
+			return true;
+
 		default:
 			return false;
 		}
@@ -486,8 +504,11 @@ namespace
 	 * stage binds per set (type, slot, descriptor count). Note the bindings are those the stage actually USES - the
 	 * D3D shader compiler strips unused declarations from reflection - so tables of different stages sharing a set
 	 * are merged by slot when the pipeline parameter layout is created.
+	 *
+	 * See ReflectConstantBuffers() for the template parameters.
 	 */
-	void BuildResourceTableLayout(ID3D12ShaderReflection* reflection, const D3D12_SHADER_DESC& shaderDesc, GpuProgramBytecode& bytecode)
+	template<class TReflection, class TDescription>
+	void BuildResourceTableLayout(TReflection* reflection, const TDescription& shaderDesc, GpuProgramBytecode& bytecode)
 	{
 		// Group the reflected bindings by register space (engine set). Map keeps the sets ordered; the entries within
 		// each set are sorted by slot further below.
@@ -559,7 +580,7 @@ namespace
 		for (const auto& entry : parameterDescription.UniformBuffers)
 			reflectedBindings.insert(fnBindingKey(entry.second.Set, entry.second.Slot));
 
-		for (const Map<String, GpuObjectParameterInformation>* objects : { &parameterDescription.Samplers, &parameterDescription.SampledTextures, &parameterDescription.StorageTextures, &parameterDescription.Buffers })
+		for (const Map<String, GpuObjectParameterInformation>* objects : { &parameterDescription.Samplers, &parameterDescription.SampledTextures, &parameterDescription.StorageTextures, &parameterDescription.Buffers, &parameterDescription.AccelerationStructures })
 		{
 			for (const auto& entry : *objects)
 				reflectedBindings.insert(fnBindingKey(entry.second.Set, entry.second.Slot));
@@ -615,6 +636,11 @@ namespace
 					registerClass = HLSLRegisterClass::UnorderedAccess;
 					target = &parameterDescription.Buffers;
 				}
+				else if (declaration.Type == GPOT_ACCELERATION_STRUCTURE)
+				{
+					registerClass = HLSLRegisterClass::ShaderResource;
+					target = &parameterDescription.AccelerationStructures;
+				}
 				else
 				{
 					registerClass = HLSLRegisterClass::ShaderResource;
@@ -640,6 +666,71 @@ namespace
 		fnAddObjects(declarations.GetSamplerParameters());
 	}
 
+	/** Returns the DXIL shader kind of a ray tracing program type. */
+	D3D12_SHADER_VERSION_TYPE GetRayTracingShaderKind(GpuProgramType type)
+	{
+		switch (type)
+		{
+		case GPT_RAY_GENERATION_PROGRAM: return D3D12_SHVER_RAY_GENERATION_SHADER;
+		case GPT_MISS_PROGRAM: return D3D12_SHVER_MISS_SHADER;
+		case GPT_CLOSEST_HIT_PROGRAM: return D3D12_SHVER_CLOSEST_HIT_SHADER;
+		case GPT_ANY_HIT_PROGRAM: return D3D12_SHVER_ANY_HIT_SHADER;
+		case GPT_INTERSECTION_PROGRAM: return D3D12_SHVER_INTERSECTION_SHADER;
+		case GPT_CALLABLE_PROGRAM: return D3D12_SHVER_CALLABLE_SHADER;
+		default:
+			B3D_ASSERT(false);
+			return D3D12_SHVER_RESERVED0;
+		}
+	}
+
+	/** Reflects the parameters and resource table layout of a ray tracing program compiled as a DXIL library. */
+	bool ReflectLibrary(IDxcUtils* utilities, const DxcBuffer& reflectionBuffer, GpuProgramType type, GpuProgramBytecode& bytecode)
+	{
+		ComPtr<ID3D12LibraryReflection> reflection;
+		HRESULT hr = utilities->CreateReflection(&reflectionBuffer, IID_PPV_ARGS(&reflection));
+		if (FAILED(hr))
+		{
+			bytecode.Messages = "Failed to reflect compiled HLSL library.";
+			B3D_LOG(Error, LogRenderBackend, "{0}", bytecode.Messages);
+			return false;
+		}
+
+		D3D12_LIBRARY_DESC libraryDesc;
+		reflection->GetDesc(&libraryDesc);
+
+		// The program's function is the one whose kind matches its type, whatever else the library exports
+		const D3D12_SHADER_VERSION_TYPE shaderKind = GetRayTracingShaderKind(type);
+		ID3D12FunctionReflection* functionReflection = nullptr;
+		D3D12_FUNCTION_DESC functionDesc;
+		u32 matchingFunctionCount = 0;
+		for (u32 functionIndex = 0; functionIndex < libraryDesc.FunctionCount; functionIndex++)
+		{
+			ID3D12FunctionReflection* candidate = reflection->GetFunctionByIndex((INT)functionIndex);
+			D3D12_FUNCTION_DESC candidateDesc;
+			if (candidate == nullptr || FAILED(candidate->GetDesc(&candidateDesc)) || D3D12_SHVER_GET_TYPE(candidateDesc.Version) != (UINT)shaderKind)
+				continue;
+
+			functionReflection = candidate;
+			functionDesc = candidateDesc;
+			matchingFunctionCount++;
+		}
+
+		if (matchingFunctionCount != 1)
+		{
+			bytecode.Messages = StringUtility::Format("Compiled HLSL library exports {0} {1} shaders, expected exactly one.", matchingFunctionCount, GetProgramTypeName(type));
+			B3D_LOG(Error, LogRenderBackend, "{0}", bytecode.Messages);
+			return false;
+		}
+
+		if (!ReflectConstantBuffers(functionReflection, functionDesc, *bytecode.ParameterDescription, bytecode.Messages))
+			return false;
+
+		ReflectBoundResources(functionReflection, functionDesc, *bytecode.ParameterDescription);
+		BuildResourceTableLayout(functionReflection, functionDesc, bytecode);
+
+		return true;
+	}
+
 	/** Performs shader reflection to extract parameter descriptions, vertex inputs, and execution requirements. */
 	bool ReflectShader(IDxcUtils* utilities, IDxcResult* compilationResult, GpuProgramType type, GpuProgramBytecode& bytecode)
 	{
@@ -657,33 +748,40 @@ namespace
 		reflectionBuffer.Size = reflectionBlob->GetBufferSize();
 		reflectionBuffer.Encoding = 0;
 
-		ComPtr<ID3D12ShaderReflection> reflection;
-		hr = utilities->CreateReflection(&reflectionBuffer, IID_PPV_ARGS(&reflection));
-		if (FAILED(hr))
-		{
-			bytecode.Messages = "Failed to reflect compiled HLSL shader.";
-			B3D_LOG(Error, LogRenderBackend, "{0}", bytecode.Messages);
-			return false;
-		}
-
-		D3D12_SHADER_DESC shaderDesc;
-		reflection->GetDesc(&shaderDesc);
-
 		if (!bytecode.ParameterDescription)
 			bytecode.ParameterDescription = B3DMakeShared<GpuProgramParameterDescription>();
 
-		if (!ReflectConstantBuffers(reflection.Get(), shaderDesc, *bytecode.ParameterDescription, bytecode.Messages))
-			return false;
+		if (IsRayTracingProgramType(type))
+		{
+			return ReflectLibrary(utilities, reflectionBuffer, type, bytecode);
+		}
+		else
+		{
+			ComPtr<ID3D12ShaderReflection> reflection;
+			hr = utilities->CreateReflection(&reflectionBuffer, IID_PPV_ARGS(&reflection));
+			if (FAILED(hr))
+			{
+				bytecode.Messages = "Failed to reflect compiled HLSL shader.";
+				B3D_LOG(Error, LogRenderBackend, "{0}", bytecode.Messages);
+				return false;
+			}
 
-		ReflectBoundResources(reflection.Get(), shaderDesc, *bytecode.ParameterDescription);
-		BuildResourceTableLayout(reflection.Get(), shaderDesc, bytecode);
+			D3D12_SHADER_DESC shaderDesc;
+			reflection->GetDesc(&shaderDesc);
 
-		if (type == GPT_VERTEX_PROGRAM)
-			ReflectVertexInput(reflection.Get(), shaderDesc, bytecode.VertexInput);
-		else if(type == GPT_COMPUTE_PROGRAM)
-			reflection->GetThreadGroupSize(&bytecode.ThreadGroupSize[0], &bytecode.ThreadGroupSize[1], &bytecode.ThreadGroupSize[2]);
+			if (!ReflectConstantBuffers(reflection.Get(), shaderDesc, *bytecode.ParameterDescription, bytecode.Messages))
+				return false;
 
-		return true;
+			ReflectBoundResources(reflection.Get(), shaderDesc, *bytecode.ParameterDescription);
+			BuildResourceTableLayout(reflection.Get(), shaderDesc, bytecode);
+
+			if (type == GPT_VERTEX_PROGRAM)
+				ReflectVertexInput(reflection.Get(), shaderDesc, bytecode.VertexInput);
+			else if(type == GPT_COMPUTE_PROGRAM)
+				reflection->GetThreadGroupSize(&bytecode.ThreadGroupSize[0], &bytecode.ThreadGroupSize[1], &bytecode.ThreadGroupSize[2]);
+
+			return true;
+		}
 	}
 } // namespace
 

@@ -461,6 +461,14 @@ namespace
 			return true;
 		}
 
+		if(parameterType == GpuParameterType::AccelerationStructure)
+		{
+			information.Type = GPOT_ACCELERATION_STRUCTURE;
+			outDescription.AccelerationStructures[name] = information;
+
+			return true;
+		}
+
 		if(parameterType == GpuParameterType::StorageBuffer)
 		{
 			// Typed buffers (Buffer<T>/RWBuffer<T>) compile to texture_buffer<T>, so they reflect with texture metadata instead of a pointer.
@@ -797,7 +805,7 @@ TShared<GpuProgramBytecode> BytecodeCompilerMSL::CompileBytecode(const GpuProgra
 
 	if(!IsProgramTypeSupported(createInformation.Type))
 	{
-		bytecode->Messages = "The macOS Metal backend does not support geometry or tessellation shader stages.";
+		bytecode->Messages = "The macOS Metal backend only supports vertex, fragment and compute programs.";
 		return bytecode;
 	}
 

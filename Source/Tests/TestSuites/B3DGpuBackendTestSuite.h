@@ -143,5 +143,11 @@ namespace b3d
 
 		/** Verifies DXC compiles every supported HLSL stage and preserves the engine's reflection contract. */
 		void TestHlslShaderModel66Compilation();
+
+		/**
+		 * Compiles every ray tracing program type, and a compute program that traces rays inline, to DXIL and SPIR-V, and checks
+		 * that their acceleration structures reflect as acceleration structure parameters.
+		 */
+		void TestRayTracingBytecodeReflection();
 	};
 } // namespace b3d

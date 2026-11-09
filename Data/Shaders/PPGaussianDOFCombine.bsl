@@ -25,7 +25,7 @@ shader PPGaussianDOFCombine
 		float4 fsmain(VStoFS input) : SV_Target0
 		{
 			float4 focusedColor = gFocusedTex.Sample(gColorSamp, input.uv0);
-			float depth = -convertFromDeviceZ(gDepthTex.SampleLevel(gDepthSamp, input.uv0, 0));
+			float depth = -convertFromDeviceZ(gDepthTex.SampleLevel(gDepthSamp, input.uv0, 0).r);
 			
 			float4 nearColor = 0;
 			float4 farColor = 0;

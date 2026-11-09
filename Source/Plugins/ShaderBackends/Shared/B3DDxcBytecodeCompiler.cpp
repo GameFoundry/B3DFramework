@@ -66,6 +66,15 @@ TShared<GpuProgramBytecode> DxcBytecodeCompiler::CompileBytecode(const GpuProgra
 	case GPT_HULL_PROGRAM:     target = L"hs_6_6"; break;
 	case GPT_DOMAIN_PROGRAM:   target = L"ds_6_6"; break;
 	case GPT_COMPUTE_PROGRAM:  target = L"cs_6_6"; break;
+	// Ray tracing programs compile as a library that exports the entry point as its only shader
+	case GPT_RAY_GENERATION_PROGRAM:
+	case GPT_MISS_PROGRAM:
+	case GPT_CLOSEST_HIT_PROGRAM:
+	case GPT_ANY_HIT_PROGRAM:
+	case GPT_INTERSECTION_PROGRAM:
+	case GPT_CALLABLE_PROGRAM:
+		target = L"lib_6_6";
+		break;
 	default:
 		bytecode->Messages = "Unsupported shader type";
 		return bytecode;

@@ -237,21 +237,21 @@ shader IrradianceEvaluate
 			
 			float3 irradiance = 0;
 			#if SKY_ONLY
-				irradiance = gSkyIrradianceTex.SampleLevel(gLinearSamp, surfaceData.worldNormal, 0).rgb * gSkyBrightness;
+				irradiance = gSkyIrradianceTex.SampleLevel(gLinearSamp, surfaceData.worldNormal.xyz, 0).rgb * gSkyBrightness;
 			#else
 				uint volumeIdx;
 				#if MSAA_COUNT > 1
 					#if MSAA_RESOLVE_0TH
-						volumeIdx = gInputTex.Load(uint3(pixelPos, 0), 0).x;
+						volumeIdx = gInputTex.Load(pixelPos, 0).x;
 					#else
-						volumeIdx = gInputTex.Load(uint3(pixelPos, 0), sampleIdx).x;
+						volumeIdx = gInputTex.Load(pixelPos, sampleIdx).x;
 					#endif
 				#else
 					volumeIdx = gInputTex.Load(uint3(pixelPos, 0)).x;
 				#endif
 				
 				if(volumeIdx == 0xFFFF) // Using 16-bit texture, so need to compare like this
-					irradiance = gSkyIrradianceTex.SampleLevel(gLinearSamp, surfaceData.worldNormal, 0).rgb * gSkyBrightness;
+					irradiance = gSkyIrradianceTex.SampleLevel(gLinearSamp, surfaceData.worldNormal.xyz, 0).rgb * gSkyBrightness;
 				else
 				{
 					Tetrahedron volume = getTetrahedron(volumeIdx);
@@ -304,7 +304,7 @@ shader IrradianceEvaluate
 						}
 					}
 					
-					SHVector shBasis = SHBasis(surfaceData.worldNormal);
+					SHVector shBasis = SHBasis(surfaceData.worldNormal.xyz);
 					SHMultiply(shCoeffs.R, shBasis);
 					SHMultiply(shCoeffs.G, shBasis);
 					SHMultiply(shCoeffs.B, shBasis);
@@ -316,7 +316,7 @@ shader IrradianceEvaluate
 			#endif // SKY_ONLY
 			
 			float2 uv = NDCToUV(input.screenPos);
-			float ao = gAmbientOcclusionTex.Sample(gLinearSamp, uv);
+			float ao = gAmbientOcclusionTex.Sample(gLinearSamp, uv).r;
 			
 			float3 diffuseColor = lerp(surfaceData.albedo.rgb, float3(0.0f, 0.0f, 0.0f), surfaceData.metalness);
 			return float4(irradiance * diffuseColor * ao, 1.0f);

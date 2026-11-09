@@ -19,7 +19,7 @@ shader MSAACoverageStencil
 		float fsmain(VStoFS input) : SV_Target0
 		{
 			int2 pixelPos = (int2)input.uv0.xy;
-			float coverage = gMSAACoverage.Load(int3(pixelPos, 0));
+			float coverage = gMSAACoverage.Load(int3(pixelPos, 0)).r;
 			
 			// Note: Consider checking 2x2 pixel block and only discard if none require per-sample
 			// evaluation. This should speed up HiStencil.

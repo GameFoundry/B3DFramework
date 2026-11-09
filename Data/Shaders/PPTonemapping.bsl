@@ -96,7 +96,7 @@ shader PPTonemapping
 		float4 fsmain(VStoFS input) : SV_Target0
 		{
 			float4 sceneColor = 0;
-			float3 bloomColor = gBloomTex.Sample(gBloomSamp, input.uv0) * gBloomTint;
+			float3 bloomColor = gBloomTex.Sample(gBloomSamp, input.uv0).rgb * gBloomTint.rgb;
 			#if MSAA
 				// Note: Ideally I'd want to use the MSAA coverage texture here, so I can only average samples for pixels
 				// that really need it. But because forward rendering doesn't write to MSAA coverage I can't do it as I

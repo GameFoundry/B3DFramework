@@ -736,6 +736,24 @@ namespace
 			}
 		}
 
+		// Acceleration structures (RaytracingAccelerationStructure).
+		for (const auto& resource : sprivResources.acceleration_structures)
+		{
+			if (fnIsBindlessHeap(resource))
+				continue;
+
+			const spirv_cross::SPIRType& type = compiler.get_type(resource.base_type_id);
+			TOptional<GpuObjectParameterInformation> accelerationStructureInformation = ParseSPIRVCrossObjectCommon(compiler, resource, type, outLog);
+			if (accelerationStructureInformation)
+			{
+				accelerationStructureInformation->Type = GPOT_ACCELERATION_STRUCTURE;
+				accelerationStructureInformation->ElementType = BF_UNKNOWN;
+
+				String name = accelerationStructureInformation->Name;
+				outParameterDescription.AccelerationStructures[std::move(name)] = std::move(accelerationStructureInformation.value());
+			}
+		}
+
 		return true;
 	}
 

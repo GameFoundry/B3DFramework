@@ -86,7 +86,7 @@ shader TetrahedraRender
 					sceneDepth = gDepthBufferTex.Load(pixelPos, sampleIdx);
 				#endif
 			#else
-				sceneDepth = gDepthBufferTex.Sample(gDepthBufferSamp, uv);
+				sceneDepth = gDepthBufferTex.Sample(gDepthBufferSamp, uv).r;
 			#endif
 			
 			float currentDepth = input.position.z;

@@ -321,14 +321,14 @@ mixin TemporalResolve
 			#if TEMPORAL_LOCAL_VELOCITY
 				#if TEMPORAL_SEARCH_NEAREST == 1
 					float3 nearest = findNearestCross(_PTEX2D(sceneDepth), uv, sampleIdx);
-					velocity = _SAMPLE(velocityBuffer, nearest.xy);
+					velocity = (float2)_SAMPLE(velocityBuffer, nearest.xy);
 					curDepth = nearest.z;
 				#elif TEMPORAL_SEARCH_NEAREST == 2
 					float3 nearest = findNearest3x3(_PTEX2D(sceneDepth), uv, sampleIdx);
-					velocity = _SAMPLE(velocityBuffer, nearest.xy);
+					velocity = (float2)_SAMPLE(velocityBuffer, nearest.xy);
 					curDepth = nearest.z;
 				#else // TEMPORAL_SEARCH_NEAREST
-					velocity = _SAMPLE(velocityBuffer, uv);
+					velocity = (float2)_SAMPLE(velocityBuffer, uv);
 					curDepth = _SAMPLE(sceneDepth, uv).x;
 				#endif // TEMPORAL_SEARCH_NEAREST
 			#else // TEMPORAL_LOCAL_VELOCITY

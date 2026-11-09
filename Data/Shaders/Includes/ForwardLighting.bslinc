@@ -49,7 +49,7 @@ mixin ForwardLighting
 			float3 specR = getSpecularDominantDir(N, R, surfaceData.roughness);
 			
 			float4 directLighting = getDirectLighting(worldPosition, V, specR, surfaceData, lightOffsets);
-			float ao = gAmbientOcclusionTex.Sample(gAmbientOcclusionSamp, uv);
+			float ao = gAmbientOcclusionTex.Sample(gAmbientOcclusionSamp, uv).r;
 			float4 ssr = gSSRTex.Sample(gSSRSamp, uv);
 			float3 imageBasedSpecular = getImageBasedSpecular(worldPosition, V, specR, surfaceData, ao, ssr,
 				reflProbeOffsetAndSize.x, reflProbeOffsetAndSize.y);

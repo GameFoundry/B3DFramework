@@ -114,7 +114,7 @@ shader LightGridLLCreation
 					float lightRadius = gLights[i].boundRadius;
 					
 					// Calculate distance from box to light
-					float3 distances = max(abs(lightPosition - cellCenter) - cellExtent, 0);
+					float3 distances = max(abs(lightPosition.xyz - cellCenter) - cellExtent, 0);
 					float distSqrd = dot(distances, distances);
 					
 					if(distSqrd <= (lightRadius * lightRadius))
@@ -139,7 +139,7 @@ shader LightGridLLCreation
 				float probeRadius = gReflectionProbes[i].radius;
 				
 				// Calculate distance from box to light
-				float3 distances = max(abs(probePosition - cellCenter) - cellExtent, 0);
+				float3 distances = max(abs(probePosition.xyz - cellCenter) - cellExtent, 0);
 				float distSqrd = dot(distances, distances);
 				
 				if(distSqrd <= (probeRadius * probeRadius))

@@ -22,6 +22,7 @@ namespace b3d
 		inline constexpr u64 kTypeOrderStorageTexture = 2;
 		inline constexpr u64 kTypeOrderStorageBuffer = 3;
 		inline constexpr u64 kTypeOrderSampler = 4;
+		inline constexpr u64 kTypeOrderAccelerationStructure = 5;
 
 		/** Maximum descriptor-array length accepted by the Metal binding ABI. */
 		inline constexpr u32 kMetalArgumentBufferArrayStride = 1024;
