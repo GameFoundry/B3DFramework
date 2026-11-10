@@ -25,12 +25,7 @@ namespace b3d
 			B3D_RTTI_MEMBER(DepthStencilStateInformation, 2)
 
 			B3D_RTTI_MEMBER(StencilRefValue, 3)
-			B3D_RTTI_MEMBER(VertexProgramCreateInformation, 4)
-			B3D_RTTI_MEMBER(FragmentProgramCreateInformation, 5)
-			B3D_RTTI_MEMBER(GeometryProgramCreateInformation, 6)
-			B3D_RTTI_MEMBER(HullProgramCreateInformation, 7)
-			B3D_RTTI_MEMBER(DomainProgramCreateInformation, 8)
-			B3D_RTTI_MEMBER(ComputeProgramCreateInformation, 9)
+			B3D_RTTI_MEMBER_CONTAINER(Programs, 10)
 		B3D_RTTI_END_MEMBERS
 
 	public:

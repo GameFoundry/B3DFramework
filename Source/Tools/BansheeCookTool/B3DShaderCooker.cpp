@@ -16,70 +16,12 @@
 
 using namespace b3d;
 
-namespace
-{
-	/** How a single cooked variation should be handled, based on the state of its compiled programs. */
-	enum class VariationBytecodeState
-	{
-		Complete, /**< Every program of the variation carries bytecode; the variation can be shipped. */
-		UnsupportedStage, /**< A program uses a stage the language's bytecode compiler cannot handle; skip the variation. */
-		MissingBytecode /**< A supported program produced no bytecode; the variation (and the cook) failed. */
-	};
-
-	/**
-	 * Validates that every program of the cooked variation carries the bytecode the target platform will consume.
-	 * @p outProgramType receives the offending program's type unless the returned state is Complete.
-	 */
-	VariationBytecodeState DetermineVariationBytecodeState(const PrecompiledVariationData& variationData,
-		const IGpuBytecodeCompiler& bytecodeCompiler, GpuProgramType& outProgramType)
-	{
-		for(const PassInformation& pass : variationData.Passes)
-		{
-			const GpuProgramCreateInformation* programs[] =
-			{
-				&pass.VertexProgramCreateInformation,
-				&pass.FragmentProgramCreateInformation,
-				&pass.GeometryProgramCreateInformation,
-				&pass.HullProgramCreateInformation,
-				&pass.DomainProgramCreateInformation,
-				&pass.ComputeProgramCreateInformation,
-			};
-
-			for(const GpuProgramCreateInformation* program : programs)
-			{
-				if(program->Source.empty())
-					continue;
-
-				outProgramType = program->Type;
-
-				if(!bytecodeCompiler.IsProgramTypeSupported(program->Type))
-					return VariationBytecodeState::UnsupportedStage;
-
-				if(program->Bytecode == nullptr || program->Bytecode->Instructions.Size == 0)
-					return VariationBytecodeState::MissingBytecode;
-			}
-		}
-
-		return VariationBytecodeState::Complete;
-	}
-}
-
 void ShaderCooker::StripVariationSource(PrecompiledVariationData& variationData)
 {
 	for(PassInformation& pass : variationData.Passes)
 	{
-		GpuProgramCreateInformation* programs[] =
-		{
-			&pass.VertexProgramCreateInformation,
-			&pass.FragmentProgramCreateInformation,
-			&pass.GeometryProgramCreateInformation,
-			&pass.HullProgramCreateInformation,
-			&pass.DomainProgramCreateInformation,
-			&pass.ComputeProgramCreateInformation,
-		};
-
-		for(GpuProgramCreateInformation* program : programs)
-			program->Source.clear();
+		for(GpuProgramCreateInformation& program : pass.Programs)
+			program.Source.clear();
 	}
 }
 
@@ -130,7 +72,7 @@ ShaderCooker::CookItemResult ShaderCooker::CookItem(const ShaderCookItem& item, 
 
 	// A shader with no GPU programs of its own (e.g. a subshader-only file that overrides renderer mixins) has no
 	// bytecode to prebuild, and its variations cannot be compiled. Only its shader meta-data is stored.
-	const bool hasGpuPrograms = metaData->GPUProgramTypes.size() > 0;
+	const bool hasGpuPrograms = !metaData->EntryPoints.empty();
 	if(!hasGpuPrograms)
 		B3D_LOG(Info, LogResources, "Shader \"{0}\" contains no GPU programs; storing meta-data only.", item.Name);
 
@@ -158,21 +100,26 @@ ShaderCooker::CookItemResult ShaderCooker::CookItem(const ShaderCookItem& item, 
 			continue;
 		}
 
-		GpuProgramType offendingProgramType = GPT_VERTEX_PROGRAM;
-		switch(bytecodeCompiler == nullptr ? VariationBytecodeState::Complete : DetermineVariationBytecodeState(*variationData, *bytecodeCompiler, offendingProgramType))
+		// Every program has to carry the bytecode the target platform consumes
+		const GpuProgramCreateInformation* programWithoutBytecode = nullptr;
+		if(bytecodeCompiler != nullptr)
 		{
-		case VariationBytecodeState::UnsupportedStage:
-			B3D_LOG(Warning, LogResources, "Shader cook skipped variation \"{0}\" of \"{1}\": it uses the {2} program type, which the \"{3}\" bytecode compiler does not support. The variation will be unavailable on this platform.",
-				variationParameters.CreateVariationName(), item.Name, GetProgramTypeName(offendingProgramType), language);
-			++outSkippedVariationCount;
-			continue;
-		case VariationBytecodeState::MissingBytecode:
+			for(const PassInformation& pass : variationData->Passes)
+			{
+				for(const GpuProgramCreateInformation& program : pass.Programs)
+				{
+					if(programWithoutBytecode == nullptr && (program.Bytecode == nullptr || program.Bytecode->Instructions.Size == 0))
+						programWithoutBytecode = &program;
+				}
+			}
+		}
+
+		if(programWithoutBytecode != nullptr)
+		{
 			B3D_LOG(Error, LogResources, "Shader cook failed for variation \"{0}\" of \"{1}\" (language \"{2}\"): its {3} program produced no bytecode.",
-				variationParameters.CreateVariationName(), item.Name, language, GetProgramTypeName(offendingProgramType));
+				variationParameters.CreateVariationName(), item.Name, language, GetProgramTypeName(programWithoutBytecode->Type));
 			anyVariationFailed = true;
 			continue;
-		case VariationBytecodeState::Complete:
-			break;
 		}
 
 		// Keep source in development builds, for easier debugging

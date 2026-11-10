@@ -29,8 +29,8 @@ target_link_libraries(bsfShaderBackendVKSL PUBLIC DirectXShaderCompiler::dxcompi
 
 set_property(TARGET bsfShaderBackendVKSL PROPERTY FOLDER Plugins)
 
-# Register shader compiler target as "<language>|<targetLanguage>|<define>|KeepEntryNames". Used to determine supported targets.
-set_property(GLOBAL APPEND PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS "vksl|HLSL6VK|VULKAN|KeepEntryNames")
+# Register shader compiler target as "<language>|<targetLanguage>|<define>". Used to determine supported targets.
+set_property(GLOBAL APPEND PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS "vksl|HLSL6VK|VULKAN")
 
 # Anything that needs shader compilation will use this property to find libraries it needs to link
 set_property(GLOBAL APPEND PROPERTY B3D_SHADER_BACKEND_LIBRARIES bsfShaderBackendVKSL ${DirectXShaderCompiler_LIBRARIES})

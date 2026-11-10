@@ -24,7 +24,7 @@ namespace b3d
 		 * compiler, or the XShaderCompiler cross-compile backends), otherwise stale shaders keep being served from the
 		 * persistent cache and the prebuilt store.
 		 */
-		static constexpr u32 kCompilerVersion = 20;
+		static constexpr u32 kCompilerVersion = 23;
 
 		BSLCompiler();
 		~BSLCompiler() override;

@@ -10,6 +10,7 @@
 #include "GpuBackend/B3DGpuPipelineState.h"
 #include "CoreObject/B3DCoreObjectSync.h"
 #include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuDeviceCapabilities.h"
 
 using namespace b3d;
 
@@ -47,64 +48,108 @@ bool TPass<IsRenderProxy>::HasBlending() const
 }
 
 template <bool IsRenderProxy>
-const GpuProgramCreateInformation& TPass<IsRenderProxy>::GetGpuProgramCreateInformation(b3d::GpuProgramType type) const
+bool TPass<IsRenderProxy>::IsCompute() const
 {
-	switch(type)
+	for(const GpuProgramCreateInformation& program : mData.Programs)
 	{
-	default:
-		B3D_ASSERT(false && "Only graphics and compute program types have a single program per pass");
-		[[fallthrough]];
-	case GPT_VERTEX_PROGRAM:
-		return mData.VertexProgramCreateInformation;
-	case GPT_FRAGMENT_PROGRAM:
-		return mData.FragmentProgramCreateInformation;
-	case GPT_GEOMETRY_PROGRAM:
-		return mData.GeometryProgramCreateInformation;
-	case GPT_HULL_PROGRAM:
-		return mData.HullProgramCreateInformation;
-	case GPT_DOMAIN_PROGRAM:
-		return mData.DomainProgramCreateInformation;
-	case GPT_COMPUTE_PROGRAM:
-		return mData.ComputeProgramCreateInformation;
+		if(program.Type == GPT_COMPUTE_PROGRAM)
+			return true;
 	}
+
+	return false;
 }
 
 template <bool IsRenderProxy>
-void TPass<IsRenderProxy>::CreatePipelineState()
+bool TPass<IsRenderProxy>::IsRayTracing() const
 {
-	const TShared<GpuDevice>& device = GetApplication().GetPrimaryGpuDevice();
-
-	if(IsCompute())
+	for(const GpuProgramCreateInformation& program : mData.Programs)
 	{
-		GpuComputePipelineStateCreateInformation createInformation;
-		createInformation.Program = device->CreateGpuProgram(mData.ComputeProgramCreateInformation);
+		if(IsRayTracingProgramType(program.Type))
+			return true;
+	}
 
-		mComputePipelineState = device->CreateGpuComputePipelineState(createInformation);
+	return false;
+}
+
+template <bool IsRenderProxy>
+const GpuProgramCreateInformation& TPass<IsRenderProxy>::GetGpuProgramCreateInformation(b3d::GpuProgramType type) const
+{
+	for(const GpuProgramCreateInformation& program : mData.Programs)
+	{
+		if(program.Type == type)
+			return program;
+	}
+
+	static const GpuProgramCreateInformation kNoProgram;
+	return kNoProgram;
+}
+
+template <bool IsRenderProxy>
+TShared<GpuProgram> TPass<IsRenderProxy>::GetProgram(const StringView& entryPoint) const
+{
+	for(u32 programIndex = 0; programIndex < (u32)mPrograms.size(); programIndex++)
+	{
+		if(mData.Programs[programIndex].EntryPoint == entryPoint)
+			return mPrograms[programIndex];
+	}
+
+	return nullptr;
+}
+
+template <bool IsRenderProxy>
+void TPass<IsRenderProxy>::CreatePrograms()
+{
+	if(mAreProgramsCreated)
+		return;
+
+	mAreProgramsCreated = true;
+	mPrograms.resize(mData.Programs.size());
+
+	const TShared<GpuDevice>& device = GetApplication().GetPrimaryGpuDevice();
+	if(IsRayTracing())
+	{
+		if(device->GetCapabilities().HasCapability(RSC_RAY_TRACING_PIPELINE))
+		{
+			for(u32 programIndex = 0; programIndex < (u32)mData.Programs.size(); programIndex++)
+			{
+				// Keep only programs the device can run: callable programs need SupportsCallablePrograms, for example
+				TShared<GpuProgram> program = device->CreateGpuProgram(mData.Programs[programIndex]);
+				if(program != nullptr && program->IsSupported())
+					mPrograms[programIndex] = std::move(program);
+			}
+		}
 	}
 	else
 	{
-		GpuGraphicsPipelineStateCreateInformation createInformation;
+		GpuComputePipelineStateCreateInformation computeInformation;
+		GpuGraphicsPipelineStateCreateInformation graphicsInformation;
+		for(u32 programIndex = 0; programIndex < (u32)mData.Programs.size(); programIndex++)
+		{
+			mPrograms[programIndex] = device->CreateGpuProgram(mData.Programs[programIndex]);
 
-		if(!mData.VertexProgramCreateInformation.Source.empty())
-			createInformation.VertexProgram = device->CreateGpuProgram(mData.VertexProgramCreateInformation);
+			const TShared<GpuProgram>& program = mPrograms[programIndex];
+			switch(mData.Programs[programIndex].Type)
+			{
+			case GPT_VERTEX_PROGRAM: graphicsInformation.VertexProgram = program; break;
+			case GPT_FRAGMENT_PROGRAM: graphicsInformation.FragmentProgram = program; break;
+			case GPT_GEOMETRY_PROGRAM: graphicsInformation.GeometryProgram = program; break;
+			case GPT_HULL_PROGRAM: graphicsInformation.HullProgram = program; break;
+			case GPT_DOMAIN_PROGRAM: graphicsInformation.DomainProgram = program; break;
+			case GPT_COMPUTE_PROGRAM: computeInformation.Program = program; break;
+			default: break;
+			}
+		}
 
-		if(!mData.FragmentProgramCreateInformation.Source.empty())
-			createInformation.FragmentProgram = device->CreateGpuProgram(mData.FragmentProgramCreateInformation);
+		if(IsCompute())
+			mComputePipelineState = device->CreateGpuComputePipelineState(computeInformation);
+		else
+		{
+			graphicsInformation.BlendState = mData.BlendStateInformation;
+			graphicsInformation.RasterizerState = mData.RasterizerStateInformation;
+			graphicsInformation.DepthStencilState = mData.DepthStencilStateInformation;
 
-		if(!mData.GeometryProgramCreateInformation.Source.empty())
-			createInformation.GeometryProgram = device->CreateGpuProgram(mData.GeometryProgramCreateInformation);
-
-		if(!mData.HullProgramCreateInformation.Source.empty())
-			createInformation.HullProgram = device->CreateGpuProgram(mData.HullProgramCreateInformation);
-
-		if(!mData.DomainProgramCreateInformation.Source.empty())
-			createInformation.DomainProgram = device->CreateGpuProgram(mData.DomainProgramCreateInformation);
-
-		createInformation.BlendState = mData.BlendStateInformation;
-		createInformation.RasterizerState = mData.RasterizerStateInformation;
-		createInformation.DepthStencilState = mData.DepthStencilStateInformation;
-
-		mGraphicsPipelineState = device->CreateGpuGraphicsPipelineState(createInformation);
+			mGraphicsPipelineState = device->CreateGpuGraphicsPipelineState(graphicsInformation);
+		}
 	}
 }
 
@@ -129,6 +174,7 @@ namespace b3d
 	B3D_SYNC_BLOCK_BEGIN(Pass, SyncPacket)
 		B3D_SYNC_BLOCK_ENTRY(mGraphicsPipelineState)
 		B3D_SYNC_BLOCK_ENTRY(mComputePipelineState)
+		B3D_SYNC_BLOCK_ENTRY(mPrograms)
 	B3D_SYNC_BLOCK_END
 }
 
@@ -148,13 +194,17 @@ TShared<render::RenderProxy> Pass::CreateRenderProxy() const
 
 void Pass::Compile()
 {
-	if(mComputePipelineState || mGraphicsPipelineState)
+	if(mAreProgramsCreated)
 		return; // Already compiled
+
+	// Ray tracing passes have no pipeline state to create or sync
+	if(IsRayTracing())
+		return;
 
 	// Note: It's possible (and quite likely) the pass has already been compiled on the render thread, so this will
 	// unnecessarily recompile it. However syncing them in a clean way is not trivial hard and this method is currently
 	// not being used much (at all) to warrant a complex solution. Something to keep in mind for later though.
-	CreatePipelineState();
+	CreatePrograms();
 
 	// TODO - Non-render proxy Pass possibly shouldn't even hold onto the pipeline states. The sync can just include a request to compile.
 
@@ -204,10 +254,11 @@ Pass::Pass(const PassCreateInformation& createInformation)
 
 void Pass::Compile()
 {
+	// The main thread pass may have compiled already and synced its programs and pipeline state
 	if(mComputePipelineState || mGraphicsPipelineState)
-		return; // Already compiled
+		return;
 
-	CreatePipelineState();
+	CreatePrograms();
 }
 
 void Pass::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator)

@@ -184,8 +184,62 @@ static GpuParameterObjectType XSCConvertBufferType(Xsc::Reflection::BufferType t
 	case Xsc::Reflection::BufferType::RWByteAddressBuffer: return GPOT_RWBYTE_ADDRESS_BUFFER;
 	case Xsc::Reflection::BufferType::AppendStructuredBuffer: return GPOT_RWAPPEND_BUFFER;
 	case Xsc::Reflection::BufferType::ConsumeStructuredBuffer: return GPOT_RWCONSUME_BUFFER;
+	case Xsc::Reflection::BufferType::RaytracingAccelerationStructure: return GPOT_ACCELERATION_STRUCTURE;
 	default: return GPOT_UNKNOWN;
 	}
+}
+
+static Xsc::ShaderTarget XSCConvertProgramType(GpuProgramType type)
+{
+	switch(type)
+	{
+	case GPT_VERTEX_PROGRAM: return Xsc::ShaderTarget::VertexShader;
+	case GPT_FRAGMENT_PROGRAM: return Xsc::ShaderTarget::FragmentShader;
+	case GPT_GEOMETRY_PROGRAM: return Xsc::ShaderTarget::GeometryShader;
+	case GPT_HULL_PROGRAM: return Xsc::ShaderTarget::TessellationControlShader;
+	case GPT_DOMAIN_PROGRAM: return Xsc::ShaderTarget::TessellationEvaluationShader;
+	case GPT_COMPUTE_PROGRAM: return Xsc::ShaderTarget::ComputeShader;
+	case GPT_RAY_GENERATION_PROGRAM: return Xsc::ShaderTarget::RayGenerationShader;
+	case GPT_MISS_PROGRAM: return Xsc::ShaderTarget::MissShader;
+	case GPT_CLOSEST_HIT_PROGRAM: return Xsc::ShaderTarget::ClosestHitShader;
+	case GPT_ANY_HIT_PROGRAM: return Xsc::ShaderTarget::AnyHitShader;
+	case GPT_INTERSECTION_PROGRAM: return Xsc::ShaderTarget::IntersectionShader;
+	case GPT_CALLABLE_PROGRAM: return Xsc::ShaderTarget::CallableShader;
+	default:
+		B3D_ASSERT(false);
+		return Xsc::ShaderTarget::Undefined;
+	}
+}
+
+/** Returns the program type of a ray tracing shader target, or GPT_COUNT for other targets. */
+static GpuProgramType XSCConvertRayTracingShaderTarget(Xsc::ShaderTarget target)
+{
+	switch(target)
+	{
+	case Xsc::ShaderTarget::RayGenerationShader: return GPT_RAY_GENERATION_PROGRAM;
+	case Xsc::ShaderTarget::MissShader: return GPT_MISS_PROGRAM;
+	case Xsc::ShaderTarget::ClosestHitShader: return GPT_CLOSEST_HIT_PROGRAM;
+	case Xsc::ShaderTarget::AnyHitShader: return GPT_ANY_HIT_PROGRAM;
+	case Xsc::ShaderTarget::IntersectionShader: return GPT_INTERSECTION_PROGRAM;
+	case Xsc::ShaderTarget::CallableShader: return GPT_CALLABLE_PROGRAM;
+	default: return GPT_COUNT;
+	}
+}
+
+/** Entry point function names of the graphics and compute program types, indexed by program type. */
+static constexpr const char* kEntryPointNames[] = { "vsmain", "fsmain", "gsmain", "dsmain", "hsmain", "csmain" };
+static_assert(std::size(kEntryPointNames) == kGpuRasterComputeProgramTypeCount);
+
+/** Returns the graphics or compute program type whose entry point function has the given name, or GPT_COUNT if none does. */
+static GpuProgramType GetEntryPointType(const StringView& name)
+{
+	for(u32 type = 0; type < kGpuRasterComputeProgramTypeCount; type++)
+	{
+		if(name == kEntryPointNames[type])
+			return (GpuProgramType)type;
+	}
+
+	return GPT_COUNT;
 }
 
 static GpuDataParameterType XSCConvertDataType(Xsc::Reflection::DataType type)
@@ -586,6 +640,9 @@ static bool ParseParameters(const Xsc::Reflection::ReflectionData& reflectionDat
 	for(const auto& binding : reflectionData.storageBuffers)
 		outParameters.SetParameterBinding(binding.ident.c_str(), (u32)binding.set, (u32)binding.location);
 
+	for(const auto& binding : reflectionData.accelerationStructures)
+		outParameters.SetParameterBinding(binding.ident.c_str(), (u32)binding.set, (u32)binding.location);
+
 	for(const auto& uniform : reflectionData.uniforms)
 	{
 		if(uniform.uniformBlock >= 0)
@@ -605,9 +662,16 @@ static Mutex& GetXscCompileMutex()
 	return mutex;
 }
 
-static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target, bool optionalEntry, u32& startBindingSlot, ShaderCompilerResult& outCompileResult,
-	ShaderReflection& outReflection, bool reflectParameters = false)
+/**
+ * Compiles the @p entryPoint program of type @p type from @p hlsl, and returns its source in the target language. A missing
+ * entry point is not an error: the result is then empty. Without a type no program is compiled, and @p outReflection instead
+ * receives the parameters and every entry point of the source.
+ */
+static String CrossCompile(const String& hlsl, const TOptional<GpuProgramType>& type, const String& entryPoint, const HLSLCrossCompileTarget& target, u32& startBindingSlot,
+	ShaderCompilerResult& outCompileResult, ShaderReflection& outReflection)
 {
+	const bool reflectSource = !type.has_value();
+
 	TShared<StringStream> input = B3DMakeShared<StringStream>();
 
 	if(target.PreprocessorDefine != nullptr)
@@ -634,35 +698,8 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 		Xsc::Extensions::BindlessResources |
 		Xsc::Extensions::OpaqueStructTypes;
 
-	switch(type)
-	{
-	case GPT_VERTEX_PROGRAM:
-		inputDesc.shaderTarget = Xsc::ShaderTarget::VertexShader;
-		inputDesc.entryPoint = "vsmain";
-		break;
-	case GPT_GEOMETRY_PROGRAM:
-		inputDesc.shaderTarget = Xsc::ShaderTarget::GeometryShader;
-		inputDesc.entryPoint = "gsmain";
-		break;
-	case GPT_HULL_PROGRAM:
-		inputDesc.shaderTarget = Xsc::ShaderTarget::TessellationControlShader;
-		inputDesc.entryPoint = "hsmain";
-		break;
-	case GPT_DOMAIN_PROGRAM:
-		inputDesc.shaderTarget = Xsc::ShaderTarget::TessellationEvaluationShader;
-		inputDesc.entryPoint = "dsmain";
-		break;
-	case GPT_FRAGMENT_PROGRAM:
-		inputDesc.shaderTarget = Xsc::ShaderTarget::FragmentShader;
-		inputDesc.entryPoint = "fsmain";
-		break;
-	case GPT_COMPUTE_PROGRAM:
-		inputDesc.shaderTarget = Xsc::ShaderTarget::ComputeShader;
-		inputDesc.entryPoint = "csmain";
-		break;
-	default:
-		break;
-	}
+	inputDesc.shaderTarget = reflectSource ? Xsc::ShaderTarget::Undefined : XSCConvertProgramType(*type);
+	inputDesc.entryPoint = entryPoint.c_str();
 
 	StringStream output;
 
@@ -698,27 +735,12 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 		compileSuccess = Xsc::CompileShader(inputDesc, outputDesc, &log, &reflectionData);
 	}
 
-	if(!compileSuccess)
+	const auto entryFunction = std::find_if(reflectionData.functions.begin(), reflectionData.functions.end(),
+		[&inputDesc](const auto& function) { return function.ident == inputDesc.entryPoint; });
+
+	if(!reflectSource)
 	{
-		// If enabled, don't fail if entry point isn't found
-		bool done = true;
-		if(optionalEntry)
-		{
-			bool entryFound = false;
-			for(auto& entry : reflectionData.functions)
-			{
-				if(entry.ident == inputDesc.entryPoint)
-				{
-					entryFound = true;
-					break;
-				}
-			}
-
-			if(!entryFound)
-				done = false;
-		}
-
-		if(done)
+		if(!compileSuccess)
 		{
 			StringStream logOutput;
 			log.GetMessages(logOutput);
@@ -726,41 +748,45 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 			outCompileResult.ErrorMessage = StringUtility::Format("Shader cross compilation failed. Log: \n\n{0}", logOutput.str());
 			return "";
 		}
+
+		// The preprocessor can leave the entry point out of the source, which compiles regardless
+		if(entryFunction == reflectionData.functions.end())
+			return "";
 	}
 
-	if(reflectParameters || compileSuccess)
+	if(reflectionData.bindless.writableResources)
 	{
-		if(reflectionData.bindless.writableResources)
+		outCompileResult.ErrorMessage = "RW textures and RW buffers cannot be accessed through ResourceDescriptorHeap. Bind them as ordinary parameters.";
+		return "";
+	}
+
+	// The bindless heaps are bound at their own set, which no ordinary parameter may share
+	const auto fnFindReservedSetBinding = [](const auto& bindings) -> const Xsc::Reflection::BindingSlot*
+	{
+		for(const auto& binding : bindings)
 		{
-			outCompileResult.ErrorMessage = "RW textures and RW buffers cannot be accessed through ResourceDescriptorHeap. Bind them as ordinary parameters.";
-			return "";
+			if(binding.set == (int)kGpuBindlessParameterSet)
+				return &binding;
 		}
 
-		// The bindless heaps are bound at their own set, which no ordinary parameter may share
-		const auto fnFindReservedSetBinding = [](const auto& bindings) -> const Xsc::Reflection::BindingSlot*
-		{
-			for(const auto& binding : bindings)
-			{
-				if(binding.set == (int)kGpuBindlessParameterSet)
-					return &binding;
-			}
+		return nullptr;
+	};
 
-			return nullptr;
-		};
+	const Xsc::Reflection::BindingSlot* reservedSetBinding = fnFindReservedSetBinding(reflectionData.constantBuffers);
+	if(reservedSetBinding == nullptr)
+		reservedSetBinding = fnFindReservedSetBinding(reflectionData.textures);
 
-		const Xsc::Reflection::BindingSlot* reservedSetBinding = fnFindReservedSetBinding(reflectionData.constantBuffers);
-		if(reservedSetBinding == nullptr)
-			reservedSetBinding = fnFindReservedSetBinding(reflectionData.textures);
+	if(reservedSetBinding == nullptr)
+		reservedSetBinding = fnFindReservedSetBinding(reflectionData.storageBuffers);
 
-		if(reservedSetBinding == nullptr)
-			reservedSetBinding = fnFindReservedSetBinding(reflectionData.storageBuffers);
+	if(reservedSetBinding == nullptr)
+		reservedSetBinding = fnFindReservedSetBinding(reflectionData.accelerationStructures);
 
-		if(reservedSetBinding != nullptr)
-		{
-			outCompileResult.ErrorMessage = StringUtility::Format("Parameter '{0}' is declared in set (register space) {1}, which is reserved for the bindless heaps.",
-				reservedSetBinding->ident.c_str(), kGpuBindlessParameterSet);
-			return "";
-		}
+	if(reservedSetBinding != nullptr)
+	{
+		outCompileResult.ErrorMessage = StringUtility::Format("Parameter '{0}' is declared in set (register space) {1}, which is reserved for the bindless heaps.",
+			reservedSetBinding->ident.c_str(), kGpuBindlessParameterSet);
+		return "";
 	}
 
 	for(auto& entry : reflectionData.constantBuffers)
@@ -772,103 +798,96 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 	for(auto& entry : reflectionData.storageBuffers)
 		startBindingSlot = std::max(startBindingSlot, entry.location + 1u);
 
-	if(reflectParameters || compileSuccess)
+	for(auto& entry : reflectionData.accelerationStructures)
+		startBindingSlot = std::max(startBindingSlot, entry.location + 1u);
+
+	// Build parameter layout to calculate hash from
+	StringStream layout;
+
+	std::function<void(const Xsc::Reflection::Variable&)> fnWriteVariable;
+	fnWriteVariable = [&layout, &reflectionData, &fnWriteVariable](const Xsc::Reflection::Variable& variable)
 	{
-		// Build parameter layout to calculate hash from
-		StringStream layout;
+		layout << variable.ident << ':' << (u32)variable.type << ':' << variable.arraySize << ':';
 
-		std::function<void(const Xsc::Reflection::Variable&)> fnWriteVariable;
-		fnWriteVariable = [&layout, &reflectionData, &fnWriteVariable](const Xsc::Reflection::Variable& variable)
+		if(variable.type == Xsc::Reflection::VariableType::Struct)
 		{
-			layout << variable.ident << ':' << (u32)variable.type << ':' << variable.arraySize << ':';
+			layout << '{';
 
-			if(variable.type == Xsc::Reflection::VariableType::Struct)
-			{
-				layout << '{';
-
-				for(const auto& member : reflectionData.structs[variable.baseType].members)
-					fnWriteVariable(member);
-
-				layout << '}';
-			}
-			else
-				layout << variable.baseType;
-
-			layout << ';';
-		};
-
-		for(const auto& uniform : reflectionData.uniforms)
-		{
-			fnWriteVariable(uniform);
-			layout << uniform.flags << ':' << uniform.uniformBlock << ';';
-		}
-
-		const auto fnWriteBindings = [&layout](const auto& bindings)
-		{
-			layout << '[';
-
-			for(const auto& binding : bindings)
-				layout << binding.ident << ':' << binding.set << ':' << binding.location << ':' << binding.usesDynamicOffset << ';';
-
-			layout << ']';
-		};
-
-		fnWriteBindings(reflectionData.constantBuffers);
-		fnWriteBindings(reflectionData.textures);
-		fnWriteBindings(reflectionData.storageBuffers);
-
-		for(const auto& buffer : reflectionData.pushConstantBuffers)
-		{
-			layout << buffer.ident << ':' << buffer.size << '{';
-
-			for(const auto& member : buffer.members)
-				layout << member.ident << ':' << member.offset << ':' << member.size << ';';
+			for(const auto& member : reflectionData.structs[variable.baseType].members)
+				fnWriteVariable(member);
 
 			layout << '}';
 		}
+		else
+			layout << variable.baseType;
 
-		// Ensure that all stages in a shader have the same parameters
-		const Array<u64, 2> layoutHash = Shader::ComputeHash(layout.str());
-		if(outReflection.Parameters != nullptr && outReflection.ParameterLayoutHash != layoutHash)
-		{
-			outCompileResult.ErrorMessage = "Shader parameter declarations or bindings differ between stages of the same pass.";
-			return "";
-		}
+		layout << ';';
+	};
 
-		outReflection.ParameterLayoutHash = layoutHash;
-		if(outReflection.Parameters == nullptr)
-		{
-			// Parse parameters for the first stage that gets processed
-			outReflection.Parameters = B3DMakeShared<ShaderParameterDescription>();
-			if(!ParseParameters(reflectionData, outCompileResult, *outReflection.Parameters, !reflectParameters))
-				return "";
-		}
+	for(const auto& uniform : reflectionData.uniforms)
+	{
+		fnWriteVariable(uniform);
+		layout << uniform.flags << ':' << uniform.uniformBlock << ';';
 	}
 
-	if(reflectParameters)
+	const auto fnWriteBindings = [&layout](const auto& bindings)
+	{
+		layout << '[';
+
+		for(const auto& binding : bindings)
+			layout << binding.ident << ':' << binding.set << ':' << binding.location << ':' << binding.usesDynamicOffset << ';';
+
+		layout << ']';
+	};
+
+	fnWriteBindings(reflectionData.constantBuffers);
+	fnWriteBindings(reflectionData.textures);
+	fnWriteBindings(reflectionData.storageBuffers);
+	fnWriteBindings(reflectionData.accelerationStructures);
+
+	for(const auto& buffer : reflectionData.pushConstantBuffers)
+	{
+		layout << buffer.ident << ':' << buffer.size << '{';
+
+		for(const auto& member : buffer.members)
+			layout << member.ident << ':' << member.offset << ':' << member.size << ';';
+
+		layout << '}';
+	}
+
+	// Ensure that all stages in a shader have the same parameters
+	const Array<u64, 2> layoutHash = Shader::ComputeHash(layout.str());
+	if(outReflection.Parameters != nullptr && outReflection.ParameterLayoutHash != layoutHash)
+	{
+		outCompileResult.ErrorMessage = "Shader parameter declarations or bindings differ between stages of the same pass.";
+		return "";
+	}
+
+	outReflection.ParameterLayoutHash = layoutHash;
+	if(outReflection.Parameters == nullptr)
+	{
+		// Parse parameters for the first stage that gets processed
+		outReflection.Parameters = B3DMakeShared<ShaderParameterDescription>();
+		if(!ParseParameters(reflectionData, outCompileResult, *outReflection.Parameters, !reflectSource))
+			return "";
+	}
+
+	if(reflectSource)
 	{
 		for(const auto& entry : reflectionData.functions)
 		{
-			ShaderEntryPointReflection entryPoint;
-			if(entry.ident == "vsmain")
-				entryPoint.Type = GPT_VERTEX_PROGRAM;
-			else if(entry.ident == "fsmain")
-				entryPoint.Type = GPT_FRAGMENT_PROGRAM;
-			else if(entry.ident == "gsmain")
-				entryPoint.Type = GPT_GEOMETRY_PROGRAM;
-			else if(entry.ident == "hsmain")
-				entryPoint.Type = GPT_HULL_PROGRAM;
-			else if(entry.ident == "dsmain")
-				entryPoint.Type = GPT_DOMAIN_PROGRAM;
-			else if(entry.ident == "csmain")
-				entryPoint.Type = GPT_COMPUTE_PROGRAM;
-			else
+			GpuProgramType entryType = GetEntryPointType(entry.ident);
+			if(entryType == GPT_COUNT)
+				entryType = XSCConvertRayTracingShaderTarget(entry.shaderTarget);
+
+			if(entryType == GPT_COUNT)
 				continue;
 
+			ShaderEntryPointReflection entryPoint;
+			entryPoint.Type = entryType;
 			outReflection.EntryPoints.emplace(entry.ident.c_str(), std::move(entryPoint));
 		}
 
-		// A missing vertex entry is allowed during discovery, but a shader must declare some entry point.
 		if(!compileSuccess && outReflection.EntryPoints.empty())
 		{
 			StringStream logOutput;
@@ -878,10 +897,12 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 			return "";
 		}
 	}
-	else if(compileSuccess)
+	else
 	{
 		ShaderEntryPointReflection entryPoint;
-		entryPoint.Type = type;
+		entryPoint.Type = *type;
+		entryPoint.RayPayloadSize = (u32)entryFunction->rayPayloadSize;
+		entryPoint.HitAttributeSize = (u32)entryFunction->hitAttributeSize;
 		entryPoint.ThreadGroupSize[0] = reflectionData.numThreads.x > 0 ? (u32)reflectionData.numThreads.x : 1;
 		entryPoint.ThreadGroupSize[1] = reflectionData.numThreads.y > 0 ? (u32)reflectionData.numThreads.y : 1;
 		entryPoint.ThreadGroupSize[2] = reflectionData.numThreads.z > 0 ? (u32)reflectionData.numThreads.z : 1;
@@ -895,8 +916,10 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCr
 		if(reflectionData.bindless.samplerHeap)
 			entryPoint.Features |= GpuProgramFeatureFlag::SamplerDescriptorHeap;
 
-		const String entryPointName = target.KeepsEntryPointNames ? inputDesc.entryPoint.c_str() : "main";
-		outReflection.EntryPoints.emplace(entryPointName, std::move(entryPoint));
+		if(reflectionData.usesInlineRayTracing)
+			entryPoint.Features |= GpuProgramFeatureFlag::RayQuery;
+
+		outReflection.EntryPoints.emplace(inputDesc.entryPoint.c_str(), std::move(entryPoint));
 	}
 
 	return output.str();
@@ -921,7 +944,8 @@ const HLSLCrossCompileTarget* HLSLCrossCompiler::GetTarget(const String& languag
 	return found != registry.end() ? &found->second : nullptr;
 }
 
-ShaderCompilerResult HLSLCrossCompiler::CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target, u32& startBindingSlot, ShaderCrossCompileOutput& output, const ShaderReflection* sharedReflection)
+ShaderCompilerResult HLSLCrossCompiler::CrossCompile(const String& hlsl, GpuProgramType type, const String& entryPoint, const HLSLCrossCompileTarget& target, u32& startBindingSlot,
+	ShaderCrossCompileOutput& output, const ShaderReflection* sharedReflection)
 {
 	ShaderCompilerResult compileResult;
 	output.Source.clear();
@@ -942,7 +966,7 @@ ShaderCompilerResult HLSLCrossCompiler::CrossCompile(const String& hlsl, GpuProg
 #endif
 
 	// Entry points discovered without a target may be excluded by the target's preprocessor define.
-	output.Source = ::CrossCompile(hlsl, type, xscTarget, true, startBindingSlot, compileResult, *output.Reflection);
+	output.Source = ::CrossCompile(hlsl, type, entryPoint, xscTarget, startBindingSlot, compileResult, *output.Reflection);
 
 #if B3D_PLATFORM_MACOS
 	if(compileResult.ErrorMessage.empty() && compileMetalSource && !output.Source.empty())
@@ -977,18 +1001,7 @@ ShaderCompilerResult HLSLCrossCompiler::Reflect(const String& hlsl, ShaderReflec
 		reflectionTarget.TargetLanguage = Xsc::TargetLanguage::HLSL6VK;
 #endif
 
-	::CrossCompile(hlsl, GPT_VERTEX_PROGRAM, reflectionTarget, true, startBindingSlot, compileResult, outReflection, true);
-
-	// If no vsmain found, try with an entry point that was actually detected
-	if(compileResult.ErrorMessage.empty() && outReflection.EntryPoints.count("vsmain") == 0 && !outReflection.EntryPoints.empty())
-	{
-		const GpuProgramType type = outReflection.EntryPoints.begin()->second.Type;
-
-		startBindingSlot = 0;
-		outReflection.Parameters = nullptr;
-		outReflection.EntryPoints.clear();
-		::CrossCompile(hlsl, type, reflectionTarget, false, startBindingSlot, compileResult, outReflection, true);
-	}
+	::CrossCompile(hlsl, {}, "", reflectionTarget, startBindingSlot, compileResult, outReflection);
 
 	return compileResult;
 }

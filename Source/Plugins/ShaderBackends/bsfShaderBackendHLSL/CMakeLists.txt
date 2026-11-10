@@ -28,8 +28,8 @@ target_link_libraries(bsfShaderBackendHLSL PRIVATE DirectXShaderCompiler::dxcomp
 
 set_property(TARGET bsfShaderBackendHLSL PROPERTY FOLDER Plugins)
 
-# Register shader compiler target as "<language>|<targetLanguage>|<define>|KeepEntryNames". Used to determine supported targets.
-set_property(GLOBAL APPEND PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS "hlsl|HLSL6|DIRECTX|KeepEntryNames")
+# Register shader compiler target as "<language>|<targetLanguage>|<define>". Used to determine supported targets.
+set_property(GLOBAL APPEND PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS "hlsl|HLSL6|DIRECTX")
 
 # Anything that needs shader compilation will use this property to find libraries it needs to link
 set_property(GLOBAL APPEND PROPERTY B3D_SHADER_BACKEND_LIBRARIES bsfShaderBackendHLSL ${DirectXShaderCompiler_LIBRARIES})

@@ -124,7 +124,6 @@ ShaderCompilerResult BSLCompiler::TCompile(const String& name, const String& sou
 					const BSLParsedShaderPassData& parsedShaderPassNode = parsedNode.Passes[passIndex];
 
 					// Find valid entry points and parameters
-					// Note: Ideally we don't need to do a full reflection pass for each GPU program type (i.e. by adding some kind of AST caching to XShaderCompiler)
 					ShaderReflection reflection;
 					compileResult = HLSLCrossCompiler::Reflect(parsedShaderPassNode.Code, reflection, HLSLCrossCompiler::GetTarget(languages[languageIndex]));
 					if(!compileResult.ErrorMessage.empty())
@@ -142,10 +141,39 @@ ShaderCompilerResult BSLCompiler::TCompile(const String& name, const String& sou
 						}
 					}
 
+					String rayTracingEntryPoints;
+					bool hasRasterComputeEntryPoint = false;
 					for(const auto& entry : reflection.EntryPoints)
 					{
-						if(std::find(compilerMetaData->GPUProgramTypes.begin(), compilerMetaData->GPUProgramTypes.end(), entry.second.Type) == compilerMetaData->GPUProgramTypes.end())
-							compilerMetaData->GPUProgramTypes.Add(entry.second.Type);
+						const u32 passSequentialIndex = parsedShaderPassNode.SequentialIndex;
+						const auto found = std::find_if(compilerMetaData->EntryPoints.begin(), compilerMetaData->EntryPoints.end(),
+							[passSequentialIndex, &entry](const ShaderEntryPoint& existing) { return existing.PassIndex == passSequentialIndex && existing.Name == entry.first; });
+
+						if(found == compilerMetaData->EntryPoints.end())
+						{
+							ShaderEntryPoint entryPoint;
+							entryPoint.PassIndex = passSequentialIndex;
+							entryPoint.Type = entry.second.Type;
+							entryPoint.Name = entry.first;
+							compilerMetaData->EntryPoints.push_back(std::move(entryPoint));
+						}
+
+						if(!IsRayTracingProgramType(entry.second.Type))
+							hasRasterComputeEntryPoint = true;
+						else
+						{
+							if(!rayTracingEntryPoints.empty())
+								rayTracingEntryPoints += ", ";
+
+							rayTracingEntryPoints += entry.first;
+						}
+					}
+
+					if(hasRasterComputeEntryPoint && !rayTracingEntryPoints.empty())
+					{
+						compileResult.ErrorMessage = StringUtility::Format("Pass {0} mixes ray tracing entry points ({1}) with vsmain/fsmain/gsmain/hsmain/dsmain/csmain.",
+							parsedShaderPassNode.SequentialIndex, rayTracingEntryPoints);
+						return compileResult;
 					}
 				}
 
@@ -209,14 +237,21 @@ template<bool IsRenderProxy>
 ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BSLParsedShaderData& parsedShader, const ShaderCompilerMetaData& shaderMetaData, const String& language, CoreVariantType<Variation, IsRenderProxy>& outVariation)
 {
 	B3D_ASSERT(!parsedShader.MetaData.IsMixin);
-	B3D_ASSERT(shaderMetaData.GPUProgramTypes.size() > 0);
+	B3D_ASSERT(!shaderMetaData.EntryPoints.empty());
 
 	ShaderCompilerResult compileResult;
 
+	// The null backend needs no compilation and leaves every generated source empty: the null GPU device accepts empty
+	// source and produces empty bytecode
+	const bool crossCompiles = language != kGpuProgramLanguageNullsl;
 	const HLSLCrossCompileTarget* crossCompileTarget = HLSLCrossCompiler::GetTarget(language);
-	const String& crossCompileOutputLanguageName = language;
+	if(crossCompiles && crossCompileTarget == nullptr)
+	{
+		compileResult.ErrorMessage = StringUtility::Format("Unsupported shading language \"{0}\".", language);
+		return compileResult;
+	}
 
-	using CrossCompilePassOutput = Array<ShaderCrossCompileOutput, GPT_COUNT>;
+	const TShared<IGpuBytecodeCompiler> bytecodeCompiler = ShaderCompilers::Instance().GetBytecodeCompiler(language);
 
 	using PassType = CoreVariantType<Pass, IsRenderProxy>;
 
@@ -226,116 +261,74 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BS
 	{
 		const BSLParsedShaderPassData& parsedShaderPass = parsedShader.Passes[passIndex];
 
-		auto fnCrossCompilePass = [&shaderMetaData, &compileResult](const BSLParsedShaderPassData& parsedShaderPass, const HLSLCrossCompileTarget& target, CrossCompilePassOutput& crossCompiledOutput)
+		PassCreateInformation shaderPassInformation;
+		shaderPassInformation.BlendStateInformation = parsedShaderPass.BlendStateInformation;
+		shaderPassInformation.RasterizerStateInformation = parsedShaderPass.RasterizerStateInformation;
+		shaderPassInformation.DepthStencilStateInformation = parsedShaderPass.DepthStencilStateInformation;
+		shaderPassInformation.StencilRefValue = parsedShaderPass.StencilReferenceValue;
+
+		TShared<ShaderReflection> passReflection;
+		TShared<ShaderReflection> sourceReflection;
+		for(const ShaderEntryPoint& entryPoint : shaderMetaData.EntryPoints)
 		{
-			TShared<ShaderReflection> passReflection;
-			for(auto& type : shaderMetaData.GPUProgramTypes)
+			if(entryPoint.PassIndex != parsedShaderPass.SequentialIndex)
+				continue;
+
+			// A shader has to leave out the entry points its language can't compile. Entry points are gathered across languages
+			// and variations, so only the ones this variation's source still has are an error.
+			if(crossCompiles && bytecodeCompiler != nullptr && !bytecodeCompiler->IsProgramTypeSupported(entryPoint.Type))
 			{
-				B3D_ASSERT((i32)type < GPT_COUNT);
+				if(sourceReflection == nullptr)
+				{
+					sourceReflection = B3DMakeShared<ShaderReflection>();
+					compileResult = HLSLCrossCompiler::Reflect(parsedShaderPass.Code, *sourceReflection, crossCompileTarget);
+					if(!compileResult.ErrorMessage.empty())
+						return compileResult;
+				}
+
+				if(sourceReflection->EntryPoints.find(entryPoint.Name) != sourceReflection->EntryPoints.end())
+				{
+					compileResult.ErrorMessage = StringUtility::Format("Shading language \"{0}\" can't compile {1} programs, but the shader has the \"{2}\" entry point. Leave the entry point out for this language with a preprocessor condition.",
+						language, GetProgramTypeName(entryPoint.Type), entryPoint.Name);
+					return compileResult;
+				}
+
+				continue;
+			}
+
+			GpuProgramCreateInformation program;
+			program.Name = StringUtility::Format("{0} ({1} Program {2})", name, GetProgramTypeName(entryPoint.Type), entryPoint.Name);
+			program.Language = language;
+			program.EntryPoint = entryPoint.Name;
+			program.Type = entryPoint.Type;
+
+			if(entryPoint.Type == GPT_FRAGMENT_PROGRAM)
+				program.RenderTargetFormats = parsedShaderPass.RenderTargetFormats;
+
+			if(crossCompiles)
+			{
 				u32 binding = 0;
-				compileResult = HLSLCrossCompiler::CrossCompile(parsedShaderPass.Code, type, target, binding, crossCompiledOutput[(i32)type], passReflection.get());
-
+				ShaderCrossCompileOutput output;
+				compileResult = HLSLCrossCompiler::CrossCompile(parsedShaderPass.Code, entryPoint.Type, entryPoint.Name, *crossCompileTarget, binding, output, passReflection.get());
 				if(!compileResult.ErrorMessage.empty())
-					return;
+					return compileResult;
 
-				ShaderCrossCompileOutput& output = crossCompiledOutput[(i32)type];
+				// The variation's defines can leave out an entry point of the first variation
 				if(output.Source.empty())
 					continue;
 
 				if(passReflection == nullptr)
 					passReflection = output.Reflection;
-			}
-		};
 
-		CrossCompilePassOutput crossCompilePassOutput;
-		if(language == kGpuProgramLanguageNullsl)
-		{
-			// Null backend: no compilation needed, leave all generated sources empty.
-			// The null GPU device accepts empty source and produces empty bytecode.
+				program.Source = std::move(output.Source);
+				program.ShaderReflection = std::move(output.Reflection);
+
+				if(bytecodeCompiler != nullptr)
+					program.Bytecode = bytecodeCompiler->CompileBytecode(program);
+			}
+
+			shaderPassInformation.Programs.push_back(std::move(program));
 		}
-		else // Need to cross compile to correct low-level language
-		{
-			if(crossCompileTarget == nullptr)
-			{
-				compileResult.ErrorMessage = StringUtility::Format("Unsupported shading language \"{0}\".", language);
-				return compileResult;
-			}
-
-			fnCrossCompilePass(parsedShaderPass, *crossCompileTarget, crossCompilePassOutput);
-
-			if(!compileResult.ErrorMessage.empty())
-				return compileResult;
-		}
-
-		PassCreateInformation shaderPassInformation;
-		shaderPassInformation.BlendStateInformation = parsedShaderPass.BlendStateInformation;
-		shaderPassInformation.RasterizerStateInformation = parsedShaderPass.RasterizerStateInformation;
-		shaderPassInformation.DepthStencilStateInformation = parsedShaderPass.DepthStencilStateInformation;
-
-		auto fnBuildGpuProgramCreateInformation = [&name, &parsedShaderPass](const String& language, const String& entry, ShaderCrossCompileOutput& output, GpuProgramType type) -> GpuProgramCreateInformation
-		{
-			GpuProgramCreateInformation gpuProgramCreateInformation;
-			gpuProgramCreateInformation.Name = StringUtility::Format("{0} ({1} Program)", name, GetProgramTypeName(type));
-			gpuProgramCreateInformation.Language = language;
-			gpuProgramCreateInformation.EntryPoint = entry;
-			gpuProgramCreateInformation.Source = std::move(output.Source);
-			gpuProgramCreateInformation.Type = type;
-			gpuProgramCreateInformation.ShaderReflection = std::move(output.Reflection);
-
-			if(type == GPT_FRAGMENT_PROGRAM)
-				gpuProgramCreateInformation.RenderTargetFormats = parsedShaderPass.RenderTargetFormats;
-
-			// Bake bytecode for the target language if a compiler is registered for it. Program types the compiler cannot
-			// handle (for example geometry programs for some platforms) are left bytecode-less; consumers that require bytecode (the
-			// offline shader cook) detect and report these, while runtime backends fall back to compiling from source.
-			// Stages the shader doesn't define have empty source and are skipped entirely.
-			if(!gpuProgramCreateInformation.Source.empty())
-			{
-				if(const TShared<IGpuBytecodeCompiler> bytecodeCompiler = ShaderCompilers::Instance().GetBytecodeCompiler(gpuProgramCreateInformation.Language))
-				{
-					if(bytecodeCompiler->IsProgramTypeSupported(type))
-						gpuProgramCreateInformation.Bytecode = bytecodeCompiler->CompileBytecode(gpuProgramCreateInformation);
-				}
-			}
-
-			return gpuProgramCreateInformation;
-		};
-
-		// HLSL-family cross-compile outputs keep their per-stage entry names intact; GLSL-family outputs have
-		// their entry function renamed to "main" by the cross compiler.
-		const bool usesStageEntryNames = crossCompileTarget != nullptr && crossCompileTarget->KeepsEntryPointNames;
-
-		shaderPassInformation.VertexProgramCreateInformation = fnBuildGpuProgramCreateInformation(
-			crossCompileOutputLanguageName,
-			usesStageEntryNames ? "vsmain" : "main",
-			crossCompilePassOutput[GPT_VERTEX_PROGRAM], GPT_VERTEX_PROGRAM);
-
-		shaderPassInformation.FragmentProgramCreateInformation = fnBuildGpuProgramCreateInformation(
-			crossCompileOutputLanguageName,
-			usesStageEntryNames ? "fsmain" : "main",
-			crossCompilePassOutput[GPT_FRAGMENT_PROGRAM], GPT_FRAGMENT_PROGRAM);
-
-		shaderPassInformation.GeometryProgramCreateInformation = fnBuildGpuProgramCreateInformation(
-			crossCompileOutputLanguageName,
-			usesStageEntryNames ? "gsmain" : "main",
-			crossCompilePassOutput[GPT_GEOMETRY_PROGRAM], GPT_GEOMETRY_PROGRAM);
-
-		shaderPassInformation.HullProgramCreateInformation = fnBuildGpuProgramCreateInformation(
-			crossCompileOutputLanguageName,
-			usesStageEntryNames ? "hsmain" : "main",
-			crossCompilePassOutput[GPT_HULL_PROGRAM], GPT_HULL_PROGRAM);
-
-		shaderPassInformation.DomainProgramCreateInformation = fnBuildGpuProgramCreateInformation(
-			crossCompileOutputLanguageName,
-			usesStageEntryNames ? "dsmain" : "main",
-			crossCompilePassOutput[GPT_DOMAIN_PROGRAM], GPT_DOMAIN_PROGRAM);
-
-		shaderPassInformation.ComputeProgramCreateInformation = fnBuildGpuProgramCreateInformation(
-			crossCompileOutputLanguageName,
-			usesStageEntryNames ? "csmain" : "main",
-			crossCompilePassOutput[GPT_COMPUTE_PROGRAM], GPT_COMPUTE_PROGRAM);
-
-		shaderPassInformation.StencilRefValue = parsedShaderPass.StencilReferenceValue;
 
 		const TShared<PassType> pass = PassType::Create(shaderPassInformation);
 		if(pass != nullptr)

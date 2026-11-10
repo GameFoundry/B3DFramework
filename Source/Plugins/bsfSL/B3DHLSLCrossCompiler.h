@@ -17,14 +17,6 @@ namespace b3d
 	{
 		const char* TargetLanguage = nullptr; /**< XShaderCompiler output target id (e.g. Xsc::TargetLanguage::VKSL450), or an optional backend's string id. */
 		const char* PreprocessorDefine = nullptr; /**< Emitted into the HLSL input as "#define <X> 1" before compilation. nullptr for none. */
-
-		/**
-		 * True when the cross-compiled output keeps the per-stage entry function names of the HLSL input (vsmain,
-		 * fsmain, ...), which HLSL-family output languages do. False when the output language requires a single fixed
-		 * entry name and the cross compiler therefore renames the entry function to "main" (GLSL-family outputs).
-		 * Determines the entry point recorded on - and used to compile bytecode from - the cross-compiled programs.
-		 */
-		bool KeepsEntryPointNames = false;
 	};
 
 	/** Generated source and its associated shader reflection. */
@@ -32,8 +24,8 @@ namespace b3d
 	{
 		ShaderCrossCompileOutput() = default;
 
-		String Source; /**< Generated shader source; empty when the stage is absent. */
-		TShared<ShaderReflection> Reflection; /**< Metadata using the generated entry-point names and bindings. */
+		String Source; /**< Generated shader source; empty when the entry point is absent. */
+		TShared<ShaderReflection> Reflection; /**< Metadata using the entry point name and the generated bindings. */
 	};
 
 	/**	Transforms HLSL into other shading languages, and also outputs reflection data. */
@@ -41,17 +33,19 @@ namespace b3d
 	{
 	public:
 		/**
-		 * Cross compiles the provided HLSL source code into the requested output language.
+		 * Cross compiles one entry point of the provided HLSL source code into the requested output language.
 		 *
 		 * @param	hlsl						HLSL to cross compile.
-		 * @param	type						GPU program stage that the HLSL code represents.
+		 * @param	type						Type of the GPU program the entry point compiles to.
+		 * @param	entryPoint					Name of the entry point function, as Reflect() discovered it.
 		 * @param	target						Description of the language to cross-compile to.
-		 * @param	inOutStartBindingSlot		First generated resource binding, updated past the assigned bindings. Use the same starting slot for every stage of a pass.
-		 * @param	output						Generated source and reflection; empty source means the stage is absent.
-		 * @param	sharedReflection			Optional reflection from another stage of the same pass. Reuses its parameters after checking the source layout matches.
+		 * @param	inOutStartBindingSlot		First generated resource binding, updated past the assigned bindings. Use the same starting slot for every entry point of a pass.
+		 * @param	output						Generated source and reflection; empty source means the source has no such entry point.
+		 * @param	sharedReflection			Optional reflection from another entry point of the same pass. Reuses its parameters after checking the source layout matches.
 		 * @return								A result object containing an error message if not successful.
 		 */
-		static ShaderCompilerResult CrossCompile(const String& hlsl, GpuProgramType type, const HLSLCrossCompileTarget& target, u32& inOutStartBindingSlot, ShaderCrossCompileOutput& output, const ShaderReflection* sharedReflection = nullptr);
+		static ShaderCompilerResult CrossCompile(const String& hlsl, GpuProgramType type, const String& entryPoint, const HLSLCrossCompileTarget& target, u32& inOutStartBindingSlot,
+			ShaderCrossCompileOutput& output, const ShaderReflection* sharedReflection = nullptr);
 
 		/**
 		 * Registers every cross-compilation target supported by this build. Call once during plugin start-up.
@@ -73,7 +67,16 @@ namespace b3d
 		 */
 		static const HLSLCrossCompileTarget* GetTarget(const String& language);
 
-		/** Reflects material-visible parameters and discovers entry points. An optional target selects the binding layout and backend defines. */
+		/**
+		 * Reflects material-visible parameters and discovers entry points, without compiling any of them. Graphics and
+		 * compute entry points have fixed names (vsmain, fsmain, gsmain, dsmain, hsmain and csmain), and ray tracing entry
+		 * points take their program type from the shader attribute.
+		 *
+		 * @param	hlsl			HLSL to reflect.
+		 * @param	outReflection	Reflected parameters, and the entry points under their source names.
+		 * @param	target			Optional target that selects the binding layout and backend defines.
+		 * @return					A result object containing an error message if not successful.
+		 */
 		static ShaderCompilerResult Reflect(const String& hlsl, ShaderReflection& outReflection, const HLSLCrossCompileTarget* target = nullptr);
 
 	private:

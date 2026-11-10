@@ -27,7 +27,7 @@ namespace b3d
 		void TestPersistentCacheVersion();
 		/** Verifies merging defaults, aliases and attributes without mutating conflicting descriptions. */
 		void TestShaderParameterDescription();
-		/** Verifies shared shader descriptions and serialization of shader reflection. */
+		/** Verifies shared shader descriptions, serialization of shader reflection, and loading of pass data saved per program type. */
 		void TestShaderReflection();
 		/** Verifies stable shader cache paths and cooked-store version metadata. */
 		void TestShaderRegistryCacheVersion();
@@ -36,6 +36,8 @@ namespace b3d
 		void TestMaterialParameterAdapterCompilation();
 		/** Verifies BSL parameter merging and source metadata against compiled GPU programs. */
 		void TestShaderReflectionCompilation();
+		/** Verifies BSL ray tracing passes, inline tracing reflection and the error for passes mixing both kinds of entry points. */
+		void TestRayTracingShaderCompilation();
 #endif
 #if B3D_PLATFORM_MACOS
 		void TestMacOSDesktopInput();

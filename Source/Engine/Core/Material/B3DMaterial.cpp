@@ -70,9 +70,8 @@ TShared<typename TMaterial<IsRenderProxy>::MaterialParameterAdapterType> TMateri
 	for(u32 passIndex = 0; passIndex < variation->GetPassCount(); passIndex++)
 	{
 		const TShared<PassType>& pass = variation->GetPass(passIndex);
-		for(u32 stageIndex = 0; stageIndex < kGpuRasterComputeProgramTypeCount; stageIndex++)
+		for(const GpuProgramCreateInformation& program : pass->GetInformation().Programs)
 		{
-			const GpuProgramCreateInformation& program = pass->GetGpuProgramCreateInformation((GpuProgramType)stageIndex);
 			if(program.ShaderReflection != nullptr && program.ShaderReflection->Parameters != nullptr)
 			{
 				const ShaderParameterDescription* parameters = program.ShaderReflection->Parameters.get();

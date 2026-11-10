@@ -14,6 +14,10 @@
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "Serialization/B3DBinarySerializer.h"
 #include "FileSystem/B3DDataStream.h"
+#include "Utility/B3DUtility.h"
+#include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuDeviceCapabilities.h"
+#include "B3DApplication.h"
 
 using namespace b3d;
 
@@ -316,6 +320,476 @@ shader SharedStageReflectionTest
 		}
 		declarationIndex++;
 	}
+
+	// A variation's defines can leave an entry point out. Its pass then keeps the other programs.
+	const String optionalEntrySource = R"(
+shader OptionalEntryPointTest
+{
+	variations { MODE = { 0, 1, 2 }; };
+	code
+	{
+		cbuffer VertexParameters { float4 Position; };
+		float4 vsmain() : SV_Position { return Position; }
+		#if MODE != 1
+		float4 fsmain() : SV_Target0 { return Position; }
+		#endif
+	};
+};
+)";
+	TShared<Shader> optionalEntryShader;
+	const ShaderCompilerResult optionalEntryResult = compiler->Compile("OptionalEntryPointTest", optionalEntrySource, {}, languages, true, optionalEntryShader);
+	B3D_TEST_ASSERT_MSG(optionalEntryResult.ErrorMessage.empty(), optionalEntryResult.ErrorMessage)
+	if(optionalEntryShader != nullptr)
+	{
+		u32 vertexOnlyPassCount = 0;
+		for(const auto& variation : optionalEntryShader->GetVariations())
+		{
+			const TShared<Pass>& pass = variation->GetPass(0);
+			B3D_TEST_ASSERT(pass->GetGpuProgramCreateInformation(GPT_VERTEX_PROGRAM).Bytecode != nullptr)
+
+			if(pass->GetInformation().Programs.size() == 1)
+				vertexOnlyPassCount++;
+			else
+				B3D_TEST_ASSERT(pass->GetInformation().Programs.size() == 2 && pass->GetGpuProgramCreateInformation(GPT_FRAGMENT_PROGRAM).Bytecode != nullptr)
+		}
+
+		B3D_TEST_ASSERT(optionalEntryShader->GetVariations().size() == 3 * languages.size())
+		B3D_TEST_ASSERT(vertexOnlyPassCount == languages.size())
+	}
+
+	// An error in any variation fails the compile, not just one in the first variation
+	const String brokenVariationSource = R"(
+shader BrokenVariationTest
+{
+	variations { MODE = { 0, 1, 2 }; };
+	code
+	{
+		cbuffer VertexParameters { float4 Position; };
+		float4 vsmain() : SV_Position { return Position; }
+		float4 fsmain() : SV_Target0
+		{
+			#if MODE == 1
+			return undefinedSymbol;
+			#else
+			return Position;
+			#endif
+		}
+	};
+};
+)";
+	TShared<Shader> brokenVariationShader;
+	const ShaderCompilerResult brokenVariationResult = compiler->Compile("BrokenVariationTest", brokenVariationSource, {}, languages, true, brokenVariationShader);
+	B3D_TEST_ASSERT(brokenVariationShader == nullptr)
+	B3D_TEST_ASSERT_MSG(brokenVariationResult.ErrorMessage.find("undefinedSymbol") != String::npos, brokenVariationResult.ErrorMessage)
+
+	// Programs of a pass compiled on the main thread reach its render proxy
+	TShared<Shader> activeShader;
+	const ShaderCompilerResult activeResult = compiler->Compile("SharedStageReflectionTest", graphicsSource, {}, { ShaderCompilers::Instance().DetectActiveShadingLanguage() }, true, activeShader);
+	B3D_TEST_ASSERT_MSG(activeResult.ErrorMessage.empty(), activeResult.ErrorMessage)
+	if(activeShader != nullptr)
+	{
+		const TShared<Pass>& pass = activeShader->GetVariations()[0]->GetPass(0);
+		pass->Compile();
+		B3D_TEST_ASSERT(pass->GetProgram("vsmain") != nullptr && pass->GetProgram("fsmain") != nullptr)
+
+		GetRenderThread().PostCommand([this, renderPass = B3DGetRenderProxy(pass)]()
+		{
+			renderPass->Compile();
+			B3D_TEST_ASSERT(renderPass->GetGraphicsPipelineState() != nullptr)
+			B3D_TEST_ASSERT(renderPass->GetProgram("vsmain") != nullptr && renderPass->GetProgram("fsmain") != nullptr)
+		}, "Test synced pass programs", true);
+	}
+}
+
+void CoreTestSuite::TestRayTracingShaderCompilation()
+{
+	const TShared<IShaderCompiler> compiler = ShaderCompilers::Instance().GetCompiler("bsl");
+	B3D_TEST_ASSERT(compiler != nullptr)
+	if(compiler == nullptr)
+		return;
+
+	Vector<String> languages = { "vksl" };
+#if B3D_PLATFORM_WIN32
+	languages.push_back("hlsl");
+#elif B3D_PLATFORM_MACOS
+	languages.push_back("msl");
+#endif
+
+	// Every ray tracing stage in one pass: two misses, triangle hits, and an intersection program reporting its own attributes
+	const String pipelineSource = R"(
+shader RayTracingPipelineTest
+{
+	pass { };
+	code
+	{
+		RaytracingAccelerationStructure gScene;
+		RWTexture2D<float4> gOutput;
+
+		struct Payload { float4 Color; };
+		struct SphereAttributes { float3 Normal; };
+		struct ShadeParameters { float3 Color; };
+
+		float3 Darken(float3 color) { return color * 0.5f; }
+
+		[shader("raygeneration")]
+		void RayGen()
+		{
+			RayDesc ray;
+			ray.Origin = float3(DispatchRaysIndex().xy, 0.0f);
+			ray.TMin = 0.001f;
+			ray.Direction = float3(0.0f, 0.0f, 1.0f);
+			ray.TMax = 1000.0f;
+
+			Payload payload;
+			payload.Color = 0;
+			TraceRay(gScene, RAY_FLAG_NONE, 0xFF, 0, 1, 0, ray, payload);
+
+			ShadeParameters parameters;
+			parameters.Color = payload.Color.rgb;
+			CallShader(0, parameters);
+
+			gOutput[DispatchRaysIndex().xy] = float4(parameters.Color, 1.0f);
+		}
+
+		[shader("miss")]
+		void SkyMiss(inout Payload payload) { payload.Color = float4(0.3f, 0.5f, 0.9f, 1.0f); }
+
+		[shader("miss")]
+		void ShadowMiss(inout Payload payload) { payload.Color.a = 0.0f; }
+
+		[shader("closesthit")]
+		void ClosestHit(inout Payload payload, in BuiltInTriangleIntersectionAttributes attributes)
+		{
+			payload.Color = float4(Darken(float3(attributes.barycentrics, 1.0f)), 1.0f);
+		}
+
+		[shader("anyhit")]
+		void AnyHit(inout Payload payload, in BuiltInTriangleIntersectionAttributes attributes)
+		{
+			if(attributes.barycentrics.x < 0.1f)
+				IgnoreHit();
+		}
+
+		[shader("intersection")]
+		void IntersectSphere()
+		{
+			SphereAttributes attributes;
+			attributes.Normal = ObjectRayOrigin();
+			ReportHit(1.0f, 0, attributes);
+		}
+
+		[shader("callable")]
+		void Shade(inout ShadeParameters parameters) { parameters.Color = Darken(parameters.Color); }
+	};
+};
+)";
+
+	struct ExpectedEntryPoint
+	{
+		const char* Name;
+		GpuProgramType Type;
+		u32 RayPayloadSize;
+		u32 HitAttributeSize;
+	};
+
+	const ExpectedEntryPoint expectedEntryPoints[] =
+	{
+		{ "RayGen", GPT_RAY_GENERATION_PROGRAM, 0, 0 },
+		{ "SkyMiss", GPT_MISS_PROGRAM, 16, 0 },
+		{ "ShadowMiss", GPT_MISS_PROGRAM, 16, 0 },
+		{ "ClosestHit", GPT_CLOSEST_HIT_PROGRAM, 16, 8 },
+		{ "AnyHit", GPT_ANY_HIT_PROGRAM, 16, 8 },
+		{ "IntersectSphere", GPT_INTERSECTION_PROGRAM, 0, 12 },
+		{ "Shade", GPT_CALLABLE_PROGRAM, 0, 0 },
+	};
+
+	const auto compilesPipelinePrograms = [](const String& language)
+	{
+		const TShared<IGpuBytecodeCompiler> bytecodeCompiler = ShaderCompilers::Instance().GetBytecodeCompiler(language);
+		return bytecodeCompiler == nullptr || bytecodeCompiler->IsProgramTypeSupported(GPT_RAY_GENERATION_PROGRAM);
+	};
+
+	// A language that can't compile pipeline programs (Metal) rejects a shader that doesn't leave their entry points out
+	Vector<String> pipelineLanguages;
+	for(const String& language : languages)
+	{
+		if(compilesPipelinePrograms(language))
+		{
+			pipelineLanguages.push_back(language);
+			continue;
+		}
+
+		TShared<Shader> rejectedShader;
+		const ShaderCompilerResult rejectedResult = compiler->Compile("RayTracingPipelineTest", pipelineSource, {}, { language }, true, rejectedShader);
+		B3D_TEST_ASSERT_MSG(!rejectedResult.ErrorMessage.empty() && rejectedShader == nullptr, language)
+	}
+
+	TShared<Shader> shader;
+	const ShaderCompilerResult result = compiler->Compile("RayTracingPipelineTest", pipelineSource, {}, pipelineLanguages, true, shader);
+	B3D_TEST_ASSERT_MSG(result.ErrorMessage.empty(), result.ErrorMessage)
+	if(shader == nullptr)
+		return;
+
+	const auto foundSceneParameter = shader->GetBufferParameters().find("gScene");
+	B3D_TEST_ASSERT(foundSceneParameter != shader->GetBufferParameters().end() && foundSceneParameter->second.Type == GPOT_ACCELERATION_STRUCTURE)
+	B3D_TEST_ASSERT(shader->GetVariations().size() == pipelineLanguages.size())
+	for(const TShared<Variation>& variation : shader->GetVariations())
+	{
+		B3D_TEST_ASSERT(variation->GetPassCount() == 1)
+		if(variation->GetPassCount() != 1)
+			continue;
+
+		const TShared<Pass>& pass = variation->GetPass(0);
+		B3D_TEST_ASSERT(pass->IsRayTracing() && !pass->IsCompute())
+
+		const Vector<GpuProgramCreateInformation>& programs = pass->GetInformation().Programs;
+		B3D_TEST_ASSERT(programs.size() == std::size(expectedEntryPoints))
+
+		const ShaderParameterDescription* sharedParameters = nullptr;
+		for(const ExpectedEntryPoint& expected : expectedEntryPoints)
+		{
+			const auto found = std::find_if(programs.begin(), programs.end(), [&expected](const GpuProgramCreateInformation& program) { return program.EntryPoint == expected.Name; });
+			B3D_TEST_ASSERT_MSG(found != programs.end(), expected.Name)
+			if(found == programs.end())
+				continue;
+
+			B3D_TEST_ASSERT(found->Type == expected.Type)
+			B3D_TEST_ASSERT_MSG(!found->Source.empty(), found->Name)
+			B3D_TEST_ASSERT_MSG(found->Bytecode != nullptr && found->Bytecode->Instructions.Data != nullptr, found->Name)
+			B3D_TEST_ASSERT(found->ShaderReflection != nullptr && found->ShaderReflection->Parameters != nullptr)
+			if(found->ShaderReflection == nullptr)
+				continue;
+
+			// Every entry point of a pass shares one parameter description
+			if(sharedParameters == nullptr)
+				sharedParameters = found->ShaderReflection->Parameters.get();
+
+			B3D_TEST_ASSERT(found->ShaderReflection->Parameters.get() == sharedParameters)
+
+			const ShaderEntryPointReflection& entryPoint = found->GetEntryPointReflection();
+			B3D_TEST_ASSERT(entryPoint.Type == expected.Type)
+			B3D_TEST_ASSERT_MSG(entryPoint.RayPayloadSize == expected.RayPayloadSize, found->Name)
+			B3D_TEST_ASSERT_MSG(entryPoint.HitAttributeSize == expected.HitAttributeSize, found->Name)
+			B3D_TEST_ASSERT(!entryPoint.Features.IsSet(GpuProgramFeatureFlag::RayQuery))
+
+			if(expected.Type == GPT_RAY_GENERATION_PROGRAM && found->Bytecode != nullptr && found->Bytecode->ParameterDescription != nullptr)
+			{
+				const auto& accelerationStructures = found->Bytecode->ParameterDescription->AccelerationStructures;
+				B3D_TEST_ASSERT(accelerationStructures.size() == 1)
+				B3D_TEST_ASSERT(accelerationStructures.empty() || accelerationStructures.begin()->second.Type == GPOT_ACCELERATION_STRUCTURE)
+			}
+		}
+	}
+
+	// Pass data survives serialization
+	{
+		PassInformation information = shader->GetVariations()[0]->GetPass(0)->GetInformation();
+
+		BinarySerializer serializer;
+		const TShared<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+		serializer.Encode(&information, stream);
+		stream->Seek(0);
+		const TShared<PassInformation> decoded = B3DRTTICast<PassInformation>(serializer.Decode(stream, (u32)stream->Size()));
+		B3D_TEST_ASSERT(decoded != nullptr && decoded->Programs.size() == information.Programs.size())
+		if(decoded != nullptr && decoded->Programs.size() == information.Programs.size())
+		{
+			for(u32 programIndex = 0; programIndex < (u32)information.Programs.size(); programIndex++)
+			{
+				const GpuProgramCreateInformation& original = information.Programs[programIndex];
+				const GpuProgramCreateInformation& restored = decoded->Programs[programIndex];
+				B3D_TEST_ASSERT(restored.EntryPoint == original.EntryPoint && restored.Type == original.Type)
+				B3D_TEST_ASSERT(restored.GetEntryPointReflection().RayPayloadSize == original.GetEntryPointReflection().RayPayloadSize)
+				B3D_TEST_ASSERT(restored.GetEntryPointReflection().HitAttributeSize == original.GetEntryPointReflection().HitAttributeSize)
+			}
+		}
+	}
+
+	// Programs exist on the render thread, for devices with ray tracing pipelines. Materials ignore ray tracing passes.
+	const String activeLanguage = ShaderCompilers::Instance().DetectActiveShadingLanguage();
+	TShared<Shader> activeShader;
+	if(compilesPipelinePrograms(activeLanguage))
+	{
+		const ShaderCompilerResult activeResult = compiler->Compile("RayTracingPipelineTest", pipelineSource, {}, { activeLanguage }, true, activeShader);
+		B3D_TEST_ASSERT_MSG(activeResult.ErrorMessage.empty(), activeResult.ErrorMessage)
+	}
+
+	if(activeShader != nullptr)
+	{
+		GetRenderThread().PostCommand([this, renderShader = B3DGetRenderProxy(activeShader)]()
+		{
+			const TShared<render::Material> material = render::Material::Create(renderShader);
+			const TShared<render::Variation>& variation = material->GetVariation(0);
+			const TAsyncOp<bool> compilation = variation->Compile();
+			compilation.BlockUntilComplete();
+			B3D_TEST_ASSERT(compilation.GetReturnValue())
+			B3D_TEST_ASSERT(material->CreateParameterAdapter() != nullptr)
+
+			const TShared<render::Pass>& pass = variation->GetPass(0);
+			B3D_TEST_ASSERT(pass->GetGraphicsPipelineState() == nullptr && pass->GetComputePipelineState() == nullptr)
+
+			const GpuDeviceCapabilities& capabilities = GetApplication().GetPrimaryGpuDevice()->GetCapabilities();
+			for(const GpuProgramCreateInformation& program : pass->GetInformation().Programs)
+			{
+				const bool expected = capabilities.HasCapability(RSC_RAY_TRACING_PIPELINE) &&
+					(program.Type != GPT_CALLABLE_PROGRAM || capabilities.RayTracing.SupportsCallablePrograms);
+
+				const TShared<GpuProgram> created = pass->GetProgram(program.EntryPoint);
+				B3D_TEST_ASSERT_MSG((created != nullptr) == expected, program.EntryPoint)
+				if(created != nullptr)
+					B3D_TEST_ASSERT_MSG(created->IsCompiled(), created->GetCompileErrorMessage())
+			}
+
+			B3D_TEST_ASSERT(pass->GetProgram("Unknown") == nullptr)
+		}, "Test ray tracing pass programs", true);
+	}
+
+	// Inline tracing from a compute program, with the acceleration structure bound as a parameter and taken from the heap
+	const String inlineSource = R"(
+shader InlineRayTracingTest
+{
+	pass { };
+	code
+	{
+		RWStructuredBuffer<float> gDistances;
+		#if BINDLESS
+		cbuffer Parameters { uint gSceneIndex; };
+		#else
+		RaytracingAccelerationStructure gScene;
+		#endif
+
+		float Trace(RaytracingAccelerationStructure scene, uint index)
+		{
+			RayDesc ray;
+			ray.Origin = float3(index, 0.0f, 0.0f);
+			ray.TMin = 0.0f;
+			ray.Direction = float3(0.0f, 0.0f, 1.0f);
+			ray.TMax = 100.0f;
+
+			RayHit hit = RayTraceClosest(scene, RAY_FLAG_NONE, 0xFF, ray);
+			return hit.IsHit ? hit.T : -1.0f;
+		}
+
+		[numthreads(64, 1, 1)]
+		void csmain(uint3 id : SV_DispatchThreadID)
+		{
+			#if BINDLESS
+			RaytracingAccelerationStructure scene = ResourceDescriptorHeap[gSceneIndex];
+			gDistances[id.x] = Trace(scene, id.x);
+			#else
+			gDistances[id.x] = Trace(gScene, id.x);
+			#endif
+		}
+	};
+};
+)";
+
+	for(const bool bindless : { false, true })
+	{
+		TShared<Shader> inlineShader;
+		const ShaderCompilerResult inlineResult = compiler->Compile("InlineRayTracingTest", inlineSource, { { "BINDLESS", bindless ? "1" : "0" } }, languages, true, inlineShader);
+		B3D_TEST_ASSERT_MSG(inlineResult.ErrorMessage.empty(), inlineResult.ErrorMessage)
+		if(inlineShader == nullptr)
+			continue;
+
+		const auto foundParameter = inlineShader->GetBufferParameters().find("gScene");
+		if(bindless)
+			B3D_TEST_ASSERT(foundParameter == inlineShader->GetBufferParameters().end())
+		else
+			B3D_TEST_ASSERT(foundParameter != inlineShader->GetBufferParameters().end() && foundParameter->second.Type == GPOT_ACCELERATION_STRUCTURE)
+
+		for(const TShared<Variation>& variation : inlineShader->GetVariations())
+		{
+			const TShared<Pass>& pass = variation->GetPass(0);
+			B3D_TEST_ASSERT(pass->IsCompute() && !pass->IsRayTracing())
+
+			const GpuProgramCreateInformation& program = pass->GetGpuProgramCreateInformation(GPT_COMPUTE_PROGRAM);
+			B3D_TEST_ASSERT(pass->GetInformation().Programs.size() == 1 && program.EntryPoint == "csmain")
+
+			const GpuProgramFeatureFlags features = program.GetEntryPointReflection().Features;
+			B3D_TEST_ASSERT(features.IsSet(GpuProgramFeatureFlag::RayQuery))
+			B3D_TEST_ASSERT(features.IsSet(GpuProgramFeatureFlag::ResourceDescriptorHeap) == bindless)
+			B3D_TEST_ASSERT(program.Bytecode != nullptr && program.Bytecode->ParameterDescription != nullptr)
+			if(program.Bytecode == nullptr || program.Bytecode->ParameterDescription == nullptr)
+				continue;
+
+			// A bound acceleration structure is its own parameter type, never a buffer. One taken from the heap is no parameter at all.
+			const GpuProgramParameterDescription& parameters = *program.Bytecode->ParameterDescription;
+			B3D_TEST_ASSERT(parameters.AccelerationStructures.size() == (bindless ? 0u : 1u))
+			for(const auto& entry : parameters.AccelerationStructures)
+				B3D_TEST_ASSERT(entry.second.Type == GPOT_ACCELERATION_STRUCTURE)
+
+			for(const auto& entry : parameters.Buffers)
+				B3D_TEST_ASSERT(entry.second.Type != GPOT_ACCELERATION_STRUCTURE)
+		}
+	}
+
+	// A pass can't mix ray tracing entry points with graphics or compute ones
+	const String mixedSource = R"(
+shader MixedEntryPointsTest
+{
+	pass { };
+	code
+	{
+		struct Payload { float4 Color; };
+
+		RWStructuredBuffer<float> gOutput;
+
+		[numthreads(1, 1, 1)]
+		void csmain(uint3 id : SV_DispatchThreadID) { gOutput[id.x] = 1.0f; }
+
+		[shader("miss")]
+		void Miss(inout Payload payload) { payload.Color = 1.0f; }
+	};
+};
+)";
+
+	TShared<Shader> mixedShader;
+	const ShaderCompilerResult mixedResult = compiler->Compile("MixedEntryPointsTest", mixedSource, {}, languages, true, mixedShader);
+	B3D_TEST_ASSERT(mixedShader == nullptr)
+	B3D_TEST_ASSERT_MSG(mixedResult.ErrorMessage.find("Pass 0 mixes ray tracing entry points (Miss) with vsmain/fsmain/gsmain/hsmain/dsmain/csmain") != String::npos, mixedResult.ErrorMessage)
+
+	// An entry point that breaks the rules of its stage fails the compile
+	const String stageRuleSource = R"(
+shader RayTracingStageRuleTest
+{
+	pass { };
+	code
+	{
+		struct Payload { float4 Color; };
+
+		RaytracingAccelerationStructure gScene;
+		RWTexture2D<float4> gOutput;
+
+		[shader("raygeneration")]
+		void RayGen()
+		{
+			RayDesc ray;
+			ray.Origin = float3(DispatchRaysIndex().xy, 0.0f);
+			ray.TMin = 0.001f;
+			ray.Direction = float3(0.0f, 0.0f, 1.0f);
+			ray.TMax = 1000.0f;
+
+			Payload payload;
+			payload.Color = 0;
+			TraceRay(gScene, RAY_FLAG_NONE, 0xFF, 0, 1, 0, ray, payload);
+
+			gOutput[DispatchRaysIndex().xy] = payload.Color;
+		}
+
+		[shader("miss")]
+		void Miss(inout Payload payload)
+		{
+			payload.Color = 1.0f;
+			IgnoreHit();
+		}
+	};
+};
+)";
+
+	TShared<Shader> stageRuleShader;
+	const ShaderCompilerResult stageRuleResult = compiler->Compile("RayTracingStageRuleTest", stageRuleSource, {}, languages, true, stageRuleShader);
+	B3D_TEST_ASSERT(stageRuleShader == nullptr)
+	B3D_TEST_ASSERT_MSG(stageRuleResult.ErrorMessage.find("IgnoreHit") != String::npos, stageRuleResult.ErrorMessage)
 }
 #endif
 

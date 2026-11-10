@@ -25,6 +25,14 @@ namespace b3d
 		String ErrorFile; /**< File in which the error occurred. Empty if root file. */
 	};
 
+	/** Entry point declared in one of a shader's passes. Each becomes one GPU program of the pass. */
+	struct ShaderEntryPoint
+	{
+		u32 PassIndex = 0; /**< Sequential index of the pass that declares the entry point. */
+		GpuProgramType Type = GPT_VERTEX_PROGRAM; /**< Type of the GPU program the entry point compiles to. */
+		String Name; /**< Name of the entry point function. */
+	};
+
 	/** Meta-data for a shader. Can be used for compiling specific variations of the shader. */
 	struct B3D_EXPORT ShaderCompilerMetaData : public IReflectable
 	{
@@ -32,7 +40,7 @@ namespace b3d
 		String NameInCache; /**< Unique name of this shader in the shader cache. */
 		u32 CompilerVersion = 0; /**< Version of the compiler that produced this data (IShaderCompiler::GetVersion()). Data from a different version is considered stale. */
 		Array<u64, 2> ShaderHash; /**< Hash of the shader's source code (not including the include file source). */
-		TInlineArray<GpuProgramType, 2> GPUProgramTypes; /**< Types of GPU programs used by the shader. */
+		Vector<ShaderEntryPoint> EntryPoints; /**< Entry points of every pass, found in the first variation of each shading language. */
 		Vector<ShaderVariationParameters> Variations; /**< Sets of defines controlling which variations of the shader are present. */
 		UnorderedMap<String, String> Defines; /**< Optional list of defines to provide when compiling the shader variations. This is added along with the shader variation defines. */
 
@@ -110,9 +118,8 @@ namespace b3d
 		virtual TShared<GpuProgramBytecode> CompileBytecode(const GpuProgramCreateInformation& createInformation) = 0;
 
 		/**
-		 * Returns true if this compiler can compile programs of @p type. Callers (the cross compiler, the offline shader
-		 * cook) must not invoke CompileBytecode() for unsupported types; instead they skip the stage or the whole
-		 * variation, depending on whether the target platform can consume the program without bytecode.
+		 * Returns true if this compiler can compile programs of @p type. A shader fails to compile for the compiler's
+		 * shading language while it has an entry point of another type, and CompileBytecode() is never called for one.
 		 */
 		virtual bool IsProgramTypeSupported(GpuProgramType type) const { return true; }
 

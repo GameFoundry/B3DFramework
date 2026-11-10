@@ -9,7 +9,7 @@
 namespace b3d
 {
 	template <>
-	struct RTTIPlainType<ShaderEntryPointReflection> : RTTIPlainTypeHelper<ShaderEntryPointReflection, TID_ShaderEntryPointReflection, 1>
+	struct RTTIPlainType<ShaderEntryPointReflection> : RTTIPlainTypeHelper<ShaderEntryPointReflection, TID_ShaderEntryPointReflection, 2>
 	{
 		template<class Processor>
 		static void RTTIEnumerateFields(ShaderEntryPointReflection& object, Processor& processor, u8 version)
@@ -20,6 +20,12 @@ namespace b3d
 
 			if(version > 0)
 				processor(object.Features);
+
+			if(version > 1)
+			{
+				processor(object.RayPayloadSize);
+				processor(object.HitAttributeSize);
+			}
 		}
 	};
 

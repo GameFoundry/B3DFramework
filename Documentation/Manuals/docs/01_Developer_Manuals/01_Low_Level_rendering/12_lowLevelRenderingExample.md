@@ -31,11 +31,12 @@ const TShared<Variation> shaderVariation = boxShader->GetCompatibleVariations()[
 if(!shaderVariation->IsCompiled())
 	shaderVariation->Compile().BlockUntilComplete();
 
-const PassInformation& passInformation = shaderVariation->GetPass(0)->GetInformation();
+const TShared<Pass> pass = shaderVariation->GetPass(0);
+const PassInformation& passInformation = pass->GetInformation();
 
 GpuGraphicsPipelineStateCreateInformation pipelineCreateInformation;
-pipelineCreateInformation.VertexProgram = gpuDevice->CreateGpuProgram(passInformation.VertexProgramCreateInformation);
-pipelineCreateInformation.FragmentProgram = gpuDevice->CreateGpuProgram(passInformation.FragmentProgramCreateInformation);
+pipelineCreateInformation.VertexProgram = gpuDevice->CreateGpuProgram(pass->GetGpuProgramCreateInformation(GPT_VERTEX_PROGRAM));
+pipelineCreateInformation.FragmentProgram = gpuDevice->CreateGpuProgram(pass->GetGpuProgramCreateInformation(GPT_FRAGMENT_PROGRAM));
 pipelineCreateInformation.BlendState = passInformation.BlendStateInformation;
 pipelineCreateInformation.RasterizerState = passInformation.RasterizerStateInformation;
 pipelineCreateInformation.DepthStencilState = passInformation.DepthStencilStateInformation;

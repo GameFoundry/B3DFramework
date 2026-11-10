@@ -830,6 +830,7 @@ namespace b3d
 		TID_ShaderCreateInformation = 1296,
 		TID_ShaderCreateInformationRenderProxy = 1297,
 		TID_ShaderRegistryMetaData = 1298,
+		TID_ShaderEntryPoint = 1299,
 
 		// Moved from Engine layer
 		TID_Camera = 30000,

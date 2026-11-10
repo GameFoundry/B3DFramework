@@ -19,7 +19,7 @@ target_link_libraries(bsfShaderBackendMSL PUBLIC bsfShaderBackendVKSL)
 set_property(TARGET bsfShaderBackendMSL PROPERTY FOLDER Plugins)
 
 # Register shader compiler target as "<language>|<targetLanguage>|<define>". Used to determine supported targets.
-set_property(GLOBAL APPEND PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS "msl|MSL|METAL|KeepEntryNames")
+set_property(GLOBAL APPEND PROPERTY B3D_SHADER_CROSS_COMPILE_TARGETS "msl|MSL|METAL")
 
 B3DTargetLinkFramework(bsfShaderBackendMSL Foundation)
 B3DTargetLinkFramework(bsfShaderBackendMSL Metal)

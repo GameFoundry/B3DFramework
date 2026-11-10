@@ -23,12 +23,8 @@ namespace b3d
 		DepthStencilStateInformation DepthStencilStateInformation;
 		u32 StencilRefValue = 0;
 
-		GpuProgramCreateInformation VertexProgramCreateInformation;
-		GpuProgramCreateInformation FragmentProgramCreateInformation;
-		GpuProgramCreateInformation GeometryProgramCreateInformation;
-		GpuProgramCreateInformation HullProgramCreateInformation;
-		GpuProgramCreateInformation DomainProgramCreateInformation;
-		GpuProgramCreateInformation ComputeProgramCreateInformation;
+		/** Programs of the pass, one per entry point: graphics programs, a compute program, or ray tracing programs. */
+		Vector<GpuProgramCreateInformation> Programs;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -65,15 +61,20 @@ namespace b3d
 		bool HasBlending() const;
 
 		/** Returns true if the pass executes a compute program. */
-		bool IsCompute() const { return !mData.ComputeProgramCreateInformation.Source.empty(); }
+		bool IsCompute() const;
+
+		/** Returns true if the pass holds ray tracing programs, rather than graphics or compute programs. */
+		bool IsRayTracing() const;
 
 		/** Gets the stencil reference value that is used when performing operations using the stencil buffer. */
 		u32 GetStencilRefValue() const { return mData.StencilRefValue; }
 
 		/**
-		 * Returns the GPU program descriptor for the specified GPU program type.
+		 * Returns the GPU program descriptor of the first program of the specified type. A ray tracing pass can have several
+		 * programs of one type; GetInformation() lists them all.
 		 *
-		 * @param type	A graphics or compute program type (below kGpuRasterComputeProgramTypeCount).
+		 * @param	type	Type of the program to look up.
+		 * @return			The program descriptor, or an empty one if the pass has no program of @p type.
 		 */
 		const GpuProgramCreateInformation& GetGpuProgramCreateInformation(GpuProgramType type) const;
 
@@ -81,24 +82,40 @@ namespace b3d
 		const PassInformation& GetInformation() const { return mData; }
 
 		/**
-		 * Returns the graphics pipeline state describing this pass, or null if its a compute pass.
+		 * Returns the graphics pipeline state describing this pass, or null if its a compute or ray tracing pass.
 		 * Only valid after Compile() has been called.
 		 */
 		const TShared<GpuGraphicsPipelineState>& GetGraphicsPipelineState() const { return mGraphicsPipelineState; }
 
 		/**
-		 * Returns the compute pipeline state describing this pass, or null if its a graphics pass.
+		 * Returns the compute pipeline state describing this pass, or null if its a graphics or ray tracing pass.
 		 * Only valid after compile has been called.
 		 */
 		const TShared<GpuComputePipelineState>& GetComputePipelineState() const { return mComputePipelineState; }
+
+		/**
+		 * Returns the program of an entry point of the pass. Only valid after Compile() has been called.
+		 *
+		 * @param	entryPoint	Name of the entry point function.
+		 * @return				The program, or null if the pass has no such entry point or the device can't run the program.
+		 */
+		TShared<GpuProgram> GetProgram(const StringView& entryPoint) const;
 	protected:
 		TPass();
 		TPass(const PassCreateInformation& createInformation);
 
-		/** Creates either the graphics or the compute pipeline state from the stored pass data. */
-		void CreatePipelineState();
+		/**
+		 * Creates the programs and, unless this is a ray tracing pass, the graphics or compute pipeline state from the stored
+		 * pass data.
+		 */
+		void CreatePrograms();
 
 		PassInformation mData;
+
+		/** Programs created from PassInformation::Programs, at the same indices. Null where no program could be created. */
+		Vector<TShared<GpuProgram>> mPrograms;
+		bool mAreProgramsCreated = false;
+
 		TShared<GpuGraphicsPipelineState> mGraphicsPipelineState;
 		TShared<GpuComputePipelineState> mComputePipelineState;
 	};
@@ -124,7 +141,8 @@ namespace b3d
 		/**
 		 * Initializes the pass internals by compiling the GPU programs and creating the relevant pipeline state. This
 		 * method must be called before pass pipelines can be retrieved. After initial compilation further calls do this
-		 * method will perform no operation.
+		 * method will perform no operation. Does nothing for a ray tracing pass, whose programs only the render thread
+		 * creates (see render::Pass::Compile()).
 		 */
 		void Compile();
 
@@ -180,7 +198,11 @@ namespace b3d
 			/**	Creates a new empty pass. */
 			static TShared<Pass> CreateEmpty();
 
-			/** @copydoc b3d::Pass::Compile */
+			/**
+			 * @copydoc b3d::Pass::Compile
+			 *
+			 * A ray tracing pass gets its programs, on devices with RSC_RAY_TRACING_PIPELINE.
+			 */
 			void Compile();
 
 		protected:

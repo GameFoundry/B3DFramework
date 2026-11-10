@@ -18,6 +18,15 @@ namespace b3d
 		Array<u32, 3> ThreadGroupSize = { 1, 1, 1 }; /**< Compute threads per workgroup. */
 		u32 PushConstantBufferSize = 0; /**< Declared push-constant size in bytes. On Metal, zero if the stage doesn't keep the block after compilation. */
 		GpuProgramFeatureFlags Features; /**< Optional features the entry point uses. */
+
+		/** Size in bytes of the ray payload that miss, closest hit and any hit programs receive. Zero for other programs. */
+		u32 RayPayloadSize = 0;
+
+		/**
+		 * Size in bytes of the hit attributes that closest hit and any hit programs receive (8 for triangles), or of the
+		 * largest attributes an intersection program reports. Zero for other programs.
+		 */
+		u32 HitAttributeSize = 0;
 	};
 
 	/** Reflection for one source compilation. Binding coordinates belong to its target, pass and variation. */

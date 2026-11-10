@@ -52,6 +52,7 @@ CoreTestSuite::CoreTestSuite()
 #if !B3D_PLATFORM_PS5
 	B3D_ADD_TEST(CoreTestSuite::TestMaterialParameterAdapterCompilation)
 	B3D_ADD_TEST(CoreTestSuite::TestShaderReflectionCompilation)
+	B3D_ADD_TEST(CoreTestSuite::TestRayTracingShaderCompilation)
 #endif
 #if B3D_PLATFORM_MACOS
 	B3D_ADD_TEST(CoreTestSuite::TestMacOSDesktopInput)
