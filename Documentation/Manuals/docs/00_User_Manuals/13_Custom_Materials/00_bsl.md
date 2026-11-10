@@ -54,6 +54,8 @@ There are a few restrictions compared to normal HLSL that you must be aware of:
   - **dsmain** - Domain (Tesselation evaluation) shader
   - **fsmain** - Fragment (Pixel) shader
   - **csmain** - Compute shader
+ - Ray tracing entry points are the exception to these names. They are functions marked with the `[shader("...")]` attribute, under any name, and they can't be in the same pass as the entry points listed above. See [Ray tracing](#ray-tracing).
+ - The HLSL `RayQuery` type can't be used. The **RayTraceClosest** and **RayTraceAny** built-in functions replace it.
   
 Let's now move onto more advanced functionality specific to BSL.
 
@@ -418,6 +420,441 @@ shader MyShader
 		{
 			// Some shader code
 		};
+	};
+};
+~~~~~~~~~~~~~~
+
+# Ray tracing
+A shader can trace rays through the scene and react to what they hit. The scene's geometry is stored in an **acceleration structure**, an object built on the CPU that lets the GPU find what a ray hits without testing every triangle. It is made of **instances**, each of which places one mesh in the scene. A shader receives an acceleration structure as a parameter of type `RaytracingAccelerationStructure`, and can trace rays through it in two ways:
+ - **Ray tracing passes** - The pass is made of ray tracing programs. One of them starts rays with `TraceRay`, and the GPU runs other programs of the pass for what each ray hits or misses.
+ - **Inline ray tracing** - A program of any type, for example a fragment or a compute program, calls **RayTraceClosest** or **RayTraceAny** and gets the hit back as the return value.
+
+Each way needs its own support from the GPU device: the @b3d::RSC_RAY_TRACING_PIPELINE capability for ray tracing passes, and the @b3d::RSC_RAY_QUERY capability for inline ray tracing. Check for them with @b3d::GpuDeviceCapabilities::HasCapability.
+
+A ray is described by the HLSL `RayDesc` struct, with the members `Origin`, `TMin`, `Direction` and `TMax`. BSL declares it for you, together with `BuiltInTriangleIntersectionAttributes`, the `RAY_FLAG_*` and `HIT_KIND_*` constants, and the `RayHit` and `RayCandidate` structs described below. A shader can't declare anything of its own under these names.
+
+## Ray tracing passes
+A pass is a ray tracing pass when its code has ray tracing entry points. These don't have fixed names. Any function marked with the `[shader("...")]` attribute is a ray tracing entry point, and the attribute's argument selects the type of program it becomes:
+
+Attribute                    | Program type   | Runs                                                                                                   | Parameters
+-----------------------------|----------------|--------------------------------------------------------------------------------------------------------|-----------
+`[shader("raygeneration")]`  | Ray generation | Once for every point of a ray tracing dispatch, usually once per pixel. Starts rays with `TraceRay`.   | None
+`[shader("miss")]`           | Miss           | When a ray hits nothing.                                                                               | `inout` payload
+`[shader("closesthit")]`     | Closest hit    | Once the search for hits ends, for the hit closest to the ray's origin.                                | `inout` payload, `in` hit attributes
+`[shader("anyhit")]`         | Any hit        | For every hit found on geometry that isn't marked as opaque, to decide whether the hit counts. `IgnoreHit()` rejects the hit, `AcceptHitAndEndSearch()` accepts it and ends the search, and returning from the function accepts it and continues the search. | `inout` payload, `in` hit attributes
+`[shader("intersection")]`   | Intersection   | When a ray enters the bounding box of a procedural primitive, which is geometry described by a box instead of triangles. Reports where the ray hits the shape inside the box with `ReportHit`. | None
+`[shader("callable")]`       | Callable       | When another program calls `CallShader`.                                                               | `inout` parameter struct
+
+Every ray tracing entry point returns `void`. Payloads and hit attributes are covered in the next section.
+
+~~~~~~~~~~~~~~
+shader RayTracingPass
+{
+	code
+	{
+		RaytracingAccelerationStructure gScene;
+		RWTexture2D<float4> gOutput;
+
+		struct ColorPayload
+		{
+			float3 color;
+		};
+
+		// Starts one ray per pixel and stores the color the ray comes back with
+		[shader("raygeneration")]
+		void GenerateRays()
+		{
+			uint2 pixel = DispatchRaysIndex().xy;
+			float2 screenPosition = (float2(pixel) + 0.5f) / float2(DispatchRaysDimensions().xy);
+
+			RayDesc ray;
+			ray.Origin = float3(0.0f, 0.0f, -5.0f);
+			ray.TMin = 0.001f;
+			ray.Direction = normalize(float3(screenPosition * 2.0f - 1.0f, 1.0f));
+			ray.TMax = 1000.0f;
+
+			ColorPayload payload;
+			payload.color = 0;
+
+			TraceRay(gScene, RAY_FLAG_NONE, 0xFF, 0, 1, 0, ray, payload);
+
+			gOutput[pixel] = float4(payload.color, 1.0f);
+		}
+
+		// Runs for rays that leave the scene
+		[shader("miss")]
+		void SkyMiss(inout ColorPayload payload)
+		{
+			payload.color = float3(0.3f, 0.5f, 0.9f);
+		}
+
+		// Runs for the closest triangle a ray hits
+		[shader("closesthit")]
+		void SurfaceHit(inout ColorPayload payload, in BuiltInTriangleIntersectionAttributes attributes)
+		{
+			float2 weights = attributes.barycentrics;
+			payload.color = float3(1.0f - weights.x - weights.y, weights.x, weights.y);
+		}
+	};
+};
+~~~~~~~~~~~~~~
+
+Each entry point is compiled into its own GPU program. A pass can have any number of entry points of the same type, for example one miss program for camera rays and another one for shadow rays. All entry points of a pass share the parameters declared in the pass.
+
+BSL doesn't decide which of these programs are used together. Ray tracing pipelines are put together on the CPU, from the programs of the pass. This includes the **hit groups**: a hit group is the closest hit, any hit and intersection program that handle the hits on one kind of geometry, and each of the three is optional. The fourth, fifth and sixth argument of `TraceRay` select the hit group and the miss program for a ray, so their values depend on how the pipeline was put together.
+
+A ray tracing pass can't also contain **vsmain**, **fsmain**, **gsmain**, **hsmain**, **dsmain** or **csmain**. A pass with a miss program named `Miss` and a **csmain** function, for example, fails to compile with `Pass 0 mixes ray tracing entry points (Miss) with vsmain/fsmain/gsmain/hsmain/dsmain/csmain.` A shader that needs both kinds of programs declares them in separate passes.
+
+## Payloads and hit attributes
+The programs of a ray tracing pass exchange data through structs:
+ - The **payload** travels with a ray. The program that calls `TraceRay` fills it in and passes it as the last argument. Miss, closest hit and any hit programs receive it as their `inout` parameter and can change it, and the caller reads the result once `TraceRay` returns.
+ - **Hit attributes** describe one hit. Any hit and closest hit programs receive them as their second parameter. For triangles the type is always `BuiltInTriangleIntersectionAttributes`, whose `barycentrics` member holds the weights of the triangle's second and third vertex at the hit. For procedural primitives it is the struct that the intersection program passes to `ReportHit`.
+ - A callable program has one `inout` struct parameter, which the caller passes to `CallShader`.
+
+All of them must be structs that hold only numeric data, so they can't have textures, buffers or samplers as members. Hit attributes are also limited to 32 bytes. A larger struct is a compile error, for example `attribute struct 'BigAttributes' is 36 bytes; ray tracing attributes are limited to 32 bytes`.
+
+The programs of a pass don't have to use the same payload struct. The compiler can't check that the struct a ray is traced with matches the programs that end up running for it, because those are chosen in C++. The same holds for the hit attributes of an intersection program and the hit programs in its hit group.
+
+`ReportHit` takes the distance to the hit along the ray, a hit kind and the hit attributes. The hit kind is a number of your choice that any hit and closest hit programs read with `HitKind()`. For triangles `HitKind()` returns `HIT_KIND_TRIANGLE_FRONT_FACE` or `HIT_KIND_TRIANGLE_BACK_FACE`.
+
+~~~~~~~~~~~~~~
+shader RayTracingHitPrograms
+{
+	code
+	{
+		Texture2D gOpacityTexture;
+		SamplerState gOpacitySampler;
+
+		struct ColorPayload
+		{
+			float3 color;
+		};
+
+		// Hit attributes of a sphere, 12 bytes
+		struct SphereAttributes
+		{
+			float3 normal;
+		};
+
+		struct ShadingParameters
+		{
+			float3 normal;
+			float3 color;
+		};
+
+		// Reports where the ray enters a sphere of radius one, centered on the object's origin
+		[shader("intersection")]
+		void SphereIntersection()
+		{
+			float3 origin = ObjectRayOrigin();
+			float3 direction = ObjectRayDirection();
+
+			float directionSquared = dot(direction, direction);
+			float projection = dot(origin, direction);
+			float discriminant = projection * projection - directionSquared * (dot(origin, origin) - 1.0f);
+
+			if (discriminant >= 0.0f)
+			{
+				float distance = (-projection - sqrt(discriminant)) / directionSquared;
+
+				SphereAttributes attributes;
+				attributes.normal = origin + direction * distance;
+
+				ReportHit(distance, 0, attributes);
+			}
+		}
+
+		// Receives the hit attributes the intersection program reported
+		[shader("closesthit")]
+		void SphereHit(inout ColorPayload payload, in SphereAttributes attributes)
+		{
+			ShadingParameters parameters;
+			parameters.normal = attributes.normal;
+			parameters.color = 0;
+
+			CallShader(0, parameters);
+
+			payload.color = parameters.color;
+		}
+
+		// Rejects hits on the transparent parts of a triangle
+		[shader("anyhit")]
+		void CutoutHit(inout ColorPayload payload, in BuiltInTriangleIntersectionAttributes attributes)
+		{
+			float opacity = gOpacityTexture.SampleLevel(gOpacitySampler, attributes.barycentrics, 0).a;
+
+			if (opacity < 0.5f)
+				IgnoreHit();
+		}
+
+		[shader("callable")]
+		void ShadeNormal(inout ShadingParameters parameters)
+		{
+			parameters.color = parameters.normal * 0.5f + 0.5f;
+		}
+	};
+};
+~~~~~~~~~~~~~~
+
+## Ray tracing functions
+The HLSL functions in this table can only be called from some types of ray tracing programs. Calling one from any other program is a compile error, and so is calling a function that does. None of them can be called from vertex, fragment, compute or other programs outside a ray tracing pass.
+
+Function                                                                         | Ray generation | Miss | Closest hit | Any hit | Intersection | Callable
+---------------------------------------------------------------------------------|----------------|------|-------------|---------|--------------|---------
+`DispatchRaysIndex`, `DispatchRaysDimensions`                                    | Yes            | Yes  | Yes         | Yes     | Yes          | Yes
+`TraceRay`                                                                       | Yes            | Yes  | Yes         | -       | -            | -
+`CallShader`                                                                     | Yes            | Yes  | Yes         | -       | -            | Yes
+`WorldRayOrigin`, `WorldRayDirection`, `RayTMin`, `RayTCurrent`, `RayFlags`      | -              | Yes  | Yes         | Yes     | Yes          | -
+`InstanceIndex`, `InstanceID`, `GeometryIndex`, `PrimitiveIndex`                 | -              | -    | Yes         | Yes     | Yes          | -
+`ObjectRayOrigin`, `ObjectRayDirection`                                          | -              | -    | Yes         | Yes     | Yes          | -
+`ObjectToWorld3x4`, `ObjectToWorld4x3`, `WorldToObject3x4`, `WorldToObject4x3`   | -              | -    | Yes         | Yes     | Yes          | -
+`HitKind`                                                                        | -              | -    | Yes         | Yes     | -            | -
+`IgnoreHit`, `AcceptHitAndEndSearch`                                             | -              | -    | -           | Yes     | -            | -
+`ReportHit`                                                                      | -              | -    | -           | -       | Yes          | -
+
+Ray tracing programs don't run for a pixel or as part of a thread group, so none of them can use:
+ - `Sample`, `SampleBias`, `SampleCmp`, `CalculateLevelOfDetail` and `CalculateLevelOfDetailUnclamped`. Sample textures with `SampleLevel`, `SampleGrad` or `SampleCmpLevelZero` instead.
+ - `ddx`, `ddy`, their coarse and fine variants, and `fwidth`.
+ - `clip` and `discard`. An any hit program rejects a hit with `IgnoreHit`.
+ - `GroupMemoryBarrier`, `AllMemoryBarrier` and the barriers whose name ends in `WithGroupSync`.
+
+## Inline ray tracing
+**RayTraceClosest** and **RayTraceAny** trace a ray from the program that calls them, and return what the ray hit as a `RayHit` struct. They can be called from programs of every type, including the programs of a ray tracing pass.
+ - `RayHit RayTraceClosest(RaytracingAccelerationStructure scene, uint rayFlags, uint instanceMask, RayDesc ray)` returns the hit closest to the ray's origin.
+ - `RayHit RayTraceAny(RaytracingAccelerationStructure scene, uint rayFlags, uint instanceMask, RayDesc ray)` stops at the first hit it finds, which isn't necessarily the closest one. That is enough for a shadow ray, which only asks whether anything is in the way.
+
+Both also have a form with a fifth argument, a struct with callbacks, which is described in the next section. The first four arguments are:
+ - `scene` - The acceleration structure to trace through.
+ - `rayFlags` - A combination of the `RAY_FLAG_*` constants, see [Ray flags](#ray-flags).
+ - `instanceMask` - Selects the instances the ray can hit. An instance is skipped unless its own 8-bit mask, set when the acceleration structure is built, has a bit in common with this value.
+ - `ray` - Origin, direction and range of the ray.
+
+Without callbacks, triangles count as hits whether or not they are marked as opaque, and procedural primitives are skipped.
+
+~~~~~~~~~~~~~~
+shader InlineRayTracing
+{
+	code
+	{
+		RaytracingAccelerationStructure gScene;
+		RWTexture2D<float4> gOutput;
+
+		cbuffer LightParameters
+		{
+			float3 gDirectionToLight;
+		};
+
+		[numthreads(8, 8, 1)]
+		void csmain(uint3 threadId : SV_DispatchThreadID)
+		{
+			RayDesc ray;
+			ray.Origin = float3(threadId.xy, -10.0f);
+			ray.TMin = 0.0f;
+			ray.Direction = float3(0.0f, 0.0f, 1.0f);
+			ray.TMax = 1000.0f;
+
+			// Find the surface the ray sees
+			RayHit hit = RayTraceClosest(gScene, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFF, ray);
+
+			float4 color = 0;
+			if (hit.IsHit)
+			{
+				RayDesc shadowRay;
+				shadowRay.Origin = ray.Origin + ray.Direction * hit.T;
+				shadowRay.TMin = 0.001f;
+				shadowRay.Direction = gDirectionToLight;
+				shadowRay.TMax = 100.0f;
+
+				// Anything between the surface and the light puts the surface in shadow
+				bool isInShadow = RayTraceAny(gScene, RAY_FLAG_NONE, 0xFF, shadowRay).IsHit;
+
+				color = float4(hit.Barycentrics, hit.InstanceID, isInShadow ? 0.0f : 1.0f);
+			}
+
+			gOutput[threadId.xy] = color;
+		}
+	};
+};
+~~~~~~~~~~~~~~
+
+`RayHit` has the following members:
+
+Name                                  | Type     | Value
+--------------------------------------|----------|------
+IsHit                                 | bool     | True if the ray hit something. When false, every other member is zero.
+IsProcedural                          | bool     | True if the ray hit a procedural primitive, false if it hit a triangle.
+T                                     | float    | Distance to the hit along the ray. The hit is at `ray.Origin + ray.Direction * T`.
+Barycentrics                          | float2   | Weights of the triangle's second and third vertex at the hit. Zero for a procedural primitive.
+FrontFace                             | bool     | True if the ray hit the front side of the triangle. False for a procedural primitive.
+InstanceIndex                         | uint     | Index of the instance that was hit, within the acceleration structure.
+InstanceID                            | uint     | Identifier given to the instance when the acceleration structure was built.
+InstanceContributionToHitGroupIndex   | uint     | Hit group offset given to the instance when the acceleration structure was built.
+GeometryIndex                         | uint     | Index of the geometry that was hit, within the mesh of the instance.
+PrimitiveIndex                        | uint     | Index of the triangle or procedural primitive that was hit, within its geometry.
+ObjectToWorld                         | float3x4 | Transform of the instance, from its object space to world space.
+WorldToObject                         | float3x4 | Transform of the instance, from world space to its object space.
+
+## Inline ray tracing callbacks
+Two decisions need code from the shader while the ray is traced: whether a hit on geometry that isn't marked as opaque counts, and where a ray hits a procedural primitive. A ray tracing pass makes them in any hit and intersection programs. Inline ray tracing makes them in methods of a struct that is passed as the fifth argument:
+ - `RayHit RayTraceClosest(RaytracingAccelerationStructure scene, uint rayFlags, uint instanceMask, RayDesc ray, inout Callbacks callbacks)`
+ - `RayHit RayTraceAny(RaytracingAccelerationStructure scene, uint rayFlags, uint instanceMask, RayDesc ray, inout Callbacks callbacks)`
+
+`Callbacks` is a struct of your own that has one or both of these methods:
+
+Method                                                            | Called                                                               | Return value
+------------------------------------------------------------------|----------------------------------------------------------------------|-------------
+`bool AnyHit(RayCandidate candidate)`                             | For every triangle the ray meets that isn't marked as opaque.        | True accepts the hit. False ignores it, and the search continues.
+`bool Intersection(RayCandidate candidate, out float distance)`   | For every procedural primitive whose bounding box the ray enters.    | True reports a hit at `distance` along the ray. A distance outside the ray's range, or beyond the closest hit found so far, is ignored.
+
+Without an `AnyHit` method, triangles that aren't marked as opaque are accepted. Without an `Intersection` method, procedural primitives are skipped.
+
+The struct can have other members and methods. It is passed as `inout`: the callbacks read the values its members had before the call, and the changes they make to the members are visible after the call.
+
+~~~~~~~~~~~~~~
+shader InlineRayTracingCallbacks
+{
+	code
+	{
+		RaytracingAccelerationStructure gScene;
+		RWTexture2D<float4> gOutput;
+		StructuredBuffer<float> gInstanceOpacity;
+
+		struct SceneCallbacks
+		{
+			// Set before the trace
+			float opacityThreshold;
+
+			// Read after the trace
+			uint ignoredCount;
+
+			// Accepts a triangle only if its instance is opaque enough
+			bool AnyHit(RayCandidate candidate)
+			{
+				if (gInstanceOpacity[candidate.InstanceID] >= opacityThreshold)
+					return true;
+
+				ignoredCount++;
+				return false;
+			}
+
+			// Intersects the ray with a sphere of radius one, centered on the object's origin
+			bool Intersection(RayCandidate candidate, out float distance)
+			{
+				float3 origin = candidate.ObjectRayOrigin;
+				float3 direction = candidate.ObjectRayDirection;
+
+				float directionSquared = dot(direction, direction);
+				float projection = dot(origin, direction);
+				float discriminant = projection * projection - directionSquared * (dot(origin, origin) - 1.0f);
+
+				distance = (-projection - sqrt(max(discriminant, 0.0f))) / directionSquared;
+				return discriminant >= 0.0f;
+			}
+		};
+
+		[numthreads(8, 8, 1)]
+		void csmain(uint3 threadId : SV_DispatchThreadID)
+		{
+			RayDesc ray;
+			ray.Origin = float3(threadId.xy, -10.0f);
+			ray.TMin = 0.0f;
+			ray.Direction = float3(0.0f, 0.0f, 1.0f);
+			ray.TMax = 1000.0f;
+
+			SceneCallbacks callbacks;
+			callbacks.opacityThreshold = 0.5f;
+			callbacks.ignoredCount = 0;
+
+			RayHit hit = RayTraceClosest(gScene, RAY_FLAG_NONE, 0xFF, ray, callbacks);
+
+			float4 color = 0;
+			if (hit.IsHit)
+				color = float4(hit.T, hit.IsProcedural ? 1.0f : 0.0f, callbacks.ignoredCount, 1.0f);
+
+			gOutput[threadId.xy] = color;
+		}
+	};
+};
+~~~~~~~~~~~~~~
+
+The `candidate` parameter describes the triangle or procedural primitive the callback is asked about. Callbacks are called in no particular order.
+
+Name                                  | Type     | Value
+--------------------------------------|----------|------
+T                                     | float    | Distance to the triangle along the ray. Zero in `Intersection`.
+Barycentrics                          | float2   | Weights of the triangle's second and third vertex at the candidate hit. Zero in `Intersection`.
+FrontFace                             | bool     | True if the ray meets the front side of the triangle. False in `Intersection`.
+InstanceIndex                         | uint     | Index of the candidate's instance, within the acceleration structure.
+InstanceID                            | uint     | Identifier given to the instance when the acceleration structure was built.
+InstanceContributionToHitGroupIndex   | uint     | Hit group offset given to the instance when the acceleration structure was built.
+GeometryIndex                         | uint     | Index of the candidate's geometry, within the mesh of the instance.
+PrimitiveIndex                        | uint     | Index of the triangle or procedural primitive, within its geometry.
+ObjectRayOrigin                       | float3   | Origin of the ray in the object space of the instance.
+ObjectRayDirection                    | float3   | Direction of the ray in the object space of the instance.
+
+The compiler enforces these rules:
+ - The callbacks argument must be a local variable or a function parameter. A global variable, a static local variable, a member of another variable and an array element are all rejected.
+ - Its type must be a struct declared at global scope, and not a template.
+ - The struct needs at least one of the two methods, declared with exactly the return type and parameters shown above. A misspelled method name therefore fails with an error such as `callbacks struct 'Typo' has neither an 'AnyHit' nor an 'Intersection' method`.
+ - A callback can't call **RayTraceClosest**, **RayTraceAny**, `TraceRay`, `CallShader` or `clip`, and can't use `discard`. This includes the functions it calls.
+
+## Ray flags
+Ray flags change which geometry a ray can hit. `TraceRay` accepts all of them. **RayTraceClosest** and **RayTraceAny** accept only some:
+
+Flag                                                                              | Effect                                                                                  | Inline ray tracing
+----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|-------------------
+`RAY_FLAG_NONE`                                                                   | No flags.                                                                               | Yes
+`RAY_FLAG_FORCE_OPAQUE`                                                           | Treats all geometry as opaque, so no any hit program or `AnyHit` callback runs.         | Yes
+`RAY_FLAG_FORCE_NON_OPAQUE`                                                       | Treats all geometry as not opaque.                                                      | Yes
+`RAY_FLAG_CULL_BACK_FACING_TRIANGLES`, `RAY_FLAG_CULL_FRONT_FACING_TRIANGLES`     | Skips the triangles that face away from the ray, or toward it.                          | Yes
+`RAY_FLAG_CULL_OPAQUE`, `RAY_FLAG_CULL_NON_OPAQUE`                                | Skips the geometry that is marked as opaque, or the geometry that isn't.                | Yes
+`RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES`                                             | Skips procedural primitives.                                                            | Yes
+`RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH`                                        | Ends the search at the first hit.                                                       | No, call **RayTraceAny** instead
+`RAY_FLAG_SKIP_CLOSEST_HIT_SHADER`                                                | Doesn't run the closest hit program.                                                    | No, there is no closest hit program
+`RAY_FLAG_SKIP_TRIANGLES`                                                         | Skips triangles.                                                                        | No
+
+When the flags passed to **RayTraceClosest** or **RayTraceAny** are a constant, a flag that isn't accepted is a compile error, such as `ray flag RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH can't be used with 'RayTraceClosest'; use RayTraceAny to stop at the first hit`. Flags computed while the program runs can't be checked, and the flags that aren't accepted are ignored.
+
+## Acceleration structure parameters
+A `RaytracingAccelerationStructure` parameter is declared at the top level of a **code** block, like a texture. It can be declared as an array and passed to functions.
+
+An acceleration structure can also be read from the resource heap, by indexing `ResourceDescriptorHeap` with a `uint`. It is then not a parameter of the shader. See [Bindless resources](../../Developer_Manuals/Low_Level_rendering/bindlessResources) for how programs access the heap.
+
+~~~~~~~~~~~~~~
+shader AccelerationStructureParameters
+{
+	code
+	{
+		// Bound as a parameter
+		RaytracingAccelerationStructure gScene;
+
+		cbuffer SceneParameters
+		{
+			// Index of another acceleration structure in the resource heap
+			uint gHeapSceneIndex;
+		};
+
+		RWStructuredBuffer<float> gDistances;
+
+		float TraceDistance(RaytracingAccelerationStructure scene, RayDesc ray)
+		{
+			RayHit hit = RayTraceClosest(scene, RAY_FLAG_NONE, 0xFF, ray);
+			return hit.IsHit ? hit.T : ray.TMax;
+		}
+
+		[numthreads(64, 1, 1)]
+		void csmain(uint3 threadId : SV_DispatchThreadID)
+		{
+			RayDesc ray;
+			ray.Origin = float3(threadId.x, 0.0f, 0.0f);
+			ray.TMin = 0.0f;
+			ray.Direction = float3(0.0f, 0.0f, 1.0f);
+			ray.TMax = 100.0f;
+
+			RaytracingAccelerationStructure heapScene = ResourceDescriptorHeap[gHeapSceneIndex];
+
+			gDistances[threadId.x] = min(TraceDistance(gScene, ray), TraceDistance(heapScene, ray));
+		}
 	};
 };
 ~~~~~~~~~~~~~~
