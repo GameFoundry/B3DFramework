@@ -27,6 +27,7 @@ namespace b3d
 			bool SetStorageTexture(u32 slot, const TShared<Texture>& texture, const TextureSurface& surface, u32 arrayIndex = 0) override { return true; }
 			bool SetStorageBuffer(u32 slot, const TShared<GpuBuffer>& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation()) override { return true; }
 			bool SetSamplerState(u32 slot, const TShared<SamplerState>& sampler, u32 arrayIndex = 0) override { return true; }
+			bool SetAccelerationStructure(u32 slot, const TShared<GpuAccelerationStructure>& accelerationStructure, u32 arrayIndex = 0) override { return true; }
 
 			void Initialize() override {}
 		};

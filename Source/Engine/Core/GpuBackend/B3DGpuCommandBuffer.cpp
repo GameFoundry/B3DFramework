@@ -3,6 +3,7 @@
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuBuffer.h"
+#include "GpuBackend/B3DGpuAccelerationStructure.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuPipelineParameterLayout.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
@@ -760,6 +761,164 @@ bool GpuCommandBuffer::BlitTexture(const TShared<Texture>& source, const TShared
 		mBarrierValidator->ValidateTextureAccess(*destination, destinationRange, GpuImageLayout::Undefined, GpuStageFlag::Transfer, GpuAccessFlag::Write);
 	}
 #endif
+
+	return true;
+}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+namespace
+{
+	/**
+	 * Checks the destination and scratch memory of @p build on @p device, and logs the reason if they are invalid. @p sizes are what the
+	 * build's inputs need.
+	 */
+	bool ValidateAccelerationStructureBuild(const GpuDevice& device, const GpuAccelerationStructureBuild& build, u32 buildIndex, const GpuAccelerationStructureSizes& sizes)
+	{
+		const GpuAccelerationStructure& destination = *build.Destination;
+		if(!B3D_ENSURE_LOG(destination.GetType() == build.Inputs.Type, "Build {0} builds acceleration structure '{1}' from inputs of another level.", buildIndex, destination.GetBuffer()->GetName()))
+			return false;
+
+		if(!B3D_ENSURE_LOG(destination.GetSize() >= sizes.AccelerationStructureSize, "Build {0} needs {1} bytes, but acceleration structure '{2}' has {3}.", buildIndex,
+			sizes.AccelerationStructureSize, destination.GetBuffer()->GetName(), destination.GetSize()))
+		{
+			return false;
+		}
+
+		const GpuBuffer& scratchBuffer = *build.ScratchBuffer;
+		const GpuBufferInformation& scratchInformation = scratchBuffer.GetInformation();
+		const bool isScratchCapable = scratchInformation.Type == GpuBufferType::StructuredStorage && scratchInformation.Flags.IsSet(GpuBufferFlag::StoreOnGPU) &&
+			scratchInformation.Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU);
+		if(!B3D_ENSURE_LOG(isScratchCapable, "The scratch buffer '{0}' of build {1} must be a structured storage buffer stored on the GPU that allows unordered access.",
+			scratchBuffer.GetName(), buildIndex))
+		{
+			return false;
+		}
+
+		const u32 scratchAlignment = device.GetCapabilities().RayTracing.ScratchOffsetAlignment;
+		if(!B3D_ENSURE_LOG(build.ScratchOffset % scratchAlignment == 0, "The scratch offset {0} of build {1} must be a multiple of {2}.", build.ScratchOffset, buildIndex, scratchAlignment))
+			return false;
+
+		if(!B3D_ENSURE_LOG((u64)build.ScratchOffset + sizes.BuildScratchSize <= scratchBuffer.GetTotalSize(), "Build {0} needs {1} bytes of scratch memory past offset {2}, more than buffer '{3}' has.",
+			buildIndex, sizes.BuildScratchSize, build.ScratchOffset, scratchBuffer.GetName()))
+		{
+			return false;
+		}
+
+		if(build.Inputs.Type == GpuAccelerationStructureType::BottomLevel)
+			return B3D_ENSURE_LOG(build.BottomLevels.IsEmpty(), "Build {0} builds a bottom level acceleration structure, which cannot reference other structures.", buildIndex);
+
+		for(const TShared<GpuAccelerationStructure>& bottomLevel : build.BottomLevels)
+		{
+			const bool isBottomLevel = bottomLevel != nullptr && bottomLevel->GetBuffer() != nullptr && bottomLevel->GetType() == GpuAccelerationStructureType::BottomLevel;
+			if(!B3D_ENSURE_LOG(isBottomLevel, "Build {0} lists a structure that is not a bottom level acceleration structure among its bottom levels.", buildIndex))
+				return false;
+		}
+
+		return true;
+	}
+
+	/** Checks that the builds of one call can run at the same time on @p device, and logs the reason if they can't. */
+	bool ValidateAccelerationStructureBuilds(const GpuDevice& device, TArrayView<const GpuAccelerationStructureBuild> builds)
+	{
+		// Queried once per build, since the query validates the inputs and asks the backend
+		FrameAllocatorScope frameScope;
+		FrameVector<GpuAccelerationStructureSizes> buildSizes(builds.size());
+
+		for(u32 buildIndex = 0; buildIndex < (u32)builds.size(); buildIndex++)
+		{
+			const GpuAccelerationStructureBuild& build = builds[buildIndex];
+			if(!device.GetAccelerationStructureSizes(build.Inputs, buildSizes[buildIndex]))
+				return false;
+
+			if(!ValidateAccelerationStructureBuild(device, build, buildIndex, buildSizes[buildIndex]))
+				return false;
+
+			for(u32 otherIndex = 0; otherIndex < buildIndex; otherIndex++)
+			{
+				const GpuAccelerationStructureBuild& other = builds[otherIndex];
+				if(!B3D_ENSURE_LOG(other.Destination->GetBuffer() != build.Destination->GetBuffer(), "Builds {0} and {1} build the same acceleration structure.", otherIndex, buildIndex))
+					return false;
+
+				if(other.ScratchBuffer == build.ScratchBuffer)
+				{
+					const bool overlaps = build.ScratchOffset < other.ScratchOffset + buildSizes[otherIndex].BuildScratchSize &&
+						other.ScratchOffset < build.ScratchOffset + buildSizes[buildIndex].BuildScratchSize;
+					if(!B3D_ENSURE_LOG(!overlaps, "Builds {0} and {1} use overlapping scratch memory of buffer '{2}'.", otherIndex, buildIndex, build.ScratchBuffer->GetName()))
+						return false;
+				}
+
+				// Builds of one call may run at the same time, so a top level structure cannot read a structure built next to it
+				const auto fnReferences = [](const GpuAccelerationStructureBuild& topLevelBuild, const GpuAccelerationStructureBuild& bottomLevelBuild)
+				{
+					for(const TShared<GpuAccelerationStructure>& bottomLevel : topLevelBuild.BottomLevels)
+					{
+						if(bottomLevel->GetBuffer() == bottomLevelBuild.Destination->GetBuffer())
+							return true;
+					}
+
+					return false;
+				};
+
+				if(!B3D_ENSURE_LOG(!fnReferences(build, other) && !fnReferences(other, build),
+					"Builds {0} and {1} build a top level acceleration structure and a bottom level structure it references. Build them in separate calls, with a barrier between them.",
+					otherIndex, buildIndex))
+				{
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+} // namespace
+#endif
+
+bool GpuCommandBuffer::BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild> builds)
+{
+	EnsureValidThread();
+
+	if(!mGpuDevice.GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES))
+	{
+		B3D_LOG(Error, LogRenderBackend, "Cannot build acceleration structures, the GPU device doesn't support them.");
+		return false;
+	}
+
+	if(mQueueType != GQT_GRAPHICS && mQueueType != GQT_COMPUTE)
+	{
+		B3D_LOG(Error, LogRenderBackend, "Acceleration structure builds can only be recorded on graphics or compute queue command buffers.");
+		return false;
+	}
+
+	if(IsInRenderPass())
+	{
+		B3D_LOG(Error, LogRenderBackend, "Acceleration structure builds cannot be recorded inside a render pass.");
+		return false;
+	}
+
+	for(u32 buildIndex = 0; buildIndex < (u32)builds.size(); buildIndex++)
+	{
+		const GpuAccelerationStructureBuild& build = builds[buildIndex];
+		if(build.Destination == nullptr || build.Destination->GetBuffer() == nullptr || build.ScratchBuffer == nullptr)
+		{
+			B3D_LOG(Error, LogRenderBackend, "Acceleration structure build {0} has no destination or no scratch buffer.", buildIndex);
+			return false;
+		}
+	}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	if(!ValidateAccelerationStructureBuilds(mGpuDevice, builds))
+		return false;
+
+	if(mBarrierValidator != nullptr)
+		mBarrierValidator->ValidateAccelerationStructureBuilds(builds);
+#endif
+
+	// A top level structure keeps the bottom level structures of its latest build alive
+	for(const GpuAccelerationStructureBuild& build : builds)
+	{
+		if(build.Destination->GetType() == GpuAccelerationStructureType::TopLevel)
+			build.Destination->SetBottomLevels(build.BottomLevels);
+	}
 
 	return true;
 }

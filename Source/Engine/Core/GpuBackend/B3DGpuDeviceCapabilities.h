@@ -177,6 +177,12 @@ namespace b3d
 
 		/** True if ray tracing pipelines can contain GPT_CALLABLE_PROGRAM programs. */
 		bool SupportsCallablePrograms = false;
+
+		/**
+		 * True if top level acceleration structures can be created with GpuBufferFlag::Bindless, so shaders read them through
+		 * ResourceDescriptorHeap. Otherwise parameter sets bind them.
+		 */
+		bool SupportsBindlessAccelerationStructures = false;
 	};
 
 	/** Types of GPU vendors. */

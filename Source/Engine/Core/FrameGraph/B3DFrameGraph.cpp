@@ -2454,6 +2454,9 @@ namespace b3d::render
 				case GpuParameterType::StorageBuffer:
 					DeclareAccess(output, resourceIndex, GpuTextureSubresourceRange(), GpuAccessState(GpuBackendUtility::GetStageFlags(stageUse | GpuResourceUseFlag::ShaderAccess), bound.Access));
 					break;
+				case GpuParameterType::AccelerationStructure:
+					DeclareAccess(output, resourceIndex, GpuTextureSubresourceRange(), GpuAccessState(GpuBackendUtility::GetStageFlags(stageUse | GpuResourceUseFlag::AccelerationStructure), bound.Access));
+					break;
 				case GpuParameterType::SampledTexture:
 				{
 					// Sampled depth/stencil views only read the depth aspect

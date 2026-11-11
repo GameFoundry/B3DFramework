@@ -20,6 +20,9 @@ static GpuParameterObjectType GetViewObjectType(const GpuBindlessResourceView& v
 {
 	if(view.Buffer != nullptr)
 	{
+		if(view.Buffer->GetInformation().Type == GpuBufferType::AccelerationStructure)
+			return GPOT_ACCELERATION_STRUCTURE;
+
 		if(view.ViewType == GpuBufferViewType::Raw)
 			return GPOT_BYTE_ADDRESS_BUFFER;
 

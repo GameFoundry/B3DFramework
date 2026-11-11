@@ -19,5 +19,19 @@ namespace b3d
 		 * RSC_ACCELERATION_STRUCTURES, verifies that creation fails.
 		 */
 		void TestAccelerationStructureBuffers();
+
+		/**
+		 * Verifies the size query and the instance writes, and the errors of invalid inputs, instances and builds. Without
+		 * RSC_ACCELERATION_STRUCTURES, verifies that the queries, instance writes and builds fail.
+		 */
+		void TestAccelerationStructureQueries();
+
+		/**
+		 * Builds bottom level structures of known triangles and top level structures of their instances, and traces rays against them
+		 * inline, with the top level structure bound to a set and taken from the bindless heap. Checks distances, barycentrics,
+		 * instance, geometry and primitive indices, facing, instance masks, ray and instance flags, any-hit callbacks, and that a top
+		 * level structure keeps its bottom levels alive. Runs only with RSC_ACCELERATION_STRUCTURES and RSC_RAY_QUERY.
+		 */
+		void TestInlineRayTracing();
 	};
 } // namespace b3d

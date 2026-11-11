@@ -6,6 +6,7 @@
 #include "Image/B3DTexture.h"
 #include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/B3DGpuBuffer.h"
+#include "GpuBackend/B3DGpuAccelerationStructure.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DGpuProgram.h"
 #include "GpuBackend/B3DGpuVertexInputManager.h"
@@ -239,12 +240,27 @@ namespace
 			if(!B3D_ENSURE_LOG(createInformation.AccelerationStructure.Size > 0, "An acceleration structure buffer must have a size."))
 				return false;
 
-			// TODO - Allow GpuBufferFlag::Bindless on top level acceleration structures, once backends write them into the bindless heap
-			if(!B3D_ENSURE_LOG(createInformation.Flags == GpuBufferFlags(GpuBufferFlag::StoreOnGPU), "An acceleration structure buffer must be created with GpuBufferFlag::StoreOnGPU and no other flag."))
+			const GpuBufferFlags otherFlags = createInformation.Flags & ~GpuBufferFlags(GpuBufferFlag::StoreOnGPU | GpuBufferFlag::Bindless);
+			if(!B3D_ENSURE_LOG(createInformation.Flags.IsSet(GpuBufferFlag::StoreOnGPU) && otherFlags == GpuBufferFlags(),
+				"An acceleration structure buffer must be created with GpuBufferFlag::StoreOnGPU, and no other flag than GpuBufferFlag::Bindless."))
+			{
+				return false;
+			}
+
+			if(!B3D_ENSURE_LOG(!flags.IsSet(GpuObjectCreateFlag::Aliased) && createInformation.SuballocationCount <= 1, "An acceleration structure buffer cannot be aliased or have suballocations."))
 				return false;
 
-			return B3D_ENSURE_LOG(!flags.IsSet(GpuObjectCreateFlag::Aliased) && createInformation.SuballocationCount <= 1,
-				"An acceleration structure buffer cannot be aliased or have suballocations.");
+			if(!createInformation.Flags.IsSet(GpuBufferFlag::Bindless))
+				return true;
+
+			if(!B3D_ENSURE_LOG(createInformation.AccelerationStructure.Type == GpuAccelerationStructureType::TopLevel, "Only a top level acceleration structure buffer can be bindless."))
+				return false;
+
+			if(!B3D_ENSURE_LOG(device.GetCapabilities().RayTracing.SupportsBindlessAccelerationStructures, "Cannot create a bindless acceleration structure buffer, the GPU device doesn't support them."))
+				return false;
+
+			static const String kAccelerationStructureName = "<acceleration structure>";
+			return ValidateBindlessResource(device, kAccelerationStructureName, flags);
 		}
 
 		if(createInformation.Flags.IsSet(GpuBufferFlag::AccelerationStructureInput))
@@ -325,6 +341,57 @@ TShared<render::GpuBuffer> GpuDevice::CreateGpuBuffer(const GpuBufferCreateInfor
 		return nullptr;
 
 	return CreateGpuBufferInternal(createInformation, allocation, flags);
+}
+
+bool GpuDevice::GetAccelerationStructureSizes(const GpuAccelerationStructureInputs& inputs, GpuAccelerationStructureSizes& outSizes) const
+{
+	outSizes = GpuAccelerationStructureSizes();
+
+	if(!B3D_ENSURE_LOG(GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES), "Cannot query acceleration structure sizes, the GPU device doesn't support acceleration structures."))
+		return false;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	if(!render::GpuAccelerationStructure::ValidateInputs(*this, inputs))
+		return false;
+#endif
+
+	return true;
+}
+
+bool GpuDevice::WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance> instances, void* destination) const
+{
+	if(!B3D_ENSURE_LOG(GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES), "Cannot write ray tracing instances, the GPU device doesn't support acceleration structures."))
+		return false;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	const u64 maximumInstanceCount = GetCapabilities().RayTracing.MaximumInstanceCount;
+	if(!B3D_ENSURE_LOG(instances.size() <= maximumInstanceCount, "Cannot write {0} ray tracing instances, the device supports at most {1}.", instances.size(), maximumInstanceCount))
+		return false;
+
+	static constexpr u32 kMaximum24BitValue = (1u << 24) - 1;
+	const GpuRayTracingInstanceFlags forcedOpacity = GpuRayTracingInstanceFlag::ForceOpaque | GpuRayTracingInstanceFlag::ForceNonOpaque;
+	for(u32 instanceIndex = 0; instanceIndex < (u32)instances.size(); instanceIndex++)
+	{
+		const GpuRayTracingInstance& instance = instances[instanceIndex];
+		if(!B3D_ENSURE_LOG(instance.InstanceId <= kMaximum24BitValue && instance.HitGroupIndexOffset <= kMaximum24BitValue,
+			"Ray tracing instance {0} has instance id {1} and hit group index offset {2}. Both must fit in 24 bits.", instanceIndex, instance.InstanceId, instance.HitGroupIndexOffset))
+		{
+			return false;
+		}
+
+		if(!B3D_ENSURE_LOG((instance.Flags & forcedOpacity) != forcedOpacity, "Ray tracing instance {0} cannot force its geometry to be both opaque and non-opaque.", instanceIndex))
+			return false;
+
+		const bool hasBottomLevel = instance.BottomLevel != nullptr && instance.BottomLevel->GetBuffer() != nullptr;
+		if(!B3D_ENSURE_LOG(hasBottomLevel && instance.BottomLevel->GetType() == GpuAccelerationStructureType::BottomLevel,
+			"Ray tracing instance {0} must reference a bottom level acceleration structure.", instanceIndex))
+		{
+			return false;
+		}
+	}
+#endif
+
+	return true;
 }
 
 render::GpuStageFlags GpuDevice::GetSupportedStageFlags() const

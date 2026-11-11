@@ -5,6 +5,7 @@
 #if B3D_BUILD_TYPE_DEVELOPMENT
 
 #include "GpuBackend/B3DGpuBackendUtility.h"
+#include "GpuBackend/B3DGpuAccelerationStructure.h"
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuPipelineParameterLayout.h"
@@ -176,6 +177,33 @@ namespace b3d::render
 		mOperation = 0;
 	}
 
+	void GpuBarrierValidator::ValidateAccelerationStructureBuilds(TArrayView<const GpuAccelerationStructureBuild> builds)
+	{
+		mOperation = ++mOperationCount;
+
+		for(const GpuAccelerationStructureBuild& build : builds)
+		{
+			ValidateBufferAccess(*build.Destination->GetBuffer(), GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Write);
+			ValidateBufferAccess(*build.ScratchBuffer, GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Read | GpuAccessFlag::Write);
+
+			for(const TShared<GpuAccelerationStructure>& bottomLevel : build.BottomLevels)
+				ValidateBufferAccess(*bottomLevel->GetBuffer(), GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Read);
+
+			for(const GpuRayTracingGeometry& geometry : build.Inputs.Geometries)
+			{
+				ValidateBufferAccess(*geometry.VertexBuffer, GpuStageFlag::AccelerationStructureBuildInput, GpuAccessFlag::Read);
+
+				if(geometry.IndexBuffer != nullptr)
+					ValidateBufferAccess(*geometry.IndexBuffer, GpuStageFlag::AccelerationStructureBuildInput, GpuAccessFlag::Read);
+			}
+
+			if(build.Inputs.InstanceBuffer != nullptr)
+				ValidateBufferAccess(*build.Inputs.InstanceBuffer, GpuStageFlag::AccelerationStructureBuildInput, GpuAccessFlag::Read);
+		}
+
+		mOperation = 0;
+	}
+
 	void GpuBarrierValidator::ValidateBufferAccess(const GpuBuffer& buffer, GpuStageFlags stages, GpuAccessFlags access)
 	{
 		const char* error = GetBufferStageError(buffer, stages);
@@ -336,6 +364,9 @@ namespace b3d::render
 					break;
 				case GpuParameterType::StorageBuffer:
 					ValidateBufferAccess(*resource.Buffer, GpuBackendUtility::GetStageFlags(stageUse | GpuResourceUseFlag::ShaderAccess), resource.Access);
+					break;
+				case GpuParameterType::AccelerationStructure:
+					ValidateBufferAccess(*resource.Buffer, GpuBackendUtility::GetStageFlags(stageUse | GpuResourceUseFlag::AccelerationStructure), resource.Access);
 					break;
 				case GpuParameterType::SampledTexture:
 				{
@@ -547,7 +578,7 @@ namespace b3d::render
 		else if(declared != nullptr && layout != GpuImageLayout::Undefined && layout != declared->Layout)
 			error = state.IsDeclared ? "The image was accessed in a different layout than its last barrier declares." : "The image was accessed in a different layout than its resting state, without a barrier.";
 		else if(operation != 0 && state.WriterOperation != 0 && state.WriterOperation != operation)
-			error = "The resource was accessed by a draw or dispatch after another draw or dispatch wrote it, without a barrier in between.";
+			error = "The resource was accessed by a draw, dispatch or build after another one wrote it, without a barrier in between.";
 
 		state.UsedStages[queueType] |= stages;
 		state.UsedAccess[queueType] |= access;

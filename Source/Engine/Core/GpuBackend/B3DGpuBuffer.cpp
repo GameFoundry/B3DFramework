@@ -298,7 +298,8 @@ namespace b3d::render
 	{
 		if(mInformation.Flags.IsSet(GpuBufferFlag::Bindless) && B3D_ENSURE(GetGpuResource() != nullptr))
 		{
-			// Vertex streams interleave formats and indices may be 16-bit, so shaders read both as raw words
+			// Vertex streams interleave formats and indices may be 16-bit, so shaders read both as raw words. The view of an acceleration
+			// structure is the structure itself, whatever its view type.
 			const bool isVertexOrIndex = mInformation.Type == GpuBufferType::Vertex || mInformation.Type == GpuBufferType::Index;
 			const GpuBufferViewType defaultViewType = isVertexOrIndex ? GpuBufferViewType::Raw : GpuBufferViewType::Typed;
 
@@ -322,6 +323,9 @@ namespace b3d::render
 
 	u32 GpuBuffer::GetOrCreateBindlessIndex(GpuBufferViewType viewType, GpuBufferFormat format)
 	{
+		if(!B3D_ENSURE_LOG(mInformation.Type != GpuBufferType::AccelerationStructure, "An acceleration structure buffer only has its default bindless view. Buffer: '{0}'.", mName))
+			return kGpuBindlessInvalidIndex;
+
 		const bool isSimpleStorage = mInformation.Type == GpuBufferType::SimpleStorage;
 		const bool isVertexOrIndex = mInformation.Type == GpuBufferType::Vertex || mInformation.Type == GpuBufferType::Index;
 		if(!B3D_ENSURE_LOG(viewType != GpuBufferViewType::Raw || mInformation.Type == GpuBufferType::StructuredStorage || isVertexOrIndex, "Raw bindless views are only supported for structured storage, vertex and index buffers. Buffer: '{0}'.", mName))

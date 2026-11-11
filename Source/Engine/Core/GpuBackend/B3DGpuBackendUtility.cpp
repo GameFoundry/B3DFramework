@@ -226,6 +226,25 @@ GpuStageFlags GpuBackendUtility::GetStageFlags(GpuResourceUseFlags usage)
 			accessStageFlags |= GpuStageFlag::VertexShaderUniform | GpuStageFlag::FragmentShaderUniform | GpuStageFlag::ComputeShaderUniform | GpuStageFlag::RayTracingShaderUniform;
 	}
 
+	if(usage.IsSet(GpuResourceUseFlag::AccelerationStructure))
+	{
+		if(usage.IsSet(GpuResourceUseFlag::StageVertexShader))
+			accessStageFlags |= GpuStageFlag::VertexShaderAccelerationStructure;
+
+		if(usage.IsSet(GpuResourceUseFlag::StageFragmentShader))
+			accessStageFlags |= GpuStageFlag::FragmentShaderAccelerationStructure;
+
+		if(usage.IsSet(GpuResourceUseFlag::StageComputeShader))
+			accessStageFlags |= GpuStageFlag::ComputeShaderAccelerationStructure;
+
+		if(usage.IsSet(GpuResourceUseFlag::StageRayTracingShader))
+			accessStageFlags |= GpuStageFlag::RayTracingShaderAccelerationStructure;
+
+		// Assume all stages if none are set explicitly
+		if(!usage.IsSetAny(GpuResourceUseFlag::AnyStage))
+			accessStageFlags |= GpuStageFlag::AllShaderAccelerationStructure;
+	}
+
 	if(usage.IsSet(GpuResourceUseFlag::Transfer))
 		accessStageFlags |= GpuStageFlag::Transfer;
 

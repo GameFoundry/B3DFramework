@@ -31,7 +31,11 @@ namespace b3d::render
 	 *    Their layout is not checked.
 	 *  - Draws and dispatches access the bindings of the bound pipeline in the shader stages that use them. Sampled textures are in
 	 *    GpuImageLayout::ShaderReadOnly, unless they are attachments of the render pass, and storage textures in GpuImageLayout::General.
-	 *    A draw or dispatch must not access a subresource that an earlier draw or dispatch wrote since its last barrier.
+	 *    A draw or dispatch must not access a subresource that an earlier draw or dispatch wrote since its last barrier. Bound acceleration
+	 *    structures are accessed in the GpuStageFlag::AllShaderAccelerationStructure stages of the shader stages that use them.
+	 *  - Acceleration structure builds access structures and scratch memory in GpuStageFlag::AccelerationStructureBuild, and their
+	 *    vertices, indices and instances in GpuStageFlag::AccelerationStructureBuildInput. The builds of one call count as one operation,
+	 *    like a draw: they must not access a resource that an earlier draw, dispatch or build wrote since its last barrier.
 	 *  - Render pass attachments access in GpuStageFlag::ColorAttachment, or the early and late fragment tests. See
 	 *    GpuBackendUtility::GetRenderPassAttachmentLayout() for their layouts.
 	 *  - Resources must not be accessed or barriered while they are unplaced (see render::Texture::SetUnplaced()). A resource with a
@@ -97,6 +101,9 @@ namespace b3d::render
 
 		/** Checks the accesses of a dispatch: the bindings of the compute pipeline. */
 		void ValidateDispatch();
+
+		/** Checks the accesses of the acceleration structure builds recorded by one GpuCommandBuffer::BuildAccelerationStructures() call. */
+		void ValidateAccelerationStructureBuilds(TArrayView<const GpuAccelerationStructureBuild> builds);
 
 		/** Checks an access of a buffer in @p stages against the declared state, and records it for the next barrier. */
 		void ValidateBufferAccess(const GpuBuffer& buffer, GpuStageFlags stages, GpuAccessFlags access);
@@ -240,8 +247,8 @@ namespace b3d::render
 		const char* ForEachSubresourceState(const ImageSubresources& image, TFunction&& function);
 
 		GpuQueueType mQueueType = GQT_GRAPHICS; /**< Queue type of the command buffer being validated. */
-		u32 mOperationCount = 0; /**< Number of draws and dispatches validated so far. */
-		u32 mOperation = 0; /**< Draw or dispatch whose accesses are being validated, or 0 outside of one. */
+		u32 mOperationCount = 0; /**< Number of draws, dispatches and build calls validated so far. */
+		u32 mOperation = 0; /**< Draw, dispatch or build call whose accesses are being validated, or 0 outside of one. */
 
 		TDenseMap<const GpuBuffer*, ResourceState> mBuffers;
 		UnorderedMap<ImageKey, Vector<ResourceState>, ImageKeyHash> mImages; /**< One state per face, mip level and aspect. */

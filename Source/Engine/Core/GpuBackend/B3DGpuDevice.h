@@ -55,6 +55,9 @@ namespace b3d
 	struct GpuProgramCreateInformation;
 	struct GpuComputePipelineStateCreateInformation;
 	struct GpuGraphicsPipelineStateCreateInformation;
+	struct GpuAccelerationStructureSizes;
+	struct GpuAccelerationStructureInputs;
+	struct GpuRayTracingInstance;
 
 	/** @addtogroup GpuBackend
 	 *  @{
@@ -204,6 +207,26 @@ namespace b3d
 
 		/** Returns the memory a buffer described by @p createInformation needs. Thread safe. */
 		virtual GpuMemoryRequirements GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const = 0;
+
+		/**
+		 * Returns the size of the buffer an acceleration structure with @p inputs needs, and the scratch memory its build needs. Thread safe.
+		 *
+		 * @param	inputs		Contents of the acceleration structure. Buffers are only inspected, not read.
+		 * @param	outSizes	Receives the sizes. Zero if the call fails.
+		 * @return				False, with the reason logged, if the device doesn't support acceleration structures or the inputs are invalid.
+		 */
+		virtual bool GetAccelerationStructureSizes(const GpuAccelerationStructureInputs& inputs, GpuAccelerationStructureSizes& outSizes) const;
+
+		/**
+		 * Converts @p instances to the layout top level acceleration structure builds read, see GpuAccelerationStructureInputs::InstanceBuffer.
+		 * Thread safe.
+		 *
+		 * @param	instances		Instances to convert. Their bottom level structures must stay alive while the call runs.
+		 * @param	destination		Memory that receives the instances, GpuRayTracingCapabilities::InstanceSize bytes each.
+		 * @return					False, with the reason logged, if the device doesn't support acceleration structures or an instance is
+		 *							invalid. Nothing is written then.
+		 */
+		virtual bool WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance> instances, void* destination) const;
 
 		/**
 		 * Returns the device-owned persistent allocator for memory type @p memoryType, as reported by

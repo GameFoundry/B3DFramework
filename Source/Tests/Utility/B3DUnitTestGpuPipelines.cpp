@@ -75,4 +75,14 @@ namespace b3d
 	{
 		return CreateComputePipeline(device, "ByteAddressBufferAccess");
 	}
+
+	TShared<GpuComputePipelineState> CreateTestInlineRayTracingPipeline(GpuDevice& device)
+	{
+		return CreateComputePipeline(device, "InlineRayTracing");
+	}
+
+	TShared<GpuComputePipelineState> CreateTestInlineRayTracingBindlessPipeline(GpuDevice& device)
+	{
+		return CreateComputePipeline(device, "InlineRayTracingBindless");
+	}
 } // namespace b3d

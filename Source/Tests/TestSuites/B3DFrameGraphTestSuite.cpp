@@ -2665,7 +2665,7 @@ void FrameGraphTestSuite::TestValidation()
 	if(pipeline == nullptr || samplePipeline == nullptr)
 		return;
 
-	const String drawDependency = "The resource was accessed by a draw or dispatch after another draw or dispatch wrote it, without a barrier in between.";
+	const String drawDependency = "The resource was accessed by a draw, dispatch or build after another one wrote it, without a barrier in between.";
 
 	LoggingScope logs(*this);
 	logs.IgnoreWarning(kBarrierOnlyWarning);

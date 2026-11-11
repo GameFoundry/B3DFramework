@@ -1,0 +1,198 @@
+//************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
+//*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
+#include "B3DVulkanRayTracingTestSuite.h"
+#include "B3DVulkanGpuBuffer.h"
+#include "B3DVulkanGpuDevice.h"
+#include "CoreObject/B3DRenderThread.h"
+#include "GpuBackend/B3DGpuAccelerationStructure.h"
+#include "GpuBackend/B3DGpuBackend.h"
+#include "GpuBackend/B3DGpuDeviceCapabilities.h"
+#include "Math/B3DMatrix4.h"
+#include "Math/B3DVector3.h"
+
+using namespace b3d;
+using namespace b3d::render;
+
+namespace
+{
+	/** Returns the Vulkan device that tests run on, or null if there is none or it doesn't support acceleration structures. */
+	TShared<VulkanGpuDevice> GetAccelerationStructureDevice()
+	{
+		GpuBackend& backend = GpuBackend::Instance();
+		if(backend.GetDeviceCount() == 0)
+			return nullptr;
+
+		const TShared<GpuDevice> device = backend.GetDevice(0);
+		if(!device->GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES))
+			return nullptr;
+
+		return std::static_pointer_cast<VulkanGpuDevice>(device);
+	}
+} // namespace
+
+VulkanRayTracingTestSuite::VulkanRayTracingTestSuite()
+	: TestSuite("VulkanRayTracingTestSuite")
+{
+	B3D_ADD_TEST(VulkanRayTracingTestSuite::TestBufferUsage)
+	B3D_ADD_TEST(VulkanRayTracingTestSuite::TestDeviceAddresses)
+	B3D_ADD_TEST(VulkanRayTracingTestSuite::TestInstanceLayout)
+}
+
+void VulkanRayTracingTestSuite::TestBufferUsage()
+{
+	const TShared<VulkanGpuDevice> device = GetAccelerationStructureDevice();
+	if(device == nullptr)
+		return;
+
+	const auto fnGetUsage = [&device](const GpuBufferCreateInformation& information)
+	{
+		return VulkanGpuBuffer::GetVkBufferUsageFlags(*device, information);
+	};
+
+	static constexpr VkBufferUsageFlags kBuildInput = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
+	static constexpr VkBufferUsageFlags kDeviceAddress = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+	const GpuBufferFlags inputFlags = GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AccelerationStructureInput;
+
+	// Acceleration structures are only accessed by builds and rays
+	for(const GpuAccelerationStructureType type : { GpuAccelerationStructureType::BottomLevel, GpuAccelerationStructureType::TopLevel })
+	{
+		const VkBufferUsageFlags usage = fnGetUsage(GpuBufferCreateInformation::CreateAccelerationStructure(type, 4096));
+		B3D_TEST_ASSERT(usage == (VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | kDeviceAddress))
+	}
+
+	// Builds read their inputs through device addresses
+	const GpuBufferCreateInformation inputs[] =
+	{
+		GpuBufferCreateInformation::CreateVertex(12, 3, inputFlags),
+		GpuBufferCreateInformation::CreateIndex(IT_32BIT, 3, inputFlags),
+		GpuBufferCreateInformation::CreateStructuredStorage(64, 4, inputFlags)
+	};
+
+	for(const GpuBufferCreateInformation& information : inputs)
+	{
+		const VkBufferUsageFlags usage = fnGetUsage(information);
+		B3D_TEST_ASSERT((usage & (kBuildInput | kDeviceAddress)) == (kBuildInput | kDeviceAddress))
+	}
+
+	// Buffers that can be scratch memory have a device address, but are not build inputs
+	const VkBufferUsageFlags scratchUsage = fnGetUsage(GpuBufferCreateInformation::CreateStructuredStorage(4, 64, GpuBufferFlag::StoreOnGPU |
+		GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+	B3D_TEST_ASSERT((scratchUsage & kDeviceAddress) != 0 && (scratchUsage & kBuildInput) == 0)
+
+	// Other buffers have neither
+	const GpuBufferCreateInformation others[] =
+	{
+		GpuBufferCreateInformation::CreateVertex(12, 3, GpuBufferFlag::StoreOnCPUWithGPUAccess),
+		GpuBufferCreateInformation::CreateIndex(IT_32BIT, 3),
+		GpuBufferCreateInformation::CreateStructuredStorage(4, 64),
+		GpuBufferCreateInformation::CreateStructuredStorage(4, 64, GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AllowUnorderedAccessOnTheGPU),
+		GpuBufferCreateInformation::CreateSimpleStorage(BF_32X1U, 64, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU),
+		GpuBufferCreateInformation::CreateUniform(256)
+	};
+
+	for(const GpuBufferCreateInformation& information : others)
+		B3D_TEST_ASSERT((fnGetUsage(information) & (kBuildInput | kDeviceAddress)) == 0)
+}
+
+void VulkanRayTracingTestSuite::TestDeviceAddresses()
+{
+	const TShared<VulkanGpuDevice> device = GetAccelerationStructureDevice();
+	if(device == nullptr)
+		return;
+
+	GetRenderThread().PostCommand([this, &device]()
+	{
+		const u32 scratchAlignment = device->GetCapabilities().RayTracing.ScratchOffsetAlignment;
+		static constexpr u32 kInstanceAlignment = 16;
+		static constexpr u32 kAccelerationStructureAlignment = 256;
+
+		// Odd sizes, so buffers that share memory blocks don't start aligned by accident
+		Vector<TShared<render::GpuBuffer>> buffers;
+		for(u32 bufferIndex = 0; bufferIndex < 4; bufferIndex++)
+		{
+			const u32 elementCount = 3 + bufferIndex * 7;
+			const TShared<render::GpuBuffer> scratch = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(4, elementCount,
+				GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+			const TShared<render::GpuBuffer> instances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(4, elementCount,
+				GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AccelerationStructureInput));
+			const TShared<render::GpuBuffer> structure = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateAccelerationStructure(GpuAccelerationStructureType::BottomLevel,
+				elementCount * 256));
+			B3D_TEST_ASSERT(scratch != nullptr && instances != nullptr && structure != nullptr)
+			if(scratch == nullptr || instances == nullptr || structure == nullptr)
+				return;
+
+			const VulkanBuffer& scratchResource = *static_cast<VulkanGpuBuffer&>(*scratch).GetVulkanResource();
+			const VulkanBuffer& instanceResource = *static_cast<VulkanGpuBuffer&>(*instances).GetVulkanResource();
+			const VulkanBuffer& structureResource = *static_cast<VulkanGpuBuffer&>(*structure).GetVulkanResource();
+
+			B3D_TEST_ASSERT(scratchResource.GetDeviceAddress() != 0 && scratchResource.GetDeviceAddress() % scratchAlignment == 0)
+			B3D_TEST_ASSERT(instanceResource.GetDeviceAddress() != 0 && instanceResource.GetDeviceAddress() % kInstanceAlignment == 0)
+			B3D_TEST_ASSERT(structureResource.GetDeviceAddress() != 0 && structureResource.GetDeviceAddress() % kAccelerationStructureAlignment == 0)
+
+			B3D_TEST_ASSERT(structureResource.GetAccelerationStructure() != VK_NULL_HANDLE)
+			B3D_TEST_ASSERT(scratchResource.GetAccelerationStructure() == VK_NULL_HANDLE && instanceResource.GetAccelerationStructure() == VK_NULL_HANDLE)
+
+			buffers.push_back(scratch);
+			buffers.push_back(instances);
+			buffers.push_back(structure);
+		}
+
+		// Buffers that builds don't access have no device address
+		const TShared<render::GpuBuffer> plain = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(4, 16));
+		B3D_TEST_ASSERT(plain != nullptr)
+		if(plain != nullptr)
+		{
+			const VulkanBuffer& plainResource = *static_cast<VulkanGpuBuffer&>(*plain).GetVulkanResource();
+			B3D_TEST_ASSERT(plainResource.GetDeviceAddress() == 0 && plainResource.GetAccelerationStructure() == VK_NULL_HANDLE)
+		}
+	}, "VulkanRayTracingTestSuite::TestDeviceAddresses", true);
+}
+
+void VulkanRayTracingTestSuite::TestInstanceLayout()
+{
+	const TShared<VulkanGpuDevice> device = GetAccelerationStructureDevice();
+	if(device == nullptr)
+		return;
+
+	GetRenderThread().PostCommand([this, &device]()
+	{
+		B3D_TEST_ASSERT(device->GetCapabilities().RayTracing.InstanceSize == sizeof(VkAccelerationStructureInstanceKHR))
+
+		const TShared<render::GpuBuffer> buffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateAccelerationStructure(GpuAccelerationStructureType::BottomLevel, 4096));
+		B3D_TEST_ASSERT(buffer != nullptr)
+		if(buffer == nullptr)
+			return;
+
+		const TShared<GpuAccelerationStructure> bottomLevel = B3DMakeShared<GpuAccelerationStructure>(buffer);
+
+		Matrix4 transform = Matrix4::Translation(Vector3(1.0f, 2.0f, 3.0f));
+		transform[0][1] = 4.0f;
+		transform[2][0] = 5.0f;
+
+		GpuRayTracingInstance instances[2] = { GpuRayTracingInstance(bottomLevel.get(), transform, 0x123456), GpuRayTracingInstance(bottomLevel.get(), Matrix4::kIdentity) };
+		instances[0].HitGroupIndexOffset = 0x654321;
+		instances[0].Mask = 0x5A;
+		instances[0].Flags = GpuRayTracingInstanceFlag::DisableTriangleCulling | GpuRayTracingInstanceFlag::ForceOpaque;
+		instances[1].Flags = GpuRayTracingInstanceFlag::FlipTriangleFacing | GpuRayTracingInstanceFlag::ForceNonOpaque;
+
+		VkAccelerationStructureInstanceKHR written[2];
+		B3D_TEST_ASSERT(device->WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance>(instances, 2), written))
+
+		// Rows of the transform, without the last one
+		for(u32 row = 0; row < 3; row++)
+		{
+			for(u32 column = 0; column < 4; column++)
+				B3D_TEST_ASSERT(written[0].transform.matrix[row][column] == transform[row][column])
+		}
+
+		B3D_TEST_ASSERT(written[0].instanceCustomIndex == 0x123456 && written[0].mask == 0x5A && written[0].instanceShaderBindingTableRecordOffset == 0x654321)
+		// Vulkan flips the facing of instances that keep the engine's facing
+		B3D_TEST_ASSERT(written[0].flags == (VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR | VK_GEOMETRY_INSTANCE_TRIANGLE_FLIP_FACING_BIT_KHR |
+			VK_GEOMETRY_INSTANCE_FORCE_OPAQUE_BIT_KHR))
+		B3D_TEST_ASSERT(written[0].accelerationStructureReference == static_cast<VulkanGpuBuffer&>(*buffer).GetVulkanResource()->GetDeviceAddress())
+
+		B3D_TEST_ASSERT(written[1].instanceCustomIndex == 0 && written[1].mask == 0xFF && written[1].instanceShaderBindingTableRecordOffset == 0)
+		B3D_TEST_ASSERT(written[1].flags == VK_GEOMETRY_INSTANCE_FORCE_NO_OPAQUE_BIT_KHR)
+		B3D_TEST_ASSERT(written[1].transform.matrix[0][0] == 1.0f && written[1].transform.matrix[0][3] == 0.0f && written[1].transform.matrix[2][2] == 1.0f)
+	}, "VulkanRayTracingTestSuite::TestInstanceLayout", true);
+}

@@ -6,6 +6,7 @@
 #include "B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DGpuBuffer.h"
+#include "GpuBackend/B3DGpuAccelerationStructure.h"
 #include "GpuBackend/B3DGpuPipelineParameterLayout.h"
 #include "GpuBackend/B3DGpuPipelineState.h"
 #include "GpuBackend/B3DGpuParameterSetPool.h"
@@ -661,11 +662,59 @@ namespace b3d { namespace render
 GpuParameterSet::GpuParameterSet(const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout, u32 setIndex)
 	: TGpuParameterSet(parameterSetLayout, setIndex)
 {
+	mAccelerationStructures.resize(mParameterSetLayout->GetResourceCount(GpuParameterType::AccelerationStructure));
 }
 
 TShared<GpuParameterSet> GpuParameterSet::GetSelf() const
 {
 	return std::static_pointer_cast<GpuParameterSet>(GetShared());
+}
+
+bool GpuParameterSet::SetAccelerationStructure(u32 slot, const TShared<GpuAccelerationStructure>& accelerationStructure, u32 arrayIndex)
+{
+	const UniformInformation* information = mParameterSetLayout->TryGetUniformInformation(slot);
+	const u32 sequentialResourceIndex = mParameterSetLayout->GetSequentialResourceIndex(slot, arrayIndex);
+	if(information == nullptr || information->Type != GpuParameterType::AccelerationStructure || sequentialResourceIndex == ~0u)
+	{
+		B3D_LOG(Warning, LogRenderBackend, "Unable to assign parameter. Cannot find acceleration structure parameter with the set/slot combination: {0}/{1}", mSet, slot);
+		return false;
+	}
+
+	if(accelerationStructure != nullptr && (accelerationStructure->GetBuffer() == nullptr || accelerationStructure->GetType() != GpuAccelerationStructureType::TopLevel))
+	{
+		B3D_LOG(Error, LogRenderBackend, "Only a top level acceleration structure can be bound to a parameter set. Set/slot: {0}/{1}.", mSet, slot);
+		return false;
+	}
+
+	mAccelerationStructures[sequentialResourceIndex] = accelerationStructure;
+	return true;
+}
+
+bool GpuParameterSet::SetAccelerationStructure(const StringView& name, const TShared<GpuAccelerationStructure>& accelerationStructure, u32 arrayIndex)
+{
+	const u32 slot = mParameterSetLayout->GetSlot(name, GpuParameterType::AccelerationStructure);
+	if(slot == ~0u)
+	{
+		B3D_LOG(Warning, LogRenderBackend, "Unable to assign parameter. Cannot find acceleration structure with name: {0}", name);
+		return false;
+	}
+
+	return SetAccelerationStructure(slot, accelerationStructure, arrayIndex);
+}
+
+TShared<GpuAccelerationStructure> GpuParameterSet::GetAccelerationStructure(u32 slot, u32 arrayIndex) const
+{
+	const u32 sequentialResourceIndex = mParameterSetLayout->GetSequentialResourceIndex(slot, arrayIndex);
+	if(sequentialResourceIndex == ~0u || sequentialResourceIndex >= (u32)mAccelerationStructures.size())
+		return nullptr;
+
+	return mAccelerationStructures[sequentialResourceIndex];
+}
+
+GpuBuffer* GpuParameterSet::GetAccelerationStructureBuffer(u32 slot, u32 arrayIndex) const
+{
+	const TShared<GpuAccelerationStructure> accelerationStructure = GetAccelerationStructure(slot, arrayIndex);
+	return accelerationStructure != nullptr ? accelerationStructure->GetBuffer().get() : nullptr;
 }
 
 void GpuParameterSet::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator)

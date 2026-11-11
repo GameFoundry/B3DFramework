@@ -80,10 +80,11 @@ namespace b3d
 
 		/**
 		 * Makes the buffer readable by shaders through ResourceDescriptorHeap, at the index returned by render::GpuBuffer::GetBindlessIndex().
-		 * Only valid for simple and structured storage buffers, and for vertex and index buffers. Shaders read vertex and index buffers as
-		 * ByteAddressBuffer. The buffer stays at rest: it cannot be aliased or transient, and CPU writes never discard its contents. GPU
-		 * writes must return it to rest. Its index stays the same if GPU memory defragmentation moves it. Requires a device that supports
-		 * bindless resources.
+		 * Only valid for simple and structured storage buffers, vertex and index buffers, and top level acceleration structure buffers.
+		 * Shaders read vertex and index buffers as ByteAddressBuffer, and acceleration structures as RaytracingAccelerationStructure. The
+		 * buffer stays at rest: it cannot be aliased or transient, and CPU writes never discard its contents. GPU writes must return it to
+		 * rest. Its index stays the same if GPU memory defragmentation moves it. Requires a device that supports bindless resources, and for
+		 * acceleration structures GpuRayTracingCapabilities::SupportsBindlessAccelerationStructures.
 		 */
 		Bindless = 1 << 3,
 
@@ -759,7 +760,8 @@ namespace b3d::render
 		/**
 		 * Returns the index of the buffer's default view in the bindless resource heap, or kGpuBindlessInvalidIndex if the buffer wasn't
 		 * created with GpuBufferFlag::Bindless or isn't initialized. Structured buffers are viewed as structured, simple storage buffers
-		 * as typed with their own format, and vertex and index buffers as raw. The index is valid until the buffer is destroyed.
+		 * as typed with their own format, vertex and index buffers as raw, and acceleration structure buffers as the structure they store.
+		 * The index is valid until the buffer is destroyed.
 		 */
 		u32 GetBindlessIndex() const { return mBindlessSlots.GetDefaultIndex(); }
 
@@ -768,7 +770,8 @@ namespace b3d::render
 		 * kGpuBindlessInvalidIndex if the buffer isn't bindless, can't be viewed this way, or the heap is full.
 		 *
 		 * @param	viewType	How the view interprets the buffer contents. Only structured storage, vertex and index buffers can be
-		 *						viewed as raw, and vertex and index buffers have no other view.
+		 *						viewed as raw, and vertex and index buffers have no other view. Acceleration structure buffers have only
+		 *						their default view (GetBindlessIndex()).
 		 * @param	format		Element format of a typed view of a simple storage buffer, or BF_UNKNOWN for the buffer's own format.
 		 *						Must be BF_UNKNOWN for other views.
 		 *

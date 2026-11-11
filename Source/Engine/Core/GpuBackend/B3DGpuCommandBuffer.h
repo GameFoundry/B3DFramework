@@ -17,6 +17,7 @@
 namespace b3d
 {
 	class GpuCommandBufferProfiler;
+	struct GpuAccelerationStructureBuild;
 
 	namespace render
 	{
@@ -83,7 +84,10 @@ namespace b3d
 			Host = 1 << 7, /**< Access by the host (CPU). */
 			Resolve = 1 << 11, /**< Multisample resolve source or destination. */
 
-			// Stage flags can be combined with ShaderAccess or UniformBuffer usages, to clearly define at which stage the use is happening.
+			/** Rays traced against an acceleration structure (read only) in any shader stage. Shader stage must be provided explicitly via one or multiple Stage* values. */
+			AccelerationStructure = 1 << 13,
+
+			// Stage flags can be combined with ShaderAccess, UniformBuffer or AccelerationStructure usages, to clearly define at which stage the use is happening.
 			// If not provided system usually assumes potential use in all shader stages.
 			StageVertexShader = 1 << 8, /**< Access in vertex shader. */
 			StageFragmentShader = 1 << 9, /**< Access in fragment shader. */
@@ -874,6 +878,20 @@ namespace b3d
 			 * @param	blitInformation	Describes which subresources to copy and where, including source/destination regions for scaling.
 			 */
 			virtual bool BlitTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureBlitInformation& blitInformation = TextureBlitInformation::kDefault);
+
+			/**
+			 * Builds acceleration structures. Builds of one call run in any order and may overlap, so a top level structure and the bottom
+			 * level structures it references must be built in separate calls, with a barrier between them. Rebuilding a bottom level
+			 * structure requires rebuilding every top level structure that references it.
+			 *
+			 * Each build accesses its destination and scratch memory, and the bottom level structures of a top level structure, in
+			 * GpuStageFlag::AccelerationStructureBuild. It reads vertices, indices and instances in GpuStageFlag::AccelerationStructureBuildInput.
+			 * Requires a device that supports acceleration structures, and a graphics or compute queue command buffer outside of a render pass.
+			 *
+			 * @param	builds	Builds to record.
+			 * @return			True if the builds were recorded. False, with the reason logged, if they are invalid.
+			 */
+			virtual bool BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild> builds);
 
 			/**
 			 * Schedules the timestamp to be recorded in the command buffer. The timestamp will record the

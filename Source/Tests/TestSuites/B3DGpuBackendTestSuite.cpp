@@ -3362,7 +3362,7 @@ void GpuBackendTestSuite::TestBarrierResourceValidation()
 
 		if(pipeline != nullptr)
 		{
-			const String hazard = "The resource was accessed by a draw or dispatch after another draw or dispatch wrote it, without a barrier in between.";
+			const String hazard = "The resource was accessed by a draw, dispatch or build after another one wrote it, without a barrier in between.";
 			logs.ExpectError(hazard + " Buffer: 'InPassHazard'.");
 			logs.ExpectError(hazard + " Image: 'InPassHazardTexture'.");
 		}

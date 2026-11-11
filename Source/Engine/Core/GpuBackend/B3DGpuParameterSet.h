@@ -581,6 +581,7 @@ namespace b3d
 	namespace render
 	{
 		struct GpuRenderPassAttachmentUsage;
+		class GpuAccelerationStructure;
 
 		/** @addtogroup GpuBackend
 		 *  @{
@@ -591,10 +592,15 @@ namespace b3d
 		{
 			const UniformInformation* Uniform = nullptr; /**< Slot the resource is bound to. From the pipeline set layout, if one was provided. */
 			u32 ArrayIndex = 0; /**< Index of the resource in the slot's array. */
-			GpuBuffer* Buffer = nullptr; /**< Bound buffer of a uniform or storage buffer slot. */
+			GpuBuffer* Buffer = nullptr; /**< Bound buffer of a uniform or storage buffer slot, or the buffer of an acceleration structure slot's structure. */
 			render::Texture* Texture = nullptr; /**< Bound texture of a sampled or storage texture slot. */
 			TextureSurface Surface; /**< Surfaces of Texture the slot views. */
-			GpuAccessFlags Access; /**< Read for uniform buffers and sampled textures. Storage slots read and write, unless the shader declares a read-only buffer. */
+
+			/**
+			 * Read for uniform buffers, sampled textures and acceleration structures. Storage slots read and write, unless the shader declares a
+			 * read-only buffer.
+			 */
+			GpuAccessFlags Access;
 		};
 
 		/**
@@ -672,8 +678,29 @@ namespace b3d
 			}
 
 			/**
-			 * Calls @p fnVisit with a GpuParameterSetResource for every buffer and texture bound to the set. Empty slots and samplers are
-			 * skipped.
+			 * Binds a top level acceleration structure to the slot at @p slot.
+			 *
+			 * @param	slot					Slot at which to bind the structure, as defined by the pipeline GPU program.
+			 * @param	accelerationStructure	Top level structure to bind, or null to clear the slot. Rays traced against an empty slot hit
+			 *									nothing.
+			 * @param	arrayIndex				In case the slot is an array, index to bind the structure to.
+			 * @return							True if the structure was bound. False, with the reason logged, if the slot is not an
+			 *									acceleration structure slot or the structure is not a top level structure.
+			 */
+			virtual bool SetAccelerationStructure(u32 slot, const TShared<GpuAccelerationStructure>& accelerationStructure, u32 arrayIndex = 0);
+
+			/**
+			 * Binds a top level acceleration structure to the slot with the name @p name. See SetAccelerationStructure(u32, const
+			 * TShared<GpuAccelerationStructure>&, u32).
+			 */
+			bool SetAccelerationStructure(const StringView& name, const TShared<GpuAccelerationStructure>& accelerationStructure, u32 arrayIndex = 0);
+
+			/** Returns the acceleration structure bound to @p slot at @p arrayIndex, or null if none is. */
+			TShared<GpuAccelerationStructure> GetAccelerationStructure(u32 slot, u32 arrayIndex = 0) const;
+
+			/**
+			 * Calls @p fnVisit with a GpuParameterSetResource for every buffer and texture bound to the set, and the buffer of every bound
+			 * acceleration structure. Empty slots and samplers are skipped.
 			 *
 			 * @param	pipelineSetLayout	If provided, only the slots of this layout that the set has with the same type are visited,
 			 *								which are the slots a pipeline with the layout accesses. Otherwise every slot of the set is.
@@ -694,7 +721,13 @@ namespace b3d
 			/** Returns true if the calling thread owns the set's pool, and may therefore write the set. */
 			bool IsOwnedByThisThread() const { return mOwnerPool == nullptr || mOwnerPool->GetOwnerThread() == B3D_CURRENT_THREAD_ID; }
 
+			/** Returns the buffer of the acceleration structure bound to @p slot at @p arrayIndex, or null if none is. */
+			GpuBuffer* GetAccelerationStructureBuffer(u32 slot, u32 arrayIndex) const;
+
 			GpuParameterSetPool* mOwnerPool = nullptr;
+
+			/** Bound acceleration structures, indexed by sequential resource index. */
+			Vector<TShared<GpuAccelerationStructure>> mAccelerationStructures;
 		};
 
 		template<class VisitFunction>
@@ -745,6 +778,10 @@ namespace b3d
 							resource.Texture = GetStorageTexture(uniform.Slot, arrayIndex).get();
 							resource.Surface = GetStorageTextureSurface(uniform.Slot, arrayIndex);
 							resource.Access = GpuAccessFlag::Read | GpuAccessFlag::Write;
+							break;
+						case GpuParameterType::AccelerationStructure:
+							resource.Buffer = GetAccelerationStructureBuffer(uniform.Slot, arrayIndex);
+							resource.Access = GpuAccessFlag::Read;
 							break;
 						default:
 							break;

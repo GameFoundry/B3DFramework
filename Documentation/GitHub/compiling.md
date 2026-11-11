@@ -95,7 +95,7 @@ The following dependencies will need to be installed manually. Which ones are re
     - Add Homebrew's Bison to your path: `export PATH="/opt/homebrew/opt/bison/bin:$PATH"`
 
 **All OS**
-  - **Vulkan SDK 1.4.321.1*
+  - **Vulkan SDK 1.4.363.1**
     - Only needed if you explicitly select the Vulkan render API during build configuration
     - https://lunarg.com/vulkan-sdk/
     - Set up `VULKAN_SDK` environment variable pointing to your installation

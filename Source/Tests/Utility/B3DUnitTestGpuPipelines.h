@@ -58,4 +58,22 @@ namespace b3d
 	 * the shader cannot be resolved for the active backend.
 	 */
 	TShared<GpuComputePipelineState> CreateTestByteAddressBufferAccessPipeline(GpuDevice& device);
+
+	/**
+	 * Creates a compute pipeline that traces one ray per thread group against the top level acceleration structure Scene. Group N reads its
+	 * ray from element N of the structured buffer Rays (origin and minimum distance, direction and maximum distance, then ray flags, instance
+	 * mask and mode as four words), and writes what the ray hit into element N of the structured buffer Hits: 1 or 0 for a hit or a miss,
+	 * the distance and the two barycentrics, then the instance index, instance id, geometry index and primitive index, then 1 for a front
+	 * face hit and the number of any-hit callbacks, padded to four words. Mode 0 traces the closest hit, mode 1 any hit, and mode 2 the
+	 * closest hit with any-hit callbacks that reject every candidate. Returns null if the shader cannot be resolved for the active backend.
+	 */
+	TShared<GpuComputePipelineState> CreateTestInlineRayTracingPipeline(GpuDevice& device);
+
+	/**
+	 * Creates a compute pipeline whose single-thread dispatch traces a ray from (0.25, 10.25, 0) along +Z against the top level acceleration
+	 * structure at the resource heap index in the push constant SceneIndex, and writes 1 or 0 for a hit or a miss, the distance, the instance
+	 * id and the instance index, as floats, into element 0 of the storage buffer Hit. Returns null if the shader cannot be resolved for the
+	 * active backend.
+	 */
+	TShared<GpuComputePipelineState> CreateTestInlineRayTracingBindlessPipeline(GpuDevice& device);
 } // namespace b3d
