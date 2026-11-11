@@ -111,7 +111,8 @@ void D3D12BarrierTestSuite::TestBufferBarrierScopes()
 void D3D12BarrierTestSuite::TestUnsupportedStageRemoval()
 {
 	const GpuStageFlags rayTracingShaderStages = GpuStageFlag::RayTracingShaderNonUniform | GpuStageFlag::RayTracingShaderUniform;
-	const GpuStageFlags rayTracingStages = rayTracingShaderStages | GpuStageFlag::AccelerationStructureBuild;
+	const GpuStageFlags rayTracingStages = rayTracingShaderStages | GpuStageFlag::AllShaderAccelerationStructure | GpuStageFlag::AccelerationStructureBuild |
+		GpuStageFlag::AccelerationStructureBuildInput;
 	const GpuStageFlags allStagesExceptRayTracing = GpuStageFlags(GpuStageFlag::All) & ~rayTracingStages;
 
 	// Without ray tracing, every stage the device has still synchronizes with all work

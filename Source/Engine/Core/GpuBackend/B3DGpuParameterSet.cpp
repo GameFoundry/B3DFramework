@@ -441,12 +441,20 @@ bool TGpuParameterSet<IsRenderProxy>::SetStorageBuffer(u32 slot, const BufferTyp
 		return false;
 	}
 
-	if(buffer != nullptr && buffer->GetInformation().Type != GpuBufferType::StructuredStorage)
+	if(buffer != nullptr)
 	{
-		const UniformInformation* information = mParameterSetLayout->TryGetUniformInformation(slot);
-		if(information != nullptr && GpuObjectParameterTypeInformation::IsByteAddressBuffer(information->ObjectType))
+		const GpuBufferType bufferType = buffer->GetInformation().Type;
+		if(bufferType == GpuBufferType::AccelerationStructure)
 		{
-			B3D_LOG(Error, LogRenderBackend, "Only structured storage buffers can be bound as byte address buffers. Set/slot: {0}/{1}.", mSet, slot);
+			B3D_LOG(Error, LogRenderBackend, "An acceleration structure buffer cannot be bound as a storage buffer. Set/slot: {0}/{1}.", mSet, slot);
+			return false;
+		}
+
+		const bool supportsRawViews = bufferType == GpuBufferType::StructuredStorage || bufferType == GpuBufferType::Vertex || bufferType == GpuBufferType::Index;
+		const UniformInformation* information = mParameterSetLayout->TryGetUniformInformation(slot);
+		if(!supportsRawViews && information != nullptr && GpuObjectParameterTypeInformation::IsByteAddressBuffer(information->ObjectType))
+		{
+			B3D_LOG(Error, LogRenderBackend, "Only structured storage, vertex and index buffers can be bound as byte address buffers. Set/slot: {0}/{1}.", mSet, slot);
 			return false;
 		}
 	}

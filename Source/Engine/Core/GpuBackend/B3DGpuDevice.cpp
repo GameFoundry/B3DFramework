@@ -230,6 +230,33 @@ namespace
 	/** Checks that a buffer described by @p createInformation can be created on @p device with @p flags, logging the reason if it can't. */
 	bool ValidateGpuBuffer(const GpuDevice& device, const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
 	{
+		const GpuBufferType type = createInformation.Type;
+		if(type == GpuBufferType::AccelerationStructure)
+		{
+			if(!B3D_ENSURE_LOG(device.GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES), "Cannot create an acceleration structure buffer, the GPU device doesn't support acceleration structures."))
+				return false;
+
+			if(!B3D_ENSURE_LOG(createInformation.AccelerationStructure.Size > 0, "An acceleration structure buffer must have a size."))
+				return false;
+
+			// TODO - Allow GpuBufferFlag::Bindless on top level acceleration structures, once backends write them into the bindless heap
+			if(!B3D_ENSURE_LOG(createInformation.Flags == GpuBufferFlags(GpuBufferFlag::StoreOnGPU), "An acceleration structure buffer must be created with GpuBufferFlag::StoreOnGPU and no other flag."))
+				return false;
+
+			return B3D_ENSURE_LOG(!flags.IsSet(GpuObjectCreateFlag::Aliased) && createInformation.SuballocationCount <= 1,
+				"An acceleration structure buffer cannot be aliased or have suballocations.");
+		}
+
+		if(createInformation.Flags.IsSet(GpuBufferFlag::AccelerationStructureInput))
+		{
+			if(!B3D_ENSURE_LOG(device.GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES), "Cannot create an acceleration structure input buffer, the GPU device doesn't support acceleration structures."))
+				return false;
+
+			const bool isInputType = type == GpuBufferType::Vertex || type == GpuBufferType::Index || type == GpuBufferType::StructuredStorage;
+			if(!B3D_ENSURE_LOG(isInputType, "An acceleration structure input buffer must be a vertex, index or structured storage buffer."))
+				return false;
+		}
+
 		if(!createInformation.Flags.IsSet(GpuBufferFlag::Bindless))
 			return true;
 
@@ -238,9 +265,9 @@ namespace
 		if(!ValidateBindlessResource(device, kBufferName, flags))
 			return false;
 
-		// Storage buffers have no suballocations, so each one has a single view
-		return B3D_ENSURE_LOG(createInformation.Type == GpuBufferType::SimpleStorage || createInformation.Type == GpuBufferType::StructuredStorage,
-			"A bindless buffer must be a simple or structured storage buffer.");
+		// These buffers have no suballocations, so each one has a single view
+		const bool isStorage = type == GpuBufferType::SimpleStorage || type == GpuBufferType::StructuredStorage;
+		return B3D_ENSURE_LOG(isStorage || type == GpuBufferType::Vertex || type == GpuBufferType::Index, "A bindless buffer must be a storage, vertex or index buffer.");
 	}
 }
 
@@ -273,6 +300,10 @@ TShared<render::Texture> GpuDevice::CreateTexture(const TextureCreateInformation
 
 TShared<render::GpuBuffer> GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, GpuObjectCreateFlags flags)
 {
+	// Before the memory requirements, which backends only answer for buffers they can create
+	if(!ValidateGpuBuffer(*this, createInformation, flags))
+		return nullptr;
+
 	const GpuMemoryRequirements memoryRequirements = GetMemoryRequirements(createInformation);
 	if(memoryRequirements.MemoryType == GpuMemoryRequirements::kUnsupportedMemoryType)
 		return nullptr;
@@ -281,18 +312,16 @@ TShared<render::GpuBuffer> GpuDevice::CreateGpuBuffer(const GpuBufferCreateInfor
 	if(!ValidateResourceAllocation(allocation, memoryRequirements, flags))
 		return nullptr;
 
-	if(!ValidateGpuBuffer(*this, createInformation, flags))
-		return nullptr;
-
 	return CreateGpuBufferInternal(createInformation, allocation, flags);
 }
 
 TShared<render::GpuBuffer> GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags)
 {
-	if(!ValidateResourceAllocation(allocation, GetMemoryRequirements(createInformation), flags))
+	// Before the memory requirements, which backends only answer for buffers they can create
+	if(!ValidateGpuBuffer(*this, createInformation, flags))
 		return nullptr;
 
-	if(!ValidateGpuBuffer(*this, createInformation, flags))
+	if(!ValidateResourceAllocation(allocation, GetMemoryRequirements(createInformation), flags))
 		return nullptr;
 
 	return CreateGpuBufferInternal(createInformation, allocation, flags);
@@ -305,10 +334,14 @@ render::GpuStageFlags GpuDevice::GetSupportedStageFlags() const
 
 	GpuStageFlags stages = GpuStageFlag::All;
 	if(!capabilities.HasCapability(RSC_RAY_TRACING_PIPELINE))
-		stages &= ~GpuStageFlags(GpuStageFlag::RayTracingShaderNonUniform | GpuStageFlag::RayTracingShaderUniform);
+		stages &= ~GpuStageFlags(GpuStageFlag::RayTracingShaderNonUniform | GpuStageFlag::RayTracingShaderUniform | GpuStageFlag::RayTracingShaderAccelerationStructure);
+
+	// Without inline ray tracing, only ray tracing programs trace rays
+	if(!capabilities.HasCapability(RSC_RAY_QUERY))
+		stages &= ~GpuStageFlags(GpuStageFlag::VertexShaderAccelerationStructure | GpuStageFlag::FragmentShaderAccelerationStructure | GpuStageFlag::ComputeShaderAccelerationStructure);
 
 	if(!capabilities.HasCapability(RSC_ACCELERATION_STRUCTURES))
-		stages &= ~GpuStageFlags(GpuStageFlag::AccelerationStructureBuild);
+		stages &= ~GpuStageFlags(GpuStageFlag::AccelerationStructureBuild | GpuStageFlag::AccelerationStructureBuildInput);
 
 	return stages;
 }

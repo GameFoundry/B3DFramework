@@ -120,7 +120,7 @@ namespace b3d
 			 * @param accessStage	Stages that access the resource, and how.
 			 * @param access		Type of access (read/write) for the resource.
 			 * @param outStages		Output parameter that receives the corresponding Vulkan pipeline stage flags.
-			 * @param outAccessMask Output parameter that receives the corresponding Vulkan access flags.
+			 * @param outAccessMask	Output parameter that receives the corresponding Vulkan access flags.
 			 */
 			static void GetPipelineStageAndAccessMask(const VulkanGpuDevice& device, GpuStageFlags accessStage, GpuAccessFlags access, VkPipelineStageFlags& outStages, VkAccessFlags& outAccessMask);
 

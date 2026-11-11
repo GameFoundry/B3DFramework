@@ -1602,10 +1602,11 @@ namespace b3d::render
 			barrier.Source = GpuAccessState(acquire.Source.GetStages(), acquire.Source.GetAccess());
 
 			// Nothing else orders this graph after the graphs submitted earlier, and their accesses to the unused memory are unknown,
-			// so the acquire waits for all earlier work on the queue
+			// so the acquire waits for all earlier work on the queue. Acceleration structures are never transient, so no ray was traced
+			// against the memory.
 			if(hasUnusedMemory)
 			{
-				barrier.Source.Stages |= GpuStageFlags(GpuStageFlag::All) & ~GpuStageFlags(GpuStageFlag::Host);
+				barrier.Source.Stages |= GpuStageFlags(GpuStageFlag::All) & ~GpuStageFlags(GpuStageFlag::Host | GpuStageFlag::AllShaderAccelerationStructure);
 				barrier.Source.Access |= GpuAccessFlag::Write;
 			}
 

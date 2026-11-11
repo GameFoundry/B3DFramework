@@ -11,6 +11,15 @@
 using namespace b3d;
 using namespace b3d::render;
 
+namespace
+{
+	/** Any structured buffer only the GPU accesses, and can write, can be the scratch memory of an acceleration structure build. */
+	bool IsAccelerationStructureScratchCapable(GpuBufferType type, GpuBufferFlags flags)
+	{
+		return type == GpuBufferType::StructuredStorage && flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU) && !flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess);
+	}
+}
+
 VulkanBuffer::VulkanBuffer(VulkanResourceManager* owner, const VulkanBufferCreateInformation& createInformation, VkBuffer buffer, VulkanAllocationResult allocation)
 	: TVulkanResource<IGpuBufferResource>(owner, createInformation.VkCreateInfo.sharingMode == VK_SHARING_MODE_CONCURRENT, createInformation.DebugName), mFlags(createInformation.Flags), mBuffer(buffer), mAllocation(allocation), mMappedMemory(allocation.MappedMemory)
 {
@@ -123,18 +132,22 @@ void VulkanGpuBuffer::Initialize()
 	GpuBuffer::Initialize();
 }
 
-VkBufferUsageFlags VulkanGpuBuffer::GetVkBufferUsageFlags(const GpuBufferCreateInformation& createInformation)
+VkBufferUsageFlags VulkanGpuBuffer::GetVkBufferUsageFlags(const VulkanGpuDevice& device, const GpuBufferCreateInformation& createInformation)
 {
+	// Only acceleration structure builds and ray tracing access the buffer
+	if(createInformation.Type == GpuBufferType::AccelerationStructure)
+		return VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+
 	// Buffer usage bits from the buffer type. Every type is a transfer destination (buffers are uploaded
-	// to) except StagingWrite, which is a pure copy source.
+	// to) except StagingWrite, which is a pure copy source. Shaders read vertex and index buffers through raw views.
 	VkBufferUsageFlags usageFlags = 0;
 	switch(createInformation.Type)
 	{
 	case GpuBufferType::Vertex:
-		usageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+		usageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 		break;
 	case GpuBufferType::Index:
-		usageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+		usageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 		break;
 	case GpuBufferType::Uniform:
 		usageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
@@ -151,6 +164,8 @@ VkBufferUsageFlags VulkanGpuBuffer::GetVkBufferUsageFlags(const GpuBufferCreateI
 	case GpuBufferType::StagingWrite:
 		usageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		break;
+	default:
+		break;
 	}
 
 	if(createInformation.Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU))
@@ -161,10 +176,29 @@ VkBufferUsageFlags VulkanGpuBuffer::GetVkBufferUsageFlags(const GpuBufferCreateI
 			usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 	}
 
+	// Acceleration structure builds read their geometry, instances and scratch memory through device addresses
+	if(device.IsBufferDeviceAddressEnabled())
+	{
+		if(createInformation.Flags.IsSet(GpuBufferFlag::AccelerationStructureInput))
+			usageFlags |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
+
+		if(IsAccelerationStructureScratchCapable(createInformation.Type, createInformation.Flags))
+			usageFlags |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+	}
+
 	// Persistent (non-staging) buffers are readable by default
 	usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
 	return usageFlags;
+}
+
+u32 VulkanGpuBuffer::GetMinimumAlignment(const VulkanGpuDevice& device, GpuBufferType type, GpuBufferFlags flags)
+{
+	// The alignment is zero on devices without acceleration structures
+	if(IsAccelerationStructureScratchCapable(type, flags))
+		return std::max(device.GetCapabilities().RayTracing.ScratchOffsetAlignment, 1u);
+
+	return 1u;
 }
 
 void VulkanGpuBuffer::GetVkMemoryPropertyFlags(const GpuBufferCreateInformation& createInformation, VkMemoryPropertyFlags& requiredFlags, VkMemoryPropertyFlags& preferredFlags)
@@ -210,7 +244,7 @@ VulkanBuffer* VulkanGpuBuffer::CreateBuffer(VulkanGpuDevice& device, u32 size, b
 
 	// Resolve usage flags from the buffer's engine usage hint. The memory type (and so the memory-property
 	// flags) was already resolved when the allocation was picked at proxy creation.
-	VkBufferUsageFlags usageFlags = GetVkBufferUsageFlags(mInformation);
+	VkBufferUsageFlags usageFlags = GetVkBufferUsageFlags(device, mInformation);
 
 	// Buffers are shared so that accesses on any queue need no ownership transfer, which lets them rest
 	const TInlineArray<u32, GQT_COUNT>& queueFamilies = device.GetQueueFamilies();

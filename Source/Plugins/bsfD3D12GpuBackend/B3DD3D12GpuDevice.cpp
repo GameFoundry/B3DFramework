@@ -1011,6 +1011,8 @@ void D3D12GpuDevice::InitializeCapabilities()
 		mCapabilities.MaximumBindlessSamplerCount = D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE - D3D12DescriptorManager::kSamplerTableDescriptorCount;
 	}
 
+	// TODO - Enable once the backend creates and builds acceleration structures. Until then the device reports no ray tracing capability.
+#if 0
 	// Tier 1.0 has acceleration structures and pipelines, and tier 1.1 adds inline ray tracing. The rest are API constants.
 	D3D12_FEATURE_DATA_D3D12_OPTIONS5 options5 = {};
 	const bool hasOptions5 = SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &options5, sizeof(options5)));
@@ -1035,6 +1037,7 @@ void D3D12GpuDevice::InitializeCapabilities()
 		if(options5.RaytracingTier >= D3D12_RAYTRACING_TIER_1_1)
 			mCapabilities.SetCapability(RSC_RAY_QUERY);
 	}
+#endif
 
 	mCapabilities.Conventions.NdcYAxis = GpuBackendConventions::Axis::Up;
 	mCapabilities.Conventions.MatrixOrder = GpuBackendConventions::MatrixOrder::ColumnMajor;

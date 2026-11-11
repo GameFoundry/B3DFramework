@@ -85,6 +85,9 @@ GpuTransientBuffer GpuTransientScope::AllocateBuffer(const GpuBufferCreateInform
 	if(!B3D_ENSURE_LOG(IsGpuOnly(createInformation), "Transient buffers must only be accessed by the GPU."))
 		return output;
 
+	if(!B3D_ENSURE_LOG(createInformation.Type != GpuBufferType::AccelerationStructure, "Acceleration structure buffers cannot be transient."))
+		return output;
+
 	auto fnIsSame = [&createInformation](const GpuTransientResourceAllocator::Resource& resource)
 	{
 		return GpuTransientResourceAllocator::IsSameBuffer(resource.BufferDescription, createInformation);
@@ -207,6 +210,9 @@ TShared<render::GpuBuffer> GpuTransientResourceAllocator::GetOrCreateBuffer(cons
 		return nullptr;
 
 	if(!B3D_ENSURE_LOG(!createInformation.Flags.IsSet(GpuBufferFlag::Bindless), "Transient buffers cannot be bindless. Bindless buffers must stay at rest."))
+		return nullptr;
+
+	if(!B3D_ENSURE_LOG(createInformation.Type != GpuBufferType::AccelerationStructure, "Acceleration structure buffers cannot be transient."))
 		return nullptr;
 
 	auto fnIsSame = [&createInformation](const Resource& resource)

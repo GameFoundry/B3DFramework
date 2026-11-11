@@ -465,7 +465,7 @@ void GpuBindlessTestSuite::TestResourceIndices()
 
 	{
 		LoggingScope logs(*this);
-		logs.ExpectError("A bindless buffer must be a simple or structured storage buffer.");
+		logs.ExpectError("A bindless buffer must be a storage, vertex or index buffer.");
 		B3D_TEST_ASSERT(device->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(16, GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::Bindless)) == nullptr)
 	}
 
@@ -512,7 +512,7 @@ void GpuBindlessTestSuite::TestResourceIndices()
 
 		{
 			LoggingScope logs(*this);
-			logs.ExpectError("Raw bindless views are only supported for structured storage buffers.");
+			logs.ExpectError("Raw bindless views are only supported for structured storage, vertex and index buffers.");
 			B3D_TEST_ASSERT(typedBuffer->GetOrCreateBindlessIndex(GpuBufferViewType::Raw) == kGpuBindlessInvalidIndex)
 		}
 
@@ -520,6 +520,30 @@ void GpuBindlessTestSuite::TestResourceIndices()
 			LoggingScope logs(*this);
 			logs.ExpectError("Only typed bindless views of simple storage buffers can have an element format.");
 			B3D_TEST_ASSERT(structuredBuffer->GetOrCreateBindlessIndex(GpuBufferViewType::Typed, BF_32X1U) == kGpuBindlessInvalidIndex)
+		}
+
+		// Shaders read vertex and index buffers as raw words, so the raw view is their default and only view. Backends implement these
+		// views together with acceleration structures.
+		if(device->GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES))
+		{
+			const TShared<render::GpuBuffer> vertexBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(6, 3, bindlessFlags));
+			const TShared<render::GpuBuffer> indexBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateIndex(IT_16BIT, 3, bindlessFlags));
+			B3D_TEST_ASSERT(vertexBuffer != nullptr && indexBuffer != nullptr)
+			if(vertexBuffer == nullptr || indexBuffer == nullptr)
+				return;
+
+			// Raw views read whole words
+			B3D_TEST_ASSERT(vertexBuffer->GetTotalSize() == 20 && indexBuffer->GetTotalSize() == 8)
+
+			const u32 vertexIndex = vertexBuffer->GetBindlessIndex();
+			const u32 indexIndex = indexBuffer->GetBindlessIndex();
+			B3D_TEST_ASSERT(vertexIndex != kGpuBindlessInvalidIndex && indexIndex != kGpuBindlessInvalidIndex && vertexIndex != indexIndex)
+			B3D_TEST_ASSERT(vertexBuffer->GetOrCreateBindlessIndex(GpuBufferViewType::Raw) == vertexIndex)
+			B3D_TEST_ASSERT(indexBuffer->GetOrCreateBindlessIndex(GpuBufferViewType::Raw) == indexIndex)
+
+			LoggingScope logs(*this);
+			logs.ExpectError("Vertex and index buffers only have raw bindless views.");
+			B3D_TEST_ASSERT(vertexBuffer->GetOrCreateBindlessIndex(GpuBufferViewType::Typed) == kGpuBindlessInvalidIndex)
 		}
 
 		GpuBindlessHeapStatistics statistics = heaps.GetStatistics(GpuBindlessHeapType::Resource);

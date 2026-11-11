@@ -16,16 +16,40 @@ namespace b3d
 	 *  @{
 	 */
 
+	/** Level of an acceleration structure. */
+	enum class GpuAccelerationStructureType : u8
+	{
+		BottomLevel, /**< Holds geometry. */
+		TopLevel /**< Holds instances of bottom level acceleration structures. */
+	};
+
 	/**	Determines in what way will a GpuBuffer be used in. */
 	enum class GpuBufferType
 	{
-		Vertex, /**< Contains mesh vertices and associated properties. */
-		Index, /**< Contains mesh indices that determine which vertices form a triangle. */
+		/**
+		 * Contains mesh vertices and associated properties. Shaders can also read it as ByteAddressBuffer, so its size is padded to a multiple
+		 * of 4 bytes.
+		 */
+		Vertex,
+
+		/**
+		 * Contains mesh indices that determine which vertices form a triangle. Shaders can also read it as ByteAddressBuffer, so its size is
+		 * padded to a multiple of 4 bytes.
+		 */
+		Index,
+
 		Uniform, /**< Contains GPU program parameters. */
 		SimpleStorage, /**< Contains arbitrary data, formatted as an array of primitive types using one of the supported buffer formats. */
 		StructuredStorage, /**< Contains arbitrary data, formatted as an array of structures. Structure layout is up to the user. */
 		StagingWrite, /**< Special type of CPU writeable buffer type used only as a source of copy operations. Ignores the store flags and is always accessible by CPU only. */
 		StagingRead, /**< Special type of CPU readable buffer type used only as a destination of copy operations. Ignores the store flags and is always accessible by CPU only. */
+
+		/**
+		 * Stores an acceleration structure. Requires a device with RSC_ACCELERATION_STRUCTURES, and is created on the render thread. Only
+		 * acceleration structure builds write it, and only builds and ray tracing read it: it cannot be mapped, copied or bound as a storage
+		 * buffer, and it never moves to other memory.
+		 */
+		AccelerationStructure
 	};
 
 	/** Flags that determine how a GpuBuffer behaves. */
@@ -56,11 +80,18 @@ namespace b3d
 
 		/**
 		 * Makes the buffer readable by shaders through ResourceDescriptorHeap, at the index returned by render::GpuBuffer::GetBindlessIndex().
-		 * Only valid for simple and structured storage buffers without suballocations. The buffer stays at rest: it cannot be aliased or
-		 * transient, and CPU writes never discard its contents. GPU writes must return it to rest. Its index stays the same if GPU memory
-		 * defragmentation moves it. Requires a device that supports bindless resources.
+		 * Only valid for simple and structured storage buffers, and for vertex and index buffers. Shaders read vertex and index buffers as
+		 * ByteAddressBuffer. The buffer stays at rest: it cannot be aliased or transient, and CPU writes never discard its contents. GPU
+		 * writes must return it to rest. Its index stays the same if GPU memory defragmentation moves it. Requires a device that supports
+		 * bindless resources.
 		 */
-		Bindless = 1 << 3
+		Bindless = 1 << 3,
+
+		/**
+		 * Lets acceleration structure builds read the buffer, as the vertices or indices of a geometry, or as the instances of a top level
+		 * structure. Only valid for vertex, index and structured storage buffers. Requires a device that supports acceleration structures.
+		 */
+		AccelerationStructureInput = 1 << 4
 	};
 
 	using GpuBufferFlags = Flags<GpuBufferFlag>;
@@ -120,6 +151,13 @@ namespace b3d
 			u32 ElementSize = 0;
 		};
 
+		/** Describes a buffer that stores an acceleration structure. */
+		struct AccelerationStructureBufferInformation
+		{
+			u32 Size = 0; /**< Size of the acceleration structure, in bytes. */
+			GpuAccelerationStructureType Type = GpuAccelerationStructureType::BottomLevel; /**< Level of the acceleration structure. */
+		};
+
 		union
 		{
 			VertexBufferInformation Vertex;
@@ -128,6 +166,7 @@ namespace b3d
 			StagingBufferInformation Staging;
 			SimpleStorageBufferInformation SimpleStorage;
 			StructuredStorageBufferInformation StructuredStorage;
+			AccelerationStructureBufferInformation AccelerationStructure;
 		};
 
 		GpuBufferType Type = GpuBufferType::Vertex; /**< Controls at which parts of the GPU pipeline is the buffer intended to be primarily used in. */
@@ -273,6 +312,25 @@ namespace b3d
 			output.Type = GpuBufferType::StagingRead;
 			output.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
 			output.Staging.Size = size;
+
+			return output;
+		}
+
+		/**
+		 * Builds a structure that can be used for creating a GpuBuffer that stores an acceleration structure.
+		 *
+		 * @param type		Level of the acceleration structure.
+		 * @param size		Size of the acceleration structure, in bytes.
+		 * @param flags		Flags that control how is buffer accessed/used. Must be GpuBufferFlag::StoreOnGPU.
+		 * @return			Structure that can be used for creating the buffer.
+		 */
+		static GpuBufferCreateInformation CreateAccelerationStructure(GpuAccelerationStructureType type, u32 size, GpuBufferFlags flags = GpuBufferFlag::StoreOnGPU)
+		{
+			GpuBufferCreateInformation output;
+			output.Type = GpuBufferType::AccelerationStructure;
+			output.Flags = flags;
+			output.AccelerationStructure.Size = size;
+			output.AccelerationStructure.Type = type;
 
 			return output;
 		}
@@ -700,8 +758,8 @@ namespace b3d::render
 
 		/**
 		 * Returns the index of the buffer's default view in the bindless resource heap, or kGpuBindlessInvalidIndex if the buffer wasn't
-		 * created with GpuBufferFlag::Bindless or isn't initialized. Structured buffers are viewed as structured, and simple storage buffers
-		 * as typed with their own format. The index is valid until the buffer is destroyed.
+		 * created with GpuBufferFlag::Bindless or isn't initialized. Structured buffers are viewed as structured, simple storage buffers
+		 * as typed with their own format, and vertex and index buffers as raw. The index is valid until the buffer is destroyed.
 		 */
 		u32 GetBindlessIndex() const { return mBindlessSlots.GetDefaultIndex(); }
 
@@ -709,7 +767,8 @@ namespace b3d::render
 		 * Returns the bindless resource heap index of a view of the buffer, allocating it on first request. Returns
 		 * kGpuBindlessInvalidIndex if the buffer isn't bindless, can't be viewed this way, or the heap is full.
 		 *
-		 * @param	viewType	How the view interprets the buffer contents. Only structured storage buffers can be viewed as raw.
+		 * @param	viewType	How the view interprets the buffer contents. Only structured storage, vertex and index buffers can be
+		 *						viewed as raw, and vertex and index buffers have no other view.
 		 * @param	format		Element format of a typed view of a simple storage buffer, or BF_UNKNOWN for the buffer's own format.
 		 *						Must be BF_UNKNOWN for other views.
 		 *

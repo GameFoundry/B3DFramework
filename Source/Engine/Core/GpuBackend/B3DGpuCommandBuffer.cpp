@@ -29,6 +29,18 @@ namespace b3d
 namespace b3d { namespace render
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
+namespace
+{
+	/** Logs an error if @p buffer cannot be the source or destination of a copy. */
+	void ValidateCopyBuffer(const TShared<GpuBuffer>& buffer)
+	{
+		if(buffer == nullptr)
+			return;
+
+		B3D_ENSURE_LOG(buffer->GetInformation().Type != GpuBufferType::AccelerationStructure, "Acceleration structure buffer '{0}' cannot be copied from or to.", buffer->GetName());
+	}
+} // namespace
+
 void GpuDrawAccessValidator::BeginRenderPass()
 {
 	mPreviousDrawAccesses.clear();
@@ -242,6 +254,9 @@ void GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& create
 void GpuCommandBuffer::CopyBufferToBuffer([[maybe_unused]] const TShared<GpuBuffer>& source, [[maybe_unused]] const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> /*ranges*/)
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
+	ValidateCopyBuffer(source);
+	ValidateCopyBuffer(destination);
+
 	if(mBarrierValidator != nullptr && source != nullptr && destination != nullptr)
 	{
 		mBarrierValidator->ValidateBufferAccess(*source, GpuStageFlag::Transfer, GpuAccessFlag::Read);
@@ -253,6 +268,8 @@ void GpuCommandBuffer::CopyBufferToBuffer([[maybe_unused]] const TShared<GpuBuff
 void GpuCommandBuffer::CopyBufferToTexture([[maybe_unused]] const TShared<GpuBuffer>& source, [[maybe_unused]] const TShared<Texture>& destination, u32 /*bufferOffset*/, [[maybe_unused]] u32 mipLevel, [[maybe_unused]] u32 arrayLayer)
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
+	ValidateCopyBuffer(source);
+
 	if(mBarrierValidator != nullptr && source != nullptr && destination != nullptr)
 	{
 		mBarrierValidator->ValidateBufferAccess(*source, GpuStageFlag::Transfer, GpuAccessFlag::Read);
@@ -264,6 +281,8 @@ void GpuCommandBuffer::CopyBufferToTexture([[maybe_unused]] const TShared<GpuBuf
 void GpuCommandBuffer::CopyTextureToBuffer([[maybe_unused]] const TShared<Texture>& source, [[maybe_unused]] const TShared<GpuBuffer>& destination, [[maybe_unused]] u32 mipLevel, [[maybe_unused]] u32 arrayLayer, u32 /*bufferOffset*/)
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
+	ValidateCopyBuffer(destination);
+
 	if(mBarrierValidator != nullptr && source != nullptr && destination != nullptr)
 	{
 		mBarrierValidator->ValidateTextureAccess(*source, GpuTextureSubresourceRange(mipLevel, 1, arrayLayer, 1, kAllImageAspects), GpuImageLayout::Undefined, GpuStageFlag::Transfer, GpuAccessFlag::Read);
@@ -275,6 +294,8 @@ void GpuCommandBuffer::CopyTextureToBuffer([[maybe_unused]] const TShared<Textur
 void GpuCommandBuffer::CopyWindowToBuffer([[maybe_unused]] const TShared<RenderWindow>& source, [[maybe_unused]] const TShared<GpuBuffer>& destination)
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
+	ValidateCopyBuffer(destination);
+
 	if(mBarrierValidator != nullptr && source != nullptr && destination != nullptr)
 	{
 		mBarrierValidator->ValidateRenderTargetAccess(*source, RT_COLOR0, GpuImageLayout::TransferSource, GpuStageFlag::Transfer, GpuAccessFlag::Read);

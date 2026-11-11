@@ -155,74 +155,90 @@ void GpuBackendTestSuite::TestByteAddressBufferAccess()
 		static constexpr u32 kInputWordCount = 8;
 		static constexpr u32 kOutputWordCount = 9;
 
-		const TShared<render::GpuBuffer> input = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kInputWordCount, GpuBufferFlag::StoreOnCPUWithGPUAccess));
-		const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kOutputWordCount, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
-		const TShared<render::GpuBuffer> upload = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(kOutputWordCount * sizeof(u32)));
-		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kOutputWordCount * sizeof(u32)));
-
-		// The host writes are made visible by the submission. The output starts zeroed, for the atomics.
+		// Runs the shader over an input buffer of the given description
+		const auto fnTestInput = [this, &device, &pipeline](const GpuBufferCreateInformation& inputInformation)
 		{
-			const render::GpuBufferMappedScope inputMapping = input->Map(GpuMapOption::Write);
-			const render::GpuBufferMappedScope uploadMapping = upload->Map(GpuMapOption::Write);
-			B3D_TEST_ASSERT(inputMapping.IsValid() && uploadMapping.IsValid())
-			if(!inputMapping.IsValid() || !uploadMapping.IsValid())
+			const TShared<render::GpuBuffer> input = device->CreateGpuBuffer(inputInformation);
+			const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kOutputWordCount, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+			const TShared<render::GpuBuffer> upload = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(kOutputWordCount * sizeof(u32)));
+			const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kOutputWordCount * sizeof(u32)));
+
+			// The host writes are made visible by the submission. The output starts zeroed, for the atomics.
+			{
+				const render::GpuBufferMappedScope inputMapping = input->Map(GpuMapOption::Write);
+				const render::GpuBufferMappedScope uploadMapping = upload->Map(GpuMapOption::Write);
+				B3D_TEST_ASSERT(inputMapping.IsValid() && uploadMapping.IsValid())
+				if(!inputMapping.IsValid() || !uploadMapping.IsValid())
+					return;
+
+				u32* inputWords = static_cast<u32*>(inputMapping.GetMappedMemory());
+				for(u32 wordIndex = 0; wordIndex < kInputWordCount; wordIndex++)
+					inputWords[wordIndex] = 100 + wordIndex;
+
+				std::memset(uploadMapping.GetMappedMemory(), 0, kOutputWordCount * sizeof(u32));
+			}
+
+			const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+			const TShared<render::GpuParameterSet> parameterSet = context->GetParameterSetPool().Create(pipeline->GetParameterLayout()->GetSet(0), 0);
+
+			{
+				const TShared<render::GpuBuffer> typedBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X1U, kInputWordCount, GpuBufferFlag::StoreOnGPU));
+
+				LoggingScope logs(*this);
+				logs.ExpectError("Only structured storage, vertex and index buffers can be bound as byte address buffers.");
+				parameterSet->SetStorageBuffer("Input", typedBuffer);
+			}
+
+			parameterSet->SetStorageBuffer("Input", input);
+			parameterSet->SetStorageBuffer("Output", output);
+
+			const GpuAccessState computeReadWrite(GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Read | GpuAccessFlag::Write);
+			const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
+			const GpuAccessState transferRead(GpuStageFlag::Transfer, GpuAccessFlag::Read);
+			const GpuAccessState hostRead(GpuStageFlag::Host, GpuAccessFlag::Read);
+
+			const TShared<render::GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
+			const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Byte address buffer access"));
+
+			commands->IssueBarriers(GpuBufferBarrier(output, GpuAccessState(), transferWrite));
+			commands->CopyBufferToBuffer(upload, output, 0, 0, kOutputWordCount * sizeof(u32));
+			commands->IssueBarriers(GpuBufferBarrier(output, transferWrite, computeReadWrite));
+
+			commands->SetGpuComputePipelineState(pipeline);
+			commands->SetGpuParameterSet(parameterSet);
+			commands->DispatchCompute(1);
+
+			const GpuBufferBarrier copyBarriers[] = { GpuBufferBarrier(output, computeReadWrite, transferRead), GpuBufferBarrier(readback, GpuAccessState(), transferWrite) };
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(copyBarriers, 2)));
+			commands->CopyBufferToBuffer(output, readback, 0, 0, kOutputWordCount * sizeof(u32));
+			commands->IssueBarriers(GpuBufferBarrier(readback, transferWrite, hostRead));
+			context->SubmitCommandBuffer(commands);
+			device->WaitUntilIdle();
+
+			const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
 				return;
 
-			u32* inputWords = static_cast<u32*>(inputMapping.GetMappedMemory());
-			for(u32 wordIndex = 0; wordIndex < kInputWordCount; wordIndex++)
-				inputWords[wordIndex] = 100 + wordIndex;
+			// The shader skips the buffer size query on Metal, leaving its word zeroed
+			const bool isMetal = String(GpuBackend::Instance().GetBackendName()) == "bsfMetalGpuBackend";
+			const u32 expected[kOutputWordCount] = { 101, 102, 103, 104, 4, 101, 102, isMetal ? 0u : kInputWordCount * (u32)sizeof(u32), 13 };
+			const u32* actual = static_cast<const u32*>(mapping.GetMappedMemory());
+			for(u32 wordIndex = 0; wordIndex < kOutputWordCount; wordIndex++)
+				B3D_TEST_ASSERT_MSG(actual[wordIndex] == expected[wordIndex], StringUtility::Format("Output word {0}: {1}, expected {2}.", wordIndex, actual[wordIndex], expected[wordIndex]))
+		};
 
-			std::memset(uploadMapping.GetMappedMemory(), 0, kOutputWordCount * sizeof(u32));
-		}
+		fnTestInput(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kInputWordCount, GpuBufferFlag::StoreOnCPUWithGPUAccess));
 
-		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
-		const TShared<render::GpuParameterSet> parameterSet = context->GetParameterSetPool().Create(pipeline->GetParameterLayout()->GetSet(0), 0);
-
+		// Backends implement raw views of vertex and index buffers together with acceleration structures
+		if(device->GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES))
 		{
-			const TShared<render::GpuBuffer> typedBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X1U, kInputWordCount, GpuBufferFlag::StoreOnGPU));
+			fnTestInput(GpuBufferCreateInformation::CreateVertex(sizeof(u32), kInputWordCount, GpuBufferFlag::StoreOnCPUWithGPUAccess));
+			fnTestInput(GpuBufferCreateInformation::CreateIndex(IT_32BIT, kInputWordCount, GpuBufferFlag::StoreOnCPUWithGPUAccess));
 
-			LoggingScope logs(*this);
-			logs.ExpectError("Only structured storage buffers can be bound as byte address buffers.");
-			parameterSet->SetStorageBuffer("Input", typedBuffer);
+			// An odd number of 16-bit indices ends in half a word, which padding completes
+			fnTestInput(GpuBufferCreateInformation::CreateIndex(IT_16BIT, kInputWordCount * 2 - 1, GpuBufferFlag::StoreOnCPUWithGPUAccess));
 		}
-
-		parameterSet->SetStorageBuffer("Input", input);
-		parameterSet->SetStorageBuffer("Output", output);
-
-		const GpuAccessState computeReadWrite(GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Read | GpuAccessFlag::Write);
-		const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
-		const GpuAccessState transferRead(GpuStageFlag::Transfer, GpuAccessFlag::Read);
-		const GpuAccessState hostRead(GpuStageFlag::Host, GpuAccessFlag::Read);
-
-		const TShared<render::GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
-		const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Byte address buffer access"));
-
-		commands->IssueBarriers(GpuBufferBarrier(output, GpuAccessState(), transferWrite));
-		commands->CopyBufferToBuffer(upload, output, 0, 0, kOutputWordCount * sizeof(u32));
-		commands->IssueBarriers(GpuBufferBarrier(output, transferWrite, computeReadWrite));
-
-		commands->SetGpuComputePipelineState(pipeline);
-		commands->SetGpuParameterSet(parameterSet);
-		commands->DispatchCompute(1);
-
-		const GpuBufferBarrier copyBarriers[] = { GpuBufferBarrier(output, computeReadWrite, transferRead), GpuBufferBarrier(readback, GpuAccessState(), transferWrite) };
-		commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(copyBarriers, 2)));
-		commands->CopyBufferToBuffer(output, readback, 0, 0, kOutputWordCount * sizeof(u32));
-		commands->IssueBarriers(GpuBufferBarrier(readback, transferWrite, hostRead));
-		context->SubmitCommandBuffer(commands);
-		device->WaitUntilIdle();
-
-		const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
-		B3D_TEST_ASSERT(mapping.IsValid())
-		if(!mapping.IsValid())
-			return;
-
-		// The shader skips the buffer size query on Metal, leaving its word zeroed
-		const bool isMetal = String(GpuBackend::Instance().GetBackendName()) == "bsfMetalGpuBackend";
-		const u32 expected[kOutputWordCount] = { 101, 102, 103, 104, 4, 101, 102, isMetal ? 0u : kInputWordCount * (u32)sizeof(u32), 13 };
-		const u32* actual = static_cast<const u32*>(mapping.GetMappedMemory());
-		for(u32 wordIndex = 0; wordIndex < kOutputWordCount; wordIndex++)
-			B3D_TEST_ASSERT_MSG(actual[wordIndex] == expected[wordIndex], StringUtility::Format("Output word {0}: {1}, expected {2}.", wordIndex, actual[wordIndex], expected[wordIndex]))
 	}, "GpuBackendTestSuite::TestByteAddressBufferAccess", true);
 }
 
@@ -1405,7 +1421,8 @@ void GpuBackendTestSuite::TestQueueStageFlags()
 	B3D_TEST_ASSERT(!GpuBackendUtility::GetQueueStageFlags(GQT_COMPUTE).IsSetAny(GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::FragmentShaderNonUniform))
 
 	// Ray tracing dispatches and acceleration structure builds run on graphics and compute queues
-	const GpuStageFlags rayTracingStages = GpuStageFlag::RayTracingShaderNonUniform | GpuStageFlag::RayTracingShaderUniform | GpuStageFlag::AccelerationStructureBuild;
+	const GpuStageFlags rayTracingStages = GpuStageFlag::RayTracingShaderNonUniform | GpuStageFlag::RayTracingShaderUniform | GpuStageFlag::RayTracingShaderAccelerationStructure |
+		GpuStageFlag::ComputeShaderAccelerationStructure | GpuStageFlag::AccelerationStructureBuild | GpuStageFlag::AccelerationStructureBuildInput;
 	B3D_TEST_ASSERT(GpuBackendUtility::GetQueueStageFlags(GQT_COMPUTE).IsSetAll(rayTracingStages))
 	B3D_TEST_ASSERT(GpuBackendUtility::GetQueueStageFlags(GQT_TRANSFER) == (GpuStageFlag::Transfer | GpuStageFlag::Host))
 }
@@ -2834,7 +2851,7 @@ void GpuBackendTestSuite::TestTransientResourceExecution()
 			GpuAccessState source = GetAliasAcquireSource(acquire);
 			if(acquire.HasUnknownSourceAccess)
 			{
-				source.Stages |= GpuBackendUtility::GetQueueStageFlags(commands.GetQueueType()) & ~GpuStageFlags(GpuStageFlag::Host);
+				source.Stages |= GpuBackendUtility::GetQueueStageFlags(commands.GetQueueType()) & ~GpuStageFlags(GpuStageFlag::Host | GpuStageFlag::AllShaderAccelerationStructure);
 				source.Access |= GpuAccessFlag::Write;
 			}
 

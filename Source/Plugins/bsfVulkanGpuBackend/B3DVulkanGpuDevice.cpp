@@ -1009,6 +1009,9 @@ VulkanBuffer* VulkanGpuDevice::CreateBuffer(const VulkanBufferCreateInformation&
 	VkMemoryRequirements requirements = {};
 	vkGetBufferMemoryRequirements(mLogicalDevice, buffer, &requirements);
 
+	// Matches GetMemoryRequirements()
+	requirements.alignment = std::max<VkDeviceSize>(requirements.alignment, VulkanGpuBuffer::GetMinimumAlignment(*this, createInformation.Type, createInformation.Flags));
+
 	const VulkanAllocationResult allocation = ResolveAllocation(requestedAllocation, requirements);
 	outAllocation = allocation.Allocation;
 
@@ -1134,7 +1137,7 @@ GpuMemoryRequirements VulkanGpuDevice::GetMemoryRequirements(const GpuBufferCrea
 	VkBufferCreateInfo bufferInfo{};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	bufferInfo.size = size != 0 ? size : 64;
-	bufferInfo.usage = VulkanGpuBuffer::GetVkBufferUsageFlags(createInformation);
+	bufferInfo.usage = VulkanGpuBuffer::GetVkBufferUsageFlags(*this, createInformation);
 
 	// Match the sharing mode of VulkanGpuBuffer::CreateBuffer()
 	const bool usesConcurrentSharing = mQueueFamilies.Size() > 1;
@@ -1157,7 +1160,7 @@ GpuMemoryRequirements VulkanGpuDevice::GetMemoryRequirements(const GpuBufferCrea
 	GpuMemoryRequirements output;
 	output.MemoryType = EncodeMemoryType(memoryTypeIndex, false);
 	output.Size = requirements.memoryRequirements.size;
-	output.Alignment = requirements.memoryRequirements.alignment;
+	output.Alignment = std::max<VkDeviceSize>(requirements.memoryRequirements.alignment, VulkanGpuBuffer::GetMinimumAlignment(*this, createInformation.Type, createInformation.Flags));
 	return output;
 }
 

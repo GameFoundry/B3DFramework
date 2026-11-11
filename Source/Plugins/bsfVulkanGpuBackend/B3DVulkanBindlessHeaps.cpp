@@ -75,8 +75,9 @@ void VulkanBindlessHeaps::WriteResourceDescriptor(u32 slotIndex, const GpuBindle
 	}
 	else
 	{
+		// Raw views of vertex and index buffers are storage buffers too
 		auto* buffer = static_cast<VulkanGpuBuffer*>(view.Buffer);
-		if(buffer->GetInformation().Type == GpuBufferType::StructuredStorage)
+		if(view.ViewType == GpuBufferViewType::Raw || buffer->GetInformation().Type == GpuBufferType::StructuredStorage)
 		{
 			bufferInfo.buffer = buffer->GetVulkanResource()->GetVulkanHandle();
 			bufferInfo.offset = 0;

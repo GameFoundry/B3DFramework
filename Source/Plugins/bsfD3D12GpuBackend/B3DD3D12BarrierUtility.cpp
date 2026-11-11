@@ -112,15 +112,15 @@ D3D12_BARRIER_SYNC D3D12BarrierUtility::GetStageSync(GpuStageFlags stages)
 		sync |= D3D12_BARRIER_SYNC_VERTEX_SHADING;
 	if(stages.IsSet(GpuStageFlag::VertexInputIndices))
 		sync |= D3D12_BARRIER_SYNC_INDEX_INPUT;
-	if(stages.IsSetAny(GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::VertexShaderUniform))
+	if(stages.IsSetAny(GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::VertexShaderUniform | GpuStageFlag::VertexShaderAccelerationStructure))
 		sync |= D3D12_BARRIER_SYNC_VERTEX_SHADING;
-	if(stages.IsSetAny(GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::FragmentShaderUniform))
+	if(stages.IsSetAny(GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::FragmentShaderUniform | GpuStageFlag::FragmentShaderAccelerationStructure))
 		sync |= D3D12_BARRIER_SYNC_PIXEL_SHADING;
-	if(stages.IsSetAny(GpuStageFlag::ComputeShaderNonUniform | GpuStageFlag::ComputeShaderUniform))
+	if(stages.IsSetAny(GpuStageFlag::ComputeShaderNonUniform | GpuStageFlag::ComputeShaderUniform | GpuStageFlag::ComputeShaderAccelerationStructure))
 		sync |= D3D12_BARRIER_SYNC_COMPUTE_SHADING;
-	if(stages.IsSetAny(GpuStageFlag::RayTracingShaderNonUniform | GpuStageFlag::RayTracingShaderUniform))
+	if(stages.IsSetAny(GpuStageFlag::RayTracingShaderNonUniform | GpuStageFlag::RayTracingShaderUniform | GpuStageFlag::RayTracingShaderAccelerationStructure))
 		sync |= D3D12_BARRIER_SYNC_RAYTRACING;
-	if(stages.IsSet(GpuStageFlag::AccelerationStructureBuild))
+	if(stages.IsSetAny(GpuStageFlag::AccelerationStructureBuild | GpuStageFlag::AccelerationStructureBuildInput))
 		sync |= D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE;
 	if(stages.IsSetAny(GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests))
 		sync |= D3D12_BARRIER_SYNC_DEPTH_STENCIL;
@@ -221,7 +221,7 @@ D3D12_GLOBAL_BARRIER D3D12BarrierUtility::GetAliasGlobalBarrier(const GpuBarrier
 			if(stages.IsSetAny(GpuStageFlag::VertexShaderUniform | GpuStageFlag::FragmentShaderUniform | GpuStageFlag::ComputeShaderUniform | GpuStageFlag::RayTracingShaderUniform))
 				nativeAccess |= D3D12_BARRIER_ACCESS_CONSTANT_BUFFER;
 
-			if(stages.IsSetAny(GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::ComputeShaderNonUniform | GpuStageFlag::RayTracingShaderNonUniform | GpuStageFlag::AccelerationStructureBuild))
+			if(stages.IsSetAny(GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::ComputeShaderNonUniform | GpuStageFlag::RayTracingShaderNonUniform | GpuStageFlag::AccelerationStructureBuildInput))
 				nativeAccess |= D3D12_BARRIER_ACCESS_SHADER_RESOURCE;
 
 			if(stages.IsSet(GpuStageFlag::Transfer))
@@ -373,9 +373,11 @@ D3D12_BARRIER_ACCESS D3D12BarrierUtility::GetBufferAccess(GpuStageFlags stages, 
 	if(stages.IsSetAny(GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::ComputeShaderNonUniform | GpuStageFlag::RayTracingShaderNonUniform))
 		nativeAccess |= writes ? D3D12_BARRIER_ACCESS_UNORDERED_ACCESS : D3D12_BARRIER_ACCESS_SHADER_RESOURCE;
 
-	// TODO - Build writes (the acceleration structure and its scratch memory) need the acceleration structure access bits, which come with
-	// the acceleration structure buffer type. Build inputs are read as shader resources.
-	if(stages.IsSet(GpuStageFlag::AccelerationStructureBuild) && reads)
+	// TODO - Rays traced against acceleration structures, and builds accessing acceleration structures and their scratch memory, need
+	// the acceleration structure access bits and their compatible syncs (phase 5.2). Scratch memory may need unordered access instead.
+
+	// Builds read their geometry and instances as shader resources
+	if(stages.IsSet(GpuStageFlag::AccelerationStructureBuildInput) && reads)
 		nativeAccess |= D3D12_BARRIER_ACCESS_SHADER_RESOURCE;
 
 	if(stages.IsSet(GpuStageFlag::Transfer))

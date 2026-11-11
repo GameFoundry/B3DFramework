@@ -15,6 +15,27 @@
 
 namespace b3d::render
 {
+	namespace
+	{
+		/** Returns an error if @p stages include a stage that cannot access @p buffer, or null if they don't. */
+		const char* GetBufferStageError(const GpuBuffer& buffer, GpuStageFlags stages)
+		{
+			if(buffer.GetInformation().Type != GpuBufferType::AccelerationStructure)
+			{
+				if(!stages.IsSetAny(GpuStageFlag::AllShaderAccelerationStructure))
+					return nullptr;
+
+				return "Only an acceleration structure buffer can be accessed by rays traced against it.";
+			}
+
+			const GpuStageFlags otherStages = stages & ~GpuBackendUtility::GetAccelerationStructureStageFlags();
+			if(otherStages == GpuStageFlag::None)
+				return nullptr;
+
+			return "An acceleration structure buffer can only be accessed by rays traced against it and by acceleration structure builds.";
+		}
+	} // namespace
+
 	void GpuBarrierValidator::BeginCommandBuffer(GpuQueueType queueType)
 	{
 		mQueueType = queueType;
@@ -157,7 +178,10 @@ namespace b3d::render
 
 	void GpuBarrierValidator::ValidateBufferAccess(const GpuBuffer& buffer, GpuStageFlags stages, GpuAccessFlags access)
 	{
-		const char* error = GetLifetimeError(buffer.IsUnplaced(), buffer.GetGpuResource(), nullptr, GpuBarrierPhase::Full);
+		const char* error = GetBufferStageError(buffer, stages);
+		if(error == nullptr)
+			error = GetLifetimeError(buffer.IsUnplaced(), buffer.GetGpuResource(), nullptr, GpuBarrierPhase::Full);
+
 		if(error == nullptr)
 			error = ApplyAccess(mBuffers[&buffer], mQueueType, GpuImageLayout::Undefined, stages, access, GetUndeclaredState(GpuBackendUtility::GetRestingState(buffer, mQueueType)), mOperation);
 
@@ -374,7 +398,10 @@ namespace b3d::render
 
 	void GpuBarrierValidator::ValidateBufferBarrier(const GpuBuffer& buffer, const GpuBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split)
 	{
-		const char* error = GetLifetimeError(buffer.IsUnplaced(), buffer.GetGpuResource(), &barrier, phase);
+		const char* error = GetBufferStageError(buffer, barrier.Source.Stages | barrier.Destination.Stages);
+		if(error == nullptr)
+			error = GetLifetimeError(buffer.IsUnplaced(), buffer.GetGpuResource(), &barrier, phase);
+
 		if(error == nullptr)
 		{
 			ResourceState& state = mBuffers[&buffer];

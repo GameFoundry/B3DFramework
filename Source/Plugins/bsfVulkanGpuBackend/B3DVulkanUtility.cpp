@@ -877,9 +877,41 @@ void VulkanUtility::GetPipelineStageAndAccessMask(const VulkanGpuDevice& device,
 		if(isRead) outAccessMask |= VK_ACCESS_UNIFORM_READ_BIT;
 	}
 
-	// TODO - Build writes (the acceleration structure and its scratch memory) need the acceleration structure access bits, which come with
-	// the acceleration structure buffer type. Build inputs are read like shader resources.
+	// Rays traced against an acceleration structure read it as an acceleration structure, in the stage of the program that traces them
+	if(accessStage.IsSet(GpuStageFlag::VertexShaderAccelerationStructure))
+	{
+		outStages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+		if(isRead) outAccessMask |= VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;
+	}
+
+	if(accessStage.IsSet(GpuStageFlag::FragmentShaderAccelerationStructure))
+	{
+		outStages |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		if(isRead) outAccessMask |= VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;
+	}
+
+	if(accessStage.IsSet(GpuStageFlag::ComputeShaderAccelerationStructure))
+	{
+		outStages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+		if(isRead) outAccessMask |= VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;
+	}
+
+	if(accessStage.IsSet(GpuStageFlag::RayTracingShaderAccelerationStructure))
+	{
+		outStages |= VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR;
+		if(isRead) outAccessMask |= VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;
+	}
+
+	// Builds access acceleration structures, and the scratch memory they both read and write, as acceleration structures
 	if(accessStage.IsSet(GpuStageFlag::AccelerationStructureBuild))
+	{
+		outStages |= VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;
+		if(isRead) outAccessMask |= VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;
+		if(isWrite) outAccessMask |= VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;
+	}
+
+	// Builds read their geometry and instances like shaders do
+	if(accessStage.IsSet(GpuStageFlag::AccelerationStructureBuildInput))
 	{
 		outStages |= VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;
 		if(isRead) outAccessMask |= VK_ACCESS_SHADER_READ_BIT;

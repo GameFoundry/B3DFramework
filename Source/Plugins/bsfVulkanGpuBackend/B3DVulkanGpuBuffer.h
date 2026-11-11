@@ -140,8 +140,14 @@ namespace b3d
 			/** Returns a view of the buffer object using the provided format. Only relevant for simple storage buffers. If Unknown format is provided, returns the default view. If the view was previously created, returns the existing buffer view. */
 			VkBufferView GetOrCreateView(GpuBufferFormat format) const;
 
-			/** Maps a buffer's engine usage (@p createInformation Type + Flags) to its Vulkan buffer usage bits. */
-			static VkBufferUsageFlags GetVkBufferUsageFlags(const GpuBufferCreateInformation& createInformation);
+			/** Maps a buffer's engine usage (@p createInformation Type + Flags) to its Vulkan buffer usage bits on @p device. */
+			static VkBufferUsageFlags GetVkBufferUsageFlags(const VulkanGpuDevice& device, const GpuBufferCreateInformation& createInformation);
+
+			/**
+			 * Returns the alignment a buffer of @p type and @p flags needs on @p device beyond what Vulkan reports for it, or 1 if none.
+			 * Buffers that can be the scratch memory of an acceleration structure build are aligned for it.
+			 */
+			static u32 GetMinimumAlignment(const VulkanGpuDevice& device, GpuBufferType type, GpuBufferFlags flags);
 
 			/**
 			 * Maps a buffer's engine usage (@p createInformation Type + Flags) to the (required, preferred)

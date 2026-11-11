@@ -13,14 +13,23 @@
 
 using namespace b3d;
 
+/** Returns the number of bytes of vertex or index data in the buffer, without the padding that follows it. */
+static u32 CalculateVertexOrIndexDataSize(const GpuBufferInformation& information)
+{
+	if(information.Type == GpuBufferType::Vertex)
+		return information.Vertex.Count * information.Vertex.ElementSize;
+
+	return information.Index.Count * GpuBuffer::GetIndexSize(information.Index.Type);
+}
+
 static u32 CalculateUnalignedGpuBufferSize(const GpuBufferInformation& information)
 {
 	switch(information.Type)
 	{
 	case GpuBufferType::Vertex:
-		return information.Vertex.Count * information.Vertex.ElementSize;
 	case GpuBufferType::Index:
-		return information.Index.Count * (GpuBuffer::GetIndexSize(information.Index.Type));
+		// Shaders can read any vertex or index buffer through a raw view, in 32-bit words
+		return Math::CeilToMultiple(CalculateVertexOrIndexDataSize(information), 4u);
 	case GpuBufferType::Uniform: 
 		return information.Uniform.Size;
 	case GpuBufferType::SimpleStorage:
@@ -30,6 +39,8 @@ static u32 CalculateUnalignedGpuBufferSize(const GpuBufferInformation& informati
 	case GpuBufferType::StagingRead:
 	case GpuBufferType::StagingWrite:
 		return information.Staging.Size;
+	case GpuBufferType::AccelerationStructure:
+		return information.AccelerationStructure.Size;
 	}
 
 	B3D_ENSURE(false);
@@ -148,6 +159,9 @@ RenderProxySyncPacket* GpuBuffer::CreateRenderProxySyncPacket(FrameAllocator& al
 
 TShared<GpuBuffer> GpuBuffer::Create(const GpuBufferCreateInformation& createInformation)
 {
+	if(!B3D_ENSURE_LOG(createInformation.Type != GpuBufferType::AccelerationStructure, "Acceleration structure buffers are created on the render thread, through GpuDevice::CreateGpuBuffer()."))
+		return nullptr;
+
 	TShared<GpuBuffer> buffer = B3DMakeSharedFromExisting<GpuBuffer>(new(B3DAllocate<GpuBuffer>()) GpuBuffer(createInformation));
 	buffer->SetShared(buffer);
 	buffer->Initialize();
@@ -261,6 +275,18 @@ u32 GpuBuffer::CalculateTotalBufferSize(const GpuBufferInformation& information,
 
 namespace b3d::render
 {
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	namespace
+	{
+		/** Returns false, logging the reason, if the host cannot read or write @p buffer, directly or through a staging buffer. */
+		bool ValidateHostAccess(const GpuBuffer& buffer)
+		{
+			return B3D_ENSURE_LOG(buffer.GetInformation().Type != GpuBufferType::AccelerationStructure,
+				"The host cannot read or write acceleration structure buffer '{0}'. Only acceleration structure builds write it.", buffer.GetName());
+		}
+	} // namespace
+#endif
+
 	GpuBuffer::GpuBuffer(GpuDevice& device, const GpuBufferCreateInformation& createInformation, u32 suballocationSize, const GpuAllocation& allocation)
 		: mInformation(createInformation), mDevice(device), mSuballocationSize(suballocationSize), mTotalSize(createInformation.SuballocationCount * mSuballocationSize), mRequestedAllocation(allocation)
 	{ }
@@ -271,7 +297,13 @@ namespace b3d::render
 	void GpuBuffer::Initialize()
 	{
 		if(mInformation.Flags.IsSet(GpuBufferFlag::Bindless) && B3D_ENSURE(GetGpuResource() != nullptr))
-			mBindlessSlots.Register(mDevice, *GetGpuResource(), GpuBindlessResourceView(*this, GpuBufferViewType::Typed, BF_UNKNOWN));
+		{
+			// Vertex streams interleave formats and indices may be 16-bit, so shaders read both as raw words
+			const bool isVertexOrIndex = mInformation.Type == GpuBufferType::Vertex || mInformation.Type == GpuBufferType::Index;
+			const GpuBufferViewType defaultViewType = isVertexOrIndex ? GpuBufferViewType::Raw : GpuBufferViewType::Typed;
+
+			mBindlessSlots.Register(mDevice, *GetGpuResource(), GpuBindlessResourceView(*this, defaultViewType, BF_UNKNOWN));
+		}
 
 		RenderProxy::Initialize();
 	}
@@ -291,7 +323,11 @@ namespace b3d::render
 	u32 GpuBuffer::GetOrCreateBindlessIndex(GpuBufferViewType viewType, GpuBufferFormat format)
 	{
 		const bool isSimpleStorage = mInformation.Type == GpuBufferType::SimpleStorage;
-		if(!B3D_ENSURE_LOG(viewType != GpuBufferViewType::Raw || mInformation.Type == GpuBufferType::StructuredStorage, "Raw bindless views are only supported for structured storage buffers. Buffer: '{0}'.", mName))
+		const bool isVertexOrIndex = mInformation.Type == GpuBufferType::Vertex || mInformation.Type == GpuBufferType::Index;
+		if(!B3D_ENSURE_LOG(viewType != GpuBufferViewType::Raw || mInformation.Type == GpuBufferType::StructuredStorage || isVertexOrIndex, "Raw bindless views are only supported for structured storage, vertex and index buffers. Buffer: '{0}'.", mName))
+			return kGpuBindlessInvalidIndex;
+
+		if(!B3D_ENSURE_LOG(viewType == GpuBufferViewType::Raw || !isVertexOrIndex, "Vertex and index buffers only have raw bindless views. Buffer: '{0}'.", mName))
 			return kGpuBindlessInvalidIndex;
 
 		if(!B3D_ENSURE_LOG(format == BF_UNKNOWN || (viewType == GpuBufferViewType::Typed && isSimpleStorage), "Only typed bindless views of simple storage buffers can have an element format. Buffer: '{0}'.", mName))
@@ -321,6 +357,7 @@ namespace b3d::render
 	void GpuBuffer::Relocate(GpuBuffer& target)
 	{
 		B3D_ASSERT(!HasFixedLocation() && target.HasFixedLocation());
+		B3D_ASSERT(mInformation.Type != GpuBufferType::AccelerationStructure && "Acceleration structures cannot move. Their contents cannot be copied as bytes, and top level structures refer to bottom level structures by address.");
 
 		IGpuResource* const previousNativeResource = GetGpuResource();
 		const GpuAllocation allocation = target.mCurrentAllocation;
@@ -351,6 +388,9 @@ namespace b3d::render
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	void GpuBuffer::ValidateMap(u32 offset, u32 size, GpuMapOptions options)
 	{
+		if(!ValidateHostAccess(*this))
+			return;
+
 		if(options.IsSet(GpuMapOption::Write))
 		{
 			// We currently don't track exact bound ranges for buffers that aren't suballocated, so we cannot warn in that case
@@ -452,6 +492,11 @@ namespace b3d::render
 	{
 		B3D_ASSERT(buffer != nullptr);
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		if(!ValidateHostAccess(*buffer))
+			return;
+#endif
+
 		if((offset + length) > buffer->GetTotalSize())
 			return;
 
@@ -465,7 +510,12 @@ namespace b3d::render
 		if(flags.IsSet(GpuBufferWriteFlag::NoOverwrite))
 			mapOptions |= GpuMapOption::NoOverwrite;
 
-		const bool canDiscardBuffer = (flags.IsSet(GpuBufferWriteFlag::Discard) || (offset == 0 && length == buffer->GetTotalSize())) && !buffer->HasFixedLocation()
+		// A write of all the data replaces the contents. Vertex and index buffers end in padding that holds no data.
+		const bool isVertexOrIndex = gpuBufferInformation.Type == GpuBufferType::Vertex || gpuBufferInformation.Type == GpuBufferType::Index;
+		const u32 dataSize = isVertexOrIndex ? CalculateVertexOrIndexDataSize(gpuBufferInformation) : buffer->GetTotalSize();
+		const bool writesAllData = offset == 0 && length >= dataSize;
+
+		const bool canDiscardBuffer = (flags.IsSet(GpuBufferWriteFlag::Discard) || writesAllData) && !buffer->HasFixedLocation()
 			&& !gpuBufferInformation.Flags.IsSet(GpuBufferFlag::Bindless);
 
 		// Check is the GPU currently reading or writing from the buffer
@@ -573,6 +623,11 @@ namespace b3d::render
 	void GpuBufferUtility::Read(GpuWorkContext& gpuContext, const TShared<GpuBuffer>& buffer, u32 offset, u32 length, void* destination, const TShared<GpuQueue>& gpuQueue)
 	{
 		B3D_ASSERT(buffer != nullptr);
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		if(!ValidateHostAccess(*buffer))
+			return;
+#endif
 
 		if((offset + length) > buffer->GetTotalSize())
 			return;
@@ -686,6 +741,11 @@ namespace b3d::render
 		if(buffer == nullptr)
 			return {};
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		if(!ValidateHostAccess(*buffer))
+			return {};
+#endif
+
 		// TODO - Staging buffer might not be necessary if he texture is directly mappable
 		TShared<GpuBuffer> stagingBuffer = CreateStaging(gpuContext, buffer, true);
 		GpuBackendUtility::CopyToStagingBuffer(commandBuffer, buffer, offset, length, stagingBuffer);
@@ -700,6 +760,11 @@ namespace b3d::render
 	{
 		if(buffer == nullptr)
 			return {};
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		if(!ValidateHostAccess(*buffer))
+			return {};
+#endif
 
 		const TShared<GpuBuffer> stagingBuffer = CreateStaging(graph.GetWorkContext(), buffer, true);
 		graph.ImportBuffer(stagingBuffer);

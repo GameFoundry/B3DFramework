@@ -132,20 +132,23 @@ namespace b3d
 		MTLStages MetalUtility::GetStages(GpuStageFlags stages)
 		{
 			MTLStages output = (MTLStages)0;
-			if (stages.IsSetAny(GpuStageFlag::DrawIndirect | GpuStageFlag::VertexInputAttributes | GpuStageFlag::VertexInputIndices | GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::VertexShaderUniform))
+			if (stages.IsSetAny(GpuStageFlag::DrawIndirect | GpuStageFlag::VertexInputAttributes | GpuStageFlag::VertexInputIndices | GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::VertexShaderUniform |
+				GpuStageFlag::VertexShaderAccelerationStructure))
 				output |= MTLStageVertex;
 
-			if (stages.IsSetAny(GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::FragmentShaderUniform | GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests | GpuStageFlag::ColorAttachment | GpuStageFlag::Resolve))
+			if (stages.IsSetAny(GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::FragmentShaderUniform | GpuStageFlag::FragmentShaderAccelerationStructure | GpuStageFlag::EarlyFragmentTests |
+				GpuStageFlag::LateFragmentTests | GpuStageFlag::ColorAttachment | GpuStageFlag::Resolve))
 				output |= MTLStageFragment;
 
 			// Metal has no ray tracing pipeline stage. Rays are traced from compute dispatches.
-			if (stages.IsSetAny(GpuStageFlag::ComputeShaderNonUniform | GpuStageFlag::ComputeShaderUniform | GpuStageFlag::RayTracingShaderNonUniform | GpuStageFlag::RayTracingShaderUniform))
+			if (stages.IsSetAny(GpuStageFlag::ComputeShaderNonUniform | GpuStageFlag::ComputeShaderUniform | GpuStageFlag::ComputeShaderAccelerationStructure | GpuStageFlag::RayTracingShaderNonUniform |
+				GpuStageFlag::RayTracingShaderUniform | GpuStageFlag::RayTracingShaderAccelerationStructure))
 				output |= MTLStageDispatch;
 
 			if (stages.IsSet(GpuStageFlag::Transfer))
 				output |= MTLStageBlit;
 
-			if (stages.IsSet(GpuStageFlag::AccelerationStructureBuild))
+			if (stages.IsSetAny(GpuStageFlag::AccelerationStructureBuild | GpuStageFlag::AccelerationStructureBuildInput))
 				output |= MTLStageAccelerationStructure;
 
 			return output;

@@ -1267,10 +1267,13 @@ VulkanGpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmit
 	VulkanGpuCommandBufferSubmitInformation submitInformation;
 
 	// Transition the images that requested it to rest (see IGpuImageResource::RequestRestingTransition()). The command buffer's first barrier
-	// from the resting state can be in any stage of the queue, so the transitions make the images available to all of them.
+	// from the resting state can be in any stage of the queue, so the transitions make the images available to all of them. Rays are
+	// only traced against acceleration structures, never imagesa, so ignore those stages.
+	const GpuStageFlags restingStages = GpuStageFlags(GpuStageFlag::All) & ~GpuStageFlags(GpuStageFlag::AllShaderAccelerationStructure);
+
 	VkPipelineStageFlags restingDestinationStages;
 	VkAccessFlags restingDestinationAccess;
-	VulkanUtility::GetPipelineStageAndAccessMask(GetVulkanGpuDevice(), GpuStageFlags(GpuStageFlag::All) & GpuBackendUtility::GetQueueStageFlags(queueType), GpuAccessFlag::Read | GpuAccessFlag::Write,
+	VulkanUtility::GetPipelineStageAndAccessMask(GetVulkanGpuDevice(), restingStages & GpuBackendUtility::GetQueueStageFlags(queueType), GpuAccessFlag::Read | GpuAccessFlag::Write,
 		restingDestinationStages, restingDestinationAccess);
 
 	VulkanBarrierBatch restingTransitions(GetVulkanGpuDevice());

@@ -553,9 +553,17 @@ bool VulkanGpuParameterSet::SetStorageBuffer(u32 slot, const TShared<GpuBuffer>&
 
 	const VkBuffer vkBuffer = bufferResource->GetVulkanHandle();
 
-	const u32 oldBufferRange = mStorageBufferData->View.Range == 0 ? (mStorageBufferData->Buffer != nullptr ? mStorageBufferData->Buffer->GetSuballocationSize() : 0) : mStorageBufferData->View.Range;
+	// Compared with the descriptor written last, since the base class already stored the new view. Texel buffer views cover the whole
+	// buffer, while storage buffer descriptors hold their own offset and range.
+	VkDescriptorBufferInfo& bufferInfo = mSetInformation.BufferWriteInfos[usedResourceSequentialIndex];
+	const VkDeviceSize bufferRange = bufferSize == 0 ? VK_WHOLE_SIZE : bufferSize;
 
-	const bool isBufferViewChanged = (useView && mSetInformation.BufferViews[usedResourceSequentialIndex] != vkBufferView) || mStorageBufferData->View.Offset != bufferOffset || oldBufferRange != bufferSize;
+	bool isBufferViewChanged;
+	if(useView)
+		isBufferViewChanged = mSetInformation.BufferViews[usedResourceSequentialIndex] != vkBufferView;
+	else
+		isBufferViewChanged = bufferInfo.offset != bufferOffset || bufferInfo.range != bufferRange;
+
 	if(mBuffers[sequentialResourceIndex] != vkBuffer || isBufferViewChanged)
 	{
 		if(useView)
@@ -565,10 +573,9 @@ bool VulkanGpuParameterSet::SetStorageBuffer(u32 slot, const TShared<GpuBuffer>&
 		}
 		else // Structured storage buffer
 		{
-			mSetInformation.BufferWriteInfos[usedResourceSequentialIndex].buffer = vkBuffer;
-			mSetInformation.BufferWriteInfos[usedResourceSequentialIndex].offset = bufferOffset;
-			mSetInformation.BufferWriteInfos[usedResourceSequentialIndex].range = bufferSize == 0 ? VK_WHOLE_SIZE : bufferSize;
-			mBuffers[sequentialResourceIndex] = vkBuffer;
+			bufferInfo.buffer = vkBuffer;
+			bufferInfo.offset = bufferOffset;
+			bufferInfo.range = bufferRange;
 
 			writeSetInfo.pTexelBufferView = nullptr;
 		}

@@ -153,8 +153,16 @@ namespace b3d
 		 * as acceleration structure build inputs. Readback buffers
 		 * (GpuBufferType::StagingRead) rest readable by the host, so a barrier that returns one to rest makes the GPU's writes visible
 		 * to the host. Upload buffers (GpuBufferType::StagingWrite) rest readable by copies, the only GPU work that reads them.
+		 * Acceleration structure buffers (GpuBufferType::AccelerationStructure) rest readable in the stages
+		 * GetAccelerationStructureStageFlags() returns.
 		 */
 		static render::GpuAccessState GetRestingState(const render::GpuBuffer& buffer, GpuQueueType queueType);
+
+		/**
+		 * Returns the only stages that can access an acceleration structure buffer: rays traced against it in any shader stage, and
+		 * builds (GpuStageFlag::AllShaderAccelerationStructure and GpuStageFlag::AccelerationStructureBuild).
+		 */
+		static render::GpuStageFlags GetAccelerationStructureStageFlags();
 
 		/**
 		 * Returns the resting state of a texture on queues of @p queueType: sampled from every shader stage, including ray tracing

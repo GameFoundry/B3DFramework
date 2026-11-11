@@ -297,7 +297,7 @@ namespace b3d
 	{
 		/** Elements of the buffer's own type: typed elements of a simple storage buffer, or structures of a structured storage buffer. */
 		Typed,
-		/** 32-bit words addressed in bytes, read through ByteAddressBuffer. Only structured storage buffers can be viewed as raw. */
+		/** 32-bit words addressed in bytes, read through ByteAddressBuffer. Only structured storage, vertex and index buffers can be viewed as raw. */
 		Raw
 	};
 

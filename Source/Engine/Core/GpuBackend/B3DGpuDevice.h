@@ -79,8 +79,9 @@ namespace b3d
 		virtual const GpuDeviceCapabilities& GetCapabilities() const = 0;
 
 		/**
-		 * Returns the stages the device has: every stage except the ray tracing shader stages without RSC_RAY_TRACING_PIPELINE, and the
-		 * acceleration structure build stage without RSC_ACCELERATION_STRUCTURES.
+		 * Returns the stages the device has: every stage except the ray tracing shader stages without RSC_RAY_TRACING_PIPELINE, rays
+		 * traced in the vertex, fragment and compute shader stages without RSC_RAY_QUERY, and the acceleration structure build stages
+		 * without RSC_ACCELERATION_STRUCTURES.
 		 */
 		render::GpuStageFlags GetSupportedStageFlags() const;
 
