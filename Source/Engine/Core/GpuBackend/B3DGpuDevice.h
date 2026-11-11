@@ -350,6 +350,15 @@ namespace b3d
 		/** Returns the bindless heaps of the device, or null if the device doesn't support bindless resources. Thread safe. */
 		GpuBindlessHeaps* GetBindlessHeaps() const { return mBindlessHeaps.get(); }
 
+		/**
+		 * Keeps @p resource alive until a matching UnpinResource() completes, even if it is destroyed. For native resources that GPU
+		 * reads without command buffers tracking them, (e.g. through a bindless heap). Thread safe.
+		 */
+		void PinResource(IGpuResource& resource);
+
+		/** Releases a pin taken by PinResource(), once the current frame completes on the GPU. Thread safe. */
+		void UnpinResource(IGpuResource& resource);
+
 		/************************************************************************/
 		/* 								UTILITY METHODS                    		*/
 		/************************************************************************/
@@ -396,6 +405,22 @@ namespace b3d
 
 			return TShared<Type>(data, fnStandaloneDeleter, StdAlloc<Type, PointerDataAllocatorTag>());
 		}
+
+		/**
+		 * @name Internal
+		 * @{
+		 */
+
+		/**
+		 * Releases the pins whose UnpinResource() frame completed on the GPU. EndFrame() does this every frame. Thread safe.
+		 *
+		 * @param	isGpuIdle	If true, releases every pin passed to UnpinResource(), whichever frame that was in. The GPU must be
+		 *						idle. Backends pass true during destruction, once the bindless heaps are destroyed and while their
+		 *						resource manager is still alive.
+		 */
+		void ReleaseUnpinnedResources(bool isGpuIdle);
+
+		/** @} */
 
 	protected:
 		friend class render::GpuVertexInputManager;
@@ -472,8 +497,22 @@ namespace b3d
 		TUnique<GpuBindlessHeaps> mBindlessHeaps;
 
 	private:
+		/** Pin waiting for the GPU to finish the frame it was released in. */
+		struct PendingUnpin
+		{
+			PendingUnpin() = default;
+			PendingUnpin(u64 frameIndex, IGpuResource* resource)
+				: FrameIndex(frameIndex), Resource(resource)
+			{ }
+
+			u64 FrameIndex = 0; /**< Frame UnpinResource() was called in. */
+			IGpuResource* Resource = nullptr;
+		};
+
 		TArray<IGpuTransientHeapPool*> mTransientHeapPools; /**< Owned. */
 		GpuMemoryDefragmenter mMemoryDefragmenter;
+		TArray<PendingUnpin> mPendingUnpins; /**< In release order, so frame indices ascend. */
+		Mutex mPendingUnpinMutex;
 	};
 
 	/** @} */

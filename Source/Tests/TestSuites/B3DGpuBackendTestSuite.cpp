@@ -28,6 +28,7 @@
 #include "GpuBackend/B3DGpuTransientResourceAllocator.h"
 #include "Renderer/B3DRenderer.h"
 #include "Material/B3DShaderCompiler.h"
+#include "Material/B3DShaderReflection.h"
 #include "Material/B3DShader.h"
 #include "Material/B3DVariation.h"
 #include "Material/B3DPass.h"
@@ -118,6 +119,7 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantWrites)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestPushConstantSerialization)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestDynamicOffsetUniformBufferLayout)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestPipelineParameterLayoutPrograms)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestResourceLocations)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestByteAddressBufferAccess)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestCopyBufferRanges)
@@ -524,6 +526,72 @@ void GpuBackendTestSuite::TestDynamicOffsetUniformBufferLayout()
 	GpuProgramParameterDescription combined;
 	B3D_TEST_ASSERT(combined.TryCombine(vertex, GpuProgramStageBit::Vertex).IsSuccessful())
 	B3D_TEST_ASSERT(!combined.TryCombine(fragment, GpuProgramStageBit::Fragment).IsSuccessful())
+}
+
+void GpuBackendTestSuite::TestPipelineParameterLayoutPrograms()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+
+	auto fnCreateUniformBuffer = [&device](const char* name, u32 set, u32 registerIndex)
+	{
+		GpuUniformBufferInformation buffer;
+		buffer.Name = name;
+		buffer.Set = set;
+		buffer.Slot = device->GetParameterSlot(ShaderRegisterClass::ConstantBuffer, registerIndex);
+		buffer.Size = 4;
+		buffer.IsShareable = true;
+
+		return buffer;
+	};
+
+	// A pipeline may have several programs of one type, as ray tracing pipelines do. Fragment programs stand in for them, so the
+	// test doesn't depend on ray tracing support.
+	const TShared<GpuProgramParameterDescription> vertex = B3DMakeShared<GpuProgramParameterDescription>();
+	vertex->UniformBuffers["Scene"] = fnCreateUniformBuffer("Scene", 0, 0);
+
+	const TShared<GpuProgramParameterDescription> firstFragment = B3DMakeShared<GpuProgramParameterDescription>();
+	firstFragment->UniformBuffers["Scene"] = fnCreateUniformBuffer("Scene", 0, 0);
+	firstFragment->UniformBuffers["FirstMaterial"] = fnCreateUniformBuffer("FirstMaterial", 1, 0);
+	firstFragment->PushConstantBufferSize = 8;
+
+	const TShared<GpuProgramParameterDescription> secondFragment = B3DMakeShared<GpuProgramParameterDescription>();
+	secondFragment->UniformBuffers["SecondMaterial"] = fnCreateUniformBuffer("SecondMaterial", 1, 1);
+	secondFragment->PushConstantBufferSize = 16;
+
+	GpuPipelineParameterLayoutCreateInformation createInformation;
+	B3D_TEST_ASSERT(createInformation.GetPushConstantStages() == GpuProgramStageBit::None)
+
+	createInformation.Programs.push_back(GpuPipelineParameterLayoutProgram(GPT_VERTEX_PROGRAM, vertex));
+	B3D_TEST_ASSERT(createInformation.GetPushConstantStages() == GpuProgramStageBit::None)
+
+	// Programs of one type share their stage
+	createInformation.Programs.push_back(GpuPipelineParameterLayoutProgram(GPT_FRAGMENT_PROGRAM, firstFragment));
+	createInformation.Programs.push_back(GpuPipelineParameterLayoutProgram(GPT_FRAGMENT_PROGRAM, secondFragment));
+	B3D_TEST_ASSERT(createInformation.GetPushConstantStages() == GpuProgramStageBit::Fragment)
+
+	const TShared<GpuPipelineParameterLayout> layout = device->CreateGpuPipelineParameterLayout(createInformation);
+	B3D_TEST_ASSERT(layout != nullptr)
+	if(layout == nullptr)
+		return;
+
+	B3D_TEST_ASSERT(layout->GetPushConstantBufferSize() == 16)
+	B3D_TEST_ASSERT(layout->GetSetCount() == 2)
+	if(layout->GetSetCount() != 2)
+		return;
+
+	const UniformInformation* scene = layout->GetSet(0)->TryGetUniformInformation("Scene");
+	B3D_TEST_ASSERT(scene != nullptr && scene->Usage == (GpuProgramStageBit::Vertex | GpuProgramStageBit::Fragment))
+
+	// Every program of a type contributes its parameters
+	const UniformInformation* firstMaterial = layout->GetSet(1)->TryGetUniformInformation("FirstMaterial");
+	B3D_TEST_ASSERT(firstMaterial != nullptr && firstMaterial->Usage == GpuProgramStageBit::Fragment)
+
+	const UniformInformation* secondMaterial = layout->GetSet(1)->TryGetUniformInformation("SecondMaterial");
+	B3D_TEST_ASSERT(secondMaterial != nullptr && secondMaterial->Usage == GpuProgramStageBit::Fragment)
 }
 
 #if !B3D_PLATFORM_PS5

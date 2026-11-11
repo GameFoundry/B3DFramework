@@ -164,7 +164,7 @@ shader ShaderReflectionTest
 			if(program.Bytecode == nullptr || program.Bytecode->ParameterDescription == nullptr)
 				continue;
 
-			const ShaderEntryPointReflection& entry = program.GetEntryPointReflection();
+			const GpuProgramEntryPointReflection& entry = program.GetEntryPointReflection();
 			const Array<u32, 3> expectedThreadGroupSize = { 8, 4, 2 };
 			B3D_TEST_ASSERT(entry.Type == GPT_COMPUTE_PROGRAM)
 			B3D_TEST_ASSERT(entry.ThreadGroupSize == expectedThreadGroupSize)
@@ -566,7 +566,7 @@ shader RayTracingPipelineTest
 
 			B3D_TEST_ASSERT(found->ShaderReflection->Parameters.get() == sharedParameters)
 
-			const ShaderEntryPointReflection& entryPoint = found->GetEntryPointReflection();
+			const GpuProgramEntryPointReflection& entryPoint = found->GetEntryPointReflection();
 			B3D_TEST_ASSERT(entryPoint.Type == expected.Type)
 			B3D_TEST_ASSERT_MSG(entryPoint.RayPayloadSize == expected.RayPayloadSize, found->Name)
 			B3D_TEST_ASSERT_MSG(entryPoint.HitAttributeSize == expected.HitAttributeSize, found->Name)
@@ -893,7 +893,7 @@ void CoreTestSuite::TestShaderReflection()
 	program.Type = GPT_COMPUTE_PROGRAM;
 	program.ShaderReflection = B3DMakeShared<ShaderReflection>();
 	program.ShaderReflection->Parameters = shaderInformation.Description->Parameters;
-	ShaderEntryPointReflection& entry = program.ShaderReflection->EntryPoints[program.EntryPoint];
+	GpuProgramEntryPointReflection& entry = program.ShaderReflection->EntryPoints[program.EntryPoint];
 	entry.Type = program.Type;
 	entry.ThreadGroupSize = { 8, 4, 2 };
 	entry.PushConstantBufferSize = 12;
@@ -959,7 +959,7 @@ void CoreTestSuite::TestShaderReflection()
 	if(decoded == nullptr || decoded->ShaderReflection == nullptr)
 		return;
 
-	const ShaderEntryPointReflection& decodedEntry = decoded->GetEntryPointReflection();
+	const GpuProgramEntryPointReflection& decodedEntry = decoded->GetEntryPointReflection();
 	B3D_TEST_ASSERT(decodedEntry.Type == GPT_COMPUTE_PROGRAM)
 	B3D_TEST_ASSERT(decodedEntry.ThreadGroupSize == entry.ThreadGroupSize)
 	B3D_TEST_ASSERT(decodedEntry.PushConstantBufferSize == 12)

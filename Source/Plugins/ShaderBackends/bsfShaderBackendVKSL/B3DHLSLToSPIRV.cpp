@@ -8,6 +8,7 @@
 #include "GpuBackend/B3DVertexDescription.h"
 #include "GpuBackend/B3DGpuProgram.h"
 #include "Material/B3DShaderParameterDescription.h"
+#include "Material/B3DShaderReflection.h"
 #include "Math/B3DMath.h"
 #include "Debug/B3DLog.h"
 #include "String/B3DUnicode.h"
@@ -927,7 +928,7 @@ bool HLSLToSPIRV::ReflectBytecode(const GpuProgramCreateInformation& createInfor
 		});
 	}
 
-	const ShaderEntryPointReflection& entryPointReflection = createInformation.GetEntryPointReflection();
+	const GpuProgramEntryPointReflection& entryPointReflection = createInformation.GetEntryPointReflection();
 	outBytecode.ParameterDescription->Features = entryPointReflection.Features;
 
 	const String& messageLogString = messageLog.str();

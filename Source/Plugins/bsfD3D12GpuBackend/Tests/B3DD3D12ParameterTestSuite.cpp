@@ -24,8 +24,9 @@ void D3D12ParameterTestSuite::TestUniformBufferLayout()
 	for(u32 dynamicCount : { 0u, 2u, render::kD3D12DynamicConstantBufferCount })
 	{
 		const u32 staticCount = dynamicCount == render::kD3D12DynamicConstantBufferCount ? 6 : 10;
+		const TShared<GpuProgramParameterDescription> parameterDescription = B3DMakeShared<GpuProgramParameterDescription>();
 		GpuPipelineParameterLayoutCreateInformation createInformation;
-		createInformation.Compute = B3DMakeShared<GpuProgramParameterDescription>();
+		createInformation.Programs.push_back(GpuPipelineParameterLayoutProgram(GPT_COMPUTE_PROGRAM, parameterDescription));
 		for(u32 bindingIndex = 0; bindingIndex < staticCount + dynamicCount; bindingIndex++)
 		{
 			GpuUniformBufferInformation buffer;
@@ -34,7 +35,7 @@ void D3D12ParameterTestSuite::TestUniformBufferLayout()
 			buffer.Slot = device->GetParameterSlot(ShaderRegisterClass::ConstantBuffer, bindingIndex / 2);
 			buffer.Size = 4;
 			buffer.UsesDynamicOffset = bindingIndex >= staticCount;
-			createInformation.Compute->UniformBuffers[buffer.Name] = buffer;
+			parameterDescription->UniformBuffers[buffer.Name] = buffer;
 		}
 
 		const TShared<GpuPipelineParameterLayout> layout = device->CreateGpuPipelineParameterLayout(createInformation);

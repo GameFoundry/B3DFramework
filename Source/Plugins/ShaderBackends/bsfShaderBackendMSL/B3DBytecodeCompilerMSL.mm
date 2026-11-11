@@ -794,7 +794,7 @@ bool BytecodeCompilerMSL::IsUpToDate(const GpuProgramBytecode& bytecode) const
 
 TShared<GpuProgramBytecode> BytecodeCompilerMSL::CompileBytecode(const GpuProgramCreateInformation& createInformation)
 {
-	const ShaderEntryPointReflection& entryPointReflection = createInformation.GetEntryPointReflection();
+	const GpuProgramEntryPointReflection& entryPointReflection = createInformation.GetEntryPointReflection();
 	const Array<u32, 3>& threadGroupSize = entryPointReflection.ThreadGroupSize;
 	const u32 pushConstantBufferSize = entryPointReflection.PushConstantBufferSize;
 

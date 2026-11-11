@@ -116,6 +116,9 @@ namespace b3d
 		/** Verifies only uniform buffers declared with a dynamic offset receive dynamic-offset indices, and that stages must agree on the declaration. */
 		void TestDynamicOffsetUniformBufferLayout();
 
+		/** Verifies a pipeline parameter layout combines several programs of one type, and that push constant stages follow the programs that declare them. */
+		void TestPipelineParameterLayoutPrograms();
+
 		/** Verifies creation of buffers and textures at pending, owned and non-owning memory locations, and rejection of invalid ones. */
 		void TestResourceLocations();
 

@@ -8,7 +8,6 @@
 #include "Utility/B3DTArrayView.h"
 #include "GpuBackend/B3DVertexDescription.h"
 #include "Image/B3DPixelData.h"
-#include "Material/B3DShaderReflection.h"
 
 namespace b3d
 {
@@ -17,6 +16,27 @@ namespace b3d
 	 */
 
 	struct GpuProgramBytecode;
+	struct ShaderReflection;
+
+	/** Source metadata for one entry point, before native bytecode reflection. */
+	struct GpuProgramEntryPointReflection
+	{
+		GpuProgramEntryPointReflection() = default;
+
+		GpuProgramType Type = GPT_VERTEX_PROGRAM;
+		Array<u32, 3> ThreadGroupSize = { 1, 1, 1 }; /**< Compute threads per workgroup. */
+		u32 PushConstantBufferSize = 0; /**< Declared push-constant size in bytes. On Metal, zero if the stage doesn't keep the block after compilation. */
+		GpuProgramFeatureFlags Features; /**< Optional features the entry point uses. */
+
+		/** Size in bytes of the ray payload that miss, closest hit and any hit programs receive. Zero for other programs. */
+		u32 RayPayloadSize = 0;
+
+		/**
+		 * Size in bytes of the hit attributes that closest hit and any hit programs receive (8 for triangles), or of the
+		 * largest attributes an intersection program reports. Zero for other programs.
+		 */
+		u32 HitAttributeSize = 0;
+	};
 
 	/** Identifies what a GpuDescriptorTableEntry describes: a pointer to a nested table, or a leaf resource binding. */
 	enum class GpuDescriptorEntryKind
@@ -162,7 +182,7 @@ namespace b3d
 		TShared<b3d::ShaderReflection> ShaderReflection;
 
 		/** Returns source metadata for EntryPoint, or defaults when no shader reflection is attached. */
-		const ShaderEntryPointReflection& GetEntryPointReflection() const;
+		const GpuProgramEntryPointReflection& GetEntryPointReflection() const;
 
 		/**
 		 * Pixel formats of the render targets a fragment program writes to, indexed by target. PF_UNKNOWN (the default)
@@ -279,6 +299,19 @@ namespace b3d
 
 		/** Returns the compiled bytecode of this program. */
 		TShared<GpuProgramBytecode> GetBytecode() const { return mBytecode; }
+
+		/** Returns the name of the program's entry point function. */
+		const String& GetEntryPoint() const { return mEntryPoint; }
+
+		/** Returns source metadata of the program's entry point, or defaults if the program was created without shader reflection. */
+		const GpuProgramEntryPointReflection& GetEntryPointReflection() const;
+
+		/**
+		 * Returns the fingerprint of the parameter declarations and bindings of the source the program was compiled from, or zeros
+		 * if the program was created without shader reflection. Programs with the same fingerprint have the same parameters at
+		 * the same bindings.
+		 */
+		const Array<u64, 2>& GetParameterLayoutHash() const;
 
 	protected:
 		GpuProgram(GpuDevice& device, const GpuProgramCreateInformation& createInformation);

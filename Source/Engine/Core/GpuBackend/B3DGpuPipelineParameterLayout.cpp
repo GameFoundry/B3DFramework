@@ -400,25 +400,29 @@ namespace
 } // namespace
 #endif
 
+GpuProgramStageBits GpuPipelineParameterLayoutInformation::GetPushConstantStages() const
+{
+	GpuProgramStageBits stages = GpuProgramStageBit::None;
+	for(const GpuPipelineParameterLayoutProgram& program : Programs)
+	{
+		if(program.ParameterDescription != nullptr && program.ParameterDescription->PushConstantBufferSize != 0)
+			stages |= GetProgramStageBit(program.Type);
+	}
+
+	return stages;
+}
+
 GpuPipelineParameterLayout::GpuPipelineParameterLayout(GpuDevice& device, const GpuPipelineParameterLayoutCreateInformation& createInformation)
 {
-	Array<TShared<GpuProgramParameterDescription>, GPT_COUNT> perProgramParameterDescriptions;
-	perProgramParameterDescriptions[GPT_FRAGMENT_PROGRAM] = createInformation.Fragment;
-	perProgramParameterDescriptions[GPT_VERTEX_PROGRAM] = createInformation.Vertex;
-	perProgramParameterDescriptions[GPT_GEOMETRY_PROGRAM] = createInformation.Geometry;
-	perProgramParameterDescriptions[GPT_HULL_PROGRAM] = createInformation.Hull;
-	perProgramParameterDescriptions[GPT_DOMAIN_PROGRAM] = createInformation.Domain;
-	perProgramParameterDescriptions[GPT_COMPUTE_PROGRAM] = createInformation.Compute;
-
-	// Build per-set parameter descriptions by iterating over all per-program parameter descriptions
+	// Build per-set parameter descriptions by iterating over the parameter descriptions of all programs
 	TInlineArray<GpuProgramParameterDescription, 4> perSetParameterDescriptions;
-	for(u32 programIndex = 0; programIndex < GPT_COUNT; programIndex++)
+	for(const GpuPipelineParameterLayoutProgram& program : createInformation.Programs)
 	{
-		const TShared<GpuProgramParameterDescription>& parameterDescription = perProgramParameterDescriptions[programIndex];
+		const TShared<GpuProgramParameterDescription>& parameterDescription = program.ParameterDescription;
 		if(parameterDescription == nullptr)
 			continue;
 
-		const GpuProgramStageBit stageBit = (GpuProgramStageBit)(1 << programIndex);
+		const GpuProgramStageBit stageBit = GetProgramStageBit(program.Type);
 		if(parameterDescription->PushConstantBufferSize != 0)
 		{
 			const u32 pushConstantBufferSize = parameterDescription->PushConstantBufferSize;
@@ -448,34 +452,34 @@ GpuPipelineParameterLayout::GpuPipelineParameterLayout(GpuDevice& device, const 
 	for(u32 set = 0; set < (u32)perSetParameterDescriptions.Size(); ++set)
 	{
 		// Backends that pack descriptors at compiler-chosen offsets consume the exact reflected table for the set
-		// instead of recomputing a packing convention. Every stage that references the set must place the resources it
-		// reads identically, since a single descriptor block backs the set for all stages; use the first stage that
-		// references it and, in development builds, verify the remaining stages are compatible with it.
+		// instead of recomputing a packing convention. Every program that references the set must place the resources it
+		// reads identically, since a single descriptor block backs the set for all programs; use the first program that
+		// references it and, in development builds, verify the remaining programs are compatible with it.
 		TShared<GpuResourceTableLayout> reflectedLayout;
 		u32 reflectedTableIndex = ~0u;
-		for(u32 programIndex = 0; programIndex < GPT_COUNT; programIndex++)
+		for(const GpuPipelineParameterLayoutProgram& program : createInformation.Programs)
 		{
-			const TShared<GpuResourceTableLayout>& stageLayout = createInformation.ResourceTableLayouts[programIndex];
-			if(stageLayout == nullptr)
+			const TShared<GpuResourceTableLayout>& programLayout = program.ResourceTableLayout;
+			if(programLayout == nullptr)
 				continue;
 
-			const u32 tableIndex = stageLayout->FindSetTableIndex(set);
+			const u32 tableIndex = programLayout->FindSetTableIndex(set);
 			if(tableIndex == ~0u)
 				continue;
 
 			if(reflectedLayout == nullptr)
 			{
-				reflectedLayout = stageLayout;
+				reflectedLayout = programLayout;
 				reflectedTableIndex = tableIndex;
 			}
 #if B3D_BUILD_TYPE_DEVELOPMENT
 // TODO (d3d12) - D3D12 reflection strips unused resources per shader stage and then builds the resource table from that. This means different stages can have
 // mismatching tables, and we tag then with SizeInBytes == 0. D3D12 resolves this internally by merging them internally. Down the line we need to ensure
 // the bytecode compiler generates identical tables for all stages.
-			else if(reflectedLayout->Tables[reflectedTableIndex].SizeInBytes != 0 && !AreDescriptorTablesCompatible(*reflectedLayout, reflectedLayout->Tables[reflectedTableIndex], *stageLayout, stageLayout->Tables[tableIndex]))
+			else if(reflectedLayout->Tables[reflectedTableIndex].SizeInBytes != 0 && !AreDescriptorTablesCompatible(*reflectedLayout, reflectedLayout->Tables[reflectedTableIndex], *programLayout, programLayout->Tables[tableIndex]))
 			{
-				B3D_LOG(Error, LogRenderBackend, "GPU program stages disagree on the descriptor-table packing of set {0}; "
-					"parameter binding will be incorrect for at least one stage.", set);
+				B3D_LOG(Error, LogRenderBackend, "GPU programs disagree on the descriptor-table packing of set {0}; "
+					"parameter binding will be incorrect for at least one program.", set);
 			}
 #endif
 		}

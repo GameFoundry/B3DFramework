@@ -35,7 +35,7 @@ SamplerState::~SamplerState()
 	mBindlessHeaps->ReleaseSlot(GpuBindlessHeapType::Sampler, bindlessIndex, this);
 
 	if(mGpuResource != nullptr)
-		mBindlessHeaps->UnpinResource(*mGpuResource);
+		mDevice.UnpinResource(*mGpuResource);
 }
 
 u32 SamplerState::GetBindlessIndex() const
@@ -63,7 +63,7 @@ u32 SamplerState::GetBindlessIndex() const
 	// The slot is released into these heaps even if the device no longer reports them, as when the heaps destroy the global samplers
 	mBindlessHeaps = heaps;
 	if(mGpuResource != nullptr)
-		heaps->PinResource(*mGpuResource);
+		mDevice.PinResource(*mGpuResource);
 
 	return newIndex;
 }

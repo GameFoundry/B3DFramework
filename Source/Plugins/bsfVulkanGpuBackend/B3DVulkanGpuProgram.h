@@ -41,9 +41,6 @@ namespace b3d
 			/** Returns the internal shader module. */
 			VulkanShaderModule* GetVulkanResource() const { return mModule; }
 
-			/** Returns the name of the program entry point function. */
-			const String& GetEntryPoint() const { return mEntryPoint; }
-
 		protected:
 			void Initialize() override;
 

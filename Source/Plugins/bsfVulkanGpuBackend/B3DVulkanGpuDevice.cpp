@@ -618,8 +618,9 @@ VulkanGpuDevice::~VulkanGpuDevice()
 
 	mCachedSamplerStates.clear();
 
-	// Releases the pinned resources and the native heaps, which are manager-owned resources, while the resource manager is still alive
+	// Releases the native heaps, which are manager-owned resources, and the pinned resources, while the resource manager is still alive
 	mBindlessHeaps = nullptr;
+	ReleaseUnpinnedResources(true);
 
 	if (mBindlessHeapLayout != nullptr)
 		B3DDelete(mBindlessHeapLayout);

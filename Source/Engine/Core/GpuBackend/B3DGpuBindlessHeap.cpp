@@ -100,7 +100,7 @@ void GpuBindlessHeaps::Destroy()
 	for(const auto& entry : mPendingSlotUpdates)
 	{
 		if(entry.second.PreviousTarget != nullptr)
-			UnpinResource(*entry.second.PreviousTarget);
+			mDevice.UnpinResource(*entry.second.PreviousTarget);
 	}
 
 	mPendingSlotUpdates.clear();
@@ -292,7 +292,7 @@ void GpuBindlessHeaps::UpdateResourceSlot(u32 slotIndex, const GpuBindlessResour
 	// The replaced update was never applied, so nothing reads its view, but the old descriptor is still read until this one applies
 	iterator->second.Update = update;
 	if(previousTarget != nullptr)
-		mPendingUnpins.Add(PendingUnpin(mCompletionTracker.GetCurrentMarker(), previousTarget));
+		mDevice.UnpinResource(*previousTarget);
 }
 
 void GpuBindlessHeaps::ReleaseSlot(GpuBindlessHeapType heapType, u32 slotIndex, const void* owner)
@@ -324,7 +324,7 @@ void GpuBindlessHeaps::ReleaseSlot(GpuBindlessHeapType heapType, u32 slotIndex, 
 		if(iterator != mPendingSlotUpdates.end())
 		{
 			if(iterator->second.PreviousTarget != nullptr)
-				mPendingUnpins.Add(PendingUnpin(mCompletionTracker.GetCurrentMarker(), iterator->second.PreviousTarget));
+				mDevice.UnpinResource(*iterator->second.PreviousTarget);
 
 			mPendingSlotUpdates.erase(iterator);
 		}
@@ -336,70 +336,40 @@ void GpuBindlessHeaps::ReleaseSlot(GpuBindlessHeapType heapType, u32 slotIndex, 
 	mPendingSlotReleases.Add(PendingSlotRelease(mCompletionTracker.GetCurrentMarker(), heapType, slotIndex));
 }
 
-void GpuBindlessHeaps::PinResource(IGpuResource& resource)
-{
-	resource.NotifyPinned();
-}
-
-void GpuBindlessHeaps::UnpinResource(IGpuResource& resource)
-{
-	Lock lock(mMutex);
-	mPendingUnpins.Add(PendingUnpin(mCompletionTracker.GetCurrentMarker(), &resource));
-}
-
 template<class IsCompleteFunction>
 void GpuBindlessHeaps::ProcessReleases(IsCompleteFunction fnIsComplete)
 {
-	TInlineArray<IGpuResource*, 16> unpinnedResources;
+	Lock lock(mMutex);
+
+	u32 completeSlotReleaseCount = 0;
+	for(const PendingSlotRelease& release : mPendingSlotReleases)
 	{
-		Lock lock(mMutex);
+		if(!fnIsComplete(release.Marker))
+			break;
 
-		u32 completeSlotReleaseCount = 0;
-		for(const PendingSlotRelease& release : mPendingSlotReleases)
-		{
-			if(!fnIsComplete(release.Marker))
-				break;
+		completeSlotReleaseCount++;
 
-			completeSlotReleaseCount++;
-
-			Heap& heap = mHeaps[(u32)release.HeapType];
-			heap.FreeSlotIndices.Add(release.SlotIndex);
-			heap.Statistics.PendingReleaseCount--;
+		Heap& heap = mHeaps[(u32)release.HeapType];
+		heap.FreeSlotIndices.Add(release.SlotIndex);
+		heap.Statistics.PendingReleaseCount--;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-			SlotRecord& record = heap.SlotRecords[release.SlotIndex];
-			const GpuParameterObjectType viewType = record.ViewType;
-			record = SlotRecord();
+		SlotRecord& record = heap.SlotRecords[release.SlotIndex];
+		const GpuParameterObjectType viewType = record.ViewType;
+		record = SlotRecord();
 
-			// Nothing reads the slot anymore. A null descriptor makes reads through stale indices well defined, and visible in captures.
-			if(release.HeapType == GpuBindlessHeapType::Resource)
-				ClearResourceSlot(release.SlotIndex, viewType);
+		// Nothing reads the slot anymore. A null descriptor makes reads through stale indices well defined, and visible in captures.
+		if(release.HeapType == GpuBindlessHeapType::Resource)
+			ClearResourceSlot(release.SlotIndex, viewType);
 #endif
 
-			// Samplers have no null descriptor, so retired sampler slots get a global sampler instead, unless the heaps are being destroyed. Unlike
-			// resource slots, this happens in all builds, so every sampler slot ever written stays valid for backends to copy.
-			if(release.HeapType == GpuBindlessHeapType::Sampler && !mGlobalSamplers.Empty())
-				WriteSamplerSlot(release.SlotIndex, *mGlobalSamplers[GetGlobalSamplerIndex(GpuGlobalSamplerFilter::Point, GpuGlobalSamplerAddress::Wrap) - 1]);
-		}
-
-		mPendingSlotReleases.Erase(mPendingSlotReleases.begin(), mPendingSlotReleases.begin() + completeSlotReleaseCount);
-
-		u32 completeUnpinCount = 0;
-		for(const PendingUnpin& unpin : mPendingUnpins)
-		{
-			if(!fnIsComplete(unpin.Marker))
-				break;
-
-			completeUnpinCount++;
-			unpinnedResources.Add(unpin.Resource);
-		}
-
-		mPendingUnpins.Erase(mPendingUnpins.begin(), mPendingUnpins.begin() + completeUnpinCount);
+		// Samplers have no null descriptor, so retired sampler slots get a global sampler instead, unless the heaps are being destroyed. Unlike
+		// resource slots, this happens in all builds, so every sampler slot ever written stays valid for backends to copy.
+		if(release.HeapType == GpuBindlessHeapType::Sampler && !mGlobalSamplers.Empty())
+			WriteSamplerSlot(release.SlotIndex, *mGlobalSamplers[GetGlobalSamplerIndex(GpuGlobalSamplerFilter::Point, GpuGlobalSamplerAddress::Wrap) - 1]);
 	}
 
-	// Unpinning may destroy the resource, so it runs without the lock held
-	for(IGpuResource* resource : unpinnedResources)
-		resource->NotifyUnpinned();
+	mPendingSlotReleases.Erase(mPendingSlotReleases.begin(), mPendingSlotReleases.begin() + completeSlotReleaseCount);
 }
 
 void GpuBindlessHeaps::ProcessReleases()
@@ -440,7 +410,7 @@ void GpuBindlessHeaps::ApplyPendingChanges()
 		for(const auto& entry : mPendingSlotUpdates)
 		{
 			if(entry.second.PreviousTarget != nullptr)
-				mPendingUnpins.Add(PendingUnpin(mCompletionTracker.GetCurrentMarker(), entry.second.PreviousTarget));
+				mDevice.UnpinResource(*entry.second.PreviousTarget);
 		}
 
 		mPendingSlotUpdates.clear();
@@ -549,7 +519,7 @@ void GpuBindlessResourceSlots::Register(GpuDevice& device, IGpuResource& nativeR
 	mHeaps = heaps;
 	mDefaultView = defaultView;
 
-	mHeaps->PinResource(nativeResource);
+	device.PinResource(nativeResource);
 	mDefaultIndex = mHeaps->AllocateResourceSlot(defaultView, this);
 }
 
@@ -564,7 +534,7 @@ void GpuBindlessResourceSlots::Unregister(IGpuResource& nativeResource)
 	for(const ViewSlot& viewSlot : mViewSlots)
 		mHeaps->ReleaseSlot(GpuBindlessHeapType::Resource, viewSlot.Index, this);
 
-	mHeaps->UnpinResource(nativeResource);
+	mHeaps->GetDevice().UnpinResource(nativeResource);
 
 	mHeaps = nullptr;
 	mDefaultIndex = kGpuBindlessInvalidIndex;
@@ -578,7 +548,7 @@ void GpuBindlessResourceSlots::Retarget(IGpuResource& previousNativeResource, IG
 	if(mHeaps == nullptr)
 		return;
 
-	mHeaps->PinResource(nativeResource);
+	mHeaps->GetDevice().PinResource(nativeResource);
 
 	// The first update carries the previous native resource, so its pin is released once the update is applied and its frame completes
 	IGpuResource* previousTarget = &previousNativeResource;
@@ -595,7 +565,7 @@ void GpuBindlessResourceSlots::Retarget(IGpuResource& previousNativeResource, IG
 	}
 
 	if(previousTarget != nullptr)
-		mHeaps->UnpinResource(previousNativeResource);
+		mHeaps->GetDevice().UnpinResource(previousNativeResource);
 }
 
 u32 GpuBindlessResourceSlots::GetOrCreateIndex(const GpuBindlessResourceView& view)

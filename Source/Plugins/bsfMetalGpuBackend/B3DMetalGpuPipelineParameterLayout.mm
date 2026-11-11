@@ -260,14 +260,7 @@ namespace b3d
 			MetalGpuDevice& gpuDevice, const GpuPipelineParameterLayoutCreateInformation& createInformation)
 			: GpuPipelineParameterLayout(gpuDevice, createInformation)
 		{
-			if(createInformation.Vertex != nullptr && createInformation.Vertex->PushConstantBufferSize != 0)
-				mPushConstantStages |= GpuProgramStageBit::Vertex;
-
-			if(createInformation.Fragment != nullptr && createInformation.Fragment->PushConstantBufferSize != 0)
-				mPushConstantStages |= GpuProgramStageBit::Fragment;
-
-			if(createInformation.Compute != nullptr && createInformation.Compute->PushConstantBufferSize != 0)
-				mPushConstantStages |= GpuProgramStageBit::Compute;
+			mPushConstantStages = createInformation.GetPushConstantStages();
 
 			// The generic constructor built each set without reflection; apply the genuine per-stage tables, merged
 			// into the one argument-buffer struct every stage shares
@@ -278,9 +271,9 @@ namespace b3d
 					continue;
 
 				TInlineArray<MetalGpuPipelineParameterSetLayout::StageReflectedTable, GPT_COUNT> stageTables;
-				for (u32 programIndex = 0; programIndex < GPT_COUNT; programIndex++)
+				for (const GpuPipelineParameterLayoutProgram& program : createInformation.Programs)
 				{
-					const TShared<GpuResourceTableLayout>& stageLayout = createInformation.ResourceTableLayouts[programIndex];
+					const TShared<GpuResourceTableLayout>& stageLayout = program.ResourceTableLayout;
 					if (stageLayout == nullptr)
 						continue;
 

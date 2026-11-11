@@ -14,24 +14,40 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** Stores parameter description for all GPU programs used in a particular GPU pipeline. */
-	struct GpuPipelineParameterLayoutInformation
+	/** One GPU program of a GPU pipeline, as the pipeline's parameter layout sees it. */
+	struct GpuPipelineParameterLayoutProgram
 	{
-		TShared<GpuProgramParameterDescription> Fragment;
-		TShared<GpuProgramParameterDescription> Vertex;
-		TShared<GpuProgramParameterDescription> Geometry;
-		TShared<GpuProgramParameterDescription> Hull;
-		TShared<GpuProgramParameterDescription> Domain;
-		TShared<GpuProgramParameterDescription> Compute;
+		GpuPipelineParameterLayoutProgram() = default;
+		GpuPipelineParameterLayoutProgram(GpuProgramType type, const TShared<GpuProgramParameterDescription>& parameterDescription, const TShared<GpuResourceTableLayout>& resourceTableLayout = nullptr)
+			: Type(type), ParameterDescription(parameterDescription), ResourceTableLayout(resourceTableLayout)
+		{ }
+
+		GpuProgramType Type = GPT_VERTEX_PROGRAM;
+		TShared<GpuProgramParameterDescription> ParameterDescription; /**< Parameters the program declares. */
 
 		/**
-		 * Optional reflected resource-table layouts, one per program stage (indexed by GpuProgramType), taken from
-		 * each program's compiled bytecode. Backends that pack descriptors at compiler-chosen offsets
-		 * consume these when building per-set layouts, so the engine writes every descriptor exactly
-		 * where the shader reads it; backends that derive layouts from the parameter descriptions alone ignore them.
-		 * Entries may be null (stage absent, or no reflected layout cached on its bytecode).
+		 * Optional reflected resource-table layout, taken from the program's compiled bytecode. Backends that pack descriptors
+		 * at compiler-chosen offsets consume it when building per-set layouts, so the engine writes every descriptor exactly
+		 * where the shader reads it; backends that derive layouts from the parameter descriptions alone ignore it. May be null
+		 * (no reflected layout cached on the bytecode).
 		 */
-		Array<TShared<GpuResourceTableLayout>, GPT_COUNT> ResourceTableLayouts;
+		TShared<GpuResourceTableLayout> ResourceTableLayout;
+	};
+
+	/** Stores parameter description for all GPU programs used in a particular GPU pipeline. */
+	struct B3D_EXPORT GpuPipelineParameterLayoutInformation
+	{
+		/**
+		 * Programs of the pipeline. A pipeline may have several programs of one type, as ray tracing pipelines do. Parameters are
+		 * combined in list order, and the first program that uses a set provides the set's reflected resource table.
+		 */
+		Vector<GpuPipelineParameterLayoutProgram> Programs;
+
+		/**
+		 * Returns the stages of the programs that declare push constants. A stage stands for a program type, so all programs of
+		 * one type share it.
+		 */
+		GpuProgramStageBits GetPushConstantStages() const;
 	};
 
 	/** Descriptor structure used for initialization of a GpuPipelineParameterLayout. */

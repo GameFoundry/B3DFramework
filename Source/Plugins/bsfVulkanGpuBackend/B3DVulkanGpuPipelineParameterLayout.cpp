@@ -165,27 +165,8 @@ VulkanGpuPipelineParameterLayout::VulkanGpuPipelineParameterLayout(VulkanGpuDevi
 		const bool isSupportedSize = B3D_ENSURE_LOG(pushConstantBufferSize <= gpuDevice.GetCapabilities().MaximumPushConstantSize,
 			"Vulkan pipeline requires {0} push-constant bytes, but the device supports only {1} bytes.", pushConstantBufferSize, gpuDevice.GetCapabilities().MaximumPushConstantSize);
 
-		GpuProgramStageBits pushConstantStages = GpuProgramStageBit::None;
-		if(createInformation.Vertex != nullptr && createInformation.Vertex->PushConstantBufferSize != 0)
-			pushConstantStages |= GpuProgramStageBit::Vertex;
-
-		if(createInformation.Fragment != nullptr && createInformation.Fragment->PushConstantBufferSize != 0)
-			pushConstantStages |= GpuProgramStageBit::Fragment;
-
-		if(createInformation.Hull != nullptr && createInformation.Hull->PushConstantBufferSize != 0)
-			pushConstantStages |= GpuProgramStageBit::Hull;
-
-		if(createInformation.Domain != nullptr && createInformation.Domain->PushConstantBufferSize != 0)
-			pushConstantStages |= GpuProgramStageBit::Domain;
-
-		if(createInformation.Geometry != nullptr && createInformation.Geometry->PushConstantBufferSize != 0)
-			pushConstantStages |= GpuProgramStageBit::Geometry;
-
-		if(createInformation.Compute != nullptr && createInformation.Compute->PushConstantBufferSize != 0)
-			pushConstantStages |= GpuProgramStageBit::Compute;
-
 		VkPushConstantRange pushConstantRange;
-		pushConstantRange.stageFlags = VulkanUtility::GetShaderStages(pushConstantStages);
+		pushConstantRange.stageFlags = VulkanUtility::GetShaderStages(createInformation.GetPushConstantStages());
 		pushConstantRange.offset = 0;
 		pushConstantRange.size = pushConstantBufferSize;
 

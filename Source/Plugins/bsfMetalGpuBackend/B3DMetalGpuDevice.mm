@@ -61,9 +61,10 @@ namespace b3d
 
 			mClearPipeline.reset();
 
-			// Releases the pinned resources while the resource manager is still alive, then the heaps they were read through
+			// Releases the heaps the pinned resources were read through, then the pinned resources, while the resource manager is still alive
 			mCachedSamplerStates.clear();
 			mBindlessHeaps = nullptr;
+			ReleaseUnpinnedResources(true);
 
 			// Queues the cached vertex inputs for destroy while the resource manager is still alive
 			mVertexInputManager = nullptr;

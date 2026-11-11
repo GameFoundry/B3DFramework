@@ -238,19 +238,23 @@ void GpuBindlessTestSuite::TestHeapAllocation()
 	}
 #endif
 
-	// A pin keeps the resource bound until the frame of its release completes
-	PinnedTestBuffer pinnedResource;
-	heaps.PinResource(pinnedResource);
-	B3D_TEST_ASSERT(pinnedResource.GetPinCount() == 1)
+	// A pin keeps the resource bound until the frame of its release completes. The device releases pins, and no frame ends while
+	// the render thread runs the command.
+	GetRenderThread().PostCommand([this, &device]()
+	{
+		device->WaitUntilIdle();
 
-	completionTracker.CurrentMarker = 6;
-	heaps.UnpinResource(pinnedResource);
-	heaps.ProcessReleases();
-	B3D_TEST_ASSERT(pinnedResource.GetPinCount() == 1)
+		PinnedTestBuffer pinnedResource;
+		device->PinResource(pinnedResource);
+		B3D_TEST_ASSERT(pinnedResource.GetPinCount() == 1)
 
-	completionTracker.CompletedMarker = 6;
-	heaps.ProcessReleases();
-	B3D_TEST_ASSERT(pinnedResource.GetPinCount() == 0)
+		device->UnpinResource(pinnedResource);
+		device->ReleaseUnpinnedResources(false);
+		B3D_TEST_ASSERT(pinnedResource.GetPinCount() == 1)
+
+		device->ReleaseUnpinnedResources(true);
+		B3D_TEST_ASSERT(pinnedResource.GetPinCount() == 0)
+	}, "GpuBindlessTestSuite::TestHeapAllocation", true);
 
 	// The sampler heap has its own index space
 	const TShared<SamplerState> sampler = device->FindOrCreateSamplerState(SamplerStateCreateInformation());
@@ -319,39 +323,50 @@ void GpuBindlessTestSuite::TestHeapChanges()
 	}
 
 	// Updates apply once, at the end of the frame. A later update of the same slot replaces an earlier one, and the replaced update's
-	// view is unpinned right away, while the descriptor being replaced is unpinned once the frame of the update completes.
-	PinnedTestBuffer previousTarget;
-	PinnedTestBuffer replacedTarget;
-	heaps.PinResource(previousTarget);
-	heaps.PinResource(replacedTarget);
+	// view is unpinned right away, while the descriptor being replaced is unpinned once the frame of the update completes. The device
+	// releases pins, and no frame ends while the render thread runs the command.
+	GetRenderThread().PostCommand([this, &device, &heaps, &completionTracker, &view, &owners, &slots]()
+	{
+		device->WaitUntilIdle();
 
-	completionTracker.CurrentMarker = 2;
-	heaps.UpdateResourceSlot(slots[0], view, &owners[0], &previousTarget);
-	heaps.UpdateResourceSlot(slots[0], view, &owners[0], &replacedTarget);
-	heaps.UpdateResourceSlot(slots[1], view, &owners[1], nullptr);
+		PinnedTestBuffer previousTarget;
+		PinnedTestBuffer replacedTarget;
+		device->PinResource(previousTarget);
+		device->PinResource(replacedTarget);
 
-	// A released slot drops its pending update
-	heaps.ReleaseSlot(GpuBindlessHeapType::Resource, slots[1], &owners[1]);
+		completionTracker.CurrentMarker = 2;
+		heaps.UpdateResourceSlot(slots[0], view, &owners[0], &previousTarget);
+		heaps.UpdateResourceSlot(slots[0], view, &owners[0], &replacedTarget);
+		heaps.UpdateResourceSlot(slots[1], view, &owners[1], nullptr);
 
-	completionTracker.CompletedMarker = 2;
-	heaps.ProcessReleases();
-	B3D_TEST_ASSERT(replacedTarget.GetPinCount() == 0)
-	B3D_TEST_ASSERT(previousTarget.GetPinCount() == 1)
+		// A released slot drops its pending update
+		heaps.ReleaseSlot(GpuBindlessHeapType::Resource, slots[1], &owners[1]);
 
-	completionTracker.CurrentMarker = 3;
-	heaps.ApplyPendingChanges();
-	B3D_TEST_ASSERT(heaps.UpdatedSlots.Size() == 1 && heaps.UpdatedSlots[0] == slots[0])
-	B3D_TEST_ASSERT(heaps.GetStatistics(GpuBindlessHeapType::Resource).UpdateCount == 1)
+		completionTracker.CompletedMarker = 2;
+		heaps.ProcessReleases();
 
-	heaps.ApplyPendingChanges();
-	B3D_TEST_ASSERT(heaps.UpdatedSlots.Size() == 1)
+		device->ReleaseUnpinnedResources(false);
+		B3D_TEST_ASSERT(replacedTarget.GetPinCount() == 1)
+		B3D_TEST_ASSERT(previousTarget.GetPinCount() == 1)
 
-	heaps.ProcessReleases();
-	B3D_TEST_ASSERT(previousTarget.GetPinCount() == 1)
+		device->ReleaseUnpinnedResources(true);
+		B3D_TEST_ASSERT(replacedTarget.GetPinCount() == 0)
+		B3D_TEST_ASSERT(previousTarget.GetPinCount() == 1)
 
-	completionTracker.CompletedMarker = 3;
-	heaps.ProcessReleases();
-	B3D_TEST_ASSERT(previousTarget.GetPinCount() == 0)
+		completionTracker.CurrentMarker = 3;
+		heaps.ApplyPendingChanges();
+		B3D_TEST_ASSERT(heaps.UpdatedSlots.Size() == 1 && heaps.UpdatedSlots[0] == slots[0])
+		B3D_TEST_ASSERT(heaps.GetStatistics(GpuBindlessHeapType::Resource).UpdateCount == 1)
+
+		heaps.ApplyPendingChanges();
+		B3D_TEST_ASSERT(heaps.UpdatedSlots.Size() == 1)
+
+		device->ReleaseUnpinnedResources(false);
+		B3D_TEST_ASSERT(previousTarget.GetPinCount() == 1)
+
+		device->ReleaseUnpinnedResources(true);
+		B3D_TEST_ASSERT(previousTarget.GetPinCount() == 0)
+	}, "GpuBindlessTestSuite::TestHeapChanges", true);
 
 	for(u32 slotIndex = 0; slotIndex < 15; slotIndex++)
 	{
@@ -773,6 +788,7 @@ void GpuBindlessTestSuite::TestHeapAccess()
 		structuredBuffer = nullptr;
 		typedBuffer = nullptr;
 		device->GetBindlessHeaps()->ProcessAllReleases();
+		device->ReleaseUnpinnedResources(true);
 
 		const u32 expectedRetired[kOutputCount] = {};
 		fnDispatch("retired", pool->Create(GpuCommandBufferCreateInformation::Create("Bindless retired slot access")), expectedRetired);
@@ -908,6 +924,7 @@ void GpuBindlessTestSuite::TestRelocation()
 		fillerBuffers.Clear();
 		fillerTextures.Clear();
 		heaps.ProcessAllReleases();
+		device->ReleaseUnpinnedResources(true);
 
 		SamplerStateCreateInformation samplerInformation;
 		samplerInformation.MinFilter = FO_POINT;
@@ -944,6 +961,7 @@ void GpuBindlessTestSuite::TestRelocation()
 			heaps.ApplyPendingChanges();
 			device->WaitUntilIdle();
 			heaps.ProcessAllReleases();
+			device->ReleaseUnpinnedResources(true);
 
 			const IGpuResource* const nativeResources[kMovedCount] = { structuredBuffer->GetGpuResource(), typedBuffer->GetGpuResource(), texture->GetGpuResource() };
 			bool isEveryResourceMoved = true;

@@ -9,10 +9,10 @@
 namespace b3d
 {
 	template <>
-	struct RTTIPlainType<ShaderEntryPointReflection> : RTTIPlainTypeHelper<ShaderEntryPointReflection, TID_ShaderEntryPointReflection, 2>
+	struct RTTIPlainType<GpuProgramEntryPointReflection> : RTTIPlainTypeHelper<GpuProgramEntryPointReflection, TID_GpuProgramEntryPointReflection, 2>
 	{
 		template<class Processor>
-		static void RTTIEnumerateFields(ShaderEntryPointReflection& object, Processor& processor, u8 version)
+		static void RTTIEnumerateFields(GpuProgramEntryPointReflection& object, Processor& processor, u8 version)
 		{
 			processor(object.Type);
 			processor(object.ThreadGroupSize);

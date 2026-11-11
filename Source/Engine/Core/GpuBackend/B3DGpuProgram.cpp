@@ -4,6 +4,7 @@
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
+#include "Material/B3DShaderReflection.h"
 #include "RTTI/B3DGpuProgramRTTI.h"
 
 using namespace b3d;
@@ -114,19 +115,32 @@ bool GpuProgram::IsSupported() const
 
 	// Programs compiled from source carry the features in their entry point reflection, and programs created from bytecode alone in
 	// their parameter description
-	GpuProgramFeatureFlags features;
-	if(mShaderReflection != nullptr)
-	{
-		const auto found = mShaderReflection->EntryPoints.find(mEntryPoint);
-		if(found != mShaderReflection->EntryPoints.end())
-			features |= found->second.Features;
-	}
-
+	GpuProgramFeatureFlags features = GetEntryPointReflection().Features;
 	if(mBytecode != nullptr && mBytecode->ParameterDescription != nullptr)
 		features |= mBytecode->ParameterDescription->Features;
 
 	return !features.IsSet(GpuProgramFeatureFlag::RayQuery) || capabilities.HasCapability(RSC_RAY_QUERY);
 }
+
+const GpuProgramEntryPointReflection& GpuProgram::GetEntryPointReflection() const
+{
+	if(mShaderReflection != nullptr)
+	{
+		const auto found = mShaderReflection->EntryPoints.find(mEntryPoint);
+		if(found != mShaderReflection->EntryPoints.end())
+			return found->second;
+	}
+
+	static const GpuProgramEntryPointReflection empty;
+	return empty;
+}
+
+const Array<u64, 2>& GpuProgram::GetParameterLayoutHash() const
+{
+	static const Array<u64, 2> empty = { 0, 0 };
+	return mShaderReflection != nullptr ? mShaderReflection->ParameterLayoutHash : empty;
+}
+
 /************************************************************************/
 /* 								SERIALIZATION                      		*/
 /************************************************************************/
@@ -140,7 +154,7 @@ RTTIType* GpuProgram::GetRtti() const
 	return GpuProgram::GetRttiStatic();
 }
 
-const ShaderEntryPointReflection& GpuProgramCreateInformation::GetEntryPointReflection() const
+const GpuProgramEntryPointReflection& GpuProgramCreateInformation::GetEntryPointReflection() const
 {
 	if(ShaderReflection != nullptr)
 	{
@@ -149,6 +163,6 @@ const ShaderEntryPointReflection& GpuProgramCreateInformation::GetEntryPointRefl
 			return found->second;
 	}
 
-	static const ShaderEntryPointReflection empty;
+	static const GpuProgramEntryPointReflection empty;
 	return empty;
 }

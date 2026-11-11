@@ -131,29 +131,31 @@ GpuGraphicsPipelineState::GpuGraphicsPipelineState(GpuDevice& gpuDevice, const G
 		: mGpuDevice(gpuDevice), mData(createInformation)
 	{}
 
-void GpuGraphicsPipelineState::Initialize()
+namespace
 {
-	GpuPipelineParameterLayoutInformation parameterLayoutCreateInformation;
-
-	// Registers a stage's parameter description and, when its bytecode carries one, its reflected resource-table
-	// layout (consumed by backends that pack descriptors at compiler-chosen offsets, for example the PS5 SRT).
-	auto fnRegisterStage = [&parameterLayoutCreateInformation](const TShared<GpuProgram>& program,
-		TShared<GpuProgramParameterDescription>& outDescription, GpuProgramType type)
+	/**
+	 * Adds @p program to the programs a pipeline's parameter layout is built from, as a program of type @p type: its parameter
+	 * description and, when its bytecode carries one, its reflected resource-table layout (consumed by backends that pack
+	 * descriptors at compiler-chosen offsets). Does nothing if @p program is null.
+	 */
+	void AddParameterLayoutProgram(GpuPipelineParameterLayoutInformation& information, GpuProgramType type, const TShared<GpuProgram>& program)
 	{
 		if(program == nullptr)
 			return;
 
-		outDescription = program->GetParameterDescription();
+		const TShared<GpuProgramBytecode> bytecode = program->GetBytecode();
+		information.Programs.push_back(GpuPipelineParameterLayoutProgram(type, program->GetParameterDescription(), bytecode != nullptr ? bytecode->ResourceTableLayout : nullptr));
+	}
+} // namespace
 
-		if(const TShared<GpuProgramBytecode> bytecode = program->GetBytecode())
-			parameterLayoutCreateInformation.ResourceTableLayouts[type] = bytecode->ResourceTableLayout;
-	};
-
-	fnRegisterStage(mData.VertexProgram, parameterLayoutCreateInformation.Vertex, GPT_VERTEX_PROGRAM);
-	fnRegisterStage(mData.FragmentProgram, parameterLayoutCreateInformation.Fragment, GPT_FRAGMENT_PROGRAM);
-	fnRegisterStage(mData.GeometryProgram, parameterLayoutCreateInformation.Geometry, GPT_GEOMETRY_PROGRAM);
-	fnRegisterStage(mData.HullProgram, parameterLayoutCreateInformation.Hull, GPT_HULL_PROGRAM);
-	fnRegisterStage(mData.DomainProgram, parameterLayoutCreateInformation.Domain, GPT_DOMAIN_PROGRAM);
+void GpuGraphicsPipelineState::Initialize()
+{
+	GpuPipelineParameterLayoutInformation parameterLayoutCreateInformation;
+	AddParameterLayoutProgram(parameterLayoutCreateInformation, GPT_VERTEX_PROGRAM, mData.VertexProgram);
+	AddParameterLayoutProgram(parameterLayoutCreateInformation, GPT_FRAGMENT_PROGRAM, mData.FragmentProgram);
+	AddParameterLayoutProgram(parameterLayoutCreateInformation, GPT_GEOMETRY_PROGRAM, mData.GeometryProgram);
+	AddParameterLayoutProgram(parameterLayoutCreateInformation, GPT_DOMAIN_PROGRAM, mData.DomainProgram);
+	AddParameterLayoutProgram(parameterLayoutCreateInformation, GPT_HULL_PROGRAM, mData.HullProgram);
 
 	mParameterLayout = mGpuDevice.CreateGpuPipelineParameterLayout(parameterLayoutCreateInformation);
 }
@@ -165,11 +167,7 @@ GpuComputePipelineState::GpuComputePipelineState(GpuDevice& gpuDevice, const Gpu
 void GpuComputePipelineState::Initialize()
 {
 	GpuPipelineParameterLayoutInformation parameterLayoutCreateInformation;
-	parameterLayoutCreateInformation.Compute = mData.Program->GetParameterDescription();
-
-	// Forward the reflected resource-table layout so backends with compiler-chosen descriptor packing can consume it.
-	if(const TShared<GpuProgramBytecode> bytecode = mData.Program->GetBytecode())
-		parameterLayoutCreateInformation.ResourceTableLayouts[GPT_COMPUTE_PROGRAM] = bytecode->ResourceTableLayout;
+	AddParameterLayoutProgram(parameterLayoutCreateInformation, GPT_COMPUTE_PROGRAM, mData.Program);
 
 	mParameterLayout = mGpuDevice.CreateGpuPipelineParameterLayout(parameterLayoutCreateInformation);
 }

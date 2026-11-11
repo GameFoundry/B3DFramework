@@ -7,6 +7,7 @@
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DVertexDescription.h"
 #include "Material/B3DShaderParameterDescription.h"
+#include "Material/B3DShaderReflection.h"
 #include "Debug/B3DLog.h"
 #include "Math/B3DMath.h"
 #include "String/B3DStringFormat.h"
@@ -804,7 +805,7 @@ bool HLSLToDXIL::ReflectBytecode(const GpuProgramCreateInformation& createInform
 	}
 
 	// DXIL reflection doesn't report descriptor heap accesses
-	const ShaderEntryPointReflection& entryPointReflection = createInformation.GetEntryPointReflection();
+	const GpuProgramEntryPointReflection& entryPointReflection = createInformation.GetEntryPointReflection();
 	outBytecode.ParameterDescription->Features = entryPointReflection.Features;
 
 	return true;

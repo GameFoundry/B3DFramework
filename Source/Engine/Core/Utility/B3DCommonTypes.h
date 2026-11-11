@@ -219,6 +219,12 @@ namespace b3d
 	using GpuProgramStageBits = Flags<GpuProgramStageBit>;
 	B3D_FLAGS_OPERATORS(GpuProgramStageBit)
 
+	/** Returns the stage bit of the program type. Every program of one type shares the bit. */
+	inline GpuProgramStageBit GetProgramStageBit(GpuProgramType type)
+	{
+		return (GpuProgramStageBit)(1 << type);
+	}
+
 	/** Optional features that a GPU program uses, which the pipeline it runs in must provide. */
 	enum class GpuProgramFeatureFlag
 	{

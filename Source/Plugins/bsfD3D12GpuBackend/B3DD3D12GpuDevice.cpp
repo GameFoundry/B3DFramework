@@ -240,8 +240,9 @@ D3D12GpuDevice::~D3D12GpuDevice()
 
 	mCachedSamplerStates.clear();
 
-	// Releases the pinned resources and the shader-visible CBV/SRV/UAV heaps, which are manager-owned resources, while the resource manager is still alive
+	// Releases the shader-visible CBV/SRV/UAV heaps, which are manager-owned resources, and the pinned resources, while the resource manager is still alive
 	mBindlessHeaps = nullptr;
+	ReleaseUnpinnedResources(true);
 
 	// Queues the cached vertex inputs for destroy while the resource manager is still alive
 	mVertexInputManager = nullptr;

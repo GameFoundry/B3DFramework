@@ -25,6 +25,7 @@ GpuDevice::~GpuDevice()
 	B3D_ASSERT(mTransientHeapPools.Empty() && "The backend must destroy its transient heap pools before its heap backends.");
 	B3D_ASSERT(mVertexInputManager == nullptr && "The backend must destroy its vertex input manager before its resource manager.");
 	B3D_ASSERT(mBindlessHeaps == nullptr && "The backend must destroy the bindless heaps before its native heaps.");
+	B3D_ASSERT(mPendingUnpins.Empty() && "The backend must release the unpinned resources before its resource manager.");
 }
 
 TShared<GpuProgramBytecode> GpuDevice::CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const
@@ -75,6 +76,47 @@ void GpuDevice::EndFrame()
 
 	if(mBindlessHeaps != nullptr)
 		mBindlessHeaps->ProcessReleases();
+
+	ReleaseUnpinnedResources(false);
+}
+
+void GpuDevice::PinResource(IGpuResource& resource)
+{
+	resource.NotifyPinned();
+}
+
+void GpuDevice::UnpinResource(IGpuResource& resource)
+{
+	Lock lock(mPendingUnpinMutex);
+	mPendingUnpins.Add(PendingUnpin(mFrameCompletionTracker.GetCurrentMarker(), &resource));
+}
+
+void GpuDevice::ReleaseUnpinnedResources(bool isGpuIdle)
+{
+	FrameAllocatorScope frameScope;
+	FrameVector<IGpuResource*> unpinnedResources;
+	{
+		Lock lock(mPendingUnpinMutex);
+
+		u32 completeUnpinCount = 0;
+		for(const PendingUnpin& unpin : mPendingUnpins)
+		{
+			if(!isGpuIdle && !mFrameCompletionTracker.IsMarkerComplete(unpin.FrameIndex))
+				break;
+
+			completeUnpinCount++;
+		}
+
+		unpinnedResources.reserve(completeUnpinCount);
+		for(u32 unpinIndex = 0; unpinIndex < completeUnpinCount; unpinIndex++)
+			unpinnedResources.push_back(mPendingUnpins[unpinIndex].Resource);
+
+		mPendingUnpins.Erase(mPendingUnpins.begin(), mPendingUnpins.begin() + completeUnpinCount);
+	}
+
+	// Unpinning may destroy the resource, so it runs without the lock held
+	for(IGpuResource* resource : unpinnedResources)
+		resource->NotifyUnpinned();
 }
 
 bool GpuDevice::CreateBindlessHeaps(TUnique<GpuBindlessHeaps> heaps)

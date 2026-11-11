@@ -171,7 +171,7 @@ namespace b3d
 		/**
 		 * Allocates a resource heap slot and writes @p view into it. Returns kGpuBindlessInvalidIndex and logs an error if the heap is full.
 		 *
-		 * @param	view	View to write into the slot. Its texture or buffer must be pinned with PinResource() while the slot is allocated.
+		 * @param	view	View to write into the slot. Its texture or buffer must be pinned with GpuDevice::PinResource() while the slot is allocated.
 		 * @param	owner	Object responsible for releasing the slot. Development builds check releases against it.
 		 */
 		u32 AllocateResourceSlot(const GpuBindlessResourceView& view, const void* owner);
@@ -190,7 +190,7 @@ namespace b3d
 		 * before then keeps reading the old descriptor. A later update of the same slot before then replaces this one.
 		 *
 		 * @param	slotIndex			Allocated resource heap slot.
-		 * @param	view				New view of the slot. Its texture or buffer must be pinned with PinResource() while the slot refers to it.
+		 * @param	view				New view of the slot. Its texture or buffer must be pinned with GpuDevice::PinResource() while the slot refers to it.
 		 * @param	owner				Object the slot is allocated for.
 		 * @param	previousTarget		Resource the old descriptor refers to, if it should be unpinned once no work reads the old descriptor. May be null.
 		 */
@@ -199,20 +199,14 @@ namespace b3d
 		/** Releases slot @p slotIndex of heap @p heap, allocated for @p owner. The slot is reused once the current frame completes on the GPU. */
 		void ReleaseSlot(GpuBindlessHeapType heap, u32 slotIndex, const void* owner);
 
-		/**
-		 * Keeps @p resource alive until a matching UnpinResource() completes, even if it is destroyed. Heaps reference native resources
-		 * without command buffers tracking them, so resources must be pinned while any slot refers to them.
-		 */
-		void PinResource(IGpuResource& resource);
-
-		/** Releases a pin taken by PinResource(), once the current frame completes on the GPU. */
-		void UnpinResource(IGpuResource& resource);
-
-		/** Returns released slots and pins whose frames completed on the GPU to use. Called by the device once per frame. */
+		/** Returns released slots whose frames completed on the GPU to use. Called by the device once per frame. */
 		void ProcessReleases();
 
-		/** Returns released slots and pins to use regardless of GPU progress. The GPU must be idle. */
+		/** Returns released slots to use regardless of GPU progress. The GPU must be idle. */
 		void ProcessAllReleases();
+
+		/** Returns the device the heaps belong to. */
+		GpuDevice& GetDevice() const { return mDevice; }
 
 		/**
 		 * Applies pending slot updates, and grows the resource heap if it is running out of free slots. Called by the device at the end
@@ -351,18 +345,6 @@ namespace b3d
 			u32 SlotIndex = kGpuBindlessInvalidIndex;
 		};
 
-		/** Pin waiting for the GPU to finish the frame it was released in. */
-		struct PendingUnpin
-		{
-			PendingUnpin() = default;
-			PendingUnpin(u64 marker, IGpuResource* resource)
-				: Marker(marker), Resource(resource)
-			{ }
-
-			u64 Marker = 0; /**< Completion tracker marker of the release. */
-			IGpuResource* Resource = nullptr;
-		};
-
 		/** Slot update waiting for the end of the current frame. */
 		struct PendingSlotUpdate
 		{
@@ -398,7 +380,6 @@ namespace b3d
 		TUnique<GpuBindlessHeapPool> mResourceHeapPool; /**< Native heaps behind the resource heap. Null before Initialize() and after Destroy(). */
 		Heap mHeaps[(u32)GpuBindlessHeapType::Count];
 		TArray<PendingSlotRelease> mPendingSlotReleases; /**< In release order, so markers ascend. */
-		TArray<PendingUnpin> mPendingUnpins; /**< In release order, so markers ascend. */
 		UnorderedMap<u32, PendingSlotUpdate> mPendingSlotUpdates; /**< Keyed by slot index. */
 		TArray<TShared<SamplerState>> mGlobalSamplers; /**< Indexed by global sampler index minus one. */
 		mutable Mutex mMutex;

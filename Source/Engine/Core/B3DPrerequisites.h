@@ -824,7 +824,7 @@ namespace b3d
 		TID_FontFamily = 1290,
 		TID_ShaderDescription = 1291,
 		TID_ShaderReflection = 1292,
-		TID_ShaderEntryPointReflection = 1293,
+		TID_GpuProgramEntryPointReflection = 1293,
 		//TID_ShaderUniformBufferBindingInformation = 1294,
 		TID_ShaderParameterDescription = 1295,
 		TID_ShaderCreateInformation = 1296,

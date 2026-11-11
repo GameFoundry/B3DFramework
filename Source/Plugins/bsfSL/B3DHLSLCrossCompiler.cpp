@@ -883,7 +883,7 @@ static String CrossCompile(const String& hlsl, const TOptional<GpuProgramType>& 
 			if(entryType == GPT_COUNT)
 				continue;
 
-			ShaderEntryPointReflection entryPoint;
+			GpuProgramEntryPointReflection entryPoint;
 			entryPoint.Type = entryType;
 			outReflection.EntryPoints.emplace(entry.ident.c_str(), std::move(entryPoint));
 		}
@@ -899,7 +899,7 @@ static String CrossCompile(const String& hlsl, const TOptional<GpuProgramType>& 
 	}
 	else
 	{
-		ShaderEntryPointReflection entryPoint;
+		GpuProgramEntryPointReflection entryPoint;
 		entryPoint.Type = *type;
 		entryPoint.RayPayloadSize = (u32)entryFunction->rayPayloadSize;
 		entryPoint.HitAttributeSize = (u32)entryFunction->hitAttributeSize;
