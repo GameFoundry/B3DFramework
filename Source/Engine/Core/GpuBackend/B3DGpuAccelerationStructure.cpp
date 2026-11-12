@@ -92,20 +92,26 @@ namespace b3d::render
 	} // namespace
 #endif
 
-	GpuAccelerationStructure::GpuAccelerationStructure(const TShared<GpuBuffer>& buffer)
-	{
-		if(!B3D_ENSURE_LOG(buffer != nullptr && buffer->GetInformation().Type == GpuBufferType::AccelerationStructure,
-			"An acceleration structure must be stored in a buffer of type GpuBufferType::AccelerationStructure."))
-		{
-			return;
-		}
-
-		mBuffer = buffer;
-	}
+	GpuAccelerationStructure::GpuAccelerationStructure(GpuDevice& device, const GpuAccelerationStructureCreateInformation& createInformation, IGpuResource& gpuResource)
+		: mDevice(device), mGpuResource(&gpuResource), mType(createInformation.Type), mSize(createInformation.Size), mFlags(createInformation.Flags)
+		, mName(createInformation.Name)
+	{ }
 
 	GpuAccelerationStructure::~GpuAccelerationStructure()
 	{
+		// Before the native resource is destroyed, since the slot refers to it
+		mBindlessSlots.Unregister(*mGpuResource);
+
 		UnpinBottomLevels();
+
+		// Freed once the GPU work and the pins that still use it complete
+		mGpuResource->Destroy();
+	}
+
+	void GpuAccelerationStructure::Initialize()
+	{
+		if(mFlags.IsSet(GpuAccelerationStructureFlag::Bindless))
+			mBindlessSlots.Register(mDevice, *mGpuResource, GpuBindlessResourceView(*this));
 	}
 
 	void GpuAccelerationStructure::SetBottomLevels(TArrayView<const TShared<GpuAccelerationStructure>> bottomLevels)
@@ -115,15 +121,11 @@ namespace b3d::render
 		pinnedBottomLevels.Reserve((u32)bottomLevels.size());
 		for(const TShared<GpuAccelerationStructure>& bottomLevel : bottomLevels)
 		{
-			if(bottomLevel == nullptr || bottomLevel->GetBuffer() == nullptr)
+			if(bottomLevel == nullptr)
 				continue;
 
-			IGpuResource* const nativeResource = bottomLevel->GetBuffer()->GetGpuResource();
-			if(nativeResource == nullptr)
-				continue;
-
-			mBuffer->GetDevice().PinResource(*nativeResource);
-			pinnedBottomLevels.Add(nativeResource);
+			mDevice.PinResource(*bottomLevel->mGpuResource);
+			pinnedBottomLevels.Add(bottomLevel->mGpuResource);
 		}
 
 		UnpinBottomLevels();
@@ -133,7 +135,7 @@ namespace b3d::render
 	void GpuAccelerationStructure::UnpinBottomLevels()
 	{
 		for(IGpuResource* nativeResource : mPinnedBottomLevels)
-			mBuffer->GetDevice().UnpinResource(*nativeResource);
+			mDevice.UnpinResource(*nativeResource);
 
 		mPinnedBottomLevels.Clear();
 	}

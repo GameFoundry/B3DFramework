@@ -526,17 +526,8 @@ void GpuBackendUtility::CopyToStagingBuffer(GpuCommandBuffer& commandBuffer, con
 		{ GpuRenderTargetBarrier(target, RT_COLOR0, transferRead, restingState) }));
 }
 
-GpuStageFlags GpuBackendUtility::GetAccelerationStructureStageFlags()
-{
-	return GpuStageFlag::AllShaderAccelerationStructure | GpuStageFlag::AccelerationStructureBuild;
-}
-
 GpuAccessState GpuBackendUtility::GetRestingState(const render::GpuBuffer& buffer, GpuQueueType queueType)
 {
-	// Shaders trace rays against acceleration structures, and builds read the bottom level structures of their instances
-	if(buffer.GetInformation().Type == GpuBufferType::AccelerationStructure)
-		return GpuAccessState(GetAccelerationStructureStageFlags() & GetQueueStageFlags(queueType), GpuAccessFlag::Read);
-
 	// Only the host reads readback buffers, so the barrier that returns one to rest makes the GPU's writes visible to the host
 	if(buffer.GetInformation().Type == GpuBufferType::StagingRead)
 		return GpuAccessState(GetQueueStageFlags(queueType) & GpuStageFlag::Host, GpuAccessFlag::Read);
@@ -549,6 +540,12 @@ GpuAccessState GpuBackendUtility::GetRestingState(const render::GpuBuffer& buffe
 	const GpuStageFlags stages = GpuStageFlag::DrawIndirect | GpuStageFlag::VertexInputAttributes | GpuStageFlag::VertexInputIndices | GpuStageFlag::AllShader |
 		GpuStageFlag::AccelerationStructureBuildInput;
 	return GpuAccessState(stages & GetQueueStageFlags(queueType), GpuAccessFlag::Read);
+}
+
+GpuAccessState GpuBackendUtility::GetRestingState(const render::GpuAccelerationStructure& /*accelerationStructure*/, GpuQueueType queueType)
+{
+	// Shaders trace rays against acceleration structures, and builds read the bottom level structures of their instances
+	return GpuAccessState(GetAccelerationStructureStageFlags() & GetQueueStageFlags(queueType), GpuAccessFlag::Read);
 }
 
 GpuAccessState GpuBackendUtility::GetRestingState(const render::Texture& texture, GpuQueueType queueType)
@@ -589,6 +586,11 @@ GpuAccessState GpuBackendUtility::GetRestingState(const render::RenderTarget& ta
 GpuAccessState GpuBackendUtility::GetWindowColorRestingState(GpuQueueType queueType)
 {
 	return GpuAccessState(GpuStageFlags(GpuStageFlag::ColorAttachment) & GetQueueStageFlags(queueType), GpuAccessFlag::Read | GpuAccessFlag::Write, GpuImageLayout::ColorAttachment);
+}
+
+GpuStageFlags GpuBackendUtility::GetAccelerationStructureStageFlags()
+{
+	return GpuStageFlag::AllShaderAccelerationStructure | GpuStageFlag::AccelerationStructureBuild;
 }
 
 GpuImageLayout GpuBackendUtility::GetRenderPassAttachmentLayout(RenderSurfaceMaskBits surface, RenderSurfaceMask readOnlyMask)

@@ -4,6 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "GpuBackend/B3DGpuBuffer.h"
+#include "GpuBackend/B3DGpuBindlessHeap.h"
 #include "GpuBackend/B3DVertexDescription.h"
 #include "Math/B3DMatrix4.h"
 
@@ -20,6 +21,51 @@ namespace b3d
 	 *  @{
 	 */
 
+	/** Level of an acceleration structure. */
+	enum class GpuAccelerationStructureType : u8
+	{
+		BottomLevel, /**< Holds geometry. */
+		TopLevel /**< Holds instances of bottom level acceleration structures. */
+	};
+
+	/** Flags that control how an acceleration structure can be used. */
+	enum class GpuAccelerationStructureFlag : u8
+	{
+		None = 0,
+
+		/**
+		 * Makes a top level structure readable by shaders through ResourceDescriptorHeap, at the index
+		 * render::GpuAccelerationStructure::GetBindlessIndex() returns. Shaders read it as RaytracingAccelerationStructure. Requires
+		 * GpuRayTracingCapabilities::SupportsBindlessAccelerationStructures.
+		 */
+		Bindless = 1 << 0
+	};
+
+	using GpuAccelerationStructureFlags = Flags<GpuAccelerationStructureFlag, u8>;
+	B3D_FLAGS_OPERATORS_EXT(GpuAccelerationStructureFlag, u8)
+
+	/** Describes an acceleration structure to create. See GpuDevice::CreateGpuAccelerationStructure(). */
+	struct GpuAccelerationStructureCreateInformation
+	{
+		GpuAccelerationStructureCreateInformation() = default;
+
+		/**
+		 * @param	type	Level of the structure.
+		 * @param	size	Size of the structure's memory, in bytes, as GpuDevice::GetAccelerationStructureSizes() reports.
+		 * @param	flags	Flags that control how the structure can be used.
+		 * @param	name	Optional name of the structure, for debugging purposes.
+		 */
+		GpuAccelerationStructureCreateInformation(GpuAccelerationStructureType type, u32 size, GpuAccelerationStructureFlags flags = GpuAccelerationStructureFlag::None,
+			const StringView& name = StringView())
+			: Type(type), Size(size), Flags(flags), Name(name)
+		{ }
+
+		GpuAccelerationStructureType Type = GpuAccelerationStructureType::BottomLevel; /**< Level of the structure. */
+		u32 Size = 0; /**< Size of the structure's memory, in bytes, as GpuDevice::GetAccelerationStructureSizes() reports. */
+		GpuAccelerationStructureFlags Flags; /**< Flags that control how the structure can be used. */
+		String Name; /**< Optional name of the structure, for debugging purposes. */
+	};
+
 	/** Memory an acceleration structure and its build need, as returned by GpuDevice::GetAccelerationStructureSizes(). */
 	struct GpuAccelerationStructureSizes
 	{
@@ -28,7 +74,7 @@ namespace b3d
 			: AccelerationStructureSize(accelerationStructureSize), BuildScratchSize(buildScratchSize)
 		{ }
 
-		u32 AccelerationStructureSize = 0; /**< Size of the acceleration structure buffer, in bytes. */
+		u32 AccelerationStructureSize = 0; /**< Size of the acceleration structure's memory, in bytes. */
 		u32 BuildScratchSize = 0; /**< Size of the scratch memory a build needs, in bytes. */
 	};
 
@@ -163,7 +209,7 @@ namespace b3d
 		/** Contents to build the structure from. Its type must match the type of the destination. */
 		GpuAccelerationStructureInputs Inputs;
 
-		/** Structure to build. Its previous contents are discarded. Its buffer must be at least as large as the size query reports. */
+		/** Structure to build. Its previous contents are discarded. It must be at least as large as the size query reports. */
 		TShared<render::GpuAccelerationStructure> Destination;
 
 		/**
@@ -237,41 +283,45 @@ namespace b3d
 		 */
 
 		/**
-		 * Bottom or top level acceleration structure, stored in a buffer of type GpuBufferType::AccelerationStructure. Barriers and frame
-		 * graph declarations use the buffer. Create the buffer with the size GpuDevice::GetAccelerationStructureSizes() reports, and fill
-		 * the structure with GpuCommandBuffer::BuildAccelerationStructures().
-		 *
-		 * @note	Render thread only.
+		 * Bottom or top level acceleration structure, filled by GpuCommandBuffer::BuildAccelerationStructures().
+		 * Backends that support acceleration structures derive from it.
 		 */
 		class B3D_EXPORT GpuAccelerationStructure
 		{
 		public:
-			/** @param	buffer	Buffer of type GpuBufferType::AccelerationStructure that stores the structure. */
-			explicit GpuAccelerationStructure(const TShared<GpuBuffer>& buffer);
-			~GpuAccelerationStructure();
+			virtual ~GpuAccelerationStructure();
 
 			GpuAccelerationStructure(const GpuAccelerationStructure&) = delete;
 			GpuAccelerationStructure& operator=(const GpuAccelerationStructure&) = delete;
 
 			/** Returns the level of the structure. */
-			GpuAccelerationStructureType GetType() const { return mBuffer != nullptr ? mBuffer->GetInformation().AccelerationStructure.Type : GpuAccelerationStructureType::BottomLevel; }
+			GpuAccelerationStructureType GetType() const { return mType; }
 
-			/** Returns the size of the structure's buffer, in bytes. */
-			u32 GetSize() const { return mBuffer != nullptr ? mBuffer->GetInformation().AccelerationStructure.Size : 0; }
+			/** Returns the size of the structure's memory, in bytes. */
+			u32 GetSize() const { return mSize; }
 
-			/** Returns the buffer that stores the structure. Null if the constructor received a buffer that cannot store one. */
-			const TShared<GpuBuffer>& GetBuffer() const { return mBuffer; }
+			/** Returns the flags the structure was created with. */
+			GpuAccelerationStructureFlags GetFlags() const { return mFlags; }
+
+			/** Returns the name of the structure, for debugging purposes. */
+			const String& GetName() const { return mName; }
 
 			/**
-			 * Returns the index shaders read the structure at in the bindless resource heap, or kGpuBindlessInvalidIndex if the buffer
-			 * wasn't created with GpuBufferFlag::Bindless.
+			 * Returns the index shaders read the structure at in the bindless resource heap, or kGpuBindlessInvalidIndex if the structure
+			 * wasn't created with GpuAccelerationStructureFlag::Bindless.
 			 */
-			u32 GetBindlessIndex() const { return mBuffer != nullptr ? mBuffer->GetBindlessIndex() : kGpuBindlessInvalidIndex; }
+			u32 GetBindlessIndex() const { return mBindlessSlots.GetDefaultIndex(); }
+
+			/** Returns the native resource of the structure. */
+			IGpuResource* GetGpuResource() const { return mGpuResource; }
 
 			/**
 			 * @name Internal
 			 * @{
 			 */
+
+			/** Takes the structure's bindless slot, if it is bindless. Called by the device once the backend has created the structure. */
+			void Initialize();
 
 			/**
 			 * Keeps the native resources of @p bottomLevels alive for as long as the structure references them, and releases the ones of
@@ -289,11 +339,25 @@ namespace b3d
 
 			/** @} */
 
+		protected:
+			/**
+			 * @param	device				Device that created the structure.
+			 * @param	createInformation	Description of the structure, which the device validated.
+			 * @param	gpuResource			Native resource of the structure, which the backend created. The structure destroys it.
+			 */
+			GpuAccelerationStructure(GpuDevice& device, const GpuAccelerationStructureCreateInformation& createInformation, IGpuResource& gpuResource);
+
 		private:
 			/** Releases the pins of the bottom level structures. */
 			void UnpinBottomLevels();
 
-			TShared<GpuBuffer> mBuffer;
+			GpuDevice& mDevice;
+			IGpuResource* mGpuResource;
+			GpuAccelerationStructureType mType;
+			u32 mSize;
+			GpuAccelerationStructureFlags mFlags;
+			String mName;
+			GpuBindlessResourceSlots mBindlessSlots;
 			TArray<IGpuResource*> mPinnedBottomLevels;
 		};
 

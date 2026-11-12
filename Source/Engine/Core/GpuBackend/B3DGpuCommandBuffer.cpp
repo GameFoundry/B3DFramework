@@ -30,18 +30,6 @@ namespace b3d
 namespace b3d { namespace render
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
-namespace
-{
-	/** Logs an error if @p buffer cannot be the source or destination of a copy. */
-	void ValidateCopyBuffer(const TShared<GpuBuffer>& buffer)
-	{
-		if(buffer == nullptr)
-			return;
-
-		B3D_ENSURE_LOG(buffer->GetInformation().Type != GpuBufferType::AccelerationStructure, "Acceleration structure buffer '{0}' cannot be copied from or to.", buffer->GetName());
-	}
-} // namespace
-
 void GpuDrawAccessValidator::BeginRenderPass()
 {
 	mPreviousDrawAccesses.clear();
@@ -69,7 +57,22 @@ void GpuDrawAccessValidator::AddParameterSet(const GpuParameterSet& parameters, 
 {
 	parameters.ForEachBoundResource(&pipelineSetLayout, [this](const GpuParameterSetResource& resource)
 	{
-		AddResource(resource.Buffer != nullptr ? (const void*)resource.Buffer : (const void*)resource.Texture, resource.Access);
+		switch(resource.Uniform->Type)
+		{
+		case GpuParameterType::UniformBuffer:
+		case GpuParameterType::StorageBuffer:
+			AddResource(resource.Buffer.Object, resource.Access);
+			break;
+		case GpuParameterType::SampledTexture:
+		case GpuParameterType::StorageTexture:
+			AddResource(resource.Texture.Object, resource.Access);
+			break;
+		case GpuParameterType::AccelerationStructure:
+			AddResource(resource.AccelerationStructure.Object, resource.Access);
+			break;
+		default:
+			break;
+		}
 	});
 }
 
@@ -255,9 +258,6 @@ void GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& create
 void GpuCommandBuffer::CopyBufferToBuffer([[maybe_unused]] const TShared<GpuBuffer>& source, [[maybe_unused]] const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> /*ranges*/)
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
-	ValidateCopyBuffer(source);
-	ValidateCopyBuffer(destination);
-
 	if(mBarrierValidator != nullptr && source != nullptr && destination != nullptr)
 	{
 		mBarrierValidator->ValidateBufferAccess(*source, GpuStageFlag::Transfer, GpuAccessFlag::Read);
@@ -269,8 +269,6 @@ void GpuCommandBuffer::CopyBufferToBuffer([[maybe_unused]] const TShared<GpuBuff
 void GpuCommandBuffer::CopyBufferToTexture([[maybe_unused]] const TShared<GpuBuffer>& source, [[maybe_unused]] const TShared<Texture>& destination, u32 /*bufferOffset*/, [[maybe_unused]] u32 mipLevel, [[maybe_unused]] u32 arrayLayer)
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
-	ValidateCopyBuffer(source);
-
 	if(mBarrierValidator != nullptr && source != nullptr && destination != nullptr)
 	{
 		mBarrierValidator->ValidateBufferAccess(*source, GpuStageFlag::Transfer, GpuAccessFlag::Read);
@@ -282,8 +280,6 @@ void GpuCommandBuffer::CopyBufferToTexture([[maybe_unused]] const TShared<GpuBuf
 void GpuCommandBuffer::CopyTextureToBuffer([[maybe_unused]] const TShared<Texture>& source, [[maybe_unused]] const TShared<GpuBuffer>& destination, [[maybe_unused]] u32 mipLevel, [[maybe_unused]] u32 arrayLayer, u32 /*bufferOffset*/)
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
-	ValidateCopyBuffer(destination);
-
 	if(mBarrierValidator != nullptr && source != nullptr && destination != nullptr)
 	{
 		mBarrierValidator->ValidateTextureAccess(*source, GpuTextureSubresourceRange(mipLevel, 1, arrayLayer, 1, kAllImageAspects), GpuImageLayout::Undefined, GpuStageFlag::Transfer, GpuAccessFlag::Read);
@@ -295,8 +291,6 @@ void GpuCommandBuffer::CopyTextureToBuffer([[maybe_unused]] const TShared<Textur
 void GpuCommandBuffer::CopyWindowToBuffer([[maybe_unused]] const TShared<RenderWindow>& source, [[maybe_unused]] const TShared<GpuBuffer>& destination)
 {
 #if B3D_BUILD_TYPE_DEVELOPMENT
-	ValidateCopyBuffer(destination);
-
 	if(mBarrierValidator != nullptr && source != nullptr && destination != nullptr)
 	{
 		mBarrierValidator->ValidateRenderTargetAccess(*source, RT_COLOR0, GpuImageLayout::TransferSource, GpuStageFlag::Transfer, GpuAccessFlag::Read);
@@ -775,11 +769,11 @@ namespace
 	bool ValidateAccelerationStructureBuild(const GpuDevice& device, const GpuAccelerationStructureBuild& build, u32 buildIndex, const GpuAccelerationStructureSizes& sizes)
 	{
 		const GpuAccelerationStructure& destination = *build.Destination;
-		if(!B3D_ENSURE_LOG(destination.GetType() == build.Inputs.Type, "Build {0} builds acceleration structure '{1}' from inputs of another level.", buildIndex, destination.GetBuffer()->GetName()))
+		if(!B3D_ENSURE_LOG(destination.GetType() == build.Inputs.Type, "Build {0} builds acceleration structure '{1}' from inputs of another level.", buildIndex, destination.GetName()))
 			return false;
 
 		if(!B3D_ENSURE_LOG(destination.GetSize() >= sizes.AccelerationStructureSize, "Build {0} needs {1} bytes, but acceleration structure '{2}' has {3}.", buildIndex,
-			sizes.AccelerationStructureSize, destination.GetBuffer()->GetName(), destination.GetSize()))
+			sizes.AccelerationStructureSize, destination.GetName(), destination.GetSize()))
 		{
 			return false;
 		}
@@ -809,7 +803,7 @@ namespace
 
 		for(const TShared<GpuAccelerationStructure>& bottomLevel : build.BottomLevels)
 		{
-			const bool isBottomLevel = bottomLevel != nullptr && bottomLevel->GetBuffer() != nullptr && bottomLevel->GetType() == GpuAccelerationStructureType::BottomLevel;
+			const bool isBottomLevel = bottomLevel != nullptr && bottomLevel->GetType() == GpuAccelerationStructureType::BottomLevel;
 			if(!B3D_ENSURE_LOG(isBottomLevel, "Build {0} lists a structure that is not a bottom level acceleration structure among its bottom levels.", buildIndex))
 				return false;
 		}
@@ -836,7 +830,7 @@ namespace
 			for(u32 otherIndex = 0; otherIndex < buildIndex; otherIndex++)
 			{
 				const GpuAccelerationStructureBuild& other = builds[otherIndex];
-				if(!B3D_ENSURE_LOG(other.Destination->GetBuffer() != build.Destination->GetBuffer(), "Builds {0} and {1} build the same acceleration structure.", otherIndex, buildIndex))
+				if(!B3D_ENSURE_LOG(other.Destination != build.Destination, "Builds {0} and {1} build the same acceleration structure.", otherIndex, buildIndex))
 					return false;
 
 				if(other.ScratchBuffer == build.ScratchBuffer)
@@ -852,7 +846,7 @@ namespace
 				{
 					for(const TShared<GpuAccelerationStructure>& bottomLevel : topLevelBuild.BottomLevels)
 					{
-						if(bottomLevel->GetBuffer() == bottomLevelBuild.Destination->GetBuffer())
+						if(bottomLevel == bottomLevelBuild.Destination)
 							return true;
 					}
 
@@ -898,7 +892,7 @@ bool GpuCommandBuffer::BuildAccelerationStructures(TArrayView<const GpuAccelerat
 	for(u32 buildIndex = 0; buildIndex < (u32)builds.size(); buildIndex++)
 	{
 		const GpuAccelerationStructureBuild& build = builds[buildIndex];
-		if(build.Destination == nullptr || build.Destination->GetBuffer() == nullptr || build.ScratchBuffer == nullptr)
+		if(build.Destination == nullptr || build.ScratchBuffer == nullptr)
 		{
 			B3D_LOG(Error, LogRenderBackend, "Acceleration structure build {0} has no destination or no scratch buffer.", buildIndex);
 			return false;

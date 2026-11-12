@@ -6,6 +6,8 @@
 #include "Math/B3DArea2.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
+#include "GpuBackend/B3DGpuAccelerationStructure.h"
+#include "B3DVulkanGpuBuffer.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -1046,3 +1048,103 @@ GpuImageLayout VulkanUtility::ToGpuImageLayout(VkImageLayout layout)
 	}
 }
 
+bool VulkanUtility::GetAccelerationStructureBuildInformation(const GpuAccelerationStructureInputs& inputs, bool includeAddresses, VkAccelerationStructureBuildGeometryInfoKHR& outInformation,
+	FrameVector<u32>& outPrimitiveCounts)
+{
+	// Offsets go into the addresses, so every build range starts at primitive offset 0 and first vertex 0
+	const auto fnGetAddress = [includeAddresses](const TShared<GpuBuffer>& buffer, u32 offset)
+	{
+		VkDeviceOrHostAddressConstKHR address;
+		address.deviceAddress = 0;
+		if(includeAddresses && buffer != nullptr)
+			address.deviceAddress = static_cast<VulkanGpuBuffer&>(*buffer).GetVulkanResource()->GetDeviceAddress() + offset;
+
+		return address;
+	};
+
+	VkBuildAccelerationStructureFlagsKHR buildFlags = 0;
+	if(inputs.Flags.IsSet(GpuAccelerationStructureBuildFlag::PreferFastTrace))
+		buildFlags |= VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
+
+	if(inputs.Flags.IsSet(GpuAccelerationStructureBuildFlag::PreferFastBuild))
+		buildFlags |= VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
+
+	if(inputs.Flags.IsSet(GpuAccelerationStructureBuildFlag::MinimizeMemory))
+		buildFlags |= VK_BUILD_ACCELERATION_STRUCTURE_LOW_MEMORY_BIT_KHR;
+
+	outInformation.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR;
+	outInformation.pNext = nullptr;
+	outInformation.flags = buildFlags;
+	outInformation.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR;
+	outInformation.srcAccelerationStructure = VK_NULL_HANDLE;
+	outInformation.dstAccelerationStructure = VK_NULL_HANDLE;
+	outInformation.ppGeometries = nullptr;
+	outInformation.scratchData.deviceAddress = 0;
+
+	if(inputs.Type == GpuAccelerationStructureType::TopLevel)
+	{
+		auto* const geometry = B3DFrameAllocate<VkAccelerationStructureGeometryKHR>(1);
+		geometry->sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
+		geometry->pNext = nullptr;
+		geometry->geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
+		geometry->flags = 0;
+		geometry->geometry.instances.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR;
+		geometry->geometry.instances.pNext = nullptr;
+		geometry->geometry.instances.arrayOfPointers = VK_FALSE;
+		geometry->geometry.instances.data = fnGetAddress(inputs.InstanceBuffer, inputs.InstanceOffset);
+
+		outInformation.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
+		outInformation.geometryCount = 1;
+		outInformation.pGeometries = geometry;
+
+		outPrimitiveCounts.assign(1, inputs.InstanceCount);
+		return true;
+	}
+
+	const u32 geometryCount = (u32)inputs.Geometries.size();
+	auto* const geometries = B3DFrameAllocate<VkAccelerationStructureGeometryKHR>(geometryCount);
+	outPrimitiveCounts.resize(geometryCount);
+
+	for(u32 geometryIndex = 0; geometryIndex < geometryCount; geometryIndex++)
+	{
+		const GpuRayTracingGeometry& source = inputs.Geometries[geometryIndex];
+		if(source.VertexType != VET_FLOAT3)
+		{
+			B3D_LOG(Error, LogRenderBackend, "Geometry {0} of an acceleration structure must have VET_FLOAT3 vertex positions.", geometryIndex);
+			return false;
+		}
+
+		VkGeometryFlagsKHR geometryFlags = 0;
+		if(source.Flags.IsSet(GpuRayTracingGeometryFlag::Opaque))
+			geometryFlags |= VK_GEOMETRY_OPAQUE_BIT_KHR;
+
+		if(source.Flags.IsSet(GpuRayTracingGeometryFlag::NoDuplicateAnyHitInvocation))
+			geometryFlags |= VK_GEOMETRY_NO_DUPLICATE_ANY_HIT_INVOCATION_BIT_KHR;
+
+		const bool isIndexed = source.IndexBuffer != nullptr;
+
+		VkAccelerationStructureGeometryKHR& geometry = geometries[geometryIndex];
+		geometry.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
+		geometry.pNext = nullptr;
+		geometry.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+		geometry.flags = geometryFlags;
+
+		VkAccelerationStructureGeometryTrianglesDataKHR& triangles = geometry.geometry.triangles;
+		triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
+		triangles.pNext = nullptr;
+		triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
+		triangles.vertexData = fnGetAddress(source.VertexBuffer, source.VertexOffset);
+		triangles.vertexStride = source.VertexStride;
+		triangles.maxVertex = source.VertexCount > 0 ? source.VertexCount - 1 : 0;
+		triangles.indexType = isIndexed ? GetIndexType(source.IndexType) : VK_INDEX_TYPE_NONE_KHR;
+		triangles.indexData = fnGetAddress(source.IndexBuffer, source.IndexOffset);
+		triangles.transformData.deviceAddress = 0;
+
+		outPrimitiveCounts[geometryIndex] = (isIndexed ? source.IndexCount : source.VertexCount) / 3;
+	}
+
+	outInformation.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+	outInformation.geometryCount = geometryCount;
+	outInformation.pGeometries = geometries;
+	return true;
+}

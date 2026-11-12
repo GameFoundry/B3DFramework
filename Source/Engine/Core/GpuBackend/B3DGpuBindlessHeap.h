@@ -19,6 +19,7 @@ namespace b3d
 	{
 		class Texture;
 		class GpuBuffer;
+		class GpuAccelerationStructure;
 		class GpuResourceTracker;
 	}
 
@@ -73,10 +74,41 @@ namespace b3d
 		return 1 + (u32)filter * (u32)GpuGlobalSamplerAddress::Count + (u32)address;
 	}
 
-	/** Read-only view of a texture or a buffer, written into a resource heap slot. */
+	/** Kind of resource a GpuBindlessResourceView views. */
+	enum class GpuBindlessResourceType : u8
+	{
+		None, /**< No resource. The view was never filled in, and cannot be written into a slot. */
+		Texture, /**< A surface of a texture. */
+		Buffer, /**< A buffer. */
+		AccelerationStructure /**< A top level acceleration structure. */
+	};
+
+	/** Read-only view of a texture, a buffer or an acceleration structure, written into a resource heap slot. */
 	struct B3D_EXPORT GpuBindlessResourceView
 	{
-		GpuBindlessResourceView() = default;
+		/** View of a surface of a texture. */
+		struct TextureView
+		{
+			render::Texture* Object = nullptr; /**< Viewed texture. */
+			TextureSurface Surface; /**< Viewed surface of the texture. */
+		};
+
+		/** View of a buffer. */
+		struct BufferView
+		{
+			render::GpuBuffer* Object = nullptr; /**< Viewed buffer. */
+			GpuBufferViewType ViewType = GpuBufferViewType::Typed; /**< How the view interprets the contents of the buffer. */
+			GpuBufferFormat Format = BF_UNKNOWN; /**< Element format of a typed view. BF_UNKNOWN for the buffer's own format. */
+		};
+
+		/** View of a top level acceleration structure. */
+		struct AccelerationStructureView
+		{
+			render::GpuAccelerationStructure* Object = nullptr; /**< Viewed acceleration structure. */
+		};
+
+		/** Empty view, of no resource. It must be replaced by a view of a resource before it is written into a slot. */
+		GpuBindlessResourceView();
 
 		/** View of the @p surface of a texture. */
 		GpuBindlessResourceView(render::Texture& texture, const TextureSurface& surface);
@@ -87,14 +119,22 @@ namespace b3d
 		 */
 		GpuBindlessResourceView(render::GpuBuffer& buffer, GpuBufferViewType viewType, GpuBufferFormat format);
 
+		/** View of a top level acceleration structure, which shaders read as RaytracingAccelerationStructure. */
+		GpuBindlessResourceView(render::GpuAccelerationStructure& accelerationStructure);
+
+		/** Returns the name of the viewed resource, or an empty string for an empty view. */
+		const String& GetResourceName() const;
+
+		/** Returns true if both views are of the same kind and view the same resource in the same way. */
 		bool operator==(const GpuBindlessResourceView& other) const;
 
-		render::Texture* Texture = nullptr; /**< Viewed texture, or null for a buffer view. */
-		TextureSurface Surface; /**< Viewed surface of the texture. */
-
-		render::GpuBuffer* Buffer = nullptr; /**< Viewed buffer, or null for a texture view. */
-		GpuBufferViewType ViewType = GpuBufferViewType::Typed; /**< How the buffer view interprets the contents of the buffer. */
-		GpuBufferFormat Format = BF_UNKNOWN; /**< Element format of a typed buffer view. BF_UNKNOWN for the buffer's own format. */
+		GpuBindlessResourceType Type = GpuBindlessResourceType::None; /**< Kind of the viewed resource. Selects the member below that describes the view. */
+		union
+		{
+			TextureView Texture; /**< View of a texture. Only valid if Type is GpuBindlessResourceType::Texture. */
+			BufferView Buffer; /**< View of a buffer. Only valid if Type is GpuBindlessResourceType::Buffer. */
+			AccelerationStructureView AccelerationStructure; /**< View of an acceleration structure. Only valid if Type is GpuBindlessResourceType::AccelerationStructure. */
+		};
 	};
 
 	/** New descriptor of a bindless resource heap slot. */
@@ -171,7 +211,7 @@ namespace b3d
 		/**
 		 * Allocates a resource heap slot and writes @p view into it. Returns kGpuBindlessInvalidIndex and logs an error if the heap is full.
 		 *
-		 * @param	view	View to write into the slot. Its texture or buffer must be pinned with GpuDevice::PinResource() while the slot is allocated.
+		 * @param	view	View to write into the slot. Its resource must be pinned with GpuDevice::PinResource() while the slot is allocated.
 		 * @param	owner	Object responsible for releasing the slot. Development builds check releases against it.
 		 */
 		u32 AllocateResourceSlot(const GpuBindlessResourceView& view, const void* owner);
@@ -190,7 +230,7 @@ namespace b3d
 		 * before then keeps reading the old descriptor. A later update of the same slot before then replaces this one.
 		 *
 		 * @param	slotIndex			Allocated resource heap slot.
-		 * @param	view				New view of the slot. Its texture or buffer must be pinned with GpuDevice::PinResource() while the slot refers to it.
+		 * @param	view				New view of the slot. Its resource must be pinned with GpuDevice::PinResource() while the slot refers to it.
 		 * @param	owner				Object the slot is allocated for.
 		 * @param	previousTarget		Resource the old descriptor refers to, if it should be unpinned once no work reads the old descriptor. May be null.
 		 */

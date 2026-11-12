@@ -37,6 +37,8 @@ static_assert(false, "Other platform includes go here.");
 #include "B3DVulkanTexture.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
+#include "GpuBackend/B3DGpuAccelerationStructure.h"
+#include "B3DVulkanGpuAccelerationStructure.h"
 #include "Utility/B3DBitwise.h"
 #include "GpuBackend/Allocators/B3DGpuTransientHeapPool.h"
 
@@ -324,17 +326,22 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	if(mSupportsBindlessResources)
 		extensions[extensionCount++] = VK_EXT_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME;
 
-#if B3D_BUILD_TYPE_DEVELOPMENT
-	// Only retired bindless slots use null descriptors, and only development builds clear them
-	mSupportsNullDescriptor = mSupportsBindlessResources && robustness2FeatureProbe.nullDescriptor == VK_TRUE;
+	// Acceleration structure builds read their inputs through device addresses. Empty acceleration structure slots hold null descriptors,
+	// since an empty structure only exists after a build. Pipelines also need ray query, because DXC declares RayQueryKHR in ray
+	// generation programs that trace against an acceleration structure.
+	const bool hasNullDescriptor = supportsRobustness2 && robustness2FeatureProbe.nullDescriptor == VK_TRUE;
+	mSupportsAccelerationStructures = probesRayTracing && accelerationStructureFeatureProbe.accelerationStructure == VK_TRUE && bufferDeviceAddressFeatureProbe.bufferDeviceAddress == VK_TRUE &&
+		hasNullDescriptor;
+	mIsBufferDeviceAddressEnabled = mSupportsAccelerationStructures;
+
+	// Retired bindless slots use null descriptors too, which only development builds clear
+	mSupportsNullDescriptor = mSupportsAccelerationStructures || (B3D_BUILD_TYPE_DEVELOPMENT && mSupportsBindlessResources && hasNullDescriptor);
 	if(mSupportsNullDescriptor)
 		extensions[extensionCount++] = VK_EXT_ROBUSTNESS_2_EXTENSION_NAME;
-#endif
 
-	// Acceleration structure builds read their inputs through device addresses. Pipelines also need ray query, because DXC declares
-	// RayQueryKHR in ray generation programs that trace against an acceleration structure.
-	mSupportsAccelerationStructures = probesRayTracing && accelerationStructureFeatureProbe.accelerationStructure == VK_TRUE && bufferDeviceAddressFeatureProbe.bufferDeviceAddress == VK_TRUE;
-	mIsBufferDeviceAddressEnabled = mSupportsAccelerationStructures;
+	// Bindless top level acceleration structures are written into the heap after it is bound
+	const bool hasAccelerationStructureUpdateAfterBind = mSupportsAccelerationStructures && mSupportsBindlessResources &&
+		accelerationStructureFeatureProbe.descriptorBindingAccelerationStructureUpdateAfterBind == VK_TRUE;
 	mSupportsRayQuery = mSupportsAccelerationStructures && supportsRayQueryExtension && rayQueryFeatureProbe.rayQuery == VK_TRUE;
 	mSupportsRayTracingPipeline = mSupportsRayQuery && supportsRayTracingPipelineExtension && rayTracingPipelineFeatureProbe.rayTracingPipeline == VK_TRUE;
 
@@ -399,7 +406,6 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 		featureChain = &mutableDescriptorTypeFeatures;
 	}
 
-#if B3D_BUILD_TYPE_DEVELOPMENT
 	VkPhysicalDeviceRobustness2FeaturesEXT robustness2Features = {};
 	if(mSupportsNullDescriptor)
 	{
@@ -409,6 +415,7 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 		featureChain = &robustness2Features;
 	}
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
 	VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR pipelineExecutableFeatures = {};
 	if(supportsPipelineExecutableProperties)
 	{
@@ -434,6 +441,7 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 		accelerationStructureFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
 		accelerationStructureFeatures.pNext = featureChain;
 		accelerationStructureFeatures.accelerationStructure = VK_TRUE;
+		accelerationStructureFeatures.descriptorBindingAccelerationStructureUpdateAfterBind = hasAccelerationStructureUpdateAfterBind ? VK_TRUE : VK_FALSE;
 		featureChain = &accelerationStructureFeatures;
 	}
 
@@ -479,6 +487,22 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 
 	GET_DEVICE_PROC_ADDR(mLogicalDevice, CmdSetEvent2)
 	GET_DEVICE_PROC_ADDR(mLogicalDevice, CmdWaitEvents2)
+
+	if(mSupportsAccelerationStructures)
+	{
+		GET_DEVICE_PROC_ADDR(mLogicalDevice, CreateAccelerationStructureKHR)
+		GET_DEVICE_PROC_ADDR(mLogicalDevice, DestroyAccelerationStructureKHR)
+		GET_DEVICE_PROC_ADDR(mLogicalDevice, GetAccelerationStructureBuildSizesKHR)
+		GET_DEVICE_PROC_ADDR(mLogicalDevice, GetAccelerationStructureDeviceAddressKHR)
+		GET_DEVICE_PROC_ADDR(mLogicalDevice, CmdBuildAccelerationStructuresKHR)
+	}
+
+	if(mSupportsRayTracingPipeline)
+	{
+		GET_DEVICE_PROC_ADDR(mLogicalDevice, CreateRayTracingPipelinesKHR)
+		GET_DEVICE_PROC_ADDR(mLogicalDevice, GetRayTracingShaderGroupHandlesKHR)
+		GET_DEVICE_PROC_ADDR(mLogicalDevice, CmdTraceRaysKHR)
+	}
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	if(supportsPipelineExecutableProperties)
@@ -549,13 +573,18 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 		const VkDescriptorBindingFlags commonBindingFlags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT;
 		const VkDescriptorBindingFlags bindingFlags[2] = { commonBindingFlags, commonBindingFlags | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT };
 
-		const VkDescriptorType resourceTypes[3] = { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER };
+		// Top level acceleration structures join the resource types if the driver accepts them in the heap, see the probe below
+		mBindlessResourceTypes.Add(VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
+		mBindlessResourceTypes.Add(VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER);
+		mBindlessResourceTypes.Add(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+		if(hasAccelerationStructureUpdateAfterBind)
+			mBindlessResourceTypes.Add(VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR);
 
 		VkMutableDescriptorTypeListEXT mutableTypeLists[2];
 		mutableTypeLists[0].descriptorTypeCount = 0;
 		mutableTypeLists[0].pDescriptorTypes = nullptr;
-		mutableTypeLists[1].descriptorTypeCount = 3;
-		mutableTypeLists[1].pDescriptorTypes = resourceTypes;
+		mutableTypeLists[1].descriptorTypeCount = (u32)mBindlessResourceTypes.Size();
+		mutableTypeLists[1].pDescriptorTypes = mBindlessResourceTypes.Data();
 
 		VkMutableDescriptorTypeCreateInfoEXT mutableTypeCI;
 		mutableTypeCI.sType = VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_EXT;
@@ -575,6 +604,30 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 		layoutCI.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
 		layoutCI.bindingCount = 2;
 		layoutCI.pBindings = bindings;
+
+		// A driver may refuse acceleration structures in a mutable binding, or at the heap's capacity. The heap then keeps the other
+		// types, and only parameter sets bind acceleration structures.
+		if(hasAccelerationStructureUpdateAfterBind)
+		{
+			VkDescriptorSetVariableDescriptorCountLayoutSupport variableCountSupport;
+			variableCountSupport.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_LAYOUT_SUPPORT;
+			variableCountSupport.pNext = nullptr;
+			variableCountSupport.maxVariableDescriptorCount = 0;
+
+			VkDescriptorSetLayoutSupport layoutSupport;
+			layoutSupport.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_SUPPORT;
+			layoutSupport.pNext = &variableCountSupport;
+			layoutSupport.supported = VK_FALSE;
+
+			vkGetDescriptorSetLayoutSupport(mLogicalDevice, &layoutCI, &layoutSupport);
+			if(layoutSupport.supported == VK_TRUE && variableCountSupport.maxVariableDescriptorCount >= resourceMaximumCapacity)
+				mCapabilities.RayTracing.SupportsBindlessAccelerationStructures = true;
+			else
+			{
+				mBindlessResourceTypes.Pop();
+				mutableTypeLists[1].descriptorTypeCount = (u32)mBindlessResourceTypes.Size();
+			}
+		}
 
 		mBindlessHeapLayout = B3DNew<VulkanDescriptorLayout>(*this, layoutCI);
 
@@ -695,6 +748,113 @@ TShared<render::Texture> VulkanGpuDevice::CreateTextureInternal(const TextureCre
 		output->Initialize();
 
 	return output;
+}
+
+bool VulkanGpuDevice::GetAccelerationStructureSizes(const GpuAccelerationStructureInputs& inputs, GpuAccelerationStructureSizes& outSizes) const
+{
+	if(!GpuDevice::GetAccelerationStructureSizes(inputs, outSizes))
+		return false;
+
+	FrameAllocatorScope frameScope;
+
+	VkAccelerationStructureBuildGeometryInfoKHR buildInformation;
+	FrameVector<u32> primitiveCounts;
+	if(!VulkanUtility::GetAccelerationStructureBuildInformation(inputs, false, buildInformation, primitiveCounts))
+		return false;
+
+	VkAccelerationStructureBuildSizesInfoKHR sizes;
+	sizes.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR;
+	sizes.pNext = nullptr;
+	sizes.accelerationStructureSize = 0;
+	sizes.updateScratchSize = 0;
+	sizes.buildScratchSize = 0;
+
+	vkGetAccelerationStructureBuildSizesKHR(mLogicalDevice, VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR, &buildInformation, primitiveCounts.data(), &sizes);
+
+	// Buffer sizes are 32-bit
+	static constexpr VkDeviceSize kMaximumSize = std::numeric_limits<u32>::max();
+	if(sizes.accelerationStructureSize > kMaximumSize || sizes.buildScratchSize > kMaximumSize)
+	{
+		B3D_LOG(Error, LogRenderBackend, "An acceleration structure needs {0} bytes and its build {1} bytes of scratch memory. Neither can exceed 4 GiB.",
+			(u64)sizes.accelerationStructureSize, (u64)sizes.buildScratchSize);
+		return false;
+	}
+
+	outSizes = GpuAccelerationStructureSizes((u32)sizes.accelerationStructureSize, (u32)sizes.buildScratchSize);
+	return true;
+}
+
+bool VulkanGpuDevice::WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance> instances, void* destination) const
+{
+	if(!GpuDevice::WriteRayTracingInstances(instances, destination))
+		return false;
+
+	auto* const output = static_cast<VkAccelerationStructureInstanceKHR*>(destination);
+	for(u32 instanceIndex = 0; instanceIndex < (u32)instances.size(); instanceIndex++)
+	{
+		const GpuRayTracingInstance& instance = instances[instanceIndex];
+
+		VkGeometryInstanceFlagsKHR flags = 0;
+		if(instance.Flags.IsSet(GpuRayTracingInstanceFlag::DisableTriangleCulling))
+			flags |= VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
+
+		// Vulkan's front face is clockwise in a left-handed system. The engine's world is right-handed, so the face rasterization
+		// considers the front face looks the other way, unless the instance flips it.
+		if(!instance.Flags.IsSet(GpuRayTracingInstanceFlag::FlipTriangleFacing))
+			flags |= VK_GEOMETRY_INSTANCE_TRIANGLE_FLIP_FACING_BIT_KHR;
+
+		if(instance.Flags.IsSet(GpuRayTracingInstanceFlag::ForceOpaque))
+			flags |= VK_GEOMETRY_INSTANCE_FORCE_OPAQUE_BIT_KHR;
+
+		if(instance.Flags.IsSet(GpuRayTracingInstanceFlag::ForceNonOpaque))
+			flags |= VK_GEOMETRY_INSTANCE_FORCE_NO_OPAQUE_BIT_KHR;
+
+		// A structure never changes its native object, so its address stays valid. Vulkan treats an instance without one as inactive.
+		VkDeviceAddress bottomLevelAddress = 0;
+		if(instance.BottomLevel != nullptr)
+			bottomLevelAddress = static_cast<const VulkanGpuAccelerationStructure&>(*instance.BottomLevel).GetVulkanResource()->GetDeviceAddress();
+
+		VkAccelerationStructureInstanceKHR nativeInstance;
+		for(u32 row = 0; row < 3; row++)
+		{
+			for(u32 column = 0; column < 4; column++)
+				nativeInstance.transform.matrix[row][column] = instance.Transform[row][column];
+		}
+
+		nativeInstance.instanceCustomIndex = instance.InstanceId;
+		nativeInstance.mask = instance.Mask;
+		nativeInstance.instanceShaderBindingTableRecordOffset = instance.HitGroupIndexOffset;
+		nativeInstance.flags = flags;
+		nativeInstance.accelerationStructureReference = bottomLevelAddress;
+
+		// The destination may be write-combined memory, so each instance is written once and never read
+		memcpy(&output[instanceIndex], &nativeInstance, sizeof(nativeInstance));
+	}
+
+	return true;
+}
+
+TShared<render::GpuAccelerationStructure> VulkanGpuDevice::CreateGpuAccelerationStructureInternal(const GpuAccelerationStructureCreateInformation& createInformation)
+{
+	// Shared like other buffers, so accesses on any queue need no ownership transfer, which lets structures rest
+	const bool usesConcurrentSharing = mQueueFamilies.Size() > 1;
+
+	VulkanBufferCreateInformation bufferCreateInformation;
+	bufferCreateInformation.VkCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferCreateInformation.VkCreateInfo.pNext = nullptr;
+	bufferCreateInformation.VkCreateInfo.flags = 0;
+	bufferCreateInformation.VkCreateInfo.size = createInformation.Size;
+	bufferCreateInformation.VkCreateInfo.usage = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+	bufferCreateInformation.VkCreateInfo.sharingMode = usesConcurrentSharing ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
+	bufferCreateInformation.VkCreateInfo.queueFamilyIndexCount = usesConcurrentSharing ? (u32)mQueueFamilies.Size() : 0;
+	bufferCreateInformation.VkCreateInfo.pQueueFamilyIndices = usesConcurrentSharing ? mQueueFamilies.data() : nullptr;
+	bufferCreateInformation.Type = GpuBufferType::StructuredStorage;
+	bufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU;
+	bufferCreateInformation.DebugName = createInformation.Name;
+
+	VulkanBuffer* const buffer = CreateBuffer(bufferCreateInformation, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0);
+	VulkanAccelerationStructure* const accelerationStructure = mResourceManager->Create<VulkanAccelerationStructure>(*buffer, createInformation);
+	return B3DMakeShared<VulkanGpuAccelerationStructure>(*this, createInformation, *accelerationStructure);
 }
 
 TShared<render::GpuBuffer> VulkanGpuDevice::CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags)
@@ -1010,11 +1170,30 @@ VulkanBuffer* VulkanGpuDevice::CreateBuffer(const VulkanBufferCreateInformation&
 	vkGetBufferMemoryRequirements(mLogicalDevice, buffer, &requirements);
 
 	// Matches GetMemoryRequirements()
-	requirements.alignment = std::max<VkDeviceSize>(requirements.alignment, VulkanGpuBuffer::GetMinimumAlignment(*this, createInformation.Type, createInformation.Flags));
+	requirements.alignment = std::max<VkDeviceSize>(requirements.alignment, createInformation.MinimumAlignment);
 
 	const VulkanAllocationResult allocation = ResolveAllocation(requestedAllocation, requirements);
 	outAllocation = allocation.Allocation;
 
+	return BindBufferToAllocation(createInformation, buffer, allocation);
+}
+
+VulkanBuffer* VulkanGpuDevice::CreateBuffer(const VulkanBufferCreateInformation& createInformation, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags)
+{
+	VkBuffer buffer;
+	const VkResult createResult = vkCreateBuffer(mLogicalDevice, &createInformation.VkCreateInfo, gVulkanAllocator, &buffer);
+	B3D_ASSERT(createResult == VK_SUCCESS);
+	(void)createResult;
+
+	VkMemoryRequirements requirements = {};
+	vkGetBufferMemoryRequirements(mLogicalDevice, buffer, &requirements);
+	requirements.alignment = std::max<VkDeviceSize>(requirements.alignment, createInformation.MinimumAlignment);
+
+	const u32 memoryTypeIndex = PickMemoryTypeIndex(requirements.memoryTypeBits, requiredFlags, preferredFlags);
+	B3D_ASSERT(memoryTypeIndex != VK_MAX_MEMORY_TYPES && "No Vulkan memory type satisfies the requested buffer allocation flags.");
+
+	const u32 memoryType = EncodeMemoryType(memoryTypeIndex, false);
+	const VulkanAllocationResult allocation = ResolveAllocation(GpuAllocation::CreatePending(GetOrCreateGpuMemoryAllocator(memoryType)), requirements);
 	return BindBufferToAllocation(createInformation, buffer, allocation);
 }
 

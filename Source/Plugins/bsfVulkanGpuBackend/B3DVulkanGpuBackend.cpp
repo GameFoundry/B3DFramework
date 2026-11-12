@@ -68,6 +68,16 @@ PFN_vkGetDeviceImageMemoryRequirements vkGetDeviceImageMemoryRequirements = null
 PFN_vkCmdSetEvent2 vkCmdSetEvent2 = nullptr;
 PFN_vkCmdWaitEvents2 vkCmdWaitEvents2 = nullptr;
 
+PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructureKHR = nullptr;
+PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructureKHR = nullptr;
+PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizesKHR = nullptr;
+PFN_vkGetAccelerationStructureDeviceAddressKHR vkGetAccelerationStructureDeviceAddressKHR = nullptr;
+PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructuresKHR = nullptr;
+
+PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelinesKHR = nullptr;
+PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandlesKHR = nullptr;
+PFN_vkCmdTraceRaysKHR vkCmdTraceRaysKHR = nullptr;
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 // Diagnostics (VK_KHR_pipeline_executable_properties): used by the optional gpu.DumpPipelineStats occupancy dump.
 PFN_vkGetPipelineExecutablePropertiesKHR vkGetPipelineExecutablePropertiesKHR = nullptr;

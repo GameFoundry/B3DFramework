@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DVulkanBindlessHeaps.h"
 #include "B3DVulkanDescriptorLayout.h"
+#include "B3DVulkanGpuAccelerationStructure.h"
 #include "B3DVulkanGpuBuffer.h"
 #include "B3DVulkanGpuDevice.h"
 #include "B3DVulkanSamplerState.h"
@@ -47,9 +48,18 @@ void VulkanBindlessHeaps::WriteResourceSlot(u32 slotIndex, const GpuBindlessReso
 
 void VulkanBindlessHeaps::WriteResourceDescriptor(u32 slotIndex, const GpuBindlessResourceView& view, VulkanBindlessHeap* heap)
 {
+	B3D_ASSERT(view.Type != GpuBindlessResourceType::None && "The heaps reject empty views.");
+
 	VkDescriptorImageInfo imageInfo;
 	VkDescriptorBufferInfo bufferInfo;
 	VkBufferView bufferView = VK_NULL_HANDLE;
+	VkAccelerationStructureKHR accelerationStructure = VK_NULL_HANDLE;
+
+	VkWriteDescriptorSetAccelerationStructureKHR accelerationStructureInfo;
+	accelerationStructureInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR;
+	accelerationStructureInfo.pNext = nullptr;
+	accelerationStructureInfo.accelerationStructureCount = 1;
+	accelerationStructureInfo.pAccelerationStructures = &accelerationStructure;
 
 	VkWriteDescriptorSet writeInfo;
 	writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -62,22 +72,25 @@ void VulkanBindlessHeaps::WriteResourceDescriptor(u32 slotIndex, const GpuBindle
 	writeInfo.pBufferInfo = nullptr;
 	writeInfo.pTexelBufferView = nullptr;
 
-	if(view.Texture != nullptr)
+	switch(view.Type)
 	{
-		auto* texture = static_cast<VulkanTexture*>(view.Texture);
+	case GpuBindlessResourceType::Texture:
+	{
+		auto* texture = static_cast<VulkanTexture*>(view.Texture.Object);
 
 		imageInfo.sampler = VK_NULL_HANDLE;
-		imageInfo.imageView = texture->GetVulkanResource()->GetView(view.Surface, false).Handle;
+		imageInfo.imageView = texture->GetVulkanResource()->GetView(view.Texture.Surface, false).Handle;
 		imageInfo.imageLayout = texture->UsesGeneralLayout() ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 		writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 		writeInfo.pImageInfo = &imageInfo;
+		break;
 	}
-	else
+	case GpuBindlessResourceType::Buffer:
 	{
 		// Raw views of vertex and index buffers are storage buffers too
-		auto* buffer = static_cast<VulkanGpuBuffer*>(view.Buffer);
-		if(view.ViewType == GpuBufferViewType::Raw || buffer->GetInformation().Type == GpuBufferType::StructuredStorage)
+		auto* buffer = static_cast<VulkanGpuBuffer*>(view.Buffer.Object);
+		if(view.Buffer.ViewType == GpuBufferViewType::Raw || buffer->GetInformation().Type == GpuBufferType::StructuredStorage)
 		{
 			bufferInfo.buffer = buffer->GetVulkanResource()->GetVulkanHandle();
 			bufferInfo.offset = 0;
@@ -88,11 +101,21 @@ void VulkanBindlessHeaps::WriteResourceDescriptor(u32 slotIndex, const GpuBindle
 		}
 		else
 		{
-			bufferView = buffer->GetOrCreateView(view.Format);
+			bufferView = buffer->GetOrCreateView(view.Buffer.Format);
 
 			writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
 			writeInfo.pTexelBufferView = &bufferView;
 		}
+		break;
+	}
+	case GpuBindlessResourceType::AccelerationStructure:
+		accelerationStructure = static_cast<VulkanGpuAccelerationStructure*>(view.AccelerationStructure.Object)->GetVulkanResource()->GetVulkanHandle();
+
+		writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+		writeInfo.pNext = &accelerationStructureInfo;
+		break;
+	case GpuBindlessResourceType::None:
+		return;
 	}
 
 	if(heap == nullptr)
@@ -150,6 +173,15 @@ void VulkanBindlessHeaps::ClearResourceSlot(u32 slotIndex, GpuParameterObjectTyp
 
 	const VkBufferView bufferView = VK_NULL_HANDLE;
 
+	// Devices that support acceleration structures always have null descriptors
+	const VkAccelerationStructureKHR accelerationStructure = VK_NULL_HANDLE;
+
+	VkWriteDescriptorSetAccelerationStructureKHR accelerationStructureInfo;
+	accelerationStructureInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR;
+	accelerationStructureInfo.pNext = nullptr;
+	accelerationStructureInfo.accelerationStructureCount = 1;
+	accelerationStructureInfo.pAccelerationStructures = &accelerationStructure;
+
 	VkWriteDescriptorSet writeInfo;
 	writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	writeInfo.pNext = nullptr;
@@ -161,7 +193,12 @@ void VulkanBindlessHeaps::ClearResourceSlot(u32 slotIndex, GpuParameterObjectTyp
 	writeInfo.pBufferInfo = nullptr;
 	writeInfo.pTexelBufferView = nullptr;
 
-	if(mSupportsNullDescriptor && GpuObjectParameterTypeInformation::IsTexture(viewType))
+	if(viewType == GPOT_ACCELERATION_STRUCTURE)
+	{
+		writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+		writeInfo.pNext = &accelerationStructureInfo;
+	}
+	else if(mSupportsNullDescriptor && GpuObjectParameterTypeInformation::IsTexture(viewType))
 	{
 		writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 		writeInfo.pImageInfo = &imageInfo;
@@ -185,13 +222,13 @@ GpuBindlessHeap* VulkanBindlessHeaps::CreateResourceHeap(u32 capacity)
 	const VkDevice device = mDevice.GetLogical();
 
 	// The pool's mutable descriptors use the same type list as the binding
-	const VkDescriptorType resourceTypes[3] = { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER };
+	const TArrayView<const VkDescriptorType> resourceTypes = mDevice.GetBindlessResourceTypes();
 
 	VkMutableDescriptorTypeListEXT mutableTypeLists[2];
 	mutableTypeLists[0].descriptorTypeCount = 0;
 	mutableTypeLists[0].pDescriptorTypes = nullptr;
-	mutableTypeLists[1].descriptorTypeCount = 3;
-	mutableTypeLists[1].pDescriptorTypes = resourceTypes;
+	mutableTypeLists[1].descriptorTypeCount = (u32)resourceTypes.size();
+	mutableTypeLists[1].pDescriptorTypes = resourceTypes.data();
 
 	VkMutableDescriptorTypeCreateInfoEXT mutableTypeCI;
 	mutableTypeCI.sType = VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_EXT;

@@ -46,6 +46,7 @@ namespace b3d
 		class GpuVertexInput;
 		class GpuVertexInputManager;
 		struct GpuVertexInputLayout;
+		class GpuAccelerationStructure;
 	}
 
 	struct GpuPipelineParameterLayoutCreateInformation;
@@ -56,6 +57,7 @@ namespace b3d
 	struct GpuComputePipelineStateCreateInformation;
 	struct GpuGraphicsPipelineStateCreateInformation;
 	struct GpuAccelerationStructureSizes;
+	struct GpuAccelerationStructureCreateInformation;
 	struct GpuAccelerationStructureInputs;
 	struct GpuRayTracingInstance;
 
@@ -209,7 +211,17 @@ namespace b3d
 		virtual GpuMemoryRequirements GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const = 0;
 
 		/**
-		 * Returns the size of the buffer an acceleration structure with @p inputs needs, and the scratch memory its build needs. Thread safe.
+		 * Creates an acceleration structure whose memory comes from the device's persistent allocator. Build it with
+		 * render::GpuCommandBuffer::BuildAccelerationStructures().
+		 *
+		 * @param	createInformation	Object describing the structure to create.
+		 * @return						Created structure, or null, with the reason logged, if the device doesn't support acceleration
+		 *								structures or @p createInformation is invalid.
+		 */
+		TShared<render::GpuAccelerationStructure> CreateGpuAccelerationStructure(const GpuAccelerationStructureCreateInformation& createInformation);
+
+		/**
+		 * Returns the memory an acceleration structure with @p inputs needs, and the scratch memory its build needs. Thread safe.
 		 *
 		 * @param	inputs		Contents of the acceleration structure. Buffers are only inspected, not read.
 		 * @param	outSizes	Receives the sizes. Zero if the call fails.
@@ -462,6 +474,12 @@ namespace b3d
 		 * requirements. See CreateGpuBuffer(const GpuBufferCreateInformation&, const GpuAllocation&, GpuObjectCreateFlags).
 		 */
 		virtual TShared<render::GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) = 0;
+
+		/**
+		 * Creates an acceleration structure described by @p createInformation, which is valid for the device. See
+		 * CreateGpuAccelerationStructure(). Returns null by default: backends with RSC_ACCELERATION_STRUCTURES override it.
+		 */
+		virtual TShared<render::GpuAccelerationStructure> CreateGpuAccelerationStructureInternal(const GpuAccelerationStructureCreateInformation& createInformation);
 
 		/**
 		 * Creates the object mapping the vertex buffer elements of @p layout onto the inputs of a vertex shader, identified by @p id.

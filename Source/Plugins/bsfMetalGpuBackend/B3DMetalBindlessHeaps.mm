@@ -77,14 +77,28 @@ namespace b3d
 
 		u64 MetalBindlessHeaps::GetResourceEntry(const GpuBindlessResourceView& view) const
 		{
-			if (view.Texture != nullptr)
-				return MetalUtility::GetArgumentValue(static_cast<MetalTexture*>(view.Texture)->GetSubresourceView(view.Surface, false).gpuResourceID);
+			B3D_ASSERT(view.Type != GpuBindlessResourceType::None && "The heaps reject empty views.");
 
-			auto* buffer = static_cast<MetalGpuBuffer*>(view.Buffer);
-			if (buffer->GetInformation().Type == GpuBufferType::StructuredStorage)
-				return buffer->GetMetalBuffer().gpuAddress;
+			switch (view.Type)
+			{
+			case GpuBindlessResourceType::Texture:
+				return MetalUtility::GetArgumentValue(static_cast<MetalTexture*>(view.Texture.Object)->GetSubresourceView(view.Texture.Surface, false).gpuResourceID);
+			case GpuBindlessResourceType::Buffer:
+			{
+				auto* buffer = static_cast<MetalGpuBuffer*>(view.Buffer.Object);
+				if (buffer->GetInformation().Type == GpuBufferType::StructuredStorage)
+					return buffer->GetMetalBuffer().gpuAddress;
 
-			return MetalUtility::GetArgumentValue(buffer->GetTextureBufferView(view.Format, 0, 0, false).gpuResourceID);
+				return MetalUtility::GetArgumentValue(buffer->GetTextureBufferView(view.Buffer.Format, 0, 0, false).gpuResourceID);
+			}
+			case GpuBindlessResourceType::AccelerationStructure:
+			case GpuBindlessResourceType::None:
+				break;
+			}
+
+			// No Metal acceleration structures yet. A zero entry reads as a null resource.
+			B3D_LOG(Error, LogRenderBackend, "Cannot write the view of '{0}' into a bindless resource slot, Metal doesn't support it.", view.GetResourceName());
+			return 0;
 		}
 
 		GpuBindlessHeap* MetalBindlessHeaps::CreateResourceHeap(u32 capacity)

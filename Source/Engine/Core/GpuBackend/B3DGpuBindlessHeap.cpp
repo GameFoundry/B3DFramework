@@ -4,6 +4,7 @@
 #include "GpuBackend/B3DGpuBindlessHeapPool.h"
 #include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/B3DGpuBuffer.h"
+#include "GpuBackend/B3DGpuAccelerationStructure.h"
 #include "GpuBackend/B3DGpuCompletionTracker.h"
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DSamplerState.h"
@@ -18,34 +19,89 @@ using namespace b3d;
 /** Returns the parameter type that shaders read @p view as. */
 static GpuParameterObjectType GetViewObjectType(const GpuBindlessResourceView& view)
 {
-	if(view.Buffer != nullptr)
+	switch(view.Type)
 	{
-		if(view.Buffer->GetInformation().Type == GpuBufferType::AccelerationStructure)
-			return GPOT_ACCELERATION_STRUCTURE;
-
-		if(view.ViewType == GpuBufferViewType::Raw)
+	case GpuBindlessResourceType::Texture:
+	{
+		const TextureProperties& properties = view.Texture.Object->GetProperties();
+		const TextureViewType viewType = properties.ResolveSurface(view.Texture.Surface, false).ViewType;
+		return GpuObjectParameterTypeInformation::GetTextureObjectType(viewType, properties.SampleCount > 1);
+	}
+	case GpuBindlessResourceType::Buffer:
+		if(view.Buffer.ViewType == GpuBufferViewType::Raw)
 			return GPOT_BYTE_ADDRESS_BUFFER;
 
-		return view.Buffer->GetInformation().Type == GpuBufferType::StructuredStorage ? GPOT_STRUCTURED_BUFFER : GPOT_TYPED_BUFFER;
+		return view.Buffer.Object->GetInformation().Type == GpuBufferType::StructuredStorage ? GPOT_STRUCTURED_BUFFER : GPOT_TYPED_BUFFER;
+	case GpuBindlessResourceType::AccelerationStructure:
+		return GPOT_ACCELERATION_STRUCTURE;
+	case GpuBindlessResourceType::None:
+		break;
 	}
 
-	const TextureProperties& properties = view.Texture->GetProperties();
-	const TextureViewType viewType = properties.ResolveSurface(view.Surface, false).ViewType;
-	return GpuObjectParameterTypeInformation::GetTextureObjectType(viewType, properties.SampleCount > 1);
+	return GPOT_UNKNOWN;
 }
 #endif
 
-GpuBindlessResourceView::GpuBindlessResourceView(render::Texture& texture, const TextureSurface& surface)
-	: Texture(&texture), Surface(surface)
+GpuBindlessResourceView::GpuBindlessResourceView()
+	: Texture() // The union needs an active member, though an empty view reads none
 { }
 
+GpuBindlessResourceView::GpuBindlessResourceView(render::Texture& texture, const TextureSurface& surface)
+	: Type(GpuBindlessResourceType::Texture), Texture()
+{
+	Texture.Object = &texture;
+	Texture.Surface = surface;
+}
+
 GpuBindlessResourceView::GpuBindlessResourceView(render::GpuBuffer& buffer, GpuBufferViewType viewType, GpuBufferFormat format)
-	: Buffer(&buffer), ViewType(viewType), Format(format)
-{ }
+	: Type(GpuBindlessResourceType::Buffer), Buffer()
+{
+	Buffer.Object = &buffer;
+	Buffer.ViewType = viewType;
+	Buffer.Format = format;
+}
+
+GpuBindlessResourceView::GpuBindlessResourceView(render::GpuAccelerationStructure& accelerationStructure)
+	: Type(GpuBindlessResourceType::AccelerationStructure), AccelerationStructure()
+{
+	AccelerationStructure.Object = &accelerationStructure;
+}
+
+const String& GpuBindlessResourceView::GetResourceName() const
+{
+	switch(Type)
+	{
+	case GpuBindlessResourceType::Texture:
+		return Texture.Object->GetName();
+	case GpuBindlessResourceType::Buffer:
+		return Buffer.Object->GetName();
+	case GpuBindlessResourceType::AccelerationStructure:
+		return AccelerationStructure.Object->GetName();
+	case GpuBindlessResourceType::None:
+		break;
+	}
+
+	return StringUtility::kBlank;
+}
 
 bool GpuBindlessResourceView::operator==(const GpuBindlessResourceView& other) const
 {
-	return Texture == other.Texture && Surface == other.Surface && Buffer == other.Buffer && ViewType == other.ViewType && Format == other.Format;
+	if(Type != other.Type)
+		return false;
+
+	switch(Type)
+	{
+	case GpuBindlessResourceType::Texture:
+		return Texture.Object == other.Texture.Object && Texture.Surface == other.Texture.Surface;
+	case GpuBindlessResourceType::Buffer:
+		return Buffer.Object == other.Buffer.Object && Buffer.ViewType == other.Buffer.ViewType && Buffer.Format == other.Buffer.Format;
+	case GpuBindlessResourceType::AccelerationStructure:
+		return AccelerationStructure.Object == other.AccelerationStructure.Object;
+	case GpuBindlessResourceType::None:
+		return true;
+	}
+
+	return false;
 }
 
 GpuBindlessHeaps::GpuBindlessHeaps(GpuDevice& device, const IGpuCompletionTracker& completionTracker, const GpuBindlessHeapsCreateInformation& createInformation)
@@ -196,8 +252,11 @@ u32 GpuBindlessHeaps::TakeSlot(Heap& heap, const void* owner, const String& owne
 
 u32 GpuBindlessHeaps::AllocateResourceSlot(const GpuBindlessResourceView& view, const void* owner)
 {
-	const String& ownerName = view.Texture != nullptr ? view.Texture->GetName() : view.Buffer->GetName();
-	if(view.Texture != nullptr && !view.Texture->GetProperties().ValidateSurface(view.Surface, false))
+	if(!B3D_ENSURE_LOG(view.Type != GpuBindlessResourceType::None, "Cannot write an empty view into a bindless resource slot."))
+		return kGpuBindlessInvalidIndex;
+
+	const String& ownerName = view.GetResourceName();
+	if(view.Type == GpuBindlessResourceType::Texture && !view.Texture.Object->GetProperties().ValidateSurface(view.Texture.Surface, false))
 		return kGpuBindlessInvalidIndex;
 
 	Lock lock(mMutex);
@@ -266,7 +325,10 @@ u32 GpuBindlessHeaps::AllocateSamplerSlot(const SamplerState& sampler, const voi
 
 void GpuBindlessHeaps::UpdateResourceSlot(u32 slotIndex, const GpuBindlessResourceView& view, const void* owner, IGpuResource* previousTarget)
 {
-	if(view.Texture != nullptr && !view.Texture->GetProperties().ValidateSurface(view.Surface, false))
+	if(!B3D_ENSURE_LOG(view.Type != GpuBindlessResourceType::None, "Cannot write an empty view into bindless resource slot {0}.", slotIndex))
+		return;
+
+	if(view.Type == GpuBindlessResourceType::Texture && !view.Texture.Object->GetProperties().ValidateSurface(view.Texture.Surface, false))
 		return;
 
 	Lock lock(mMutex);

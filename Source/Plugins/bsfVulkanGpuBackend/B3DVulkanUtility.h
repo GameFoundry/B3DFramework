@@ -13,6 +13,8 @@
 
 namespace b3d
 {
+	struct GpuAccelerationStructureInputs;
+
 	namespace render
 	{
 		/** @addtogroup Vulkan
@@ -124,6 +126,18 @@ namespace b3d
 			 */
 			static void GetPipelineStageAndAccessMask(const VulkanGpuDevice& device, GpuStageFlags accessStage, GpuAccessFlags access, VkPipelineStageFlags& outStages, VkAccessFlags& outAccessMask);
 
+			/**
+			 * Converts @p inputs to the native build description. Arrays are allocated from the frame allocator and @p outInformation points into
+			 * them, so the caller opens a FrameAllocatorScope first.
+			 *
+			 * @param	inputs				Contents of the acceleration structure.
+			 * @param	includeAddresses	True to fill in the device addresses of the input buffers, which builds need and size queries don't.
+			 * @param	outInformation		Receives the geometry list, type and flags. The caller sets the destination and the scratch address.
+			 * @param	outPrimitiveCounts	Receives the primitive count of each geometry.
+			 * @return						False if an input cannot be expressed, with the reason logged.
+			 */
+			static bool GetAccelerationStructureBuildInformation(const GpuAccelerationStructureInputs& inputs, bool includeAddresses, VkAccelerationStructureBuildGeometryInfoKHR& outInformation,
+				FrameVector<u32>& outPrimitiveCounts);
 		};
 
 		/** @} */

@@ -14,11 +14,11 @@ namespace b3d
 
 	private:
 		/**
-		 * Verifies acceleration structure buffers: the creation rules, the resting state, barriers in and out of an acceleration structure
-		 * build, and the rejection of host access, storage buffer bindings and stages that cannot access them. Without
-		 * RSC_ACCELERATION_STRUCTURES, verifies that creation fails.
+		 * Verifies acceleration structure creation: the creation errors, the type, size and bindless slot, the resting state, barriers in
+		 * and out of an acceleration structure build, the stages that cannot access structures or buffers, and the rules for build input
+		 * buffers. Without RSC_ACCELERATION_STRUCTURES, verifies that creation fails.
 		 */
-		void TestAccelerationStructureBuffers();
+		void TestAccelerationStructureCreation();
 
 		/**
 		 * Verifies the size query and the instance writes, and the errors of invalid inputs, instances and builds. Without

@@ -44,12 +44,8 @@ namespace
 		const GpuBufferInformation& information = buffer->GetInformation();
 		const bool isStaging = information.Type == GpuBufferType::StagingRead || information.Type == GpuBufferType::StagingWrite;
 
-		// A move copies bytes, which doesn't produce a valid acceleration structure. Moving a bottom level structure would also leave the
-		// top level structures built from it referring to its old address.
-		const bool isAccelerationStructure = information.Type == GpuBufferType::AccelerationStructure;
-
 		return buffer->IsInitialized() && !buffer->HasFixedLocation() && buffer->GetFrameGraphResourceIndex() == ~0u &&
-			!information.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess) && !isStaging && !isAccelerationStructure && buffer->GetGpuResource() != nullptr;
+			!information.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess) && !isStaging && buffer->GetGpuResource() != nullptr;
 	}
 
 	/** Returns the native resource of the texture or buffer that owns an allocation. */

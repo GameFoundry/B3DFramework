@@ -18,22 +18,23 @@ namespace b3d::render
 {
 	namespace
 	{
-		/** Returns an error if @p stages include a stage that cannot access @p buffer, or null if they don't. */
-		const char* GetBufferStageError(const GpuBuffer& buffer, GpuStageFlags stages)
+		/** Returns an error if @p stages include a stage that cannot access a buffer, or null if they don't. */
+		const char* GetBufferStageError(GpuStageFlags stages)
 		{
-			if(buffer.GetInformation().Type != GpuBufferType::AccelerationStructure)
-			{
-				if(!stages.IsSetAny(GpuStageFlag::AllShaderAccelerationStructure))
-					return nullptr;
+			if(!stages.IsSetAny(GpuStageFlag::AllShaderAccelerationStructure))
+				return nullptr;
 
-				return "Only an acceleration structure buffer can be accessed by rays traced against it.";
-			}
+			return "Only an acceleration structure can be accessed by rays traced against it.";
+		}
 
+		/** Returns an error if @p stages include a stage that cannot access an acceleration structure, or null if they don't. */
+		const char* GetAccelerationStructureStageError(GpuStageFlags stages)
+		{
 			const GpuStageFlags otherStages = stages & ~GpuBackendUtility::GetAccelerationStructureStageFlags();
 			if(otherStages == GpuStageFlag::None)
 				return nullptr;
 
-			return "An acceleration structure buffer can only be accessed by rays traced against it and by acceleration structure builds.";
+			return "An acceleration structure can only be accessed by rays traced against it and by acceleration structure builds.";
 		}
 	} // namespace
 
@@ -67,6 +68,12 @@ namespace b3d::render
 			image.Range.AspectMask &= barrier.SubresourceRange.AspectMask;
 			if(image.Key.Object != nullptr)
 				ValidateImageBarrier(image, barrier, phase, split);
+		}
+
+		for(const GpuAccelerationStructureBarrier& barrier : barriers.AccelerationStructureBarriers)
+		{
+			if(barrier.Object != nullptr)
+				ValidateAccelerationStructureBarrier(*barrier.Object, barrier, phase, split);
 		}
 
 		// The release of a split alias acquire starts the new lifetime, so the acquire half has nothing left to start
@@ -183,11 +190,11 @@ namespace b3d::render
 
 		for(const GpuAccelerationStructureBuild& build : builds)
 		{
-			ValidateBufferAccess(*build.Destination->GetBuffer(), GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Write);
+			ValidateAccelerationStructureAccess(*build.Destination, GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Write);
 			ValidateBufferAccess(*build.ScratchBuffer, GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Read | GpuAccessFlag::Write);
 
 			for(const TShared<GpuAccelerationStructure>& bottomLevel : build.BottomLevels)
-				ValidateBufferAccess(*bottomLevel->GetBuffer(), GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Read);
+				ValidateAccelerationStructureAccess(*bottomLevel, GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Read);
 
 			for(const GpuRayTracingGeometry& geometry : build.Inputs.Geometries)
 			{
@@ -206,7 +213,7 @@ namespace b3d::render
 
 	void GpuBarrierValidator::ValidateBufferAccess(const GpuBuffer& buffer, GpuStageFlags stages, GpuAccessFlags access)
 	{
-		const char* error = GetBufferStageError(buffer, stages);
+		const char* error = GetBufferStageError(stages);
 		if(error == nullptr)
 			error = GetLifetimeError(buffer.IsUnplaced(), buffer.GetGpuResource(), nullptr, GpuBarrierPhase::Full);
 
@@ -214,6 +221,21 @@ namespace b3d::render
 			error = ApplyAccess(mBuffers[&buffer], mQueueType, GpuImageLayout::Undefined, stages, access, GetUndeclaredState(GpuBackendUtility::GetRestingState(buffer, mQueueType)), mOperation);
 
 		B3D_ENSURE_LOG(error == nullptr, "{0} Buffer: '{1}'.", error, buffer.GetName());
+	}
+
+	void GpuBarrierValidator::ValidateAccelerationStructureAccess(const GpuAccelerationStructure& accelerationStructure, GpuStageFlags stages, GpuAccessFlags access)
+	{
+		const char* error = GetAccelerationStructureStageError(stages);
+		if(error == nullptr)
+			error = GetLifetimeError(false, accelerationStructure.GetGpuResource(), nullptr, GpuBarrierPhase::Full);
+
+		if(error == nullptr)
+		{
+			const GpuAccessState* const undeclaredState = GetUndeclaredState(GpuBackendUtility::GetRestingState(accelerationStructure, mQueueType));
+			error = ApplyAccess(mAccelerationStructures[&accelerationStructure], mQueueType, GpuImageLayout::Undefined, stages, access, undeclaredState, mOperation);
+		}
+
+		B3D_ENSURE_LOG(error == nullptr, "{0} Acceleration structure: '{1}'.", error, accelerationStructure.GetName());
 	}
 
 	void GpuBarrierValidator::ValidateTextureAccess(const Texture& texture, const GpuTextureSubresourceRange& range, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags access)
@@ -231,6 +253,7 @@ namespace b3d::render
 	void GpuBarrierValidator::Clear()
 	{
 		mBuffers.clear();
+		mAccelerationStructures.clear();
 		mImages.clear();
 		mAliasAcquires.clear();
 		mSupersededResources.clear();
@@ -360,18 +383,18 @@ namespace b3d::render
 				switch(resource.Uniform->Type)
 				{
 				case GpuParameterType::UniformBuffer:
-					ValidateBufferAccess(*resource.Buffer, GpuBackendUtility::GetStageFlags(stageUse | GpuResourceUseFlag::UniformBuffer), resource.Access);
+					ValidateBufferAccess(*resource.Buffer.Object, GpuBackendUtility::GetStageFlags(stageUse | GpuResourceUseFlag::UniformBuffer), resource.Access);
 					break;
 				case GpuParameterType::StorageBuffer:
-					ValidateBufferAccess(*resource.Buffer, GpuBackendUtility::GetStageFlags(stageUse | GpuResourceUseFlag::ShaderAccess), resource.Access);
+					ValidateBufferAccess(*resource.Buffer.Object, GpuBackendUtility::GetStageFlags(stageUse | GpuResourceUseFlag::ShaderAccess), resource.Access);
 					break;
 				case GpuParameterType::AccelerationStructure:
-					ValidateBufferAccess(*resource.Buffer, GpuBackendUtility::GetStageFlags(stageUse | GpuResourceUseFlag::AccelerationStructure), resource.Access);
+					ValidateAccelerationStructureAccess(*resource.AccelerationStructure.Object, GpuBackendUtility::GetStageFlags(stageUse | GpuResourceUseFlag::AccelerationStructure), resource.Access);
 					break;
 				case GpuParameterType::SampledTexture:
 				{
-					ImageSubresources image = GetTextureSubresources(*resource.Texture, GpuTextureSubresourceRange::AllSubresources());
-					image.Range = GpuBackendUtility::GetSurfaceRange(image.FullRange, resource.Surface);
+					ImageSubresources image = GetTextureSubresources(*resource.Texture.Object, GpuTextureSubresourceRange::AllSubresources());
+					image.Range = GpuBackendUtility::GetSurfaceRange(image.FullRange, resource.Texture.Surface);
 
 					// Sampled depth/stencil views only read the depth aspect
 					if(image.Range.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
@@ -384,8 +407,8 @@ namespace b3d::render
 				}
 				case GpuParameterType::StorageTexture:
 				{
-					ImageSubresources image = GetTextureSubresources(*resource.Texture, GpuTextureSubresourceRange::AllSubresources());
-					image.Range = GpuBackendUtility::GetSurfaceRange(image.FullRange, resource.Surface);
+					ImageSubresources image = GetTextureSubresources(*resource.Texture.Object, GpuTextureSubresourceRange::AllSubresources());
+					image.Range = GpuBackendUtility::GetSurfaceRange(image.FullRange, resource.Texture.Surface);
 					ValidateImageAccess(image, GpuImageLayout::General, GpuBackendUtility::GetStageFlags(stageUse | GpuResourceUseFlag::ShaderAccess), resource.Access);
 					break;
 				}
@@ -429,7 +452,7 @@ namespace b3d::render
 
 	void GpuBarrierValidator::ValidateBufferBarrier(const GpuBuffer& buffer, const GpuBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split)
 	{
-		const char* error = GetBufferStageError(buffer, barrier.Source.Stages | barrier.Destination.Stages);
+		const char* error = GetBufferStageError(barrier.Source.Stages | barrier.Destination.Stages);
 		if(error == nullptr)
 			error = GetLifetimeError(buffer.IsUnplaced(), buffer.GetGpuResource(), &barrier, phase);
 
@@ -440,6 +463,19 @@ namespace b3d::render
 		}
 
 		B3D_ENSURE_LOG(error == nullptr, "{0} Buffer: '{1}'.", error, buffer.GetName());
+	}
+
+	void GpuBarrierValidator::ValidateAccelerationStructureBarrier(const GpuAccelerationStructure& accelerationStructure, const GpuBarrier& barrier, GpuBarrierPhase phase,
+		const GpuSplitBarrier* split)
+	{
+		const char* error = GetAccelerationStructureStageError(barrier.Source.Stages | barrier.Destination.Stages);
+		if(error == nullptr)
+			error = GetLifetimeError(false, accelerationStructure.GetGpuResource(), &barrier, phase);
+
+		if(error == nullptr)
+			error = ApplyBarrier(mAccelerationStructures[&accelerationStructure], mQueueType, barrier, phase, split, false);
+
+		B3D_ENSURE_LOG(error == nullptr, "{0} Acceleration structure: '{1}'.", error, accelerationStructure.GetName());
 	}
 
 	void GpuBarrierValidator::ValidateImageAccess(const ImageSubresources& image, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags access)

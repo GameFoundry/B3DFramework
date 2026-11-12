@@ -83,6 +83,8 @@ namespace b3d
 			TShared<GpuCommandBufferPool> CreateGpuCommandBufferPool(const GpuCommandBufferPoolCreateInformation& createInformation) override;
 			GpuMemoryRequirements GetMemoryRequirements(const TextureCreateInformation& createInformation) const override;
 			GpuMemoryRequirements GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const override;
+			bool GetAccelerationStructureSizes(const GpuAccelerationStructureInputs& inputs, GpuAccelerationStructureSizes& outSizes) const override;
+			bool WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance> instances, void* destination) const override;
 			IGpuAllocator& GetPersistentAllocator(u32 memoryType) override;
 			void GetPersistentAllocators(TArray<IGpuAllocator*>& outAllocators) override;
 			TShared<GpuQueryPool> CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation) override;
@@ -153,6 +155,12 @@ namespace b3d
 			bool IsBufferDeviceAddressEnabled() const { return mIsBufferDeviceAddressEnabled; }
 
 			/**
+			 * Returns the descriptor types the resource binding of the bindless heap set can hold. Includes acceleration structures if
+			 * GpuRayTracingCapabilities::SupportsBindlessAccelerationStructures is true. Empty if the device doesn't support bindless resources.
+			 */
+			TArrayView<const VkDescriptorType> GetBindlessResourceTypes() const { return TArrayView<const VkDescriptorType>(mBindlessResourceTypes.Data(), mBindlessResourceTypes.Size()); }
+
+			/**
 			 * @name Resource Creation
 			 * @{
 			 */
@@ -166,6 +174,14 @@ namespace b3d
 			 * Thread safe if the allocation's allocator is.
 			 */
 			VulkanBuffer* CreateBuffer(const VulkanBufferCreateInformation& createInformation, const GpuAllocation& requestedAllocation, GpuAllocation& outAllocation);
+
+			/**
+			 * Creates a VkBuffer described by @p createInformation, suballocates compatible memory from the persistent allocators and
+			 * binds the two together, and wraps the result in a VulkanBuffer. For buffers the engine never sees as a GpuBuffer.
+			 *
+			 * Thread safe.
+			 */
+			VulkanBuffer* CreateBuffer(const VulkanBufferCreateInformation& createInformation, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags);
 
 			/**
 			 * Creates a VkImage described by @p createInformation, suballocates compatible memory from the persistent allocators and
@@ -251,6 +267,7 @@ namespace b3d
 			TShared<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
 			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
 			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
+			TShared<GpuAccelerationStructure> CreateGpuAccelerationStructureInternal(const GpuAccelerationStructureCreateInformation& createInformation) override;
 			GpuVertexInput* CreateVertexInput(u32 id, const GpuVertexInputLayout& layout) override;
 
 			/** Initializes the capabilities of the device. */
@@ -322,13 +339,14 @@ namespace b3d
 			VkPhysicalDeviceFeatures mDeviceFeatures;
 			VkPhysicalDeviceMemoryProperties mMemoryProperties;
 			bool mSupportsBindlessResources = false;
-			bool mSupportsNullDescriptor = false; /**< True if VK_EXT_robustness2 nullDescriptor is enabled. Development builds only. */
+			bool mSupportsNullDescriptor = false; /**< True if VK_EXT_robustness2 nullDescriptor is enabled. */
 			bool mIsBufferDeviceAddressEnabled = false; /**< True if the bufferDeviceAddress feature is enabled. Acceleration structures need it. */
 			bool mSupportsAccelerationStructures = false; /**< True if the accelerationStructure feature is enabled. */
 			bool mSupportsRayQuery = false; /**< True if the rayQuery feature is enabled. */
 			bool mSupportsRayTracingPipeline = false; /**< True if the rayTracingPipeline feature is enabled. */
 
 			VulkanDescriptorLayout* mBindlessHeapLayout = nullptr;
+			TInlineArray<VkDescriptorType, 4> mBindlessResourceTypes; /**< See GetBindlessResourceTypes(). */
 
 			/** Contains data about a set of queues of a specific type. */
 			struct QueueInfo

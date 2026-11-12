@@ -21,8 +21,19 @@ namespace
 }
 
 VulkanBuffer::VulkanBuffer(VulkanResourceManager* owner, const VulkanBufferCreateInformation& createInformation, VkBuffer buffer, VulkanAllocationResult allocation)
-	: TVulkanResource<IGpuBufferResource>(owner, createInformation.VkCreateInfo.sharingMode == VK_SHARING_MODE_CONCURRENT, createInformation.DebugName), mFlags(createInformation.Flags), mBuffer(buffer), mAllocation(allocation), mMappedMemory(allocation.MappedMemory)
+	: TVulkanResource<IGpuBufferResource>(owner, createInformation.VkCreateInfo.sharingMode == VK_SHARING_MODE_CONCURRENT, createInformation.DebugName), mFlags(createInformation.Flags), mBuffer(buffer)
+	, mAllocation(allocation), mMappedMemory(allocation.MappedMemory)
 {
+	// Read once, so builds on any thread read the stored value
+	if((createInformation.VkCreateInfo.usage & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) != 0)
+	{
+		VkBufferDeviceAddressInfo addressInfo;
+		addressInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+		addressInfo.pNext = nullptr;
+		addressInfo.buffer = mBuffer;
+
+		mDeviceAddress = vkGetBufferDeviceAddress(mOwner->GetDevice().GetLogical(), &addressInfo);
+	}
 }
 
 VulkanBuffer::~VulkanBuffer()
@@ -134,10 +145,6 @@ void VulkanGpuBuffer::Initialize()
 
 VkBufferUsageFlags VulkanGpuBuffer::GetVkBufferUsageFlags(const VulkanGpuDevice& device, const GpuBufferCreateInformation& createInformation)
 {
-	// Only acceleration structure builds and ray tracing access the buffer
-	if(createInformation.Type == GpuBufferType::AccelerationStructure)
-		return VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
-
 	// Buffer usage bits from the buffer type. Every type is a transfer destination (buffers are uploaded
 	// to) except StagingWrite, which is a pure copy source. Shaders read vertex and index buffers through raw views.
 	VkBufferUsageFlags usageFlags = 0;
@@ -194,11 +201,18 @@ VkBufferUsageFlags VulkanGpuBuffer::GetVkBufferUsageFlags(const VulkanGpuDevice&
 
 u32 VulkanGpuBuffer::GetMinimumAlignment(const VulkanGpuDevice& device, GpuBufferType type, GpuBufferFlags flags)
 {
+	u32 alignment = 1u;
+
 	// The alignment is zero on devices without acceleration structures
 	if(IsAccelerationStructureScratchCapable(type, flags))
-		return std::max(device.GetCapabilities().RayTracing.ScratchOffsetAlignment, 1u);
+		alignment = std::max(device.GetCapabilities().RayTracing.ScratchOffsetAlignment, alignment);
 
-	return 1u;
+	// Instance data of top level acceleration structure builds must be 16-byte aligned
+	static constexpr u32 kInstanceAlignment = 16;
+	if(type == GpuBufferType::StructuredStorage && flags.IsSet(GpuBufferFlag::AccelerationStructureInput))
+		alignment = std::max(kInstanceAlignment, alignment);
+
+	return alignment;
 }
 
 void VulkanGpuBuffer::GetVkMemoryPropertyFlags(const GpuBufferCreateInformation& createInformation, VkMemoryPropertyFlags& requiredFlags, VkMemoryPropertyFlags& preferredFlags)
@@ -261,6 +275,7 @@ VulkanBuffer* VulkanGpuBuffer::CreateBuffer(VulkanGpuDevice& device, u32 size, b
 	info.Type = newBufferType;
 	info.Flags = newBufferFlags;
 	info.DebugName = debugName;
+	info.MinimumAlignment = GetMinimumAlignment(device, newBufferType, newBufferFlags);
 	info.VkCreateInfo.size = size;
 
 	if(staging)

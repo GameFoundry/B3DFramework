@@ -587,20 +587,48 @@ namespace b3d
 		 *  @{
 		 */
 
-		/** Buffer or texture bound to a slot of a parameter set. See GpuParameterSet::ForEachBoundResource(). */
+		/** Buffer, texture or acceleration structure bound to a slot of a parameter set. See GpuParameterSet::ForEachBoundResource(). */
 		struct GpuParameterSetResource
 		{
-			const UniformInformation* Uniform = nullptr; /**< Slot the resource is bound to. From the pipeline set layout, if one was provided. */
+			/** Buffer bound to a uniform or storage buffer slot. */
+			struct BufferBinding
+			{
+				GpuBuffer* Object = nullptr; /**< Bound buffer. */
+			};
+
+			/** Texture bound to a sampled or storage texture slot. */
+			struct TextureBinding
+			{
+				render::Texture* Object = nullptr; /**< Bound texture. */
+				TextureSurface Surface; /**< Surfaces of the texture the slot views. */
+			};
+
+			/** Acceleration structure bound to an acceleration structure slot. */
+			struct AccelerationStructureBinding
+			{
+				GpuAccelerationStructure* Object = nullptr; /**< Bound structure. */
+			};
+
+			GpuParameterSetResource()
+				: Texture()
+			{ }
+
+			/** Slot the resource is bound to. From the pipeline set layout, if one was provided. Its type selects the member of the union below. */
+			const UniformInformation* Uniform = nullptr;
 			u32 ArrayIndex = 0; /**< Index of the resource in the slot's array. */
-			GpuBuffer* Buffer = nullptr; /**< Bound buffer of a uniform or storage buffer slot, or the buffer of an acceleration structure slot's structure. */
-			render::Texture* Texture = nullptr; /**< Bound texture of a sampled or storage texture slot. */
-			TextureSurface Surface; /**< Surfaces of Texture the slot views. */
 
 			/**
 			 * Read for uniform buffers, sampled textures and acceleration structures. Storage slots read and write, unless the shader declares a
 			 * read-only buffer.
 			 */
 			GpuAccessFlags Access;
+
+			union
+			{
+				BufferBinding Buffer; /**< Bound buffer. Only valid if the slot is a GpuParameterType::UniformBuffer or GpuParameterType::StorageBuffer. */
+				TextureBinding Texture; /**< Bound texture. Only valid if the slot is a GpuParameterType::SampledTexture or GpuParameterType::StorageTexture. */
+				AccelerationStructureBinding AccelerationStructure; /**< Bound structure. Only valid if the slot is a GpuParameterType::AccelerationStructure. */
+			};
 		};
 
 		/**
@@ -699,8 +727,8 @@ namespace b3d
 			TShared<GpuAccelerationStructure> GetAccelerationStructure(u32 slot, u32 arrayIndex = 0) const;
 
 			/**
-			 * Calls @p fnVisit with a GpuParameterSetResource for every buffer and texture bound to the set, and the buffer of every bound
-			 * acceleration structure. Empty slots and samplers are skipped.
+			 * Calls @p fnVisit with a GpuParameterSetResource for every buffer, texture and acceleration structure bound to the set. Empty slots
+			 * and samplers are skipped.
 			 *
 			 * @param	pipelineSetLayout	If provided, only the slots of this layout that the set has with the same type are visited,
 			 *								which are the slots a pipeline with the layout accesses. Otherwise every slot of the set is.
@@ -720,9 +748,6 @@ namespace b3d
 
 			/** Returns true if the calling thread owns the set's pool, and may therefore write the set. */
 			bool IsOwnedByThisThread() const { return mOwnerPool == nullptr || mOwnerPool->GetOwnerThread() == B3D_CURRENT_THREAD_ID; }
-
-			/** Returns the buffer of the acceleration structure bound to @p slot at @p arrayIndex, or null if none is. */
-			GpuBuffer* GetAccelerationStructureBuffer(u32 slot, u32 arrayIndex) const;
 
 			GpuParameterSetPool* mOwnerPool = nullptr;
 
@@ -759,35 +784,42 @@ namespace b3d
 					for(u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
 					{
 						resource.ArrayIndex = arrayIndex;
+
+						bool isBound = false;
 						switch(type)
 						{
 						case GpuParameterType::UniformBuffer:
-							resource.Buffer = GetUniformBuffer(uniform.Slot, arrayIndex).get();
+							resource.Buffer.Object = GetUniformBuffer(uniform.Slot, arrayIndex).get();
 							resource.Access = GpuAccessFlag::Read;
+							isBound = resource.Buffer.Object != nullptr;
 							break;
 						case GpuParameterType::StorageBuffer:
-							resource.Buffer = GetStorageBuffer(uniform.Slot, arrayIndex).get();
+							resource.Buffer.Object = GetStorageBuffer(uniform.Slot, arrayIndex).get();
 							resource.Access = GpuObjectParameterTypeInformation::IsReadWriteBuffer(uniform.ObjectType) ? GpuAccessFlag::Read | GpuAccessFlag::Write : GpuAccessFlags(GpuAccessFlag::Read);
+							isBound = resource.Buffer.Object != nullptr;
 							break;
 						case GpuParameterType::SampledTexture:
-							resource.Texture = GetSampledTexture(uniform.Slot, arrayIndex).get();
-							resource.Surface = GetTextureSurface(uniform.Slot, arrayIndex);
+							resource.Texture.Object = GetSampledTexture(uniform.Slot, arrayIndex).get();
+							resource.Texture.Surface = GetTextureSurface(uniform.Slot, arrayIndex);
 							resource.Access = GpuAccessFlag::Read;
+							isBound = resource.Texture.Object != nullptr;
 							break;
 						case GpuParameterType::StorageTexture:
-							resource.Texture = GetStorageTexture(uniform.Slot, arrayIndex).get();
-							resource.Surface = GetStorageTextureSurface(uniform.Slot, arrayIndex);
+							resource.Texture.Object = GetStorageTexture(uniform.Slot, arrayIndex).get();
+							resource.Texture.Surface = GetStorageTextureSurface(uniform.Slot, arrayIndex);
 							resource.Access = GpuAccessFlag::Read | GpuAccessFlag::Write;
+							isBound = resource.Texture.Object != nullptr;
 							break;
 						case GpuParameterType::AccelerationStructure:
-							resource.Buffer = GetAccelerationStructureBuffer(uniform.Slot, arrayIndex);
+							resource.AccelerationStructure.Object = GetAccelerationStructure(uniform.Slot, arrayIndex).get();
 							resource.Access = GpuAccessFlag::Read;
+							isBound = resource.AccelerationStructure.Object != nullptr;
 							break;
 						default:
 							break;
 						}
 
-						if(resource.Buffer != nullptr || resource.Texture != nullptr)
+						if(isBound)
 							fnVisit(static_cast<const GpuParameterSetResource&>(resource));
 					}
 				}

@@ -22,6 +22,8 @@
 #include "Image/B3DPixelUtility.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "Utility/B3DVulkanBarrierBatch.h"
+#include "GpuBackend/B3DGpuAccelerationStructure.h"
+#include "B3DVulkanGpuAccelerationStructure.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -876,6 +878,70 @@ void VulkanGpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source
 	}
 
 	CopyBufferToBuffer(sourceBuffer, destinationBuffer, TArrayView<const VkBufferCopy>(regions.data(), regions.size()));
+}
+
+bool VulkanGpuCommandBuffer::BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild> builds)
+{
+	if(!GpuCommandBuffer::BuildAccelerationStructures(builds))
+		return false;
+
+	if(builds.IsEmpty())
+		return true;
+
+	FrameAllocatorScope frameScope;
+	FrameVector<VkAccelerationStructureBuildGeometryInfoKHR> buildInformations(builds.size());
+	FrameVector<VkAccelerationStructureBuildRangeInfoKHR*> buildRanges(builds.size());
+
+	[[maybe_unused]] const u32 scratchAlignment = mGpuDevice.GetCapabilities().RayTracing.ScratchOffsetAlignment;
+	for(u32 buildIndex = 0; buildIndex < (u32)builds.size(); buildIndex++)
+	{
+		const GpuAccelerationStructureBuild& build = builds[buildIndex];
+
+		FrameVector<u32> primitiveCounts;
+		VkAccelerationStructureBuildGeometryInfoKHR& buildInformation = buildInformations[buildIndex];
+		if(!VulkanUtility::GetAccelerationStructureBuildInformation(build.Inputs, true, buildInformation, primitiveCounts))
+			return false;
+
+		VulkanAccelerationStructure* const destination = static_cast<VulkanGpuAccelerationStructure&>(*build.Destination).GetVulkanResource();
+		VulkanBuffer* const scratch = static_cast<VulkanGpuBuffer&>(*build.ScratchBuffer).GetVulkanResource();
+
+		buildInformation.dstAccelerationStructure = destination->GetVulkanHandle();
+		buildInformation.scratchData.deviceAddress = scratch->GetDeviceAddress() + build.ScratchOffset;
+
+		// The offset is aligned by core validation, and the buffer's memory by its alignment, as long as drivers align the memory blocks
+		B3D_ASSERT(buildInformation.scratchData.deviceAddress % scratchAlignment == 0 && "The scratch address of an acceleration structure build is not aligned.");
+
+		VkAccelerationStructureBuildRangeInfoKHR* const ranges = B3DFrameAllocate<VkAccelerationStructureBuildRangeInfoKHR>((u32)primitiveCounts.size());
+		for(u32 geometryIndex = 0; geometryIndex < (u32)primitiveCounts.size(); geometryIndex++)
+		{
+			ranges[geometryIndex].primitiveCount = primitiveCounts[geometryIndex];
+			ranges[geometryIndex].primitiveOffset = 0;
+			ranges[geometryIndex].firstVertex = 0;
+			ranges[geometryIndex].transformOffset = 0;
+		}
+
+		buildRanges[buildIndex] = ranges;
+
+		mResourceTracker.TrackResourceUsage(destination, GpuAccessFlag::Write);
+		mResourceTracker.TrackBufferUsage(scratch, GpuAccessFlag::Read | GpuAccessFlag::Write);
+
+		for(const TShared<GpuAccelerationStructure>& bottomLevel : build.BottomLevels)
+			mResourceTracker.TrackResourceUsage(static_cast<VulkanGpuAccelerationStructure&>(*bottomLevel).GetVulkanResource(), GpuAccessFlag::Read);
+
+		for(const GpuRayTracingGeometry& geometry : build.Inputs.Geometries)
+		{
+			mResourceTracker.TrackBufferUsage(static_cast<VulkanGpuBuffer&>(*geometry.VertexBuffer).GetVulkanResource(), GpuAccessFlag::Read);
+
+			if(geometry.IndexBuffer != nullptr)
+				mResourceTracker.TrackBufferUsage(static_cast<VulkanGpuBuffer&>(*geometry.IndexBuffer).GetVulkanResource(), GpuAccessFlag::Read);
+		}
+
+		if(build.Inputs.InstanceBuffer != nullptr)
+			mResourceTracker.TrackBufferUsage(static_cast<VulkanGpuBuffer&>(*build.Inputs.InstanceBuffer).GetVulkanResource(), GpuAccessFlag::Read);
+	}
+
+	vkCmdBuildAccelerationStructuresKHR(GetVulkanHandle(), (u32)buildInformations.size(), buildInformations.data(), buildRanges.data());
+	return true;
 }
 
 void VulkanGpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer)
@@ -2033,6 +2099,26 @@ bool VulkanGpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarr
 	};
 
 	VulkanBarrierBatch batch(device);
+	const auto fnAddBufferBarrier = [&](VkBuffer buffer, bool isExclusive, const GpuBarrier& barrier)
+	{
+		const GpuBarrierScope scope(barrier.Source.Stages, barrier.Source.Access, barrier.Destination.Stages, barrier.Destination.Access);
+		if(!transfersQueue && fnIsReadToRead(barrier))
+			batch.AddMemoryBarrier(scope);
+		else if(!transfersQueue)
+			batch.AddBufferBarrier(buffer, scope);
+		else if(isExclusive && releaseQueueFamily != acquireQueueFamily)
+		{
+			VkPipelineStageFlags stages;
+			VkAccessFlags access;
+			fnGetTransferScope(barrier, stages, access);
+
+			if(isRelease)
+				batch.AddBufferBarrier(buffer, stages, access, 0, 0, releaseQueueFamily, acquireQueueFamily);
+			else
+				batch.AddBufferBarrier(buffer, 0, 0, stages, access, releaseQueueFamily, acquireQueueFamily);
+		}
+	};
+
 	for(const GpuBufferBarrier& barrier : barriers.BufferBarriers)
 	{
 		auto* const gpuBuffer = static_cast<VulkanGpuBuffer*>(barrier.Object.get());
@@ -2041,23 +2127,19 @@ bool VulkanGpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarr
 			continue;
 
 		mResourceTracker.TrackBufferUsage(buffer, barrier.Destination.Access | GpuAccessFlag::Read);
+		fnAddBufferBarrier(buffer->GetVulkanHandle(), buffer->IsExclusive(), barrier);
+	}
 
-		const GpuBarrierScope scope(barrier.Source.Stages, barrier.Source.Access, barrier.Destination.Stages, barrier.Destination.Access);
-		if(!transfersQueue && fnIsReadToRead(barrier))
-			batch.AddMemoryBarrier(scope);
-		else if(!transfersQueue)
-			batch.AddBufferBarrier(buffer->GetVulkanHandle(), scope);
-		else if(buffer->IsExclusive() && releaseQueueFamily != acquireQueueFamily)
-		{
-			VkPipelineStageFlags stages;
-			VkAccessFlags access;
-			fnGetTransferScope(barrier, stages, access);
+	// A structure's memory is a buffer, which its barriers apply to
+	for(const GpuAccelerationStructureBarrier& barrier : barriers.AccelerationStructureBarriers)
+	{
+		auto* const gpuAccelerationStructure = static_cast<VulkanGpuAccelerationStructure*>(barrier.Object.get());
+		if(gpuAccelerationStructure == nullptr)
+			continue;
 
-			if(isRelease)
-				batch.AddBufferBarrier(buffer->GetVulkanHandle(), stages, access, 0, 0, releaseQueueFamily, acquireQueueFamily);
-			else
-				batch.AddBufferBarrier(buffer->GetVulkanHandle(), 0, 0, stages, access, releaseQueueFamily, acquireQueueFamily);
-		}
+		VulkanAccelerationStructure* const accelerationStructure = gpuAccelerationStructure->GetVulkanResource();
+		mResourceTracker.TrackResourceUsage(accelerationStructure, barrier.Destination.Access | GpuAccessFlag::Read);
+		fnAddBufferBarrier(accelerationStructure->GetBuffer().GetVulkanHandle(), accelerationStructure->IsExclusive(), barrier);
 	}
 
 	const auto fnAddImageBarrier = [&](VulkanImage& image, const GpuTextureSubresourceRange& range, const GpuBarrier& barrier, bool usesGeneralLayout)

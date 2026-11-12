@@ -79,6 +79,16 @@ namespace b3d
 	extern PFN_vkCmdSetEvent2 vkCmdSetEvent2;
 	extern PFN_vkCmdWaitEvents2 vkCmdWaitEvents2;
 
+	extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructureKHR;
+	extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructureKHR;
+	extern PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizesKHR;
+	extern PFN_vkGetAccelerationStructureDeviceAddressKHR vkGetAccelerationStructureDeviceAddressKHR;
+	extern PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructuresKHR;
+
+	extern PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelinesKHR;
+	extern PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandlesKHR;
+	extern PFN_vkCmdTraceRaysKHR vkCmdTraceRaysKHR;
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	// Diagnostics (VK_KHR_pipeline_executable_properties): used by the optional gpu.DumpPipelineStats occupancy dump.
 	extern PFN_vkGetPipelineExecutablePropertiesKHR vkGetPipelineExecutablePropertiesKHR;

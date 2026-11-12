@@ -27,12 +27,12 @@ using namespace b3d::render;
 GpuRayTracingTestSuite::GpuRayTracingTestSuite()
 	: TestSuite("GpuRayTracingTestSuite")
 {
-	B3D_ADD_TEST(GpuRayTracingTestSuite::TestAccelerationStructureBuffers)
+	B3D_ADD_TEST(GpuRayTracingTestSuite::TestAccelerationStructureCreation)
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestAccelerationStructureQueries)
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestInlineRayTracing)
 }
 
-void GpuRayTracingTestSuite::TestAccelerationStructureBuffers()
+void GpuRayTracingTestSuite::TestAccelerationStructureCreation()
 {
 	GpuBackend& backend = GpuBackend::Instance();
 	if(backend.GetDeviceCount() == 0)
@@ -41,17 +41,17 @@ void GpuRayTracingTestSuite::TestAccelerationStructureBuffers()
 	static constexpr u32 kSize = 4096;
 
 	const TShared<GpuDevice> device = backend.GetDevice(0);
-	const GpuBufferCreateInformation bottomLevelInformation = GpuBufferCreateInformation::CreateAccelerationStructure(GpuAccelerationStructureType::BottomLevel, kSize);
-	const GpuBufferCreateInformation topLevelInformation = GpuBufferCreateInformation::CreateAccelerationStructure(GpuAccelerationStructureType::TopLevel, kSize);
 	const GpuBufferFlags inputFlags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AccelerationStructureInput;
 
 	if(!device->GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES))
 	{
+		GetRenderThread().PostCommand([this, &device]()
 		{
 			LoggingScope logs(*this);
-			logs.ExpectError("Cannot create an acceleration structure buffer, the GPU device doesn't support acceleration structures.");
-			B3D_TEST_ASSERT(device->CreateGpuBuffer(bottomLevelInformation) == nullptr)
-		}
+			logs.ExpectError("Cannot create acceleration structure 'BottomLevel', the GPU device doesn't support acceleration structures.");
+			B3D_TEST_ASSERT(device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(GpuAccelerationStructureType::BottomLevel, kSize,
+				GpuAccelerationStructureFlag::None, "BottomLevel")) == nullptr)
+		}, "GpuRayTracingTestSuite::TestAccelerationStructureCreation", true);
 
 		{
 			LoggingScope logs(*this);
@@ -75,38 +75,40 @@ void GpuRayTracingTestSuite::TestAccelerationStructureBuffers()
 		B3D_TEST_ASSERT(device->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(64, GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AccelerationStructureInput)) == nullptr)
 	}
 
+	GetRenderThread().PostCommand([this, &device, inputFlags]()
 	{
-		LoggingScope logs(*this);
-		logs.ExpectError("An acceleration structure buffer must have a size.");
-		B3D_TEST_ASSERT(device->CreateGpuBuffer(GpuBufferCreateInformation::CreateAccelerationStructure(GpuAccelerationStructureType::BottomLevel, 0)) == nullptr)
-	}
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("Acceleration structure 'Empty' must have a size.");
+			B3D_TEST_ASSERT(device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(GpuAccelerationStructureType::BottomLevel, 0,
+				GpuAccelerationStructureFlag::None, "Empty")) == nullptr)
+		}
 
-	{
-		LoggingScope logs(*this);
-		logs.ExpectError("An acceleration structure buffer must be created with GpuBufferFlag::StoreOnGPU, and no other flag than GpuBufferFlag::Bindless.");
-		B3D_TEST_ASSERT(device->CreateGpuBuffer(GpuBufferCreateInformation::CreateAccelerationStructure(GpuAccelerationStructureType::BottomLevel, kSize, GpuBufferFlag::StoreOnCPUWithGPUAccess)) == nullptr)
-	}
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("Acceleration structure 'BindlessBottomLevel' is bindless, which only a top level structure can be.");
+			B3D_TEST_ASSERT(device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(GpuAccelerationStructureType::BottomLevel, kSize,
+				GpuAccelerationStructureFlag::Bindless, "BindlessBottomLevel")) == nullptr)
+		}
 
-	{
-		LoggingScope logs(*this);
-		logs.ExpectError("An acceleration structure buffer must be created with GpuBufferFlag::StoreOnGPU, and no other flag than GpuBufferFlag::Bindless.");
-		B3D_TEST_ASSERT(device->CreateGpuBuffer(GpuBufferCreateInformation::CreateAccelerationStructure(GpuAccelerationStructureType::BottomLevel, kSize, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU)) == nullptr)
-	}
+		// A bindless top level structure takes a heap slot on devices that support them
+		{
+			const GpuAccelerationStructureCreateInformation bindlessInformation(GpuAccelerationStructureType::TopLevel, kSize, GpuAccelerationStructureFlag::Bindless,
+				"BindlessTopLevel");
+			if(device->GetCapabilities().RayTracing.SupportsBindlessAccelerationStructures)
+			{
+				const TShared<GpuAccelerationStructure> bindlessTopLevel = device->CreateGpuAccelerationStructure(bindlessInformation);
+				B3D_TEST_ASSERT(bindlessTopLevel != nullptr && bindlessTopLevel->GetBindlessIndex() != kGpuBindlessInvalidIndex)
+				B3D_TEST_ASSERT(bindlessTopLevel == nullptr || bindlessTopLevel->GetFlags() == GpuAccelerationStructureFlag::Bindless)
+			}
+			else
+			{
+				LoggingScope logs(*this);
+				logs.ExpectError("Cannot create bindless acceleration structure 'BindlessTopLevel', the GPU device doesn't support them.");
+				B3D_TEST_ASSERT(device->CreateGpuAccelerationStructure(bindlessInformation) == nullptr)
+			}
+		}
 
-	{
-		LoggingScope logs(*this);
-		logs.ExpectError("Acceleration structure buffers are created on the render thread");
-		B3D_TEST_ASSERT(b3d::GpuBuffer::Create(bottomLevelInformation) == nullptr)
-	}
-
-	// Shaders are resources, which are created outside of the render thread
-	const TShared<GpuComputePipelineState> pipeline = CreateTestByteAddressBufferAccessPipeline(*device);
-	B3D_TEST_ASSERT(pipeline != nullptr)
-	if(pipeline == nullptr)
-		return;
-
-	GetRenderThread().PostCommand([this, &device, &pipeline, &bottomLevelInformation, &topLevelInformation, inputFlags]()
-	{
 		// Build inputs: geometry in vertex and index buffers, instances in a structured buffer the CPU or a shader writes
 		const TShared<render::GpuBuffer> inputVertices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(12, 3, inputFlags));
 		const TShared<render::GpuBuffer> inputIndices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateIndex(IT_16BIT, 3, inputFlags));
@@ -115,22 +117,22 @@ void GpuRayTracingTestSuite::TestAccelerationStructureBuffers()
 		B3D_TEST_ASSERT(inputVertices != nullptr && inputIndices != nullptr && inputInstances != nullptr && mappedInstances != nullptr)
 		B3D_TEST_ASSERT(inputVertices == nullptr || inputVertices->GetInformation().Flags.IsSet(GpuBufferFlag::AccelerationStructureInput))
 
-		const TShared<render::GpuBuffer> bottomLevel = device->CreateGpuBuffer(bottomLevelInformation);
-		const TShared<render::GpuBuffer> topLevel = device->CreateGpuBuffer(topLevelInformation);
+		const TShared<GpuAccelerationStructure> bottomLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(GpuAccelerationStructureType::BottomLevel,
+			kSize, GpuAccelerationStructureFlag::None, "BottomLevel"));
+		const TShared<GpuAccelerationStructure> topLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(GpuAccelerationStructureType::TopLevel,
+			kSize, GpuAccelerationStructureFlag::None, "TopLevel"));
 		B3D_TEST_ASSERT(bottomLevel != nullptr && topLevel != nullptr)
 		if(bottomLevel == nullptr || topLevel == nullptr || inputVertices == nullptr)
 			return;
 
-		bottomLevel->SetName("BottomLevel");
-		topLevel->SetName("TopLevel");
 		inputVertices->SetName("InputVertices");
 
-		B3D_TEST_ASSERT(bottomLevel->GetTotalSize() == kSize && topLevel->GetTotalSize() == kSize)
-		B3D_TEST_ASSERT(bottomLevel->GetInformation().AccelerationStructure.Type == GpuAccelerationStructureType::BottomLevel)
-		B3D_TEST_ASSERT(topLevel->GetInformation().AccelerationStructure.Type == GpuAccelerationStructureType::TopLevel)
-		B3D_TEST_ASSERT(bottomLevel->GetMappedMemory() == nullptr && bottomLevel->GetBindlessIndex() == kGpuBindlessInvalidIndex)
+		B3D_TEST_ASSERT(bottomLevel->GetType() == GpuAccelerationStructureType::BottomLevel && topLevel->GetType() == GpuAccelerationStructureType::TopLevel)
+		B3D_TEST_ASSERT(bottomLevel->GetSize() == kSize && topLevel->GetSize() == kSize)
+		B3D_TEST_ASSERT(bottomLevel->GetName() == "BottomLevel" && bottomLevel->GetFlags() == GpuAccelerationStructureFlag::None)
+		B3D_TEST_ASSERT(bottomLevel->GetBindlessIndex() == kGpuBindlessInvalidIndex && bottomLevel->GetGpuResource() != nullptr)
 
-		// The buffer rests readable where rays are traced against it and where builds read it, and nowhere else
+		// The structure rests readable where rays are traced against it and where builds read it, and nowhere else
 		const GpuAccessState restingState = GpuBackendUtility::GetRestingState(*bottomLevel, GQT_GRAPHICS);
 		B3D_TEST_ASSERT(restingState.Access == GpuAccessFlag::Read)
 		B3D_TEST_ASSERT(restingState.Stages == (GpuBackendUtility::GetAccelerationStructureStageFlags() & GpuBackendUtility::GetQueueStageFlags(GQT_GRAPHICS)))
@@ -138,27 +140,19 @@ void GpuRayTracingTestSuite::TestAccelerationStructureBuffers()
 		B3D_TEST_ASSERT(!restingState.Stages.IsSetAny(GpuStageFlag::Transfer | GpuStageFlag::Host | GpuStageFlag::VertexInputAttributes | GpuStageFlag::ComputeShaderUniform |
 			GpuStageFlag::ComputeShaderNonUniform | GpuStageFlag::AccelerationStructureBuildInput))
 
-		// Other buffers rest readable as build inputs, but not where rays are traced
+		// Buffers rest readable as build inputs, but not where rays are traced
 		const GpuAccessState inputRestingState = GpuBackendUtility::GetRestingState(*inputVertices, GQT_GRAPHICS);
 		B3D_TEST_ASSERT(inputRestingState.Stages.IsSet(GpuStageFlag::AccelerationStructureBuildInput))
 		B3D_TEST_ASSERT(!inputRestingState.Stages.IsSetAny(GpuStageFlag::AllShaderAccelerationStructure | GpuStageFlag::AccelerationStructureBuild))
 
-		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
-		const TShared<render::GpuParameterSet> parameterSet = context->GetParameterSetPool().Create(pipeline->GetParameterLayout()->GetSet(0), 0);
-
-		{
-			LoggingScope logs(*this);
-			logs.ExpectError("An acceleration structure buffer cannot be bound as a storage buffer.");
-			parameterSet->SetStorageBuffer("Input", topLevel);
-		}
-
-		// A build writes the buffer, and returns it to rest
+		// A build writes the structure, and returns it to rest
 		const GpuAccessState buildWrite(GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Write);
-		const GpuBufferBarrier buildBarrier(bottomLevel, restingState, buildWrite);
-		const GpuBufferBarrier restBarrier(bottomLevel, buildWrite, restingState);
+		const GpuAccelerationStructureBarrier buildBarrier(bottomLevel, restingState, buildWrite);
+		const GpuAccelerationStructureBarrier restBarrier(bottomLevel, buildWrite, restingState);
 
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 		const TShared<render::GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
-		const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Acceleration structure buffer barriers"));
+		const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Acceleration structure barriers"));
 
 		commands->IssueBarriers(buildBarrier);
 		commands->IssueBarriers(restBarrier);
@@ -167,54 +161,46 @@ void GpuRayTracingTestSuite::TestAccelerationStructureBuffers()
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		{
-			LoggingScope logs(*this);
-			logs.ExpectError("The host cannot read or write acceleration structure buffer 'BottomLevel'.");
-
-			const u32 word = 0;
-			GpuBufferUtility::Write(*context, bottomLevel, 0, sizeof(word), &word);
-		}
-
-		{
 			GpuBarrierValidator validator;
 			validator.BeginCommandBuffer(GQT_GRAPHICS);
 
-			validator.ValidateBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&buildBarrier, 1)), GpuBarrierPhase::Full, nullptr);
-			validator.ValidateBufferAccess(*bottomLevel, GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Write);
-			validator.ValidateBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&restBarrier, 1)), GpuBarrierPhase::Full, nullptr);
-			validator.ValidateBufferAccess(*bottomLevel, GpuStageFlag::ComputeShaderAccelerationStructure, GpuAccessFlag::Read);
+			validator.ValidateBarriers(GpuBarriers(buildBarrier), GpuBarrierPhase::Full, nullptr);
+			validator.ValidateAccelerationStructureAccess(*bottomLevel, GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Write);
+			validator.ValidateBarriers(GpuBarriers(restBarrier), GpuBarrierPhase::Full, nullptr);
+			validator.ValidateAccelerationStructureAccess(*bottomLevel, GpuStageFlag::ComputeShaderAccelerationStructure, GpuAccessFlag::Read);
 		}
 
 		{
 			LoggingScope logs(*this);
-			logs.ExpectError("Only an acceleration structure buffer can be accessed by rays traced against it. Buffer: 'InputVertices'.");
+			logs.ExpectError("Only an acceleration structure can be accessed by rays traced against it. Buffer: 'InputVertices'.");
 
 			GpuBarrierValidator validator;
 			validator.BeginCommandBuffer(GQT_GRAPHICS);
 			validator.ValidateBufferAccess(*inputVertices, GpuStageFlag::RayTracingShaderAccelerationStructure, GpuAccessFlag::Read);
 		}
 
-		const String stageError = "An acceleration structure buffer can only be accessed by rays traced against it and by acceleration structure builds.";
+		const String stageError = "An acceleration structure can only be accessed by rays traced against it and by acceleration structure builds.";
 		{
 			LoggingScope logs(*this);
-			logs.ExpectError(stageError + " Buffer: 'TopLevel'.");
+			logs.ExpectError(stageError + " Acceleration structure: 'TopLevel'.");
 
 			GpuBarrierValidator validator;
 			validator.BeginCommandBuffer(GQT_GRAPHICS);
-			validator.ValidateBufferAccess(*topLevel, GpuStageFlag::Transfer, GpuAccessFlag::Read);
+			validator.ValidateAccelerationStructureAccess(*topLevel, GpuStageFlag::Transfer, GpuAccessFlag::Read);
 		}
 
 		{
 			LoggingScope logs(*this);
-			logs.ExpectError(stageError + " Buffer: 'TopLevel'.");
+			logs.ExpectError(stageError + " Acceleration structure: 'TopLevel'.");
 
-			const GpuBufferBarrier copyBarrier(topLevel, restingState, GpuAccessState(GpuStageFlag::Transfer, GpuAccessFlag::Write));
+			const GpuAccelerationStructureBarrier copyBarrier(topLevel, restingState, GpuAccessState(GpuStageFlag::Transfer, GpuAccessFlag::Write));
 
 			GpuBarrierValidator validator;
 			validator.BeginCommandBuffer(GQT_GRAPHICS);
-			validator.ValidateBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&copyBarrier, 1)), GpuBarrierPhase::Full, nullptr);
+			validator.ValidateBarriers(GpuBarriers(copyBarrier), GpuBarrierPhase::Full, nullptr);
 		}
 #endif
-	}, "GpuRayTracingTestSuite::TestAccelerationStructureBuffers", true);
+	}, "GpuRayTracingTestSuite::TestAccelerationStructureCreation", true);
 }
 
 namespace
@@ -380,14 +366,12 @@ void GpuRayTracingTestSuite::TestAccelerationStructureQueries()
 		B3D_TEST_ASSERT(device->GetAccelerationStructureSizes(GpuAccelerationStructureInputs(TShared<render::GpuBuffer>(), 0), emptySizes))
 		B3D_TEST_ASSERT(emptySizes.AccelerationStructureSize > 0)
 
-		const TShared<render::GpuBuffer> bottomLevelBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateAccelerationStructure(GpuAccelerationStructureType::BottomLevel,
-			bottomLevelSizes.AccelerationStructureSize));
-		B3D_TEST_ASSERT(bottomLevelBuffer != nullptr)
-		if(bottomLevelBuffer == nullptr)
+		const TShared<GpuAccelerationStructure> bottomLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::BottomLevel, bottomLevelSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "BottomLevel"));
+		B3D_TEST_ASSERT(bottomLevel != nullptr)
+		if(bottomLevel == nullptr)
 			return;
 
-		bottomLevelBuffer->SetName("BottomLevel");
-		const TShared<GpuAccelerationStructure> bottomLevel = B3DMakeShared<GpuAccelerationStructure>(bottomLevelBuffer);
 		B3D_TEST_ASSERT(bottomLevel->GetType() == GpuAccelerationStructureType::BottomLevel && bottomLevel->GetSize() == bottomLevelSizes.AccelerationStructureSize)
 		B3D_TEST_ASSERT(bottomLevel->GetBindlessIndex() == kGpuBindlessInvalidIndex)
 
@@ -487,14 +471,11 @@ void GpuRayTracingTestSuite::TestAccelerationStructureQueries()
 		const u32 scratchSize = AlignUp(bottomLevelSizes.BuildScratchSize, scratchAlignment) * 2;
 		const TShared<render::GpuBuffer> scratch = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(4, scratchSize / 4,
 			GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
-		const TShared<render::GpuBuffer> topLevelBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateAccelerationStructure(GpuAccelerationStructureType::TopLevel,
-			topLevelSizes.AccelerationStructureSize));
-		B3D_TEST_ASSERT(scratch != nullptr && topLevelBuffer != nullptr)
-		if(scratch == nullptr || topLevelBuffer == nullptr)
+		const TShared<GpuAccelerationStructure> topLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::TopLevel, topLevelSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "TopLevel"));
+		B3D_TEST_ASSERT(scratch != nullptr && topLevel != nullptr)
+		if(scratch == nullptr || topLevel == nullptr)
 			return;
-
-		topLevelBuffer->SetName("TopLevel");
-		const TShared<GpuAccelerationStructure> topLevel = B3DMakeShared<GpuAccelerationStructure>(topLevelBuffer);
 
 		{
 			LoggingScope logs(*this);
@@ -535,9 +516,8 @@ void GpuRayTracingTestSuite::TestAccelerationStructureQueries()
 		}
 
 		{
-			const TShared<render::GpuBuffer> otherBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateAccelerationStructure(GpuAccelerationStructureType::BottomLevel,
-				bottomLevelSizes.AccelerationStructureSize));
-			const TShared<GpuAccelerationStructure> otherBottomLevel = B3DMakeShared<GpuAccelerationStructure>(otherBuffer);
+			const TShared<GpuAccelerationStructure> otherBottomLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+				GpuAccelerationStructureType::BottomLevel, bottomLevelSizes.AccelerationStructureSize));
 
 			LoggingScope logs(*this);
 			logs.ExpectError("Builds 0 and 1 use overlapping scratch memory of buffer '" + scratch->GetName() + "'.");
@@ -567,9 +547,8 @@ void GpuRayTracingTestSuite::TestAccelerationStructureQueries()
 		}
 
 		{
-			const TShared<render::GpuBuffer> smallBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateAccelerationStructure(GpuAccelerationStructureType::BottomLevel, 256));
-			smallBuffer->SetName("Small");
-			const TShared<GpuAccelerationStructure> smallBottomLevel = B3DMakeShared<GpuAccelerationStructure>(smallBuffer);
+			const TShared<GpuAccelerationStructure> smallBottomLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+				GpuAccelerationStructureType::BottomLevel, 256, GpuAccelerationStructureFlag::None, "Small"));
 
 			if(bottomLevelSizes.AccelerationStructureSize > 256)
 			{
@@ -658,20 +637,10 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 		GpuAccelerationStructureSizes nonOpaqueSizes;
 		B3D_TEST_ASSERT(device->GetAccelerationStructureSizes(opaqueInputs, opaqueSizes) && device->GetAccelerationStructureSizes(nonOpaqueInputs, nonOpaqueSizes))
 
-		const auto fnCreateStructure = [&device](GpuAccelerationStructureType type, u32 size, GpuBufferFlags flags, const char* name)
-		{
-			const TShared<render::GpuBuffer> buffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateAccelerationStructure(type, size, flags));
-			if(buffer == nullptr)
-				return TShared<GpuAccelerationStructure>();
-
-			buffer->SetName(name);
-			return B3DMakeShared<GpuAccelerationStructure>(buffer);
-		};
-
-		TShared<GpuAccelerationStructure> opaqueBottomLevel = fnCreateStructure(GpuAccelerationStructureType::BottomLevel, opaqueSizes.AccelerationStructureSize,
-			GpuBufferFlag::StoreOnGPU, "OpaqueBottomLevel");
-		TShared<GpuAccelerationStructure> nonOpaqueBottomLevel = fnCreateStructure(GpuAccelerationStructureType::BottomLevel, nonOpaqueSizes.AccelerationStructureSize,
-			GpuBufferFlag::StoreOnGPU, "NonOpaqueBottomLevel");
+		TShared<GpuAccelerationStructure> opaqueBottomLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::BottomLevel, opaqueSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "OpaqueBottomLevel"));
+		TShared<GpuAccelerationStructure> nonOpaqueBottomLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::BottomLevel, nonOpaqueSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "NonOpaqueBottomLevel"));
 		B3D_TEST_ASSERT(opaqueBottomLevel != nullptr && nonOpaqueBottomLevel != nullptr)
 		if(opaqueBottomLevel == nullptr || nonOpaqueBottomLevel == nullptr)
 			return;
@@ -717,10 +686,11 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 		GpuAccelerationStructureSizes emptySizes;
 		B3D_TEST_ASSERT(device->GetAccelerationStructureSizes(topLevelInputs, topLevelSizes) && device->GetAccelerationStructureSizes(emptyInputs, emptySizes))
 
-		const GpuBufferFlags topLevelFlags = bindlessPipeline != nullptr ? GpuBufferFlag::StoreOnGPU | GpuBufferFlag::Bindless : GpuBufferFlags(GpuBufferFlag::StoreOnGPU);
-		const TShared<GpuAccelerationStructure> topLevel = fnCreateStructure(GpuAccelerationStructureType::TopLevel, topLevelSizes.AccelerationStructureSize, topLevelFlags, "TopLevel");
-		const TShared<GpuAccelerationStructure> emptyTopLevel = fnCreateStructure(GpuAccelerationStructureType::TopLevel, emptySizes.AccelerationStructureSize,
-			GpuBufferFlag::StoreOnGPU, "EmptyTopLevel");
+		const GpuAccelerationStructureFlags topLevelFlags = bindlessPipeline != nullptr ? GpuAccelerationStructureFlag::Bindless : GpuAccelerationStructureFlag::None;
+		const TShared<GpuAccelerationStructure> topLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::TopLevel, topLevelSizes.AccelerationStructureSize, topLevelFlags, "TopLevel"));
+		const TShared<GpuAccelerationStructure> emptyTopLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::TopLevel, emptySizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "EmptyTopLevel"));
 		B3D_TEST_ASSERT(topLevel != nullptr && emptyTopLevel != nullptr)
 		if(topLevel == nullptr || emptyTopLevel == nullptr)
 			return;
@@ -741,8 +711,8 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 
 		const GpuAccessState buildWrite(GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Write);
 		const GpuAccessState scratchAccess(GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Read | GpuAccessFlag::Write);
-		const GpuAccessState bottomLevelRest = GpuBackendUtility::GetRestingState(*opaqueBottomLevel->GetBuffer(), GQT_GRAPHICS);
-		const GpuAccessState topLevelRest = GpuBackendUtility::GetRestingState(*topLevel->GetBuffer(), GQT_GRAPHICS);
+		const GpuAccessState bottomLevelRest = GpuBackendUtility::GetRestingState(*opaqueBottomLevel, GQT_GRAPHICS);
+		const GpuAccessState topLevelRest = GpuBackendUtility::GetRestingState(*topLevel, GQT_GRAPHICS);
 		const GpuAccessState scratchRest = GpuBackendUtility::GetRestingState(*scratch, GQT_GRAPHICS);
 
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
@@ -751,14 +721,15 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 		{
 			const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Acceleration structure builds"));
 
-			const GpuBufferBarrier bottomLevelBarriers[] =
+			const GpuAccelerationStructureBarrier bottomLevelBarriers[] =
 			{
-				GpuBufferBarrier(opaqueBottomLevel->GetBuffer(), GpuAccessState(), buildWrite),
-				GpuBufferBarrier(nonOpaqueBottomLevel->GetBuffer(), GpuAccessState(), buildWrite),
-				GpuBufferBarrier(scratch, GpuAccessState(), scratchAccess)
+				GpuAccelerationStructureBarrier(opaqueBottomLevel, GpuAccessState(), buildWrite),
+				GpuAccelerationStructureBarrier(nonOpaqueBottomLevel, GpuAccessState(), buildWrite)
 			};
 
-			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(bottomLevelBarriers, 3)));
+			const GpuBufferBarrier scratchBarrier(scratch, GpuAccessState(), scratchAccess);
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&scratchBarrier, 1), {}, {},
+				TArrayView<const GpuAccelerationStructureBarrier>(bottomLevelBarriers, 2)));
 
 			const GpuAccelerationStructureBuild bottomLevelBuilds[] =
 			{
@@ -768,16 +739,17 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 
 			B3D_TEST_ASSERT(commands->BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(bottomLevelBuilds, 2)))
 
-			const GpuBufferBarrier topLevelBarriers[] =
+			const GpuAccelerationStructureBarrier topLevelBarriers[] =
 			{
-				GpuBufferBarrier(opaqueBottomLevel->GetBuffer(), buildWrite, bottomLevelRest),
-				GpuBufferBarrier(nonOpaqueBottomLevel->GetBuffer(), buildWrite, bottomLevelRest),
-				GpuBufferBarrier(scratch, scratchAccess, scratchAccess),
-				GpuBufferBarrier(topLevel->GetBuffer(), GpuAccessState(), buildWrite),
-				GpuBufferBarrier(emptyTopLevel->GetBuffer(), GpuAccessState(), buildWrite)
+				GpuAccelerationStructureBarrier(opaqueBottomLevel, buildWrite, bottomLevelRest),
+				GpuAccelerationStructureBarrier(nonOpaqueBottomLevel, buildWrite, bottomLevelRest),
+				GpuAccelerationStructureBarrier(topLevel, GpuAccessState(), buildWrite),
+				GpuAccelerationStructureBarrier(emptyTopLevel, GpuAccessState(), buildWrite)
 			};
 
-			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(topLevelBarriers, 5)));
+			const GpuBufferBarrier scratchReuseBarrier(scratch, scratchAccess, scratchAccess);
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&scratchReuseBarrier, 1), {}, {},
+				TArrayView<const GpuAccelerationStructureBarrier>(topLevelBarriers, 4)));
 
 			const TShared<GpuAccelerationStructure> bottomLevels[] = { opaqueBottomLevel, nonOpaqueBottomLevel };
 			GpuAccelerationStructureBuild topLevelBuild(topLevelInputs, topLevel, scratch);
@@ -786,14 +758,15 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 			const GpuAccelerationStructureBuild topLevelBuilds[] = { topLevelBuild, GpuAccelerationStructureBuild(emptyInputs, emptyTopLevel, scratch, emptyScratchOffset) };
 			B3D_TEST_ASSERT(commands->BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(topLevelBuilds, 2)))
 
-			const GpuBufferBarrier restBarriers[] =
+			const GpuAccelerationStructureBarrier restBarriers[] =
 			{
-				GpuBufferBarrier(topLevel->GetBuffer(), buildWrite, topLevelRest),
-				GpuBufferBarrier(emptyTopLevel->GetBuffer(), buildWrite, topLevelRest),
-				GpuBufferBarrier(scratch, scratchAccess, scratchRest)
+				GpuAccelerationStructureBarrier(topLevel, buildWrite, topLevelRest),
+				GpuAccelerationStructureBarrier(emptyTopLevel, buildWrite, topLevelRest)
 			};
 
-			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(restBarriers, 3)));
+			const GpuBufferBarrier scratchRestBarrier(scratch, scratchAccess, scratchRest);
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&scratchRestBarrier, 1), {}, {},
+				TArrayView<const GpuAccelerationStructureBarrier>(restBarriers, 2)));
 			context->SubmitCommandBuffer(commands);
 			device->WaitUntilIdle();
 		}

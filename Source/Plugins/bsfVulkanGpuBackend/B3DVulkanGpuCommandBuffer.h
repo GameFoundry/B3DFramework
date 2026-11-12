@@ -144,6 +144,7 @@ namespace b3d
 			void CopyWindowToBuffer(const TShared<RenderWindow>& source, const TShared<GpuBuffer>& destination) override;
 			bool CopyTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureCopyInformation& copyInformation) override;
 			bool BlitTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureBlitInformation& blitInformation) override;
+			bool BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild> builds) override;
 			void WriteTimestamp(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) override;
 			void BeginQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool, GpuQueryFlags flags) override;
 			void EndQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) override;

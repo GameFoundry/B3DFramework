@@ -35,17 +35,25 @@ D3D12BindlessHeap* D3D12BindlessHeaps::GetCurrentResourceHeap() const
 
 D3D12_CPU_DESCRIPTOR_HANDLE D3D12BindlessHeaps::GetViewHandle(const GpuBindlessResourceView& view) const
 {
-	D3D12_CPU_DESCRIPTOR_HANDLE sourceHandle;
-	if(view.Texture != nullptr)
-		sourceHandle = static_cast<D3D12Texture*>(view.Texture)->GetSRVHandle(view.Surface);
-	else
+	B3D_ASSERT(view.Type != GpuBindlessResourceType::None && "The heaps reject empty views.");
+
+	D3D12_CPU_DESCRIPTOR_HANDLE sourceHandle = {};
+	switch(view.Type)
 	{
-		auto* buffer = static_cast<D3D12GpuBuffer*>(view.Buffer);
-		sourceHandle = buffer->GetSRVHandle(view.ViewType, view.Format);
+	case GpuBindlessResourceType::Texture:
+		sourceHandle = static_cast<D3D12Texture*>(view.Texture.Object)->GetSRVHandle(view.Texture.Surface);
+		break;
+	case GpuBindlessResourceType::Buffer:
+		sourceHandle = static_cast<D3D12GpuBuffer*>(view.Buffer.Object)->GetSRVHandle(view.Buffer.ViewType, view.Buffer.Format);
+		break;
+	case GpuBindlessResourceType::AccelerationStructure:
+		// No D3D12 acceleration structures yet, so the error below reports the view
+		break;
+	case GpuBindlessResourceType::None:
+		break;
 	}
 
-	if(!B3D_ENSURE_LOG(sourceHandle.ptr != 0, "Failed to create the view of '{0}' written into a bindless resource slot.",
-		view.Texture != nullptr ? view.Texture->GetName() : view.Buffer->GetName()))
+	if(!B3D_ENSURE_LOG(sourceHandle.ptr != 0, "Failed to create the view of '{0}' written into a bindless resource slot.", view.GetResourceName()))
 	{
 		sourceHandle = mDescriptorManager.GetNullSRVHandle(GPOT_TEXTURE2D);
 	}

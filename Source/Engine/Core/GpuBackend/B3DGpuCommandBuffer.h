@@ -341,7 +341,7 @@ namespace b3d
 		};
 
 		/**
-		 * Describes common fields of buffer, texture and render target barriers. The caller provides the source as well as the destination, and
+		 * Describes common fields of buffer, texture, render target and acceleration structure barriers. The caller provides the source as well as the destination, and
 		 * the command buffer derives nothing from earlier use of the resource. See GpuCommandBuffer::IssueBarriers().
 		 */
 		struct GpuBarrier
@@ -439,6 +439,30 @@ namespace b3d
 			GpuTextureSubresourceRange SubresourceRange; /**< Subresources (mips, array layers, aspects) of the surface the barrier applies to. */
 		};
 
+		/**
+		 * Describes a barrier for a GpuAccelerationStructure. Its stages must be among GpuBackendUtility::GetAccelerationStructureStageFlags().
+		 * Requires a device with RSC_ACCELERATION_STRUCTURES.
+		 */
+		struct GpuAccelerationStructureBarrier : GpuBarrier
+		{
+			GpuAccelerationStructureBarrier(const TShared<GpuAccelerationStructure>& object, const GpuAccessState& source, const GpuAccessState& destination,
+				GpuBarrierFlags flags = GpuBarrierFlag::None)
+				: GpuBarrier(source, destination, flags), Object(object)
+			{ }
+
+			/** Returns a hash value for the barrier. Identifies the acceleration structure by its address. */
+			u64 GenerateHash() const
+			{
+				size_t hash = 0;
+				B3DCombineHash(hash, Object.get());
+				B3DCombineHash(hash, GpuBarrier::GenerateHash());
+
+				return hash;
+			}
+
+			TShared<GpuAccelerationStructure> Object;
+		};
+
 		/** Describes a range of bytes to copy from one buffer to another. */
 		struct GpuBufferCopyRange
 		{
@@ -448,15 +472,17 @@ namespace b3d
 		};
 
 		/**
-		 * A list of buffer, texture and render target barriers. Refers to the barriers without copying them, so they must remain
-		 * valid until GpuCommandBuffer::IssueBarriers() returns.
+		 * A list of buffer, texture, render target and acceleration structure barriers. Refers to the barriers without copying them, so
+		 * they must remain valid until GpuCommandBuffer::IssueBarriers() returns.
 		 */
 		struct GpuBarriers
 		{
 			GpuBarriers(TArrayView<const GpuBufferBarrier> bufferBarriers = TArrayView<const GpuBufferBarrier>(),
 				TArrayView<const GpuTextureBarrier> textureBarriers = TArrayView<const GpuTextureBarrier>(),
-				TArrayView<const GpuRenderTargetBarrier> renderTargetBarriers = TArrayView<const GpuRenderTargetBarrier>())
+				TArrayView<const GpuRenderTargetBarrier> renderTargetBarriers = TArrayView<const GpuRenderTargetBarrier>(),
+				TArrayView<const GpuAccelerationStructureBarrier> accelerationStructureBarriers = TArrayView<const GpuAccelerationStructureBarrier>())
 				: BufferBarriers(bufferBarriers), TextureBarriers(textureBarriers), RenderTargetBarriers(renderTargetBarriers)
+				, AccelerationStructureBarriers(accelerationStructureBarriers)
 			{ }
 
 			GpuBarriers(TArrayView<const GpuTextureBarrier> textureBarriers)
@@ -465,6 +491,10 @@ namespace b3d
 
 			GpuBarriers(TArrayView<const GpuRenderTargetBarrier> renderTargetBarriers)
 				: RenderTargetBarriers(renderTargetBarriers)
+			{ }
+
+			GpuBarriers(TArrayView<const GpuAccelerationStructureBarrier> accelerationStructureBarriers)
+				: AccelerationStructureBarriers(accelerationStructureBarriers)
 			{ }
 
 			GpuBarriers(const GpuBufferBarrier& bufferBarrier)
@@ -477,6 +507,10 @@ namespace b3d
 
 			GpuBarriers(const GpuRenderTargetBarrier& renderTargetBarrier)
 				: RenderTargetBarriers(&renderTargetBarrier, 1)
+			{ }
+
+			GpuBarriers(const GpuAccelerationStructureBarrier& accelerationStructureBarrier)
+				: AccelerationStructureBarriers(&accelerationStructureBarrier, 1)
 			{ }
 
 			/** Returns a hash value for the barriers. Depends on their order. */
@@ -492,12 +526,16 @@ namespace b3d
 				for(const GpuRenderTargetBarrier& barrier : RenderTargetBarriers)
 					B3DCombineHash(hash, barrier.GenerateHash());
 
+				for(const GpuAccelerationStructureBarrier& barrier : AccelerationStructureBarriers)
+					B3DCombineHash(hash, barrier.GenerateHash());
+
 				return hash;
 			}
 
 			TArrayView<const GpuBufferBarrier> BufferBarriers;
 			TArrayView<const GpuTextureBarrier> TextureBarriers;
 			TArrayView<const GpuRenderTargetBarrier> RenderTargetBarriers;
+			TArrayView<const GpuAccelerationStructureBarrier> AccelerationStructureBarriers;
 		};
 
 		/** Determines which part of a barrier a command buffer records. */

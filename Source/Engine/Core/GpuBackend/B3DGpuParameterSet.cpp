@@ -445,12 +445,6 @@ bool TGpuParameterSet<IsRenderProxy>::SetStorageBuffer(u32 slot, const BufferTyp
 	if(buffer != nullptr)
 	{
 		const GpuBufferType bufferType = buffer->GetInformation().Type;
-		if(bufferType == GpuBufferType::AccelerationStructure)
-		{
-			B3D_LOG(Error, LogRenderBackend, "An acceleration structure buffer cannot be bound as a storage buffer. Set/slot: {0}/{1}.", mSet, slot);
-			return false;
-		}
-
 		const bool supportsRawViews = bufferType == GpuBufferType::StructuredStorage || bufferType == GpuBufferType::Vertex || bufferType == GpuBufferType::Index;
 		const UniformInformation* information = mParameterSetLayout->TryGetUniformInformation(slot);
 		if(!supportsRawViews && information != nullptr && GpuObjectParameterTypeInformation::IsByteAddressBuffer(information->ObjectType))
@@ -680,7 +674,7 @@ bool GpuParameterSet::SetAccelerationStructure(u32 slot, const TShared<GpuAccele
 		return false;
 	}
 
-	if(accelerationStructure != nullptr && (accelerationStructure->GetBuffer() == nullptr || accelerationStructure->GetType() != GpuAccelerationStructureType::TopLevel))
+	if(accelerationStructure != nullptr && accelerationStructure->GetType() != GpuAccelerationStructureType::TopLevel)
 	{
 		B3D_LOG(Error, LogRenderBackend, "Only a top level acceleration structure can be bound to a parameter set. Set/slot: {0}/{1}.", mSet, slot);
 		return false;
@@ -709,12 +703,6 @@ TShared<GpuAccelerationStructure> GpuParameterSet::GetAccelerationStructure(u32 
 		return nullptr;
 
 	return mAccelerationStructures[sequentialResourceIndex];
-}
-
-GpuBuffer* GpuParameterSet::GetAccelerationStructureBuffer(u32 slot, u32 arrayIndex) const
-{
-	const TShared<GpuAccelerationStructure> accelerationStructure = GetAccelerationStructure(slot, arrayIndex);
-	return accelerationStructure != nullptr ? accelerationStructure->GetBuffer().get() : nullptr;
 }
 
 void GpuParameterSet::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator)

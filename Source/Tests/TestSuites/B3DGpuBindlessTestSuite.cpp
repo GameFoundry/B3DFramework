@@ -174,6 +174,13 @@ void GpuBindlessTestSuite::TestHeapAllocation()
 	const GpuBindlessResourceView view(*buffer, GpuBufferViewType::Typed, BF_UNKNOWN);
 	const int owners[4] = {};
 
+	// An empty view never reaches a slot
+	{
+		LoggingScope logs(*this);
+		logs.ExpectError("Cannot write an empty view into a bindless resource slot.");
+		B3D_TEST_ASSERT(heaps.AllocateResourceSlot(GpuBindlessResourceView(), &owners[0]) == kGpuBindlessInvalidIndex)
+	}
+
 	// Slot 0 is the invalid index, so a heap of four slots holds three views
 	u32 slots[3];
 	for(u32 slotIndex = 0; slotIndex < 3; slotIndex++)
@@ -183,6 +190,12 @@ void GpuBindlessTestSuite::TestHeapAllocation()
 	}
 
 	B3D_TEST_ASSERT(heaps.ResourceWrites.Size() == 3)
+
+	{
+		LoggingScope logs(*this);
+		logs.ExpectError("Cannot write an empty view into bindless resource slot 1.");
+		heaps.UpdateResourceSlot(slots[0], GpuBindlessResourceView(), &owners[0], nullptr);
+	}
 
 	{
 		LoggingScope logs(*this);

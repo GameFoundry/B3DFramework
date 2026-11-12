@@ -39,8 +39,6 @@ static u32 CalculateUnalignedGpuBufferSize(const GpuBufferInformation& informati
 	case GpuBufferType::StagingRead:
 	case GpuBufferType::StagingWrite:
 		return information.Staging.Size;
-	case GpuBufferType::AccelerationStructure:
-		return information.AccelerationStructure.Size;
 	}
 
 	B3D_ENSURE(false);
@@ -159,9 +157,6 @@ RenderProxySyncPacket* GpuBuffer::CreateRenderProxySyncPacket(FrameAllocator& al
 
 TShared<GpuBuffer> GpuBuffer::Create(const GpuBufferCreateInformation& createInformation)
 {
-	if(!B3D_ENSURE_LOG(createInformation.Type != GpuBufferType::AccelerationStructure, "Acceleration structure buffers are created on the render thread, through GpuDevice::CreateGpuBuffer()."))
-		return nullptr;
-
 	TShared<GpuBuffer> buffer = B3DMakeSharedFromExisting<GpuBuffer>(new(B3DAllocate<GpuBuffer>()) GpuBuffer(createInformation));
 	buffer->SetShared(buffer);
 	buffer->Initialize();
@@ -275,18 +270,6 @@ u32 GpuBuffer::CalculateTotalBufferSize(const GpuBufferInformation& information,
 
 namespace b3d::render
 {
-#if B3D_BUILD_TYPE_DEVELOPMENT
-	namespace
-	{
-		/** Returns false, logging the reason, if the host cannot read or write @p buffer, directly or through a staging buffer. */
-		bool ValidateHostAccess(const GpuBuffer& buffer)
-		{
-			return B3D_ENSURE_LOG(buffer.GetInformation().Type != GpuBufferType::AccelerationStructure,
-				"The host cannot read or write acceleration structure buffer '{0}'. Only acceleration structure builds write it.", buffer.GetName());
-		}
-	} // namespace
-#endif
-
 	GpuBuffer::GpuBuffer(GpuDevice& device, const GpuBufferCreateInformation& createInformation, u32 suballocationSize, const GpuAllocation& allocation)
 		: mInformation(createInformation), mDevice(device), mSuballocationSize(suballocationSize), mTotalSize(createInformation.SuballocationCount * mSuballocationSize), mRequestedAllocation(allocation)
 	{ }
@@ -298,8 +281,7 @@ namespace b3d::render
 	{
 		if(mInformation.Flags.IsSet(GpuBufferFlag::Bindless) && B3D_ENSURE(GetGpuResource() != nullptr))
 		{
-			// Vertex streams interleave formats and indices may be 16-bit, so shaders read both as raw words. The view of an acceleration
-			// structure is the structure itself, whatever its view type.
+			// Vertex streams interleave formats and indices may be 16-bit, so shaders read both as raw words
 			const bool isVertexOrIndex = mInformation.Type == GpuBufferType::Vertex || mInformation.Type == GpuBufferType::Index;
 			const GpuBufferViewType defaultViewType = isVertexOrIndex ? GpuBufferViewType::Raw : GpuBufferViewType::Typed;
 
@@ -323,9 +305,6 @@ namespace b3d::render
 
 	u32 GpuBuffer::GetOrCreateBindlessIndex(GpuBufferViewType viewType, GpuBufferFormat format)
 	{
-		if(!B3D_ENSURE_LOG(mInformation.Type != GpuBufferType::AccelerationStructure, "An acceleration structure buffer only has its default bindless view. Buffer: '{0}'.", mName))
-			return kGpuBindlessInvalidIndex;
-
 		const bool isSimpleStorage = mInformation.Type == GpuBufferType::SimpleStorage;
 		const bool isVertexOrIndex = mInformation.Type == GpuBufferType::Vertex || mInformation.Type == GpuBufferType::Index;
 		if(!B3D_ENSURE_LOG(viewType != GpuBufferViewType::Raw || mInformation.Type == GpuBufferType::StructuredStorage || isVertexOrIndex, "Raw bindless views are only supported for structured storage, vertex and index buffers. Buffer: '{0}'.", mName))
@@ -361,7 +340,6 @@ namespace b3d::render
 	void GpuBuffer::Relocate(GpuBuffer& target)
 	{
 		B3D_ASSERT(!HasFixedLocation() && target.HasFixedLocation());
-		B3D_ASSERT(mInformation.Type != GpuBufferType::AccelerationStructure && "Acceleration structures cannot move. Their contents cannot be copied as bytes, and top level structures refer to bottom level structures by address.");
 
 		IGpuResource* const previousNativeResource = GetGpuResource();
 		const GpuAllocation allocation = target.mCurrentAllocation;
@@ -392,9 +370,6 @@ namespace b3d::render
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	void GpuBuffer::ValidateMap(u32 offset, u32 size, GpuMapOptions options)
 	{
-		if(!ValidateHostAccess(*this))
-			return;
-
 		if(options.IsSet(GpuMapOption::Write))
 		{
 			// We currently don't track exact bound ranges for buffers that aren't suballocated, so we cannot warn in that case
@@ -495,11 +470,6 @@ namespace b3d::render
 	void GpuBufferUtility::Write(GpuWorkContext& gpuContext, const TShared<GpuBuffer>& buffer, u32 offset, u32 length, const void* source, GpuBufferWriteFlags flags, TShared<GpuCommandBuffer> commandBuffer)
 	{
 		B3D_ASSERT(buffer != nullptr);
-
-#if B3D_BUILD_TYPE_DEVELOPMENT
-		if(!ValidateHostAccess(*buffer))
-			return;
-#endif
 
 		if((offset + length) > buffer->GetTotalSize())
 			return;
@@ -628,11 +598,6 @@ namespace b3d::render
 	{
 		B3D_ASSERT(buffer != nullptr);
 
-#if B3D_BUILD_TYPE_DEVELOPMENT
-		if(!ValidateHostAccess(*buffer))
-			return;
-#endif
-
 		if((offset + length) > buffer->GetTotalSize())
 			return;
 
@@ -745,11 +710,6 @@ namespace b3d::render
 		if(buffer == nullptr)
 			return {};
 
-#if B3D_BUILD_TYPE_DEVELOPMENT
-		if(!ValidateHostAccess(*buffer))
-			return {};
-#endif
-
 		// TODO - Staging buffer might not be necessary if he texture is directly mappable
 		TShared<GpuBuffer> stagingBuffer = CreateStaging(gpuContext, buffer, true);
 		GpuBackendUtility::CopyToStagingBuffer(commandBuffer, buffer, offset, length, stagingBuffer);
@@ -764,11 +724,6 @@ namespace b3d::render
 	{
 		if(buffer == nullptr)
 			return {};
-
-#if B3D_BUILD_TYPE_DEVELOPMENT
-		if(!ValidateHostAccess(*buffer))
-			return {};
-#endif
 
 		const TShared<GpuBuffer> stagingBuffer = CreateStaging(graph.GetWorkContext(), buffer, true);
 		graph.ImportBuffer(stagingBuffer);

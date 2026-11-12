@@ -108,6 +108,9 @@ namespace b3d::render
 		/** Checks an access of a buffer in @p stages against the declared state, and records it for the next barrier. */
 		void ValidateBufferAccess(const GpuBuffer& buffer, GpuStageFlags stages, GpuAccessFlags access);
 
+		/** Checks an access of an acceleration structure in @p stages against the declared state, and records it for the next barrier. */
+		void ValidateAccelerationStructureAccess(const GpuAccelerationStructure& accelerationStructure, GpuStageFlags stages, GpuAccessFlags access);
+
 		/**
 		 * Checks an access of a range of texture subresources in @p stages against the declared state, and records it for the next
 		 * barrier. @p layout is only checked if it is not GpuImageLayout::Undefined.
@@ -206,6 +209,9 @@ namespace b3d::render
 		/** Checks a barrier of a buffer. */
 		void ValidateBufferBarrier(const GpuBuffer& buffer, const GpuBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split);
 
+		/** Checks a barrier of an acceleration structure. */
+		void ValidateAccelerationStructureBarrier(const GpuAccelerationStructure& accelerationStructure, const GpuBarrier& barrier, GpuBarrierPhase phase, const GpuSplitBarrier* split);
+
 		/** Checks an access of an image. */
 		void ValidateImageAccess(const ImageSubresources& image, GpuImageLayout layout, GpuStageFlags stages, GpuAccessFlags access);
 
@@ -251,6 +257,7 @@ namespace b3d::render
 		u32 mOperation = 0; /**< Draw, dispatch or build call whose accesses are being validated, or 0 outside of one. */
 
 		TDenseMap<const GpuBuffer*, ResourceState> mBuffers;
+		TDenseMap<const GpuAccelerationStructure*, ResourceState> mAccelerationStructures;
 		UnorderedMap<ImageKey, Vector<ResourceState>, ImageKeyHash> mImages; /**< One state per face, mip level and aspect. */
 		UnorderedMap<const IGpuResource*, DeclaredAliasAcquire> mAliasAcquires; /**< By the resource that records the alias acquire. */
 		UnorderedSet<const IGpuResource*> mSupersededResources; /**< Resources whose memory an alias acquire of another resource took over. */

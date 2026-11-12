@@ -14,6 +14,8 @@
 #include "B3DVulkanSamplerState.h"
 #include "Managers/B3DVulkanTextureManager.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
+#include "GpuBackend/B3DGpuAccelerationStructure.h"
+#include "B3DVulkanGpuAccelerationStructure.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -63,6 +65,15 @@ static bool EnsureImageViewValidForShader(const VulkanImageView& view, const Gpu
 	return isViewValid;
 }
 
+/** Returns the native handle of @p accelerationStructure, or a null handle if it is null. */
+static VkAccelerationStructureKHR GetAccelerationStructureHandle(const TShared<GpuAccelerationStructure>& accelerationStructure)
+{
+	if(accelerationStructure == nullptr)
+		return VK_NULL_HANDLE;
+
+	return static_cast<VulkanGpuAccelerationStructure&>(*accelerationStructure).GetVulkanResource()->GetVulkanHandle();
+}
+
 VulkanGpuParameterSet::VulkanGpuParameterSet(VulkanGpuDevice& gpuDevice, const TShared<GpuPipelineParameterSetLayout>& parameterSetLayout,
 	u32 set, VulkanGpuParameterSetPool& pool)
 	: GpuParameterSet(parameterSetLayout, set), mGpuDevice(gpuDevice)
@@ -89,6 +100,8 @@ void VulkanGpuParameterSet::Initialize()
 	const u32 storageTextureCount = vulkanGpuPipelineParameterSetLayout.GetResourceCount(GpuParameterType::StorageTexture);
 	const u32 bufferCount = vulkanGpuPipelineParameterSetLayout.GetResourceCount(GpuParameterType::StorageBuffer);
 	const u32 samplerCount = vulkanGpuPipelineParameterSetLayout.GetResourceCount(GpuParameterType::Sampler);
+	const u32 accelerationStructureCount = vulkanGpuPipelineParameterSetLayout.GetResourceCount(GpuParameterType::AccelerationStructure);
+	const u32 accelerationStructureBindingCount = vulkanGpuPipelineParameterSetLayout.GetBindingCount(GpuParameterType::AccelerationStructure);
 	const u32 resourceCount = vulkanGpuPipelineParameterSetLayout.GetResourceCount();
 	const u32 bindingCount = vulkanGpuPipelineParameterSetLayout.GetBindingCount();
 
@@ -103,6 +116,8 @@ void VulkanGpuParameterSet::Initialize()
 		.Reserve<VkBuffer>(uniformBufferCount)
 		.Reserve<VkBuffer>(bufferCount)
 		.Reserve<VkSampler>(samplerCount)
+		.Reserve<VkAccelerationStructureKHR>(accelerationStructureCount)
+		.Reserve<VkWriteDescriptorSetAccelerationStructureKHR>(accelerationStructureBindingCount)
 		.Initialize();
 
 	Lock lock(mMutex); // Set write operations need to be thread safe
@@ -116,6 +131,7 @@ void VulkanGpuParameterSet::Initialize()
 	mUniformBuffers = mAllocator.Allocate<VkBuffer>(uniformBufferCount, true);
 	mBuffers = mAllocator.Allocate<VkBuffer>(bufferCount, true);
 	mSamplers = mAllocator.Allocate<VkSampler>(samplerCount, true);
+	mAccelerationStructures = mAllocator.Allocate<VkAccelerationStructureKHR>(accelerationStructureCount, true);
 
 	VulkanSampler* vkDefaultSampler = defaultSampler->GetVulkanResource();
 
@@ -123,6 +139,7 @@ void VulkanGpuParameterSet::Initialize()
 	mSetInformation.ImageWriteInfos = mAllocator.Allocate<VkDescriptorImageInfo>(resourceCount);
 	mSetInformation.BufferWriteInfos = mAllocator.Allocate<VkDescriptorBufferInfo>(resourceCount);
 	mSetInformation.BufferViews = mAllocator.Allocate<VkBufferView>(resourceCount);
+	mSetInformation.AccelerationStructureWriteInfos = mAllocator.Allocate<VkWriteDescriptorSetAccelerationStructureKHR>(accelerationStructureBindingCount);
 
 	VulkanDescriptorLayout* layout = vulkanGpuPipelineParameterSetLayout.GetLayout();
 	mSetInformation.ElementCount = bindingCount;
@@ -138,6 +155,7 @@ void VulkanGpuParameterSet::Initialize()
 	const TArrayView<const VkDescriptorSetLayoutBinding> perSetBindings = vulkanGpuPipelineParameterSetLayout.GetBindings();
 	const TArrayView<const GpuParameterObjectType> types = vulkanGpuPipelineParameterSetLayout.GetTypes();
 	const TArrayView<const GpuBufferFormat> elementTypes = vulkanGpuPipelineParameterSetLayout.GetElementTypes();
+	u32 accelerationStructureBindingIndex = 0;
 	for(u32 layoutBindingIndex = 0; layoutBindingIndex < bindingCount; layoutBindingIndex++)
 	{
 		// Note: Instead of using one structure per binding, it's possible to update multiple at once
@@ -156,8 +174,17 @@ void VulkanGpuParameterSet::Initialize()
 		const bool isSampler = writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLER;
 		if(writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR)
 		{
-			// TODO - Acceleration structures can't be assigned to parameter sets yet, so these bindings have nothing to write. A set
-			// with one must not be bound until they can.
+			// Empty slots hold null descriptors, which devices that support acceleration structures are required to support
+			const u32 sequentialResourceIndex = vulkanGpuPipelineParameterSetLayout.GetSequentialResourceIndex(slot, 0);
+
+			VkWriteDescriptorSetAccelerationStructureKHR& accelerationStructureWriteInfo =
+				mSetInformation.AccelerationStructureWriteInfos[accelerationStructureBindingIndex++];
+			accelerationStructureWriteInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR;
+			accelerationStructureWriteInfo.pNext = nullptr;
+			accelerationStructureWriteInfo.accelerationStructureCount = writeSetInfo.descriptorCount;
+			accelerationStructureWriteInfo.pAccelerationStructures = &mAccelerationStructures[sequentialResourceIndex];
+
+			writeSetInfo.pNext = &accelerationStructureWriteInfo;
 			writeSetInfo.pImageInfo = nullptr;
 			writeSetInfo.pBufferInfo = nullptr;
 			writeSetInfo.pTexelBufferView = nullptr;
@@ -628,6 +655,33 @@ bool VulkanGpuParameterSet::SetSamplerState(u32 slot, const TShared<SamplerState
 	return true;
 }
 
+bool VulkanGpuParameterSet::SetAccelerationStructure(u32 slot, const TShared<GpuAccelerationStructure>& accelerationStructure, u32 arrayIndex)
+{
+	if(!GpuParameterSet::SetAccelerationStructure(slot, accelerationStructure, arrayIndex))
+		return false;
+
+	VulkanGpuPipelineParameterSetLayout& pipelineParameterInformationSet = static_cast<VulkanGpuPipelineParameterSetLayout&>(*mParameterSetLayout);
+	if(pipelineParameterInformationSet.GetUsedResourceSequentialIndex(slot, arrayIndex) == ~0u)
+	{
+		B3D_LOG(Error, LogRenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", mSet, slot);
+		return false;
+	}
+
+	const u32 sequentialResourceIndex = pipelineParameterInformationSet.GetSequentialResourceIndex(slot, arrayIndex);
+
+	Lock lock(mMutex);
+
+	// The descriptor write reads the handles from mAccelerationStructures directly
+	const VkAccelerationStructureKHR handle = GetAccelerationStructureHandle(GetAccelerationStructure(slot, arrayIndex));
+	if(mAccelerationStructures[sequentialResourceIndex] != handle)
+	{
+		mAccelerationStructures[sequentialResourceIndex] = handle;
+		mSetDirty = true;
+	}
+
+	return true;
+}
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 void VulkanGpuParameterSet::TrackDynamicUniformBufferOffsets(GpuResourceTracker& resourceTracker, TArrayView<const u32> offsets) const
 {
@@ -665,6 +719,7 @@ bool VulkanGpuParameterSet::UpdateDescriptors(TArrayView<const GpuRenderPassAtta
 	const u32 storageTextureBindingCount = pipelineParameterInformationSet.GetBindingCount(GpuParameterType::StorageTexture);
 	const u32 storageBufferBindingCount = pipelineParameterInformationSet.GetBindingCount(GpuParameterType::StorageBuffer);
 	const u32 samplerBindingCount = pipelineParameterInformationSet.GetBindingCount(GpuParameterType::Sampler);
+	const u32 accelerationStructureBindingCount = pipelineParameterInformationSet.GetBindingCount(GpuParameterType::AccelerationStructure);
 
 	FrameAllocatorScope frameScope;
 
@@ -1005,6 +1060,27 @@ bool VulkanGpuParameterSet::UpdateDescriptors(TArrayView<const GpuRenderPassAtta
 		}
 	}
 
+	for(u32 sequentialBindingIndex = 0; sequentialBindingIndex < accelerationStructureBindingCount; sequentialBindingIndex++)
+	{
+		const u32 arraySize = pipelineParameterInformationSet.GetArraySize(GpuParameterType::AccelerationStructure, sequentialBindingIndex);
+		const u32 slot = pipelineParameterInformationSet.GetSlot(GpuParameterType::AccelerationStructure, sequentialBindingIndex);
+
+		for(u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
+		{
+			const u32 sequentialResourceIndex = pipelineParameterInformationSet.GetSequentialResourceIndex(slot, arrayIndex);
+
+			const VkAccelerationStructureKHR handle = GetAccelerationStructureHandle(GetAccelerationStructure(slot, arrayIndex));
+			if(mAccelerationStructures[sequentialResourceIndex] != handle)
+			{
+				if(!canWrite)
+					return true;
+
+				mAccelerationStructures[sequentialResourceIndex] = handle;
+				mSetDirty = true;
+			}
+		}
+	}
+
 	if(!mSetDirty)
 		return false;
 
@@ -1047,6 +1123,7 @@ bool VulkanGpuParameterSet::PrepareForBind(GpuResourceTracker& resourceTracker, 
 	const u32 storageTextureBindingCount = pipelineParameterInformationSet.GetBindingCount(GpuParameterType::StorageTexture);
 	const u32 storageBufferBindingCount = pipelineParameterInformationSet.GetBindingCount(GpuParameterType::StorageBuffer);
 	const u32 samplerBindingCount = pipelineParameterInformationSet.GetBindingCount(GpuParameterType::Sampler);
+	const u32 accelerationStructureBindingCount = pipelineParameterInformationSet.GetBindingCount(GpuParameterType::AccelerationStructure);
 
 	const u32 firstDynamicOffset = (u32)outDynamicOffsets.Size();
 	outDynamicOffsets.Resize(firstDynamicOffset + pipelineParameterInformationSet.GetDynamicOffsetCount(), 0);
@@ -1148,6 +1225,20 @@ bool VulkanGpuParameterSet::PrepareForBind(GpuResourceTracker& resourceTracker, 
 			VulkanSampler* resource = static_cast<VulkanSamplerState*>(mSamplerStates[sequentialResourceIndex].get())->GetVulkanResource();
 			if(resource != nullptr)
 				resourceTracker.TrackResourceUsage(resource, GpuAccessFlag::Read);
+		}
+	}
+
+	// Bottom levels a top level references are kept alive by the top level itself (see GpuAccelerationStructure)
+	for(u32 sequentialBindingIndex = 0; sequentialBindingIndex < accelerationStructureBindingCount; sequentialBindingIndex++)
+	{
+		const u32 arraySize = pipelineParameterInformationSet.GetArraySize(GpuParameterType::AccelerationStructure, sequentialBindingIndex);
+		const u32 slot = pipelineParameterInformationSet.GetSlot(GpuParameterType::AccelerationStructure, sequentialBindingIndex);
+
+		for(u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
+		{
+			const TShared<GpuAccelerationStructure> accelerationStructure = GetAccelerationStructure(slot, arrayIndex);
+			if(accelerationStructure != nullptr)
+				resourceTracker.TrackResourceUsage(static_cast<VulkanGpuAccelerationStructure&>(*accelerationStructure).GetVulkanResource(), GpuAccessFlag::Read);
 		}
 	}
 

@@ -25,6 +25,7 @@ namespace b3d
 			GpuBufferType Type = GpuBufferType::Vertex; /**< Type of the buffer being created. */
 			GpuBufferFlags Flags; /**< Flags that specify how the buffer is intended to be used. */
 			StringView DebugName; /**< Optional name of the resource, for debugging purposes. */
+			u32 MinimumAlignment = 1; /**< Alignment of the buffer's memory, in bytes, if larger than the alignment Vulkan requires. */
 		};
 
 		/** Wrapper around a Vulkan buffer object that manages its usage and lifetime. */
@@ -42,6 +43,9 @@ namespace b3d
 
 			/** Returns the internal handle to the Vulkan object. */
 			VkBuffer GetVulkanHandle() const { return mBuffer; }
+
+			/** Returns the address of the buffer's first byte. Zero if the buffer has no device address usage. */
+			VkDeviceAddress GetDeviceAddress() const { return mDeviceAddress; }
 
 			/** Assigns an name to the buffer, primarily used for easier debugging. */
 			void SetName(const StringView& name);
@@ -97,6 +101,7 @@ namespace b3d
 
 			GpuBufferFlags mFlags;
 			VkBuffer mBuffer;
+			VkDeviceAddress mDeviceAddress = 0;
 			TInlineArray<ViewInformation, 2> mViews;
 			VulkanAllocationResult mAllocation;
 			void* mMappedMemory = nullptr;
@@ -141,7 +146,7 @@ namespace b3d
 			VkBufferView GetOrCreateView(GpuBufferFormat format) const;
 
 			/** Maps a buffer's engine usage (@p createInformation Type + Flags) to its Vulkan buffer usage bits on @p device. */
-			static VkBufferUsageFlags GetVkBufferUsageFlags(const VulkanGpuDevice& device, const GpuBufferCreateInformation& createInformation);
+			B3D_VULKAN_EXPORT static VkBufferUsageFlags GetVkBufferUsageFlags(const VulkanGpuDevice& device, const GpuBufferCreateInformation& createInformation);
 
 			/**
 			 * Returns the alignment a buffer of @p type and @p flags needs on @p device beyond what Vulkan reports for it, or 1 if none.

@@ -14,14 +14,14 @@ namespace b3d
 
 	private:
 		/**
-		 * Checks the Vulkan usage of buffers by type and flags: acceleration structure storage, build inputs, and device addresses for
-		 * buffers that builds read or use as scratch memory, and for no other.
+		 * Checks the Vulkan usage of buffers by type and flags: build inputs, and device addresses for buffers that builds read or use as
+		 * scratch memory, and for no other. No buffer can store an acceleration structure.
 		 */
 		void TestBufferUsage();
 
 		/**
 		 * Checks that buffers that can be scratch memory have device addresses aligned to the scratch offset alignment, instance buffers
-		 * to 16 bytes, and acceleration structures to 256 bytes, and that only acceleration structure buffers have a native structure.
+		 * to 16 bytes, and that acceleration structures have a native structure whose address is aligned to 256 bytes.
 		 */
 		void TestDeviceAddresses();
 

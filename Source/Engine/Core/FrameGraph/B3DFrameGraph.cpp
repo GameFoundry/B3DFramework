@@ -2127,12 +2127,15 @@ namespace b3d::render
 					const FlushedParameterSet& flushed = found->second;
 					parameters->ForEachBoundResource(nullptr, [this, &pass, &flushed, &attachments](const GpuParameterSetResource& bound)
 					{
-						IGpuImageResource* const image = bound.Texture != nullptr ? static_cast<IGpuImageResource*>(bound.Texture->GetGpuResource()) : nullptr;
-						if(image == nullptr || bound.Uniform->Type != GpuParameterType::SampledTexture)
+						if(bound.Uniform->Type != GpuParameterType::SampledTexture)
+							return;
+
+						IGpuImageResource* const image = static_cast<IGpuImageResource*>(bound.Texture.Object->GetGpuResource());
+						if(image == nullptr)
 							return;
 
 						// Sampled views of depth-stencil textures select the depth aspect
-						GpuTextureSubresourceRange range = image->GetRange(bound.Surface);
+						GpuTextureSubresourceRange range = image->GetRange(bound.Texture.Surface);
 						if(range.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
 							range.AspectMask = GpuTextureAspectFlag::Depth;
 
@@ -2140,7 +2143,7 @@ namespace b3d::render
 						const GpuImageLayout layout = GpuBackendUtility::ResolveShaderImageLayout(attachments, image, range, GpuImageLayout::Undefined);
 						B3D_ENSURE_LOG(layout == flushedLayout, "Frame graph '{0}' records in parallel, but passes '{1}' and '{2}' bind one parameter set that samples "
 							"texture '{3}' in different layouts, as only one of them renders into it. Give the passes a parameter set each.", mName,
-							flushed.FlushingPass->Name, pass.Name, bound.Texture->GetName());
+							flushed.FlushingPass->Name, pass.Name, bound.Texture.Object->GetName());
 					});
 #endif
 				}
@@ -2417,8 +2420,13 @@ namespace b3d::render
 		{
 			parameters->ForEachBoundResource(nullptr, [this, &output](const GpuParameterSetResource& bound)
 			{
-				const u32 resourceIndex = bound.Texture != nullptr ? bound.Texture->GetFrameGraphResourceIndex() : bound.Buffer->GetFrameGraphResourceIndex();
-				const StringView resourceName = bound.Texture != nullptr ? StringView(bound.Texture->GetName()) : StringView(bound.Buffer->GetName());
+				// Acceleration structures cannot be imported into the graph, so a bound one is at rest, and slots only read them
+				if(bound.Uniform->Type == GpuParameterType::AccelerationStructure)
+					return;
+
+				const bool isTexture = bound.Uniform->Type == GpuParameterType::SampledTexture || bound.Uniform->Type == GpuParameterType::StorageTexture;
+				const u32 resourceIndex = isTexture ? bound.Texture.Object->GetFrameGraphResourceIndex() : bound.Buffer.Object->GetFrameGraphResourceIndex();
+				const StringView resourceName = isTexture ? StringView(bound.Texture.Object->GetName()) : StringView(bound.Buffer.Object->GetName());
 				if(resourceIndex == ~0u)
 				{
 					// Resources outside of the graph are at rest, which only allows reads
@@ -2427,9 +2435,9 @@ namespace b3d::render
 
 					// Textures that cannot be read on several queues at once rest on the graphics queue. The check uses the preference, so content
 					// behaves the same whether or not gFrameGraphAsyncCompute moves the pass to the compute queue.
-					if(output.Flags.IsSet(FrameGraphPassFlag::AsyncCompute) && bound.Texture != nullptr)
+					if(output.Flags.IsSet(FrameGraphPassFlag::AsyncCompute) && isTexture)
 					{
-						B3D_ENSURE_LOG(GpuBackendUtility::IsConcurrentlyReadable(bound.Texture->GetProperties().Usage),
+						B3D_ENSURE_LOG(GpuBackendUtility::IsConcurrentlyReadable(bound.Texture.Object->GetProperties().Usage),
 							"Pass '{0}' reads '{1}' through slot '{2}' on the async compute queue, but '{1}' rests on the graphics queue. Import it first.",
 							output.Name, resourceName, bound.Uniform->Name);
 					}
@@ -2438,7 +2446,7 @@ namespace b3d::render
 				}
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-				const u32 graphId = bound.Texture != nullptr ? bound.Texture->GetFrameGraphId() : bound.Buffer->GetFrameGraphId();
+				const u32 graphId = isTexture ? bound.Texture.Object->GetFrameGraphId() : bound.Buffer.Object->GetFrameGraphId();
 				if(!B3D_ENSURE_LOG(graphId == mId, "Pass '{0}' binds '{1}' in slot '{2}', which is a resource of another frame graph.", output.Name, resourceName, bound.Uniform->Name))
 					return;
 #endif
@@ -2454,13 +2462,10 @@ namespace b3d::render
 				case GpuParameterType::StorageBuffer:
 					DeclareAccess(output, resourceIndex, GpuTextureSubresourceRange(), GpuAccessState(GpuBackendUtility::GetStageFlags(stageUse | GpuResourceUseFlag::ShaderAccess), bound.Access));
 					break;
-				case GpuParameterType::AccelerationStructure:
-					DeclareAccess(output, resourceIndex, GpuTextureSubresourceRange(), GpuAccessState(GpuBackendUtility::GetStageFlags(stageUse | GpuResourceUseFlag::AccelerationStructure), bound.Access));
-					break;
 				case GpuParameterType::SampledTexture:
 				{
 					// Sampled depth/stencil views only read the depth aspect
-					GpuTextureSubresourceRange range = GpuBackendUtility::GetSurfaceRange(resource.FullRange, bound.Surface);
+					GpuTextureSubresourceRange range = GpuBackendUtility::GetSurfaceRange(resource.FullRange, bound.Texture.Surface);
 					if(range.AspectMask.IsSet(GpuTextureAspectFlag::Depth))
 						range.AspectMask = GpuTextureAspectFlag::Depth;
 
@@ -2469,7 +2474,7 @@ namespace b3d::render
 				}
 				case GpuParameterType::StorageTexture:
 				{
-					const GpuTextureSubresourceRange range = GpuBackendUtility::GetSurfaceRange(resource.FullRange, bound.Surface);
+					const GpuTextureSubresourceRange range = GpuBackendUtility::GetSurfaceRange(resource.FullRange, bound.Texture.Surface);
 					DeclareAccess(output, resourceIndex, range, GpuAccessState(GpuBackendUtility::GetStageFlags(stageUse | GpuResourceUseFlag::ShaderAccess), bound.Access, GpuImageLayout::General));
 					break;
 				}
