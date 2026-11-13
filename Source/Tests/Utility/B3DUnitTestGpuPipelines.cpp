@@ -14,10 +14,10 @@ namespace b3d
 	namespace
 	{
 		/**
-		 * Resolves the test shader @p name, with one compute pass, from Data/Shaders/Tests and creates its pipeline. The shader comes from the
-		 * prebuilt shader store, or is compiled where the platform can. Returns null if it cannot be resolved for the active backend.
+		 * Resolves the test shader @p name, with one pass, from Data/Shaders/Tests. The shader comes from the prebuilt shader store, or is
+		 * compiled where the platform can. Returns its pass, or null if it cannot be resolved for the active backend.
 		 */
-		TShared<GpuComputePipelineState> CreateComputePipeline(GpuDevice& device, const String& name)
+		TShared<Pass> ResolveTestPass(const String& name)
 		{
 			const TShared<Shader> shader = ShaderRegistry::Instance().GetOrCompileShader<false>(Path("Tests/" + name + ".bsl"),
 				BuiltinResources::kBuiltinShaderCachePrefix, ShaderDefines());
@@ -35,8 +35,18 @@ namespace b3d
 			if(!variation->IsCompiled() || variation->GetPassCount() != 1)
 				return nullptr;
 
+			return variation->GetPass(0);
+		}
+
+		/** Resolves the test shader @p name, with one compute pass, and creates its pipeline. Returns null if it cannot be resolved for the active backend. */
+		TShared<GpuComputePipelineState> CreateComputePipeline(GpuDevice& device, const String& name)
+		{
+			const TShared<Pass> pass = ResolveTestPass(name);
+			if(pass == nullptr)
+				return nullptr;
+
 			GpuComputePipelineStateCreateInformation pipelineInformation;
-			pipelineInformation.Program = device.CreateGpuProgram(variation->GetPass(0)->GetGpuProgramCreateInformation(GPT_COMPUTE_PROGRAM));
+			pipelineInformation.Program = device.CreateGpuProgram(pass->GetGpuProgramCreateInformation(GPT_COMPUTE_PROGRAM));
 			return device.CreateGpuComputePipelineState(pipelineInformation);
 		}
 	} // namespace
@@ -84,5 +94,28 @@ namespace b3d
 	TShared<GpuComputePipelineState> CreateTestInlineRayTracingBindlessPipeline(GpuDevice& device)
 	{
 		return CreateComputePipeline(device, "InlineRayTracingBindless");
+	}
+
+	UnorderedMap<String, TShared<GpuProgram>> CreateTestRayTracingPrograms(GpuDevice& device, const String& name)
+	{
+		UnorderedMap<String, TShared<GpuProgram>> programs;
+		for(const auto& [entryPoint, programInformation] : GetTestRayTracingProgramInformation(name))
+			programs[entryPoint] = device.CreateGpuProgram(programInformation);
+
+		return programs;
+	}
+
+	UnorderedMap<String, GpuProgramCreateInformation> GetTestRayTracingProgramInformation(const String& name)
+	{
+		UnorderedMap<String, GpuProgramCreateInformation> programInformation;
+
+		const TShared<Pass> pass = ResolveTestPass(name);
+		if(pass == nullptr)
+			return programInformation;
+
+		for(const GpuProgramCreateInformation& information : pass->GetInformation().Programs)
+			programInformation[information.EntryPoint] = information;
+
+		return programInformation;
 	}
 } // namespace b3d

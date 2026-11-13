@@ -160,6 +160,12 @@ namespace b3d
 		/** Maximum number of nested ray traces a ray tracing pipeline can perform. */
 		u32 MaximumRecursionDepth = 0;
 
+		/**
+		 * Maximum size in bytes of the hit attributes that closest hit and any hit programs receive, and that intersection programs report.
+		 * At least 32. Shaders compiled from BSL are limited to 32 bytes when they are cooked, since cooking doesn't know the device.
+		 */
+		u32 MaximumHitAttributeSize = 0;
+
 		/** Alignment in bytes of the scratch memory offset that an acceleration structure build uses. */
 		u32 ScratchOffsetAlignment = 0;
 
@@ -179,7 +185,7 @@ namespace b3d
 		bool SupportsCallablePrograms = false;
 
 		/**
-		 * True if top level acceleration structures can be created with GpuBufferFlag::Bindless, so shaders read them through
+		 * True if top level acceleration structures can be created with GpuAccelerationStructureFlag::Bindless, so shaders read them through
 		 * ResourceDescriptorHeap. Otherwise parameter sets bind them.
 		 */
 		bool SupportsBindlessAccelerationStructures = false;

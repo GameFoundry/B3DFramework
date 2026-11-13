@@ -172,3 +172,45 @@ void GpuComputePipelineState::Initialize()
 	mParameterLayout = mGpuDevice.CreateGpuPipelineParameterLayout(parameterLayoutCreateInformation);
 }
 
+GpuRayTracingHitGroup::GpuRayTracingHitGroup(const TShared<GpuProgram>& closestHitProgram, const TShared<GpuProgram>& anyHitProgram, const TShared<GpuProgram>& intersectionProgram)
+	: ClosestHitProgram(closestHitProgram), AnyHitProgram(anyHitProgram), IntersectionProgram(intersectionProgram)
+{ }
+
+GpuRayTracingPipelineState::GpuRayTracingPipelineState(GpuDevice& gpuDevice, const GpuRayTracingPipelineStateCreateInformation& createInformation)
+	: mGpuDevice(gpuDevice), mData(createInformation)
+{ }
+
+void GpuRayTracingPipelineState::Initialize()
+{
+	GpuPipelineParameterLayoutInformation parameterLayoutCreateInformation;
+	const auto fnAddProgram = [this, &parameterLayoutCreateInformation](const TShared<GpuProgram>& program)
+	{
+		if(program == nullptr)
+			return;
+
+		AddParameterLayoutProgram(parameterLayoutCreateInformation, program->GetType(), program);
+
+		const GpuProgramEntryPointReflection& reflection = program->GetEntryPointReflection();
+		mMaximumPayloadSize = std::max(mMaximumPayloadSize, reflection.RayPayloadSize);
+		mMaximumAttributeSize = std::max(mMaximumAttributeSize, reflection.HitAttributeSize);
+	};
+
+	for(const TShared<GpuProgram>& program : mData.RayGenerationPrograms)
+		fnAddProgram(program);
+
+	for(const TShared<GpuProgram>& program : mData.MissPrograms)
+		fnAddProgram(program);
+
+	for(const GpuRayTracingHitGroup& hitGroup : mData.HitGroups)
+	{
+		fnAddProgram(hitGroup.ClosestHitProgram);
+		fnAddProgram(hitGroup.AnyHitProgram);
+		fnAddProgram(hitGroup.IntersectionProgram);
+	}
+
+	for(const TShared<GpuProgram>& program : mData.CallablePrograms)
+		fnAddProgram(program);
+
+	mParameterLayout = mGpuDevice.CreateGpuPipelineParameterLayout(parameterLayoutCreateInformation);
+}
+

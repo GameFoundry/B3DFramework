@@ -270,6 +270,53 @@ namespace b3d
 		{}
 	};
 
+	/** Programs that run when a ray hits geometry. At least one of them must be set. */
+	struct B3D_EXPORT GpuRayTracingHitGroup
+	{
+		GpuRayTracingHitGroup() = default;
+
+		/**
+		 * @param	closestHitProgram		Program that runs for the closest hit of a ray. Can be null.
+		 * @param	anyHitProgram			Program that decides whether a candidate hit is accepted. Can be null, in which case every candidate
+		 *									is accepted.
+		 * @param	intersectionProgram		Program that intersects a ray with procedural geometry. Null for triangle geometry.
+		 */
+		GpuRayTracingHitGroup(const TShared<GpuProgram>& closestHitProgram, const TShared<GpuProgram>& anyHitProgram = nullptr,
+			const TShared<GpuProgram>& intersectionProgram = nullptr);
+
+		TShared<GpuProgram> ClosestHitProgram; /**< Program that runs for the closest hit of a ray. GPT_CLOSEST_HIT_PROGRAM. */
+		TShared<GpuProgram> AnyHitProgram; /**< Program that decides whether a candidate hit is accepted. GPT_ANY_HIT_PROGRAM. */
+		TShared<GpuProgram> IntersectionProgram; /**< Program that intersects a ray with procedural geometry. GPT_INTERSECTION_PROGRAM. */
+	};
+
+	/**
+	 * Descriptor structure describing a GPU ray tracing pipeline state. Every program must come from sources that declare the same
+	 * parameters (GpuProgram::GetParameterLayoutHash()). A shader binding table refers to programs and hit groups by their index in these lists.
+	 */
+	struct GpuRayTracingPipelineStateInformation
+	{
+		Vector<TShared<GpuProgram>> RayGenerationPrograms; /**< Programs that start the rays of a dispatch. GPT_RAY_GENERATION_PROGRAM. At least one. */
+		Vector<TShared<GpuProgram>> MissPrograms; /**< Programs that run when a ray hits nothing. GPT_MISS_PROGRAM. */
+		Vector<GpuRayTracingHitGroup> HitGroups; /**< Programs that run when a ray hits geometry. */
+		Vector<TShared<GpuProgram>> CallablePrograms; /**< Programs that other programs call with CallShader(). GPT_CALLABLE_PROGRAM. */
+
+		/**
+		 * Largest number of nested TraceRay() calls: 1 if only ray generation programs trace rays. At most
+		 * GpuRayTracingCapabilities::MaximumRecursionDepth.
+		 */
+		u32 MaximumRecursionDepth = 1;
+	};
+
+	/** Descriptor structure used for initializing a GPU ray tracing pipeline state. */
+	struct GpuRayTracingPipelineStateCreateInformation : GpuRayTracingPipelineStateInformation
+	{
+		GpuRayTracingPipelineStateCreateInformation() = default;
+
+		GpuRayTracingPipelineStateCreateInformation(const GpuRayTracingPipelineStateInformation& other)
+			: GpuRayTracingPipelineStateInformation(other)
+		{}
+	};
+
 	/**
 	 * Describes the state of the GPU pipeline that determines how are primitives rendered. It consists of programmable
 	 * states (vertex, fragment, geometry, etc. GPU programs), as well as a set of fixed states (blend, rasterizer,
@@ -336,6 +383,42 @@ namespace b3d
 
 		GpuComputePipelineStateInformation mData;
 		TShared<GpuPipelineParameterLayout> mParameterLayout;
+	};
+
+	/**
+	 * Describes the state of the GPU pipeline that traces rays: the programs a ray tracing dispatch runs. Shader binding tables pick which
+	 * of them run for which rays.
+	 *
+	 * @note	Thread safe (Immutable).
+	 */
+	class B3D_EXPORT GpuRayTracingPipelineState
+	{
+	public:
+		GpuRayTracingPipelineState(GpuDevice& gpuDevice, const GpuRayTracingPipelineStateCreateInformation& createInformation);
+		virtual ~GpuRayTracingPipelineState() = default;
+
+		/** Initializes the object. The object should not be used before this is called. */
+		virtual void Initialize();
+
+		/** Returns the programs of the pipeline. */
+		const GpuRayTracingPipelineStateInformation& GetInformation() const { return mData; }
+
+		/** Returns an object containing the layout of the parameters that every program of the pipeline declares. */
+		const TShared<GpuPipelineParameterLayout>& GetParameterLayout() const { return mParameterLayout; }
+
+		/** Returns the size in bytes of the largest ray payload a program of the pipeline receives. */
+		u32 GetMaximumPayloadSize() const { return mMaximumPayloadSize; }
+
+		/** Returns the size in bytes of the largest hit attributes a program of the pipeline receives or reports. */
+		u32 GetMaximumAttributeSize() const { return mMaximumAttributeSize; }
+
+	protected:
+		GpuDevice& mGpuDevice;
+
+		GpuRayTracingPipelineStateInformation mData;
+		TShared<GpuPipelineParameterLayout> mParameterLayout;
+		u32 mMaximumPayloadSize = 0;
+		u32 mMaximumAttributeSize = 0;
 	};
 
 	/** @} */

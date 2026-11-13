@@ -381,6 +381,7 @@ namespace b3d
 	class MeshImportOptions;
 	class GpuGraphicsPipelineState;
 	class GpuComputePipelineState;
+	class GpuRayTracingPipelineState;
 	class GpuPipelineParameterLayout;
 	struct FontBitmapInformation;
 	class GameObject;

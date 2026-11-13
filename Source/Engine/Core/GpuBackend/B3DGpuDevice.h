@@ -47,6 +47,7 @@ namespace b3d
 		class GpuVertexInputManager;
 		struct GpuVertexInputLayout;
 		class GpuAccelerationStructure;
+		class GpuShaderBindingTable;
 	}
 
 	struct GpuPipelineParameterLayoutCreateInformation;
@@ -56,6 +57,8 @@ namespace b3d
 	struct GpuProgramCreateInformation;
 	struct GpuComputePipelineStateCreateInformation;
 	struct GpuGraphicsPipelineStateCreateInformation;
+	struct GpuRayTracingPipelineStateCreateInformation;
+	struct GpuShaderBindingTableCreateInformation;
 	struct GpuAccelerationStructureSizes;
 	struct GpuAccelerationStructureCreateInformation;
 	struct GpuAccelerationStructureInputs;
@@ -306,6 +309,26 @@ namespace b3d
 		virtual TShared<GpuComputePipelineState> CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) = 0;
 
 		/**
+		 * Creates a ray tracing pipeline. Thread safe.
+		 *
+		 * @param	createInformation		Object describing the pipeline to create.
+		 * @param	flags					Creation flags. @see GpuObjectCreateFlag
+		 * @return							Created pipeline, or null, with the reason logged, if the device doesn't support ray tracing
+		 *									pipelines or @p createInformation is invalid.
+		 */
+		TShared<GpuRayTracingPipelineState> CreateGpuRayTracingPipelineState(const GpuRayTracingPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None);
+
+		/**
+		 * Creates a shader binding table, the records that pick the programs of a ray tracing pipeline that run for each ray. Run it with
+		 * render::GpuCommandBuffer::DispatchRays(). Thread safe.
+		 *
+		 * @param	createInformation		Object describing the table to create.
+		 * @return							Created table, or null, with the reason logged, if the device doesn't support ray tracing pipelines
+		 *									or @p createInformation is invalid.
+		 */
+		TShared<render::GpuShaderBindingTable> CreateGpuShaderBindingTable(const GpuShaderBindingTableCreateInformation& createInformation);
+
+		/**
 		 * Creates a pipeline layout from a set of GPU program parameter descriptions.
 		 *
 		 * @param	createInformation		Object describing the layout to create.
@@ -480,6 +503,18 @@ namespace b3d
 		 * CreateGpuAccelerationStructure(). Returns null by default: backends with RSC_ACCELERATION_STRUCTURES override it.
 		 */
 		virtual TShared<render::GpuAccelerationStructure> CreateGpuAccelerationStructureInternal(const GpuAccelerationStructureCreateInformation& createInformation);
+
+		/**
+		 * Creates a ray tracing pipeline described by @p createInformation, which is valid for the device. See
+		 * CreateGpuRayTracingPipelineState(). Returns null by default: backends with RSC_RAY_TRACING_PIPELINE override it.
+		 */
+		virtual TShared<GpuRayTracingPipelineState> CreateGpuRayTracingPipelineStateInternal(const GpuRayTracingPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags);
+
+		/**
+		 * Creates a shader binding table described by @p createInformation, which is valid for the device. See
+		 * CreateGpuShaderBindingTable(). Returns null by default: backends with RSC_RAY_TRACING_PIPELINE override it.
+		 */
+		virtual TShared<render::GpuShaderBindingTable> CreateGpuShaderBindingTableInternal(const GpuShaderBindingTableCreateInformation& createInformation);
 
 		/**
 		 * Creates the object mapping the vertex buffer elements of @p layout onto the inputs of a vertex shader, identified by @p id.

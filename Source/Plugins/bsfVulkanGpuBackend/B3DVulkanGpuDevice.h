@@ -268,6 +268,8 @@ namespace b3d
 			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
 			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
 			TShared<GpuAccelerationStructure> CreateGpuAccelerationStructureInternal(const GpuAccelerationStructureCreateInformation& createInformation) override;
+			TShared<GpuRayTracingPipelineState> CreateGpuRayTracingPipelineStateInternal(const GpuRayTracingPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags) override;
+			TShared<GpuShaderBindingTable> CreateGpuShaderBindingTableInternal(const GpuShaderBindingTableCreateInformation& createInformation) override;
 			GpuVertexInput* CreateVertexInput(u32 id, const GpuVertexInputLayout& layout) override;
 
 			/** Initializes the capabilities of the device. */

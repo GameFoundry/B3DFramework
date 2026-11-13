@@ -17,7 +17,10 @@
 #include "GpuBackend/B3DGpuParameterSetPool.h"
 #include "GpuBackend/B3DGpuPipelineParameterLayout.h"
 #include "GpuBackend/B3DGpuPipelineState.h"
+#include "GpuBackend/B3DGpuProgram.h"
+#include "GpuBackend/B3DGpuShaderBindingTable.h"
 #include "GpuBackend/B3DGpuWorkContext.h"
+#include "Material/B3DShaderReflection.h"
 #include "Math/B3DMatrix4.h"
 #include "Math/B3DVector3.h"
 
@@ -30,6 +33,8 @@ GpuRayTracingTestSuite::GpuRayTracingTestSuite()
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestAccelerationStructureCreation)
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestAccelerationStructureQueries)
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestInlineRayTracing)
+	B3D_ADD_TEST(GpuRayTracingTestSuite::TestRayTracingPipelineCreation)
+	B3D_ADD_TEST(GpuRayTracingTestSuite::TestRayTracingPipelineRecords)
 }
 
 void GpuRayTracingTestSuite::TestAccelerationStructureCreation()
@@ -955,4 +960,541 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 		B3D_TEST_ASSERT_MSG(actual[0] == 1.0f && std::abs(actual[1] - 5.0f) < kTolerance && actual[2] == 9.0f && actual[3] == 1.0f,
 			StringUtility::Format("Heap ray: hit {0}, distance {1}, instance id {2}, instance index {3}.", actual[0], actual[1], actual[2], actual[3]))
 	}, "GpuRayTracingTestSuite::TestInlineRayTracing", true);
+}
+
+namespace
+{
+	/**
+	 * Returns the pipeline of the RayTracingPipeline test shader: ray generation programs TraceTestRays and WriteIndices, miss programs MissA
+	 * and MissB, and hit groups of ClosestHitA, ClosestHitB and ClosestHitC, in that order.
+	 */
+	GpuRayTracingPipelineStateCreateInformation GetTestPipelineInformation(UnorderedMap<String, TShared<GpuProgram>>& programs)
+	{
+		GpuRayTracingPipelineStateCreateInformation information;
+		information.RayGenerationPrograms.push_back(programs["TraceTestRays"]);
+		information.RayGenerationPrograms.push_back(programs["WriteIndices"]);
+		information.MissPrograms.push_back(programs["MissA"]);
+		information.MissPrograms.push_back(programs["MissB"]);
+		information.HitGroups.push_back(GpuRayTracingHitGroup(programs["ClosestHitA"]));
+		information.HitGroups.push_back(GpuRayTracingHitGroup(programs["ClosestHitB"]));
+		information.HitGroups.push_back(GpuRayTracingHitGroup(programs["ClosestHitC"]));
+
+		return information;
+	}
+} // namespace
+
+void GpuRayTracingTestSuite::TestRayTracingPipelineCreation()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	const GpuDeviceCapabilities& capabilities = device->GetCapabilities();
+	if(!capabilities.HasCapability(RSC_RAY_TRACING_PIPELINE))
+	{
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("Cannot create a ray tracing pipeline, the GPU device doesn't support ray tracing pipelines.");
+			B3D_TEST_ASSERT(device->CreateGpuRayTracingPipelineState(GpuRayTracingPipelineStateCreateInformation()) == nullptr)
+		}
+
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("Cannot create a shader binding table, the GPU device doesn't support ray tracing pipelines.");
+			B3D_TEST_ASSERT(device->CreateGpuShaderBindingTable(GpuShaderBindingTableCreateInformation()) == nullptr)
+		}
+
+		GetRenderThread().PostCommand([this, &device]()
+		{
+			const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+			const TShared<render::GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
+			const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Unsupported ray dispatch"));
+
+			{
+				LoggingScope logs(*this);
+				logs.ExpectError("Cannot dispatch rays, the GPU device doesn't support ray tracing pipelines.");
+				B3D_TEST_ASSERT(!commands->DispatchRays(nullptr, 0, 1, 1))
+			}
+
+			context->SubmitCommandBuffer(commands);
+			device->WaitUntilIdle();
+		}, "GpuRayTracingTestSuite::TestRayTracingPipelineCreation", true);
+
+		return;
+	}
+
+	// Shaders are resources, which are created outside of the render thread
+	UnorderedMap<String, TShared<GpuProgram>> programs = CreateTestRayTracingPrograms(*device, "RayTracingPipeline");
+	UnorderedMap<String, TShared<GpuProgram>> otherPrograms = CreateTestRayTracingPrograms(*device, "RayTracingOtherParameters");
+	bool areProgramsCreated = true;
+	const auto fnCheckPrograms = [this, &areProgramsCreated](UnorderedMap<String, TShared<GpuProgram>>& shaderPrograms, std::initializer_list<const char*> entryPoints)
+	{
+		for(const char* entryPoint : entryPoints)
+		{
+			const auto found = shaderPrograms.find(entryPoint);
+			const bool isCreated = found != shaderPrograms.end() && found->second != nullptr && found->second->IsCompiled();
+			B3D_TEST_ASSERT_MSG(isCreated, StringUtility::Format("Program {0} wasn't created.", entryPoint))
+			areProgramsCreated &= isCreated;
+		}
+	};
+
+	fnCheckPrograms(programs, { "TraceTestRays", "WriteIndices", "MissA", "MissB", "ClosestHitA", "ClosestHitB", "ClosestHitC" });
+	fnCheckPrograms(otherPrograms, { "WriteZero" });
+	if(!areProgramsCreated)
+		return;
+
+	const GpuRayTracingPipelineStateCreateInformation validInformation = GetTestPipelineInformation(programs);
+
+	// Pipeline creation errors, with the program each one names
+	const auto fnExpectPipelineError = [this, &device](const GpuRayTracingPipelineStateCreateInformation& information, const String& error)
+	{
+		LoggingScope logs(*this);
+		logs.ExpectError(error);
+		B3D_TEST_ASSERT_MSG(device->CreateGpuRayTracingPipelineState(information) == nullptr, error)
+	};
+
+	{
+		GpuRayTracingPipelineStateCreateInformation information = validInformation;
+		information.RayGenerationPrograms.clear();
+		fnExpectPipelineError(information, "A ray tracing pipeline needs at least one ray generation program.");
+	}
+
+	{
+		GpuRayTracingPipelineStateCreateInformation information = validInformation;
+		information.MissPrograms.push_back(nullptr);
+		fnExpectPipelineError(information, "Miss program 2 of a ray tracing pipeline is null.");
+	}
+
+	{
+		GpuRayTracingPipelineStateCreateInformation information = validInformation;
+		information.RayGenerationPrograms.push_back(programs["MissA"]);
+		fnExpectPipelineError(information, StringUtility::Format("Ray generation program 2 of a ray tracing pipeline, '{0}', is a Miss program.", programs["MissA"]->GetName()));
+	}
+
+	{
+		GpuRayTracingPipelineStateCreateInformation information = validInformation;
+		information.HitGroups[0].AnyHitProgram = programs["ClosestHitB"];
+		fnExpectPipelineError(information, StringUtility::Format("Any hit program of hit group 0 of a ray tracing pipeline, '{0}', is a Closest Hit program.",
+			programs["ClosestHitB"]->GetName()));
+	}
+
+	{
+		GpuRayTracingPipelineStateCreateInformation information = validInformation;
+		information.HitGroups.push_back(GpuRayTracingHitGroup());
+		fnExpectPipelineError(information, "Hit group 3 of a ray tracing pipeline has no program.");
+	}
+
+	const u32 maximumRecursionDepth = capabilities.RayTracing.MaximumRecursionDepth;
+	for(const u32 recursionDepth : { 0u, maximumRecursionDepth + 1 })
+	{
+		GpuRayTracingPipelineStateCreateInformation information = validInformation;
+		information.MaximumRecursionDepth = recursionDepth;
+		fnExpectPipelineError(information, StringUtility::Format("A ray tracing pipeline has maximum recursion depth {0}, which must be between 1 and {1}.",
+			recursionDepth, maximumRecursionDepth));
+	}
+
+	// Cooked shaders can't have hit attributes over 32 bytes, so the program gets a copy of its reflection with larger attributes than the
+	// device allows
+	{
+		UnorderedMap<String, GpuProgramCreateInformation> programInformation = GetTestRayTracingProgramInformation("RayTracingPipeline");
+		GpuProgramCreateInformation& closestHitInformation = programInformation["ClosestHitA"];
+		B3D_TEST_ASSERT(closestHitInformation.ShaderReflection != nullptr)
+		if(closestHitInformation.ShaderReflection != nullptr)
+		{
+			const u32 hitAttributeSize = capabilities.RayTracing.MaximumHitAttributeSize + 4;
+			const TShared<ShaderReflection> reflection = B3DMakeShared<ShaderReflection>(*closestHitInformation.ShaderReflection);
+			reflection->EntryPoints[closestHitInformation.EntryPoint].HitAttributeSize = hitAttributeSize;
+			closestHitInformation.ShaderReflection = reflection;
+
+			const TShared<GpuProgram> largeAttributeProgram = device->CreateGpuProgram(closestHitInformation);
+			GpuRayTracingPipelineStateCreateInformation information = validInformation;
+			information.HitGroups[1].ClosestHitProgram = largeAttributeProgram;
+			fnExpectPipelineError(information, StringUtility::Format("Closest hit program of hit group 1 of a ray tracing pipeline, '{0}', has {1} bytes of hit "
+				"attributes. The maximum is {2}.", largeAttributeProgram->GetName(), hitAttributeSize, capabilities.RayTracing.MaximumHitAttributeSize));
+		}
+	}
+
+	{
+		GpuRayTracingPipelineStateCreateInformation information = validInformation;
+		information.RayGenerationPrograms.push_back(otherPrograms["WriteZero"]);
+		fnExpectPipelineError(information, StringUtility::Format("Ray generation program 2 of a ray tracing pipeline, '{0}', declares other parameters than '{1}'. "
+			"Every program of a pipeline must declare the same parameters.", otherPrograms["WriteZero"]->GetName(), programs["TraceTestRays"]->GetName()));
+	}
+
+	// The pipeline takes the largest payload (one uint) and attributes (two barycentrics) of its programs
+	const TShared<GpuRayTracingPipelineState> pipeline = device->CreateGpuRayTracingPipelineState(validInformation);
+	B3D_TEST_ASSERT(pipeline != nullptr)
+	if(pipeline == nullptr)
+		return;
+
+	B3D_TEST_ASSERT(pipeline->GetParameterLayout() != nullptr)
+	B3D_TEST_ASSERT_MSG(pipeline->GetMaximumPayloadSize() == 4 && pipeline->GetMaximumAttributeSize() == 8,
+		StringUtility::Format("Payload {0} bytes, attributes {1} bytes.", pipeline->GetMaximumPayloadSize(), pipeline->GetMaximumAttributeSize()))
+
+	// Shader binding table creation errors
+	GpuShaderBindingTableCreateInformation validTable;
+	validTable.Pipeline = pipeline;
+	validTable.RayGenerationRecords.push_back(0);
+	validTable.MissRecords.push_back(0);
+	validTable.HitGroupRecords.push_back(0);
+	validTable.HitGroupRecords.push_back(kGpuShaderBindingTableEmptyRecord);
+
+	const auto fnExpectTableError = [this, &device](const GpuShaderBindingTableCreateInformation& information, const String& error)
+	{
+		LoggingScope logs(*this);
+		logs.ExpectError(error);
+		B3D_TEST_ASSERT_MSG(device->CreateGpuShaderBindingTable(information) == nullptr, error)
+	};
+
+	{
+		GpuShaderBindingTableCreateInformation information = validTable;
+		information.Pipeline = nullptr;
+		fnExpectTableError(information, "A shader binding table needs a pipeline.");
+	}
+
+	{
+		GpuShaderBindingTableCreateInformation information = validTable;
+		information.RayGenerationRecords.clear();
+		fnExpectTableError(information, "A shader binding table needs at least one ray generation record.");
+	}
+
+	{
+		GpuShaderBindingTableCreateInformation information = validTable;
+		information.RayGenerationRecords.push_back(2);
+		fnExpectTableError(information, "Ray generation record 1 of a shader binding table refers to ray generation program 2, but the pipeline has 2.");
+	}
+
+	{
+		GpuShaderBindingTableCreateInformation information = validTable;
+		information.MissRecords.push_back(kGpuShaderBindingTableEmptyRecord);
+		fnExpectTableError(information, StringUtility::Format("Miss record 1 of a shader binding table refers to miss program {0}, but the pipeline has 2.",
+			kGpuShaderBindingTableEmptyRecord));
+	}
+
+	{
+		GpuShaderBindingTableCreateInformation information = validTable;
+		information.HitGroupRecords.push_back(3);
+		fnExpectTableError(information, "Hit group record 2 of a shader binding table refers to hit group 3, but the pipeline has 3.");
+	}
+
+	{
+		GpuShaderBindingTableCreateInformation information = validTable;
+		information.CallableRecords.push_back(0);
+		fnExpectTableError(information, "Callable record 0 of a shader binding table refers to callable program 0, but the pipeline has 0.");
+	}
+
+	const TShared<render::GpuShaderBindingTable> table = device->CreateGpuShaderBindingTable(validTable);
+	B3D_TEST_ASSERT(table != nullptr && table->GetPipeline() == pipeline)
+	if(table == nullptr)
+		return;
+
+	// Dispatch errors, caught before anything is recorded
+	GetRenderThread().PostCommand([this, &device, &table]()
+	{
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		const TShared<render::GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
+		const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Invalid ray dispatches"));
+
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("Cannot dispatch rays without a shader binding table.");
+			B3D_TEST_ASSERT(!commands->DispatchRays(nullptr, 0, 1, 1))
+		}
+
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("Cannot dispatch rays with ray generation record 1, the shader binding table has 1.");
+			B3D_TEST_ASSERT(!commands->DispatchRays(table, 1, 1, 1))
+		}
+
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("Cannot dispatch rays over an empty grid (4 x 0 x 1).");
+			B3D_TEST_ASSERT(!commands->DispatchRays(table, 0, 4, 0))
+		}
+
+		context->SubmitCommandBuffer(commands);
+		device->WaitUntilIdle();
+	}, "GpuRayTracingTestSuite::TestRayTracingPipelineCreation", true);
+}
+
+namespace
+{
+	/** Ray traced by the TraceTestRays program of the RayTracingPipeline test shader, in the layout of its TestRay structure. */
+	struct PipelineTestRay
+	{
+		PipelineTestRay() = default;
+
+		/**
+		 * @param	origin					Origin of the ray, which travels along +Z.
+		 * @param	hitGroupContribution	RayContributionToHitGroupIndex of TraceRay().
+		 * @param	geometryMultiplier		MultiplierForGeometryContributionToHitGroupIndex of TraceRay().
+		 * @param	missIndex				MissShaderIndex of TraceRay().
+		 */
+		PipelineTestRay(const Vector3& origin, u32 hitGroupContribution, u32 geometryMultiplier, u32 missIndex)
+			: Origin(origin), Direction(0.0f, 0.0f, 1.0f), HitGroupContribution(hitGroupContribution), GeometryMultiplier(geometryMultiplier), MissIndex(missIndex)
+		{ }
+
+		Vector3 Origin = Vector3::kZero;
+		float OriginPadding = 0.0f;
+		Vector3 Direction = Vector3::kZero;
+		float DirectionPadding = 0.0f;
+		u32 HitGroupContribution = 0;
+		u32 GeometryMultiplier = 0;
+		u32 MissIndex = 0;
+		u32 Padding = 0;
+	};
+
+	static_assert(sizeof(PipelineTestRay) == 48, "PipelineTestRay must match the layout of the shader's structure.");
+} // namespace
+
+void GpuRayTracingTestSuite::TestRayTracingPipelineRecords()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	const GpuDeviceCapabilities& capabilities = device->GetCapabilities();
+	if(!capabilities.HasCapability(RSC_ACCELERATION_STRUCTURES) || !capabilities.HasCapability(RSC_RAY_TRACING_PIPELINE))
+		return;
+
+	// Shaders are resources, which are created outside of the render thread
+	UnorderedMap<String, TShared<GpuProgram>> programs = CreateTestRayTracingPrograms(*device, "RayTracingPipeline");
+	B3D_TEST_ASSERT(programs.size() == 7)
+	if(programs.size() != 7)
+		return;
+
+	const TShared<GpuRayTracingPipelineState> pipeline = device->CreateGpuRayTracingPipelineState(GetTestPipelineInformation(programs));
+	B3D_TEST_ASSERT(pipeline != nullptr)
+	if(pipeline == nullptr)
+		return;
+
+	// Miss records in reverse order of the programs, and hit group records 0 to 3 run ClosestHitA, ClosestHitB, nothing and ClosestHitC
+	GpuShaderBindingTableCreateInformation tableInformation;
+	tableInformation.Pipeline = pipeline;
+	tableInformation.RayGenerationRecords.push_back(0);
+	tableInformation.RayGenerationRecords.push_back(1);
+	tableInformation.MissRecords.push_back(1);
+	tableInformation.MissRecords.push_back(0);
+	tableInformation.HitGroupRecords.push_back(0);
+	tableInformation.HitGroupRecords.push_back(1);
+	tableInformation.HitGroupRecords.push_back(kGpuShaderBindingTableEmptyRecord);
+	tableInformation.HitGroupRecords.push_back(2);
+
+	const TShared<render::GpuShaderBindingTable> table = device->CreateGpuShaderBindingTable(tableInformation);
+	B3D_TEST_ASSERT(table != nullptr)
+	if(table == nullptr)
+		return;
+
+	GetRenderThread().PostCommand([this, &device, &pipeline, &table]()
+	{
+		const GpuRayTracingCapabilities& rayTracing = device->GetCapabilities().RayTracing;
+		const GpuBufferFlags inputFlags = GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AccelerationStructureInput;
+
+		// Geometry 0 is a triangle at X 0 to 1, and geometry 1 a triangle at X 2 to 3, both at Z = 5
+		const float vertexData[] =
+		{
+			0.0f, 0.0f, 5.0f,		1.0f, 0.0f, 5.0f,		0.0f, 1.0f, 5.0f,
+			2.0f, 0.0f, 5.0f,		3.0f, 0.0f, 5.0f,		2.0f, 1.0f, 5.0f
+		};
+
+		const TShared<render::GpuBuffer> vertices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(12, 6, inputFlags));
+		B3D_TEST_ASSERT(vertices != nullptr)
+		if(vertices == nullptr)
+			return;
+
+		{
+			const render::GpuBufferMappedScope mapping = vertices->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			std::memcpy(mapping.GetMappedMemory(), vertexData, sizeof(vertexData));
+		}
+
+		GpuRayTracingGeometry secondTriangle(vertices, 12, 3);
+		secondTriangle.VertexOffset = 3 * 12;
+		const GpuRayTracingGeometry geometries[] = { GpuRayTracingGeometry(vertices, 12, 3), secondTriangle };
+		const GpuAccelerationStructureInputs bottomLevelInputs(TArrayView<const GpuRayTracingGeometry>(geometries, 2));
+
+		GpuAccelerationStructureSizes bottomLevelSizes;
+		B3D_TEST_ASSERT(device->GetAccelerationStructureSizes(bottomLevelInputs, bottomLevelSizes))
+		const TShared<GpuAccelerationStructure> bottomLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::BottomLevel, bottomLevelSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "BottomLevel"));
+
+		// Instance 0 at Y = 0 uses the hit group records from 0, and instance 1 at Y = 10 those from 1
+		GpuRayTracingInstance instanceDescriptions[] =
+		{
+			GpuRayTracingInstance(bottomLevel.get(), Matrix4::kIdentity, 0),
+			GpuRayTracingInstance(bottomLevel.get(), Matrix4::Translation(Vector3(0.0f, 10.0f, 0.0f)), 1)
+		};
+
+		instanceDescriptions[1].HitGroupIndexOffset = 1;
+
+		const TShared<render::GpuBuffer> instances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(rayTracing.InstanceSize, 2, inputFlags));
+		B3D_TEST_ASSERT(bottomLevel != nullptr && instances != nullptr)
+		if(bottomLevel == nullptr || instances == nullptr)
+			return;
+
+		{
+			const render::GpuBufferMappedScope mapping = instances->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			B3D_TEST_ASSERT(device->WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance>(instanceDescriptions, 2), mapping.GetMappedMemory()))
+		}
+
+		const GpuAccelerationStructureInputs topLevelInputs(instances, 2);
+		GpuAccelerationStructureSizes topLevelSizes;
+		B3D_TEST_ASSERT(device->GetAccelerationStructureSizes(topLevelInputs, topLevelSizes))
+		const TShared<GpuAccelerationStructure> topLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::TopLevel, topLevelSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "TopLevel"));
+
+		const u32 scratchSize = std::max(bottomLevelSizes.BuildScratchSize, topLevelSizes.BuildScratchSize);
+		const TShared<render::GpuBuffer> scratch = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(4, AlignUp(scratchSize, 4) / 4,
+			GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+		B3D_TEST_ASSERT(topLevel != nullptr && scratch != nullptr)
+		if(topLevel == nullptr || scratch == nullptr)
+			return;
+
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		const TShared<render::GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
+
+		// The bottom level build, then the top level build, both back to rest
+		{
+			const GpuAccessState buildWrite(GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Write);
+			const GpuAccessState scratchAccess(GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Read | GpuAccessFlag::Write);
+			const GpuAccessState structureRest = GpuBackendUtility::GetRestingState(*bottomLevel, GQT_GRAPHICS);
+			const GpuAccessState scratchRest = GpuBackendUtility::GetRestingState(*scratch, GQT_GRAPHICS);
+
+			const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Ray tracing pipeline builds"));
+			const GpuBufferBarrier scratchBarrier(scratch, GpuAccessState(), scratchAccess);
+			const GpuAccelerationStructureBarrier bottomLevelBarrier(bottomLevel, GpuAccessState(), buildWrite);
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&scratchBarrier, 1), {}, {}, TArrayView<const GpuAccelerationStructureBarrier>(&bottomLevelBarrier, 1)));
+
+			const GpuAccelerationStructureBuild bottomLevelBuild(bottomLevelInputs, bottomLevel, scratch);
+			B3D_TEST_ASSERT(commands->BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(&bottomLevelBuild, 1)))
+
+			const GpuBufferBarrier scratchReuseBarrier(scratch, scratchAccess, scratchAccess);
+			const GpuAccelerationStructureBarrier topLevelBarriers[] =
+			{
+				GpuAccelerationStructureBarrier(bottomLevel, buildWrite, structureRest),
+				GpuAccelerationStructureBarrier(topLevel, GpuAccessState(), buildWrite)
+			};
+
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&scratchReuseBarrier, 1), {}, {}, TArrayView<const GpuAccelerationStructureBarrier>(topLevelBarriers, 2)));
+
+			GpuAccelerationStructureBuild topLevelBuild(topLevelInputs, topLevel, scratch);
+			topLevelBuild.BottomLevels = TArrayView<const TShared<GpuAccelerationStructure>>(&bottomLevel, 1);
+			B3D_TEST_ASSERT(commands->BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(&topLevelBuild, 1)))
+
+			const GpuBufferBarrier scratchRestBarrier(scratch, scratchAccess, scratchRest);
+			const GpuAccelerationStructureBarrier topLevelRestBarrier(topLevel, buildWrite, structureRest);
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&scratchRestBarrier, 1), {}, {}, TArrayView<const GpuAccelerationStructureBarrier>(&topLevelRestBarrier, 1)));
+			context->SubmitCommandBuffer(commands);
+			device->WaitUntilIdle();
+		}
+
+		// The record a ray runs is the instance's offset, plus the ray's hit group contribution, plus the geometry index times the ray's
+		// multiplier. A miss runs the record of the ray's miss index.
+		const PipelineTestRay rays[] =
+		{
+			PipelineTestRay(Vector3(0.25f, 0.25f, 0.0f), 0, 0, 0),
+			PipelineTestRay(Vector3(0.25f, 10.25f, 0.0f), 0, 0, 0),
+			PipelineTestRay(Vector3(0.25f, 0.25f, 0.0f), 1, 0, 0),
+			PipelineTestRay(Vector3(2.25f, 0.25f, 0.0f), 0, 2, 0),
+			PipelineTestRay(Vector3(2.25f, 0.25f, 0.0f), 1, 2, 0),
+			PipelineTestRay(Vector3(2.25f, 10.25f, 0.0f), 0, 2, 0),
+			PipelineTestRay(Vector3(5.0f, 5.0f, 0.0f), 0, 0, 0),
+			PipelineTestRay(Vector3(5.0f, 5.0f, 0.0f), 0, 0, 1)
+		};
+
+		const u32 expectedResults[] =
+		{
+			10, // Record 0 of instance 0: ClosestHitA
+			11, // Instance 1 starts at record 1: ClosestHitB
+			11, // The hit group contribution adds 1
+			1, // Geometry 1 times 2 is the empty record 2, which runs nothing
+			12, // Plus contribution 1 is record 3: ClosestHitC
+			12, // Instance 1 plus geometry 1 times 2 is record 3 too
+			101, // Miss record 0 runs MissB
+			100 // Miss record 1 runs MissA
+		};
+
+		static constexpr u32 kRayCount = sizeof(rays) / sizeof(rays[0]);
+		static_assert(kRayCount == sizeof(expectedResults) / sizeof(expectedResults[0]), "Every ray needs an expected result.");
+
+		const TShared<render::GpuBuffer> rayBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(PipelineTestRay), kRayCount,
+			GpuBufferFlag::StoreOnCPUWithGPUAccess));
+		const TShared<render::GpuBuffer> resultBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kRayCount,
+			GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kRayCount * sizeof(u32)));
+		B3D_TEST_ASSERT(rayBuffer != nullptr && resultBuffer != nullptr && readback != nullptr)
+		if(rayBuffer == nullptr || resultBuffer == nullptr || readback == nullptr)
+			return;
+
+		{
+			const render::GpuBufferMappedScope mapping = rayBuffer->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			std::memcpy(mapping.GetMappedMemory(), rays, sizeof(rays));
+		}
+
+		const TShared<render::GpuParameterSet> parameterSet = context->GetParameterSetPool().Create(pipeline->GetParameterLayout()->GetSet(0), 0);
+		B3D_TEST_ASSERT(parameterSet->SetAccelerationStructure("Scene", topLevel))
+		parameterSet->SetStorageBuffer("Rays", rayBuffer);
+		parameterSet->SetStorageBuffer("Results", resultBuffer);
+
+		const GpuAccessState rayTracingWrite(GpuStageFlag::RayTracingShaderNonUniform, GpuAccessFlag::Write);
+		const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
+		const GpuAccessState transferRead(GpuStageFlag::Transfer, GpuAccessFlag::Read);
+		const GpuAccessState hostRead(GpuStageFlag::Host, GpuAccessFlag::Read);
+		GpuAccessState resultState;
+		GpuAccessState readbackState;
+
+		// Runs ray generation record @p rayGenerationRecordIndex once per ray, and returns the results
+		const auto fnDispatch = [&](const char* name, u32 rayGenerationRecordIndex)
+		{
+			Vector<u32> results(kRayCount, 0);
+
+			const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create(name));
+			commands->IssueBarriers(GpuBufferBarrier(resultBuffer, resultState, rayTracingWrite));
+			commands->SetGpuParameterSet(parameterSet);
+			B3D_TEST_ASSERT(commands->DispatchRays(table, rayGenerationRecordIndex, kRayCount, 1))
+
+			const GpuBufferBarrier copyBarriers[] = { GpuBufferBarrier(resultBuffer, rayTracingWrite, transferRead), GpuBufferBarrier(readback, readbackState, transferWrite) };
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(copyBarriers, 2)));
+			commands->CopyBufferToBuffer(resultBuffer, readback, 0, 0, kRayCount * sizeof(u32));
+			commands->IssueBarriers(GpuBufferBarrier(readback, transferWrite, hostRead));
+			context->SubmitCommandBuffer(commands);
+			device->WaitUntilIdle();
+
+			resultState = transferRead;
+			readbackState = hostRead;
+
+			const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(mapping.IsValid())
+				std::memcpy(results.data(), mapping.GetMappedMemory(), kRayCount * sizeof(u32));
+
+			return results;
+		};
+
+		const Vector<u32> results = fnDispatch("Ray tracing pipeline records", 0);
+		for(u32 rayIndex = 0; rayIndex < kRayCount; rayIndex++)
+		{
+			B3D_TEST_ASSERT_MSG(results[rayIndex] == expectedResults[rayIndex], StringUtility::Format("Ray {0} wrote {1}, expected {2}.", rayIndex, results[rayIndex],
+				expectedResults[rayIndex]))
+		}
+
+		// Ray generation record 1 runs WriteIndices
+		const Vector<u32> indices = fnDispatch("Second ray generation record", 1);
+		for(u32 rayIndex = 0; rayIndex < kRayCount; rayIndex++)
+			B3D_TEST_ASSERT_MSG(indices[rayIndex] == 1000 + rayIndex, StringUtility::Format("Thread {0} wrote {1}.", rayIndex, indices[rayIndex]))
+	}, "GpuRayTracingTestSuite::TestRayTracingPipelineRecords", true);
 }

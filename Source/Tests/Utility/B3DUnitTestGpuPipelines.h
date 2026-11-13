@@ -3,6 +3,7 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
+#include "GpuBackend/B3DGpuProgram.h"
 
 namespace b3d
 {
@@ -76,4 +77,25 @@ namespace b3d
 	 * active backend.
 	 */
 	TShared<GpuComputePipelineState> CreateTestInlineRayTracingBindlessPipeline(GpuDevice& device);
+
+	/**
+	 * Creates the programs of the ray tracing test shader @p name from Data/Shaders/Tests, by entry point name. RayTracingPipeline has:
+	 *  - TraceTestRays (ray generation): thread N reads its ray from element N of the structured buffer Rays (origin, direction, then the hit
+	 *    group contribution, geometry multiplier and miss index as four words), traces it against the top level acceleration structure Scene
+	 *    with a payload of 1, and writes the payload into element N of the storage buffer Results;
+	 *  - WriteIndices (ray generation): thread N writes 1000 + N into element N of Results;
+	 *  - MissA and MissB (miss): set the payload to 100 and 101;
+	 *  - ClosestHitA, ClosestHitB and ClosestHitC (closest hit): set the payload to 10, 11 and 12.
+	 *
+	 * RayTracingOtherParameters declares other parameters, and has WriteZero (ray generation).
+	 *
+	 * Returns no programs if the shader cannot be resolved for the active backend.
+	 */
+	UnorderedMap<String, TShared<GpuProgram>> CreateTestRayTracingPrograms(GpuDevice& device, const String& name);
+
+	/**
+	 * Returns the information CreateTestRayTracingPrograms() creates the programs of the ray tracing test shader @p name from, by entry point
+	 * name. Empty if the shader cannot be resolved for the active backend.
+	 */
+	UnorderedMap<String, GpuProgramCreateInformation> GetTestRayTracingProgramInformation(const String& name);
 } // namespace b3d

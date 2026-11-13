@@ -8,7 +8,9 @@
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuAccelerationStructure.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
+#include "GpuBackend/B3DGpuPipelineState.h"
 #include "GpuBackend/B3DGpuProgram.h"
+#include "GpuBackend/B3DGpuShaderBindingTable.h"
 #include "GpuBackend/B3DGpuVertexInputManager.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "GpuBackend/Allocators/B3DGpuTransientHeapPool.h"
@@ -340,6 +342,148 @@ TShared<render::GpuAccelerationStructure> GpuDevice::CreateGpuAccelerationStruct
 }
 
 TShared<render::GpuAccelerationStructure> GpuDevice::CreateGpuAccelerationStructureInternal(const GpuAccelerationStructureCreateInformation& /*createInformation*/)
+{
+	return nullptr;
+}
+
+TShared<GpuRayTracingPipelineState> GpuDevice::CreateGpuRayTracingPipelineState(const GpuRayTracingPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
+{
+	const GpuDeviceCapabilities& capabilities = GetCapabilities();
+	if(!B3D_ENSURE_LOG(capabilities.HasCapability(RSC_RAY_TRACING_PIPELINE), "Cannot create a ray tracing pipeline, the GPU device doesn't support ray tracing pipelines."))
+		return nullptr;
+
+	if(!B3D_ENSURE_LOG(!createInformation.RayGenerationPrograms.empty(), "A ray tracing pipeline needs at least one ray generation program."))
+		return nullptr;
+
+	const u32 maximumRecursionDepth = capabilities.RayTracing.MaximumRecursionDepth;
+	if(!B3D_ENSURE_LOG(createInformation.MaximumRecursionDepth >= 1 && createInformation.MaximumRecursionDepth <= maximumRecursionDepth,
+		"A ray tracing pipeline has maximum recursion depth {0}, which must be between 1 and {1}.", createInformation.MaximumRecursionDepth, maximumRecursionDepth))
+	{
+		return nullptr;
+	}
+
+	// Every program has the type of its place, runs on the device, and declares the parameters of the first program. @p role names its place.
+	const u32 maximumHitAttributeSize = capabilities.RayTracing.MaximumHitAttributeSize;
+	const GpuProgram* firstProgram = nullptr;
+	const auto fnValidateProgram = [&firstProgram, maximumHitAttributeSize](const GpuProgram& program, GpuProgramType type, const String& role)
+	{
+		if(!B3D_ENSURE_LOG(program.GetType() == type, "{0} of a ray tracing pipeline, '{1}', is a {2} program.", role, program.GetName(), GetProgramTypeName(program.GetType())))
+			return false;
+
+		if(!B3D_ENSURE_LOG(program.IsSupported(), "{0} of a ray tracing pipeline, '{1}', can't run on the GPU device.", role, program.GetName()))
+			return false;
+
+		const u32 hitAttributeSize = program.GetEntryPointReflection().HitAttributeSize;
+		if(!B3D_ENSURE_LOG(hitAttributeSize <= maximumHitAttributeSize, "{0} of a ray tracing pipeline, '{1}', has {2} bytes of hit attributes. The maximum is {3}.",
+			role, program.GetName(), hitAttributeSize, maximumHitAttributeSize))
+		{
+			return false;
+		}
+
+		if(firstProgram == nullptr)
+			firstProgram = &program;
+		else if(!B3D_ENSURE_LOG(program.GetParameterLayoutHash() == firstProgram->GetParameterLayoutHash(),
+			"{0} of a ray tracing pipeline, '{1}', declares other parameters than '{2}'. Every program of a pipeline must declare the same parameters.",
+			role, program.GetName(), firstProgram->GetName()))
+		{
+			return false;
+		}
+
+		return true;
+	};
+
+	const auto fnValidateProgramList = [&fnValidateProgram](const Vector<TShared<GpuProgram>>& programs, GpuProgramType type, const char* listName)
+	{
+		for(u32 programIndex = 0; programIndex < (u32)programs.size(); programIndex++)
+		{
+			const String role = StringUtility::Format("{0} program {1}", listName, programIndex);
+			if(!B3D_ENSURE_LOG(programs[programIndex] != nullptr, "{0} of a ray tracing pipeline is null.", role))
+				return false;
+
+			if(!fnValidateProgram(*programs[programIndex], type, role))
+				return false;
+		}
+
+		return true;
+	};
+
+	if(!fnValidateProgramList(createInformation.RayGenerationPrograms, GPT_RAY_GENERATION_PROGRAM, "Ray generation") ||
+		!fnValidateProgramList(createInformation.MissPrograms, GPT_MISS_PROGRAM, "Miss") ||
+		!fnValidateProgramList(createInformation.CallablePrograms, GPT_CALLABLE_PROGRAM, "Callable"))
+	{
+		return nullptr;
+	}
+
+	for(u32 hitGroupIndex = 0; hitGroupIndex < (u32)createInformation.HitGroups.size(); hitGroupIndex++)
+	{
+		const GpuRayTracingHitGroup& hitGroup = createInformation.HitGroups[hitGroupIndex];
+		if(!B3D_ENSURE_LOG(hitGroup.ClosestHitProgram != nullptr || hitGroup.AnyHitProgram != nullptr || hitGroup.IntersectionProgram != nullptr,
+			"Hit group {0} of a ray tracing pipeline has no program.", hitGroupIndex))
+		{
+			return nullptr;
+		}
+
+		if(hitGroup.ClosestHitProgram != nullptr && !fnValidateProgram(*hitGroup.ClosestHitProgram, GPT_CLOSEST_HIT_PROGRAM, StringUtility::Format("Closest hit program of hit group {0}", hitGroupIndex)))
+			return nullptr;
+
+		if(hitGroup.AnyHitProgram != nullptr && !fnValidateProgram(*hitGroup.AnyHitProgram, GPT_ANY_HIT_PROGRAM, StringUtility::Format("Any hit program of hit group {0}", hitGroupIndex)))
+			return nullptr;
+
+		if(hitGroup.IntersectionProgram != nullptr && !fnValidateProgram(*hitGroup.IntersectionProgram, GPT_INTERSECTION_PROGRAM, StringUtility::Format("Intersection program of hit group {0}", hitGroupIndex)))
+			return nullptr;
+	}
+
+	return CreateGpuRayTracingPipelineStateInternal(createInformation, flags);
+}
+
+TShared<GpuRayTracingPipelineState> GpuDevice::CreateGpuRayTracingPipelineStateInternal(const GpuRayTracingPipelineStateCreateInformation& /*createInformation*/, GpuObjectCreateFlags /*flags*/)
+{
+	return nullptr;
+}
+
+TShared<render::GpuShaderBindingTable> GpuDevice::CreateGpuShaderBindingTable(const GpuShaderBindingTableCreateInformation& createInformation)
+{
+	if(!B3D_ENSURE_LOG(GetCapabilities().HasCapability(RSC_RAY_TRACING_PIPELINE), "Cannot create a shader binding table, the GPU device doesn't support ray tracing pipelines."))
+		return nullptr;
+
+	if(!B3D_ENSURE_LOG(createInformation.Pipeline != nullptr, "A shader binding table needs a pipeline."))
+		return nullptr;
+
+	if(!B3D_ENSURE_LOG(!createInformation.RayGenerationRecords.empty(), "A shader binding table needs at least one ray generation record."))
+		return nullptr;
+
+	// Every record refers to a program or hit group of the pipeline. Only hit group records can run nothing.
+	const GpuRayTracingPipelineStateInformation& pipeline = createInformation.Pipeline->GetInformation();
+	const auto fnValidateRecords = [](const Vector<u32>& records, u32 programCount, const char* recordName, const char* programName, bool allowsEmptyRecord)
+	{
+		for(u32 recordIndex = 0; recordIndex < (u32)records.size(); recordIndex++)
+		{
+			const u32 programIndex = records[recordIndex];
+			if(allowsEmptyRecord && programIndex == kGpuShaderBindingTableEmptyRecord)
+				continue;
+
+			if(!B3D_ENSURE_LOG(programIndex < programCount, "{0} record {1} of a shader binding table refers to {2} {3}, but the pipeline has {4}.",
+				recordName, recordIndex, programName, programIndex, programCount))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	};
+
+	if(!fnValidateRecords(createInformation.RayGenerationRecords, (u32)pipeline.RayGenerationPrograms.size(), "Ray generation", "ray generation program", false) ||
+		!fnValidateRecords(createInformation.MissRecords, (u32)pipeline.MissPrograms.size(), "Miss", "miss program", false) ||
+		!fnValidateRecords(createInformation.HitGroupRecords, (u32)pipeline.HitGroups.size(), "Hit group", "hit group", true) ||
+		!fnValidateRecords(createInformation.CallableRecords, (u32)pipeline.CallablePrograms.size(), "Callable", "callable program", false))
+	{
+		return nullptr;
+	}
+
+	return CreateGpuShaderBindingTableInternal(createInformation);
+}
+
+TShared<render::GpuShaderBindingTable> GpuDevice::CreateGpuShaderBindingTableInternal(const GpuShaderBindingTableCreateInformation& /*createInformation*/)
 {
 	return nullptr;
 }

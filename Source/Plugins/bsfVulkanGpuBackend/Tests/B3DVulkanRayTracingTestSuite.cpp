@@ -4,10 +4,19 @@
 #include "B3DVulkanGpuAccelerationStructure.h"
 #include "B3DVulkanGpuBuffer.h"
 #include "B3DVulkanGpuDevice.h"
+#include "B3DVulkanGpuPipelineState.h"
+#include "B3DVulkanGpuShaderBindingTable.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "GpuBackend/B3DGpuAccelerationStructure.h"
 #include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
+#include "GpuBackend/B3DGpuProgram.h"
+#include "GpuBackend/B3DGpuShaderBindingTable.h"
+#include "Material/B3DPass.h"
+#include "Material/B3DShader.h"
+#include "Material/B3DShaderRegistry.h"
+#include "Material/B3DVariation.h"
+#include "Resources/B3DBuiltinResources.h"
 #include "Math/B3DMatrix4.h"
 #include "Math/B3DVector3.h"
 
@@ -37,6 +46,7 @@ VulkanRayTracingTestSuite::VulkanRayTracingTestSuite()
 	B3D_ADD_TEST(VulkanRayTracingTestSuite::TestBufferUsage)
 	B3D_ADD_TEST(VulkanRayTracingTestSuite::TestDeviceAddresses)
 	B3D_ADD_TEST(VulkanRayTracingTestSuite::TestInstanceLayout)
+	B3D_ADD_TEST(VulkanRayTracingTestSuite::TestShaderBindingTable)
 }
 
 void VulkanRayTracingTestSuite::TestBufferUsage()
@@ -190,4 +200,119 @@ void VulkanRayTracingTestSuite::TestInstanceLayout()
 		B3D_TEST_ASSERT(written[1].flags == VK_GEOMETRY_INSTANCE_FORCE_NO_OPAQUE_BIT_KHR)
 		B3D_TEST_ASSERT(written[1].transform.matrix[0][0] == 1.0f && written[1].transform.matrix[0][3] == 0.0f && written[1].transform.matrix[2][2] == 1.0f)
 	}, "VulkanRayTracingTestSuite::TestInstanceLayout", true);
+}
+
+void VulkanRayTracingTestSuite::TestShaderBindingTable()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	if(!device->GetCapabilities().HasCapability(RSC_RAY_TRACING_PIPELINE))
+		return;
+
+	// The programs of the RayTracingPipeline test shader, by entry point
+	const TShared<Shader> shader = ShaderRegistry::Instance().GetOrCompileShader<false>(Path("Tests/RayTracingPipeline.bsl"), BuiltinResources::kBuiltinShaderCachePrefix,
+		ShaderDefines());
+	B3D_TEST_ASSERT(shader != nullptr)
+	if(shader == nullptr)
+		return;
+
+	const Vector<TShared<Variation>> variations = shader->GetCompatibleVariations();
+	B3D_TEST_ASSERT(variations.size() == 1)
+	if(variations.size() != 1)
+		return;
+
+	if(!variations[0]->IsCompiled())
+		variations[0]->Compile().BlockUntilComplete();
+
+	B3D_TEST_ASSERT(variations[0]->IsCompiled() && variations[0]->GetPassCount() == 1)
+	if(!variations[0]->IsCompiled() || variations[0]->GetPassCount() != 1)
+		return;
+
+	UnorderedMap<String, TShared<GpuProgram>> programs;
+	for(const GpuProgramCreateInformation& programInformation : variations[0]->GetPass(0)->GetInformation().Programs)
+		programs[programInformation.EntryPoint] = device->CreateGpuProgram(programInformation);
+
+	GpuRayTracingPipelineStateCreateInformation pipelineInformation;
+	pipelineInformation.RayGenerationPrograms.push_back(programs["TraceTestRays"]);
+	pipelineInformation.RayGenerationPrograms.push_back(programs["WriteIndices"]);
+	pipelineInformation.MissPrograms.push_back(programs["MissA"]);
+	pipelineInformation.HitGroups.push_back(GpuRayTracingHitGroup(programs["ClosestHitA"]));
+	pipelineInformation.HitGroups.push_back(GpuRayTracingHitGroup(programs["ClosestHitB"]));
+	pipelineInformation.HitGroups.push_back(GpuRayTracingHitGroup(programs["ClosestHitC"]));
+
+	const TShared<GpuRayTracingPipelineState> pipeline = device->CreateGpuRayTracingPipelineState(pipelineInformation);
+	B3D_TEST_ASSERT(pipeline != nullptr)
+	if(pipeline == nullptr)
+		return;
+
+	// Three hit group records, the middle one empty, and no callable records
+	GpuShaderBindingTableCreateInformation tableInformation;
+	tableInformation.Pipeline = pipeline;
+	tableInformation.RayGenerationRecords.push_back(0);
+	tableInformation.RayGenerationRecords.push_back(1);
+	tableInformation.MissRecords.push_back(0);
+	tableInformation.HitGroupRecords.push_back(0);
+	tableInformation.HitGroupRecords.push_back(kGpuShaderBindingTableEmptyRecord);
+	tableInformation.HitGroupRecords.push_back(2);
+
+	const TShared<GpuShaderBindingTable> table = device->CreateGpuShaderBindingTable(tableInformation);
+	B3D_TEST_ASSERT(table != nullptr)
+	if(table == nullptr)
+		return;
+
+	const VulkanGpuShaderBindingTable& vulkanTable = static_cast<const VulkanGpuShaderBindingTable&>(*table);
+	const VulkanGpuRayTracingPipelineState& vulkanPipeline = static_cast<const VulkanGpuRayTracingPipelineState&>(*pipeline);
+	const GpuRayTracingCapabilities& rayTracing = device->GetCapabilities().RayTracing;
+
+	// Every region starts at the table alignment, with records the record alignment apart
+	const auto fnCheckRegion = [this, &rayTracing](const VkStridedDeviceAddressRegionKHR& region, u32 recordCount, const char* name)
+	{
+		const String message = StringUtility::Format("{0} region: address {1}, stride {2}, size {3}.", name, region.deviceAddress, region.stride, region.size);
+		B3D_TEST_ASSERT_MSG(region.deviceAddress != 0 && region.deviceAddress % rayTracing.ShaderTableAlignment == 0, message)
+		B3D_TEST_ASSERT_MSG(region.stride >= rayTracing.ShaderGroupHandleSize && region.stride % rayTracing.ShaderRecordAlignment == 0, message)
+		B3D_TEST_ASSERT_MSG(region.stride <= rayTracing.MaximumShaderRecordStride && region.size == region.stride * recordCount, message)
+	};
+
+	for(u32 recordIndex = 0; recordIndex < 2; recordIndex++)
+	{
+		// A dispatch passes one ray generation record, whose size must equal its stride
+		const VkStridedDeviceAddressRegionKHR region = vulkanTable.GetRayGenerationRegion(recordIndex);
+		fnCheckRegion(region, 1, "Ray generation");
+	}
+
+	fnCheckRegion(vulkanTable.GetMissRegion(), 1, "Miss");
+	fnCheckRegion(vulkanTable.GetHitGroupRegion(), 3, "Hit group");
+
+	const VkStridedDeviceAddressRegionKHR& callableRegion = vulkanTable.GetCallableRegion();
+	B3D_TEST_ASSERT(callableRegion.deviceAddress == 0 && callableRegion.stride == 0 && callableRegion.size == 0)
+
+	// Records hold the handles of their groups, numbered ray generation, miss, then hit groups. The empty record is zeros. The table is in
+	// host-visible memory, which stays mapped.
+	const VulkanBuffer& buffer = *vulkanTable.GetBuffer();
+	const VkDeviceAddress tableAddress = buffer.GetDeviceAddress();
+	const VkStridedDeviceAddressRegionKHR& hitGroupRegion = vulkanTable.GetHitGroupRegion();
+	const u8* const tableData = static_cast<const u8*>(buffer.GetMappedMemory());
+	B3D_TEST_ASSERT(tableData != nullptr)
+	if(tableData == nullptr)
+		return;
+
+	const auto fnGetRecord = [tableData, tableAddress](const VkStridedDeviceAddressRegionKHR& region, u32 recordIndex)
+	{
+		return tableData + (region.deviceAddress - tableAddress) + recordIndex * region.stride;
+	};
+
+	const u32 handleSize = rayTracing.ShaderGroupHandleSize;
+	const TArrayView<const u8> firstHitGroupHandle = vulkanPipeline.GetShaderGroupHandle(3);
+	const TArrayView<const u8> lastHitGroupHandle = vulkanPipeline.GetShaderGroupHandle(5);
+	B3D_TEST_ASSERT(firstHitGroupHandle.size() == handleSize && lastHitGroupHandle.size() == handleSize)
+
+	const Vector<u8> zeros(handleSize, 0);
+	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(vulkanTable.GetRayGenerationRegion(1), 0), vulkanPipeline.GetShaderGroupHandle(1).data(), handleSize) == 0)
+	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(vulkanTable.GetMissRegion(), 0), vulkanPipeline.GetShaderGroupHandle(2).data(), handleSize) == 0)
+	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(hitGroupRegion, 0), firstHitGroupHandle.data(), handleSize) == 0)
+	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(hitGroupRegion, 1), zeros.data(), handleSize) == 0)
+	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(hitGroupRegion, 2), lastHitGroupHandle.data(), handleSize) == 0)
 }

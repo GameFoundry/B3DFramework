@@ -184,6 +184,16 @@ namespace b3d::render
 		mOperation = 0;
 	}
 
+	void GpuBarrierValidator::ValidateDispatchRays(const GpuRayTracingPipelineState& pipeline)
+	{
+		mOperation = ++mOperationCount;
+
+		if(pipeline.GetParameterLayout() != nullptr)
+			ValidateBindings(*pipeline.GetParameterLayout(), false);
+
+		mOperation = 0;
+	}
+
 	void GpuBarrierValidator::ValidateAccelerationStructureBuilds(TArrayView<const GpuAccelerationStructureBuild> builds)
 	{
 		mOperation = ++mOperationCount;

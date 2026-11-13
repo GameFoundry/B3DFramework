@@ -39,6 +39,7 @@ static_assert(false, "Other platform includes go here.");
 #include "GpuBackend/B3DGpuBackendUtility.h"
 #include "GpuBackend/B3DGpuAccelerationStructure.h"
 #include "B3DVulkanGpuAccelerationStructure.h"
+#include "B3DVulkanGpuShaderBindingTable.h"
 #include "Utility/B3DBitwise.h"
 #include "GpuBackend/Allocators/B3DGpuTransientHeapPool.h"
 
@@ -857,6 +858,26 @@ TShared<render::GpuAccelerationStructure> VulkanGpuDevice::CreateGpuAcceleration
 	return B3DMakeShared<VulkanGpuAccelerationStructure>(*this, createInformation, *accelerationStructure);
 }
 
+TShared<GpuRayTracingPipelineState> VulkanGpuDevice::CreateGpuRayTracingPipelineStateInternal(const GpuRayTracingPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
+{
+	TShared<VulkanGpuRayTracingPipelineState> output = B3DMakeSharedFromExisting<VulkanGpuRayTracingPipelineState>(new(B3DAllocate<VulkanGpuRayTracingPipelineState>())
+		VulkanGpuRayTracingPipelineState(*this, createInformation));
+
+	if(!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
+		output->Initialize();
+
+	return output;
+}
+
+TShared<GpuShaderBindingTable> VulkanGpuDevice::CreateGpuShaderBindingTableInternal(const GpuShaderBindingTableCreateInformation& createInformation)
+{
+	const VulkanGpuRayTracingPipelineState& pipeline = static_cast<const VulkanGpuRayTracingPipelineState&>(*createInformation.Pipeline);
+	if(!B3D_ENSURE_LOG(pipeline.GetVulkanResource() != nullptr, "Cannot create a shader binding table for a ray tracing pipeline that failed to compile."))
+		return nullptr;
+
+	return B3DMakeShared<VulkanGpuShaderBindingTable>(*this, createInformation);
+}
+
 TShared<render::GpuBuffer> VulkanGpuDevice::CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags)
 {
 	VulkanGpuBuffer* rawBuffer = new(B3DAllocate<VulkanGpuBuffer>()) VulkanGpuBuffer(*this, createInformation, allocation);
@@ -1666,6 +1687,7 @@ void VulkanGpuDevice::InitializeCapabilities()
 			rayTracing.ShaderTableAlignment = rayTracingPipelineProperties.shaderGroupBaseAlignment;
 			rayTracing.MaximumShaderRecordStride = rayTracingPipelineProperties.maxShaderGroupStride;
 			rayTracing.MaximumRecursionDepth = rayTracingPipelineProperties.maxRayRecursionDepth;
+			rayTracing.MaximumHitAttributeSize = rayTracingPipelineProperties.maxRayHitAttributeSize;
 			rayTracing.SupportsCallablePrograms = true;
 
 			mCapabilities.SetCapability(RSC_RAY_TRACING_PIPELINE);

@@ -102,6 +102,9 @@ namespace b3d::render
 		/** Checks the accesses of a dispatch: the bindings of the compute pipeline. */
 		void ValidateDispatch();
 
+		/** Checks the accesses of a ray dispatch: the bindings of @p pipeline. */
+		void ValidateDispatchRays(const GpuRayTracingPipelineState& pipeline);
+
 		/** Checks the accesses of the acceleration structure builds recorded by one GpuCommandBuffer::BuildAccelerationStructures() call. */
 		void ValidateAccelerationStructureBuilds(TArrayView<const GpuAccelerationStructureBuild> builds);
 

@@ -68,16 +68,18 @@ namespace b3d
 			UnorderedMap<u32, TShared<VulkanGpuCommandBuffer>> mCommandBuffers;
 		};
 
-		/** Determines where are the current descriptor sets bound to. */
-		enum class DescriptorSetBindFlag
+		/** Pipeline bind points of a VulkanGpuCommandBuffer as flags, one bit per bind point in the order of VulkanGpuCommandBuffer::BindPoint. */
+		enum class PipelineBindPointFlag
 		{
 			None = 0,
 			Graphics = 1 << 0,
-			Compute = 1 << 1
+			Compute = 1 << 1,
+			RayTracing = 1 << 2,
+			All = Graphics | Compute | RayTracing
 		};
 
-		typedef Flags<DescriptorSetBindFlag> DescriptorSetBindFlags;
-		B3D_FLAGS_OPERATORS(DescriptorSetBindFlag)
+		typedef Flags<PipelineBindPointFlag> PipelineBindPointFlags;
+		B3D_FLAGS_OPERATORS(PipelineBindPointFlag)
 
 		/** All the information required for submitting a VulkanGpuCommandBuffer */
 		struct VulkanGpuCommandBufferSubmitInformation
@@ -145,6 +147,9 @@ namespace b3d
 			bool CopyTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureCopyInformation& copyInformation) override;
 			bool BlitTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureBlitInformation& blitInformation) override;
 			bool BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild> builds) override;
+
+			/** @copydoc GpuCommandBuffer::DispatchRays */
+			bool DispatchRays(const TShared<GpuShaderBindingTable>& table, u32 rayGenerationRecordIndex, u32 width, u32 height, u32 depth = 1) override;
 			void WriteTimestamp(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) override;
 			void BeginQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool, GpuQueryFlags flags) override;
 			void EndQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) override;
@@ -327,6 +332,22 @@ namespace b3d
 
 			bool RecordBarriers(const GpuBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split) override;
 
+			/** Pipeline bind point, each with its own descriptor sets, bindless heap set and push constants. PipelineBindPointFlag has a bit for each. */
+			enum class BindPoint : u8
+			{
+				Graphics,
+				Compute,
+				RayTracing,
+				Count
+			};
+
+			/** What is bound at one pipeline bind point. */
+			struct BindPointState
+			{
+				VulkanPipeline* Pipeline = nullptr; /**< Native pipeline bound at the bind point, or null if none is. */
+				VkPipelineLayout BindlessHeapLayout = VK_NULL_HANDLE; /**< Pipeline layout the bindless heap set is bound with, or null if it must be bound again. */
+			};
+
 			/** Contains information about a single Vulkan resource bound/used on this command buffer. */
 			struct ResourceUseHandle
 			{
@@ -373,7 +394,16 @@ namespace b3d
 			/** Marks the command buffer as submitted on a queue. */
 			void SetIsSubmitted() { mState = GpuCommandBufferState::Executing; }
 
-			/** Binds the current graphics pipeline to the command buffer. Returns true if bind was successful. */
+			/**
+			 * Binds @p pipeline to @p bindPoint unless it is already bound there. Returns true if it bound the pipeline, in which case the
+			 * caller registers the pipeline's shader modules.
+			 */
+			bool BindPipeline(BindPoint bindPoint, VulkanPipeline& pipeline);
+
+			/**
+			 * Looks up the variant of the current graphics pipeline for the current render pass, draw operation and vertex input, and binds
+			 * it. Returns false if the variant couldn't be created.
+			 */
 			bool BindGraphicsPipeline();
 
 			/**
@@ -389,8 +419,8 @@ namespace b3d
 			/** Binds the currently stored GPU parameter sets, if dirty. */
 			bool BindGpuParameters(const TShared<GpuPipelineParameterLayout>& pipelineParameterLayout);
 
-			/** Uploads the cached push-constant block for the selected pipeline bind point. */
-			void BindPushConstants(bool isGraphics);
+			/** Uploads the cached push-constant block to @p bindPoint, if it changed since it was last uploaded there. */
+			void BindPushConstants(BindPoint bindPoint, const GpuPipelineParameterLayout& parameterLayout, VkPipelineLayout pipelineLayout);
 
 			/**
 			 * Creates an array of clear values for the attachments of the currently bound framebuffer, from @p targetClearValues. To be
@@ -425,16 +455,16 @@ namespace b3d
 			VulkanGpuDevice& GetVulkanGpuDevice() const { return static_cast<VulkanGpuDevice&>(mGpuDevice); }
 
 			/**
-			 * Binds the descriptor sets prepared by BindGpuParameters() to @p bindPoint, in runs of consecutive set indices,
-			 * since one bind call covers a contiguous range of sets.
+			 * Binds the descriptor sets prepared by BindGpuParameters() to @p bindPoint, if the parameter sets changed since they were
+			 * last bound there. Binds in runs of consecutive set indices, since one bind call covers a contiguous range of sets.
 			 */
-			void BindDescriptorSets(VkPipelineBindPoint bindPoint, VkPipelineLayout pipelineLayout);
+			void BindDescriptorSets(BindPoint bindPoint, VkPipelineLayout pipelineLayout);
 
 			/**
 			 * Binds the bindless heap set to @p bindPoint if @p parameterLayout accesses the heaps, unless it is already bound with
 			 * @p pipelineLayout.
 			 */
-			void BindBindlessHeaps(VkPipelineBindPoint bindPoint, const GpuPipelineParameterLayout& parameterLayout, VkPipelineLayout pipelineLayout);
+			void BindBindlessHeaps(BindPoint bindPoint, const GpuPipelineParameterLayout& parameterLayout, VkPipelineLayout pipelineLayout);
 
 			/**
 			 * Acquires the active swap chain image of @p renderWindow and registers its surface with the command buffer. Returns the
@@ -471,21 +501,18 @@ namespace b3d
 			DrawOperationType mDrawOp = DOT_TRIANGLE_LIST;
 			u32 mRequiredVertexBufferBindingCount = 0;
 			u64 mBoundDescriptorSetMask = 0; /**< Bit per set index prepared by BindGpuParameters() for binding. */
-			VkPipelineLayout mGraphicsBindlessHeapLayout = VK_NULL_HANDLE; /**< Pipeline layout the bindless heap set is bound with for graphics, if bound. */
-			VkPipelineLayout mComputeBindlessHeapLayout = VK_NULL_HANDLE; /**< Pipeline layout the bindless heap set is bound with for compute, if bound. */
+			Array<BindPointState, (u32)BindPoint::Count> mBindPointStates; /**< What is bound at each pipeline bind point, indexed by BindPoint. */
+			PipelineBindPointFlags mDirtyDescriptorSets = PipelineBindPointFlag::All; /**< Bind points whose descriptor sets must be bound again, because the parameter sets changed since they were last bound there. */
+			PipelineBindPointFlags mDirtyPushConstants = PipelineBindPointFlag::None; /**< Bind points whose push constants changed since they were last uploaded there. */
 			VulkanBindlessHeap* mBindlessHeap = nullptr; /**< Native resource heap got by the first pipeline that accesses the bindless heaps, whose set stays bound. Null before. */
 			GpuPushConstantPayload mPushConstants;
-			bool mGfxPipelineRequiresBind : 1;
-			bool mCmpPipelineRequiresBind : 1;
-			bool mGraphicsPushConstantsRequireBind : 1;
-			bool mComputePushConstantsRequireBind : 1;
+			bool mIsGraphicsPipelineVariantDirty : 1; /**< True if the graphics pipeline or an input of its variant changed since the variant was looked up. */
 			bool mViewportRequiresBind : 1;
 			bool mStencilRefRequiresBind : 1;
 			bool mScissorRequiresBind : 1;
 			bool mBoundParamsDirty : 1;
 			bool mVertexInputsDirty : 1;
 			bool mIsDebugLabelOpen = false;
-			DescriptorSetBindFlags mDescriptorSetsBindState;
 			TInlineArray<TShared<VulkanGpuParameterSet>, 4> mBoundGpuParameterSets;
 
 			VkBuffer mVertexBuffersTemp[B3D_MAX_BOUND_VERTEX_BUFFERS]{};

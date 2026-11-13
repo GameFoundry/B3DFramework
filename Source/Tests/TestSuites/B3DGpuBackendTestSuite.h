@@ -72,6 +72,13 @@ namespace b3d
 		void TestLongRecording();
 
 		/**
+		 * Records a dispatch into a command buffer that is ended and reset without being submitted, then records the same dispatch into the
+		 * command buffer the pool hands out next, submits it and verifies the write. Covers backends that skip binding a pipeline that is
+		 * already bound, which must forget what a reset recording bound. Runs only with backends that resolve the test shaders.
+		 */
+		void TestCommandBufferReuseAfterReset();
+
+		/**
 		 * Verifies that a barrier orders a long-running compute write before a copy recorded after a render pass that follows the
 		 * barrier, and before a copy in a later command buffer on the same queue. On backends that record passes as separate
 		 * encoders the copy runs in a later pass than the barrier, so a backend that only orders the pass the barrier was issued in

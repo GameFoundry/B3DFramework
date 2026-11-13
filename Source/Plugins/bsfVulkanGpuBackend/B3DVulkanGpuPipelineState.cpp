@@ -589,6 +589,186 @@ void VulkanGpuComputePipelineState::Initialize()
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_PipelineState);
 }
 
+VulkanGpuRayTracingPipelineState::VulkanGpuRayTracingPipelineState(VulkanGpuDevice& gpuDevice, const GpuRayTracingPipelineStateCreateInformation& createInformation)
+	: GpuRayTracingPipelineState(gpuDevice, createInformation)
+{ }
+
+VulkanGpuRayTracingPipelineState::~VulkanGpuRayTracingPipelineState()
+{
+	if(mPipeline != nullptr)
+		mPipeline->Destroy();
+}
+
+void VulkanGpuRayTracingPipelineState::Initialize()
+{
+	GpuRayTracingPipelineState::Initialize();
+
+	// Like compute pipelines, a pipeline with a program that didn't compile is never created, and dispatches with it fail
+	Vector<VkPipelineShaderStageCreateInfo> stages;
+	bool areProgramsCompiled = true;
+	const auto fnAddStage = [&stages, &areProgramsCompiled](const TShared<GpuProgram>& program) -> u32
+	{
+		if(program == nullptr)
+			return VK_SHADER_UNUSED_KHR;
+
+		const VulkanGpuProgram& vulkanProgram = static_cast<const VulkanGpuProgram&>(*program);
+		const VulkanShaderModule* const module = vulkanProgram.GetVulkanResource();
+		if(!vulkanProgram.IsCompiled() || module == nullptr)
+		{
+			areProgramsCompiled = false;
+			return VK_SHADER_UNUSED_KHR;
+		}
+
+		// Every program is a module of its own, so entry point names can't collide
+		VkPipelineShaderStageCreateInfo stageCI;
+		stageCI.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		stageCI.pNext = nullptr;
+		stageCI.flags = 0;
+		stageCI.stage = VulkanUtility::GetShaderStage(vulkanProgram.GetType());
+		stageCI.module = module->GetVulkanHandle();
+		stageCI.pName = vulkanProgram.GetEntryPoint().c_str();
+		stageCI.pSpecializationInfo = nullptr;
+
+		stages.push_back(stageCI);
+		return (u32)stages.size() - 1;
+	};
+
+	// Groups in the order GetShaderGroupHandle() numbers them
+	Vector<VkRayTracingShaderGroupCreateInfoKHR> groups;
+	const auto fnAddGroup = [&groups](VkRayTracingShaderGroupTypeKHR type, u32 generalStage, u32 closestHitStage, u32 anyHitStage, u32 intersectionStage)
+	{
+		VkRayTracingShaderGroupCreateInfoKHR groupCI;
+		groupCI.sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
+		groupCI.pNext = nullptr;
+		groupCI.type = type;
+		groupCI.generalShader = generalStage;
+		groupCI.closestHitShader = closestHitStage;
+		groupCI.anyHitShader = anyHitStage;
+		groupCI.intersectionShader = intersectionStage;
+		groupCI.pShaderGroupCaptureReplayHandle = nullptr;
+
+		groups.push_back(groupCI);
+	};
+
+	const auto fnAddGeneralGroups = [&fnAddStage, &fnAddGroup](const Vector<TShared<GpuProgram>>& programs)
+	{
+		for(const TShared<GpuProgram>& program : programs)
+			fnAddGroup(VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR, fnAddStage(program), VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR, VK_SHADER_UNUSED_KHR);
+	};
+
+	fnAddGeneralGroups(mData.RayGenerationPrograms);
+	fnAddGeneralGroups(mData.MissPrograms);
+
+	for(const GpuRayTracingHitGroup& hitGroup : mData.HitGroups)
+	{
+		const VkRayTracingShaderGroupTypeKHR type = hitGroup.IntersectionProgram != nullptr ? VK_RAY_TRACING_SHADER_GROUP_TYPE_PROCEDURAL_HIT_GROUP_KHR
+			: VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
+
+		const u32 closestHitStage = fnAddStage(hitGroup.ClosestHitProgram);
+		const u32 anyHitStage = fnAddStage(hitGroup.AnyHitProgram);
+		const u32 intersectionStage = fnAddStage(hitGroup.IntersectionProgram);
+		fnAddGroup(type, VK_SHADER_UNUSED_KHR, closestHitStage, anyHitStage, intersectionStage);
+	}
+
+	fnAddGeneralGroups(mData.CallablePrograms);
+
+	if(!areProgramsCompiled)
+		return;
+
+	VulkanGpuDevice& gpuDevice = static_cast<VulkanGpuDevice&>(mGpuDevice);
+	const VkPipelineLayout pipelineLayout = static_cast<VulkanGpuPipelineParameterLayout*>(mParameterLayout.get())->GetPipelineLayout();
+
+	VkRayTracingPipelineCreateInfoKHR pipelineCI;
+	pipelineCI.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR;
+	pipelineCI.pNext = nullptr;
+	pipelineCI.flags = 0;
+	pipelineCI.stageCount = (u32)stages.size();
+	pipelineCI.pStages = stages.data();
+	pipelineCI.groupCount = (u32)groups.size();
+	pipelineCI.pGroups = groups.data();
+	pipelineCI.maxPipelineRayRecursionDepth = mData.MaximumRecursionDepth;
+	pipelineCI.pLibraryInfo = nullptr;
+	pipelineCI.pLibraryInterface = nullptr;
+	pipelineCI.pDynamicState = nullptr;
+	pipelineCI.layout = pipelineLayout;
+	pipelineCI.basePipelineHandle = VK_NULL_HANDLE;
+	pipelineCI.basePipelineIndex = -1;
+
+	const String& pipelineName = mData.RayGenerationPrograms[0]->GetName();
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	const bool timeCompile = gGpuDumpPipelineTimings.Get();
+	const Timer compileTimer; // starts timing on construction; only read below when timeCompile is set
+#endif
+
+	// No deferred operation, pipeline cache or libraries: one pipeline with every stage, created now
+	VkPipeline pipeline = VK_NULL_HANDLE;
+	const VkResult result = vkCreateRayTracingPipelinesKHR(gpuDevice.GetLogical(), VK_NULL_HANDLE, VK_NULL_HANDLE, 1, &pipelineCI, gVulkanAllocator, &pipeline);
+	if(!B3D_ENSURE_LOG(result == VK_SUCCESS, "Failed to create the ray tracing pipeline of '{0}' (VkResult {1}).", pipelineName, (i32)result))
+		return;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	if(timeCompile)
+	{
+		const double compileMs = compileTimer.GetMicroseconds() / 1000.0;
+		B3D_LOG(Info, LogRenderBackend, "[PIPELINE] ray tracing {0} ms {1}", compileMs, pipelineName);
+	}
+#endif
+
+	// Read once, for every shader binding table created from the pipeline
+	const u32 handleSize = gpuDevice.GetCapabilities().RayTracing.ShaderGroupHandleSize;
+	mShaderGroupHandles.resize((size_t)handleSize * groups.size());
+
+	const VkResult handleResult = vkGetRayTracingShaderGroupHandlesKHR(gpuDevice.GetLogical(), pipeline, 0, (u32)groups.size(), mShaderGroupHandles.size(), mShaderGroupHandles.data());
+	B3D_ASSERT(handleResult == VK_SUCCESS);
+	(void)handleResult;
+
+	mPipeline = gpuDevice.GetResourceManager().Create<VulkanPipeline>(pipeline);
+	mPipelineLayout = pipelineLayout;
+
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_PipelineState);
+}
+
+TArrayView<const u8> VulkanGpuRayTracingPipelineState::GetShaderGroupHandle(u32 groupIndex) const
+{
+	if(mPipeline == nullptr)
+		return TArrayView<const u8>();
+
+	const u32 handleSize = mGpuDevice.GetCapabilities().RayTracing.ShaderGroupHandleSize;
+	B3D_ASSERT((groupIndex + 1) * (size_t)handleSize <= mShaderGroupHandles.size());
+
+	return TArrayView<const u8>(mShaderGroupHandles.data() + (size_t)groupIndex * handleSize, handleSize);
+}
+
+void VulkanGpuRayTracingPipelineState::RegisterShaderModuleResources(GpuResourceTracker& resourceTracker)
+{
+	const auto fnTrackModule = [&resourceTracker](const TShared<GpuProgram>& program)
+	{
+		if(program == nullptr)
+			return;
+
+		VulkanShaderModule* const module = static_cast<VulkanGpuProgram&>(*program).GetVulkanResource();
+		if(module != nullptr)
+			resourceTracker.TrackResourceUsage(module, GpuAccessFlag::Read);
+	};
+
+	for(const TShared<GpuProgram>& program : mData.RayGenerationPrograms)
+		fnTrackModule(program);
+
+	for(const TShared<GpuProgram>& program : mData.MissPrograms)
+		fnTrackModule(program);
+
+	for(const GpuRayTracingHitGroup& hitGroup : mData.HitGroups)
+	{
+		fnTrackModule(hitGroup.ClosestHitProgram);
+		fnTrackModule(hitGroup.AnyHitProgram);
+		fnTrackModule(hitGroup.IntersectionProgram);
+	}
+
+	for(const TShared<GpuProgram>& program : mData.CallablePrograms)
+		fnTrackModule(program);
+}
+
 void VulkanGpuComputePipelineState::RegisterShaderModuleResources(GpuResourceTracker& resourceTracker)
 {
 	VulkanGpuProgram* program = static_cast<VulkanGpuProgram*>(mData.Program.get());

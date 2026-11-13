@@ -169,6 +169,40 @@ namespace b3d
 			VkPipelineLayout mPipelineLayout = VK_NULL_HANDLE;
 		};
 
+		/**	Vulkan implementation of a ray tracing pipeline state. */
+		class B3D_VULKAN_EXPORT VulkanGpuRayTracingPipelineState : public GpuRayTracingPipelineState
+		{
+		public:
+			VulkanGpuRayTracingPipelineState(VulkanGpuDevice& gpuDevice, const GpuRayTracingPipelineStateCreateInformation& createInformation);
+			~VulkanGpuRayTracingPipelineState();
+
+			void Initialize() override;
+
+			/** Returns the internal pipeline object. Null if a program of the pipeline didn't compile, or the pipeline couldn't be created. */
+			VulkanPipeline* GetVulkanResource() const { return mPipeline; }
+
+			/** Returns the pipeline layout object. */
+			VkPipelineLayout GetPipelineLayoutHandle() const { return mPipelineLayout; }
+
+			/**
+			 * Returns the handle of shader group @p groupIndex, which a shader binding table record holds. Groups are numbered in this order:
+			 * ray generation programs, miss programs, hit groups, then callable programs, each in the order of its list in GetInformation().
+			 * Empty if the pipeline has no internal pipeline object.
+			 */
+			TArrayView<const u8> GetShaderGroupHandle(u32 groupIndex) const;
+
+			/**
+			 * Registers any resources used by the pipeline with the provided command buffer resource tracker. This should be called whenever
+			 * a pipeline is bound to a command buffer.
+			 */
+			void RegisterShaderModuleResources(GpuResourceTracker& resourceTracker);
+
+		protected:
+			VulkanPipeline* mPipeline = nullptr;
+			VkPipelineLayout mPipelineLayout = VK_NULL_HANDLE;
+			Vector<u8> mShaderGroupHandles; /**< Handle of every shader group, GpuRayTracingCapabilities::ShaderGroupHandleSize bytes each. */
+		};
+
 		/** @} */
 	} // namespace render
 } // namespace b3d

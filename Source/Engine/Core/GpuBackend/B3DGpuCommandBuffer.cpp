@@ -8,6 +8,7 @@
 #include "GpuBackend/B3DGpuPipelineParameterLayout.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DGpuBarrierValidator.h"
+#include "GpuBackend/B3DGpuShaderBindingTable.h"
 #include "GpuBackend/B3DGpuSubmitThread.h"
 #include "GpuBackend/B3DRenderWindow.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
@@ -913,6 +914,55 @@ bool GpuCommandBuffer::BuildAccelerationStructures(TArrayView<const GpuAccelerat
 		if(build.Destination->GetType() == GpuAccelerationStructureType::TopLevel)
 			build.Destination->SetBottomLevels(build.BottomLevels);
 	}
+
+	return true;
+}
+
+bool GpuCommandBuffer::DispatchRays(const TShared<GpuShaderBindingTable>& table, u32 rayGenerationRecordIndex, u32 width, u32 height, u32 depth)
+{
+	EnsureValidThread();
+
+	if(!mGpuDevice.GetCapabilities().HasCapability(RSC_RAY_TRACING_PIPELINE))
+	{
+		B3D_LOG(Error, LogRenderBackend, "Cannot dispatch rays, the GPU device doesn't support ray tracing pipelines.");
+		return false;
+	}
+
+	if(mQueueType != GQT_GRAPHICS && mQueueType != GQT_COMPUTE)
+	{
+		B3D_LOG(Error, LogRenderBackend, "Ray dispatches can only be recorded on graphics or compute queue command buffers.");
+		return false;
+	}
+
+	if(IsInRenderPass())
+	{
+		B3D_LOG(Error, LogRenderBackend, "Ray dispatches cannot be recorded inside a render pass.");
+		return false;
+	}
+
+	if(table == nullptr)
+	{
+		B3D_LOG(Error, LogRenderBackend, "Cannot dispatch rays without a shader binding table.");
+		return false;
+	}
+
+	const u32 rayGenerationRecordCount = (u32)table->GetInformation().RayGenerationRecords.size();
+	if(rayGenerationRecordIndex >= rayGenerationRecordCount)
+	{
+		B3D_LOG(Error, LogRenderBackend, "Cannot dispatch rays with ray generation record {0}, the shader binding table has {1}.", rayGenerationRecordIndex, rayGenerationRecordCount);
+		return false;
+	}
+
+	if(width == 0 || height == 0 || depth == 0)
+	{
+		B3D_LOG(Error, LogRenderBackend, "Cannot dispatch rays over an empty grid ({0} x {1} x {2}).", width, height, depth);
+		return false;
+	}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	if(mBarrierValidator != nullptr)
+		mBarrierValidator->ValidateDispatchRays(*table->GetPipeline());
+#endif
 
 	return true;
 }

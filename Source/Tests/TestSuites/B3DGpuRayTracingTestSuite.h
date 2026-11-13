@@ -33,5 +33,19 @@ namespace b3d
 		 * level structure keeps its bottom levels alive. Runs only with RSC_ACCELERATION_STRUCTURES and RSC_RAY_QUERY.
 		 */
 		void TestInlineRayTracing();
+
+		/**
+		 * Verifies the creation errors of ray tracing pipelines and shader binding tables, the payload and attribute sizes of a pipeline, and
+		 * the errors of DispatchRays(). Without RSC_RAY_TRACING_PIPELINE, verifies that creation and dispatches fail.
+		 */
+		void TestRayTracingPipelineCreation();
+
+		/**
+		 * Traces rays through a ray tracing pipeline against two instances of a bottom level structure with two triangles, and checks which
+		 * program ran for each: hit groups picked by the instance offset, the ray's hit group contribution and the geometry multiplier, an
+		 * empty hit group record, miss programs picked by the miss index, and the ray generation record a dispatch picks. Runs only with
+		 * RSC_ACCELERATION_STRUCTURES and RSC_RAY_TRACING_PIPELINE.
+		 */
+		void TestRayTracingPipelineRecords();
 	};
 } // namespace b3d

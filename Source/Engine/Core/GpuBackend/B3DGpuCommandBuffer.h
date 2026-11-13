@@ -932,6 +932,21 @@ namespace b3d
 			virtual bool BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild> builds);
 
 			/**
+			 * Traces rays: runs a ray generation program of the pipeline of @p table once for every point of a @p width by @p height by
+			 * @p depth grid. Binds the pipeline, and uses the parameter sets and push constants set on the command buffer, as a compute
+			 * dispatch does. Requires a device that supports ray tracing pipelines, and a graphics or compute queue command buffer outside of a
+			 * render pass.
+			 *
+			 * @param	table						Records that pick the programs that run.
+			 * @param	rayGenerationRecordIndex	Index of the ray generation record of @p table to run.
+			 * @param	width						Size of the grid along X.
+			 * @param	height						Size of the grid along Y.
+			 * @param	depth						Size of the grid along Z.
+			 * @return								True if the dispatch was recorded. False, with the reason logged, if it is invalid.
+			 */
+			virtual bool DispatchRays(const TShared<GpuShaderBindingTable>& table, u32 rayGenerationRecordIndex, u32 width, u32 height, u32 depth = 1);
+
+			/**
 			 * Schedules the timestamp to be recorded in the command buffer. The timestamp will record the
 			 * time at which the command has been executed by the GPU. The timestamp will be written to the associated
 			 * query pool, which should only be accessed when the query pool has resolved the query.

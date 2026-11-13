@@ -109,6 +109,7 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestBarriers)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestSplitBarrierExecution)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestLongRecording)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestCommandBufferReuseAfterReset)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestBarrierAcrossPasses)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestTransientAliasing)
 #if B3D_BUILD_TYPE_DEVELOPMENT
@@ -2063,6 +2064,86 @@ void GpuBackendTestSuite::TestLongRecording()
 		fnTest(GQT_GRAPHICS, "Graphics queue");
 		fnTest(GQT_COMPUTE, "Compute queue");
 	}, "GpuBackendTestSuite::TestLongRecording", true);
+}
+
+void GpuBackendTestSuite::TestCommandBufferReuseAfterReset()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	// Shaders are resources, which are created outside of the render thread
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	const TShared<GpuComputePipelineState> pipeline = CreateTestIndexedWritePipeline(*device);
+	if(pipeline == nullptr)
+		return;
+
+	GetRenderThread().PostCommand([this, &device, &pipeline]()
+	{
+		static constexpr u32 kBias = 0x5A000000;
+		static constexpr u32 kOutputIndex = 3;
+		static constexpr u32 kOutputCount = 4;
+		const GpuAccessState computeWrite(GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write);
+		const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
+		const GpuAccessState transferRead(GpuStageFlag::Transfer, GpuAccessFlag::Read);
+		const GpuAccessState hostRead(GpuStageFlag::Host, GpuAccessFlag::Read);
+
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+
+		const TShared<render::GpuBuffer> bias = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(sizeof(u32), GpuBufferFlag::StoreOnCPUWithGPUAccess));
+		{
+			const render::GpuBufferMappedScope mapping = bias->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			*static_cast<u32*>(mapping.GetMappedMemory()) = kBias;
+		}
+
+		const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kOutputCount, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kOutputCount * sizeof(u32)));
+
+		const TShared<render::GpuParameterSet> parameters = context->GetParameterSetPool().Create(pipeline->GetParameterLayout()->GetSet(0), 0);
+		parameters->SetUniformBuffer("Parameters", bias, 0, 0);
+		parameters->SetStorageBuffer("OutputBuffer", output);
+
+		// Writes kBias + kOutputIndex into element kOutputIndex of the output
+		const auto fnRecordDispatch = [&](GpuCommandBuffer& commands)
+		{
+			commands.IssueBarriers(GpuBufferBarrier(output, GpuAccessState(), computeWrite));
+			commands.SetGpuComputePipelineState(pipeline);
+			commands.SetGpuParameterSet(parameters);
+			commands.SetPushConstants(0, sizeof(kOutputIndex), &kOutputIndex);
+			commands.DispatchCompute(1);
+		};
+
+		// The first recording binds the pipeline, and is reset without being submitted
+		const TShared<GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
+		const TShared<GpuCommandBuffer> discardedCommands = pool->Create(GpuCommandBufferCreateInformation::Create("Discarded recording"));
+		fnRecordDispatch(*discardedCommands);
+		discardedCommands->End();
+		pool->Reset();
+
+		// Vulkan hands out the same command buffer again. Nothing is bound in its new recording.
+		const TShared<GpuCommandBuffer> commands = pool->FindOrCreate(GpuCommandBufferCreateInformation::Create("Reused recording"));
+		fnRecordDispatch(*commands);
+
+		const GpuBufferBarrier readBarriers[] = { GpuBufferBarrier(output, computeWrite, transferRead), GpuBufferBarrier(readback, GpuAccessState(), transferWrite) };
+		commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(readBarriers, 2)));
+		commands->CopyBufferToBuffer(output, readback, 0, 0, kOutputCount * sizeof(u32));
+		commands->IssueBarriers(GpuBufferBarrier(readback, transferWrite, hostRead));
+
+		context->SubmitCommandBuffer(commands);
+		device->WaitUntilIdle();
+
+		const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
+		B3D_TEST_ASSERT(mapping.IsValid())
+		if(!mapping.IsValid())
+			return;
+
+		const u32 written = static_cast<const u32*>(mapping.GetMappedMemory())[kOutputIndex];
+		B3D_TEST_ASSERT_MSG(written == kBias + kOutputIndex, StringUtility::Format("The reused command buffer wrote {0}.", written))
+	}, "GpuBackendTestSuite::TestCommandBufferReuseAfterReset", true);
 }
 
 void GpuBackendTestSuite::TestBarrierAcrossPasses()

@@ -30,5 +30,12 @@ namespace b3d
 		 * with Vulkan's facing flipped unless the instance flips the engine's.
 		 */
 		void TestInstanceLayout();
+
+		/**
+		 * Checks the layout of a shader binding table against the ray tracing capabilities: region addresses aligned to the table alignment,
+		 * strides to the record alignment, ray generation records that start at the table alignment each, records that hold the handles of
+		 * their groups, and an empty hit group record of zeros.
+		 */
+		void TestShaderBindingTable();
 	};
 } // namespace b3d
