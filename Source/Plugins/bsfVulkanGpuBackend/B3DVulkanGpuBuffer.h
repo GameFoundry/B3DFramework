@@ -149,16 +149,18 @@ namespace b3d
 			B3D_VULKAN_EXPORT static VkBufferUsageFlags GetVkBufferUsageFlags(const VulkanGpuDevice& device, const GpuBufferCreateInformation& createInformation);
 
 			/**
-			 * Returns the alignment a buffer of @p type and @p flags needs on @p device beyond what Vulkan reports for it, or 1 if none.
-			 * Buffers that can be the scratch memory of an acceleration structure build are aligned for it.
+			 * Returns the alignment a buffer of @p type, @p memory and @p flags needs on @p device beyond what Vulkan reports for it, or 1 if
+			 * none. Buffers that can be the scratch memory of an acceleration structure build are aligned for it.
 			 */
-			static u32 GetMinimumAlignment(const VulkanGpuDevice& device, GpuBufferType type, GpuBufferFlags flags);
+			static u32 GetMinimumAlignment(const VulkanGpuDevice& device, GpuBufferType type, GpuBufferMemory memory, GpuBufferFlags flags);
 
 			/**
-			 * Maps a buffer's engine usage (@p createInformation Type + Flags) to the (required, preferred)
-			 * memory-property flags that drive memory-type selection.
+			 * Outputs the flags that choose the memory type of a buffer of @p type, @p memory and @p flags on @p device, following
+			 * GpuBackendUtility::GetBufferPlacement(). @p outFallbackMemoryFlags receives the flags that choose the type the buffer's
+			 * heaps are in once the Vulkan heap of the first type is close to full, or nothing if they stay in it.
 			 */
-			static void GetVkMemoryPropertyFlags(const GpuBufferCreateInformation& createInformation, VkMemoryPropertyFlags& requiredFlags, VkMemoryPropertyFlags& preferredFlags);
+			static void GetMemoryFlags(const VulkanGpuDevice& device, GpuBufferType type, GpuBufferMemory memory, GpuBufferFlags flags,
+				VulkanMemoryFlags& outMemoryFlags, TOptional<VulkanMemoryFlags>& outFallbackMemoryFlags);
 
 		protected:
 			friend class VulanGpuDevice;
@@ -190,7 +192,6 @@ namespace b3d
 
 			VulkanBuffer* mBuffer = nullptr;
 
-			bool mDirectlyMappable : 1;
 			bool mSupportsGPUWrites : 1;
 		};
 

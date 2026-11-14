@@ -134,7 +134,7 @@ namespace b3d
 			MetalBuffer* mBuffer = nullptr;
 
 			/** Memory type the buffer's backing memory allocates from. Pure function of the create information, resolved once. */
-			u32 mMemoryType = 0;
+			MetalMemoryType mMemoryType = MetalMemoryType::Private;
 
 			bool mDirectlyMappable : 1;
 		};

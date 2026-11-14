@@ -24,7 +24,10 @@ namespace b3d
 		/** Mesh is not going to change ever, or is going to change rarely. Mesh vertex & index buffers will be allocated in GPU memory. */
 		Static = 1 << 0,
 
-		/** Mesh is going to change often (e.g. every frame). Mesh vertex & index buffers will be allocated in CPU memory which is GPU accessible. */
+		/**
+		 * Mesh is going to change often (e.g. every frame). Mesh vertex & index buffers will be allocated in memory the CPU writes directly. Ignored
+		 * with UnorderedAccess.
+		 */
 		Dynamic = 1 << 1,
 
 		/**

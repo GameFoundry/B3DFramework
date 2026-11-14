@@ -37,10 +37,10 @@ namespace b3d
 			MetalArgumentBuffer* CreateArgumentBuffer(MetalGpuDevice& device, u64 size)
 			{
 				MetalHeapAllocator& heapAllocator = device.GetHeapAllocator();
-				const u32 memoryType = MetalHeapAllocator::kMemoryTypeShared;
+				const MetalMemoryType memoryType = MetalMemoryType::Shared;
 
 				GpuAllocation allocation;
-				id<MTLBuffer> buffer = heapAllocator.AllocateBuffer(size, memoryType, GpuAllocation::CreatePending(heapAllocator.GetAllocator(memoryType)), allocation);
+				id<MTLBuffer> buffer = heapAllocator.AllocateBuffer(size, memoryType, GpuAllocation::CreatePending(heapAllocator.GetGpuMemoryAllocator(memoryType)), allocation);
 				if (buffer == nil)
 					return nullptr;
 

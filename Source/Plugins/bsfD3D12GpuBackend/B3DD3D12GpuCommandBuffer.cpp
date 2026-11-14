@@ -1386,9 +1386,6 @@ void D3D12GpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source,
 	D3D12GpuBuffer* d3d12Source = static_cast<D3D12GpuBuffer*>(source.get());
 	D3D12GpuBuffer* d3d12Destination = static_cast<D3D12GpuBuffer*>(destination.get());
 
-	// UPLOAD-heap memory is CPU-write-only in D3D12; it cannot be a GPU copy destination. Engine paths must write such buffers through their persistent mapping instead (see GpuBufferUtility::Write).
-	B3D_ENSURE_ONCE_LOG(d3d12Destination->GetD3D12Buffer() == nullptr || d3d12Destination->GetD3D12Buffer()->GetHeapType() != D3D12_HEAP_TYPE_UPLOAD, "D3D12: CopyBufferToBuffer destination '{0}' lives on the UPLOAD heap; the copy is invalid.", destination->GetName());
-
 	ID3D12Resource* sourceResource = d3d12Source->GetD3D12Resource();
 	ID3D12Resource* destinationResource = d3d12Destination->GetD3D12Resource();
 	B3D_ASSERT(sourceResource != nullptr && destinationResource != nullptr && "Source and destination buffers must be valid");
@@ -1842,7 +1839,7 @@ bool D3D12GpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarri
 
 		const GpuBarrierScope scope = fnGetScope(barrier);
 		D3D12BufferPage* const page = buffer.GetPage();
-		if(page != nullptr || buffer.GetHeapType() == D3D12_HEAP_TYPE_READBACK)
+		if(page != nullptr)
 		{
 			if(recordsBufferGlobalBarrier)
 			{

@@ -555,7 +555,7 @@ static TShared<GpuBuffer> CreateBoneMatrixBuffer(u32 boneCount)
 {
 	GpuBufferCreateInformation bufferCreateInformation;
 	bufferCreateInformation.Type = GpuBufferType::SimpleStorage;
-	bufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
+	bufferCreateInformation.Memory = GpuBufferMemory::Mapped;
 	bufferCreateInformation.SimpleStorage.Count = boneCount * 3;
 	bufferCreateInformation.SimpleStorage.Format = BF_32X4F;
 
@@ -637,7 +637,7 @@ void RenderableProxy::CreateAnimationBuffers()
 
 		GpuBufferCreateInformation vertexBufferCreateInformation;
 		vertexBufferCreateInformation.Type = GpuBufferType::Vertex;
-		vertexBufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
+		vertexBufferCreateInformation.Memory = GpuBufferMemory::Mapped;
 		vertexBufferCreateInformation.Vertex.ElementSize = vertexSize;
 		vertexBufferCreateInformation.Vertex.Count = vertexCount;
 

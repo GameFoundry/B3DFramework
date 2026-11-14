@@ -32,8 +32,11 @@ namespace b3d
 	 * into a texture or buffer created at the reserved memory, and exchanges their native resources (see render::Texture::Relocate()
 	 * and render::GpuBuffer::Relocate()). Moved resources keep their proxies and bindless indices. Enabled by gpu.Defragmentation.
 	 *
-	 * Only moves resources at rest in GPU-only memory that are not render targets, depth-stencil targets or frame graph resources,
-	 * and that no recorded but unsubmitted command buffer references.
+	 * Only moves resources at rest that are not render targets, depth-stencil targets or frame graph resources, and that no recorded but
+	 * unsubmitted command buffer references. Other textures move, except those the CPU accesses (TextureUsageFlag::StoreOnCPUWithGPUAccess).
+	 * Buffers move only in GpuBufferMemory::Device memory, including those the device maps. The GPU copies a moved buffer's contents after
+	 * the move, so CPU writes through render::GpuBuffer::Map() made before the copy executes are lost. GpuBufferUtility::Write() stages its
+	 * writes behind the copy.
 	 */
 	class B3D_EXPORT GpuMemoryDefragmenter
 	{

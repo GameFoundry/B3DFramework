@@ -719,7 +719,6 @@ namespace b3d::render
 
 		GpuBufferInformation indexBufferCreateInformation;
 		indexBufferCreateInformation.Type = GpuBufferType::Index;
-		indexBufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU;
 		indexBufferCreateInformation.Index.Type = IT_32BIT;
 		indexBufferCreateInformation.Index.Count = indexCount;
 
@@ -730,7 +729,6 @@ namespace b3d::render
 
 		GpuBufferCreateInformation vertexBufferCreateInformation;
 		vertexBufferCreateInformation.Type = GpuBufferType::Vertex;
-		vertexBufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU;
 		vertexBufferCreateInformation.Vertex.ElementSize = renderBuffers.VertexDescription->GetVertexStride();
 		vertexBufferCreateInformation.Vertex.Count = vertexCount;
 

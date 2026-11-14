@@ -63,7 +63,7 @@ TShared<Texture> texture = gpuDevice->CreateTexture(textureInformation);
 u32 textureIndex = texture->GetBindlessIndex();
 
 TShared<GpuBuffer> buffer = gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(Vector4), 1024,
-	GpuBufferFlag::StoreOnGPU | GpuBufferFlag::Bindless));
+	GpuBufferFlag::Bindless));
 u32 bufferIndex = buffer->GetBindlessIndex();
 ~~~~~~~~~~~~~
 

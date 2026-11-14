@@ -148,7 +148,7 @@ GpuBufferCreateInformation IrradianceComputeSHMaterial::GetOutputBufferInformati
 
 	GpuBufferCreateInformation bufferCreateInformation;
 	bufferCreateInformation.Type = GpuBufferType::StructuredStorage;
-	bufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU;
+	bufferCreateInformation.Flags = GpuBufferFlag::GpuWrite;
 	bufferCreateInformation.StructuredStorage.Count = numCoeffSets;
 
 	if(mVariationParameters.GetI32("SH_ORDER") == 3)

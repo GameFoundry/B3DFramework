@@ -32,7 +32,6 @@ void UniformBufferPools::Initialize(GpuDevice& device)
 		GpuBufferCreateInformation stagingCreateInfo;
 		stagingCreateInfo.Type = GpuBufferType::StagingWrite;
 		stagingCreateInfo.Staging.Size = perObjectSize;
-		stagingCreateInfo.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
 
 		mPerObjectStagingPool.Initialize(device, stagingCreateInfo, kStagingEntriesPerBuffer, 1);
 	}
@@ -43,7 +42,6 @@ void UniformBufferPools::Initialize(GpuDevice& device)
 		GpuBufferCreateInformation stagingCreateInfo;
 		stagingCreateInfo.Type = GpuBufferType::StagingWrite;
 		stagingCreateInfo.Staging.Size = decalParamSize;
-		stagingCreateInfo.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
 
 		mDecalStagingPool.Initialize(device, stagingCreateInfo, kStagingEntriesPerBuffer, 1);
 	}
@@ -54,7 +52,6 @@ void UniformBufferPools::Initialize(GpuDevice& device)
 		GpuBufferCreateInformation stagingCreateInfo;
 		stagingCreateInfo.Type = GpuBufferType::StagingWrite;
 		stagingCreateInfo.Staging.Size = gpuParticlesParamSize;
-		stagingCreateInfo.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
 
 		mGpuParticlesStagingPool.Initialize(device, stagingCreateInfo, kStagingEntriesPerBuffer, 1);
 	}
@@ -70,7 +67,7 @@ void UniformBufferPools::Initialize(GpuDevice& device)
 		// Create pools for each configured buffer type
 		for (const BufferConfiguration& bufferConfiguration : poolConfiguration.Buffers)
 		{
-			GpuBufferCreateInformation createInfo = GpuBufferCreateInformation::CreateUniform(bufferConfiguration.BufferSize, bufferConfiguration.Flags);
+			GpuBufferCreateInformation createInfo = GpuBufferCreateInformation::CreateUniform(bufferConfiguration.BufferSize, bufferConfiguration.Memory);
 			GpuBufferPool pool;
 			pool.Initialize(device, createInfo, poolConfiguration.EntriesPerBuffer, 1);
 

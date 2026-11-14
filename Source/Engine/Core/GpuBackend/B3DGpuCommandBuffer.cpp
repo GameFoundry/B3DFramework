@@ -781,9 +781,9 @@ namespace
 
 		const GpuBuffer& scratchBuffer = *build.ScratchBuffer;
 		const GpuBufferInformation& scratchInformation = scratchBuffer.GetInformation();
-		const bool isScratchCapable = scratchInformation.Type == GpuBufferType::StructuredStorage && scratchInformation.Flags.IsSet(GpuBufferFlag::StoreOnGPU) &&
-			scratchInformation.Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU);
-		if(!B3D_ENSURE_LOG(isScratchCapable, "The scratch buffer '{0}' of build {1} must be a structured storage buffer stored on the GPU that allows unordered access.",
+		const bool isScratchCapable = scratchInformation.Type == GpuBufferType::StructuredStorage && scratchInformation.Flags.IsSet(GpuBufferFlag::GpuWrite) &&
+			scratchInformation.Memory == GpuBufferMemory::Device;
+		if(!B3D_ENSURE_LOG(isScratchCapable, "The scratch buffer '{0}' of build {1} must be a structured storage buffer in GPU memory (GpuBufferMemory::Device), with GpuBufferFlag::GpuWrite.",
 			scratchBuffer.GetName(), buildIndex))
 		{
 			return false;

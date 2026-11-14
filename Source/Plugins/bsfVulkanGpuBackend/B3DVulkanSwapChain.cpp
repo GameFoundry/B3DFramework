@@ -221,7 +221,7 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const TShared<Vul
 		depthImageCreateInformation.IsShaderReadAllowed = false;
 
 		// Purposefully not setting parent so these images don't participate in defragmentation
-		mDepthStencilImage = device.CreateImage(depthImageCreateInformation, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0);
+		mDepthStencilImage = device.CreateImage(depthImageCreateInformation, VulkanMemoryFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0));
 
 		if(mDepthStencilImage != nullptr)
 		{

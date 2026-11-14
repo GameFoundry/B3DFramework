@@ -13,29 +13,29 @@ namespace b3d
 		namespace
 		{
 			/** Returns the storage mode backing @p memoryType. */
-			MTLStorageMode GetMemoryTypeStorageMode(u32 memoryType)
+			MTLStorageMode GetMemoryTypeStorageMode(MetalMemoryType memoryType)
 			{
 				switch (memoryType)
 				{
-				case MetalHeapAllocator::kMemoryTypeShared:
+				case MetalMemoryType::Shared:
 					return MTLStorageModeShared;
-				case MetalHeapAllocator::kMemoryTypePrivate:
+				case MetalMemoryType::Private:
 				default:
 					return MTLStorageModePrivate;
 				}
 			}
 
-			/** Returns the memory type backing @p storageMode, or MetalHeapAllocator::kMemoryTypeCount if heaps cannot back it. */
-			u32 GetStorageModeMemoryType(MTLStorageMode storageMode)
+			/** Returns the memory type backing @p storageMode, or MetalMemoryType::Count if heaps cannot back it. */
+			MetalMemoryType GetStorageModeMemoryType(MTLStorageMode storageMode)
 			{
 				switch (storageMode)
 				{
 				case MTLStorageModePrivate:
-					return MetalHeapAllocator::kMemoryTypePrivate;
+					return MetalMemoryType::Private;
 				case MTLStorageModeShared:
-					return MetalHeapAllocator::kMemoryTypeShared;
+					return MetalMemoryType::Shared;
 				default:
-					return MetalHeapAllocator::kMemoryTypeCount;
+					return MetalMemoryType::Count;
 				}
 			}
 
@@ -56,9 +56,9 @@ namespace b3d
 			if (device == nil)
 				return nullptr;
 
-			if (createInformation.MemoryType >= MetalHeapAllocator::kMemoryTypeCount)
+			if (createInformation.MemoryType >= MetalMemoryType::Count)
 			{
-				B3D_LOG(Error, LogRenderBackend, "MetalHeapBackend: invalid memory type {0}.", createInformation.MemoryType);
+				B3D_LOG(Error, LogRenderBackend, "MetalHeapBackend: invalid memory type {0}.", (u32)createInformation.MemoryType);
 				return nullptr;
 			}
 
@@ -73,11 +73,11 @@ namespace b3d
 
 			if (heap == nil)
 			{
-				B3D_LOG(Error, LogRenderBackend, "MetalHeapBackend: newHeapWithDescriptor failed for {0} bytes, memory type {1}.", sizeInBytes, createInformation.MemoryType);
+				B3D_LOG(Error, LogRenderBackend, "MetalHeapBackend: newHeapWithDescriptor failed for {0} bytes, memory type {1}.", sizeInBytes, (u32)createInformation.MemoryType);
 				return nullptr;
 			}
 
-			heap.label = createInformation.MemoryType == MetalHeapAllocator::kMemoryTypeShared
+			heap.label = createInformation.MemoryType == MetalMemoryType::Shared
 				? @"Banshee shared placement heap"
 				: @"Banshee private placement heap";
 
@@ -107,7 +107,7 @@ namespace b3d
 
 			heap.Heap = nullptr;
 			heap.Size = 0;
-			heap.MemoryType = 0;
+			heap.MemoryType = MetalMemoryType::Private;
 
 			Lock lock(mHeapPoolMutex);
 			mHeapPool.Release(&heap);
@@ -116,15 +116,16 @@ namespace b3d
 		MetalHeapAllocator::MetalHeapAllocator(MetalGpuDevice& device)
 			: mDevice(device), mResidencySet(device.GetMetalDevice()), mBackend(device, mResidencySet)
 		{
-			for (u32 memoryType = 0; memoryType < kMemoryTypeCount; memoryType++)
+			for (u32 memoryTypeIndex = 0; memoryTypeIndex < (u32)MetalMemoryType::Count; memoryTypeIndex++)
 			{
+				const MetalMemoryType memoryType = (MetalMemoryType)memoryTypeIndex;
 				MemoryAllocator::Configuration configuration;
 
 				// Resources free their memory only once they retire, so it can be reclaimed immediately
 				configuration.DeferralMode = GpuAllocatorFreeDeferralMode::ResourceLifecycle;
 
 				// Shared memory mostly holds small staging and uniform data, so it starts with smaller heaps
-				if (memoryType == kMemoryTypeShared)
+				if (memoryType == MetalMemoryType::Shared)
 				{
 					configuration.InitialHeapSize = 16ull * 1024 * 1024;
 					configuration.MaxHeapSize = 64ull * 1024 * 1024;
@@ -139,40 +140,40 @@ namespace b3d
 				configuration.MaxEmptyHeapCount = 1;
 				configuration.HeapCreateInfo.MemoryType = memoryType;
 
-				mAllocators[memoryType] = B3DMakeUnique<MemoryAllocator>(&mBackend, nullptr, configuration);
+				mAllocators[(u32)memoryType] = B3DMakeUnique<MemoryAllocator>(&mBackend, nullptr, configuration);
 			}
 		}
 
 		MetalHeapAllocator::~MetalHeapAllocator()
 		{
-			for (u32 memoryType = 0; memoryType < kMemoryTypeCount; memoryType++)
-				mAllocators[memoryType].reset();
+			for (TUnique<MemoryAllocator>& allocator : mAllocators)
+				allocator.reset();
 
-			for (u32 memoryType = 0; memoryType < kMemoryTypeCount; memoryType++)
-				mLinearPagePools[memoryType].reset();
+			for (TUnique<LinearPagePool>& pagePool : mLinearPagePools)
+				pagePool.reset();
 		}
 
-		u32 MetalHeapAllocator::GetBufferMemoryType(const GpuBufferInformation& information)
+		MetalMemoryType MetalHeapAllocator::GetBufferMemoryType(const GpuBufferInformation& information)
 		{
 			return MetalUtility::GetBufferStorageMode(information) == MTLStorageModeShared
-				? kMemoryTypeShared
-				: kMemoryTypePrivate;
+				? MetalMemoryType::Shared
+				: MetalMemoryType::Private;
 		}
 
-		IGpuAllocator& MetalHeapAllocator::GetAllocator(u32 memoryType)
+		IGpuAllocator& MetalHeapAllocator::GetGpuMemoryAllocator(MetalMemoryType memoryType)
 		{
-			B3D_ASSERT(memoryType < kMemoryTypeCount);
-			B3D_ASSERT(mAllocators[memoryType] != nullptr);
+			B3D_ASSERT(memoryType < MetalMemoryType::Count);
+			B3D_ASSERT(mAllocators[(u32)memoryType] != nullptr);
 
-			return *mAllocators[memoryType];
+			return *mAllocators[(u32)memoryType];
 		}
 
-		MetalHeapAllocator::LinearPagePool& MetalHeapAllocator::GetOrCreateLinearPagePool(u32 memoryType)
+		MetalHeapAllocator::LinearPagePool& MetalHeapAllocator::GetOrCreateLinearPagePool(MetalMemoryType memoryType)
 		{
-			B3D_ASSERT(memoryType < kMemoryTypeCount);
+			B3D_ASSERT(memoryType < MetalMemoryType::Count);
 
 			Lock lock(mLinearPagePoolMutex);
-			TUnique<LinearPagePool>& pagePool = mLinearPagePools[memoryType];
+			TUnique<LinearPagePool>& pagePool = mLinearPagePools[(u32)memoryType];
 			if (pagePool != nullptr)
 				return *pagePool;
 
@@ -185,9 +186,9 @@ namespace b3d
 			return *pagePool;
 		}
 
-		TUnique<IGpuAllocator> MetalHeapAllocator::CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker)
+		TUnique<IGpuAllocator> MetalHeapAllocator::CreateScratchAllocator(MetalMemoryType memoryType, IGpuCompletionTracker& completionTracker)
 		{
-			if (memoryType >= kMemoryTypeCount)
+			if (memoryType >= MetalMemoryType::Count)
 				return nullptr;
 
 			LinearPagePool& pagePool = GetOrCreateLinearPagePool(memoryType);
@@ -202,19 +203,19 @@ namespace b3d
 		TUnique<IGpuTransientHeapPool> MetalHeapAllocator::CreateTransientHeapPool(IGpuCompletionTracker& completionTracker)
 		{
 			TGpuTransientHeapPool<MetalHeapBackend>::Configuration configuration;
-			configuration.HeapCreateInformation.MemoryType = kMemoryTypePrivate;
+			configuration.HeapCreateInformation.MemoryType = MetalMemoryType::Private;
 			configuration.CompletionTracker = &completionTracker;
 
 			return B3DMakeUnique<TGpuTransientHeapPool<MetalHeapBackend>>(&mBackend, configuration);
 		}
 
-		GpuMemoryRequirements MetalHeapAllocator::GetBufferMemoryRequirements(u64 length, u32 memoryType) const
+		GpuMemoryRequirements MetalHeapAllocator::GetBufferMemoryRequirements(u64 length, MetalMemoryType memoryType) const
 		{
 			GpuMemoryRequirements output;
-			output.MemoryType = memoryType;
+			output.MemoryType = (u32)memoryType;
 
 			id<MTLDevice> device = mDevice.GetMetalDevice();
-			if (device == nil || memoryType >= kMemoryTypeCount)
+			if (device == nil || memoryType >= MetalMemoryType::Count)
 			{
 				output.MemoryType = GpuMemoryRequirements::kUnsupportedMemoryType;
 				return output;
@@ -233,26 +234,26 @@ namespace b3d
 			GpuMemoryRequirements output;
 
 			id<MTLDevice> device = mDevice.GetMetalDevice();
-			const u32 memoryType = descriptor != nil ? GetStorageModeMemoryType(descriptor.storageMode) : kMemoryTypeCount;
-			if (device == nil || memoryType >= kMemoryTypeCount)
+			const MetalMemoryType memoryType = descriptor != nil ? GetStorageModeMemoryType(descriptor.storageMode) : MetalMemoryType::Count;
+			if (device == nil || memoryType >= MetalMemoryType::Count)
 			{
 				output.MemoryType = GpuMemoryRequirements::kUnsupportedMemoryType;
 				return output;
 			}
 
 			const MTLSizeAndAlign sizeAndAlign = [device heapTextureSizeAndAlignWithDescriptor:descriptor];
-			output.MemoryType = memoryType;
+			output.MemoryType = (u32)memoryType;
 			output.Size = sizeAndAlign.size;
 			output.Alignment = sizeAndAlign.align;
 
 			return output;
 		}
 
-		id<MTLBuffer> MetalHeapAllocator::AllocateBuffer(u64 length, u32 memoryType, const GpuAllocation& requestedAllocation, GpuAllocation& outAllocation)
+		id<MTLBuffer> MetalHeapAllocator::AllocateBuffer(u64 length, MetalMemoryType memoryType, const GpuAllocation& requestedAllocation, GpuAllocation& outAllocation)
 		{
 			outAllocation.Reset();
 
-			if (length == 0 || memoryType >= kMemoryTypeCount)
+			if (length == 0 || memoryType >= MetalMemoryType::Count)
 				return nil;
 
 			id<MTLDevice> device = mDevice.GetMetalDevice();
@@ -291,13 +292,13 @@ namespace b3d
 				}
 				else
 				{
-					B3D_LOG(Error, LogRenderBackend, "Metal buffer allocator returned memory type {0}, expected {1}.", heap.MemoryType, memoryType);
+					B3D_LOG(Error, LogRenderBackend, "Metal buffer allocator returned memory type {0}, expected {1}.", (u32)heap.MemoryType, (u32)memoryType);
 				}
 
 				allocator.FreeAndReclaim(allocation);
 			}
 
-			if (&allocator != mAllocators[memoryType].get())
+			if (&allocator != mAllocators[(u32)memoryType].get())
 				return nil;
 
 			id<MTLBuffer> buffer = [device newBufferWithLength:length options:options];
@@ -317,7 +318,7 @@ namespace b3d
 			if (device == nil)
 				return nil;
 
-			const u32 memoryType = GetStorageModeMemoryType(descriptor.storageMode);
+			const MetalMemoryType memoryType = GetStorageModeMemoryType(descriptor.storageMode);
 
 			if (requestedAllocation.HasMemory())
 			{
@@ -334,7 +335,7 @@ namespace b3d
 				return texture;
 			}
 
-			if (memoryType >= kMemoryTypeCount)
+			if (memoryType >= MetalMemoryType::Count)
 			{
 				id<MTLTexture> texture = [device newTextureWithDescriptor:descriptor];
 				mResidencySet.Add(texture);
@@ -360,7 +361,7 @@ namespace b3d
 				allocator.FreeAndReclaim(allocation);
 			}
 
-			if (&allocator != mAllocators[memoryType].get())
+			if (&allocator != mAllocators[(u32)memoryType].get())
 				return nil;
 
 			id<MTLTexture> texture = [device newTextureWithDescriptor:descriptor];

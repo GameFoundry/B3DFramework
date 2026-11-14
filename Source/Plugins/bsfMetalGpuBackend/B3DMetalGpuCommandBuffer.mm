@@ -571,10 +571,10 @@ namespace b3d
 			{
 				const u64 chunkSize = std::max(kUploadChunkSize, alignedSize);
 				MetalHeapAllocator& heapAllocator = mGpuDevice.GetHeapAllocator();
-				const GpuAllocation requestedAllocation = GpuAllocation::CreatePending(heapAllocator.GetAllocator(MetalHeapAllocator::kMemoryTypeShared));
+				const GpuAllocation requestedAllocation = GpuAllocation::CreatePending(heapAllocator.GetGpuMemoryAllocator(MetalMemoryType::Shared));
 
 				UploadChunk chunk;
-				id<MTLBuffer> buffer = heapAllocator.AllocateBuffer(chunkSize, MetalHeapAllocator::kMemoryTypeShared, requestedAllocation, chunk.Allocation);
+				id<MTLBuffer> buffer = heapAllocator.AllocateBuffer(chunkSize, MetalMemoryType::Shared, requestedAllocation, chunk.Allocation);
 				if (buffer == nil)
 				{
 					B3D_LOG(Error, LogRenderBackend, "Failed to allocate a {0}-byte Metal upload buffer.", chunkSize);

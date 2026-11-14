@@ -142,7 +142,7 @@ namespace
 	TShared<GpuBuffer> CreateGridBuffer(FrameGraph& graph, const char* name, u32 elementCount, u32 elementSize, GpuBufferFormat format = BF_UNKNOWN)
 	{
 		GpuBufferCreateInformation information;
-		information.Flags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU;
+		information.Flags = GpuBufferFlag::GpuWrite;
 		if(format == BF_UNKNOWN)
 		{
 			information.Type = GpuBufferType::StructuredStorage;

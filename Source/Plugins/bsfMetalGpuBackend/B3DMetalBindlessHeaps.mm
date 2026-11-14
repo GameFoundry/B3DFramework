@@ -20,7 +20,7 @@ namespace b3d
 			/** Creates a buffer of @p capacity null entries in shared memory, written from the CPU. Returns null on failure. */
 			TShared<GpuBuffer> CreateHeapBuffer(MetalGpuDevice& device, u32 capacity)
 			{
-				TShared<GpuBuffer> buffer = device.CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u64), capacity, GpuBufferFlag::StoreOnCPUWithGPUAccess));
+				TShared<GpuBuffer> buffer = device.CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u64), capacity, GpuBufferFlag::None, GpuBufferMemory::Mapped));
 				if (buffer == nullptr)
 					return nullptr;
 

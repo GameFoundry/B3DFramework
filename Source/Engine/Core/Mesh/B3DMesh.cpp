@@ -268,16 +268,20 @@ void Mesh::Initialize()
 {
 	ASSERT_IF_NOT_RENDER_THREAD;
 
-	const bool isDynamic = mFlags.IsSet(MeshFlag::Dynamic);
-	GpuBufferFlags flags = isDynamic ? GpuBufferFlag::StoreOnCPUWithGPUAccess : GpuBufferFlag::StoreOnGPU;
+	// Dynamic meshes are rewritten often, so they are mapped, unless the GPU writes them
+	GpuBufferFlags flags;
+	GpuBufferMemory memory = GpuBufferMemory::Device;
 	if(mFlags.IsSet(MeshFlag::UnorderedAccess))
-		flags |= GpuBufferFlag::AllowUnorderedAccessOnTheGPU;
+		flags = GpuBufferFlag::GpuWrite;
+	else if(mFlags.IsSet(MeshFlag::Dynamic))
+		memory = GpuBufferMemory::Mapped;
 
 	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	GpuBufferInformation indexBufferCreateInformation;
 	indexBufferCreateInformation.Type = GpuBufferType::Index;
 	indexBufferCreateInformation.Flags = flags;
+	indexBufferCreateInformation.Memory = memory;
 	indexBufferCreateInformation.Index.Type = mIndexType;
 	indexBufferCreateInformation.Index.Count = mProperties.IndexCount;
 
@@ -295,6 +299,7 @@ void Mesh::Initialize()
 		GpuBufferCreateInformation vertexBufferCreateInformation;
 		vertexBufferCreateInformation.Type = GpuBufferType::Vertex;
 		vertexBufferCreateInformation.Flags = flags;
+		vertexBufferCreateInformation.Memory = memory;
 		vertexBufferCreateInformation.Vertex.ElementSize = mVertexData->VertexDescription->GetVertexStride(streamIndex);
 		vertexBufferCreateInformation.Vertex.Count = mVertexData->VertexCount;
 
@@ -306,7 +311,7 @@ void Mesh::Initialize()
 	// buffer data upon buffer construction, instead of setting it in a second step like I do here
 	if(mTempInitialMeshData != nullptr)
 	{
-		WriteData(*mTempInitialMeshData, isDynamic);
+		WriteData(*mTempInitialMeshData, mFlags.IsSet(MeshFlag::Dynamic));
 		mTempInitialMeshData = nullptr;
 	}
 

@@ -248,7 +248,8 @@ namespace b3d
 
 		/**
 		 * Placements pad to their alignment and to the granularity, free memory coalesces, allocations that fit no heap create
-		 * a heap sized to fit them, and heap creation failures fail soft.
+		 * a heap sized to fit them, and heap creation failures fail soft. An alignment that isn't a power of two combines with the
+		 * granularity into their least common multiple.
 		 */
 		void TestAliasing_SegmentsAndGranularity();
 

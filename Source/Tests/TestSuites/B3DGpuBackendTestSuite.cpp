@@ -9,9 +9,12 @@
 #include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
+#include "GpuBackend/B3DGpuBindlessHeap.h"
+#include "GpuBackend/B3DGpuBindlessHeapPool.h"
 #include "GpuBackend/B3DGpuCompletionTracker.h"
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
+#include "GpuBackend/B3DGpuMemoryDefragmenter.h"
 #include "GpuBackend/B3DGpuSplitBarrier.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuBarrierValidator.h"
@@ -101,6 +104,11 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestDrawAccessValidation)
 #endif
 	B3D_ADD_TEST(GpuBackendTestSuite::TestQueueStageFlags)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestMemoryCapabilities)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestBufferPlacement)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestCpuWrittenBufferReadback)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestBufferMemory)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestCpuWrittenBufferRelocation)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestTransientResourceAllocator)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestTransientResourceExecution)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestTransientResourcePlacement)
@@ -160,7 +168,7 @@ void GpuBackendTestSuite::TestByteAddressBufferAccess()
 		const auto fnTestInput = [this, &device, &pipeline](const GpuBufferCreateInformation& inputInformation)
 		{
 			const TShared<render::GpuBuffer> input = device->CreateGpuBuffer(inputInformation);
-			const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kOutputWordCount, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+			const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kOutputWordCount, GpuBufferFlag::GpuWrite));
 			const TShared<render::GpuBuffer> upload = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(kOutputWordCount * sizeof(u32)));
 			const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kOutputWordCount * sizeof(u32)));
 
@@ -183,7 +191,7 @@ void GpuBackendTestSuite::TestByteAddressBufferAccess()
 			const TShared<render::GpuParameterSet> parameterSet = context->GetParameterSetPool().Create(pipeline->GetParameterLayout()->GetSet(0), 0);
 
 			{
-				const TShared<render::GpuBuffer> typedBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X1U, kInputWordCount, GpuBufferFlag::StoreOnGPU));
+				const TShared<render::GpuBuffer> typedBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X1U, kInputWordCount));
 
 				LoggingScope logs(*this);
 				logs.ExpectError("Only structured storage, vertex and index buffers can be bound as byte address buffers.");
@@ -229,16 +237,16 @@ void GpuBackendTestSuite::TestByteAddressBufferAccess()
 				B3D_TEST_ASSERT_MSG(actual[wordIndex] == expected[wordIndex], StringUtility::Format("Output word {0}: {1}, expected {2}.", wordIndex, actual[wordIndex], expected[wordIndex]))
 		};
 
-		fnTestInput(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kInputWordCount, GpuBufferFlag::StoreOnCPUWithGPUAccess));
+		fnTestInput(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kInputWordCount, GpuBufferFlag::None, GpuBufferMemory::Mapped));
 
 		// Backends implement raw views of vertex and index buffers together with acceleration structures
 		if(device->GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES))
 		{
-			fnTestInput(GpuBufferCreateInformation::CreateVertex(sizeof(u32), kInputWordCount, GpuBufferFlag::StoreOnCPUWithGPUAccess));
-			fnTestInput(GpuBufferCreateInformation::CreateIndex(IT_32BIT, kInputWordCount, GpuBufferFlag::StoreOnCPUWithGPUAccess));
+			fnTestInput(GpuBufferCreateInformation::CreateVertex(sizeof(u32), kInputWordCount, GpuBufferFlag::None, GpuBufferMemory::Mapped));
+			fnTestInput(GpuBufferCreateInformation::CreateIndex(IT_32BIT, kInputWordCount, GpuBufferFlag::None, GpuBufferMemory::Mapped));
 
 			// An odd number of 16-bit indices ends in half a word, which padding completes
-			fnTestInput(GpuBufferCreateInformation::CreateIndex(IT_16BIT, kInputWordCount * 2 - 1, GpuBufferFlag::StoreOnCPUWithGPUAccess));
+			fnTestInput(GpuBufferCreateInformation::CreateIndex(IT_16BIT, kInputWordCount * 2 - 1, GpuBufferFlag::None, GpuBufferMemory::Mapped));
 		}
 	}, "GpuBackendTestSuite::TestByteAddressBufferAccess", true);
 }
@@ -475,7 +483,7 @@ void GpuBackendTestSuite::TestResourceLocations()
 
 	// CPU accessible and suballocated buffers can be created at a fixed location
 	{
-		const GpuBufferCreateInformation uniformInformation = GpuBufferCreateInformation::CreateUniform(16, GpuBufferFlag::StoreOnCPUWithGPUAccess, 4);
+		const GpuBufferCreateInformation uniformInformation = GpuBufferCreateInformation::CreateUniform(16, GpuBufferMemory::Mapped, 4);
 		const GpuMemoryRequirements uniformRequirements = device->GetMemoryRequirements(uniformInformation);
 		IGpuAllocator& uniformAllocator = device->GetPersistentAllocator(uniformRequirements.MemoryType);
 
@@ -663,7 +671,7 @@ shader DynamicUniformBufferOffsets
 		return;
 
 	const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
-	const TShared<render::GpuBuffer> values = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(16, GpuBufferFlag::StoreOnCPUWithGPUAccess, 4));
+	const TShared<render::GpuBuffer> values = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(16, GpuBufferMemory::Mapped, 4));
 	const u32 stride = values->GetSuballocationSize();
 	{
 		const render::GpuBufferMappedScope mapping = values->Map(GpuMapOption::Write);
@@ -676,7 +684,7 @@ shader DynamicUniformBufferOffsets
 	}
 
 	const u32 expected[] = { 12111, 13111, 213111, 210111, 212131, 212111 };
-	const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 6, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+	const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 6, GpuBufferFlag::GpuWrite));
 	const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(sizeof(expected)));
 	const TShared<GpuPipelineParameterSetLayout> firstLayout = pipeline->GetParameterLayout()->GetSet(0);
 	const TShared<GpuPipelineParameterSetLayout> secondLayout = pipeline->GetParameterLayout()->GetSet(1);
@@ -1428,6 +1436,348 @@ void GpuBackendTestSuite::TestQueueStageFlags()
 	B3D_TEST_ASSERT(GpuBackendUtility::GetQueueStageFlags(GQT_TRANSFER) == (GpuStageFlag::Transfer | GpuStageFlag::Host))
 }
 
+void GpuBackendTestSuite::TestMemoryCapabilities()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const GpuDeviceCapabilities& capabilities = backend.GetDevice(0)->GetCapabilities();
+	const bool hasResizableBar = capabilities.HasCapability(RSC_RESIZABLE_BAR);
+
+	// Resizable BAR is a feature of discrete GPUs, which the config variable turns off
+	B3D_TEST_ASSERT(!hasResizableBar || !capabilities.HasCapability(RSC_UNIFIED_MEMORY))
+	B3D_TEST_ASSERT(!hasResizableBar || gGpuResizableBar.Get())
+}
+
+void GpuBackendTestSuite::TestBufferPlacement()
+{
+	struct PlacementCase
+	{
+		GpuBufferMemory Memory;
+		GpuBufferFlags Flags;
+		GpuBufferPlacement Slow; /**< Discrete GPU without Resizable BAR, or unified memory the GPU reads more slowly where the CPU can see it (AMD). */
+		GpuBufferPlacement FullSpeed; /**< Discrete GPU with Resizable BAR, or unified memory the GPU reads at full speed where the CPU can see it. */
+	};
+
+	using M = GpuBufferMemory;
+	using P = GpuBufferPlacement;
+	const PlacementCase cases[] =
+	{
+		{ M::Device, GpuBufferFlag::None, P::UnmappedGpu, P::MappedGpuOrUnmapped },
+		{ M::Device, GpuBufferFlag::Bindless | GpuBufferFlag::AccelerationStructureInput, P::UnmappedGpu, P::MappedGpuOrUnmapped },
+		{ M::Device, GpuBufferFlag::GpuWrite, P::UnmappedGpu, P::UnmappedGpu },
+		{ M::Mapped, GpuBufferFlag::None, P::MappedSystem, P::MappedGpuOrSystem },
+		{ M::Mapped, GpuBufferFlag::GpuWrite, P::MappedSystem, P::MappedGpuOrSystem },
+		{ M::MappedCached, GpuBufferFlag::None, P::MappedCached, P::MappedCached },
+		{ M::MappedCached, GpuBufferFlag::GpuWrite, P::MappedCached, P::MappedCached },
+	};
+
+	for(u32 caseIndex = 0; caseIndex < (u32)std::size(cases); caseIndex++)
+	{
+		const PlacementCase& placementCase = cases[caseIndex];
+		const GpuBufferPlacement placements[] =
+		{
+			GpuBackendUtility::GetBufferPlacement(placementCase.Memory, placementCase.Flags, false),
+			GpuBackendUtility::GetBufferPlacement(placementCase.Memory, placementCase.Flags, true)
+		};
+
+		const GpuBufferPlacement expectedPlacements[] = { placementCase.Slow, placementCase.FullSpeed };
+		for(u32 deviceIndex = 0; deviceIndex < (u32)std::size(placements); deviceIndex++)
+		{
+			B3D_TEST_ASSERT_MSG(placements[deviceIndex] == expectedPlacements[deviceIndex], StringUtility::Format("Case {0}, device {1}: placement {2}, "
+				"expected {3}.", caseIndex, deviceIndex, (u32)placements[deviceIndex], (u32)expectedPlacements[deviceIndex]))
+		}
+	}
+}
+
+void GpuBackendTestSuite::TestCpuWrittenBufferReadback()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	GetRenderThread().PostCommand([this, &device]()
+	{
+		static constexpr u32 kWordCount = 64;
+		const TShared<render::GpuBuffer> buffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kWordCount,
+			GpuBufferFlag::None, GpuBufferMemory::Mapped));
+		B3D_TEST_ASSERT(buffer != nullptr)
+		if(buffer == nullptr)
+			return;
+
+		u32 writtenWords[kWordCount];
+		for(u32 wordIndex = 0; wordIndex < kWordCount; wordIndex++)
+			writtenWords[wordIndex] = wordIndex * 3 + 1;
+
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		render::GpuBufferUtility::Write(*context, buffer, 0, sizeof(writtenWords), writtenWords);
+
+		// Reads only part of the buffer, at an offset
+		static constexpr u32 kFirstReadWord = 8;
+		static constexpr u32 kReadWordCount = 32;
+		u32 readWords[kReadWordCount] = {};
+		render::GpuBufferUtility::Read(*context, buffer, kFirstReadWord * sizeof(u32), sizeof(readWords), readWords);
+
+		for(u32 wordIndex = 0; wordIndex < kReadWordCount; wordIndex++)
+		{
+			const u32 expectedWord = writtenWords[kFirstReadWord + wordIndex];
+			B3D_TEST_ASSERT_MSG(readWords[wordIndex] == expectedWord, StringUtility::Format("Word {0}: {1}, expected {2}.", wordIndex, readWords[wordIndex], expectedWord))
+		}
+
+		device->WaitUntilIdle();
+	}, "GpuBackendTestSuite::TestCpuWrittenBufferReadback", true);
+}
+
+void GpuBackendTestSuite::TestBufferMemory()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const bool isD3D12 = String(backend.GetBackendName()) == "bsfD3D12GpuBackend";
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	GetRenderThread().PostCommand([this, &device, isD3D12]()
+	{
+		struct MemoryCase
+		{
+			GpuBufferMemory Memory;
+			GpuBufferFlags Flags;
+		};
+
+		const MemoryCase memoryCases[] =
+		{
+			{ GpuBufferMemory::Device, GpuBufferFlag::None },
+			{ GpuBufferMemory::Device, GpuBufferFlag::GpuWrite },
+			{ GpuBufferMemory::Mapped, GpuBufferFlag::None },
+			{ GpuBufferMemory::Mapped, GpuBufferFlag::GpuWrite },
+			{ GpuBufferMemory::MappedCached, GpuBufferFlag::None },
+			{ GpuBufferMemory::MappedCached, GpuBufferFlag::GpuWrite }
+		};
+
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		const TShared<render::GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
+		const GpuAccessState transferRead(GpuStageFlag::Transfer, GpuAccessFlag::Read);
+		const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
+		for(u32 caseIndex = 0; caseIndex < (u32)std::size(memoryCases); caseIndex++)
+		{
+			static constexpr u32 kWordCount = 64;
+			const MemoryCase& memoryCase = memoryCases[caseIndex];
+			const bool isMappedMemory = memoryCase.Memory != GpuBufferMemory::Device;
+			const GpuBufferCreateInformation bufferInformation = GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kWordCount, memoryCase.Flags,
+				memoryCase.Memory);
+
+			// D3D12 can't place buffers shaders write in mapped memory yet
+			if(isD3D12 && isMappedMemory && memoryCase.Flags.IsSet(GpuBufferFlag::GpuWrite))
+			{
+				LoggingScope logs(*this);
+				logs.ExpectError("D3D12 can't create buffers shaders write in mapped memory (GpuBufferMemory::Mapped or MappedCached) yet.");
+				B3D_TEST_ASSERT(device->CreateGpuBuffer(bufferInformation) == nullptr)
+				continue;
+			}
+
+			const TShared<render::GpuBuffer> buffer = device->CreateGpuBuffer(bufferInformation);
+			const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kWordCount * sizeof(u32)));
+			B3D_TEST_ASSERT(buffer != nullptr && readback != nullptr)
+			if(buffer == nullptr || readback == nullptr)
+				continue;
+
+			// Map() succeeds exactly where the device mapped the buffer, which it always does for mapped memory
+			{
+				const render::GpuBufferMappedScope mapping = buffer->Map(GpuMapOption::Read);
+				B3D_TEST_ASSERT_MSG(!isMappedMemory || buffer->GetMappedMemory() != nullptr, StringUtility::Format("Case {0} isn't mapped.", caseIndex))
+				B3D_TEST_ASSERT_MSG(mapping.IsValid() == (buffer->GetMappedMemory() != nullptr), StringUtility::Format("Case {0}: Map() {1}, mapped memory {2}.",
+					caseIndex, mapping.IsValid(), buffer->GetMappedMemory() != nullptr))
+			}
+
+			u32 writtenWords[kWordCount];
+			for(u32 wordIndex = 0; wordIndex < kWordCount; wordIndex++)
+				writtenWords[wordIndex] = 0xB0F00000 + (caseIndex << 8) + wordIndex;
+
+			render::GpuBufferUtility::Write(*context, buffer, 0, sizeof(writtenWords), writtenWords);
+
+			// A GPU copy reads what the CPU wrote, then the buffer returns to rest
+			const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Buffer memory"));
+			const GpuAccessState restingState = GpuBackendUtility::GetRestingState(*buffer, commands->GetQueueType());
+
+			const GpuBufferBarrier copyBarriers[] = { GpuBufferBarrier(buffer, restingState, transferRead), GpuBufferBarrier(readback, GpuAccessState(), transferWrite) };
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(copyBarriers, 2)));
+			commands->CopyBufferToBuffer(buffer, readback, 0, 0, sizeof(writtenWords));
+
+			const GpuBufferBarrier restBarriers[] = { GpuBufferBarrier(buffer, transferRead, restingState), GpuBarrierTestUtility::CreateReadbackBarrier(readback) };
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(restBarriers, 2)));
+			context->SubmitCommandBuffer(commands);
+			device->WaitUntilIdle();
+			{
+				const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
+				B3D_TEST_ASSERT(mapping.IsValid())
+				if(mapping.IsValid())
+					B3D_TEST_ASSERT_MSG(memcmp(mapping.GetMappedMemory(), writtenWords, sizeof(writtenWords)) == 0, StringUtility::Format("GPU copy of case {0}.", caseIndex))
+			}
+
+			// Reads only part of the buffer, at an offset
+			static constexpr u32 kFirstReadWord = 8;
+			static constexpr u32 kReadWordCount = 32;
+			u32 readWords[kReadWordCount] = {};
+			render::GpuBufferUtility::Read(*context, buffer, kFirstReadWord * sizeof(u32), sizeof(readWords), readWords);
+			B3D_TEST_ASSERT_MSG(memcmp(readWords, writtenWords + kFirstReadWord, sizeof(readWords)) == 0, StringUtility::Format("Read of case {0}.", caseIndex))
+			device->WaitUntilIdle();
+
+			if(!isMappedMemory)
+				continue;
+
+			// The CPU reads what the GPU wrote to mapped memory through Map(). A GPU copy writes the buffer, standing in for a shader.
+			const TShared<render::GpuBuffer> source = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingWrite(kWordCount * sizeof(u32)));
+			B3D_TEST_ASSERT(source != nullptr)
+			if(source == nullptr)
+				continue;
+
+			for(u32 wordIndex = 0; wordIndex < kWordCount; wordIndex++)
+				writtenWords[wordIndex] = 0xC0F00000 + (caseIndex << 8) + wordIndex;
+
+			{
+				const render::GpuBufferMappedScope mapping = source->Map(GpuMapOption::Write);
+				B3D_TEST_ASSERT(mapping.IsValid())
+				if(!mapping.IsValid())
+					continue;
+
+				memcpy(mapping.GetMappedMemory(), writtenWords, sizeof(writtenWords));
+			}
+
+			const TShared<render::GpuCommandBuffer> writeCommands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Buffer memory GPU write"));
+			const GpuAccessState sourceRestingState = GpuBackendUtility::GetRestingState(*source, writeCommands->GetQueueType());
+
+			const GpuBufferBarrier writeBarriers[] = { GpuBufferBarrier(source, sourceRestingState, transferRead), GpuBufferBarrier(buffer, restingState, transferWrite) };
+			writeCommands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(writeBarriers, 2)));
+			writeCommands->CopyBufferToBuffer(source, buffer, 0, 0, sizeof(writtenWords));
+
+			const GpuBufferBarrier hostReadBarriers[] = { GpuBufferBarrier(source, transferRead, sourceRestingState), GpuBarrierTestUtility::CreateReadbackBarrier(buffer) };
+			writeCommands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(hostReadBarriers, 2)));
+			context->SubmitCommandBuffer(writeCommands);
+			device->WaitUntilIdle();
+			{
+				const render::GpuBufferMappedScope mapping = buffer->Map(GpuMapOption::Read);
+				B3D_TEST_ASSERT(mapping.IsValid())
+				if(mapping.IsValid())
+					B3D_TEST_ASSERT_MSG(memcmp(mapping.GetMappedMemory(), writtenWords, sizeof(writtenWords)) == 0, StringUtility::Format("Map() read of case {0}.", caseIndex))
+			}
+
+			device->WaitUntilIdle();
+		}
+	}, "GpuBackendTestSuite::TestBufferMemory", true);
+}
+
+void GpuBackendTestSuite::TestCpuWrittenBufferRelocation()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	GetRenderThread().PostCommand([this, &device]()
+	{
+		const GpuBufferMemory memoryTypes[] = { GpuBufferMemory::Device, GpuBufferMemory::Mapped, GpuBufferMemory::MappedCached };
+		for(GpuBufferMemory memory : memoryTypes)
+		{
+			// The tested buffer is 1 MB, which is too large for the holes other tests leave in memory. Otherwise it could land in the lowest of
+			// those holes, with nowhere to move to. This way it follows the fillers in the free memory at the end of a heap.
+			static constexpr u32 kWordCount = 256 * 1024;
+			static constexpr u32 kRewrittenWordCount = kWordCount / 2;
+			const GpuBufferCreateInformation bufferInformation = GpuBufferCreateInformation::CreateVertex(sizeof(u32), kWordCount, GpuBufferFlag::None, memory);
+
+			// Buffers created before the tested one and destroyed once it exists leave free memory below it
+			TArray<TShared<render::GpuBuffer>> fillerBuffers;
+			for(u32 fillerIndex = 0; fillerIndex < 4; fillerIndex++)
+				fillerBuffers.Add(device->CreateGpuBuffer(bufferInformation));
+
+			const TShared<render::GpuBuffer> buffer = device->CreateGpuBuffer(bufferInformation);
+			B3D_TEST_ASSERT(buffer != nullptr)
+			if(buffer == nullptr)
+				continue;
+
+			TArray<u32> words(kWordCount);
+			for(u32 wordIndex = 0; wordIndex < kWordCount; wordIndex++)
+				words[wordIndex] = 0xA0000000 + wordIndex;
+
+			const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+			render::GpuBufferUtility::Write(*context, buffer, 0, kWordCount * sizeof(u32), words.Data());
+			context->SubmitTransferCommandBuffers(true);
+			device->WaitUntilIdle();
+
+			GpuBindlessHeaps* const bindlessHeaps = device->GetBindlessHeaps();
+			const auto fnReleaseMovedResources = [&device, bindlessHeaps]()
+			{
+				if(bindlessHeaps != nullptr)
+					bindlessHeaps->ApplyPendingChanges();
+
+				device->WaitUntilIdle();
+
+				if(bindlessHeaps != nullptr)
+					bindlessHeaps->ProcessAllReleases();
+
+				device->ReleaseUnpinnedResources(true);
+			};
+
+			fillerBuffers.Clear();
+			fnReleaseMovedResources();
+
+			const IGpuResource* const originalNativeResource = buffer->GetGpuResource();
+
+			// Run passes until the tested buffer moves. Each pass moves the resources highest in memory first, which may be ones other tests left
+			// behind. The move's copy is submitted like at the end of a frame, and right after, while the GPU may still be copying the contents,
+			// the CPU rewrites the first half of the buffer through GpuBufferUtility, which stages the write behind the copy. Buffers in mapped
+			// memory never move.
+			GpuMemoryDefragmenter& defragmenter = device->GetMemoryDefragmenter();
+			const bool wasEnabled = gGpuDefragmentation.Get();
+			gGpuDefragmentation.Set(true);
+
+			bool isMoved = false;
+			for(u32 passIndex = 0; passIndex < 256 && !isMoved; passIndex++)
+			{
+				defragmenter.Run(*context);
+				context->SubmitTransferCommandBuffers();
+
+				isMoved = buffer->GetGpuResource() != originalNativeResource;
+				if(isMoved)
+				{
+					for(u32 wordIndex = 0; wordIndex < kRewrittenWordCount; wordIndex++)
+						words[wordIndex] = 0xB0000000 + wordIndex;
+
+					render::GpuBufferUtility::Write(*context, buffer, 0, kRewrittenWordCount * sizeof(u32), words.Data());
+				}
+
+				context->SubmitTransferCommandBuffers(true);
+				fnReleaseMovedResources();
+
+				if(defragmenter.GetStatistics().LastPassMoveCount == 0)
+					break;
+			}
+
+			gGpuDefragmentation.Set(wasEnabled);
+
+			const bool isMovable = memory == GpuBufferMemory::Device;
+			B3D_TEST_ASSERT_MSG(isMoved == isMovable, StringUtility::Format("Memory {0}: moved {1}, expected {2}.", (u32)memory, isMoved, isMovable))
+
+			// The rewritten half holds the CPU's writes, and the rest the copied contents
+			TArray<u32> readWords(kWordCount);
+			render::GpuBufferUtility::Read(*context, buffer, 0, kWordCount * sizeof(u32), readWords.Data());
+
+			u32 firstDifferentWordIndex = kWordCount;
+			for(u32 wordIndex = 0; wordIndex < kWordCount && firstDifferentWordIndex == kWordCount; wordIndex++)
+			{
+				if(readWords[wordIndex] != words[wordIndex])
+					firstDifferentWordIndex = wordIndex;
+			}
+
+			B3D_TEST_ASSERT_MSG(firstDifferentWordIndex == kWordCount, StringUtility::Format("Word {0} differs after the defragmentation. Memory: {1}.",
+				firstDifferentWordIndex, (u32)memory))
+
+			device->WaitUntilIdle();
+		}
+	}, "GpuBackendTestSuite::TestCpuWrittenBufferRelocation", true);
+}
+
 void GpuBackendTestSuite::TestFramebufferAttachmentUsage()
 {
 	TrackedTestImage colorImage(4, 2, GpuTextureAspectFlag::Color);
@@ -1767,7 +2117,7 @@ void GpuBackendTestSuite::TestBarriers()
 			storageInformation.Format = PF_R32U;
 			storageInformation.Usage = TextureUsageFlag::AllowUnorderedAccessOnTheGPU;
 
-			const TShared<render::GpuBuffer> buffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+			const TShared<render::GpuBuffer> buffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize, GpuBufferFlag::GpuWrite));
 			const TShared<render::Texture> texture = device->CreateTexture(storageInformation);
 			const ImageSubresourcePitch storagePitch = texture->GetStagingBufferPitchForSubresource(0, 0);
 			const TShared<render::GpuBuffer> bufferReadback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(bufferBytes));
@@ -1856,7 +2206,7 @@ void GpuBackendTestSuite::TestSplitBarrierExecution()
 		// is recorded between the halves. With @p separateCommandBuffers the acquire and the copy are on a second command buffer.
 		auto fnTest = [&](bool separateCommandBuffers, const String& caseName)
 		{
-			const TShared<render::GpuBuffer> buffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kThreadCount * 2, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+			const TShared<render::GpuBuffer> buffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kThreadCount * 2, GpuBufferFlag::GpuWrite));
 			const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kBufferBytes));
 			const TShared<GpuSplitBarrier> split = device->CreateSplitBarrier();
 
@@ -1935,7 +2285,7 @@ void GpuBackendTestSuite::TestLongRecording()
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 
 		// One bias per parameter set
-		const TShared<render::GpuBuffer> biases = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(sizeof(u32), GpuBufferFlag::StoreOnCPUWithGPUAccess, 2));
+		const TShared<render::GpuBuffer> biases = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(sizeof(u32), GpuBufferMemory::Mapped, 2));
 		const u32 biasStride = biases->GetSuballocationSize();
 		{
 			const render::GpuBufferMappedScope mapping = biases->Map(GpuMapOption::Write);
@@ -1970,7 +2320,7 @@ void GpuBackendTestSuite::TestLongRecording()
 
 		auto fnTest = [&](GpuQueueType queueType, const String& caseName)
 		{
-			const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kDispatchCount, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+			const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kDispatchCount, GpuBufferFlag::GpuWrite));
 			const TShared<render::GpuBuffer> outputReadback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kDispatchCount * sizeof(u32)));
 			const TShared<render::Texture> source = device->CreateTexture(textureInformation);
 			const TShared<render::Texture> destination = device->CreateTexture(textureInformation);
@@ -2090,7 +2440,7 @@ void GpuBackendTestSuite::TestCommandBufferReuseAfterReset()
 
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 
-		const TShared<render::GpuBuffer> bias = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(sizeof(u32), GpuBufferFlag::StoreOnCPUWithGPUAccess));
+		const TShared<render::GpuBuffer> bias = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(sizeof(u32), GpuBufferMemory::Mapped));
 		{
 			const render::GpuBufferMappedScope mapping = bias->Map(GpuMapOption::Write);
 			B3D_TEST_ASSERT(mapping.IsValid())
@@ -2100,7 +2450,7 @@ void GpuBackendTestSuite::TestCommandBufferReuseAfterReset()
 			*static_cast<u32*>(mapping.GetMappedMemory()) = kBias;
 		}
 
-		const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kOutputCount, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+		const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kOutputCount, GpuBufferFlag::GpuWrite));
 		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kOutputCount * sizeof(u32)));
 
 		const TShared<render::GpuParameterSet> parameters = context->GetParameterSetPool().Create(pipeline->GetParameterLayout()->GetSet(0), 0);
@@ -2183,7 +2533,7 @@ void GpuBackendTestSuite::TestBarrierAcrossPasses()
 		// @p separateCommandBuffers the copy is on a second command buffer, otherwise it follows a render pass.
 		auto fnTest = [&](bool separateCommandBuffers, const String& caseName)
 		{
-			const TShared<render::GpuBuffer> buffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kThreadCount * 2, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+			const TShared<render::GpuBuffer> buffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kThreadCount * 2, GpuBufferFlag::GpuWrite));
 			const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kBufferBytes));
 
 			const TShared<render::GpuParameterSet> parameters = context->GetParameterSetPool().Create(pipeline->GetParameterLayout()->GetSet(0), 0);
@@ -2447,7 +2797,7 @@ void GpuBackendTestSuite::TestBarrierValidation()
 		{
 			const GpuAccessState computeReadWrite(GpuStageFlag::ComputeShaderNonUniform, readWrite, GpuImageLayout::General);
 
-			const TShared<render::GpuBuffer> dispatchCompute = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+			const TShared<render::GpuBuffer> dispatchCompute = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize, GpuBufferFlag::GpuWrite));
 			dispatchCompute->SetName("DispatchCompute");
 			commandBuffer->IssueBarriers(GpuBufferBarrier(dispatchCompute, GpuAccessState(), host));
 
@@ -2795,6 +3145,22 @@ void GpuBackendTestSuite::TestTransientResourceAllocator()
 			device->EndFrame();
 		}
 
+		// Buffers in mapped memory cannot be transient, even if the GPU only reads them
+		{
+			GpuTransientScope& scope = allocator.BeginScope(timeline);
+			{
+				LoggingScope logs(*this);
+				logs.ExpectError("Transient buffers must be in GPU memory (GpuBufferMemory::Device), and can't be staging buffers.");
+
+				const GpuBufferCreateInformation cpuWrittenInformation = GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 64, GpuBufferFlag::None,
+					GpuBufferMemory::Mapped);
+				B3D_TEST_ASSERT(scope.AllocateBuffer(cpuWrittenInformation, 0).Buffer == nullptr)
+			}
+
+			allocator.EndScope();
+			device->EndFrame();
+		}
+
 		// Validation: resources accessed by the CPU, and textures first used on a transfer queue, cannot be transient
 		{
 			GpuSubmissionTimeline transferTimeline;
@@ -2809,7 +3175,7 @@ void GpuBackendTestSuite::TestTransientResourceAllocator()
 				LoggingScope logs(*this);
 				logs.ExpectError("The first use of transient texture 'Transient texture' cannot be on a transfer queue.");
 				logs.ExpectError("Transient texture 'Transient CPU texture' must only be accessed by the GPU.");
-				logs.ExpectError("Transient buffers must only be accessed by the GPU.");
+				logs.ExpectError("Transient buffers must be in GPU memory (GpuBufferMemory::Device), and can't be staging buffers.");
 
 				B3D_TEST_ASSERT(scope.AllocateTexture(textureInformation, 0).Texture == nullptr)
 				B3D_TEST_ASSERT(scope.AllocateTexture(cpuTextureInformation, 0).Texture == nullptr)
@@ -3009,7 +3375,8 @@ void GpuBackendTestSuite::TestTransientResourceExecution()
 				return;
 			}
 
-			IGpuTransientHeapPool* bufferPool = device->GetTransientHeapPool(device->GetMemoryRequirements(bufferInformation).MemoryType);
+			// The allocator adds flags to the description, so the memory type comes from the buffer's own information
+			IGpuTransientHeapPool* bufferPool = device->GetTransientHeapPool(device->GetMemoryRequirements(GpuBufferCreateInformation(first.Buffer->GetInformation())).MemoryType);
 			IGpuTransientHeapPool* texturePool = device->GetTransientHeapPool(device->GetMemoryRequirements(textureInformation).MemoryType);
 
 			const bool isBufferAliased = first.Buffer->HasFixedLocation();
@@ -3320,7 +3687,7 @@ void GpuBackendTestSuite::TestBarrierResourceValidation()
 		const GpuAccessState host(GpuStageFlag::Host, readWrite);
 
 		const GpuBufferCreateInformation bufferInformation = GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize,
-			GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU);
+			GpuBufferFlag::GpuWrite);
 
 		TextureCreateInformation textureInformation;
 		textureInformation.Width = kSize;
@@ -3571,7 +3938,7 @@ void GpuBackendTestSuite::TestTransientAliasing()
 		const GpuAccessState computeReadWrite(GpuStageFlag::ComputeShaderNonUniform, readWrite, GpuImageLayout::General);
 
 		const GpuBufferCreateInformation bufferInformation = GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize,
-			GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU);
+			GpuBufferFlag::GpuWrite);
 
 		TextureCreateInformation textureInformation;
 		textureInformation.Name = "Transient aliased texture";

@@ -53,6 +53,50 @@ namespace b3d
 			void* MappedMemory = nullptr; /**< Heap.Mapped + Allocation.Offset for host-visible heaps; null otherwise. */
 		};
 
+		/**
+		 * Each value represents a distinct persistent allocator heap. Index of each heap is 
+		 * GpuMemoryRequirements::MemoryType as reported by VulkanGpuDevice.
+		 * 
+		 * We keep heaps with optimal tiling separate from regular heaps, as their resources require a different alignment
+		 * (and also the educated guess is that separation between buffers and textures will help fragmentation). Finally
+		 * different memory types can have different fallbacks, so each gets its own allocator as well.
+		 */
+		struct VulkanMemoryType
+		{
+			VulkanMemoryType(u32 index, u32 fallbackIndex, bool isOptimallyTiled)
+				: Index(index), FallbackIndex(fallbackIndex), IsOptimallyTiled(isOptimallyTiled)
+			{ }
+
+			/** Returns the memory type @p memoryType stands for, a GpuMemoryRequirements::MemoryType reported by VulkanGpuDevice. */
+			static VulkanMemoryType Decode(u32 memoryType)
+			{
+				return VulkanMemoryType(memoryType & kIndexMask, (memoryType >> kFallbackIndexShift) & kFallbackIndexMask, (memoryType & kOptimallyTiledBit) != 0);
+			}
+
+			/** Returns the GpuMemoryRequirements::MemoryType reported for this memory type. */
+			u32 Encode() const { return Index | (FallbackIndex << kFallbackIndexShift) | (IsOptimallyTiled ? kOptimallyTiledBit : 0); }
+
+			u32 Index; /**< Index of the Vulkan memory type in VkPhysicalDeviceMemoryProperties::memoryTypes. */
+
+			/** Type the persistent heaps are in once the Vulkan heap of Index is close to full, or VK_MAX_MEMORY_TYPES for none. */
+			u32 FallbackIndex;
+
+			/**
+			 * Whether the memory holds optimally tiled images, which never share a persistent heap with other resources, so
+			 * VkPhysicalDeviceLimits::bufferImageGranularity doesn't apply between them. Every memory type of one Index maps to one
+			 * transient heap pool, which rounds its placements to that granularity.
+			 */
+			bool IsOptimallyTiled;
+
+		private:
+			static constexpr u32 kIndexMask = 0x1F; /**< Index takes the low 5 bits, enough for VK_MAX_MEMORY_TYPES - 1. */
+			static constexpr u32 kFallbackIndexShift = 5;
+			static constexpr u32 kFallbackIndexMask = 0x3F; /**< FallbackIndex takes the next 6 bits, enough for VK_MAX_MEMORY_TYPES. */
+			static constexpr u32 kOptimallyTiledBit = 1u << 11;
+
+			static_assert(VK_MAX_MEMORY_TYPES <= kIndexMask + 1 && VK_MAX_MEMORY_TYPES <= kFallbackIndexMask, "Memory type indices don't fit the encoding.");
+		};
+
 		/** Represents a single GPU device usable by Vulkan. */
 		class VulkanGpuDevice : public GpuDevice, private IGpuSubmitThreadBackend
 		{
@@ -125,6 +169,13 @@ namespace b3d
 			const VkPhysicalDeviceMemoryProperties& GetMemoryProperties() const { return mMemoryProperties; }
 
 			/**
+			 * Returns true if the CPU can write the GPU's memory directly while the GPU still reads it at full speed: Resizable BAR on discrete
+			 * GPUs, unified memory whose CPU-visible part the GPU reads at full speed (or any, with gpu.ForceDirectGpuBufferWrites). Decides
+			 * buffer placement, see GpuBackendUtility::GetBufferPlacement().
+			 */
+			bool HasFullSpeedMappableGpuMemory() const { return mHasFullSpeedMappableGpuMemory; }
+
+			/**
 			 * Returns index of the queue family for the specified queue type. Returns -1 if no queues for the specified type
 			 * exist. There will always be a queue family for the graphics type.
 			 */
@@ -177,19 +228,22 @@ namespace b3d
 
 			/**
 			 * Creates a VkBuffer described by @p createInformation, suballocates compatible memory from the persistent allocators and
-			 * binds the two together, and wraps the result in a VulkanBuffer. For buffers the engine never sees as a GpuBuffer.
+			 * binds the two together, and wraps the result in a VulkanBuffer. For buffers the engine never sees as a GpuBuffer. The
+			 * memory is of the type @p memoryFlags choose, or of the type @p fallbackMemoryFlags choose once the first one's Vulkan heap
+			 * is close to full.
 			 *
 			 * Thread safe.
 			 */
-			VulkanBuffer* CreateBuffer(const VulkanBufferCreateInformation& createInformation, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags);
+			VulkanBuffer* CreateBuffer(const VulkanBufferCreateInformation& createInformation, const VulkanMemoryFlags& memoryFlags,
+				const TOptional<VulkanMemoryFlags>& fallbackMemoryFlags);
 
 			/**
-			 * Creates a VkImage described by @p createInformation, suballocates compatible memory from the persistent allocators and
-			 * binds the two together, and wraps the result in a VulkanImage.
+			 * Creates a VkImage described by @p createInformation, suballocates memory of the type @p memoryFlags choose from the
+			 * persistent allocators and binds the two together, and wraps the result in a VulkanImage.
 			 *
 			 * Thread safe.
 			 */
-			VulkanImage* CreateImage(const VulkanImageCreateInformation& createInformation, VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags);
+			VulkanImage* CreateImage(const VulkanImageCreateInformation& createInformation, const VulkanMemoryFlags& memoryFlags);
 
 			/**
 			 * Creates a VkImage described by @p createInformation, binds it to memory at @p requestedAllocation and wraps the result in a
@@ -287,36 +341,14 @@ namespace b3d
 			/** Common bind-and-wrap helper for images. Binds @p image to @p allocation and constructs the VulkanImage wrapper. */
 			VulkanImage* BindBufferToAllocation(const VulkanImageCreateInformation& info, VkImage image, const VulkanAllocationResult& allocation);
 
-			/**
-			 * Picks a memory-type index satisfying @p typeBits and the @p required flags, with a preference
-			 * scoring against @p preferred. Returns VK_MAX_MEMORY_TYPES on failure.
-			 */
-			u32 PickMemoryTypeIndex(u32 typeBits, VkMemoryPropertyFlags required, VkMemoryPropertyFlags preferred) const;
-
-			/** Number of values EncodeMemoryType() can return. */
-			static constexpr u32 kEncodedMemoryTypeCount = VK_MAX_MEMORY_TYPES * 2;
+			/** Returns the index of the memory type in @p typeBits that @p flags choose, or VK_MAX_MEMORY_TYPES if none qualifies. */
+			u32 PickMemoryTypeIndex(u32 typeBits, const VulkanMemoryFlags& flags) const;
 
 			/**
-			 * Returns the value reported as GpuMemoryRequirements::MemoryType for a resource in the Vulkan memory type
-			 * @p memoryTypeIndex. Optimally tiled images report a different value than buffers and linearly tiled images of the same
-			 * Vulkan memory type, so the two use different persistent allocators and never share a persistent heap, and
-			 * VkPhysicalDeviceLimits::bufferImageGranularity does not apply to them. Both values map to one transient heap pool, which
-			 * rounds its placements to that granularity.
+			 * Returns the GPU memory allocator backing @p memoryType, lazily creating it on first use. Each allocator owns its own
+			 * VkDeviceMemory heaps via the shared VulkanHeapBackend and is locked to a single memory-type index.
 			 */
-			static u32 EncodeMemoryType(u32 memoryTypeIndex, bool isOptimallyTiled) { return memoryTypeIndex * 2 + (isOptimallyTiled ? 1 : 0); }
-
-			/** Returns the Vulkan memory type index of @p memoryType, a value returned by EncodeMemoryType(). */
-			static u32 GetMemoryTypeIndex(u32 memoryType) { return memoryType / 2; }
-
-			/** Returns true if @p memoryType, a value returned by EncodeMemoryType(), holds optimally tiled images. */
-			static bool IsOptimallyTiled(u32 memoryType) { return memoryType % 2 != 0; }
-
-			/**
-			 * Returns the GPU memory allocator backing @p memoryType, a value returned by EncodeMemoryType(), lazily creating it on
-			 * first use. Each allocator owns its own VkDeviceMemory heaps via the shared VulkanHeapBackend
-			 * and is locked to a single memory-type index.
-			 */
-			TGpuTlsfAllocator<VulkanHeapBackend>& GetOrCreateGpuMemoryAllocator(u32 memoryType);
+			TGpuTlsfAllocator<VulkanHeapBackend>& GetOrCreateGpuMemoryAllocator(const VulkanMemoryType& memoryType);
 
 			/**
 			 * Returns the shared linear page pool backing memory type @p memoryTypeIndex, lazily creating it on
@@ -341,6 +373,7 @@ namespace b3d
 			VkPhysicalDeviceFeatures mDeviceFeatures;
 			VkPhysicalDeviceMemoryProperties mMemoryProperties;
 			bool mSupportsBindlessResources = false;
+			bool mHasFullSpeedMappableGpuMemory = false;
 			bool mSupportsNullDescriptor = false; /**< True if VK_EXT_robustness2 nullDescriptor is enabled. */
 			bool mIsBufferDeviceAddressEnabled = false; /**< True if the bufferDeviceAddress feature is enabled. Acceleration structures need it. */
 			bool mSupportsAccelerationStructures = false; /**< True if the accelerationStructure feature is enabled. */
@@ -364,8 +397,8 @@ namespace b3d
 
 			TUnique<VulkanHeapBackend> mHeapBackend;
 
-			/** TLSF allocator of each value returned by EncodeMemoryType(). Slots are lazily populated on first allocation. */
-			TUnique<TGpuTlsfAllocator<VulkanHeapBackend>> mGpuMemoryAllocators[kEncodedMemoryTypeCount];
+			/** TLSF allocator of each memory type, keyed by VulkanMemoryType::Encode(). Created on first allocation. */
+			UnorderedMap<u32, TUnique<TGpuTlsfAllocator<VulkanHeapBackend>>> mGpuMemoryAllocators;
 
 			/** Guards lazy creation of mTlsfAllocators entries. */
 			mutable Mutex mGpuMemoryAllocatorMutex;

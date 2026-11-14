@@ -46,7 +46,7 @@ void GpuRayTracingTestSuite::TestAccelerationStructureCreation()
 	static constexpr u32 kSize = 4096;
 
 	const TShared<GpuDevice> device = backend.GetDevice(0);
-	const GpuBufferFlags inputFlags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AccelerationStructureInput;
+	const GpuBufferFlags inputFlags = GpuBufferFlag::AccelerationStructureInput;
 
 	if(!device->GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES))
 	{
@@ -77,7 +77,9 @@ void GpuRayTracingTestSuite::TestAccelerationStructureCreation()
 	{
 		LoggingScope logs(*this);
 		logs.ExpectError("An acceleration structure input buffer must be a vertex, index or structured storage buffer.");
-		B3D_TEST_ASSERT(device->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(64, GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AccelerationStructureInput)) == nullptr)
+		GpuBufferCreateInformation uniformInformation = GpuBufferCreateInformation::CreateUniform(64);
+		uniformInformation.Flags = GpuBufferFlag::AccelerationStructureInput;
+		B3D_TEST_ASSERT(device->CreateGpuBuffer(uniformInformation) == nullptr)
 	}
 
 	GetRenderThread().PostCommand([this, &device, inputFlags]()
@@ -117,8 +119,8 @@ void GpuRayTracingTestSuite::TestAccelerationStructureCreation()
 		// Build inputs: geometry in vertex and index buffers, instances in a structured buffer the CPU or a shader writes
 		const TShared<render::GpuBuffer> inputVertices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(12, 3, inputFlags));
 		const TShared<render::GpuBuffer> inputIndices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateIndex(IT_16BIT, 3, inputFlags));
-		const TShared<render::GpuBuffer> inputInstances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(64, 4, inputFlags | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
-		const TShared<render::GpuBuffer> mappedInstances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(64, 4, GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AccelerationStructureInput));
+		const TShared<render::GpuBuffer> inputInstances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(64, 4, inputFlags | GpuBufferFlag::GpuWrite));
+		const TShared<render::GpuBuffer> mappedInstances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(64, 4, GpuBufferFlag::AccelerationStructureInput, GpuBufferMemory::Mapped));
 		B3D_TEST_ASSERT(inputVertices != nullptr && inputIndices != nullptr && inputInstances != nullptr && mappedInstances != nullptr)
 		B3D_TEST_ASSERT(inputVertices == nullptr || inputVertices->GetInformation().Flags.IsSet(GpuBufferFlag::AccelerationStructureInput))
 
@@ -309,7 +311,7 @@ void GpuRayTracingTestSuite::TestAccelerationStructureQueries()
 	const TShared<GpuDevice> device = backend.GetDevice(0);
 	GetRenderThread().PostCommand([this, &device]()
 	{
-		const GpuBufferFlags inputFlags = GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AccelerationStructureInput;
+		const GpuBufferFlags inputFlags = GpuBufferFlag::AccelerationStructureInput;
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 		const TShared<render::GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
 		const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Acceleration structure queries"));
@@ -347,8 +349,8 @@ void GpuRayTracingTestSuite::TestAccelerationStructureQueries()
 		const GpuRayTracingCapabilities& rayTracing = device->GetCapabilities().RayTracing;
 		B3D_TEST_ASSERT(rayTracing.InstanceSize > 0 && rayTracing.ScratchOffsetAlignment > 0)
 
-		const TShared<render::GpuBuffer> vertices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(12, 6, inputFlags));
-		const TShared<render::GpuBuffer> instances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(rayTracing.InstanceSize, 2, inputFlags));
+		const TShared<render::GpuBuffer> vertices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(12, 6, inputFlags, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> instances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(rayTracing.InstanceSize, 2, inputFlags, GpuBufferMemory::Mapped));
 		B3D_TEST_ASSERT(vertices != nullptr && instances != nullptr)
 		if(vertices == nullptr || instances == nullptr)
 			return;
@@ -402,7 +404,7 @@ void GpuRayTracingTestSuite::TestAccelerationStructureQueries()
 		}
 
 		{
-			const TShared<render::GpuBuffer> plainVertices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(12, 3, GpuBufferFlag::StoreOnCPUWithGPUAccess));
+			const TShared<render::GpuBuffer> plainVertices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(12, 3, GpuBufferFlag::None, GpuBufferMemory::Mapped));
 			plainVertices->SetName("PlainVertices");
 
 			LoggingScope logs(*this);
@@ -475,7 +477,7 @@ void GpuRayTracingTestSuite::TestAccelerationStructureQueries()
 		const u32 scratchAlignment = rayTracing.ScratchOffsetAlignment;
 		const u32 scratchSize = AlignUp(bottomLevelSizes.BuildScratchSize, scratchAlignment) * 2;
 		const TShared<render::GpuBuffer> scratch = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(4, scratchSize / 4,
-			GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+			GpuBufferFlag::GpuWrite));
 		const TShared<GpuAccelerationStructure> topLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
 			GpuAccelerationStructureType::TopLevel, topLevelSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "TopLevel"));
 		B3D_TEST_ASSERT(scratch != nullptr && topLevel != nullptr)
@@ -501,7 +503,7 @@ void GpuRayTracingTestSuite::TestAccelerationStructureQueries()
 
 		{
 			LoggingScope logs(*this);
-			logs.ExpectError("The scratch buffer 'Vertices' of build 0 must be a structured storage buffer stored on the GPU that allows unordered access.");
+			logs.ExpectError("The scratch buffer 'Vertices' of build 0 must be a structured storage buffer in GPU memory (GpuBufferMemory::Device), with GpuBufferFlag::GpuWrite.");
 
 			const GpuAccelerationStructureBuild build(bottomLevelInputs, bottomLevel, vertices);
 			B3D_TEST_ASSERT(!commands->BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(&build, 1)))
@@ -598,7 +600,7 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 	GetRenderThread().PostCommand([this, &device, &pipeline, &bindlessPipeline]()
 	{
 		const GpuRayTracingCapabilities& rayTracing = device->GetCapabilities().RayTracing;
-		const GpuBufferFlags inputFlags = GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AccelerationStructureInput;
+		const GpuBufferFlags inputFlags = GpuBufferFlag::AccelerationStructureInput;
 
 		// One triangle at Z = 5, three vertices 16 bytes apart, followed by a quad of two indexed triangles at Z = 6, four vertices 12 bytes
 		// apart
@@ -611,8 +613,8 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 
 		const u16 indexData[] = { 0, 1, 2, 1, 3, 2 };
 
-		const TShared<render::GpuBuffer> vertices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(16, 6, inputFlags));
-		const TShared<render::GpuBuffer> indices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateIndex(IT_16BIT, 6, inputFlags));
+		const TShared<render::GpuBuffer> vertices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(16, 6, inputFlags, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> indices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateIndex(IT_16BIT, 6, inputFlags, GpuBufferMemory::Mapped));
 		B3D_TEST_ASSERT(vertices != nullptr && indices != nullptr)
 		if(vertices == nullptr || indices == nullptr)
 			return;
@@ -670,7 +672,7 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 			fnCreateInstance(opaqueBottomLevel, 50.0f, 17, 0x08, GpuRayTracingInstanceFlag::ForceNonOpaque)
 		};
 
-		const TShared<render::GpuBuffer> instances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(rayTracing.InstanceSize, kInstanceCount, inputFlags));
+		const TShared<render::GpuBuffer> instances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(rayTracing.InstanceSize, kInstanceCount, inputFlags, GpuBufferMemory::Mapped));
 		B3D_TEST_ASSERT(instances != nullptr)
 		if(instances == nullptr)
 			return;
@@ -709,7 +711,7 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 		const u32 emptyScratchOffset = AlignUp(topLevelSizes.BuildScratchSize, scratchAlignment);
 		const u32 scratchSize = std::max(nonOpaqueScratchOffset + nonOpaqueSizes.BuildScratchSize, emptyScratchOffset + emptySizes.BuildScratchSize);
 		const TShared<render::GpuBuffer> scratch = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(4, AlignUp(scratchSize, 4) / 4,
-			GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+			GpuBufferFlag::GpuWrite));
 		B3D_TEST_ASSERT(scratch != nullptr)
 		if(scratch == nullptr)
 			return;
@@ -834,9 +836,9 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 		static_assert(kRayCount == sizeof(expectedHits) / sizeof(expectedHits[0]), "Every ray needs an expected hit.");
 
 		const TShared<render::GpuBuffer> rayBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(TestRay), kRayCount,
-			GpuBufferFlag::StoreOnCPUWithGPUAccess));
+			GpuBufferFlag::None, GpuBufferMemory::Mapped));
 		const TShared<render::GpuBuffer> hitBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(TestHit), kRayCount,
-			GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+			GpuBufferFlag::GpuWrite));
 		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kRayCount * sizeof(TestHit)));
 		B3D_TEST_ASSERT(rayBuffer != nullptr && hitBuffer != nullptr && readback != nullptr)
 		if(rayBuffer == nullptr || hitBuffer == nullptr || readback == nullptr)
@@ -926,7 +928,7 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 
 		// The top level structure taken from the heap
 		const TShared<render::GpuBuffer> bindlessHit = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(4 * sizeof(float), 1,
-			GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+			GpuBufferFlag::GpuWrite));
 		const TShared<render::GpuBuffer> bindlessReadback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(4 * sizeof(float)));
 		B3D_TEST_ASSERT(bindlessHit != nullptr && bindlessReadback != nullptr)
 		if(bindlessHit == nullptr || bindlessReadback == nullptr)
@@ -1184,7 +1186,14 @@ void GpuRayTracingTestSuite::TestRayTracingPipelineCreation()
 		fnExpectTableError(information, "Callable record 0 of a shader binding table refers to callable program 0, but the pipeline has 0.");
 	}
 
-	const TShared<render::GpuShaderBindingTable> table = device->CreateGpuShaderBindingTable(validTable);
+	TShared<render::GpuShaderBindingTable> table;
+	{
+		// The first table of the process warns when the CPU can't write the GPU's memory.
+		LoggingScope logs(*this);
+		logs.IgnoreWarning("Shader binding tables are in system memory");
+		table = device->CreateGpuShaderBindingTable(validTable);
+	}
+
 	B3D_TEST_ASSERT(table != nullptr && table->GetPipeline() == pipeline)
 	if(table == nullptr)
 		return;
@@ -1283,7 +1292,14 @@ void GpuRayTracingTestSuite::TestRayTracingPipelineRecords()
 	tableInformation.HitGroupRecords.push_back(kGpuShaderBindingTableEmptyRecord);
 	tableInformation.HitGroupRecords.push_back(2);
 
-	const TShared<render::GpuShaderBindingTable> table = device->CreateGpuShaderBindingTable(tableInformation);
+	TShared<render::GpuShaderBindingTable> table;
+	{
+		// The first table of the process warns when the CPU can't write the GPU's memory.
+		LoggingScope logs(*this);
+		logs.IgnoreWarning("Shader binding tables are in system memory");
+		table = device->CreateGpuShaderBindingTable(tableInformation);
+	}
+
 	B3D_TEST_ASSERT(table != nullptr)
 	if(table == nullptr)
 		return;
@@ -1291,7 +1307,7 @@ void GpuRayTracingTestSuite::TestRayTracingPipelineRecords()
 	GetRenderThread().PostCommand([this, &device, &pipeline, &table]()
 	{
 		const GpuRayTracingCapabilities& rayTracing = device->GetCapabilities().RayTracing;
-		const GpuBufferFlags inputFlags = GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AccelerationStructureInput;
+		const GpuBufferFlags inputFlags = GpuBufferFlag::AccelerationStructureInput;
 
 		// Geometry 0 is a triangle at X 0 to 1, and geometry 1 a triangle at X 2 to 3, both at Z = 5
 		const float vertexData[] =
@@ -1300,7 +1316,7 @@ void GpuRayTracingTestSuite::TestRayTracingPipelineRecords()
 			2.0f, 0.0f, 5.0f,		3.0f, 0.0f, 5.0f,		2.0f, 1.0f, 5.0f
 		};
 
-		const TShared<render::GpuBuffer> vertices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(12, 6, inputFlags));
+		const TShared<render::GpuBuffer> vertices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(12, 6, inputFlags, GpuBufferMemory::Mapped));
 		B3D_TEST_ASSERT(vertices != nullptr)
 		if(vertices == nullptr)
 			return;
@@ -1333,7 +1349,7 @@ void GpuRayTracingTestSuite::TestRayTracingPipelineRecords()
 
 		instanceDescriptions[1].HitGroupIndexOffset = 1;
 
-		const TShared<render::GpuBuffer> instances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(rayTracing.InstanceSize, 2, inputFlags));
+		const TShared<render::GpuBuffer> instances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(rayTracing.InstanceSize, 2, inputFlags, GpuBufferMemory::Mapped));
 		B3D_TEST_ASSERT(bottomLevel != nullptr && instances != nullptr)
 		if(bottomLevel == nullptr || instances == nullptr)
 			return;
@@ -1355,7 +1371,7 @@ void GpuRayTracingTestSuite::TestRayTracingPipelineRecords()
 
 		const u32 scratchSize = std::max(bottomLevelSizes.BuildScratchSize, topLevelSizes.BuildScratchSize);
 		const TShared<render::GpuBuffer> scratch = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(4, AlignUp(scratchSize, 4) / 4,
-			GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+			GpuBufferFlag::GpuWrite));
 		B3D_TEST_ASSERT(topLevel != nullptr && scratch != nullptr)
 		if(topLevel == nullptr || scratch == nullptr)
 			return;
@@ -1428,9 +1444,9 @@ void GpuRayTracingTestSuite::TestRayTracingPipelineRecords()
 		static_assert(kRayCount == sizeof(expectedResults) / sizeof(expectedResults[0]), "Every ray needs an expected result.");
 
 		const TShared<render::GpuBuffer> rayBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(PipelineTestRay), kRayCount,
-			GpuBufferFlag::StoreOnCPUWithGPUAccess));
+			GpuBufferFlag::None, GpuBufferMemory::Mapped));
 		const TShared<render::GpuBuffer> resultBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kRayCount,
-			GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+			GpuBufferFlag::GpuWrite));
 		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kRayCount * sizeof(u32)));
 		B3D_TEST_ASSERT(rayBuffer != nullptr && resultBuffer != nullptr && readback != nullptr)
 		if(rayBuffer == nullptr || resultBuffer == nullptr || readback == nullptr)

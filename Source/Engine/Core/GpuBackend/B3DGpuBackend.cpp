@@ -22,6 +22,12 @@ namespace b3d
 		"Fraction of the bindless sampler heap that, once allocated, makes new sampler slots first evict cached samplers nothing else references.", 0.9f);
 	TConfigVariable<bool> gGpuRayTracing("gpu.RayTracing",
 		"Allows devices to report the GPU's ray tracing support. When disabled, devices report none, as if the GPU had none.", true, ConfigVariableFlag::ReadOnly);
+	TConfigVariable<bool> gGpuResizableBar("gpu.ResizableBar",
+		"Allows discrete GPUs to use Resizable BAR, to place buffers the CPU writes in GPU memory. When disabled, devices behave as on GPUs "
+		"without Resizable BAR.", true, ConfigVariableFlag::ReadOnly);
+	TConfigVariable<bool> gGpuForceDirectGpuBufferWrites("gpu.ForceDirectGpuBufferWrites",
+		"On unified memory devices, maps buffers the CPU writes even where the GPU reads the memory the CPU can see more slowly. For testing.",
+		false, ConfigVariableFlag::ReadOnly);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	TConfigVariable<bool> gGpuDumpPipelineTimings("gpu.DumpPipelineTimings",

@@ -279,6 +279,27 @@ GpuStageFlags GpuBackendUtility::GetQueueStageFlags(GpuQueueType queueType)
 	}
 }
 
+GpuBufferPlacement GpuBackendUtility::GetBufferPlacement(GpuBufferMemory memory, GpuBufferFlags flags, bool hasFullSpeedMappableGpuMemory)
+{
+	switch(memory)
+	{
+	case GpuBufferMemory::Mapped:
+		// Frequent writes are cheaper written in place than copied from a staging buffer, even if the GPU then reads slower memory
+		return hasFullSpeedMappableGpuMemory ? GpuBufferPlacement::MappedGpuOrSystem : GpuBufferPlacement::MappedSystem;
+	case GpuBufferMemory::MappedCached:
+		return GpuBufferPlacement::MappedCached;
+	default:
+		break;
+	}
+
+	// Buffers the GPU writes gain little from a mapping: CPU writes stage while the GPU may still write, and CPU reads of discrete GPU memory
+	// stage anyway
+	if(flags.IsSet(GpuBufferFlag::GpuWrite))
+		return GpuBufferPlacement::UnmappedGpu;
+
+	return hasFullSpeedMappableGpuMemory ? GpuBufferPlacement::MappedGpuOrUnmapped : GpuBufferPlacement::UnmappedGpu;
+}
+
 bool GpuBackendUtility::IsSampleableOnly(TextureUsageFlags usage)
 {
 	return !usage.IsSetAny(TextureUsageFlag::RenderTarget | TextureUsageFlag::DepthStencil | TextureUsageFlag::AllowUnorderedAccessOnTheGPU | TextureUsageFlag::StoreOnCPUWithGPUAccess);

@@ -6,6 +6,7 @@
 #include "B3DVulkanHeapBackend.h"
 #include "GpuBackend/Allocators/B3DGpuTlsfAllocator.h"
 #include "GpuBackend/B3DGpuBuffer.h"
+#include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "Image/B3DTexture.h"
 #include "Renderer/B3DRenderer.h"
 
@@ -77,6 +78,8 @@ VulkanAllocatorTestSuite::VulkanAllocatorTestSuite()
 	B3D_ADD_TEST(VulkanAllocatorTestSuite::TestBufferHeapGrowth)
 	B3D_ADD_TEST(VulkanAllocatorTestSuite::TestDepthStencilUsesDeviceLocal)
 	B3D_ADD_TEST(VulkanAllocatorTestSuite::TestBuffersAndOptimalImagesUseSeparatePersistentHeaps)
+	B3D_ADD_TEST(VulkanAllocatorTestSuite::TestCpuWrittenBufferPlacement)
+	B3D_ADD_TEST(VulkanAllocatorTestSuite::TestGpuReadBufferPlacement)
 }
 
 void VulkanAllocatorTestSuite::TestHostVisibleHeapCreateAndDestroy()
@@ -353,4 +356,105 @@ void VulkanAllocatorTestSuite::TestBuffersAndOptimalImagesUseSeparatePersistentH
 
 	bufferAllocator.FreeAndReclaim(bufferAllocation);
 	textureAllocator.FreeAndReclaim(textureAllocation);
+}
+
+void VulkanAllocatorTestSuite::TestCpuWrittenBufferPlacement()
+{
+	VulkanGpuDevice* device = GetActiveVulkanDevice();
+	if (device == nullptr)
+		return;
+
+	const GpuDeviceCapabilities& capabilities = device->GetCapabilities();
+	const VkPhysicalDeviceMemoryProperties& memoryProperties = device->GetMemoryProperties();
+
+	const GpuMemoryRequirements requirements = device->GetMemoryRequirements(GpuBufferCreateInformation::CreateUniform(256));
+	const VkMemoryType& memoryType = memoryProperties.memoryTypes[VulkanMemoryType::Decode(requirements.MemoryType).Index];
+	B3D_TEST_ASSERT((memoryType.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0)
+
+	const bool isDeviceLocal = (memoryType.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0;
+	const bool isUnified = capabilities.HasCapability(RSC_UNIFIED_MEMORY);
+	B3D_TEST_ASSERT(isDeviceLocal == (device->HasFullSpeedMappableGpuMemory() || isUnified))
+
+	// Mappable GPU memory of a discrete GPU is Resizable BAR, which covers all of it. Integrated GPUs can keep their device-local,
+	// host-visible memory in a heap smaller than the largest one.
+	B3D_TEST_ASSERT(isUnified || device->HasFullSpeedMappableGpuMemory() == capabilities.HasCapability(RSC_RESIZABLE_BAR))
+	if (capabilities.HasCapability(RSC_RESIZABLE_BAR))
+	{
+		u64 largestLocalHeapSize = 0;
+		for (u32 heapIndex = 0; heapIndex < memoryProperties.memoryHeapCount; heapIndex++)
+		{
+			if ((memoryProperties.memoryHeaps[heapIndex].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) != 0)
+				largestLocalHeapSize = std::max(memoryProperties.memoryHeaps[heapIndex].size, largestLocalHeapSize);
+		}
+
+		B3D_TEST_ASSERT(memoryProperties.memoryHeaps[memoryType.heapIndex].size == largestLocalHeapSize)
+	}
+}
+
+void VulkanAllocatorTestSuite::TestGpuReadBufferPlacement()
+{
+	VulkanGpuDevice* device = GetActiveVulkanDevice();
+	if (device == nullptr)
+		return;
+
+	const GpuDeviceCapabilities& capabilities = device->GetCapabilities();
+	const bool hasFullSpeedMappableMemory = device->HasFullSpeedMappableGpuMemory();
+	B3D_TEST_ASSERT(!hasFullSpeedMappableMemory || capabilities.HasCapability(RSC_UNIFIED_MEMORY) || capabilities.HasCapability(RSC_RESIZABLE_BAR))
+
+	const VkPhysicalDeviceMemoryProperties& memoryProperties = device->GetMemoryProperties();
+	const auto fnGetMemoryType = [device](GpuBufferMemory memory, GpuBufferFlags flags)
+	{
+		return VulkanMemoryType::Decode(device->GetMemoryRequirements(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 64, flags, memory)).MemoryType);
+	};
+
+	const auto fnGetMemoryTypeFlags = [&memoryProperties](const VulkanMemoryType& memoryType)
+	{
+		return memoryProperties.memoryTypes[memoryType.Index].propertyFlags;
+	};
+
+	// Buffers in device memory are in mapped GPU memory where the device can map it
+	const VulkanMemoryType deviceMemoryType = fnGetMemoryType(GpuBufferMemory::Device, GpuBufferFlag::None);
+	const VkMemoryPropertyFlags deviceFlags = fnGetMemoryTypeFlags(deviceMemoryType);
+	B3D_TEST_ASSERT((deviceFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0)
+	B3D_TEST_ASSERT(!hasFullSpeedMappableMemory || (deviceFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0)
+
+	const TShared<render::GpuBuffer> deviceBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 64));
+	B3D_TEST_ASSERT(deviceBuffer != nullptr && (deviceBuffer->GetMappedMemory() != nullptr) == ((deviceFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0))
+
+	// Mapped buffers in device memory fall back to unmapped GPU memory, and buffers in mapped memory to system memory, where the device
+	// has such memory
+	if(hasFullSpeedMappableMemory)
+	{
+		const VulkanMemoryType mappedMemoryType = fnGetMemoryType(GpuBufferMemory::Mapped, GpuBufferFlag::None);
+		B3D_TEST_ASSERT(deviceMemoryType.Index == mappedMemoryType.Index)
+
+		if(deviceMemoryType.FallbackIndex != VK_MAX_MEMORY_TYPES)
+		{
+			const VkMemoryPropertyFlags fallbackFlags = memoryProperties.memoryTypes[deviceMemoryType.FallbackIndex].propertyFlags;
+			B3D_TEST_ASSERT((fallbackFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0 && (fallbackFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0)
+		}
+
+		if(mappedMemoryType.FallbackIndex != VK_MAX_MEMORY_TYPES)
+		{
+			const VkMemoryPropertyFlags fallbackFlags = memoryProperties.memoryTypes[mappedMemoryType.FallbackIndex].propertyFlags;
+			B3D_TEST_ASSERT((fallbackFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0 && (fallbackFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == 0)
+		}
+	}
+
+	// Buffers the GPU writes are in GPU memory
+	B3D_TEST_ASSERT((fnGetMemoryTypeFlags(fnGetMemoryType(GpuBufferMemory::Device, GpuBufferFlag::GpuWrite)) & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0)
+
+	// Buffers in cached memory are host-visible and mapped, and CPU-cached where the device has such memory
+	const VkMemoryPropertyFlags readFlags = fnGetMemoryTypeFlags(fnGetMemoryType(GpuBufferMemory::MappedCached, GpuBufferFlag::None));
+	B3D_TEST_ASSERT((readFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0)
+
+	const TShared<render::GpuBuffer> cachedBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 64,
+		GpuBufferFlag::None, GpuBufferMemory::MappedCached));
+	B3D_TEST_ASSERT(cachedBuffer != nullptr && cachedBuffer->GetMappedMemory() != nullptr)
+
+	bool hasCachedMemory = false;
+	for (u32 typeIndex = 0; typeIndex < memoryProperties.memoryTypeCount; typeIndex++)
+		hasCachedMemory |= (memoryProperties.memoryTypes[typeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT) != 0;
+
+	B3D_TEST_ASSERT(!hasCachedMemory || (readFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT) != 0)
 }

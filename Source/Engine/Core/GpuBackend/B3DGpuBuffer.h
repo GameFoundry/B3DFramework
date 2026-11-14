@@ -34,35 +34,50 @@ namespace b3d
 		Uniform, /**< Contains GPU program parameters. */
 		SimpleStorage, /**< Contains arbitrary data, formatted as an array of primitive types using one of the supported buffer formats. */
 		StructuredStorage, /**< Contains arbitrary data, formatted as an array of structures. Structure layout is up to the user. */
-		StagingWrite, /**< Special type of CPU writeable buffer type used only as a source of copy operations. Ignores the store flags and is always accessible by CPU only. */
-		StagingRead /**< Special type of CPU readable buffer type used only as a destination of copy operations. Ignores the store flags and is always accessible by CPU only. */
+		StagingWrite, /**< Special type of CPU writeable buffer type used only as a source of copy operations. Ignores the memory type and is always mapped. */
+		StagingRead /**< Special type of CPU readable buffer type used only as a destination of copy operations. Ignores the memory type and is always mapped, CPU-cached. */
 	};
 
-	/** Flags that determine how a GpuBuffer behaves. */
-	enum class GpuBufferFlag
+	/**
+	 * Memory a GpuBuffer is placed in. Every buffer can be written and read by the CPU through GpuBufferUtility, whatever its memory. The
+	 * device picks the native memory for each type, so callers never need to check for unified memory or Resizable BAR.
+	 */
+	enum class GpuBufferMemory
 	{
 		/**
-		 * Ensures the buffer is placed into memory on the GPU device. This allows the GPU to access the buffer quickly, but makes updating the buffer slower.
-		 * CPU cannot read or write to this buffer directly, and a staging buffer must be used (it will be created internally for you, or you can use an explicit
-		 * buffer via StoreOnCPU).
-		 *
-		 * Generally you wish to use this if your buffer is immutable or is not updated often from the CPU. If your buffer is updating every frame then
-		 * PlaceOnCPUWithGPUAccess could be more efficient. Mutually exclusive with StoreOnCPUWithGPUAccess and StoreOnCPU.
+		 * Memory the GPU accesses fastest. Supports every usage. The CPU writes and reads the contents through GpuBufferUtility, which
+		 * accesses the memory directly where the device maps it at no cost to the GPU (Resizable BAR, unified memory), and goes through
+		 * staging buffers otherwise. render::GpuBuffer::Map() succeeds only where the device mapped the buffer, and CPU reads through it are
+		 * slow where the mapping is write-combined. Buffers the GPU writes are never mapped, except on devices that map every buffer. GPU
+		 * memory defragmentation may move the buffer. Use case: vertex and index buffers, static data, data the GPU writes.
 		 */
-		StoreOnGPU = 1 << 0,
+		Device,
 
 		/**
-		 * Places the buffer into CPU memory accessible to the GPU. This means the buffer is faster to update from the CPU (and may be updated without a
-		 * staging buffer), but it's slower to access by the GPU as the memory access happens through the PCI Express bus. One exception is if your GPU is
-		 * integrated on the CPU die, then this memory can be accessed directly by the GPU. Mutually exclusive with StoreOnGPU and StoreOnCPU.
+		 * Mapped write-combined memory, so render::GpuBuffer::Map() always succeeds. GPU memory where the GPU reads it at full speed,
+		 * otherwise system memory, which a discrete GPU reads over PCI Express. CPU reads are slow. With GpuBufferFlag::GpuWrite, shaders
+		 * write the same memory. It can't be transient. GPU memory defragmentation doesn't move it. Use case: data the CPU rewrites often
+		 * (e.g. every frame), and reads rarely (e.g. once after each write).
 		 */
-		StoreOnCPUWithGPUAccess = 1 << 1,
+		Mapped,
 
 		/**
-		 * Ensures that the GPU can perform write operations in the buffer. Generally this is used for buffers used in compute operations. StoreOnGPU memory
-		 * flag must be used.
+		 * Mapped memory the CPU caches, so render::GpuBuffer::Map() always succeeds and CPU reads are fast. On discrete GPUs this is system
+		 * memory, which the GPU reaches over PCI Express, so it suits data the CPU reads rather than data shaders read heavily. On unified
+		 * memory it is the same memory the GPU uses. With GpuBufferFlag::GpuWrite, shaders write the same memory. It can't be transient.
+		 * GPU memory defragmentation doesn't move it. Use case: data the CPU reads back.
 		 */
-		AllowUnorderedAccessOnTheGPU = 1 << 2,
+		MappedCached
+	};
+
+	/** Flags that describe how the GPU uses a GpuBuffer. The memory the buffer is placed in is chosen separately, with GpuBufferMemory. */
+	enum class GpuBufferFlag
+	{
+		/** Shaders only read the buffer. */
+		None = 0,
+
+		/** Shaders write the buffer, through unordered access. */
+		GpuWrite = 1 << 0,
 
 		/**
 		 * Makes the buffer readable by shaders through ResourceDescriptorHeap, at the index returned by render::GpuBuffer::GetBindlessIndex().
@@ -71,13 +86,13 @@ namespace b3d
 		 * writes must return it to rest. Its index stays the same if GPU memory defragmentation moves it. Requires a device that supports
 		 * bindless resources.
 		 */
-		Bindless = 1 << 3,
+		Bindless = 1 << 1,
 
 		/**
 		 * Lets acceleration structure builds read the buffer, as the vertices or indices of a geometry, or as the instances of a top level
 		 * structure. Only valid for vertex, index and structured storage buffers. Requires a device that supports acceleration structures.
 		 */
-		AccelerationStructureInput = 1 << 4
+		AccelerationStructureInput = 1 << 2
 	};
 
 	using GpuBufferFlags = Flags<GpuBufferFlag>;
@@ -148,7 +163,8 @@ namespace b3d
 		};
 
 		GpuBufferType Type = GpuBufferType::Vertex; /**< Controls at which parts of the GPU pipeline is the buffer intended to be primarily used in. */
-		GpuBufferFlags Flags = GpuBufferFlag::StoreOnGPU; /**< Flags that control the behavior of the buffer. */
+		GpuBufferFlags Flags = GpuBufferFlag::None; /**< How the GPU uses the buffer. */
+		GpuBufferMemory Memory = GpuBufferMemory::Device; /**< Memory the buffer is placed in. Ignored by staging buffers. */
 
 		/**
 		 * Number of sub-allocated buffers to create. Internally this will allocate memory for this many buffers, which can be bound by providing a dynamic offset when
@@ -170,14 +186,17 @@ namespace b3d
 		 *
 		 * @param elementSize	Size of a single vertex in the buffer.
 		 * @param elementCount	Number of vertices in the buffer.
-		 * @param flags			Flags that control how is buffer accessed/used.
+		 * @param flags			How the GPU uses the buffer.
+		 * @param memory		Memory the buffer is placed in.
 		 * @return				Structure that can be used for creating the buffer.
 		 */
-		static GpuBufferCreateInformation CreateVertex(u32 elementSize, u32 elementCount, GpuBufferFlags flags = GpuBufferFlag::StoreOnGPU)
+		static GpuBufferCreateInformation CreateVertex(u32 elementSize, u32 elementCount, GpuBufferFlags flags = GpuBufferFlag::None,
+			GpuBufferMemory memory = GpuBufferMemory::Device)
 		{
 			GpuBufferCreateInformation output;
 			output.Type = GpuBufferType::Vertex;
 			output.Flags = flags;
+			output.Memory = memory;
 			output.Vertex.ElementSize = elementSize;
 			output.Vertex.Count = elementCount;
 
@@ -189,14 +208,17 @@ namespace b3d
 		 *
 		 * @param indexType		Type of index contained in the buffer.
 		 * @param indexCount	Number of indices in the buffer.
-		 * @param flags			Flags that control how is buffer accessed/used.
+		 * @param flags			How the GPU uses the buffer.
+		 * @param memory		Memory the buffer is placed in.
 		 * @return				Structure that can be used for creating the buffer.
 		 */
-		static GpuBufferCreateInformation CreateIndex(IndexType indexType, u32 indexCount, GpuBufferFlags flags = GpuBufferFlag::StoreOnGPU)
+		static GpuBufferCreateInformation CreateIndex(IndexType indexType, u32 indexCount, GpuBufferFlags flags = GpuBufferFlag::None,
+			GpuBufferMemory memory = GpuBufferMemory::Device)
 		{
 			GpuBufferCreateInformation output;
 			output.Type = GpuBufferType::Index;
 			output.Flags = flags;
+			output.Memory = memory;
 			output.Index.Type = indexType;
 			output.Index.Count = indexCount;
 
@@ -207,17 +229,17 @@ namespace b3d
 		 * Builds a structure that can be used for creating a GpuBuffer containing uniform parameters.
 		 *
 		 * @param size					Size of the uniform buffer.
-		 * @param flags					Flags that control how is buffer accessed/used.
+		 * @param memory				Memory the buffer is placed in.
 		 * @param suballocationCount	Number of buffers of requested size to create. In case you need multiple buffers of the same size this is more efficient
 		 *								than creating a separate GpuBuffer for each. Sub-allocated buffers can be bound for rendering by using the dynamic
 		 *								offset functionality provided on GpuCommandBuffer.
 		 * @return						Structure that can be used for creating the buffer.
 		 */
-		static GpuBufferCreateInformation CreateUniform(u32 size, GpuBufferFlags flags = GpuBufferFlag::StoreOnCPUWithGPUAccess, u32 suballocationCount = 1)
+		static GpuBufferCreateInformation CreateUniform(u32 size, GpuBufferMemory memory = GpuBufferMemory::Mapped, u32 suballocationCount = 1)
 		{
 			GpuBufferCreateInformation output;
 			output.Type = GpuBufferType::Uniform;
-			output.Flags = flags;
+			output.Memory = memory;
 			output.SuballocationCount = suballocationCount;
 			output.Uniform.Size = size;
 
@@ -229,14 +251,17 @@ namespace b3d
 		 *
 		 * @param format		Format of elements in the buffer.
 		 * @param elementCount	Number of elements in the buffer.
-		 * @param flags			Flags that control how is buffer accessed/used.
+		 * @param flags			How the GPU uses the buffer.
+		 * @param memory		Memory the buffer is placed in.
 		 * @return				Structure that can be used for creating the buffer.
 		 */
-		static GpuBufferCreateInformation CreateSimpleStorage(GpuBufferFormat format, u32 elementCount, GpuBufferFlags flags = GpuBufferFlag::StoreOnGPU)
+		static GpuBufferCreateInformation CreateSimpleStorage(GpuBufferFormat format, u32 elementCount, GpuBufferFlags flags = GpuBufferFlag::None,
+			GpuBufferMemory memory = GpuBufferMemory::Device)
 		{
 			GpuBufferCreateInformation output;
 			output.Type = GpuBufferType::SimpleStorage;
 			output.Flags = flags;
+			output.Memory = memory;
 			output.SimpleStorage.Format = format;
 			output.SimpleStorage.Count = elementCount;
 
@@ -248,14 +273,17 @@ namespace b3d
 		 *
 		 * @param elementSize	Size of a single element in the buffer.
 		 * @param elementCount	Number of elements in the buffer.
-		 * @param flags			Flags that control how is buffer accessed/used.
+		 * @param flags			How the GPU uses the buffer.
+		 * @param memory		Memory the buffer is placed in.
 		 * @return				Structure that can be used for creating the buffer.
 		 */
-		static GpuBufferCreateInformation CreateStructuredStorage(u32 elementSize, u32 elementCount, GpuBufferFlags flags = GpuBufferFlag::StoreOnGPU)
+		static GpuBufferCreateInformation CreateStructuredStorage(u32 elementSize, u32 elementCount, GpuBufferFlags flags = GpuBufferFlag::None,
+			GpuBufferMemory memory = GpuBufferMemory::Device)
 		{
 			GpuBufferCreateInformation output;
 			output.Type = GpuBufferType::StructuredStorage;
 			output.Flags = flags;
+			output.Memory = memory;
 			output.StructuredStorage.ElementSize = elementSize;
 			output.StructuredStorage.Count = elementCount;
 
@@ -272,7 +300,6 @@ namespace b3d
 		{
 			GpuBufferCreateInformation output;
 			output.Type = GpuBufferType::StagingWrite;
-			output.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
 			output.Staging.Size = size;
 
 			return output;
@@ -288,7 +315,6 @@ namespace b3d
 		{
 			GpuBufferCreateInformation output;
 			output.Type = GpuBufferType::StagingRead;
-			output.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
 			output.Staging.Size = size;
 
 			return output;
@@ -589,13 +615,21 @@ namespace b3d::render
 		/**
 		 * Maps the buffer and returns an RAII mapped region that automatically handles flush on destruction.
 		 *
+		 * Buffers in GpuBufferMemory::Mapped or GpuBufferMemory::MappedCached memory always map. Buffers in GpuBufferMemory::Device memory
+		 * map only where the device mapped them, otherwise the returned region is empty (not valid).
+		 *
+		 * CPU reads of write-combined memory (GpuBufferMemory::Device and GpuBufferMemory::Mapped on most devices) are slow.
+		 *
 		 * @param offset   Offset in bytes from which to map.
 		 * @param size     Size of the region to map, in bytes.
 		 * @param options  Specifies read/write intent for the mapping.
-		 * @return         RAII mapped region containing the mapped memory pointer.
+		 * @return         RAII mapped region containing the mapped memory pointer, or an empty region if the buffer isn't mapped.
 		 */
 		GpuBufferMappedScope Map(u32 offset, u32 size, GpuMapOptions options)
 		{
+			if(GetMappedMemory() == nullptr)
+				return GpuBufferMappedScope();
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			ValidateMap(offset, size, options);
 #endif
@@ -608,10 +642,10 @@ namespace b3d::render
 		}
 
 		/**
-		 * Maps the entire buffer and returns an RAII mapped region.
+		 * Maps the entire buffer and returns an RAII mapped region. See Map(u32, u32, GpuMapOptions).
 		 *
 		 * @param options  Specifies read/write intent for the mapping.
-		 * @return         RAII mapped region containing the mapped memory pointer.
+		 * @return         RAII mapped region containing the mapped memory pointer, or an empty region if the buffer isn't mapped.
 		 */
 		GpuBufferMappedScope Map(GpuMapOptions options)
 		{
@@ -621,8 +655,9 @@ namespace b3d::render
 		/**
 		 * Writes the data of the specified length into the buffer at the provided offset. @p source must contain at least @p length bytes.
 		 *
-		 * Buffer must support CPU writes. This mean it's either explicitly created with StoreOnCPUWithGPUAccess flag, or running on a GPU that supports CPU access.
-		 * The latter usually means running on an integrated GPU with shared memory.
+		 * The buffer must be mappable: 
+		 *  - Guaranteed mappable if memory is GpuBufferMemory::Mapped or GpuBufferMemory::MappedCached. Non-sequential writes of GpuBufferMemory::Mapped are likely slow and not recommended.
+		 *  - With GpuBufferMemory::Device you must check if GetMappedMemory() isn't null, as it depends on device capabilities.
 		 *
 		 * After all writes are finished make sure to call Flush() to make the writes visible to the GPU.
 		 */
@@ -632,8 +667,9 @@ namespace b3d::render
 		 * Writes the data into the buffer at the provided offset. Takes care of respecting the padding/alignment requirements of the provided type. (e.g. a 3x3 matrix will be padded with 4 bytes in each row).
 		 * @p source must contain at least as many bytes as the size provided in @p typeInformation. Returns the total number of written bytes, including the padding.
 		 *
-		 * Buffer must support CPU writes. This mean it's either explicitly created with StoreOnCPUWithGPUAccess flag, or running on a GPU that supports CPU access. The latter usually means running on an
-		 * integrated GPU with shared memory.
+		 * The buffer must be mappable: 
+		 *  - Guaranteed mappable if memory is GpuBufferMemory::Mapped or GpuBufferMemory::MappedCached. Non-sequential writes of GpuBufferMemory::Mapped are likely slow and not recommended.
+		 *  - With GpuBufferMemory::Device you must check if GetMappedMemory() isn't null, as it depends on device capabilities.
 		 *
 		 * After all writes are finished make sure to call Flush() to make the writes visible to the GPU.
 		 */
@@ -642,8 +678,9 @@ namespace b3d::render
 		/**
 		 * Clears the specified area of the buffer.
 		 *
-		 * Buffer must support CPU writes. This mean it's either explicitly created with StoreOnCPUWithGPUAccess flag, or running on a GPU that supports CPU access.
-		 * The latter usually means running on an integrated GPU with shared memory.
+		 * The buffer must be mappable: 
+		 *  - Guaranteed mappable if memory is GpuBufferMemory::Mapped or GpuBufferMemory::MappedCached.  Non-sequential writes of GpuBufferMemory::Mapped are likely slow and not recommended.
+		 *  - With GpuBufferMemory::Device you must check if GetMappedMemory() isn't null, as it depends on device capabilities.
 		 *
 		 * After all writes are finished make sure to call Flush() to make the writes visible to the GPU.
 		 */
@@ -652,8 +689,9 @@ namespace b3d::render
 		/**
 		 * Reads the data from the buffer at the provided offset. 
 		 *
-		 * Buffer must support CPU reads. This mean it's either explicitly created with StoreOnCPUWithGPUAccess flag, or running on a GPU that supports CPU access. The latter usually means running on an
-		 * integrated GPU with shared memory.
+		 * The buffer must be mappable: 
+		 *  - Guaranteed mappable if memory is GpuBufferMemory::Mapped or GpuBufferMemory::MappedCached. Reads of GpuBufferMemory::Mapped are likely very slow and not recommended.
+		 *  - With GpuBufferMemory::Device you must check if GetMappedMemory() isn't null, as it depends on device capabilities.
 		 *
 		 * If GPU wrote to this buffer you must ensure to issue an execution barrier which ensures all GPU units finish writing to the buffer, a GPU memory barrier that makes sure it flushes it caches into memory, and then finally call
 		 * Invalidate(), which forces CPU to fetch the data from the memory rather than its caches. All of this must be done before reading the data.
@@ -903,9 +941,8 @@ namespace b3d::render
 		static TShared<GpuBuffer> CreateStaging(GpuWorkContext& gpuContext, const TShared<GpuBuffer>& buffer, bool readable);
 
 		/**
-		 * Writes data into a buffer while accounting for the fact that the buffer might not be directly CPU-writable. Only buffers with
-		 * StoreOnCPUWithGPUAccess flag, or staging write buffers are directly writable by the CPU. And only in the case they are not currently being
-		 * used by the GPU.
+		 * Writes data into a buffer while accounting for the fact that the buffer might not be directly CPU-writable. Mapped buffers (see
+		 * GpuBufferMemory) are written directly, unless the GPU is using them.
 		 *
 		 * If a buffer is being used by the GPU, or is not directly CPU-writable, this method will internally create a staging buffer, write the data into it,
 		 * and then copy the staging buffer into the destination buffer using the provided command buffer. If no command buffer is provided, it will use
@@ -923,9 +960,9 @@ namespace b3d::render
 		static void Write(GpuWorkContext& gpuContext, const TShared<GpuBuffer>& buffer, u32 offset, u32 length, const void* source, GpuBufferWriteFlags writeFlags = GpuBufferWriteFlag::Normal, TShared<GpuCommandBuffer> commandBuffer = nullptr);
 
 		/**
-		 * Reads data from a buffer while accounting for the fact that the buffer might not be directly CPU-readable. Only buffers with
-		 * StoreOnCPUWithGPUAccess flag, or staging read buffers are directly readable by the CPU. And only in the case they are not currently being
-		 * used by the GPU.
+		 * Reads data from a buffer while accounting for the fact that the buffer might not be directly CPU-readable. Mapped buffers are read
+		 * directly, except those in the memory of a discrete GPU (GpuBufferMemory::Device and GpuBufferMemory::Mapped with Resizable BAR),
+		 * which the CPU reads slowly and uncached, over PCI Express.
 		 *
 		 * If a buffer is being used by the GPU, or is not directly CPU-readable, this method will internally create a staging buffer, copy the source
 		 * buffer into the staging buffer using the provided GPU queue, and then read the data from the staging buffer. If no GPU queue is provided,

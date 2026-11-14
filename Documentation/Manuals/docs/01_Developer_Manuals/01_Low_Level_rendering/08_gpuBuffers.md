@@ -53,10 +53,50 @@ Programs can also read and write a structured storage buffer as raw 32-bit words
 parameterSet->SetStorageBuffer("Words", buffer);
 ~~~~~~~~~~~~~
 
-## Memory placement flags
-The @b3d::GpuBufferFlag flags control where the buffer memory is stored:
- - @b3d::GpuBufferFlag::StoreOnGPU - Buffer is placed in device memory. Fast GPU access, but CPU reads/writes require staging buffers. This is the default for most buffer types.
- - @b3d::GpuBufferFlag::StoreOnCPUWithGPUAccess - Buffer is placed in CPU-visible memory accessible to the GPU. Faster CPU updates (no staging needed), but slower GPU access through the PCI Express bus. This is the default for uniform and staging buffers.
+## Memory types
+@b3d::GpuBufferMemory picks the memory a buffer is placed in. The device picks the native memory for each type on its hardware, so you never need to check for unified memory or Resizable BAR yourself. Whatever the memory, the CPU can write and read every buffer through @b3d::render::GpuBufferUtility, which accesses mapped memory directly and copies through staging buffers otherwise.
+ - @b3d::GpuBufferMemory::Device - Memory the GPU accesses fastest, supporting every usage. The device maps it where that costs the GPU nothing (Resizable BAR, unified memory the GPU reads at full speed), unless shaders write the buffer. This is the default for every buffer except uniform buffers. Use it for vertex and index buffers, static data and data the GPU writes.
+ - @b3d::GpuBufferMemory::Mapped - Mapped write-combined memory: GPU memory where the GPU reads it at full speed, otherwise system memory, which a discrete GPU reads over PCI Express. This is the default for uniform buffers. Main purpose of this type it to avoid a staging buffer copy. Use it for data that is written often (e.g. every frame) and read rarely by the GPU (one write by CPU, followed by one read on GPU is a perfect candidate for this memory type. As soon as GPU reads the memory more than once consider Device memory, especially for larger buffers).
+ - @b3d::GpuBufferMemory::MappedCached - Mapped memory the CPU caches, so CPU reads are fast. On discrete GPUs this is system memory, which the GPU reaches over PCI Express, so use it for data the CPU reads rather than data shaders read heavily, such as readback buffers.
+
+| Memory | Discrete GPU | Discrete GPU with Resizable BAR | Unified memory, GPU reads mapped memory at full speed | Unified memory, GPU reads mapped memory slower (AMD) |
+|---|---|---|---|---|
+| `Device` | GPU memory, unmapped | GPU memory, mapped | mapped | GPU memory, unmapped |
+| `Device` with `GpuWrite` | GPU memory, unmapped | GPU memory, unmapped | unmapped | GPU memory, unmapped |
+| `Mapped` | system memory, mapped write-combined | GPU memory, mapped write-combined | mapped write-combined | system memory, mapped write-combined |
+| `MappedCached` | system memory, mapped CPU-cached | system memory, mapped CPU-cached | mapped CPU-cached | mapped CPU-cached |
+
+Mapped GPU memory is limited: on integrated GPUs the part reserved for the GPU can be as small as 256 MB. Once it is close to full, `Device` buffers fall back to unmapped GPU memory, written and read through staging buffers, and `Mapped` buffers fall back to mapped write-combined system memory, so they stay mapped. With Resizable BAR that only happens once all GPU memory is close to full.
+
+The @b3d::GpuBufferFlag flags describe how the GPU uses a buffer, independently of its memory:
+ - @b3d::GpuBufferFlag::None - Shaders only read the buffer. GPU copies can still write it.
+ - @b3d::GpuBufferFlag::GpuWrite - Shaders write the buffer (see load-store buffers below). With `Mapped` or `MappedCached`, shaders write the mapped memory directly, which D3D12 doesn't support yet: it fails to create such buffers.
+ - @b3d::GpuBufferFlag::Bindless - The buffer is accessed through the bindless heap.
+ - @b3d::GpuBufferFlag::AccelerationStructureInput - The buffer holds geometry or instances an acceleration structure is built from.
+
+Only `Device` buffers can be transient.
+
+Two device capabilities describe the memory, for diagnostics:
+ - @b3d::RSC_UNIFIED_MEMORY - The GPU and the CPU share one memory, as on integrated GPUs, Apple Silicon and consoles. Parts of it can still differ in speed for the GPU: some integrated GPUs (AMD) read the part reserved for them faster than the rest of system memory, so the device keeps `Device` buffers unmapped there.
+ - @b3d::RSC_RESIZABLE_BAR - The CPU can write all of a discrete GPU's memory, and the device uses that (on D3D12 it needs GPU upload heaps). The `gpu.ResizableBar` config variable turns it off.
+
+## Mapping
+@b3d::render::GpuBuffer::Map always succeeds on `Mapped` and `MappedCached` buffers. On `Device` buffers it succeeds only where the device mapped the buffer, and otherwise returns an empty scope, so check it and fall back to @b3d::render::GpuBufferUtility:
+
+~~~~~~~~~~~~~{.cpp}
+if(render::GpuBufferMappedScope mappedScope = buffer->Map(GpuMapOption::Write))
+	GenerateVertices(mappedScope.GetMappedMemory());
+else
+	render::GpuBufferUtility::Write(gpuContext, buffer, 0, size, vertices.data());
+~~~~~~~~~~~~~
+
+The CPU writes `Device` and `Mapped` buffers through a write-combined mapping, so write them sequentially. Reads through that mapping are allowed but slow: CPU reads of GPU memory cross PCI Express uncached. @b3d::render::GpuBufferUtility::Read reads such buffers in the memory of a discrete GPU through a staging buffer for that reason.
+
+## Reading back
+The CPU reads GPU results back in one of three ways:
+ - @b3d::render::GpuBufferUtility::Read or @b3d::render::GpuBufferUtility::ReadAsync on a buffer in any memory, which copy through a staging buffer where needed.
+ - A GPU copy into a buffer created with @b3d::GpuBufferCreateInformation::CreateStagingRead, mapped once the copy completes.
+ - A `MappedCached` buffer, which the GPU writes (a copy, or a shader with `GpuWrite`) and the CPU maps directly. Suits data read back every frame.
 
 ## Scratch buffers
 Short-lived, single-use buffers (compute scratch, staging) can instead be created through @b3d::GpuWorkContext::CreateScratchGpuBuffer. Such buffers are backed by the work context's scratch (linear) allocator: allocation and free are extremely cheap, but the memory is reclaimed in bulk once the GPU work that used it completes, so the buffer must not be retained past the frame/operation that created it. See the [GPU work context](../Low_Level_rendering/gpuWorkContext) manual for what a work context is and how to obtain one.
@@ -96,7 +136,7 @@ Buffers can contain multiple suballocations — logically separate regions withi
 
 ~~~~~~~~~~~~~{.cpp}
 // Creates a uniform buffer with space for 64 suballocations
-GpuBufferCreateInformation createInformation = GpuBufferCreateInformation::CreateUniform(uniformSize, GpuBufferFlag::StoreOnCPUWithGPUAccess, 64);
+GpuBufferCreateInformation createInformation = GpuBufferCreateInformation::CreateUniform(uniformSize, GpuBufferMemory::Mapped, 64);
 TShared<render::GpuBuffer> buffer = gpuDevice->CreateGpuBuffer(createInformation);
 ~~~~~~~~~~~~~
 
@@ -133,14 +173,14 @@ buffer->Write(0, sizeof(data), data);
 
 ## Render-thread GpuBuffer
 The render-thread @b3d::render::GpuBuffer provides direct access to GPU memory. Unlike the main-thread variant, you must manage flushing and invalidation manually:
- - @b3d::render::GpuBuffer::Write - Writes data directly to mapped GPU memory. Requires the buffer to be CPU-accessible (`StoreOnCPUWithGPUAccess`).
+ - @b3d::render::GpuBuffer::Write - Writes data directly to mapped GPU memory. Requires the buffer to be mapped (see mapping above).
  - @b3d::render::GpuBuffer::WriteTyped - Writes with padding/alignment for GPU types.
  - @b3d::render::GpuBuffer::ZeroOut - Clears a region of the buffer.
- - @b3d::render::GpuBuffer::Read - Reads directly from mapped GPU memory. If the GPU wrote to the buffer, you must issue execution and memory barriers, then call @b3d::render::GpuBuffer::Invalidate before reading.
+ - @b3d::render::GpuBuffer::Read - Reads directly from mapped GPU memory, which is slow unless the buffer is `MappedCached`. If the GPU wrote to the buffer, you must issue execution and memory barriers, then call @b3d::render::GpuBuffer::Invalidate before reading.
  - @b3d::render::GpuBuffer::GetMappedMemory - Returns the raw persistently-mapped memory pointer, or `nullptr` if not mappable.
  - @b3d::render::GpuBuffer::Flush - Makes CPU writes visible to the GPU. Only needed for non-coherent memory.
  - @b3d::render::GpuBuffer::Invalidate - Makes GPU writes visible to the CPU. Only needed for non-coherent memory.
- - @b3d::render::GpuBuffer::Map - Maps a region and returns a @b3d::render::GpuBufferMappedScope that automatically invalidates on read mappings and flushes on write mappings when the scope exits.
+ - @b3d::render::GpuBuffer::Map - Maps a region and returns a @b3d::render::GpuBufferMappedScope that automatically invalidates on read mappings and flushes on write mappings when the scope exits. The scope is empty if the buffer isn't mapped.
 
 ~~~~~~~~~~~~~{.cpp}
 TShared<render::GpuBuffer> buffer = ...;
@@ -167,7 +207,7 @@ render::GpuBufferSuballocation suballocation = ...;
  - @b3d::render::GpuBufferUtility::CreateStaging - Creates a staging buffer matching the size of a given buffer. The staging buffer is allocated from the work context's scratch allocator, so it is single-use and must not be retained once the GPU work that used it completes.
 
 ~~~~~~~~~~~~~{.cpp}
-TShared<render::GpuBuffer> gpuOnlyBuffer = ...; // Created with StoreOnGPU
+TShared<render::GpuBuffer> gpuOnlyBuffer = ...; // In GpuBufferMemory::Device memory, which may not be mapped
 
 // Operations run against the render thread's work context, obtained from the renderer
 GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
@@ -198,11 +238,11 @@ parameterSet->SetStorageBuffer("myBuffer", buffer);
 ~~~~~~~~~~~~~
 
 # Load-store buffers
-Same as with textures, buffers can also be used for GPU program load-store operations. You simply need to set the @b3d::GpuBufferFlag::AllowUnorderedAccessOnTheGPU flag in the create information before creating the buffer.
+Same as with textures, buffers can also be used for GPU program load-store operations. You simply need to set the @b3d::GpuBufferFlag::GpuWrite flag in the create information before creating the buffer.
 
 ~~~~~~~~~~~~~{.cpp}
 GpuBufferCreateInformation createInformation = GpuBufferCreateInformation::CreateStructuredStorage(sizeof(MyData), 32);
-createInformation.Flags |= GpuBufferFlag::AllowUnorderedAccessOnTheGPU;
+createInformation.Flags |= GpuBufferFlag::GpuWrite;
 
 TShared<render::GpuBuffer> buffer = commandBuffer->GetGpuDevice().CreateGpuBuffer(createInformation);
 ~~~~~~~~~~~~~

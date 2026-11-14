@@ -26,4 +26,12 @@ namespace b3d::render
 	class MetalGpuQueue;
 	class MetalGpuCommandBuffer;
 	class MetalResidencySet;
+
+	/** What a GpuMemoryRequirements::MemoryType reported by MetalGpuDevice stands for: the storage mode of the heaps resources are placed in. */
+	enum class MetalMemoryType : u32
+	{
+		Private, /**< MTLStorageModePrivate, for GPU-only resources. */
+		Shared, /**< MTLStorageModeShared, for CPU-visible resources. */
+		Count /**< Number of memory types. */
+	};
 } // namespace b3d::render

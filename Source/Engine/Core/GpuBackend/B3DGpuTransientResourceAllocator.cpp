@@ -24,11 +24,11 @@ namespace
 		return !createInformation.Usage.IsSet(TextureUsageFlag::StoreOnCPUWithGPUAccess) && createInformation.InitialData == nullptr;
 	}
 
-	/** Returns true if a buffer described by @p createInformation is only accessed by the GPU. */
+	/** Returns true if a buffer described by @p createInformation is in GPU memory, which transient memory can hold. */
 	bool IsGpuOnly(const GpuBufferCreateInformation& createInformation)
 	{
 		const bool isStaging = createInformation.Type == GpuBufferType::StagingRead || createInformation.Type == GpuBufferType::StagingWrite;
-		return !isStaging && !createInformation.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess);
+		return !isStaging && createInformation.Memory == GpuBufferMemory::Device;
 	}
 }
 
@@ -82,7 +82,7 @@ GpuTransientBuffer GpuTransientScope::AllocateBuffer(const GpuBufferCreateInform
 	B3D_ASSERT(allocator.mTimeline != nullptr && "Transient resources can only be allocated within a scope.");
 
 	GpuTransientBuffer output;
-	if(!B3D_ENSURE_LOG(IsGpuOnly(createInformation), "Transient buffers must only be accessed by the GPU."))
+	if(!B3D_ENSURE_LOG(IsGpuOnly(createInformation), "Transient buffers must be in GPU memory (GpuBufferMemory::Device), and can't be staging buffers."))
 		return output;
 
 	auto fnIsSame = [&createInformation](const GpuTransientResourceAllocator::Resource& resource)
@@ -203,7 +203,7 @@ TShared<render::Texture> GpuTransientResourceAllocator::GetOrCreateTexture(const
 
 TShared<render::GpuBuffer> GpuTransientResourceAllocator::GetOrCreateBuffer(const GpuBufferCreateInformation& createInformation)
 {
-	if(!B3D_ENSURE_LOG(IsGpuOnly(createInformation), "Transient buffers must only be accessed by the GPU."))
+	if(!B3D_ENSURE_LOG(IsGpuOnly(createInformation), "Transient buffers must be in GPU memory (GpuBufferMemory::Device), and can't be staging buffers."))
 		return nullptr;
 
 	if(!B3D_ENSURE_LOG(!createInformation.Flags.IsSet(GpuBufferFlag::Bindless), "Transient buffers cannot be bindless. Bindless buffers must stay at rest."))

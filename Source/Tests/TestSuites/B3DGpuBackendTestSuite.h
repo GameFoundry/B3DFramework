@@ -22,10 +22,35 @@ namespace b3d
 		/** Verifies the pipeline stages each queue type can execute. */
 		void TestQueueStageFlags();
 
+		/** Verifies the memory capabilities of the device agree with each other and with gpu.ResizableBar. */
+		void TestMemoryCapabilities();
+
+		/** Verifies GpuBackendUtility::GetBufferPlacement() picks the expected memory for each memory type, usage flags and device memory. */
+		void TestBufferPlacement();
+
+		/**
+		 * Verifies GpuBufferUtility reads back what it wrote to a buffer in GpuBufferMemory::Mapped memory, which reads through a staging buffer
+		 * when the buffer is in the local memory of a discrete GPU.
+		 */
+		void TestCpuWrittenBufferReadback();
+
+		/**
+		 * Verifies, for each memory type with and without GpuBufferFlag::GpuWrite, that a GPU copy reads what GpuBufferUtility wrote to a buffer,
+		 * that GpuBufferUtility reads it back, and that Map() succeeds exactly where the device mapped the buffer, which it always does for mapped
+		 * memory. Verifies Map() reads what the GPU wrote to mapped memory, and that D3D12 rejects mapped buffers shaders write.
+		 */
+		void TestBufferMemory();
+
+		/**
+		 * Runs GpuMemoryDefragmenter on a buffer in each memory type. Verifies that only GpuBufferMemory::Device buffers move, and that a write
+		 * through GpuBufferUtility right after the move isn't overwritten by the move's copy.
+		 */
+		void TestCpuWrittenBufferRelocation();
+
 		/**
 		 * Verifies the transient resource cache across scopes and frames, cache eviction by idle frames and by cache size, the release of
-		 * idle heaps, concurrent scopes of two contexts sharing a heap, the persistent memory fallback and the validation of transient
-		 * resource use.
+		 * idle heaps, concurrent scopes of two contexts sharing a heap, the persistent memory fallback, that transient buffers get no CPU
+		 * access, and the validation of transient resource use.
 		 */
 		void TestTransientResourceAllocator();
 

@@ -799,7 +799,6 @@ void LightProbes::ResizeTetrahedronBuffer(u32 count)
 
 	GpuBufferCreateInformation bufferCreateInformation;
 	bufferCreateInformation.Type = GpuBufferType::SimpleStorage;
-	bufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU;
 	bufferCreateInformation.SimpleStorage.Count = count * kElementSize;
 	bufferCreateInformation.SimpleStorage.Format = BF_32X4U;
 
@@ -813,7 +812,6 @@ void LightProbes::ResizeTetrahedronFaceBuffer(u32 count)
 
 	GpuBufferCreateInformation bufferCreateInformation;
 	bufferCreateInformation.Type = GpuBufferType::SimpleStorage;
-	bufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU;
 	bufferCreateInformation.SimpleStorage.Count = count * kElementSize;
 	bufferCreateInformation.SimpleStorage.Format = BF_32X4F;
 

@@ -49,6 +49,20 @@ namespace b3d
 	 */
 	extern B3D_EXPORT TConfigVariable<bool> gGpuRayTracing;
 
+	/**
+	 * Allows devices to use Resizable BAR on discrete GPUs (and report RSC_RESIZABLE_BAR), and so to place buffers the CPU writes in GPU
+	 * memory. When disabled, devices behave as on GPUs without Resizable BAR. Unified memory is unaffected. Enabled by default. Shared by all
+	 * backends.
+	 */
+	extern B3D_EXPORT TConfigVariable<bool> gGpuResizableBar;
+
+	/**
+	 * On unified memory devices, treats the memory the CPU writes directly as if the GPU read it at full speed, even where the GPU reads it
+	 * more slowly (AMD integrated GPUs), so buffers in GpuBufferMemory::Device memory are mapped. Meant for testing that path. Disabled by
+	 * default. Shared by all backends.
+	 */
+	extern B3D_EXPORT TConfigVariable<bool> gGpuForceDirectGpuBufferWrites;
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	/**
 	 * When enabled, backends log how long the driver takes to create each compute pipeline. With the driver's shader cache

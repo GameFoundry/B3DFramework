@@ -7,16 +7,17 @@
 #include "B3DVulkanUtility.h"
 #include "B3DVulkanGpuCommandBuffer.h"
 #include "B3DVulkanGpuBackend.h"
+#include "GpuBackend/B3DGpuBackendUtility.h"
 
 using namespace b3d;
 using namespace b3d::render;
 
 namespace
 {
-	/** Any structured buffer only the GPU accesses, and can write, can be the scratch memory of an acceleration structure build. */
-	bool IsAccelerationStructureScratchCapable(GpuBufferType type, GpuBufferFlags flags)
+	/** Any structured buffer in GPU memory the GPU can write can be the scratch memory of an acceleration structure build. */
+	bool IsAccelerationStructureScratchCapable(GpuBufferType type, GpuBufferMemory memory, GpuBufferFlags flags)
 	{
-		return type == GpuBufferType::StructuredStorage && flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU) && !flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess);
+		return type == GpuBufferType::StructuredStorage && memory == GpuBufferMemory::Device && flags.IsSet(GpuBufferFlag::GpuWrite);
 	}
 }
 
@@ -128,7 +129,7 @@ VkBufferView VulkanBuffer::GetOrCreateView(VkFormat format)
 }
 
 VulkanGpuBuffer::VulkanGpuBuffer(VulkanGpuDevice& device, const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation)
-	: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device), allocation), mDirectlyMappable((createInformation.Flags.IsSetAny(GpuBufferFlag::StoreOnCPUWithGPUAccess)) != 0 || createInformation.Type == GpuBufferType::StagingRead || createInformation.Type == GpuBufferType::StagingWrite), mSupportsGPUWrites(createInformation.Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU))
+	: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device), allocation), mSupportsGPUWrites(createInformation.Flags.IsSet(GpuBufferFlag::GpuWrite))
 	{ }
 
 VulkanGpuBuffer::~VulkanGpuBuffer()
@@ -175,7 +176,7 @@ VkBufferUsageFlags VulkanGpuBuffer::GetVkBufferUsageFlags(const VulkanGpuDevice&
 		break;
 	}
 
-	if(createInformation.Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU))
+	if(createInformation.Flags.IsSet(GpuBufferFlag::GpuWrite))
 	{
 		if(createInformation.Type == GpuBufferType::SimpleStorage)
 			usageFlags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
@@ -189,7 +190,7 @@ VkBufferUsageFlags VulkanGpuBuffer::GetVkBufferUsageFlags(const VulkanGpuDevice&
 		if(createInformation.Flags.IsSet(GpuBufferFlag::AccelerationStructureInput))
 			usageFlags |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
 
-		if(IsAccelerationStructureScratchCapable(createInformation.Type, createInformation.Flags))
+		if(IsAccelerationStructureScratchCapable(createInformation.Type, createInformation.Memory, createInformation.Flags))
 			usageFlags |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
 	}
 
@@ -199,12 +200,12 @@ VkBufferUsageFlags VulkanGpuBuffer::GetVkBufferUsageFlags(const VulkanGpuDevice&
 	return usageFlags;
 }
 
-u32 VulkanGpuBuffer::GetMinimumAlignment(const VulkanGpuDevice& device, GpuBufferType type, GpuBufferFlags flags)
+u32 VulkanGpuBuffer::GetMinimumAlignment(const VulkanGpuDevice& device, GpuBufferType type, GpuBufferMemory memory, GpuBufferFlags flags)
 {
 	u32 alignment = 1u;
 
 	// The alignment is zero on devices without acceleration structures
-	if(IsAccelerationStructureScratchCapable(type, flags))
+	if(IsAccelerationStructureScratchCapable(type, memory, flags))
 		alignment = std::max(device.GetCapabilities().RayTracing.ScratchOffsetAlignment, alignment);
 
 	// Instance data of top level acceleration structure builds must be 16-byte aligned
@@ -215,33 +216,65 @@ u32 VulkanGpuBuffer::GetMinimumAlignment(const VulkanGpuDevice& device, GpuBuffe
 	return alignment;
 }
 
-void VulkanGpuBuffer::GetVkMemoryPropertyFlags(const GpuBufferCreateInformation& createInformation, VkMemoryPropertyFlags& requiredFlags, VkMemoryPropertyFlags& preferredFlags)
+void VulkanGpuBuffer::GetMemoryFlags(const VulkanGpuDevice& device, GpuBufferType type, GpuBufferMemory memory, GpuBufferFlags flags,
+	VulkanMemoryFlags& outMemoryFlags, TOptional<VulkanMemoryFlags>& outFallbackMemoryFlags)
 {
-	// Map the engine's high-level buffer-usage hint to (required, preferred) memory-property flags.
-	if(createInformation.Type == GpuBufferType::StagingRead)
+	// Memory no buffer is ever in: protected, lazily allocated, and AMD's device coherent types, which need a feature the device doesn't enable
+	constexpr VkMemoryPropertyFlags kUnusableFlags = VK_MEMORY_PROPERTY_PROTECTED_BIT | VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT |
+		VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD | VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD;
+
+	outFallbackMemoryFlags.reset();
+
+	// Map the engine's high-level buffer-usage hint to memory-property flags.
+	if(type == GpuBufferType::StagingRead)
 	{
 		// CPU readback (transfer-dst staging): host-visible + cached for fast CPU reads.
-		requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-		preferredFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+		outMemoryFlags = VulkanMemoryFlags(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 	}
-	else if(createInformation.Type == GpuBufferType::StagingWrite)
+	else if(type == GpuBufferType::StagingWrite)
 	{
 		// CPU upload staging: host-visible + coherent for write-combined upload.
-		requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-		preferredFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-	}
-	else if(createInformation.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess))
-	{
-		// Persistent CPU-write-then-GPU-read buffer (e.g. dynamic uniform buffers). Prefer ReBAR-style
-		// HOST_VISIBLE + DEVICE_LOCAL when available, otherwise plain HOST_VISIBLE.
-		requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-		preferredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+		outMemoryFlags = VulkanMemoryFlags(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	}
 	else
 	{
-		// Pure GPU buffer (vertex / index / structured / uniform with TRANSFER_DST init): DEVICE_LOCAL only.
-		requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-		preferredFlags = 0;
+		const bool isUnified = device.GetCapabilities().HasCapability(RSC_UNIFIED_MEMORY);
+		const VkMemoryPropertyFlags unifiedLocalFlags = isUnified ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT : 0;
+
+		// Mapped buffers stay mapped once the GPU memory they prefer is close to full, in system memory. Among the types that qualify,
+		// the lowest index is write-combined rather than cached, as Vulkan lists a type before the types with more flags.
+		const VulkanMemoryFlags systemMemoryFlags(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | kUnusableFlags);
+
+		switch(GpuBackendUtility::GetBufferPlacement(memory, flags, device.HasFullSpeedMappableGpuMemory()))
+		{
+		case GpuBufferPlacement::MappedGpuOrUnmapped:
+			// VulkanGpuDevice::InitializeCapabilities() checks the type these flags pick is mappable at full GPU speed. Near the budget the
+			// buffers are better unmapped than read by the GPU from system memory.
+			outMemoryFlags = VulkanMemoryFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+			outFallbackMemoryFlags = VulkanMemoryFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | kUnusableFlags);
+			break;
+		case GpuBufferPlacement::MappedGpuOrSystem:
+			// As above, but near the budget the buffers stay mapped, in system memory
+			outMemoryFlags = VulkanMemoryFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+			outFallbackMemoryFlags = systemMemoryFlags;
+			break;
+		case GpuBufferPlacement::MappedSystem:
+			// Integrated GPUs read the part of memory reserved for them faster, though the HOST_VISIBLE part of it can be small
+			outMemoryFlags = VulkanMemoryFlags(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | unifiedLocalFlags);
+			outFallbackMemoryFlags = systemMemoryFlags;
+			break;
+		case GpuBufferPlacement::MappedCached:
+			// No DEVICE_LOCAL preference: it could pick an uncached type of the GPU's part of memory over a cached one (AMD). Should a
+			// cached type in GPU memory be picked anyway, the fallback stays cached.
+			outMemoryFlags = VulkanMemoryFlags(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+			outFallbackMemoryFlags = VulkanMemoryFlags(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | kUnusableFlags);
+			break;
+		default:
+			outMemoryFlags = VulkanMemoryFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0);
+			break;
+		}
 	}
 }
 
@@ -275,7 +308,7 @@ VulkanBuffer* VulkanGpuBuffer::CreateBuffer(VulkanGpuDevice& device, u32 size, b
 	info.Type = newBufferType;
 	info.Flags = newBufferFlags;
 	info.DebugName = debugName;
-	info.MinimumAlignment = GetMinimumAlignment(device, newBufferType, newBufferFlags);
+	info.MinimumAlignment = GetMinimumAlignment(device, newBufferType, mInformation.Memory, newBufferFlags);
 	info.VkCreateInfo.size = size;
 
 	if(staging)

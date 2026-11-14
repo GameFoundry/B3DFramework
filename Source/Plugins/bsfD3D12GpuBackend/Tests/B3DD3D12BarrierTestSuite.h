@@ -29,6 +29,20 @@ namespace b3d
 		/** Checks RT/DS resources use placed allocations from compatible texture heaps. */
 		void TestPlacedRenderTargetAllocation();
 
+		/**
+		 * Checks a buffer in GpuBufferMemory::Mapped memory is mapped, in a GPU upload heap with Resizable BAR, and otherwise in a custom heap,
+		 * write-combined in pool L0 where GPU memory isn't mappable at full speed.
+		 */
+		void TestCpuWrittenBufferPlacement();
+
+		/**
+		 * Checks a buffer in GpuBufferMemory::Device memory is mapped exactly when the device can map its GPU memory, in a GPU upload heap or
+		 * a custom heap in pool L0, and in an unmapped default heap otherwise, with other allocators than GpuBufferMemory::Mapped buffers.
+		 * Buffers the GPU writes are in default heaps, and GpuBufferMemory::MappedCached buffers in custom heaps in pool L0. Buffers the GPU
+		 * writes in mapped memory fail to create.
+		 */
+		void TestGpuReadBufferPlacement();
+
 		/** Checks depth resources use compatible resource/view formats and shader-resource view dimensions. */
 		void TestShaderReadableDepthTextures();
 

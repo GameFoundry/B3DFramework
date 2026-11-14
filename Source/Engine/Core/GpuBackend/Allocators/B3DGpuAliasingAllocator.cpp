@@ -51,11 +51,13 @@ bool GpuAliasingAllocator::TryAllocate(IGpuTransientHeapPool& pool, u64 size, u6
 {
 	B3D_ASSERT(mTimeline != nullptr && "Aliased memory can only be allocated within a scope.");
 	B3D_ASSERT(firstSubmission < mTimeline->GetSubmissionCount());
-	B3D_ASSERT(alignment > 0 && Bitwise::IsPow2(alignment));
+	B3D_ASSERT(alignment > 0);
 
+	// An alignment that isn't a power of two, such as the element size D3D12 buffer slices align to, combines with the granularity into
+	// their least common multiple
 	const u64 granularity = pool.GetGranularity();
 	const u64 allocationSize = Bitwise::AlignUp(std::max(size, (u64)1), granularity);
-	const u64 allocationAlignment = std::max(alignment, granularity);
+	const u64 allocationAlignment = Bitwise::IsPow2(alignment) ? std::max(alignment, granularity) : Math::Lcm(alignment, granularity);
 
 	// First fit over the pool's heaps in slot order. A heap the scope has not placed memory on yet is entirely free.
 	const u32 slotCount = pool.GetSlotCount();
@@ -93,7 +95,7 @@ bool GpuAliasingAllocator::TryAllocate(IGpuTransientHeapPool& pool, u64 size, u6
 			if(runStartIndex == kInvalidIndex || heap.FreeSegments[segmentIndex - 1].GetEnd() != segment.Offset)
 				runStartIndex = segmentIndex;
 
-			const u64 offset = Bitwise::AlignUp(heap.FreeSegments[runStartIndex].Offset, allocationAlignment);
+			const u64 offset = Math::CeilToMultiple(heap.FreeSegments[runStartIndex].Offset, allocationAlignment);
 			if(offset + allocationSize > segment.GetEnd())
 				continue;
 

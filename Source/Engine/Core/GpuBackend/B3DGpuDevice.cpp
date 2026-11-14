@@ -17,6 +17,8 @@
 #include "Material/B3DShaderCompiler.h"
 #include "CoreObject/B3DRenderThread.h"
 
+#include <atomic>
+
 using namespace b3d;
 
 GpuDevice::GpuDevice()
@@ -478,6 +480,17 @@ TShared<render::GpuShaderBindingTable> GpuDevice::CreateGpuShaderBindingTable(co
 		!fnValidateRecords(createInformation.CallableRecords, (u32)pipeline.CallablePrograms.size(), "Callable", "callable program", false))
 	{
 		return nullptr;
+	}
+
+	// The CPU writes tables into the GPU's memory when it can. Otherwise every table is in system memory, which the GPU reads over PCI
+	// Express on every ray trace, so this is logged once.
+	static std::atomic<bool> sHasLoggedSystemMemoryTables = false;
+	const GpuDeviceCapabilities& capabilities = GetCapabilities();
+	const bool hasCpuWritableGpuMemory = capabilities.HasCapability(RSC_RESIZABLE_BAR) || capabilities.HasCapability(RSC_UNIFIED_MEMORY);
+	if(!hasCpuWritableGpuMemory && !sHasLoggedSystemMemoryTables.exchange(true))
+	{
+		B3D_LOG(Warning, LogRenderBackend, "Shader binding tables are in system memory, which the GPU reads more slowly, over PCI Express, because the CPU can't "
+			"write the GPU's memory. Enabling Resizable BAR in the BIOS (and for D3D12, a driver with GPU upload heaps) places them in GPU memory.");
 	}
 
 	return CreateGpuShaderBindingTableInternal(createInformation);

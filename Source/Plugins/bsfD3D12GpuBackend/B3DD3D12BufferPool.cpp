@@ -7,8 +7,10 @@
 using namespace b3d;
 using namespace b3d::render;
 
-D3D12BufferPage::D3D12BufferPage(D3D12ResourceManager* owner, ComPtr<ID3D12Resource> resource, GpuAllocation backingAllocation, D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_FLAGS flags, void* mappedData)
-	: D3D12BufferResource(owner, "D3D12 buffer page"), D3D12HeapBase(D3D12HeapKind::BufferPage), mResource(std::move(resource)), mBackingAllocation(backingAllocation), mHeapType(heapType), mFlags(flags), mMappedData(mappedData)
+D3D12BufferPage::D3D12BufferPage(D3D12ResourceManager* owner, ComPtr<ID3D12Resource> resource, GpuAllocation backingAllocation, const D3D12BufferPageCreateInformation& createInformation,
+	D3D12_HEAP_TYPE heapType, void* mappedData)
+	: D3D12BufferResource(owner, "D3D12 buffer page"), D3D12HeapBase(D3D12HeapKind::BufferPage), mResource(std::move(resource)), mBackingAllocation(backingAllocation)
+	, mCreateInformation(createInformation), mHeapType(heapType), mMappedData(mappedData)
 { }
 
 D3D12BufferPage::~D3D12BufferPage()
@@ -38,18 +40,21 @@ IGpuHeap* D3D12BufferPageBackend::CreateHeap(u64 sizeInBytes, const HeapCreateIn
 	// probably no need to call into the generic TLSF allocator, and then have our own TLSF on top.
 	ComPtr<ID3D12Resource> resource;
 	GpuAllocation backingAllocation;
-	HRESULT result = mDevice.CreateResource(resourceDescription, createInformation.HeapType, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, resource, backingAllocation);
+	HRESULT result = mDevice.CreateResource(resourceDescription, createInformation.HeapProperties, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, resource, backingAllocation);
 	if(FAILED(result))
 	{
-		B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to create a {0}-byte buffer pool page (hr={1}, heapType={2}, flags={3}).", sizeInBytes, (u32)result, (u32)createInformation.HeapType, (u32)createInformation.Flags);
+		B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to create a {0}-byte buffer pool page (hr={1}, heapType={2}, flags={3}).", sizeInBytes, (u32)result, (u32)createInformation.HeapProperties.Type, (u32)createInformation.Flags);
 		return nullptr;
 	}
 
+	// The heap can differ from the requested one (see D3D12HeapBackend::CreateHeap())
+	const D3D12_HEAP_TYPE heapType = ToD3D12GpuHeap(backingAllocation.Heap).Type;
+
 	void* mappedData = nullptr;
-	if(createInformation.HeapType == D3D12_HEAP_TYPE_UPLOAD || createInformation.HeapType == D3D12_HEAP_TYPE_READBACK)
+	if(heapType != D3D12_HEAP_TYPE_DEFAULT)
 	{
 		D3D12_RANGE readRange = {};
-		if(createInformation.HeapType == D3D12_HEAP_TYPE_READBACK)
+		if(heapType == D3D12_HEAP_TYPE_CUSTOM)
 			readRange.End = (SIZE_T)sizeInBytes;
 
 		result = resource->Map(0, &readRange, &mappedData);
@@ -63,7 +68,7 @@ IGpuHeap* D3D12BufferPageBackend::CreateHeap(u64 sizeInBytes, const HeapCreateIn
 	}
 
 	resource->SetName(L"D3D12 buffer pool page");
-	return mDevice.GetResourceManager().Create<D3D12BufferPage>(std::move(resource), backingAllocation, createInformation.HeapType, createInformation.Flags, mappedData);
+	return mDevice.GetResourceManager().Create<D3D12BufferPage>(std::move(resource), backingAllocation, createInformation, heapType, mappedData);
 }
 
 void D3D12BufferPageBackend::DestroyHeap(IGpuHeap* handle)
@@ -91,44 +96,59 @@ D3D12BufferPool::~D3D12BufferPool()
 		pagePool.reset();
 }
 
-D3D12BufferPool::MemoryType D3D12BufferPool::GetMemoryType(D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_FLAGS resourceFlags)
+D3D12PageClass D3D12BufferPool::GetPageClass(const D3D12HeapProperties& heapProperties, D3D12_RESOURCE_FLAGS resourceFlags)
 {
-	switch(heapType)
+	switch(heapProperties.Type)
 	{
 	case D3D12_HEAP_TYPE_DEFAULT:
 		if(resourceFlags == D3D12_RESOURCE_FLAG_NONE)
-			return MemoryType::Default;
+			return D3D12PageClass::Default;
 
 		if(resourceFlags == D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)
-			return MemoryType::DefaultUnorderedAccess;
+			return D3D12PageClass::DefaultUnorderedAccess;
 
-		return MemoryType::Count;
-	case D3D12_HEAP_TYPE_UPLOAD:
-		return resourceFlags == D3D12_RESOURCE_FLAG_NONE ? MemoryType::Upload : MemoryType::Count;
-	case D3D12_HEAP_TYPE_READBACK:
-		return resourceFlags == D3D12_RESOURCE_FLAG_NONE ? MemoryType::Readback : MemoryType::Count;
+		return D3D12PageClass::Count;
+	case D3D12_HEAP_TYPE_GPU_UPLOAD:
+		if(resourceFlags != D3D12_RESOURCE_FLAG_NONE)
+			return D3D12PageClass::Count;
+
+		return heapProperties.Fallback == D3D12HeapFallback::UnmappedGpuMemory ? D3D12PageClass::GpuUploadOrDefault : D3D12PageClass::GpuUpload;
+	case D3D12_HEAP_TYPE_CUSTOM:
+		if(resourceFlags != D3D12_RESOURCE_FLAG_NONE)
+			return D3D12PageClass::Count;
+
+		return heapProperties.CpuPageProperty == D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE ? D3D12PageClass::CustomWriteCombine : D3D12PageClass::CustomWriteBack;
 	default:
-		return MemoryType::Count;
+		return D3D12PageClass::Count;
 	}
 }
 
-D3D12BufferPageCreateInformation D3D12BufferPool::GetPageCreateInformation(MemoryType memoryType)
+D3D12BufferPageCreateInformation D3D12BufferPool::GetPageCreateInformation(D3D12PageClass pageClass)
 {
 	D3D12BufferPageCreateInformation createInformation;
-	switch(memoryType)
+	switch(pageClass)
 	{
-	case MemoryType::Default:
-		createInformation.HeapType = D3D12_HEAP_TYPE_DEFAULT;
+	case D3D12PageClass::Default:
+		createInformation.HeapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
 		break;
-	case MemoryType::DefaultUnorderedAccess:
-		createInformation.HeapType = D3D12_HEAP_TYPE_DEFAULT;
+	case D3D12PageClass::DefaultUnorderedAccess:
+		createInformation.HeapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
 		createInformation.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 		break;
-	case MemoryType::Upload:
-		createInformation.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+	case D3D12PageClass::GpuUpload:
+		createInformation.HeapProperties.Type = D3D12_HEAP_TYPE_GPU_UPLOAD;
 		break;
-	case MemoryType::Readback:
-		createInformation.HeapType = D3D12_HEAP_TYPE_READBACK;
+	case D3D12PageClass::GpuUploadOrDefault:
+		createInformation.HeapProperties.Type = D3D12_HEAP_TYPE_GPU_UPLOAD;
+		createInformation.HeapProperties.Fallback = D3D12HeapFallback::UnmappedGpuMemory;
+		break;
+	case D3D12PageClass::CustomWriteBack:
+		createInformation.HeapProperties.Type = D3D12_HEAP_TYPE_CUSTOM;
+		createInformation.HeapProperties.CpuPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+		break;
+	case D3D12PageClass::CustomWriteCombine:
+		createInformation.HeapProperties.Type = D3D12_HEAP_TYPE_CUSTOM;
+		createInformation.HeapProperties.CpuPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
 		break;
 	default:
 		B3D_ASSERT(false);
@@ -138,42 +158,42 @@ D3D12BufferPageCreateInformation D3D12BufferPool::GetPageCreateInformation(Memor
 	return createInformation;
 }
 
-u64 D3D12BufferPool::GetPersistentPageSize(MemoryType memoryType)
+u64 D3D12BufferPool::GetPersistentPageSize(D3D12PageClass pageClass)
 {
-	return memoryType == MemoryType::Default || memoryType == MemoryType::DefaultUnorderedAccess ? 16ull * 1024 * 1024 : 4ull * 1024 * 1024;
+	return pageClass == D3D12PageClass::Default || pageClass == D3D12PageClass::DefaultUnorderedAccess ? 16ull * 1024 * 1024 : 4ull * 1024 * 1024;
 }
 
-u64 D3D12BufferPool::GetScratchPageSize(MemoryType memoryType)
+u64 D3D12BufferPool::GetScratchPageSize(D3D12PageClass pageClass)
 {
-	return memoryType == MemoryType::Default || memoryType == MemoryType::DefaultUnorderedAccess ? 8ull * 1024 * 1024 : 4ull * 1024 * 1024;
+	return pageClass == D3D12PageClass::Default || pageClass == D3D12PageClass::DefaultUnorderedAccess ? 8ull * 1024 * 1024 : 4ull * 1024 * 1024;
 }
 
 void D3D12BufferPool::GetPersistentAllocators(TArray<IGpuAllocator*>& outAllocators)
 {
 	Lock lock(mAllocatorMutex);
-	for(const TUnique<PersistentAllocator>& allocator : mPersistentAllocators)
+	for(u32 pageClassIndex = 0; pageClassIndex < (u32)D3D12PageClass::Count; pageClassIndex++)
 	{
-		if(allocator != nullptr)
-			outAllocators.Add(allocator.get());
+		if(mPersistentAllocators[pageClassIndex] != nullptr)
+			outAllocators.Add(mPersistentAllocators[pageClassIndex].get());
 	}
 }
 
-IGpuAllocator& D3D12BufferPool::GetOrCreatePersistentAllocator(MemoryType memoryType)
+IGpuAllocator& D3D12BufferPool::GetOrCreateGpuMemoryAllocator(D3D12PageClass pageClass)
 {
-	B3D_ASSERT(memoryType < MemoryType::Count);
+	B3D_ASSERT(pageClass < D3D12PageClass::Count);
 
 	Lock lock(mAllocatorMutex);
-	TUnique<PersistentAllocator>& allocator = mPersistentAllocators[(u32)memoryType];
+	TUnique<PersistentAllocator>& allocator = mPersistentAllocators[(u32)pageClass];
 	if(allocator == nullptr)
 	{
 		PersistentAllocator::Configuration configuration;
-		configuration.InitialHeapSize = GetPersistentPageSize(memoryType);
+		configuration.InitialHeapSize = GetPersistentPageSize(pageClass);
 		configuration.MaxHeapSize = 64ull * 1024 * 1024;
 		configuration.GrowthFactor = 2;
 		configuration.MaxEmptyHeapCount = 1;
 		configuration.MinAllocationSize = 64;
 		configuration.DeferralMode = GpuAllocatorFreeDeferralMode::ResourceLifecycle;
-		configuration.HeapCreateInfo = GetPageCreateInformation(memoryType);
+		configuration.HeapCreateInfo = GetPageCreateInformation(pageClass);
 
 		allocator = B3DMakeUnique<PersistentAllocator>(&mBackend, nullptr, configuration);
 	}
@@ -181,18 +201,18 @@ IGpuAllocator& D3D12BufferPool::GetOrCreatePersistentAllocator(MemoryType memory
 	return *allocator;
 }
 
-D3D12BufferPool::LinearPagePool& D3D12BufferPool::GetOrCreateLinearPagePool(MemoryType memoryType)
+D3D12BufferPool::LinearPagePool& D3D12BufferPool::GetOrCreateLinearPagePool(D3D12PageClass pageClass)
 {
-	B3D_ASSERT(memoryType < MemoryType::Count);
+	B3D_ASSERT(pageClass < D3D12PageClass::Count);
 
 	Lock lock(mAllocatorMutex);
-	TUnique<LinearPagePool>& pagePool = mLinearPagePools[(u32)memoryType];
+	TUnique<LinearPagePool>& pagePool = mLinearPagePools[(u32)pageClass];
 	if(pagePool == nullptr)
 	{
 		LinearPagePool::Configuration configuration;
-		configuration.PageSize = GetScratchPageSize(memoryType);
+		configuration.PageSize = GetScratchPageSize(pageClass);
 		configuration.MaxRetainedPages = 4;
-		configuration.HeapCreateInfo = GetPageCreateInformation(memoryType);
+		configuration.HeapCreateInfo = GetPageCreateInformation(pageClass);
 
 		pagePool = B3DMakeUnique<LinearPagePool>(&mBackend, configuration);
 	}
@@ -200,17 +220,13 @@ D3D12BufferPool::LinearPagePool& D3D12BufferPool::GetOrCreateLinearPagePool(Memo
 	return *pagePool;
 }
 
-TUnique<IGpuAllocator> D3D12BufferPool::CreateScratchAllocator(u32 memoryTypeIndex, IGpuCompletionTracker& completionTracker)
+TUnique<IGpuAllocator> D3D12BufferPool::CreateScratchAllocator(D3D12PageClass pageClass, IGpuCompletionTracker& completionTracker)
 {
-	if(memoryTypeIndex >= (u32)MemoryType::Count)
-		return nullptr;
-
-	const MemoryType memoryType = (MemoryType)memoryTypeIndex;
-	LinearPagePool& pagePool = GetOrCreateLinearPagePool(memoryType);
+	LinearPagePool& pagePool = GetOrCreateLinearPagePool(pageClass);
 
 	ScratchAllocator::Configuration configuration;
 	configuration.PageSize = pagePool.GetPageSize();
-	configuration.HeapCreateInfo = GetPageCreateInformation(memoryType);
+	configuration.HeapCreateInfo = GetPageCreateInformation(pageClass);
 
 	return B3DMakeUnique<ScratchAllocator>(&mBackend, &completionTracker, configuration, &pagePool);
 }

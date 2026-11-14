@@ -24,7 +24,7 @@ namespace b3d
 		VkDeviceMemory Memory = VK_NULL_HANDLE; /**< Backing device memory. Resources are bound at allocator-supplied offsets. */
 		VkDeviceSize Size = 0; /**< Total heap size in bytes. */
 		void* Mapped = nullptr; /**< Persistent CPU map; nullptr unless @c VulkanHeapCreateInformation::MapPersistently was set. */
-		u32 MemoryTypeIndex = 0; /**< Index into VkPhysicalDeviceMemoryProperties::memoryTypes; recorded for introspection. */
+		u32 MemoryTypeIndex = 0; /**< Index into VkPhysicalDeviceMemoryProperties::memoryTypes. Can differ from the requested type (see VulkanHeapBackend::CreateHeap()). */
 	};
 
 	/** Downcasts an opaque engine heap handle to the concrete Vulkan heap it must refer to. */
@@ -34,12 +34,31 @@ namespace b3d
 		return *static_cast<VulkanGpuHeap*>(heap);
 	}
 
+	/** Memory property flags that choose a Vulkan memory type. */
+	struct VulkanMemoryFlags
+	{
+		VulkanMemoryFlags() = default;
+		VulkanMemoryFlags(VkMemoryPropertyFlags required, VkMemoryPropertyFlags preferred, VkMemoryPropertyFlags excluded = 0)
+			: Required(required), Preferred(preferred), Excluded(excluded)
+		{ }
+
+		VkMemoryPropertyFlags Required = 0; /**< Flags the type must have. */
+		VkMemoryPropertyFlags Preferred = 0; /**< Flags the type should have. The type with the most of them wins, the lowest index on a tie. */
+		VkMemoryPropertyFlags Excluded = 0; /**< Flags the type must not have. */
+	};
+
 	/** Initializer struct for VulkanHeapBackend::CreateHeap. */
 	struct VulkanHeapCreateInformation
 	{
 		u32 MemoryTypeBits = ~0u; /**< Bitmask of memory-type indices that can satisfy this heap. */
 		VkMemoryPropertyFlags PropertyFlags = 0; /**< Required Vulkan memory-property flags. */
-		bool MapPersistently = false; /**< If true, the heap is mapped until it is destroyed. */
+		bool MapPersistently = false; /**< If true, the heap is mapped until it is destroyed, if its memory type is host-visible. */
+
+		/**
+		 * Memory type the heap is in instead once the Vulkan heap of its own type is close to full, or its allocation fails.
+		 * VK_MAX_MEMORY_TYPES for none.
+		 */
+		u32 FallbackMemoryTypeIndex = VK_MAX_MEMORY_TYPES;
 	};
 
 	/** Vulkan implementation of the GpuHeapBackend trait. */
@@ -61,7 +80,8 @@ namespace b3d
 
 		/**
 		 * Allocates a backing heap of @p sizeInBytes bytes according to @p createInformation. Returns a
-		 * stable VulkanGpuHeap pointer (as IGpuHeap*) minted from the backend's pool.
+		 * stable VulkanGpuHeap pointer (as IGpuHeap*) minted from the backend's pool. A heap with a fallback memory type is in that type
+		 * instead when the Vulkan heap of its own type is close to full or can't be allocated.
 		 */
 		HeapHandle CreateHeap(u64 sizeInBytes, const HeapCreateInformation& createInformation);
 
@@ -77,6 +97,9 @@ namespace b3d
 		/** Pool of heap objects with stable addresses. Guarded by mHeapPoolMutex — CreateHeap/DestroyHeap are called concurrently from per-memory-type allocators. */
 		TPool<VulkanGpuHeap> mHeapPool;
 		Mutex mHeapPoolMutex;
+
+		/** Bytes of each Vulkan memory heap the backend's heaps use. Guarded by mHeapPoolMutex. */
+		VkDeviceSize mMemoryHeapUsage[VK_MAX_MEMORY_HEAPS]{};
 	};
 
 	/** @} */

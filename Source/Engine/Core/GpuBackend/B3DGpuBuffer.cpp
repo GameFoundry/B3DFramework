@@ -396,6 +396,9 @@ namespace b3d::render
 			return;
 
 		GpuBufferMappedScope mapping = Map(offset, length, GpuMapOption::Write);
+		if(!B3D_ENSURE_LOG(mapping.IsValid(), "Buffer '{0}' isn't mapped. Write it with GpuBufferUtility::Write().", mName))
+			return;
+
 		memcpy(mapping.GetMappedMemory(), source, length);
 	}
 
@@ -403,6 +406,9 @@ namespace b3d::render
 	{
 		const u32 length = typeInformation.NumRows * typeInformation.Alignment;
 		GpuBufferMappedScope mapping = Map(offset, length, GpuMapOption::Write);
+		if(!B3D_ENSURE_LOG(mapping.IsValid(), "Buffer '{0}' isn't mapped. Write it with GpuBufferUtility::Write().", mName))
+			return 0;
+
 		void* destination = mapping.GetMappedMemory();
 
 		const u8* value = (const u8*)source;
@@ -424,6 +430,9 @@ namespace b3d::render
 			return;
 
 		GpuBufferMappedScope mapping = Map(offset, length, GpuMapOption::Write);
+		if(!B3D_ENSURE_LOG(mapping.IsValid(), "Buffer '{0}' isn't mapped. Write it with GpuBufferUtility::Write().", mName))
+			return;
+
 		memset(mapping.GetMappedMemory(), 0, length);
 	}
 
@@ -433,6 +442,9 @@ namespace b3d::render
 			return;
 
 		GpuBufferMappedScope mapping = Map(offset, length, GpuMapOption::Read);
+		if(!B3D_ENSURE_LOG(mapping.IsValid(), "Buffer '{0}' isn't mapped. Read it with GpuBufferUtility::Read().", mName))
+			return;
+
 		memcpy(destination, mapping.GetMappedMemory(), length);
 	}
 
@@ -478,7 +490,7 @@ namespace b3d::render
 			return;
 
 		const GpuBufferInformation& gpuBufferInformation = buffer->GetInformation();
-		const bool supportsGPUWrites = gpuBufferInformation.Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU);
+		const bool supportsGPUWrites = gpuBufferInformation.Flags.IsSet(GpuBufferFlag::GpuWrite);
 
 		GpuMapOptions mapOptions = GpuMapOption::Write;
 		if(flags.IsSet(GpuBufferWriteFlag::NoOverwrite))
@@ -605,13 +617,19 @@ namespace b3d::render
 			return;
 
 		const GpuBufferInformation& gpuBufferInformation = buffer->GetInformation();
-		const bool supportsGPUWrites = gpuBufferInformation.Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU);
+		const bool supportsGPUWrites = gpuBufferInformation.Flags.IsSet(GpuBufferFlag::GpuWrite);
 
 		// Check is the GPU currently writing to the buffer
 		const GpuQueueMask writeUseMask = buffer->GetUseMask(GpuAccessFlag::Write);
 
-	// If memory is host visible try mapping it directly
-		void* mappedMemory = buffer->GetMappedMemory();
+		// If memory is host visible try mapping it directly, unless it's uncached memory, which is slow to read from. Uncached reads of a
+		// discrete GPU's memory (Resizable BAR) cross PCI Express, so those read through a staging buffer the CPU caches instead.
+		const GpuDeviceCapabilities& capabilities = buffer->GetDevice().GetCapabilities();
+		const bool isCached = gpuBufferInformation.Type == GpuBufferType::StagingRead ||
+			(gpuBufferInformation.Type != GpuBufferType::StagingWrite && gpuBufferInformation.Memory == GpuBufferMemory::MappedCached);
+		const bool readsThroughStaging = !isCached && capabilities.HasCapability(RSC_RESIZABLE_BAR);
+
+		void* mappedMemory = readsThroughStaging ? nullptr : buffer->GetMappedMemory();
 		if(mappedMemory != nullptr)
 		{
 			// Note: Even if GPU isn't currently using the buffer, but the buffer supports GPU writes, we consider it as

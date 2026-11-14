@@ -63,14 +63,14 @@ void VulkanRayTracingTestSuite::TestBufferUsage()
 	static constexpr VkBufferUsageFlags kBuildInput = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
 	static constexpr VkBufferUsageFlags kDeviceAddress = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
 	static constexpr VkBufferUsageFlags kStorage = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR;
-	const GpuBufferFlags inputFlags = GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AccelerationStructureInput;
+	const GpuBufferFlags inputFlags = GpuBufferFlag::AccelerationStructureInput;
 
 	// Builds read their inputs through device addresses
 	const GpuBufferCreateInformation inputs[] =
 	{
-		GpuBufferCreateInformation::CreateVertex(12, 3, inputFlags),
-		GpuBufferCreateInformation::CreateIndex(IT_32BIT, 3, inputFlags),
-		GpuBufferCreateInformation::CreateStructuredStorage(64, 4, inputFlags)
+		GpuBufferCreateInformation::CreateVertex(12, 3, inputFlags, GpuBufferMemory::Mapped),
+		GpuBufferCreateInformation::CreateIndex(IT_32BIT, 3, inputFlags, GpuBufferMemory::Mapped),
+		GpuBufferCreateInformation::CreateStructuredStorage(64, 4, inputFlags, GpuBufferMemory::Mapped)
 	};
 
 	for(const GpuBufferCreateInformation& information : inputs)
@@ -80,18 +80,17 @@ void VulkanRayTracingTestSuite::TestBufferUsage()
 	}
 
 	// Buffers that can be scratch memory have a device address, but are not build inputs
-	const VkBufferUsageFlags scratchUsage = fnGetUsage(GpuBufferCreateInformation::CreateStructuredStorage(4, 64, GpuBufferFlag::StoreOnGPU |
-		GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+	const VkBufferUsageFlags scratchUsage = fnGetUsage(GpuBufferCreateInformation::CreateStructuredStorage(4, 64, GpuBufferFlag::GpuWrite));
 	B3D_TEST_ASSERT((scratchUsage & kDeviceAddress) != 0 && (scratchUsage & (kBuildInput | kStorage)) == 0)
 
 	// Other buffers have neither
 	const GpuBufferCreateInformation others[] =
 	{
-		GpuBufferCreateInformation::CreateVertex(12, 3, GpuBufferFlag::StoreOnCPUWithGPUAccess),
+		GpuBufferCreateInformation::CreateVertex(12, 3, GpuBufferFlag::None, GpuBufferMemory::Mapped),
 		GpuBufferCreateInformation::CreateIndex(IT_32BIT, 3),
 		GpuBufferCreateInformation::CreateStructuredStorage(4, 64),
-		GpuBufferCreateInformation::CreateStructuredStorage(4, 64, GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AllowUnorderedAccessOnTheGPU),
-		GpuBufferCreateInformation::CreateSimpleStorage(BF_32X1U, 64, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU),
+		GpuBufferCreateInformation::CreateStructuredStorage(4, 64, GpuBufferFlag::GpuWrite, GpuBufferMemory::Mapped),
+		GpuBufferCreateInformation::CreateSimpleStorage(BF_32X1U, 64, GpuBufferFlag::GpuWrite),
 		GpuBufferCreateInformation::CreateUniform(256)
 	};
 
@@ -118,9 +117,9 @@ void VulkanRayTracingTestSuite::TestDeviceAddresses()
 		{
 			const u32 elementCount = 3 + bufferIndex * 7;
 			const TShared<render::GpuBuffer> scratch = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(4, elementCount,
-				GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+				GpuBufferFlag::GpuWrite));
 			const TShared<render::GpuBuffer> instances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(4, elementCount,
-				GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AccelerationStructureInput));
+				GpuBufferFlag::AccelerationStructureInput, GpuBufferMemory::Mapped));
 			const TShared<GpuAccelerationStructure> structure = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
 				GpuAccelerationStructureType::BottomLevel, elementCount * 256));
 			B3D_TEST_ASSERT(scratch != nullptr && instances != nullptr && structure != nullptr)
@@ -258,7 +257,14 @@ void VulkanRayTracingTestSuite::TestShaderBindingTable()
 	tableInformation.HitGroupRecords.push_back(kGpuShaderBindingTableEmptyRecord);
 	tableInformation.HitGroupRecords.push_back(2);
 
-	const TShared<GpuShaderBindingTable> table = device->CreateGpuShaderBindingTable(tableInformation);
+	TShared<GpuShaderBindingTable> table;
+	{
+		// The first table of the process warns when the CPU can't write the GPU's memory.
+		LoggingScope logs(*this);
+		logs.IgnoreWarning("Shader binding tables are in system memory");
+		table = device->CreateGpuShaderBindingTable(tableInformation);
+	}
+
 	B3D_TEST_ASSERT(table != nullptr)
 	if(table == nullptr)
 		return;

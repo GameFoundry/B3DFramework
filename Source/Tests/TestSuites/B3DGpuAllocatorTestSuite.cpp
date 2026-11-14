@@ -2959,6 +2959,13 @@ void GpuAllocatorTestSuite::TestAliasing_SegmentsAndGranularity()
 		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 1, 1, submission, secondAllocation, secondAcquire))
 		B3D_TEST_ASSERT(secondAllocation.Offset == 1024 && secondAllocation.Size == 1024)
 
+		// D3D12 buffer slices align to their element size, which needn't be a power of two. The next offset that is a multiple of both
+		// 12 and 1024 is 3072.
+		GpuAllocation elementAlignedAllocation;
+		GpuAliasAcquire elementAlignedAcquire;
+		B3D_TEST_ASSERT(allocator.TryAllocate(pool, 100, 12, submission, elementAlignedAllocation, elementAlignedAcquire))
+		B3D_TEST_ASSERT(elementAlignedAllocation.Offset == 3072 && elementAlignedAllocation.Size == 1024)
+
 		allocator.EndScope();
 	}
 

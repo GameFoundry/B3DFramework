@@ -19,7 +19,7 @@ namespace b3d::render
 		descriptor.hazardTrackingMode = MTLHazardTrackingModeUntracked;
 
 		MetalHeapAllocator& heapAllocator = device.GetHeapAllocator();
-		const GpuAllocation requestedAllocation = GpuAllocation::CreatePending(heapAllocator.GetAllocator(MetalHeapAllocator::kMemoryTypePrivate));
+		const GpuAllocation requestedAllocation = GpuAllocation::CreatePending(heapAllocator.GetGpuMemoryAllocator(MetalMemoryType::Private));
 
 		GpuAllocation allocation;
 		id<MTLTexture> texture = heapAllocator.AllocateTexture(descriptor, requestedAllocation, allocation);

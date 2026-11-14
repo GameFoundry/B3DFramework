@@ -86,7 +86,6 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter) : mAdapter(adapter)
 	mIsTightAlignmentSupported = mIsTightAlignmentSupported && gD3D12TightAlignment.Get();
 #endif
 
-	// TODO - Query D3D12_FEATURE_ARCHITECTURE and add architecture-aware custom L0 heap policies where CPU-visible default resources outperform abstract heaps, especially WRITE_BACK on CacheCoherentUMA.
 	hr = mDevice.As(&mEnhancedDevice);
 	if(FAILED(hr))
 		B3D_LOG(Fatal, LogRenderBackend, "ID3D12Device10 is unavailable on the selected D3D12 device (hr={0}).", (u32)hr);
@@ -168,7 +167,7 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter) : mAdapter(adapter)
 	// Transient buffers and textures share one pool, so they share memory. A buffer in the pool is a placed resource, which
 	// without tight alignment occupies a multiple of 64 KB at a 64 KB aligned offset.
 	TGpuTransientHeapPool<D3D12HeapBackend>::Configuration transientConfiguration;
-	transientConfiguration.HeapCreateInformation.Type = D3D12_HEAP_TYPE_DEFAULT;
+	transientConfiguration.HeapCreateInformation.Properties.Type = D3D12_HEAP_TYPE_DEFAULT;
 	transientConfiguration.HeapCreateInformation.Flags = D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES;
 	transientConfiguration.HeapCreateInformation.Alignment = D3D12_DEFAULT_MSAA_RESOURCE_PLACEMENT_ALIGNMENT;
 	transientConfiguration.Granularity = mIsTightAlignmentSupported ? 1 : D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
@@ -339,17 +338,16 @@ GpuMemoryRequirements D3D12GpuDevice::GetMemoryRequirements(const TextureCreateI
 		return output;
 	}
 
-	const MemoryPoolType poolType = GetMemoryPoolType(resourceDesc, D3D12_HEAP_TYPE_DEFAULT);
+	const D3D12HeapClass heapClass = GetHeapClass(resourceDesc, D3D12HeapProperties());
 	const D3D12_RESOURCE_ALLOCATION_INFO allocationInfo = mDevice->GetResourceAllocationInfo(0, 1, &resourceDesc);
-	if(poolType == MemoryPoolType::Count || allocationInfo.SizeInBytes == UINT64_MAX)
+	if(heapClass == D3D12HeapClass::Count || allocationInfo.SizeInBytes == UINT64_MAX)
 	{
 		B3D_LOG(Error, LogRenderBackend, "D3D12: Unsupported texture configuration (type={0}, format={1}, usage={2}).", (u32)createInformation.Type, (u32)createInformation.Format, (u32)createInformation.Usage);
 		output.MemoryType = GpuMemoryRequirements::kUnsupportedMemoryType;
 		return output;
 	}
 
-	// Texture heap pools are indexed after the buffer pool's memory types
-	output.MemoryType = (u32)D3D12BufferPool::MemoryType::Count + (u32)poolType;
+	output.MemoryType = D3D12MemoryType(heapClass).Encode();
 	output.Size = allocationInfo.SizeInBytes;
 	output.Alignment = allocationInfo.Alignment;
 	return output;
@@ -359,19 +357,24 @@ GpuMemoryRequirements D3D12GpuDevice::GetMemoryRequirements(const GpuBufferCreat
 {
 	GpuMemoryRequirements output;
 
-	const D3D12_HEAP_TYPE heapType = D3D12Utility::GetHeapType(createInformation.Type, createInformation.Flags);
+	const D3D12HeapProperties heapProperties = GetBufferHeapProperties(createInformation.Type, createInformation.Memory, createInformation.Flags);
 	const D3D12_RESOURCE_FLAGS resourceFlags = D3D12Utility::GetBufferResourceFlags(createInformation.Flags);
-	const D3D12BufferPool::MemoryType memoryType = D3D12BufferPool::GetMemoryType(heapType, resourceFlags);
-	if(memoryType == D3D12BufferPool::MemoryType::Count)
+	const D3D12PageClass pageClass = D3D12BufferPool::GetPageClass(heapProperties, resourceFlags);
+	if(pageClass == D3D12PageClass::Count)
 	{
-		// TODO - Fall back to device-local memory when CPU-visible storage is combined with unsupported resource flags.
-		B3D_LOG(Error, LogRenderBackend, "D3D12: Unsupported buffer memory configuration (type={0}, flags={1}).", (u32)createInformation.Type, (u32)createInformation.Flags);
+		// Mapped heaps have no buffer pages for unordered access views
+		// TODO - Add a mapped memory type with unordered access to the buffer pool, so shaders can write mapped buffers
+		if(createInformation.Memory != GpuBufferMemory::Device && createInformation.Flags.IsSet(GpuBufferFlag::GpuWrite))
+			B3D_LOG(Error, LogRenderBackend, "D3D12 can't create buffers shaders write in mapped memory (GpuBufferMemory::Mapped or MappedCached) yet.");
+		else
+			B3D_LOG(Error, LogRenderBackend, "D3D12: Unsupported buffer memory configuration (type={0}, flags={1}).", (u32)createInformation.Type, (u32)createInformation.Flags);
+
 		output.MemoryType = GpuMemoryRequirements::kUnsupportedMemoryType;
 		return output;
 	}
 
-	// Buffers keep the buffer pool's memory types either way, so scratch allocators keep slicing buffer pages
-	output.MemoryType = (u32)memoryType;
+	// Buffers report a page class either way, so scratch allocators keep slicing buffer pages
+	output.MemoryType = D3D12MemoryType(pageClass).Encode();
 
 	const u32 sliceSize = D3D12GpuBuffer::GetSliceSize(createInformation, b3d::GpuBuffer::CalculateTotalBufferSize(createInformation, *this));
 	if(!mIsTightAlignmentSupported)
@@ -392,25 +395,28 @@ GpuMemoryRequirements D3D12GpuDevice::GetMemoryRequirements(const GpuBufferCreat
 	return output;
 }
 
-IGpuAllocator& D3D12GpuDevice::GetPersistentAllocator(u32 memoryType)
+IGpuAllocator& D3D12GpuDevice::GetPersistentAllocator(u32 encodedMemoryType)
 {
-	constexpr u32 kBufferMemoryTypeCount = (u32)D3D12BufferPool::MemoryType::Count;
-	if(memoryType >= kBufferMemoryTypeCount)
-		return GetOrCreateGpuMemoryAllocator((MemoryPoolType)(memoryType - kBufferMemoryTypeCount));
+	const D3D12MemoryType memoryType = D3D12MemoryType::Decode(encodedMemoryType);
+	if(memoryType.PageClass == D3D12PageClass::Count)
+		return GetOrCreateGpuMemoryAllocator(memoryType.HeapClass);
 
-	const D3D12BufferPool::MemoryType bufferMemoryType = (D3D12BufferPool::MemoryType)memoryType;
 	if(!mIsTightAlignmentSupported)
-		return mBufferPool->GetOrCreatePersistentAllocator(bufferMemoryType);
+		return mBufferPool->GetOrCreateGpuMemoryAllocator(memoryType.PageClass);
 
 	// With tight alignment, buffers are placed resources in heaps of their own, like textures
-	switch(bufferMemoryType)
+	switch(memoryType.PageClass)
 	{
-	case D3D12BufferPool::MemoryType::Upload:
-		return GetOrCreateGpuMemoryAllocator(MemoryPoolType::UploadBuffer);
-	case D3D12BufferPool::MemoryType::Readback:
-		return GetOrCreateGpuMemoryAllocator(MemoryPoolType::ReadbackBuffer);
+	case D3D12PageClass::GpuUpload:
+		return GetOrCreateGpuMemoryAllocator(D3D12HeapClass::GpuUploadBuffer);
+	case D3D12PageClass::GpuUploadOrDefault:
+		return GetOrCreateGpuMemoryAllocator(D3D12HeapClass::GpuUploadOrDefaultBuffer);
+	case D3D12PageClass::CustomWriteBack:
+		return GetOrCreateGpuMemoryAllocator(D3D12HeapClass::CustomWriteBackBuffer);
+	case D3D12PageClass::CustomWriteCombine:
+		return GetOrCreateGpuMemoryAllocator(D3D12HeapClass::CustomWriteCombineBuffer);
 	default:
-		return GetOrCreateGpuMemoryAllocator(MemoryPoolType::DefaultBuffer);
+		return GetOrCreateGpuMemoryAllocator(D3D12HeapClass::DefaultBuffer);
 	}
 }
 
@@ -428,33 +434,38 @@ void D3D12GpuDevice::GetPersistentAllocators(TArray<IGpuAllocator*>& outAllocato
 	mBufferPool->GetPersistentAllocators(outAllocators);
 }
 
-TUnique<IGpuAllocator> D3D12GpuDevice::CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker)
+TUnique<IGpuAllocator> D3D12GpuDevice::CreateScratchAllocator(u32 encodedMemoryType, IGpuCompletionTracker& completionTracker)
 {
 	// Scratch allocations are only supported for buffers
-	if(memoryType >= (u32)D3D12BufferPool::MemoryType::Count)
+	const D3D12MemoryType memoryType = D3D12MemoryType::Decode(encodedMemoryType);
+	if(memoryType.PageClass == D3D12PageClass::Count)
 		return nullptr;
 
-	return mBufferPool->CreateScratchAllocator(memoryType, completionTracker);
+	return mBufferPool->CreateScratchAllocator(memoryType.PageClass, completionTracker);
 }
 
-IGpuTransientHeapPool* D3D12GpuDevice::GetTransientHeapPool(u32 memoryType)
+IGpuTransientHeapPool* D3D12GpuDevice::GetTransientHeapPool(u32 encodedMemoryType)
 {
-	constexpr u32 kBufferMemoryTypeCount = (u32)D3D12BufferPool::MemoryType::Count;
-	if(memoryType < kBufferMemoryTypeCount)
+	const D3D12MemoryType memoryType = D3D12MemoryType::Decode(encodedMemoryType);
+	if(memoryType.PageClass != D3D12PageClass::Count)
 	{
-		const D3D12BufferPool::MemoryType bufferMemoryType = (D3D12BufferPool::MemoryType)memoryType;
-		const bool isGpuOnly = bufferMemoryType == D3D12BufferPool::MemoryType::Default || bufferMemoryType == D3D12BufferPool::MemoryType::DefaultUnorderedAccess;
-		B3D_ASSERT(isGpuOnly && "Buffers visible to the CPU cannot be transient.");
+		// Only GpuBufferMemory::Device buffers are transient (see GpuTransientResourceAllocator). Where the device maps them, they are in
+		// GPU upload heaps that fall back to default heaps, or on unified memory in custom heaps they share with mapped buffers. Transient
+		// heaps are default heaps, so transient buffers aren't mapped.
+		const D3D12PageClass pageClass = memoryType.PageClass;
+		const bool isDeviceMemory = pageClass == D3D12PageClass::Default || pageClass == D3D12PageClass::DefaultUnorderedAccess ||
+			pageClass == D3D12PageClass::GpuUploadOrDefault || pageClass == D3D12PageClass::CustomWriteBack || pageClass == D3D12PageClass::CustomWriteCombine;
+		B3D_ASSERT(isDeviceMemory && "Only buffers in GPU memory (GpuBufferMemory::Device) can be transient.");
 
-		return isGpuOnly ? mTransientHeapPool : nullptr;
+		return isDeviceMemory ? mTransientHeapPool : nullptr;
 	}
 
-	switch((MemoryPoolType)(memoryType - kBufferMemoryTypeCount))
+	switch(memoryType.HeapClass)
 	{
-	case MemoryPoolType::DefaultTexture:
-	case MemoryPoolType::DefaultMsaaTexture:
-	case MemoryPoolType::DefaultRenderTargetTexture:
-	case MemoryPoolType::DefaultMsaaRenderTargetTexture:
+	case D3D12HeapClass::DefaultTexture:
+	case D3D12HeapClass::DefaultMsaaTexture:
+	case D3D12HeapClass::DefaultRenderTargetTexture:
+	case D3D12HeapClass::DefaultMsaaRenderTargetTexture:
 		return mTransientHeapPool;
 	default:
 		return nullptr;
@@ -608,69 +619,129 @@ void D3D12GpuDevice::BeginFrame()
 	ASSERT_IF_NOT_RENDER_THREAD
 }
 
-D3D12GpuDevice::MemoryPoolType D3D12GpuDevice::GetMemoryPoolType(const D3D12_RESOURCE_DESC& resourceDesc, D3D12_HEAP_TYPE heapType)
+D3D12HeapProperties D3D12GpuDevice::GetBufferHeapProperties(GpuBufferType type, GpuBufferMemory memory, GpuBufferFlags flags) const
+{
+	D3D12HeapProperties output;
+	switch(type)
+	{
+	case GpuBufferType::StagingWrite:
+		output.Type = D3D12_HEAP_TYPE_CUSTOM;
+		output.CpuPageProperty = mStagingWritePageProperty;
+		return output;
+	case GpuBufferType::StagingRead:
+		output.Type = D3D12_HEAP_TYPE_CUSTOM;
+		output.CpuPageProperty = mStagingReadPageProperty;
+		return output;
+	default:
+		break;
+	}
+
+	const bool isUnified = mCapabilities.HasCapability(RSC_UNIFIED_MEMORY);
+	switch(GpuBackendUtility::GetBufferPlacement(memory, flags, mHasFullSpeedMappableGpuMemory))
+	{
+	case GpuBufferPlacement::MappedGpuOrUnmapped:
+		output.Type = isUnified ? D3D12_HEAP_TYPE_CUSTOM : D3D12_HEAP_TYPE_GPU_UPLOAD;
+		output.Fallback = D3D12HeapFallback::UnmappedGpuMemory;
+		output.CpuPageProperty = mMappedGpuPageProperty;
+		break;
+	case GpuBufferPlacement::MappedGpuOrSystem:
+		output.Type = isUnified ? D3D12_HEAP_TYPE_CUSTOM : D3D12_HEAP_TYPE_GPU_UPLOAD;
+		output.CpuPageProperty = mMappedGpuPageProperty;
+		break;
+	case GpuBufferPlacement::MappedSystem:
+		// The memory and CPU page property of an upload heap on devices without full-speed mapped GPU memory, but GPU copies can write it
+		output.Type = D3D12_HEAP_TYPE_CUSTOM;
+		output.CpuPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
+		break;
+	case GpuBufferPlacement::MappedCached:
+		output.Type = D3D12_HEAP_TYPE_CUSTOM;
+		output.CpuPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+		break;
+	default:
+		output.Type = D3D12_HEAP_TYPE_DEFAULT;
+		break;
+	}
+
+	return output;
+}
+
+D3D12HeapClass D3D12GpuDevice::GetHeapClass(const D3D12_RESOURCE_DESC& resourceDesc, const D3D12HeapProperties& heapProperties)
 {
 	if(resourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER)
 	{
-		switch(heapType)
+		switch(heapProperties.Type)
 		{
-		case D3D12_HEAP_TYPE_DEFAULT: return MemoryPoolType::DefaultBuffer;
-		case D3D12_HEAP_TYPE_UPLOAD: return MemoryPoolType::UploadBuffer;
-		case D3D12_HEAP_TYPE_READBACK: return MemoryPoolType::ReadbackBuffer;
-		default: return MemoryPoolType::Count;
+		case D3D12_HEAP_TYPE_DEFAULT: return D3D12HeapClass::DefaultBuffer;
+		case D3D12_HEAP_TYPE_GPU_UPLOAD: return heapProperties.Fallback == D3D12HeapFallback::UnmappedGpuMemory ? D3D12HeapClass::GpuUploadOrDefaultBuffer : D3D12HeapClass::GpuUploadBuffer;
+		case D3D12_HEAP_TYPE_CUSTOM:
+			return heapProperties.CpuPageProperty == D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE ? D3D12HeapClass::CustomWriteCombineBuffer : D3D12HeapClass::CustomWriteBackBuffer;
+		default: return D3D12HeapClass::Count;
 		}
 	}
 
-	if(heapType != D3D12_HEAP_TYPE_DEFAULT)
-		return MemoryPoolType::Count;
+	if(heapProperties.Type != D3D12_HEAP_TYPE_DEFAULT)
+		return D3D12HeapClass::Count;
 
 	const bool isRenderTarget = (resourceDesc.Flags & (D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)) != 0;
 	if(isRenderTarget)
-		return resourceDesc.SampleDesc.Count > 1 ? MemoryPoolType::DefaultMsaaRenderTargetTexture : MemoryPoolType::DefaultRenderTargetTexture;
+		return resourceDesc.SampleDesc.Count > 1 ? D3D12HeapClass::DefaultMsaaRenderTargetTexture : D3D12HeapClass::DefaultRenderTargetTexture;
 
-	return resourceDesc.SampleDesc.Count > 1 ? MemoryPoolType::DefaultMsaaTexture : MemoryPoolType::DefaultTexture;
+	return resourceDesc.SampleDesc.Count > 1 ? D3D12HeapClass::DefaultMsaaTexture : D3D12HeapClass::DefaultTexture;
 }
 
-D3D12GpuDevice::GpuMemoryAllocator& D3D12GpuDevice::GetOrCreateGpuMemoryAllocator(MemoryPoolType poolType)
+D3D12GpuDevice::GpuMemoryAllocator& D3D12GpuDevice::GetOrCreateGpuMemoryAllocator(D3D12HeapClass heapClass)
 {
-	B3D_ASSERT(poolType < MemoryPoolType::Count);
+	B3D_ASSERT(heapClass < D3D12HeapClass::Count);
 
 	Lock lock(mGpuMemoryAllocatorMutex);
-	TUnique<GpuMemoryAllocator>& slot = mGpuMemoryAllocators[(u32)poolType];
+	TUnique<GpuMemoryAllocator>& slot = mGpuMemoryAllocators[(u32)heapClass];
 	if(slot != nullptr)
 		return *slot;
 
-	D3D12_HEAP_TYPE heapType = D3D12_HEAP_TYPE_DEFAULT;
+	D3D12HeapProperties heapProperties;
 	D3D12_HEAP_FLAGS heapFlags = D3D12_HEAP_FLAG_NONE;
 	u64 heapAlignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
 	u64 initialHeapSize = 64ull * 1024 * 1024;
 
-	switch(poolType)
+	switch(heapClass)
 	{
-	case MemoryPoolType::DefaultBuffer:
+	case D3D12HeapClass::DefaultBuffer:
 		heapFlags = D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
 		break;
-	case MemoryPoolType::DefaultTexture:
+	case D3D12HeapClass::DefaultTexture:
 		heapFlags = D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES;
 		break;
-	case MemoryPoolType::DefaultMsaaTexture:
+	case D3D12HeapClass::DefaultMsaaTexture:
 		heapFlags = D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES;
 		heapAlignment = D3D12_DEFAULT_MSAA_RESOURCE_PLACEMENT_ALIGNMENT;
 		break;
-	case MemoryPoolType::DefaultRenderTargetTexture:
+	case D3D12HeapClass::DefaultRenderTargetTexture:
 		heapFlags = D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES;
 		break;
-	case MemoryPoolType::DefaultMsaaRenderTargetTexture:
+	case D3D12HeapClass::DefaultMsaaRenderTargetTexture:
 		heapFlags = D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES;
 		heapAlignment = D3D12_DEFAULT_MSAA_RESOURCE_PLACEMENT_ALIGNMENT;
 		break;
-	case MemoryPoolType::UploadBuffer:
-		heapType = D3D12_HEAP_TYPE_UPLOAD;
+	case D3D12HeapClass::GpuUploadBuffer:
+		heapProperties.Type = D3D12_HEAP_TYPE_GPU_UPLOAD;
 		heapFlags = D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
 		initialHeapSize = 16ull * 1024 * 1024;
 		break;
-	case MemoryPoolType::ReadbackBuffer:
-		heapType = D3D12_HEAP_TYPE_READBACK;
+	case D3D12HeapClass::GpuUploadOrDefaultBuffer:
+		heapProperties.Type = D3D12_HEAP_TYPE_GPU_UPLOAD;
+		heapProperties.Fallback = D3D12HeapFallback::UnmappedGpuMemory;
+		heapFlags = D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
+		initialHeapSize = 16ull * 1024 * 1024;
+		break;
+	case D3D12HeapClass::CustomWriteBackBuffer:
+		heapProperties.Type = D3D12_HEAP_TYPE_CUSTOM;
+		heapProperties.CpuPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+		heapFlags = D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
+		initialHeapSize = 16ull * 1024 * 1024;
+		break;
+	case D3D12HeapClass::CustomWriteCombineBuffer:
+		heapProperties.Type = D3D12_HEAP_TYPE_CUSTOM;
+		heapProperties.CpuPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
 		heapFlags = D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
 		initialHeapSize = 16ull * 1024 * 1024;
 		break;
@@ -686,7 +757,7 @@ D3D12GpuDevice::GpuMemoryAllocator& D3D12GpuDevice::GetOrCreateGpuMemoryAllocato
 	configuration.MaxEmptyHeapCount = 1;
 	configuration.MinAllocationSize = 16;
 	configuration.DeferralMode = GpuAllocatorFreeDeferralMode::ResourceLifecycle;
-	configuration.HeapCreateInfo.Type = heapType;
+	configuration.HeapCreateInfo.Properties = heapProperties;
 	configuration.HeapCreateInfo.Flags = heapFlags;
 	configuration.HeapCreateInfo.Alignment = heapAlignment;
 
@@ -694,13 +765,21 @@ D3D12GpuDevice::GpuMemoryAllocator& D3D12GpuDevice::GetOrCreateGpuMemoryAllocato
 	return *slot;
 }
 
-HRESULT D3D12GpuDevice::CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, D3D12_HEAP_TYPE heapType, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuAllocation& outAllocation)
+HRESULT D3D12GpuDevice::CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, const D3D12HeapProperties& heapProperties, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuAllocation& outAllocation)
 {
-	const MemoryPoolType poolType = GetMemoryPoolType(resourceDesc, heapType);
-	if(poolType == MemoryPoolType::Count)
+	const D3D12HeapClass heapClass = GetHeapClass(resourceDesc, heapProperties);
+	if(heapClass == D3D12HeapClass::Count)
 		return E_INVALIDARG;
 
-	return CreateResource(resourceDesc, GpuAllocation::CreatePending(GetOrCreateGpuMemoryAllocator(poolType)), initialLayout, optimizedClearValue, outResource, outAllocation);
+	return CreateResource(resourceDesc, GpuAllocation::CreatePending(GetOrCreateGpuMemoryAllocator(heapClass)), initialLayout, optimizedClearValue, outResource, outAllocation);
+}
+
+HRESULT D3D12GpuDevice::CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, D3D12_HEAP_TYPE heapType, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuAllocation& outAllocation)
+{
+	D3D12HeapProperties heapProperties;
+	heapProperties.Type = heapType;
+
+	return CreateResource(resourceDesc, heapProperties, initialLayout, optimizedClearValue, outResource, outAllocation);
 }
 
 HRESULT D3D12GpuDevice::CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, const GpuAllocation& requestedAllocation, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuAllocation& outAllocation)
@@ -1009,6 +1088,38 @@ void D3D12GpuDevice::InitializeCapabilities()
 		// The table regions follow the bindless regions in the shader-visible heaps
 		mCapabilities.MaximumBindlessResourceCount = D3D12_MAX_SHADER_VISIBLE_DESCRIPTOR_HEAP_SIZE_TIER_2 - D3D12DescriptorManager::kResourceTableDescriptorCount;
 		mCapabilities.MaximumBindlessSamplerCount = D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE - D3D12DescriptorManager::kSamplerTableDescriptorCount;
+	}
+
+	// Staging buffers are in custom heaps with the properties of upload and readback heaps, which unlike those heaps GPU copies can both
+	// read and write
+	mStagingWritePageProperty = mDevice->GetCustomHeapProperties(0, D3D12_HEAP_TYPE_UPLOAD).CPUPageProperty;
+	mStagingReadPageProperty = mDevice->GetCustomHeapProperties(0, D3D12_HEAP_TYPE_READBACK).CPUPageProperty;
+
+	// UMA adapters share memory with the CPU. The CPU can write the local memory of a discrete GPU through GPU upload heaps, which need
+	// Resizable BAR. Older runtimes fail the queries, which counts as unsupported.
+	D3D12_FEATURE_DATA_ARCHITECTURE1 architecture = {};
+	const bool hasArchitecture = SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_ARCHITECTURE1, &architecture, sizeof(architecture)));
+
+	D3D12_FEATURE_DATA_D3D12_OPTIONS16 options16 = {};
+	const bool hasOptions16 = SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS16, &options16, sizeof(options16)));
+
+	if(hasArchitecture && architecture.UMA)
+	{
+		mCapabilities.SetCapability(RSC_UNIFIED_MEMORY);
+
+		// GPU memory is mappable in custom heaps when the GPU reads CPU-cached memory at full speed (CacheCoherentUMA). Elsewhere (AMD) the GPU
+		// reads every CPU-visible heap more slowly than default heaps. Without cache coherence, the CPU writes mapped GPU memory uncached, as
+		// it writes upload heaps.
+		mHasFullSpeedMappableGpuMemory = architecture.CacheCoherentUMA || gGpuForceDirectGpuBufferWrites.Get();
+		mMappedGpuPageProperty = architecture.CacheCoherentUMA ? D3D12_CPU_PAGE_PROPERTY_WRITE_BACK : D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
+
+		B3D_LOG(Info, LogRenderBackend, "D3D12: Unified memory is {0}cache coherent, so buffers in GpuBufferMemory::Device memory are {1}.",
+			architecture.CacheCoherentUMA ? "" : "not ", mHasFullSpeedMappableGpuMemory ? "mapped" : "updated through staging buffers");
+	}
+	else if(gGpuResizableBar.Get() && hasOptions16 && options16.GPUUploadHeapSupported)
+	{
+		mCapabilities.SetCapability(RSC_RESIZABLE_BAR);
+		mHasFullSpeedMappableGpuMemory = true;
 	}
 
 	// TODO - Enable once the backend creates and builds acceleration structures. Until then the device reports no ray tracing capability.

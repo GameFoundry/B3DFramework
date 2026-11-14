@@ -174,7 +174,7 @@ void RenderBeast::ActivateOnRenderThread(const LoadedRendererTextures& rendererT
 			config.Type = UniformBufferPools::RenderablePool;
 			config.EntriesPerBuffer = 1024;
 			config.Layout = mRenderableParameterSetInfo.Layout;
-			config.Buffers.Add({UniformBufferPools::PerObjectBuffer, "PerObject", gPerObjectUniformDefinition.GetSize(), GpuBufferFlag::StoreOnGPU});
+			config.Buffers.Add({UniformBufferPools::PerObjectBuffer, "PerObject", gPerObjectUniformDefinition.GetSize(), GpuBufferMemory::Device});
 			mTypeConfigurations.Add(config);
 		}
 
@@ -184,8 +184,8 @@ void RenderBeast::ActivateOnRenderThread(const LoadedRendererTextures& rendererT
 			config.Type = UniformBufferPools::DecalPool;
 			config.EntriesPerBuffer = 256;
 			config.Layout = mDecalParameterSetInfo.Layout;
-			config.Buffers.Add({UniformBufferPools::PerObjectBuffer, "PerObject", gPerObjectUniformDefinition.GetSize(), GpuBufferFlag::StoreOnGPU});
-			config.Buffers.Add({UniformBufferPools::DecalBuffer, "DecalParams", gDecalUniformDefinition.GetSize(), GpuBufferFlag::StoreOnGPU});
+			config.Buffers.Add({UniformBufferPools::PerObjectBuffer, "PerObject", gPerObjectUniformDefinition.GetSize(), GpuBufferMemory::Device});
+			config.Buffers.Add({UniformBufferPools::DecalBuffer, "DecalParams", gDecalUniformDefinition.GetSize(), GpuBufferMemory::Device});
 			mTypeConfigurations.Add(config);
 		}
 
@@ -195,8 +195,8 @@ void RenderBeast::ActivateOnRenderThread(const LoadedRendererTextures& rendererT
 			config.Type = UniformBufferPools::GpuParticlesPool;
 			config.EntriesPerBuffer = 256;
 			config.Layout = mGpuParticlesParameterSetInfo.Layout;
-			config.Buffers.Add({UniformBufferPools::PerObjectBuffer, "PerObject", gPerObjectUniformDefinition.GetSize(), GpuBufferFlag::StoreOnGPU});
-			config.Buffers.Add({UniformBufferPools::GpuParticlesBuffer, "GpuParticleParams", gGpuParticlesUniformDefinition.GetSize(), GpuBufferFlag::StoreOnGPU});
+			config.Buffers.Add({UniformBufferPools::PerObjectBuffer, "PerObject", gPerObjectUniformDefinition.GetSize(), GpuBufferMemory::Device});
+			config.Buffers.Add({UniformBufferPools::GpuParticlesBuffer, "GpuParticleParams", gGpuParticlesUniformDefinition.GetSize(), GpuBufferMemory::Device});
 			mTypeConfigurations.Add(config);
 		}
 	}

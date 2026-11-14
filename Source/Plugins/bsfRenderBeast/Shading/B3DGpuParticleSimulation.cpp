@@ -72,7 +72,7 @@ GpuParticleResources::GpuParticleResources()
 	// Allocate the buffer containing sorted particle indices
 	GpuBufferCreateInformation sortedIndicesBufferCreateInformation;
 	sortedIndicesBufferCreateInformation.Type = GpuBufferType::SimpleStorage;
-	sortedIndicesBufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU;
+	sortedIndicesBufferCreateInformation.Flags = GpuBufferFlag::GpuWrite;
 	sortedIndicesBufferCreateInformation.SimpleStorage.Format = BF_16X2U;
 	sortedIndicesBufferCreateInformation.SimpleStorage.Count = GpuParticleConstants::kTexSize * GpuParticleConstants::kTexSize;
 
@@ -400,7 +400,7 @@ void GpuParticleSystem::UpdateGpuBuffers()
 	{
 		GpuBufferCreateInformation tilesBufferCreateInformation;
 		tilesBufferCreateInformation.Type = GpuBufferType::SimpleStorage;
-		tilesBufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
+		tilesBufferCreateInformation.Memory = GpuBufferMemory::Mapped;
 		tilesBufferCreateInformation.SimpleStorage.Format = BF_32X2F;
 		tilesBufferCreateInformation.SimpleStorage.Count = tilesToAllocateCount;
 
@@ -424,7 +424,7 @@ void GpuParticleSystem::UpdateGpuBuffers()
 	{
 		GpuBufferCreateInformation particleUVCreateInformation;
 		particleUVCreateInformation.Type = GpuBufferType::SimpleStorage;
-		particleUVCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
+		particleUVCreateInformation.Memory = GpuBufferMemory::Mapped;
 		particleUVCreateInformation.SimpleStorage.Format = BF_16X2U;
 		particleUVCreateInformation.SimpleStorage.Count = particleCOunt;
 
@@ -548,7 +548,7 @@ static TShared<GpuBuffer> CreateGpuParticleVertexInputBuffer()
 	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
 
-	TShared<GpuBuffer> inputBuffer = gGpuParticleTileVertexUniformDefinition.CreateBuffer(GpuBufferFlag::StoreOnGPU);
+	TShared<GpuBuffer> inputBuffer = gGpuParticleTileVertexUniformDefinition.CreateBuffer(GpuBufferMemory::Device);
 
 	// [0, 1] -> [-1, 1] and flip Y
 	Vector4 uvToNdc(2.0f, -2.0f, -1.0f, 1.0f);
@@ -885,7 +885,7 @@ void GpuParticleSimulation::Sort(FrameGraph& graph, const RenderBeastScene& scen
 	// Keys only live through the sort. The sorted indices are read by draws of later frames too.
 	GpuBufferCreateInformation sortKeysBufferCreateInformation;
 	sortKeysBufferCreateInformation.Type = GpuBufferType::SimpleStorage;
-	sortKeysBufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU;
+	sortKeysBufferCreateInformation.Flags = GpuBufferFlag::GpuWrite;
 	sortKeysBufferCreateInformation.SimpleStorage.Format = BF_32X1U;
 	sortKeysBufferCreateInformation.SimpleStorage.Count = GpuParticleConstants::kTexSize * GpuParticleConstants::kTexSize;
 
@@ -985,7 +985,7 @@ TArray<GpuParticleSimulation::TileClearBatch> GpuParticleSimulation::PrepareClea
 		const u32 alignedTileEnd = Math::DivideAndRoundUp(tileEnd, GpuParticleConstants::kTilesPerInstance) * GpuParticleConstants::kTilesPerInstance;
 
 		TileClearBatch batch;
-		batch.TileUVs = gpuContext.CreateScratchGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X2F, alignedTileEnd - tileStart, GpuBufferFlag::StoreOnCPUWithGPUAccess));
+		batch.TileUVs = gpuContext.CreateScratchGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X2F, alignedTileEnd - tileStart, GpuBufferFlag::None, GpuBufferMemory::Mapped));
 		batch.InstanceCount = (alignedTileEnd - tileStart) / GpuParticleConstants::kTilesPerInstance;
 
 		GpuBufferMappedScope mapping = batch.TileUVs->Map(GpuMapOption::Write);
@@ -1024,7 +1024,7 @@ TArray<GpuParticleSimulation::ParticleInjectBatch> GpuParticleSimulation::Prepar
 
 		ParticleInjectBatch batch;
 		batch.ParticleCount = particleEnd - particleStart;
-		batch.Particles = gpuContext.CreateScratchGpuBuffer(GpuBufferCreateInformation::CreateVertex(vertexStride, batch.ParticleCount, GpuBufferFlag::StoreOnCPUWithGPUAccess));
+		batch.Particles = gpuContext.CreateScratchGpuBuffer(GpuBufferCreateInformation::CreateVertex(vertexStride, batch.ParticleCount, GpuBufferFlag::None, GpuBufferMemory::Mapped));
 
 		GpuBufferMappedScope mapping = batch.Particles->Map(GpuMapOption::Write);
 		auto* const particleData = (GpuParticleVertex*)mapping.GetMappedMemory();
@@ -1158,7 +1158,7 @@ void GpuParticleCurves::ApplyChanges(FrameGraph& graph)
 
 	GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
 	const GpuBufferCreateInformation scratchBufferCreateInformation = GpuBufferCreateInformation::CreateVertex(mInjectVertexDescription->GetVertexStride(0),
-		kScratchNumVertices, GpuBufferFlag::StoreOnCPUWithGPUAccess);
+		kScratchNumVertices, GpuBufferFlag::None, GpuBufferMemory::Mapped);
 
 	struct InjectBatch
 	{

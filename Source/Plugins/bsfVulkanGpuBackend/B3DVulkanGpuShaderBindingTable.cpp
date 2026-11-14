@@ -57,11 +57,16 @@ VulkanGpuShaderBindingTable::VulkanGpuShaderBindingTable(VulkanGpuDevice& device
 	bufferCreateInformation.VkCreateInfo.queueFamilyIndexCount = usesConcurrentSharing ? (u32)queueFamilies.Size() : 0;
 	bufferCreateInformation.VkCreateInfo.pQueueFamilyIndices = usesConcurrentSharing ? queueFamilies.data() : nullptr;
 	bufferCreateInformation.Type = GpuBufferType::StructuredStorage;
-	bufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
 	bufferCreateInformation.DebugName = "Shader binding table";
 	bufferCreateInformation.MinimumAlignment = tableAlignment;
 
-	mBuffer = device.CreateBuffer(bufferCreateInformation, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	// The CPU writes the table once, through a mapping, into the GPU's local memory if it can
+	VulkanMemoryFlags memoryFlags;
+	TOptional<VulkanMemoryFlags> fallbackMemoryFlags;
+	VulkanGpuBuffer::GetMemoryFlags(device, bufferCreateInformation.Type, GpuBufferMemory::Mapped, bufferCreateInformation.Flags, memoryFlags,
+		fallbackMemoryFlags);
+
+	mBuffer = device.CreateBuffer(bufferCreateInformation, memoryFlags, fallbackMemoryFlags);
 
 	const VkDeviceAddress tableAddress = mBuffer->GetDeviceAddress();
 	for(VkStridedDeviceAddressRegionKHR* region : { &mRayGenerationRegion, &mMissRegion, &mHitGroupRegion, &mCallableRegion })

@@ -28,7 +28,7 @@ namespace b3d
 		{
 			id<MTLHeap> Heap = nullptr; /**< Backing placement heap. Resources are placed at allocator-supplied offsets. */
 			u64 Size = 0; /**< Total heap size in bytes. */
-			u32 MemoryType = 0; /**< One of the MetalHeapAllocator::kMemoryType* values. */
+			MetalMemoryType MemoryType = MetalMemoryType::Private; /**< Memory type of the heap. */
 		};
 
 		/** Downcasts an opaque engine heap handle to the concrete Metal heap it must refer to. */
@@ -41,7 +41,7 @@ namespace b3d
 		/** Initializer struct for MetalHeapBackend::CreateHeap. */
 		struct MetalHeapCreateInformation
 		{
-			u32 MemoryType = 0; /**< One of the MetalHeapAllocator::kMemoryType* values. */
+			MetalMemoryType MemoryType = MetalMemoryType::Private; /**< Memory type of the heap to create. */
 		};
 
 		/**
@@ -103,11 +103,6 @@ namespace b3d
 		class MetalHeapAllocator
 		{
 		public:
-			/** Memory types resources allocate from. */
-			static constexpr u32 kMemoryTypePrivate = 0; /**< MTLStorageModePrivate, for GPU-only resources. */
-			static constexpr u32 kMemoryTypeShared = 1; /**< MTLStorageModeShared, for CPU-visible resources. */
-			static constexpr u32 kMemoryTypeCount = 2;
-
 			explicit MetalHeapAllocator(MetalGpuDevice& device);
 
 			/** Releases every heap. All resources placed in them must have been destroyed beforehand. */
@@ -117,7 +112,7 @@ namespace b3d
 			MetalHeapAllocator& operator=(const MetalHeapAllocator&) = delete;
 
 			/** Returns the memory type a buffer described by @p information allocates from. */
-			static u32 GetBufferMemoryType(const GpuBufferInformation& information);
+			static MetalMemoryType GetBufferMemoryType(const GpuBufferInformation& information);
 
 			/**
 			 * Returns the residency set covering every allocation of the allocator. The set must be attached to every queue
@@ -126,15 +121,15 @@ namespace b3d
 			 */
 			MetalResidencySet& GetResidencySet() { return mResidencySet; }
 
-			/** Returns the persistent allocator for @p memoryType. */
-			IGpuAllocator& GetAllocator(u32 memoryType);
+			/** Returns the persistent allocator of @p memoryType. */
+			IGpuAllocator& GetGpuMemoryAllocator(MetalMemoryType memoryType);
 
 			/**
 			 * Creates a scratch linear allocator for @p memoryType, whose pages are retired through @p completionTracker.
 			 * Pages are recycled through a pool shared by every scratch allocator of the same memory type. Returns null if
 			 * @p memoryType is invalid.
 			 */
-			TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker);
+			TUnique<IGpuAllocator> CreateScratchAllocator(MetalMemoryType memoryType, IGpuCompletionTracker& completionTracker);
 
 			/**
 			 * Creates the transient heap pool of the private memory type, whose released heaps are destroyed once
@@ -146,7 +141,7 @@ namespace b3d
 			 * Returns the memory requirements of a buffer of @p length bytes, allocated from @p memoryType. Memory type is
 			 * GpuMemoryRequirements::kUnsupportedMemoryType if the buffer cannot be placed in a heap.
 			 */
-			GpuMemoryRequirements GetBufferMemoryRequirements(u64 length, u32 memoryType) const;
+			GpuMemoryRequirements GetBufferMemoryRequirements(u64 length, MetalMemoryType memoryType) const;
 
 			/**
 			 * Returns the memory requirements of a texture described by @p descriptor. Memory type is
@@ -160,7 +155,7 @@ namespace b3d
 			 * @p memoryType. On success @p outAllocation receives the memory backing the buffer, or is left empty if the
 			 * buffer was allocated directly from the device. Returns nil on failure. Release the buffer through Free().
 			 */
-			id<MTLBuffer> AllocateBuffer(u64 length, u32 memoryType, const GpuAllocation& requestedAllocation, GpuAllocation& outAllocation);
+			id<MTLBuffer> AllocateBuffer(u64 length, MetalMemoryType memoryType, const GpuAllocation& requestedAllocation, GpuAllocation& outAllocation);
 
 			/**
 			 * Creates a texture described by @p descriptor, see AllocateBuffer(). The memory type is derived from the
@@ -181,7 +176,7 @@ namespace b3d
 			using ScratchAllocator = TGpuLinearAllocator<MetalHeapBackend>;
 
 			/** Returns the scratch page pool for @p memoryType, creating it on first use. */
-			LinearPagePool& GetOrCreateLinearPagePool(u32 memoryType);
+			LinearPagePool& GetOrCreateLinearPagePool(MetalMemoryType memoryType);
 
 			/** Adds @p texture, placed in a heap, to the residency set if it can be bound as an attachment. */
 			void AddHeapAttachmentResidency(id<MTLTexture> texture);
@@ -189,8 +184,8 @@ namespace b3d
 			MetalGpuDevice& mDevice;
 			MetalResidencySet mResidencySet;
 			MetalHeapBackend mBackend;
-			TUnique<MemoryAllocator> mAllocators[kMemoryTypeCount];
-			TUnique<LinearPagePool> mLinearPagePools[kMemoryTypeCount];
+			TUnique<MemoryAllocator> mAllocators[(u32)MetalMemoryType::Count];
+			TUnique<LinearPagePool> mLinearPagePools[(u32)MetalMemoryType::Count];
 			Mutex mLinearPagePoolMutex;
 		};
 

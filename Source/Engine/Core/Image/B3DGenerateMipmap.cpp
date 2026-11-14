@@ -141,7 +141,7 @@ namespace b3d
 			// transfer command buffer, which is submitted before the graph. The graph only reads the buffer, so it is not imported.
 			const u32 baseWidth = convertedSource->GetWidth();
 			const u32 baseHeight = convertedSource->GetHeight();
-			const TShared<render::GpuBuffer> inputBuffer = gpuContext.CreateScratchGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, baseWidth * baseHeight, GpuBufferFlag::StoreOnGPU));
+			const TShared<render::GpuBuffer> inputBuffer = gpuContext.CreateScratchGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, baseWidth * baseHeight));
 			if(inputBuffer == nullptr)
 			{
 				op.CompleteOperation(Vector<TShared<PixelData>>());
@@ -167,7 +167,7 @@ namespace b3d
 				const u32 destinationHeight = std::max(1u, sourceHeight / 2);
 
 				// Output for this level: written by this level's pass, then read by the next level's pass and by the read-back
-				const TShared<render::GpuBuffer> output = graph.CreateBuffer("GenerateMipmapLevel", GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, destinationWidth * destinationHeight, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+				const TShared<render::GpuBuffer> output = graph.CreateBuffer("GenerateMipmapLevel", GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, destinationWidth * destinationHeight, GpuBufferFlag::GpuWrite));
 
 				// Per-dispatch constants for this level, in a scratch uniform buffer (linear-allocator backed, thread-safe,
 				// frame-lifetime). The buffer must be kept alive until the GPU completes, so it is stored in parameterBuffers

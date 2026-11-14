@@ -71,6 +71,17 @@ namespace b3d
 		RSC_RAY_QUERY = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 16),
 		/** Supports ray tracing programs (GPT_RAY_GENERATION_PROGRAM to GPT_CALLABLE_PROGRAM) and the pipelines that run them. */
 		RSC_RAY_TRACING_PIPELINE = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 17),
+		/**
+		 * The GPU and the CPU share one memory, as on integrated GPUs, Apple Silicon and consoles, so data the CPU writes needs no copy into GPU
+		 * memory. Parts of that memory can still differ in speed for the GPU: some integrated GPUs read the part reserved for them faster than
+		 * the rest of system memory.
+		 */
+		RSC_UNIFIED_MEMORY = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 18),
+		/**
+		 * A discrete GPU whose whole memory the CPU can write directly (Resizable BAR), and that the device uses to place buffers the CPU
+		 * writes in GPU memory. CPU writes cross PCI Express, and CPU reads are slow. Never set on unified memory devices.
+		 */
+		RSC_RESIZABLE_BAR = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 19),
 
 		/**
 		 * Depth-stencil images must not use split barriers on one queue. 

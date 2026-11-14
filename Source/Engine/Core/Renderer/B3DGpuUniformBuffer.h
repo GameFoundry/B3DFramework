@@ -162,11 +162,11 @@ namespace b3d
 			 * Allocates a new buffer that can store all the members defined in this uniform buffer. For buffers that are modified every frame
 			 * prefer using AllocateTransient() instead.
 			 */
-			TShared<GpuBuffer> CreateBuffer(GpuBufferFlags flags = GpuBufferFlag::StoreOnCPUWithGPUAccess) const
+			TShared<GpuBuffer> CreateBuffer(GpuBufferMemory memory = GpuBufferMemory::Mapped) const
 			{
 				const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 				if(gpuDevice)
-					return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBufferSize, flags, 1), GpuObjectCreateFlag::RenderThreadDestroy);
+					return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBufferSize, memory, 1), GpuObjectCreateFlag::RenderThreadDestroy);
 
 				return nullptr;
 			}
@@ -176,11 +176,11 @@ namespace b3d
 			 * it may store multiple instances of the data (e.g. one for each different objects). For buffers that are modified every frame
 			 * prefer using AllocateTransient() instead.
 			 */
-			TShared<GpuBuffer> CreateBuffer(u32 count, GpuBufferFlags flags = GpuBufferFlag::StoreOnCPUWithGPUAccess) const
+			TShared<GpuBuffer> CreateBuffer(u32 count, GpuBufferMemory memory = GpuBufferMemory::Mapped) const
 			{
 				const TShared<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 				if(gpuDevice)
-					return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBufferSize, flags, count), GpuObjectCreateFlag::RenderThreadDestroy);
+					return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBufferSize, memory, count), GpuObjectCreateFlag::RenderThreadDestroy);
 
 				return nullptr;
 			}
@@ -211,7 +211,7 @@ namespace b3d
 			 */
 			TShared<GpuBuffer> CreateScratchBuffer(GpuWorkContext& gpuContext) const
 			{
-				return gpuContext.CreateScratchGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBufferSize, GpuBufferFlag::StoreOnCPUWithGPUAccess, 1));
+				return gpuContext.CreateScratchGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBufferSize, GpuBufferMemory::Mapped, 1));
 			}
 
 		protected:
@@ -290,7 +290,7 @@ namespace b3d
 				mBufferSize = 0;                                                                                                                                \
 			}                                                                                                                                                   \
                                                                                                                                                                 \
-			mTransientAllocationPool.Initialize(*gpuDevice, GpuBufferCreateInformation::CreateUniform(mBufferSize, GpuBufferFlag::StoreOnCPUWithGPUAccess), 4); \
+			mTransientAllocationPool.Initialize(*gpuDevice, GpuBufferCreateInformation::CreateUniform(mBufferSize, GpuBufferMemory::Mapped), 4);      \
                                                                                                                                                                 \
 			InitEntries();                                                                                                                                      \
 		}                                                                                                                                                       \

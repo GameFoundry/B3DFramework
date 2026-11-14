@@ -37,5 +37,19 @@ namespace b3d
 
 		/** Asserts buffers and optimally tiled images use different persistent allocators and heaps. */
 		void TestBuffersAndOptimalImagesUseSeparatePersistentHeaps();
+
+		/**
+		 * Asserts a buffer in GpuBufferMemory::Mapped memory is host-visible, and device-local exactly when the device can map its GPU memory
+		 * or memory is unified. With Resizable BAR it is then in the largest local heap.
+		 */
+		void TestCpuWrittenBufferPlacement();
+
+		/**
+		 * Asserts buffers in GpuBufferMemory::Device memory are device-local, and host-visible and mapped exactly when the device can map its
+		 * GPU memory, which only Resizable BAR and some unified memory devices can. Such mapped buffers use other allocators than
+		 * GpuBufferMemory::Mapped buffers of the same Vulkan memory type, since their heaps fall back to other memory. Buffers the GPU writes
+		 * are device-local, and GpuBufferMemory::MappedCached buffers host-visible, mapped, and CPU-cached where the device has such memory.
+		 */
+		void TestGpuReadBufferPlacement();
 	};
 } // namespace b3d

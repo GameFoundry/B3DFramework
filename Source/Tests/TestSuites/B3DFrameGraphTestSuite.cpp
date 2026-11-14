@@ -106,7 +106,7 @@ namespace
 		TShared<render::GpuBuffer> CreateBuffer(const char* name) const
 		{
 			const TShared<render::GpuBuffer> buffer = Device.CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize,
-				GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+				GpuBufferFlag::GpuWrite));
 			buffer->SetName(name);
 			return buffer;
 		}
@@ -303,7 +303,7 @@ namespace
 	/** Returns a buffer the test dispatch can write, created by @p graph as a transient. */
 	TShared<render::GpuBuffer> CreateTransientBuffer(FrameGraph& graph, const char* name)
 	{
-		return graph.CreateBuffer(name, GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+		return graph.CreateBuffer(name, GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize, GpuBufferFlag::GpuWrite));
 	}
 
 	/** Runs @p test on the render thread and waits for it to finish. */
@@ -419,7 +419,7 @@ void FrameGraphTestSuite::TestCulling()
 
 			// Nothing reads the transients of this pass, so they are never placed
 			test.AddDispatch(graph, "Unobserved", graph.CreateBuffer("Unobserved buffer", GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize,
-				GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU)), graph.CreateTexture("Unobserved texture", test.TextureInformation));
+				GpuBufferFlag::GpuWrite)), graph.CreateTexture("Unobserved texture", test.TextureInformation));
 
 			graph.Compile();
 			B3D_TEST_ASSERT(graph.IsPassCulled(0))
@@ -467,7 +467,7 @@ void FrameGraphTestSuite::TestSplitAliasAcquire()
 	{
 		const FrameGraphTestContext test(*device, pipeline);
 		const GpuBufferCreateInformation bufferInformation = GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize,
-			GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU);
+			GpuBufferFlag::GpuWrite);
 
 		TShared<render::GpuBuffer> readbacks[4];
 		for(u32 readbackIndex = 0; readbackIndex < 4; readbackIndex++)
@@ -527,7 +527,7 @@ void FrameGraphTestSuite::TestCrossGraphOrdering()
 	{
 		const FrameGraphTestContext test(*device, pipeline);
 		const GpuBufferCreateInformation bufferInformation = GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize,
-			GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU);
+			GpuBufferFlag::GpuWrite);
 
 		TShared<render::GpuBuffer> readbacks[4];
 		for(u32 readbackIndex = 0; readbackIndex < 4; readbackIndex++)
@@ -594,7 +594,7 @@ void FrameGraphTestSuite::TestExtract()
 	{
 		const FrameGraphTestContext test(*device, pipeline);
 		const GpuBufferCreateInformation bufferInformation = GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize,
-			GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU);
+			GpuBufferFlag::GpuWrite);
 
 		// An exported transient returns to rest after its pass, and the end of the graph finds it there
 		for(const bool isExported : { false, true })
@@ -803,7 +803,7 @@ void FrameGraphTestSuite::TestLateMemory()
 	{
 		const FrameGraphTestContext test(*device, pipeline);
 		const GpuBufferCreateInformation bufferInformation = GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize,
-			GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU);
+			GpuBufferFlag::GpuWrite);
 
 		// The first graph places the texture alone. The second places a transient buffer before it, so the cached texture moves to other
 		// memory after the dispatch's parameter set took it.
@@ -857,7 +857,7 @@ void FrameGraphTestSuite::TestReadback()
 	{
 		const FrameGraphTestContext test(*device, pipeline);
 		const GpuBufferCreateInformation bufferInformation = GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize,
-			GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU);
+			GpuBufferFlag::GpuWrite);
 
 		TAsyncOp<TShared<MemoryDataStream>> bufferRead;
 		TAsyncOp<TShared<MemoryDataStream>> bufferRangeRead;
@@ -930,7 +930,7 @@ void FrameGraphTestSuite::TestProfiling()
 
 			// Nothing reads the transients, so the pass is culled and records no sample
 			const TShared<render::GpuBuffer> unreadBuffer = graph.CreateBuffer("Unread buffer", GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32),
-				kSize * kSize, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+				kSize * kSize, GpuBufferFlag::GpuWrite));
 			const TShared<render::Texture> unreadTexture = graph.CreateTexture("Unread texture", test.TextureInformation);
 			test.AddDispatch(graph, "Culled", unreadBuffer, unreadTexture);
 
@@ -1734,7 +1734,7 @@ void FrameGraphTestSuite::TestParameterHandles()
 		{
 			FrameGraph graph(*test.Context, kGraphName, gTestGraphFlags);
 			const TShared<render::GpuBuffer> buffer = graph.CreateBuffer("Handle buffer", GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize,
-				GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+				GpuBufferFlag::GpuWrite));
 			const TShared<render::Texture> texture = graph.CreateTexture("Handle texture", test.TextureInformation);
 
 			FrameGraphComputePass pass;
@@ -2861,7 +2861,7 @@ void FrameGraphTestSuite::TestValidation()
 				FrameGraph graph(*test.Context, kGraphName, gTestGraphFlags);
 				held = graph.CreateTexture("Held texture", test.TextureInformation);
 				test.AddDispatch(graph, "Culled", graph.CreateBuffer("Culled buffer", GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kSize * kSize,
-					GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU)), held);
+					GpuBufferFlag::GpuWrite)), held);
 				graph.Compile();
 				graph.Execute();
 			}

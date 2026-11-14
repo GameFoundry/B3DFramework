@@ -15,10 +15,47 @@ namespace b3d
 	 *  @{
 	 */
 
+	/** Kind of memory a device places a buffer in, picked from its GpuBufferMemory by GpuBackendUtility::GetBufferPlacement(). */
+	enum class GpuBufferPlacement
+	{
+		UnmappedGpu, /**< GPU memory, never mapped. The CPU writes and reads it through staging buffers. */
+
+		/**
+		 * GPU memory the CPU writes directly, mapped. The GPU reads it at full speed. Where GPU memory is close to its budget, or the memory
+		 * fails to allocate, unmapped GPU memory instead, which the CPU writes and reads through staging buffers.
+		 */
+		MappedGpuOrUnmapped,
+
+		/**
+		 * GPU memory the CPU writes directly, mapped. The GPU reads it at full speed. Where GPU memory is close to its budget, or the memory
+		 * fails to allocate, mapped write-combined system memory instead, so the buffer stays mapped.
+		 */
+		MappedGpuOrSystem,
+
+		/**
+		 * System memory the CPU writes directly, mapped write-combined. A discrete GPU reads it over PCI Express, and a unified memory GPU more
+		 * slowly than the part of memory reserved for it.
+		 */
+		MappedSystem,
+
+		MappedCached /**< Mapped memory the CPU caches, so CPU reads are fast. */
+	};
+
 	/** Collection of static utility methods shared between GPU backend implementations. */
 	class B3D_EXPORT GpuBackendUtility
 	{
 	public:
+		/**
+		 * Picks the memory a device places a buffer in. Every backend follows the same rules, so buffers behave the same everywhere. Not
+		 * valid for staging buffers, which backends place by their type.
+		 *
+		 * @param	memory							Memory type the buffer was created with.
+		 * @param	flags							How the GPU uses the buffer.
+		 * @param	hasFullSpeedMappableGpuMemory	True if the CPU can map the device's GPU memory and the GPU still reads that memory at full speed:
+		 *											Resizable BAR on discrete GPUs, unified memory that isn't slower to read where the CPU can see it.
+		 */
+		static GpuBufferPlacement GetBufferPlacement(GpuBufferMemory memory, GpuBufferFlags flags, bool hasFullSpeedMappableGpuMemory);
+
 		/**
 		 * Calculates the size and alignment of a single element within a shader interface block using the std140 layout.
 		 *

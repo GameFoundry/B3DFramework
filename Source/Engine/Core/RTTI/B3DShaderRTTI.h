@@ -62,7 +62,7 @@ namespace b3d
 	};
 
 	template <>
-	struct RTTIPlainType<ShaderUniformBufferInformation> : RTTIPlainTypeHelper<ShaderUniformBufferInformation, TID_ShaderUniformBufferInformation, 0>
+	struct RTTIPlainType<ShaderUniformBufferInformation> : RTTIPlainTypeHelper<ShaderUniformBufferInformation, TID_ShaderUniformBufferInformation, 1>
 	{
 		template<class Processor>
 		static void RTTIEnumerateFields(ShaderUniformBufferInformation& object, Processor& processor, u8 version)
@@ -74,7 +74,13 @@ namespace b3d
 			processor(object.UsesDynamicOffset);
 			processor(object.Shared);
 			processor(object.RendererSemantic);
-			processor(object.Flags);
+
+			// Version 0 stored buffer flags, which uniform buffers no longer have
+			if(version < 1)
+			{
+				GpuBufferFlags legacyFlags;
+				processor(legacyFlags);
+			}
 		}
 	};
 

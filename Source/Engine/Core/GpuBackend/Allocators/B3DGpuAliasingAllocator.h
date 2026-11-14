@@ -89,7 +89,7 @@ namespace b3d
 		 *
 		 * @param	pool							Pool to place the memory in.
 		 * @param	size							Size of the memory, in bytes.
-		 * @param	alignment						Required alignment of the memory's offset. Must be a power of two.
+		 * @param	alignment						Required alignment of the memory's offset. Need not be a power of two.
 		 * @param	firstSubmission					Index of the submission in the scope's timeline that uses the resource first.
 		 * @param	outAllocation					Non-owning allocation referencing the memory. Identifies the memory to Release() and
 		 *											TryAllocateAt().

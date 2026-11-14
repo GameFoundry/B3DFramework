@@ -455,7 +455,7 @@ UniformBufferPools::PoolConfiguration config;
 config.Type = UniformBufferPools::RenderablePool;
 config.EntriesPerBuffer = 1024;
 config.Layout = perObjectParameterSetLayout;
-config.Buffers.Add({UniformBufferPools::PerObjectBuffer, "PerObject", perObjectBufferSize, GpuBufferFlag::StoreOnCPUWithGPUAccess});
+config.Buffers.Add({UniformBufferPools::PerObjectBuffer, "PerObject", perObjectBufferSize, GpuBufferMemory::Device});
 
 uniformBufferPools.RegisterType(config);
 uniformBufferPools.Initialize(gpuDevice);

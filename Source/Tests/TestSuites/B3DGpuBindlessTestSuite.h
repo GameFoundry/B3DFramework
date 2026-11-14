@@ -48,8 +48,8 @@ namespace b3d
 
 		/**
 		 * Moves bindless buffers and a bindless texture in GPU memory with GpuMemoryDefragmenter, and verifies that they keep their indices
-		 * and contents, read both through the heaps and directly. Also verifies that CPU-visible buffers and render targets stay in place.
-		 * Runs on devices that support bindless resources.
+		 * and contents, read both through the heaps and directly. Also verifies that buffers the CPU writes often and render targets stay in
+		 * place. Runs on devices that support bindless resources.
 		 */
 		void TestRelocation();
 	};

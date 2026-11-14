@@ -41,9 +41,6 @@ namespace b3d
 			/** Converts engine buffer flags to D3D12 resource flags. */
 			static D3D12_RESOURCE_FLAGS GetBufferResourceFlags(GpuBufferFlags flags);
 
-			/** Determines the D3D12 heap type to place a buffer of the provided type and flags in. */
-			static D3D12_HEAP_TYPE GetHeapType(GpuBufferType type, GpuBufferFlags flags);
-
 			/** Converts engine comparison function to D3D12 comparison function. */
 			static D3D12_COMPARISON_FUNC GetComparisonFunc(CompareFunction func);
 

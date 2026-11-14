@@ -109,7 +109,6 @@ namespace b3d
 		bool UsesDynamicOffset = false; /**< Enables per-draw offset changes for this binding. */
 		bool Shared = false;
 		StringID RendererSemantic;
-		GpuBufferFlags Flags = GpuBufferFlag::StoreOnGPU;
 	};
 
 	/** Available attribute types that can be assigned to Shader parameters. */
@@ -258,7 +257,6 @@ namespace b3d
 		 *								the GPU program code.
 		 * @param	shared				If uniform buffer is marked as shared it will not be automatically created by
 		 *								the Material. You will need to create it elsewhere and then assign it manually.
-		 * @param	flags				Flags that control the behaviour of the uniform buffer.
 		 * @param	rendererSemantic	(optional) Semantic that allows you to specify the use of this uniform buffer
 		 *								in the renderer. The actual value of the semantic depends on the current
 		 *								Renderer and its supported list of semantics. Elements with a renderer semantic
@@ -269,7 +267,7 @@ namespace b3d
 		 *								will be deemed incompatible and won't be used. Value of 0 signifies the uniform
 		 *								buffer is not used by the renderer.
 		 */
-		void SetUniformBufferAttributes(const String& name, bool shared, GpuBufferFlags flags, StringID rendererSemantic = StringID::kNone);
+		void SetUniformBufferAttributes(const String& name, bool shared, StringID rendererSemantic = StringID::kNone);
 
 		/** Assigns generated binding coordinates to an existing parameter or uniform buffer. */
 		void SetParameterBinding(const String& name, u32 set, u32 slot);

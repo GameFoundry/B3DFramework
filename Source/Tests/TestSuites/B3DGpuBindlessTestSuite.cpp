@@ -462,7 +462,7 @@ void GpuBindlessTestSuite::TestResourceIndices()
 		return;
 
 	const TShared<GpuDevice> device = backend.GetDevice(0);
-	const GpuBufferFlags bindlessFlags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::Bindless;
+	const GpuBufferFlags bindlessFlags = GpuBufferFlag::Bindless;
 
 	if(device->GetBindlessHeaps() == nullptr)
 	{
@@ -479,7 +479,9 @@ void GpuBindlessTestSuite::TestResourceIndices()
 	{
 		LoggingScope logs(*this);
 		logs.ExpectError("A bindless buffer must be a storage, vertex or index buffer.");
-		B3D_TEST_ASSERT(device->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(16, GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::Bindless)) == nullptr)
+		GpuBufferCreateInformation uniformInformation = GpuBufferCreateInformation::CreateUniform(16);
+		uniformInformation.Flags = GpuBufferFlag::Bindless;
+		B3D_TEST_ASSERT(device->CreateGpuBuffer(uniformInformation) == nullptr)
 	}
 
 	GetRenderThread().PostCommand([this, &device, bindlessFlags]()
@@ -616,9 +618,9 @@ void GpuBindlessTestSuite::TestHeapAccess()
 
 	GetRenderThread().PostCommand([this, &device, &pipeline]()
 	{
-		const GpuBufferFlags inputFlags = GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::Bindless;
-		TShared<render::GpuBuffer> structuredBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 4, inputFlags));
-		TShared<render::GpuBuffer> typedBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X1U, 4, inputFlags));
+		const GpuBufferFlags inputFlags = GpuBufferFlag::Bindless;
+		TShared<render::GpuBuffer> structuredBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 4, inputFlags, GpuBufferMemory::Mapped));
+		TShared<render::GpuBuffer> typedBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X1U, 4, inputFlags, GpuBufferMemory::Mapped));
 		B3D_TEST_ASSERT(structuredBuffer != nullptr && typedBuffer != nullptr)
 		if(structuredBuffer == nullptr || typedBuffer == nullptr)
 			return;
@@ -681,7 +683,7 @@ void GpuBindlessTestSuite::TestHeapAccess()
 
 		static constexpr u32 kOutputCount = 7;
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
-		const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kOutputCount, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+		const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kOutputCount, GpuBufferFlag::GpuWrite));
 		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kOutputCount * sizeof(u32)));
 		// Set once, so the dispatches after the update and growth switches bind a table written while an earlier heap was current
 		const TShared<render::GpuParameterSet> parameterSet = context->GetParameterSetPool().Create(pipeline->GetParameterLayout()->GetSet(0), 0);
@@ -738,7 +740,7 @@ void GpuBindlessTestSuite::TestHeapAccess()
 
 		// An update changes the view behind a slot once it is applied, at the end of a frame
 		GpuBindlessHeaps& heaps = *device->GetBindlessHeaps();
-		TShared<render::GpuBuffer> updatedBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 4, inputFlags));
+		TShared<render::GpuBuffer> updatedBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 4, inputFlags, GpuBufferMemory::Mapped));
 		B3D_TEST_ASSERT(updatedBuffer != nullptr)
 		if(updatedBuffer == nullptr)
 			return;
@@ -855,7 +857,7 @@ void GpuBindlessTestSuite::TestRelocation()
 		static constexpr u32 kBufferElementCount = 256 * 1024;
 		static constexpr u32 kTextureSize = 512;
 
-		const GpuBufferFlags bufferFlags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::Bindless;
+		const GpuBufferFlags bufferFlags = GpuBufferFlag::Bindless;
 		const GpuBufferCreateInformation structuredInformation = GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kBufferElementCount, bufferFlags);
 		const GpuBufferCreateInformation typedInformation = GpuBufferCreateInformation::CreateSimpleStorage(BF_32X1U, kBufferElementCount, bufferFlags);
 
@@ -886,7 +888,7 @@ void GpuBindlessTestSuite::TestRelocation()
 		const TShared<render::GpuBuffer> structuredBuffer = device->CreateGpuBuffer(structuredInformation);
 		const TShared<render::GpuBuffer> typedBuffer = device->CreateGpuBuffer(typedInformation);
 		const TShared<render::Texture> texture = device->CreateTexture(textureInformation);
-		const TShared<render::GpuBuffer> cpuBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 4, GpuBufferFlag::StoreOnCPUWithGPUAccess));
+		const TShared<render::GpuBuffer> cpuBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 4, GpuBufferFlag::None, GpuBufferMemory::Mapped));
 		const TShared<render::Texture> renderTarget = device->CreateTexture(renderTargetInformation);
 		B3D_TEST_ASSERT(structuredBuffer != nullptr && typedBuffer != nullptr && texture != nullptr && cpuBuffer != nullptr && renderTarget != nullptr)
 		if(structuredBuffer == nullptr || typedBuffer == nullptr || texture == nullptr || cpuBuffer == nullptr || renderTarget == nullptr)
@@ -1027,7 +1029,7 @@ void GpuBindlessTestSuite::TestRelocation()
 		B3D_TEST_ASSERT(structuredBuffer->GetOrCreateBindlessIndex(GpuBufferViewType::Raw) == indices[3])
 
 		static constexpr u32 kOutputCount = 7;
-		const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kOutputCount, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU));
+		const TShared<render::GpuBuffer> output = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kOutputCount, GpuBufferFlag::GpuWrite));
 		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead((kOutputCount + 4) * sizeof(u32)));
 		const TShared<render::GpuParameterSet> parameterSet = context->GetParameterSetPool().Create(pipeline->GetParameterLayout()->GetSet(0), 0);
 		parameterSet->SetStorageBuffer("Output", output);

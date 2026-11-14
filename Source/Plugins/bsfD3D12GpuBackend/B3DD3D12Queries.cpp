@@ -105,7 +105,9 @@ void D3D12GpuQueryPool::CreateQueryResources()
 	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-	hr = mDevice.CreateResource(resourceDesc, D3D12_HEAP_TYPE_READBACK, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, mReadbackBuffer, mReadbackAllocation);
+	// Staging buffers ignore the memory type
+	const D3D12HeapProperties heapProperties = mDevice.GetBufferHeapProperties(GpuBufferType::StagingRead, GpuBufferMemory::MappedCached, GpuBufferFlag::None);
+	hr = mDevice.CreateResource(resourceDesc, heapProperties, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, mReadbackBuffer, mReadbackAllocation);
 	if (FAILED(hr))
 		B3D_LOG(Error, LogRenderBackend, "Failed to create query readback buffer");
 }

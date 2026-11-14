@@ -39,7 +39,7 @@ namespace b3d
 		}
 
 		MetalGpuBuffer::MetalGpuBuffer(MetalGpuDevice& device, const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation)
-			: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device), allocation), mGpuDevice(device), mMemoryType(MetalHeapAllocator::GetBufferMemoryType(createInformation)), mDirectlyMappable(createInformation.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess) || createInformation.Type == GpuBufferType::StagingRead || createInformation.Type == GpuBufferType::StagingWrite)
+			: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device), allocation), mGpuDevice(device), mMemoryType(MetalHeapAllocator::GetBufferMemoryType(createInformation)), mDirectlyMappable(MetalUtility::GetBufferStorageMode(createInformation) == MTLStorageModeShared)
 		{ }
 
 		MetalGpuBuffer::~MetalGpuBuffer()

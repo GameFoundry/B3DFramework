@@ -191,12 +191,11 @@ void ShaderParameterDescription::SetParameterAttribute(const String& name, const
 	}
 }
 
-void ShaderParameterDescription::SetUniformBufferAttributes(const String& name, bool shared, GpuBufferFlags flags, StringID rendererSemantic)
+void ShaderParameterDescription::SetUniformBufferAttributes(const String& name, bool shared, StringID rendererSemantic)
 {
 	ShaderUniformBufferInformation& information = mUniformBuffers[name];
 	information.Name = name;
 	information.Shared = shared;
-	information.Flags = flags;
 	information.RendererSemantic = rendererSemantic;
 }
 
@@ -392,7 +391,7 @@ Result ShaderParameterDescription::TryCombine(const ShaderParameterDescription& 
 	for(const auto& entry : other.mUniformBuffers)
 	{
 		const auto found = mUniformBuffers.find(entry.first);
-		if(found != mUniformBuffers.end() && (found->second.Shared != entry.second.Shared || found->second.Flags != entry.second.Flags || found->second.RendererSemantic != entry.second.RendererSemantic))
+		if(found != mUniformBuffers.end() && (found->second.Shared != entry.second.Shared || found->second.RendererSemantic != entry.second.RendererSemantic))
 			return Result::Fail("Shader uniform-buffer declarations conflict.", ResultStatus::FailedInvalidInput, entry.first);
 	}
 

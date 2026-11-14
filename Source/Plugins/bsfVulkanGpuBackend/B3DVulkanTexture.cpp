@@ -455,13 +455,11 @@ void VulkanTexture::BuildDescription(const VulkanGpuDevice& device, const Textur
 	// images live exclusively in DEVICE_LOCAL memory and are populated via staging copies.
 	if(outDescription.DirectlyMappable)
 	{
-		outDescription.RequiredMemoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-		outDescription.PreferredMemoryFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+		outDescription.MemoryFlags = VulkanMemoryFlags(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	}
 	else
 	{
-		outDescription.RequiredMemoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-		outDescription.PreferredMemoryFlags = 0;
+		outDescription.MemoryFlags = VulkanMemoryFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0);
 	}
 }
 

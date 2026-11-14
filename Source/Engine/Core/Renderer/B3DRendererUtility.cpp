@@ -39,7 +39,7 @@ RendererUtility::RendererUtility()
 
 		GpuBufferCreateInformation indexBufferCreateInformation;
 		indexBufferCreateInformation.Type = GpuBufferType::Index;
-		indexBufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
+		indexBufferCreateInformation.Memory = GpuBufferMemory::Mapped;
 		indexBufferCreateInformation.Index.Type = IT_32BIT;
 		indexBufferCreateInformation.Index.Count = 6;
 
@@ -47,7 +47,7 @@ RendererUtility::RendererUtility()
 
 		GpuBufferCreateInformation vertexBufferCreateInformation;
 		vertexBufferCreateInformation.Type = GpuBufferType::Vertex;
-		vertexBufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
+		vertexBufferCreateInformation.Memory = GpuBufferMemory::Mapped;
 		vertexBufferCreateInformation.Vertex.ElementSize = mFullscreenQuadVertexDescription->GetVertexStride(0);
 		vertexBufferCreateInformation.Vertex.Count = 4 * kNumQuadVbSlots;
 

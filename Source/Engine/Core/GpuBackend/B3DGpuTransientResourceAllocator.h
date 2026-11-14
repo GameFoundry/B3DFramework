@@ -115,7 +115,10 @@ namespace b3d
 		 */
 		GpuTransientTexture AllocateTexture(const TextureCreateInformation& createInformation, u32 firstSubmission);
 
-		/** Allocates a buffer that is only accessed by the GPU. Its first use is in submission @p firstSubmission of the scope's timeline. See AllocateTexture(). */
+		/**
+		 * Allocates a buffer in GPU memory (GpuBufferMemory::Device). Its first use is in submission @p firstSubmission
+		 * of the scope's timeline. See AllocateTexture().
+		 */
 		GpuTransientBuffer AllocateBuffer(const GpuBufferCreateInformation& createInformation, u32 firstSubmission);
 
 		/**
@@ -202,7 +205,7 @@ namespace b3d
 		 */
 		TShared<render::Texture> GetOrCreateTexture(const TextureCreateInformation& createInformation);
 
-		/** Returns a buffer that is only accessed by the GPU, without memory. See GetOrCreateTexture(). */
+		/** Returns a buffer in GPU memory (GpuBufferMemory::Device), without memory. See GetOrCreateTexture(). */
 		TShared<render::GpuBuffer> GetOrCreateBuffer(const GpuBufferCreateInformation& createInformation);
 
 		/** Gives back a texture returned by GetOrCreateTexture() and never placed. */

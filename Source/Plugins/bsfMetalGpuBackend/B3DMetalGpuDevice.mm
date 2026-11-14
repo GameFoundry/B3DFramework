@@ -184,8 +184,8 @@ namespace b3d
 
 			mClearPipeline = B3DMakeUnique<MetalClearPipeline>(*this);
 
-			const GpuAllocation sharedAllocation = GpuAllocation::CreatePending(mHeapAllocator->GetAllocator(MetalHeapAllocator::kMemoryTypeShared));
-			mNullVertexBuffer = mHeapAllocator->AllocateBuffer(kMetalNullVertexStreamStride, MetalHeapAllocator::kMemoryTypeShared, sharedAllocation, mNullVertexBufferAllocation);
+			const GpuAllocation sharedAllocation = GpuAllocation::CreatePending(mHeapAllocator->GetGpuMemoryAllocator(MetalMemoryType::Shared));
+			mNullVertexBuffer = mHeapAllocator->AllocateBuffer(kMetalNullVertexStreamStride, MetalMemoryType::Shared, sharedAllocation, mNullVertexBufferAllocation);
 			if (mNullVertexBuffer == nil)
 				B3D_LOG(Fatal, LogRenderBackend, "Failed to create the shared null vertex buffer.");
 
@@ -193,14 +193,14 @@ namespace b3d
 
 			// Pools reset their slots before their first use, so the initial contents only matter to queries that were never reset
 			const u64 visibilityResultBufferSize = (u64)kVisibilityResultSlotCount * sizeof(u64);
-			mVisibilityResultBuffer = mHeapAllocator->AllocateBuffer(visibilityResultBufferSize, MetalHeapAllocator::kMemoryTypeShared, sharedAllocation, mVisibilityResultBufferAllocation);
+			mVisibilityResultBuffer = mHeapAllocator->AllocateBuffer(visibilityResultBufferSize, MetalMemoryType::Shared, sharedAllocation, mVisibilityResultBufferAllocation);
 			if (mVisibilityResultBuffer == nil)
 				B3D_LOG(Fatal, LogRenderBackend, "Failed to create the visibility result buffer.");
 
 			std::memset([mVisibilityResultBuffer contents], 0, (size_t)visibilityResultBufferSize);
 
 			constexpr u32 kDummyArgumentBufferSize = 65536;
-			mDummyArgumentBuffer = mHeapAllocator->AllocateBuffer(kDummyArgumentBufferSize, MetalHeapAllocator::kMemoryTypeShared, sharedAllocation, mDummyArgumentBufferAllocation);
+			mDummyArgumentBuffer = mHeapAllocator->AllocateBuffer(kDummyArgumentBufferSize, MetalMemoryType::Shared, sharedAllocation, mDummyArgumentBufferAllocation);
 			if (mDummyArgumentBuffer == nil)
 				B3D_LOG(Fatal, LogRenderBackend, "Failed to create the shared dummy argument buffer.");
 
@@ -258,6 +258,9 @@ namespace b3d
 			mCapabilities.SetCapability(RSC_TEXTURE_VIEWS);
 			mCapabilities.SetCapability(RSC_RENDER_TARGET_LAYERS);
 			mCapabilities.SetCapability(RSC_MULTI_THREADED_CB);
+
+			// Apple Silicon memory is unified, which Initialize() requires
+			mCapabilities.SetCapability(RSC_UNIFIED_MEMORY);
 
 			// Metal 4 writes timestamps at any point of a command buffer, inside or outside of encoders
 			mTimestampFrequency = [mMetalDevice queryTimestampFrequency];
@@ -354,13 +357,13 @@ namespace b3d
 
 		IGpuAllocator& MetalGpuDevice::GetPersistentAllocator(u32 memoryType)
 		{
-			return mHeapAllocator->GetAllocator(memoryType);
+			return mHeapAllocator->GetGpuMemoryAllocator((MetalMemoryType)memoryType);
 		}
 
 		void MetalGpuDevice::GetPersistentAllocators(TArray<IGpuAllocator*>& outAllocators)
 		{
-			for (u32 memoryType = 0; memoryType < MetalHeapAllocator::kMemoryTypeCount; memoryType++)
-				outAllocators.Add(&mHeapAllocator->GetAllocator(memoryType));
+			for (u32 memoryTypeIndex = 0; memoryTypeIndex < (u32)MetalMemoryType::Count; memoryTypeIndex++)
+				outAllocators.Add(&mHeapAllocator->GetGpuMemoryAllocator((MetalMemoryType)memoryTypeIndex));
 		}
 
 		TShared<Texture> MetalGpuDevice::CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags)
@@ -430,15 +433,15 @@ namespace b3d
 		TUnique<IGpuAllocator> MetalGpuDevice::CreateScratchAllocator(u32 memoryType,
 			IGpuCompletionTracker& completionTracker)
 		{
-			if (mHeapAllocator == nullptr)
+			if (mHeapAllocator == nullptr || memoryType >= (u32)MetalMemoryType::Count)
 				return nullptr;
 
-			return mHeapAllocator->CreateScratchAllocator(memoryType, completionTracker);
+			return mHeapAllocator->CreateScratchAllocator((MetalMemoryType)memoryType, completionTracker);
 		}
 
 		IGpuTransientHeapPool* MetalGpuDevice::GetTransientHeapPool(u32 memoryType)
 		{
-			return memoryType == MetalHeapAllocator::kMemoryTypePrivate ? mTransientHeapPool : nullptr;
+			return memoryType == (u32)MetalMemoryType::Private ? mTransientHeapPool : nullptr;
 		}
 
 		TShared<GpuQueryPool> MetalGpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)

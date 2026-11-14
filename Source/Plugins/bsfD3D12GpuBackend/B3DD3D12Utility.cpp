@@ -231,29 +231,10 @@ D3D12_RESOURCE_FLAGS D3D12Utility::GetBufferResourceFlags(GpuBufferFlags flags)
 {
 	D3D12_RESOURCE_FLAGS output = D3D12_RESOURCE_FLAG_NONE;
 
-	if (flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU))
+	if (flags.IsSet(GpuBufferFlag::GpuWrite))
 		output |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
 	return output;
-}
-
-D3D12_HEAP_TYPE D3D12Utility::GetHeapType(GpuBufferType type, GpuBufferFlags flags)
-{
-	switch (type)
-	{
-	case GpuBufferType::StagingWrite:
-		return D3D12_HEAP_TYPE_UPLOAD;
-	case GpuBufferType::StagingRead:
-		return D3D12_HEAP_TYPE_READBACK;
-	default:
-		break;
-	}
-
-	// TODO - Prefer D3D12_HEAP_TYPE_GPU_UPLOAD for non-staging StoreOnCPUWithGPUAccess buffers when supported and within the local-memory budget; staging buffers keep their UPLOAD/READBACK heaps.
-	if (flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess))
-		return D3D12_HEAP_TYPE_UPLOAD;
-
-	return D3D12_HEAP_TYPE_DEFAULT;
 }
 
 D3D12_COMPARISON_FUNC D3D12Utility::GetComparisonFunc(CompareFunction func)

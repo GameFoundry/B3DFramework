@@ -770,7 +770,7 @@ namespace b3d
 			{
 				GpuBufferCreateInformation vertexBufferCreateInformation;
 				vertexBufferCreateInformation.Type = GpuBufferType::Vertex;
-				vertexBufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
+				vertexBufferCreateInformation.Memory = GpuBufferMemory::Mapped;
 				vertexBufferCreateInformation.Vertex.Count = 8;
 				vertexBufferCreateInformation.Vertex.ElementSize = mPositionOnlyVertexDescription->GetVertexStride(0);
 
@@ -800,7 +800,7 @@ namespace b3d
 			{
 				GpuBufferCreateInformation vertexBufferCreateInformation;
 				vertexBufferCreateInformation.Type = GpuBufferType::Vertex;
-				vertexBufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
+				vertexBufferCreateInformation.Memory = GpuBufferMemory::Mapped;
 				vertexBufferCreateInformation.Vertex.Count = 8;
 				vertexBufferCreateInformation.Vertex.ElementSize = mPositionOnlyVertexDescription->GetVertexStride(0);
 

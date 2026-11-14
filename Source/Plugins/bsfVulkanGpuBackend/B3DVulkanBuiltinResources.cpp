@@ -13,11 +13,11 @@ VulkanBuiltinResources::VulkanBuiltinResources(VulkanGpuDevice& gpuDevice)
 
 void VulkanBuiltinResources::Initialize()
 {
-	DummyReadBuffer = std::static_pointer_cast<VulkanGpuBuffer>(mGpuDevice.CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, 1, GpuBufferFlag::StoreOnGPU)));
-	DummyStorageBuffer = std::static_pointer_cast<VulkanGpuBuffer>(mGpuDevice.CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, 1, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU)));
-	DummyUniformBuffer = std::static_pointer_cast<VulkanGpuBuffer>(mGpuDevice.CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(16, GpuBufferFlag::StoreOnGPU)));
-	DummyStructuredBuffer = std::static_pointer_cast<VulkanGpuBuffer>(mGpuDevice.CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(16, 1, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU)));
-	DummyVertexBuffer = std::static_pointer_cast<VulkanGpuBuffer>(mGpuDevice.CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(16, 1, GpuBufferFlag::StoreOnGPU)));
+	DummyReadBuffer = std::static_pointer_cast<VulkanGpuBuffer>(mGpuDevice.CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, 1)));
+	DummyStorageBuffer = std::static_pointer_cast<VulkanGpuBuffer>(mGpuDevice.CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, 1, GpuBufferFlag::GpuWrite)));
+	DummyUniformBuffer = std::static_pointer_cast<VulkanGpuBuffer>(mGpuDevice.CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(16, GpuBufferMemory::Device)));
+	DummyStructuredBuffer = std::static_pointer_cast<VulkanGpuBuffer>(mGpuDevice.CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(16, 1, GpuBufferFlag::GpuWrite)));
+	DummyVertexBuffer = std::static_pointer_cast<VulkanGpuBuffer>(mGpuDevice.CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(16, 1)));
 }
 
 void VulkanBuiltinResources::Cleanup()

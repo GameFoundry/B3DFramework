@@ -3,6 +3,7 @@
 #include "B3DMetalUtility.h"
 #include "Image/B3DPixelUtility.h"
 #include "GpuBackend/B3DGpuBuffer.h"
+#include "GpuBackend/B3DGpuBackendUtility.h"
 #include "Debug/B3DLog.h"
 #include "Threading/B3DThreading.h"
 #include <atomic>
@@ -473,11 +474,15 @@ namespace b3d
 
 		MTLStorageMode MetalUtility::GetBufferStorageMode(const GpuBufferInformation& information)
 		{
-			const bool cpuVisible = information.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess)
-				|| information.Type == GpuBufferType::StagingRead
-				|| information.Type == GpuBufferType::StagingWrite;
+			// Apple GPUs share one memory with the CPU, so a shared buffer is as fast for the GPU as a private one, and the CPU writes it
+			// without a staging copy. Every mapped placement is shared. Buffers the GPU writes stay private, which transient heaps require.
+			// TODO - Transient GpuBufferMemory::Device buffers the GPU doesn't write are shared, so they have no transient heap pool
+			const bool isStaging = information.Type == GpuBufferType::StagingRead || information.Type == GpuBufferType::StagingWrite;
+			if(isStaging)
+				return MTLStorageModeShared;
 
-			return cpuVisible ? MTLStorageModeShared : MTLStorageModePrivate;
+			const GpuBufferPlacement placement = GpuBackendUtility::GetBufferPlacement(information.Memory, information.Flags, true);
+			return placement == GpuBufferPlacement::UnmappedGpu ? MTLStorageModePrivate : MTLStorageModeShared;
 		}
 
 		MTLResourceOptions MetalUtility::GetResourceOptions(MTLStorageMode storageMode)

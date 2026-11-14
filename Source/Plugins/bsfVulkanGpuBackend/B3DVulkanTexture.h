@@ -201,8 +201,7 @@ namespace b3d
 			VkImageCreateInfo CreateInfo{};
 
 			PixelFormat InternalFormat = PF_UNKNOWN; /**< Closest pixel format supported by the device. */
-			VkMemoryPropertyFlags RequiredMemoryFlags = 0; /**< Memory properties the image memory must have. */
-			VkMemoryPropertyFlags PreferredMemoryFlags = 0; /**< Memory properties preferred for the image memory. */
+			VulkanMemoryFlags MemoryFlags; /**< Flags that choose the memory type of the image. */
 			bool DirectlyMappable = false; /**< True if the image uses linear tiling, and can be mapped by the CPU. */
 			bool SupportsGPUWrites = false; /**< True if the GPU can write to the image. */
 			bool UsesGeneralLayout = false; /**< True if the image stays in the general layout. */

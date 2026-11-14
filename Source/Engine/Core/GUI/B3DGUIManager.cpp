@@ -1135,7 +1135,7 @@ namespace b3d { namespace render
 	GUIRenderer::GUIWidgetRenderData::GUIWidgetRenderData(u64 widgetId, GpuDevice& device)
 		: WidgetId(widgetId)
 		, UniformBufferPool(device, GpuBufferCreateInformation::CreateUniform(gGUISpriteUniformBufferDefinition.GetSize()), 256)
-		, ClipRegionBufferPool(device, GpuBufferCreateInformation::CreateStructuredStorage(sizeof(ClipRegionArea), kMaxClipRegionsPerDraw, GpuBufferFlag::StoreOnCPUWithGPUAccess), 1, 4)
+		, ClipRegionBufferPool(device, GpuBufferCreateInformation::CreateStructuredStorage(sizeof(ClipRegionArea), kMaxClipRegionsPerDraw, GpuBufferFlag::None, GpuBufferMemory::Mapped), 1, 4)
 	{ }
 
 GUIRenderer::GUIRenderer()

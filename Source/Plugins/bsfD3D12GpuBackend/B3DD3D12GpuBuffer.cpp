@@ -257,7 +257,8 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mDevice);
 
 	const GpuBufferInformation& information = GetInformation();
-	const D3D12_HEAP_TYPE heapType = D3D12Utility::GetHeapType(information.Type, information.Flags);
+	const D3D12HeapProperties heapProperties = device.GetBufferHeapProperties(information.Type, information.Memory, information.Flags);
+	const D3D12_HEAP_TYPE heapType = heapProperties.Type;
 
 	const u32 bufferSize = GetSliceSize(information, mTotalSize);
 	const D3D12_RESOURCE_FLAGS resourceFlags = D3D12Utility::GetBufferResourceFlags(information.Flags);
@@ -290,11 +291,14 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 		GpuAllocation placedAllocation;
 		HRESULT result = device.CreateResource(GetResourceDescription(bufferSize, resourceFlags, device.IsTightAlignmentSupported()), allocation, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, resource, placedAllocation);
 
+		// The heap can differ from the requested one: a GPU upload heap can be a custom or a default heap (see D3D12HeapBackend::CreateHeap())
+		const D3D12_HEAP_TYPE placedHeapType = ToD3D12GpuHeap(allocation.Heap).Type;
+
 		void* mappedData = nullptr;
-		if(SUCCEEDED(result) && (heapType == D3D12_HEAP_TYPE_UPLOAD || heapType == D3D12_HEAP_TYPE_READBACK))
+		if(SUCCEEDED(result) && placedHeapType != D3D12_HEAP_TYPE_DEFAULT)
 		{
 			D3D12_RANGE readRange = {};
-			if(heapType == D3D12_HEAP_TYPE_READBACK)
+			if(placedHeapType == D3D12_HEAP_TYPE_CUSTOM)
 				readRange.End = (SIZE_T)bufferSize;
 
 			result = resource->Map(0, &readRange, &mappedData);
@@ -311,7 +315,7 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 			return;
 		}
 
-		mBuffer = device.GetResourceManager().Create<D3D12Buffer>(allocation, std::move(resource), heapType, mappedData, mName);
+		mBuffer = device.GetResourceManager().Create<D3D12Buffer>(allocation, std::move(resource), placedHeapType, mappedData, mName);
 		SetCurrentAllocation(allocation);
 	}
 	else
@@ -328,7 +332,9 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 			return;
 		}
 
-		B3D_ASSERT(D3D12BufferPool::GetMemoryType(static_cast<D3D12BufferPage*>(allocation.Heap)->GetHeapType(), static_cast<D3D12BufferPage*>(allocation.Heap)->GetFlags()) == D3D12BufferPool::GetMemoryType(heapType, resourceFlags) && "Allocation's memory type cannot back the buffer.");
+		const D3D12BufferPageCreateInformation& pageCreateInformation = static_cast<D3D12BufferPage*>(allocation.Heap)->GetCreateInformation();
+		B3D_ASSERT(D3D12BufferPool::GetPageClass(pageCreateInformation.HeapProperties, pageCreateInformation.Flags) == D3D12BufferPool::GetPageClass(heapProperties, resourceFlags) &&
+			"Allocation's page class cannot back the buffer.");
 
 		mBuffer = device.GetResourceManager().Create<D3D12Buffer>(allocation, mName);
 		SetCurrentAllocation(allocation);
@@ -369,7 +375,7 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 	if(information.Type == GpuBufferType::SimpleStorage || information.Type == GpuBufferType::StructuredStorage || information.Type == GpuBufferType::Vertex)
 	{
 		GetOrCreateView(GpuBufferViewType::Typed, BF_UNKNOWN, ViewType::SRV);
-		if(information.Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU))
+		if(information.Flags.IsSet(GpuBufferFlag::GpuWrite))
 			GetOrCreateView(GpuBufferViewType::Typed, BF_UNKNOWN, ViewType::UAV);
 	}
 
@@ -420,7 +426,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferViewType vi
 	if(type != ViewType::CBV && !supportsShaderViews)
 		return {};
 
-	if(type == ViewType::UAV && !information.Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU))
+	if(type == ViewType::UAV && !information.Flags.IsSet(GpuBufferFlag::GpuWrite))
 		return {};
 
 	// Raw views address 32-bit words and have no structure stride

@@ -59,14 +59,14 @@ namespace b3d
 	template <typename A, typename B>
 	std::common_type_t<A, B> Gcd(const A& a, const B& b)
 	{
-		return (b == 0) ? a : gcd(b, a % b);
+		return (b == 0) ? a : Gcd(b, a % b);
 	}
 
 	/** Helper method for implementing Math::Lcm. */
 	template <typename A, typename B>
 	std::common_type_t<A, B> Lcm(const A& a, const B& b)
 	{
-		return (a * b) / gcd(a, b);
+		return (a / Gcd(a, b)) * b;
 	}
 
 	/** @} */

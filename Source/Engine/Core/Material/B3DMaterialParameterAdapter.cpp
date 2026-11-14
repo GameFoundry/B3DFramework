@@ -69,7 +69,6 @@ using namespace b3d;
 struct ShaderUniformBuffer
 {
 	String Name;
-	GpuBufferFlags Flags;
 	int Size;
 	bool External;
 	u32 SequentialIdx;
@@ -260,7 +259,6 @@ Vector<ShaderUniformBuffer> DetermineValidShareableUniformBuffers(const Vector<T
 
 		ShaderUniformBuffer shaderBlockDesc;
 		shaderBlockDesc.External = false;
-		shaderBlockDesc.Flags = GpuBufferFlag::StoreOnGPU;
 		shaderBlockDesc.Size = curBlock.Size * sizeof(u32);
 		shaderBlockDesc.Name = entry.first;
 		shaderBlockDesc.Set = curBlock.Set;
@@ -270,7 +268,6 @@ Vector<ShaderUniformBuffer> DetermineValidShareableUniformBuffers(const Vector<T
 		if(iterFind != shaderUniformInformation.end())
 		{
 			shaderBlockDesc.External = iterFind->second.Shared || iterFind->second.RendererSemantic != StringID::kNone;
-			shaderBlockDesc.Flags = iterFind->second.Flags;
 		}
 
 		output.push_back(shaderBlockDesc);
@@ -550,7 +547,7 @@ TMaterialParameterAdapter<IsRenderProxy>::TMaterialParameterAdapter(const TShare
 		// Zero size: no program uses the buffer, so its size is unknown and it doesn't need contents
 		UniformBufferPointerType newUniformBuffer;
 		if(!uniformBufferData.External && uniformBufferData.Size > 0)
-			newUniformBuffer = CreateGpuBuffer<UniformBufferType>(GpuBufferCreateInformation::CreateUniform(uniformBufferData.Size, uniformBufferData.Flags));
+			newUniformBuffer = CreateGpuBuffer<UniformBufferType>(GpuBufferCreateInformation::CreateUniform(uniformBufferData.Size, GpuBufferMemory::Device));
 
 		uniformBufferData.SequentialIdx = (u32)mUniformBuffers.size();
 

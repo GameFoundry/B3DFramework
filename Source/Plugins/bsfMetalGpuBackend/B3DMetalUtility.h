@@ -111,10 +111,9 @@ namespace b3d
 			static MTLPixelFormat GetBufferFormat(GpuBufferFormat format);
 
 			/**
-			 * Maps a buffer's engine usage (type + flags) to the MTLStorageMode of its backing
-			 * memory. Buffers created with @c GpuBufferFlag::StoreOnCPUWithGPUAccess, or typed as
-			 * @c StagingRead / @c StagingWrite, are CPU-visible and use shared storage; everything
-			 * else is GPU-private.
+			 * Maps a buffer's engine usage (type + flags) to the MTLStorageMode of its backing memory. Buffers that
+			 * GpuBackendUtility::GetBufferPlacement() keeps in unmapped GPU memory are private. Every other buffer, staging buffers
+			 * included, is shared, so the CPU accesses it directly.
 			 */
 			static MTLStorageMode GetBufferStorageMode(const GpuBufferInformation& information);
 

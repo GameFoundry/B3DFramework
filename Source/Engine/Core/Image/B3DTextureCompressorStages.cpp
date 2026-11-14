@@ -445,7 +445,7 @@ namespace b3d::render
 
 	TShared<GpuBuffer> CreateTextureCompressScratchBuffer(GpuDevice& device, u32 elementCount)
 	{
-		const GpuBufferFlags flags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowUnorderedAccessOnTheGPU;
+		const GpuBufferFlags flags = GpuBufferFlag::GpuWrite;
 		return device.CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), elementCount, flags));
 	}
 

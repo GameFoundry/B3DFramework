@@ -40,12 +40,15 @@ namespace
 				!properties.Usage.IsSetAny(excludedUsage) && properties.SampleCount <= 1 && texture->GetGpuResource() != nullptr;
 		}
 
+		// Buffers in mapped memory stay in place: the GPU copies a moved buffer's contents later, which would overwrite CPU writes made
+		// through the mapping before the copy.
+		// TODO - Device buffers the device maps move anyway, with the same hazard. Revisit with virtual memory (Promptling task-TALZ5ylL).
 		const render::GpuBuffer* buffer = owner.GetBuffer();
 		const GpuBufferInformation& information = buffer->GetInformation();
 		const bool isStaging = information.Type == GpuBufferType::StagingRead || information.Type == GpuBufferType::StagingWrite;
 
 		return buffer->IsInitialized() && !buffer->HasFixedLocation() && buffer->GetFrameGraphResourceIndex() == ~0u &&
-			!information.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess) && !isStaging && buffer->GetGpuResource() != nullptr;
+			information.Memory == GpuBufferMemory::Device && !isStaging && buffer->GetGpuResource() != nullptr;
 	}
 
 	/** Returns the native resource of the texture or buffer that owns an allocation. */

@@ -48,7 +48,7 @@ namespace b3d::render
 			BufferType Type; /**< Buffer type enum. */
 			String UniformBufferParameterName; /**< Name for parameter set binding (e.g., "PerObject"). */
 			u32 BufferSize; /**< Size of each suballocation in bytes. */
-			GpuBufferFlag Flags; /**< Buffer creation flags. */
+			GpuBufferMemory Memory; /**< Memory the buffers are placed in. */
 		};
 
 		/** Configuration for registering a pool type. Each pool can allocate one or multiple buffers. */

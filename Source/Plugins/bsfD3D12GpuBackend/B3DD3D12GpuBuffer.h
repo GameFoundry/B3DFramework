@@ -144,7 +144,7 @@ namespace b3d
 			/**
 			 * Returns a CPU descriptor handle for an unordered access view (UAV) of the buffer, viewing it as a writable
 			 * storage buffer. Returns a zeroed handle if the buffer cannot be viewed this way, or was not created with
-			 * AllowUnorderedAccessOnTheGPU.
+			 * GpuBufferFlag::GpuWrite.
 			 *
 			 * @param	viewType	How the view interprets the buffer contents. Only structured storage buffers can be viewed as raw.
 			 * @param	format		Element format of a typed view of a simple storage buffer, or BF_UNKNOWN for the buffer's own

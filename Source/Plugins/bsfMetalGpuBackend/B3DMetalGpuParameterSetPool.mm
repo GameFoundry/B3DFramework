@@ -150,9 +150,9 @@ namespace b3d
 		id<MTLBuffer> MetalGpuParameterSetPool::AllocateBuffer(u64 size, GpuAllocation& outAllocation)
 		{
 			MetalHeapAllocator& heapAllocator = mDevice.GetHeapAllocator();
-			const u32 memoryType = MetalHeapAllocator::kMemoryTypeShared;
+			const MetalMemoryType memoryType = MetalMemoryType::Shared;
 
-			return heapAllocator.AllocateBuffer(size, memoryType, GpuAllocation::CreatePending(heapAllocator.GetAllocator(memoryType)), outAllocation);
+			return heapAllocator.AllocateBuffer(size, memoryType, GpuAllocation::CreatePending(heapAllocator.GetGpuMemoryAllocator(memoryType)), outAllocation);
 		}
 	} // namespace render
 } // namespace b3d
