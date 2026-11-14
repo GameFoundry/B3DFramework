@@ -53,7 +53,7 @@ void D3D12HeadlessRenderWindowSurface::CreateSurfaceResources()
 	for (u32 imageIndex = 0; imageIndex < mBackBufferCount; imageIndex++)
 	{
 		GpuAllocation allocation;
-		const HRESULT result = mDevice.CreateResource(colorDescription, D3D12_HEAP_TYPE_DEFAULT, D3D12_BARRIER_LAYOUT_UNDEFINED, &colorClearValue, mColorBuffers[imageIndex], allocation);
+		const HRESULT result = mDevice.CreateResource(colorDescription, D3D12GpuDevice::GetTextureHeapClass(colorDescription), D3D12_BARRIER_LAYOUT_UNDEFINED, &colorClearValue, mColorBuffers[imageIndex], allocation);
 		if (FAILED(result))
 		{
 			B3D_LOG(Error, LogRenderBackend, "Failed to create headless D3D12 color image {0}: HRESULT={1}", imageIndex, (u32)result);
@@ -98,7 +98,7 @@ void D3D12HeadlessRenderWindowSurface::CreateSurfaceResources()
 		depthStencilClearValue.DepthStencil.Depth = 1.0f;
 
 		GpuAllocation allocation;
-		const HRESULT result = mDevice.CreateResource(depthStencilDescription, D3D12_HEAP_TYPE_DEFAULT, D3D12_BARRIER_LAYOUT_UNDEFINED, &depthStencilClearValue, mDepthStencilBuffer, allocation);
+		const HRESULT result = mDevice.CreateResource(depthStencilDescription, D3D12GpuDevice::GetTextureHeapClass(depthStencilDescription), D3D12_BARRIER_LAYOUT_UNDEFINED, &depthStencilClearValue, mDepthStencilBuffer, allocation);
 		if (FAILED(result))
 		{
 			B3D_LOG(Error, LogRenderBackend, "Failed to create headless D3D12 depth-stencil image: HRESULT={0}", (u32)result);

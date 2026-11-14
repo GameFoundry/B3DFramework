@@ -12,72 +12,67 @@ D3D12HeapBackend::D3D12HeapBackend(D3D12GpuDevice& device)
 
 D3D12HeapBackend::~D3D12HeapBackend() = default;
 
+namespace
+{
+	/** Returns a description of @p memory for log messages. */
+	const char* GetHeapMemoryDescription(const D3D12HeapMemory& memory)
+	{
+		if(memory.CpuPageProperty == D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE)
+			return "unmapped GPU memory, written through staging buffers";
+
+		return memory.MemoryPool == D3D12_MEMORY_POOL_L0 ? "system memory" : "mapped GPU memory";
+	}
+}
+
 IGpuHeap* D3D12HeapBackend::CreateHeap(u64 sizeInBytes, const D3D12HeapCreateInformation& createInformation)
 {
 	D3D12_HEAP_DESC heapDesc = {};
 	heapDesc.SizeInBytes = sizeInBytes;
-	heapDesc.Properties.Type = createInformation.Properties.Type;
-	heapDesc.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	heapDesc.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	heapDesc.Properties.Type = D3D12_HEAP_TYPE_CUSTOM;
+	heapDesc.Properties.CPUPageProperty = createInformation.Memory.CpuPageProperty;
+	heapDesc.Properties.MemoryPoolPreference = createInformation.Memory.MemoryPool;
 	heapDesc.Properties.CreationNodeMask = 0;
 	heapDesc.Properties.VisibleNodeMask = 0;
 	heapDesc.Alignment = createInformation.Alignment;
 	heapDesc.Flags = createInformation.Flags | D3D12_HEAP_FLAG_CREATE_NOT_ZEROED;
 
-	if(heapDesc.Properties.Type == D3D12_HEAP_TYPE_CUSTOM)
+	D3D12HeapMemory memory = createInformation.Memory;
+	const auto fnFallBack = [&heapDesc, &memory, &createInformation]()
 	{
-		heapDesc.Properties.CPUPageProperty = createInformation.Properties.CpuPageProperty;
-		heapDesc.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
-	}
-
-	// Data the CPU writes is in GPU upload heaps only while it leaves a tenth of the budget to resources that must be in GPU memory. Otherwise
-	// the heap falls back as its create information asks (see D3D12HeapFallback). The system memory fallback is a custom heap rather than an
-	// upload heap, since GPU copies can write it (GPU memory defragmentation moves buffers into it).
-	const bool fallsBackToUnmappedGpuMemory = createInformation.Properties.Fallback == D3D12HeapFallback::UnmappedGpuMemory;
-	const char* fallbackDescription = fallsBackToUnmappedGpuMemory ? "unmapped GPU memory, written through staging buffers" : "system memory";
-	const auto fnFallBack = [&heapDesc, fallsBackToUnmappedGpuMemory]()
-	{
-		if(fallsBackToUnmappedGpuMemory)
-		{
-			heapDesc.Properties.Type = D3D12_HEAP_TYPE_DEFAULT;
-			heapDesc.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-			heapDesc.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-		}
-		else
-		{
-			heapDesc.Properties.Type = D3D12_HEAP_TYPE_CUSTOM;
-			heapDesc.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
-			heapDesc.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
-		}
+		memory = *createInformation.FallbackMemory;
+		heapDesc.Properties.CPUPageProperty = memory.CpuPageProperty;
+		heapDesc.Properties.MemoryPoolPreference = memory.MemoryPool;
 	};
 
-	if(heapDesc.Properties.Type == D3D12_HEAP_TYPE_GPU_UPLOAD)
+	// A heap in GPU memory that has a fallback is only there while it leaves a tenth of the budget to heaps that must be in GPU memory
+	if(createInformation.FallbackMemory.has_value() && memory.MemoryPool == D3D12_MEMORY_POOL_L1)
 	{
 		DXGI_QUERY_VIDEO_MEMORY_INFO memoryInformation = {};
 		const bool hasMemoryInformation = SUCCEEDED(mAdapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &memoryInformation));
 		if(!hasMemoryInformation || memoryInformation.CurrentUsage + sizeInBytes > memoryInformation.Budget - memoryInformation.Budget / 10)
 		{
 			constexpr u64 kMb = 1024 * 1024;
-			B3D_LOG(Warning, LogRenderBackend, "D3D12: GPU memory is close to its budget ({0} of {1} MiB used), so a {2} MiB heap of CPU-written buffers is in "
-				"{3} instead.", memoryInformation.CurrentUsage / kMb, memoryInformation.Budget / kMb, sizeInBytes / kMb, fallbackDescription);
+			B3D_LOG(Warning, LogRenderBackend, "D3D12: GPU memory is close to its budget ({0} of {1} MiB used), so a {2} MiB heap of {3} is in {4} instead.",
+				memoryInformation.CurrentUsage / kMb, memoryInformation.Budget / kMb, sizeInBytes / kMb, GetHeapMemoryDescription(memory),
+				GetHeapMemoryDescription(*createInformation.FallbackMemory));
 			fnFallBack();
 		}
 	}
 
 	ComPtr<ID3D12Heap> nativeHeap;
 	HRESULT hr = mDevice->CreateHeap(&heapDesc, IID_PPV_ARGS(&nativeHeap));
-	if(FAILED(hr) && heapDesc.Properties.Type == D3D12_HEAP_TYPE_GPU_UPLOAD)
+	if(FAILED(hr) && createInformation.FallbackMemory.has_value() && memory != *createInformation.FallbackMemory)
 	{
-		B3D_LOG(Warning, LogRenderBackend, "D3D12: Failed to create a {0}-byte GPU upload heap (hr={1}), so its CPU-written buffers are in {2} instead.",
-			sizeInBytes, (u32)hr, fallbackDescription);
+		B3D_LOG(Warning, LogRenderBackend, "D3D12: Failed to create a {0}-byte heap of {1} (hr={2}), so it is in {3} instead.", sizeInBytes,
+			GetHeapMemoryDescription(memory), (u32)hr, GetHeapMemoryDescription(*createInformation.FallbackMemory));
 		fnFallBack();
 		hr = mDevice->CreateHeap(&heapDesc, IID_PPV_ARGS(&nativeHeap));
 	}
 
 	if(FAILED(hr))
 	{
-		B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to create {0}-byte GPU heap (hr={1}, type={2}, flags={3}, alignment={4}).",
-			sizeInBytes, (u32)hr, (u32)createInformation.Properties.Type, (u32)heapDesc.Flags, createInformation.Alignment);
+		B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to create {0}-byte GPU heap (hr={1}, CPU page property={2}, memory pool={3}, flags={4}, alignment={5}).",
+			sizeInBytes, (u32)hr, (u32)memory.CpuPageProperty, (u32)memory.MemoryPool, (u32)heapDesc.Flags, createInformation.Alignment);
 		return nullptr;
 	}
 
@@ -85,7 +80,7 @@ IGpuHeap* D3D12HeapBackend::CreateHeap(u64 sizeInBytes, const D3D12HeapCreateInf
 	D3D12GpuHeap* heap = mHeapPool.Allocate();
 	heap->Heap = std::move(nativeHeap);
 	heap->Size = sizeInBytes;
-	heap->Type = heapDesc.Properties.Type;
+	heap->Memory = memory;
 	heap->Flags = heapDesc.Flags;
 
 	return heap;
@@ -99,7 +94,7 @@ void D3D12HeapBackend::DestroyHeap(IGpuHeap* handle)
 	D3D12GpuHeap* heap = static_cast<D3D12GpuHeap*>(handle);
 	heap->Heap.Reset();
 	heap->Size = 0;
-	heap->Type = D3D12_HEAP_TYPE_DEFAULT;
+	heap->Memory = D3D12HeapMemory();
 	heap->Flags = D3D12_HEAP_FLAG_NONE;
 
 	Lock lock(mHeapPoolMutex);

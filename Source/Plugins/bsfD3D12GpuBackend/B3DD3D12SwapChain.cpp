@@ -174,7 +174,7 @@ void D3D12SwapChain::Initialize()
 		clearValue.DepthStencil.Depth = 1.0f;
 
 		GpuAllocation depthStencilAllocation;
-		result = mDevice.CreateResource(depthStencilDescription, D3D12_HEAP_TYPE_DEFAULT, D3D12_BARRIER_LAYOUT_UNDEFINED, &clearValue, mDepthStencilBuffer, depthStencilAllocation);
+		result = mDevice.CreateResource(depthStencilDescription, D3D12GpuDevice::GetTextureHeapClass(depthStencilDescription), D3D12_BARRIER_LAYOUT_UNDEFINED, &clearValue, mDepthStencilBuffer, depthStencilAllocation);
 
 		if (FAILED(result))
 			B3D_LOG(Error, LogRenderBackend, "Failed to create depth stencil buffer: HRESULT={0}", (u32)result);

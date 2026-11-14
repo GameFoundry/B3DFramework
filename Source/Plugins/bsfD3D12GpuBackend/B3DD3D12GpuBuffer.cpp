@@ -1,14 +1,11 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DD3D12GpuBuffer.h"
-#include "B3DD3D12BufferPool.h"
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12ResourceManager.h"
 #include "B3DD3D12Utility.h"
 #include "Managers/B3DD3D12DescriptorManager.h"
 #include "Profiling/B3DRenderStats.h"
-
-#include <numeric>
 
 using namespace b3d;
 using namespace b3d::render;
@@ -17,9 +14,6 @@ namespace
 {
 	/** Size a constant buffer view must be a multiple of. */
 	constexpr u32 kConstantBufferViewSizeAlignment = 256;
-
-	/** Least common multiple of every typed-buffer element size accepted by the backend. */
-	constexpr u32 kTypedBufferViewAlignment = 48;
 
 	/**
 	 * Converts an engine buffer element format into the DXGI format used to type a typed (simple storage) buffer
@@ -67,13 +61,8 @@ namespace
 	}
 }
 
-D3D12Buffer::D3D12Buffer(D3D12ResourceManager* owner, GpuAllocation allocation, const StringView& name)
-	: D3D12BufferResource(owner, name), mAllocation(allocation)
-{ }
-
-D3D12Buffer::D3D12Buffer(D3D12ResourceManager* owner, GpuAllocation allocation, ComPtr<ID3D12Resource> resource, D3D12_HEAP_TYPE heapType, void* mappedData,
-	const StringView& name)
-	: D3D12BufferResource(owner, name), mAllocation(allocation), mResource(std::move(resource)), mHeapType(heapType), mMappedData(mappedData)
+D3D12Buffer::D3D12Buffer(D3D12ResourceManager* owner, GpuAllocation allocation, ComPtr<ID3D12Resource> resource, void* mappedData, const StringView& name)
+	: TD3D12Resource<IGpuBufferResource>(owner, name), mAllocation(allocation), mResource(std::move(resource)), mMappedData(mappedData)
 { }
 
 D3D12Buffer::~D3D12Buffer()
@@ -87,53 +76,12 @@ D3D12Buffer::~D3D12Buffer()
 	GetDevice().FreeMemory(mAllocation);
 }
 
-ID3D12Resource* D3D12Buffer::GetD3D12Resource() const
-{
-	if(mResource != nullptr)
-		return mResource.Get();
-
-	D3D12BufferPage* const page = GetPage();
-	return page != nullptr ? page->GetD3D12Resource() : nullptr;
-}
-
-D3D12_GPU_VIRTUAL_ADDRESS D3D12Buffer::GetGPUVirtualAddress() const
-{
-	if(mResource != nullptr)
-		return mResource->GetGPUVirtualAddress();
-
-	D3D12BufferPage* const page = GetPage();
-	return page != nullptr ? page->GetGPUVirtualAddress() + mAllocation.Offset : 0;
-}
-
-D3D12BufferPage* D3D12Buffer::GetPage() const
-{
-	return mResource == nullptr && mAllocation.Heap != nullptr ? static_cast<D3D12BufferPage*>(mAllocation.Heap) : nullptr;
-}
-
-D3D12_HEAP_TYPE D3D12Buffer::GetHeapType() const
-{
-	if(mResource != nullptr)
-		return mHeapType;
-
-	D3D12BufferPage* const page = GetPage();
-	return page != nullptr ? page->GetHeapType() : D3D12_HEAP_TYPE_DEFAULT;
-}
-
-void* D3D12Buffer::GetMappedData() const
-{
-	if(mResource != nullptr)
-		return mMappedData;
-
-	D3D12BufferPage* const page = GetPage();
-	return page != nullptr && page->GetMappedData() != nullptr ? (u8*)page->GetMappedData() + mAllocation.Offset : nullptr;
-}
-
 D3D12GpuBuffer::D3D12GpuBuffer(const GpuBufferCreateInformation& createInformation, GpuDevice& device, const GpuAllocation& allocation)
 	: GpuBuffer(device, createInformation, b3d::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device), allocation)
 {
 }
 
-u32 D3D12GpuBuffer::GetSliceSize(const GpuBufferInformation& information, u32 totalSize)
+u32 D3D12GpuBuffer::GetResourceSize(const GpuBufferInformation& information, u32 totalSize)
 {
 	// Not allowed to have size 0 buffer
 	u32 bufferSize = Math::Max(totalSize, 64u);
@@ -144,33 +92,6 @@ u32 D3D12GpuBuffer::GetSliceSize(const GpuBufferInformation& information, u32 to
 		bufferSize = Math::CeilToMultiple(bufferSize, kConstantBufferViewSizeAlignment);
 
 	return bufferSize;
-}
-
-u32 D3D12GpuBuffer::GetSliceAlignment(const GpuBufferInformation& information)
-{
-	u32 viewAlignment = 4;
-	switch(information.Type)
-	{
-	case GpuBufferType::Uniform:
-		viewAlignment = kConstantBufferViewSizeAlignment;
-		break;
-	case GpuBufferType::SimpleStorage:
-		viewAlignment = kTypedBufferViewAlignment;
-		break;
-	case GpuBufferType::StructuredStorage:
-		viewAlignment = information.StructuredStorage.ElementSize;
-		break;
-	case GpuBufferType::Vertex:
-		viewAlignment = information.Vertex.ElementSize;
-		break;
-	case GpuBufferType::Index:
-		viewAlignment = information.Index.Type == IT_32BIT ? 4 : 2;
-		break;
-	default:
-		break;
-	}
-
-	return std::lcm(viewAlignment, (u32)D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
 }
 
 D3D12_RESOURCE_DESC D3D12GpuBuffer::GetResourceDescription(u64 size, D3D12_RESOURCE_FLAGS flags, bool useTightAlignment)
@@ -255,91 +176,58 @@ void D3D12GpuBuffer::RecreateInternalBuffer()
 	mResourceGeneration++;
 
 	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mDevice);
-
 	const GpuBufferInformation& information = GetInformation();
-	const D3D12HeapProperties heapProperties = device.GetBufferHeapProperties(information.Type, information.Memory, information.Flags);
-	const D3D12_HEAP_TYPE heapType = heapProperties.Type;
 
-	const u32 bufferSize = GetSliceSize(information, mTotalSize);
-	const D3D12_RESOURCE_FLAGS resourceFlags = D3D12Utility::GetBufferResourceFlags(information.Flags);
-
-	// A buffer in a native heap is a placed resource of its own. With tight alignment, the persistent allocator of a buffer
-	// places it in a native heap, while other allocators place it on a slice of a buffer page.
-	bool isPlaced;
-	if(mRequestedAllocation.HasMemory())
-		isPlaced = GetD3D12HeapKind(mRequestedAllocation.Heap) == D3D12HeapKind::Heap;
-	else
-		isPlaced = device.IsTightAlignmentSupported() && mRequestedAllocation.Allocator == &device.GetPersistentAllocator(device.GetMemoryRequirements(information).MemoryType);
-
-	if(isPlaced)
-	{
-		GpuAllocation allocation;
-		if(!mRequestedAllocation.IsPending())
-			allocation = mRequestedAllocation;
-		else
-		{
-			const GpuMemoryRequirements memoryRequirements = device.GetMemoryRequirements(information);
-			if(!mRequestedAllocation.Allocator->TryAllocate(memoryRequirements.Size, (u32)memoryRequirements.Alignment, allocation))
-			{
-				B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to allocate a placed buffer (size={0}, alignment={1}, type={2}, heapType={3}, resourceFlags={4}).",
-					memoryRequirements.Size, memoryRequirements.Alignment, (u32)information.Type, (u32)heapType, (u32)resourceFlags);
-				return;
-			}
-		}
-
-		ComPtr<ID3D12Resource> resource;
-		GpuAllocation placedAllocation;
-		HRESULT result = device.CreateResource(GetResourceDescription(bufferSize, resourceFlags, device.IsTightAlignmentSupported()), allocation, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, resource, placedAllocation);
-
-		// The heap can differ from the requested one: a GPU upload heap can be a custom or a default heap (see D3D12HeapBackend::CreateHeap())
-		const D3D12_HEAP_TYPE placedHeapType = ToD3D12GpuHeap(allocation.Heap).Type;
-
-		void* mappedData = nullptr;
-		if(SUCCEEDED(result) && placedHeapType != D3D12_HEAP_TYPE_DEFAULT)
-		{
-			D3D12_RANGE readRange = {};
-			if(placedHeapType == D3D12_HEAP_TYPE_CUSTOM)
-				readRange.End = (SIZE_T)bufferSize;
-
-			result = resource->Map(0, &readRange, &mappedData);
-		}
-
-		if(FAILED(result))
-		{
-			resource.Reset();
-			if(mRequestedAllocation.IsPending())
-				allocation.Allocator->Free(allocation);
-
-			B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to create a placed buffer (hr={0}, size={1}, type={2}, heapType={3}, resourceFlags={4}).",
-				(u32)result, bufferSize, (u32)information.Type, (u32)heapType, (u32)resourceFlags);
-			return;
-		}
-
-		mBuffer = device.GetResourceManager().Create<D3D12Buffer>(allocation, std::move(resource), placedHeapType, mappedData, mName);
-		SetCurrentAllocation(allocation);
-	}
+	GpuAllocation allocation;
+	if(!mRequestedAllocation.IsPending())
+		allocation = mRequestedAllocation;
 	else
 	{
-		const u32 alignment = GetSliceAlignment(information);
-
-		GpuAllocation allocation;
-		if(!mRequestedAllocation.IsPending())
-			allocation = mRequestedAllocation;
-		else if(!mRequestedAllocation.Allocator->TryAllocate(bufferSize, alignment, allocation))
+		const GpuMemoryRequirements memoryRequirements = device.GetMemoryRequirements(information);
+		if(!mRequestedAllocation.Allocator->TryAllocate(memoryRequirements.Size, (u32)memoryRequirements.Alignment, allocation))
 		{
-			B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to allocate a pooled buffer slice (size={0}, alignment={1}, type={2}, heapType={3}, resourceFlags={4}).",
-				bufferSize, alignment, (u32)information.Type, (u32)heapType, (u32)resourceFlags);
+			B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to allocate a buffer (size={0}, alignment={1}, type={2}, memory={3}, flags={4}).",
+				memoryRequirements.Size, memoryRequirements.Alignment, (u32)information.Type, (u32)information.Memory, (u32)information.Flags);
 			return;
 		}
-
-		const D3D12BufferPageCreateInformation& pageCreateInformation = static_cast<D3D12BufferPage*>(allocation.Heap)->GetCreateInformation();
-		B3D_ASSERT(D3D12BufferPool::GetPageClass(pageCreateInformation.HeapProperties, pageCreateInformation.Flags) == D3D12BufferPool::GetPageClass(heapProperties, resourceFlags) &&
-			"Allocation's page class cannot back the buffer.");
-
-		mBuffer = device.GetResourceManager().Create<D3D12Buffer>(allocation, mName);
-		SetCurrentAllocation(allocation);
 	}
 
+	const u32 resourceSize = GetResourceSize(information, mTotalSize);
+	const D3D12_RESOURCE_DESC resourceDescription = GetResourceDescription(resourceSize, D3D12Utility::GetBufferResourceFlags(information.Flags),
+		device.IsTightAlignmentSupported());
+
+	ComPtr<ID3D12Resource> resource;
+	GpuAllocation placedAllocation;
+	HRESULT result = device.CreateResource(resourceDescription, allocation, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, resource, placedAllocation);
+
+	// The memory can be the fallback of the requested one (see D3D12HeapBackend::CreateHeap())
+	const D3D12HeapMemory& memory = ToD3D12GpuHeap(allocation.Heap).Memory;
+
+	void* mappedData = nullptr;
+	if(SUCCEEDED(result) && memory.CpuPageProperty != D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE)
+	{
+		// The CPU only reads memory it caches, since reading write-combined memory is slow
+		D3D12_RANGE readRange = {};
+		if(memory.CpuPageProperty == D3D12_CPU_PAGE_PROPERTY_WRITE_BACK)
+			readRange.End = (SIZE_T)resourceSize;
+
+		result = resource->Map(0, &readRange, &mappedData);
+	}
+
+	if(FAILED(result))
+	{
+		resource.Reset();
+		if(mRequestedAllocation.IsPending())
+			allocation.Allocator->Free(allocation);
+
+		B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to create a buffer (hr={0}, size={1}, type={2}, memory={3}, flags={4}).", (u32)result, resourceSize,
+			(u32)information.Type, (u32)information.Memory, (u32)information.Flags);
+		return;
+	}
+
+	mBuffer = device.GetResourceManager().Create<D3D12Buffer>(allocation, std::move(resource), mappedData, mName);
+	SetCurrentAllocation(allocation);
+	mMappedMemory = (u8*)mBuffer->GetMappedData();
 	mMappedMemory = (u8*)mBuffer->GetMappedData();
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
@@ -518,7 +406,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferViewType vi
 		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
 		uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
 		uavDesc.Format = viewFormat;
-		uavDesc.Buffer.FirstElement = mBuffer->GetOffset() / elementStride;
+		uavDesc.Buffer.FirstElement = 0;
 		uavDesc.Buffer.NumElements = elementCount;
 		uavDesc.Buffer.StructureByteStride = isStructured ? elementStride : 0;
 		uavDesc.Buffer.CounterOffsetInBytes = 0;
@@ -532,7 +420,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferViewType vi
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		srvDesc.Format = viewFormat;
-		srvDesc.Buffer.FirstElement = mBuffer->GetOffset() / elementStride;
+		srvDesc.Buffer.FirstElement = 0;
 		srvDesc.Buffer.NumElements = elementCount;
 		srvDesc.Buffer.StructureByteStride = isStructured ? elementStride : 0;
 		srvDesc.Buffer.Flags = isRaw ? D3D12_BUFFER_SRV_FLAG_RAW : D3D12_BUFFER_SRV_FLAG_NONE;

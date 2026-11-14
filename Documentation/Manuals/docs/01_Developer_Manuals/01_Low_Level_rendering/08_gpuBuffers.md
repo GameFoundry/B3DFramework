@@ -70,7 +70,7 @@ Mapped GPU memory is limited: on integrated GPUs the part reserved for the GPU c
 
 The @b3d::GpuBufferFlag flags describe how the GPU uses a buffer, independently of its memory:
  - @b3d::GpuBufferFlag::None - Shaders only read the buffer. GPU copies can still write it.
- - @b3d::GpuBufferFlag::GpuWrite - Shaders write the buffer (see load-store buffers below). With `Mapped` or `MappedCached`, shaders write the mapped memory directly, which D3D12 doesn't support yet: it fails to create such buffers.
+ - @b3d::GpuBufferFlag::GpuWrite - Shaders write the buffer (see load-store buffers below). With `Mapped` or `MappedCached`, shaders write the mapped memory directly.
  - @b3d::GpuBufferFlag::Bindless - The buffer is accessed through the bindless heap.
  - @b3d::GpuBufferFlag::AccelerationStructureInput - The buffer holds geometry or instances an acceleration structure is built from.
 

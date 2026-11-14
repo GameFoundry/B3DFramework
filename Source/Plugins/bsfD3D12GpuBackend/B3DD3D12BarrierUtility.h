@@ -49,9 +49,6 @@ namespace b3d
 			/** Converts a logical texture use into a native enhanced-barrier scope. */
 			static D3D12BarrierScope GetTextureScope(GpuStageFlags stages, GpuAccessFlags access, GpuImageLayout layout, GpuTextureAspectFlags aspects);
 
-			/** Builds a native global barrier using buffer access semantics. */
-			static D3D12_GLOBAL_BARRIER GetGlobalBufferBarrier(D3D12_RESOURCE_FLAGS resourceFlags, const GpuBarrierScope& scope);
-
 			/**
 			 * Builds a native global barrier for an alias acquire. Its source scope belongs to earlier resources on the memory, whose type and layout
 			 * are unknown, so accesses are derived from the stages alone. Accesses only textures perform (render target, depth-stencil and resolve)
@@ -61,12 +58,6 @@ namespace b3d
 			 * @param	scope	Last accesses of the earlier resources, and first accesses of the acquiring resources.
 			 */
 			static D3D12_GLOBAL_BARRIER GetAliasGlobalBarrier(const GpuBarrierScope& scope);
-
-			/**
-			 * Extends @p target so it also orders everything @p source orders. A target with no synchronization and no access on either side
-			 * (D3D12_BARRIER_ACCESS_NO_ACCESS) is empty, and takes on @p source.
-			 */
-			static void MergeGlobalBarrier(D3D12_GLOBAL_BARRIER& target, const D3D12_GLOBAL_BARRIER& source);
 
 			/** Builds a whole-resource native buffer barrier. */
 			static D3D12_BUFFER_BARRIER GetBufferBarrier(ID3D12Resource* resource, const GpuBarrierScope& scope);

@@ -8,6 +8,7 @@
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DGpuBackend.h"
+#include "GpuBackend/Allocators/B3DGpuLinearAllocator.h"
 #include "GpuBackend/Allocators/B3DGpuTlsfAllocator.h"
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
@@ -95,23 +96,24 @@ namespace b3d
 			/** Returns a manager that owns the lifetime of manager-allocated D3D12 GPU resources. */
 			D3D12ResourceManager& GetResourceManager() const { return *mResourceManager; }
 
-
 			/**
-			 * Returns true if placed buffers use tight alignment. Buffers are then placed resources of their own in persistent
-			 * memory too, rather than slices of buffer pages.
+			 * Returns true if buffers use tight alignment. Without it, every buffer is at least 64 KB in size and aligned to 64 KB, since each
+			 * buffer is a placed resource of its own.
 			 */
 			bool IsTightAlignmentSupported() const { return mIsTightAlignmentSupported; }
 
 			/**
-			 * Returns the properties of the heap a buffer of @p type, @p memory and @p flags is placed in, following GpuBackendUtility::GetBufferPlacement().
-			 * Mapped GPU memory is a GPU upload heap with Resizable BAR, and a custom heap on unified memory. Mapped system memory is a
-			 * write-combined custom heap, which GPU copies can write, unlike an upload heap. Staging buffers are in custom heaps with the
-			 * properties of upload and readback heaps, for the same reason. Once GPU memory is close to its budget, a GPU upload heap holding GpuBufferMemory::Device buffers is a default heap, and
-			 * one holding GpuBufferMemory::Mapped buffers a write-combined custom heap (see D3D12HeapBackend::CreateHeap()), so the heap of
-			 * a buffer can differ. Mapped heaps have no buffer pages for unordered access
-			 * views, so their memory requirements report mapped buffers the GPU writes as unsupported.
+			 * Returns the class of heaps a buffer of @p type, @p memory and @p flags is placed in, following GpuBackendUtility::GetBufferPlacement().
+			 * Mapped GPU memory is the memory of a GPU upload heap: GPU memory with Resizable BAR, and system memory on unified memory. Mapped
+			 * system memory and staging buffers are in the memory of upload and readback heaps, which unlike those heaps GPU copies can both
+			 * read and write. Once GPU memory is close to its budget, mapped GPU memory holding GpuBufferMemory::Device buffers falls back to
+			 * default memory, and mapped GPU memory holding GpuBufferMemory::Mapped buffers to the memory of an upload heap (see
+			 * D3D12HeapBackend::CreateHeap()), so the memory of a buffer can differ.
 			 */
-			D3D12HeapProperties GetBufferHeapProperties(GpuBufferType type, GpuBufferMemory memory, GpuBufferFlags flags) const;
+			D3D12HeapClass GetBufferHeapClass(GpuBufferType type, GpuBufferMemory memory, GpuBufferFlags flags) const;
+
+			/** Returns the class of heaps a texture described by @p resourceDesc is placed in. */
+			static D3D12HeapClass GetTextureHeapClass(const D3D12_RESOURCE_DESC& resourceDesc);
 
 			/**
 			 * Returns true if the CPU can write the GPU's memory directly while the GPU still reads it at full speed: GPU upload heaps on
@@ -120,13 +122,10 @@ namespace b3d
 			bool HasFullSpeedMappableGpuMemory() const { return mHasFullSpeedMappableGpuMemory; }
 
 			/**
-			 * Creates a resource using the heap pool matching @p heapProperties. When valid, @p outAllocation owns the suballocation and must be
-			 * released with FreeMemory after the native resource is destroyed.
+			 * Creates a resource in a heap of @p heapClass. When valid, @p outAllocation owns the suballocation and must be released with
+			 * FreeMemory after the native resource is destroyed.
 			 */
-			HRESULT CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, const D3D12HeapProperties& heapProperties, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuAllocation& outAllocation);
-
-			/** Creates a resource in a heap of @p heapType using the matching heap pool. See the overload taking a D3D12HeapProperties. */
-			HRESULT CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, D3D12_HEAP_TYPE heapType, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuAllocation& outAllocation);
+			HRESULT CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, D3D12HeapClass heapClass, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuAllocation& outAllocation);
 
 			/**
 			 * Creates a resource placed at @p requestedAllocation. A pending allocation suballocates from its allocator, which must
@@ -135,7 +134,7 @@ namespace b3d
 			 */
 			HRESULT CreateResource(const D3D12_RESOURCE_DESC& resourceDesc, const GpuAllocation& requestedAllocation, D3D12_BARRIER_LAYOUT initialLayout, const D3D12_CLEAR_VALUE* optimizedClearValue, ComPtr<ID3D12Resource>& outResource, GpuAllocation& outAllocation);
 
-			/** Releases a TLSF suballocation if it is owned. The native resource using it must already have been destroyed. */
+			/** Releases a suballocation if it is owned. The native resource using it must already have been destroyed. */
 			void FreeMemory(GpuAllocation& allocation);
 
 			/**
@@ -182,12 +181,17 @@ namespace b3d
 			void SetIsPrimary() { mIsPrimary = true; }
 
 			using GpuMemoryAllocator = TGpuTlsfAllocator<D3D12HeapBackend>;
+			using LinearPagePool = TGpuLinearPagePool<D3D12HeapBackend>;
+			using ScratchAllocator = TGpuLinearAllocator<D3D12HeapBackend>;
 
-			/** Returns the class of heaps that hold the specified resource in a heap with @p heapProperties, or Count when unsupported. */
-			static D3D12HeapClass GetHeapClass(const D3D12_RESOURCE_DESC& resourceDesc, const D3D12HeapProperties& heapProperties);
+			/** Returns how heaps of @p heapClass are created. */
+			D3D12HeapCreateInformation GetHeapCreateInformation(D3D12HeapClass heapClass) const;
 
 			/** Lazily creates and returns the allocator of heaps of @p heapClass. */
 			GpuMemoryAllocator& GetOrCreateGpuMemoryAllocator(D3D12HeapClass heapClass);
+
+			/** Lazily creates and returns the scratch page pool of heaps of @p heapClass, which must be a buffer class. */
+			LinearPagePool& GetOrCreateLinearPagePool(D3D12HeapClass heapClass);
 
 			ComPtr<ID3D12Device> mDevice;
 			ComPtr<ID3D12Device10> mEnhancedDevice;
@@ -196,15 +200,18 @@ namespace b3d
 			bool mIsTightAlignmentSupported = false;
 			bool mSupportsBindlessResources = false;
 			bool mHasFullSpeedMappableGpuMemory = false;
-			D3D12_CPU_PAGE_PROPERTY mMappedGpuPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK; /**< CPU page property of the custom heaps holding mapped GPU memory on unified memory. */
-			D3D12_CPU_PAGE_PROPERTY mStagingWritePageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE; /**< CPU page property of the custom heaps holding staging buffers the CPU writes, that of an upload heap. */
-			D3D12_CPU_PAGE_PROPERTY mStagingReadPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK; /**< CPU page property of the custom heaps holding staging buffers the CPU reads, that of a readback heap. */
+			D3D12HeapMemory mDefaultHeapMemory; /**< Memory of a default heap. */
+			D3D12HeapMemory mGpuUploadHeapMemory; /**< Memory of a GPU upload heap: GPU memory the CPU writes, or system memory on unified memory. */
+			D3D12HeapMemory mUploadHeapMemory; /**< Memory of an upload heap. */
+			D3D12HeapMemory mReadbackHeapMemory; /**< Memory of a readback heap. */
 
 			D3D12DescriptorManager* mDescriptorManager = nullptr;
 			D3D12ResourceManager* mResourceManager = nullptr;
 			TUnique<D3D12HeapBackend> mHeapBackend;
-			TUnique<D3D12BufferPool> mBufferPool;
 			TUnique<GpuMemoryAllocator> mGpuMemoryAllocators[(u32)D3D12HeapClass::Count];
+			TUnique<LinearPagePool> mLinearPagePools[(u32)D3D12HeapClass::Count];
+
+			/** Guards lazy creation of persistent allocators and scratch page pools. */
 			Mutex mGpuMemoryAllocatorMutex;
 
 			/** Transient heap pool of every GPU-only buffer and texture memory type, owned by GpuDevice. */

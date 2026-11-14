@@ -15,48 +15,32 @@ namespace b3d
 		 */
 
 		/**
-		 * Wraps a native D3D12 buffer: either a slice of a pooled native buffer resource, or a placed resource of its own in
-		 * a native heap. Lifetime is owned by the device's resource manager and released via IGpuResource::Destroy(),
-		 * deferred until the GPU is done with the resource.
+		 * Wraps a native D3D12 buffer, a placed resource of its own in a native heap. Lifetime is owned by the device's resource manager and
+		 * released via IGpuResource::Destroy(), deferred until the GPU is done with the resource.
 		 */
-		class D3D12Buffer : public D3D12BufferResource
+		class D3D12Buffer : public TD3D12Resource<IGpuBufferResource>
 		{
 		public:
-			/** Creates a logical buffer on a slice of a buffer page, owning @p allocation until its tracked GPU uses complete. */
-			D3D12Buffer(D3D12ResourceManager* owner, GpuAllocation allocation, const StringView& name = "");
-
 			/**
-			 * Creates a buffer that owns @p resource, placed at @p allocation in a native heap of type @p heapType. Owns
-			 * @p allocation until its tracked GPU uses complete, if the allocation is owned. @p mappedData is the persistent
-			 * CPU mapping of the resource, or null.
+			 * Creates a buffer that owns @p resource, placed at @p allocation. Owns @p allocation until its tracked GPU uses complete, if the
+			 * allocation is owned. @p mappedData is the persistent CPU mapping of the resource, or null.
 			 */
-			D3D12Buffer(D3D12ResourceManager* owner, GpuAllocation allocation, ComPtr<ID3D12Resource> resource, D3D12_HEAP_TYPE heapType, void* mappedData,
-				const StringView& name = "");
+			D3D12Buffer(D3D12ResourceManager* owner, GpuAllocation allocation, ComPtr<ID3D12Resource> resource, void* mappedData, const StringView& name = "");
 			~D3D12Buffer() override;
 
 			/** Returns the native D3D12 resource. */
-			ID3D12Resource* GetD3D12Resource() const override;
+			ID3D12Resource* GetD3D12Resource() const { return mResource.Get(); }
 
 			/** Returns the GPU virtual address of the buffer. */
-			D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() const;
+			D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() const { return mResource->GetGPUVirtualAddress(); }
 
-			/** Returns the native page shared by this buffer slice and other compatible slices, or null for a placed buffer. */
-			D3D12BufferPage* GetPage() const override;
-
-			/** Returns the byte offset of this buffer from the start of its native resource. */
-			u64 GetOffset() const { return mResource != nullptr ? 0 : mAllocation.Offset; }
-
-			/** Returns the native heap type of the memory the buffer is in. */
-			D3D12_HEAP_TYPE GetHeapType() const override;
-
-			/** Returns the persistent CPU mapping of the buffer, or null for device-local buffers. */
-			void* GetMappedData() const;
+			/** Returns the persistent CPU mapping of the buffer, or null for buffers in memory the CPU can't access. */
+			void* GetMappedData() const { return mMappedData; }
 
 		private:
 			GpuAllocation mAllocation;
-			ComPtr<ID3D12Resource> mResource; /**< Placed resource, or null if the buffer is a slice of a page. */
-			D3D12_HEAP_TYPE mHeapType = D3D12_HEAP_TYPE_DEFAULT; /**< Heap type of the placed resource. */
-			void* mMappedData = nullptr; /**< Persistent CPU mapping of the placed resource. */
+			ComPtr<ID3D12Resource> mResource;
+			void* mMappedData = nullptr;
 		};
 
 		/** DirectX 12 implementation of a GPU buffer. */
@@ -85,7 +69,7 @@ namespace b3d
 			};
 
 		public:
-			/** Creates an uninitialized D3D12 buffer whose native slice is placed at @p allocation. See GpuDevice::CreateGpuBuffer(). */
+			/** Creates an uninitialized D3D12 buffer whose native resource is placed at @p allocation. See GpuDevice::CreateGpuBuffer(). */
 			D3D12GpuBuffer(const GpuBufferCreateInformation& createInformation, GpuDevice& device, const GpuAllocation& allocation);
 			~D3D12GpuBuffer() override;
 
@@ -152,18 +136,11 @@ namespace b3d
 			 */
 			D3D12_CPU_DESCRIPTOR_HANDLE GetUAVHandle(GpuBufferViewType viewType = GpuBufferViewType::Typed, GpuBufferFormat format = BF_UNKNOWN) const;
 
-			/** Returns the size of the native slice backing a buffer described by @p information, of @p totalSize bytes. */
-			static u32 GetSliceSize(const GpuBufferInformation& information, u32 totalSize);
+			/** Returns the size of the native resource of a buffer described by @p information, of @p totalSize bytes. */
+			static u32 GetResourceSize(const GpuBufferInformation& information, u32 totalSize);
 
 			/**
-			 * Returns an alignment that keeps the pooled slice valid for every native view and copy footprint the logical
-			 * buffer may use. The copy alignment is included for every buffer so a later buffer-to-image operation never
-			 * depends on how the buffer was originally classified.
-			 */
-			static u32 GetSliceAlignment(const GpuBufferInformation& information);
-
-			/**
-			 * Returns the description of a placed buffer resource of @p size bytes with @p flags. The same description must be
+			 * Returns the description of a buffer resource of @p size bytes with @p flags. The same description must be
 			 * used to query the resource's size and alignment, and to create it.
 			 *
 			 * @param	size				Size of the buffer, in bytes.

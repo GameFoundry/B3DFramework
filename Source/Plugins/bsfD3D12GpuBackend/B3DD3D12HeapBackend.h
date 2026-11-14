@@ -18,92 +18,56 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** Kind of memory a heap handle of the D3D12 backend refers to. */
-	enum class D3D12HeapKind : u8
+	/** Memory of a native heap. Every heap is a custom heap, so its memory is a CPU page property and a memory pool. */
+	struct D3D12HeapMemory
 	{
-		Heap, /**< A native heap, in which resources are placed. See D3D12GpuHeap. */
-		BufferPage /**< A native buffer resource, of which buffers are slices. See render::D3D12BufferPage. */
-	};
-
-	/** Base of every heap handle of the D3D12 backend. Identifies the kind of memory the handle refers to. */
-	struct D3D12HeapBase : IGpuHeap
-	{
-		explicit D3D12HeapBase(D3D12HeapKind kind)
-			: Kind(kind)
+		D3D12HeapMemory() = default;
+		D3D12HeapMemory(D3D12_CPU_PAGE_PROPERTY cpuPageProperty, D3D12_MEMORY_POOL memoryPool)
+			: CpuPageProperty(cpuPageProperty), MemoryPool(memoryPool)
 		{ }
 
-		D3D12HeapKind Kind;
-	};
+		bool operator==(const D3D12HeapMemory& other) const { return CpuPageProperty == other.CpuPageProperty && MemoryPool == other.MemoryPool; }
+		bool operator!=(const D3D12HeapMemory& other) const { return !(*this == other); }
 
-	/** Returns the kind of memory @p heap, a heap handle of the D3D12 backend, refers to. */
-	inline D3D12HeapKind GetD3D12HeapKind(IGpuHeap* heap)
-	{
-		B3D_ASSERT(heap != nullptr);
-		return static_cast<D3D12HeapBase*>(heap)->Kind;
-	}
+		D3D12_CPU_PAGE_PROPERTY CpuPageProperty = D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE; /**< How the CPU accesses the memory, or NOT_AVAILABLE if it can't. */
+		D3D12_MEMORY_POOL MemoryPool = D3D12_MEMORY_POOL_L1; /**< L0 for system memory (all memory on unified memory), L1 for the memory of a discrete GPU. */
+	};
 
 	/** References a native D3D12 heap used by placed resources. */
-	struct D3D12GpuHeap : D3D12HeapBase
+	struct D3D12GpuHeap : IGpuHeap
 	{
-		D3D12GpuHeap()
-			: D3D12HeapBase(D3D12HeapKind::Heap)
-		{ }
-
 		ComPtr<ID3D12Heap> Heap; /**< Backing native heap. */
 		u64 Size = 0; /**< Total heap size in bytes. */
-		D3D12_HEAP_TYPE Type = D3D12_HEAP_TYPE_DEFAULT; /**< Native memory type, which can differ from the requested one (see D3D12HeapBackend::CreateHeap()). */
+		D3D12HeapMemory Memory; /**< Memory the heap is in, which can be the fallback memory of the requested one (see D3D12HeapBackend::CreateHeap()). */
 		D3D12_HEAP_FLAGS Flags = D3D12_HEAP_FLAG_NONE; /**< Resource classes accepted by the heap. */
 	};
 
 	/** Downcasts an opaque engine heap handle to the concrete D3D12 heap it must refer to. */
 	inline D3D12GpuHeap& ToD3D12GpuHeap(IGpuHeap* heap)
 	{
-		B3D_ASSERT(GetD3D12HeapKind(heap) == D3D12HeapKind::Heap);
+		B3D_ASSERT(heap != nullptr);
 		return *static_cast<D3D12GpuHeap*>(heap);
 	}
-
-	/** Memory a GPU upload heap is created in instead where GPU memory is close to its budget, or where the heap fails to create. */
-	enum class D3D12HeapFallback
-	{
-		/**
-		 * A write-combined custom heap in system memory, the same memory as an upload heap, so its resources stay mapped. Unlike an upload
-		 * heap, GPU copies can write it.
-		 */
-		SystemMemory,
-
-		/** A default heap in GPU memory, whose resources aren't mapped. The CPU writes them through staging buffers. */
-		UnmappedGpuMemory
-	};
-
-	/** Memory of a native heap resources are placed in. */
-	struct D3D12HeapProperties
-	{
-		D3D12_HEAP_TYPE Type = D3D12_HEAP_TYPE_DEFAULT; /**< Native memory type. */
-		D3D12HeapFallback Fallback = D3D12HeapFallback::SystemMemory; /**< Memory a GPU upload heap falls back to. Ignored by other types. */
-		D3D12_CPU_PAGE_PROPERTY CpuPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN; /**< CPU page property of a custom heap, which is in memory pool L0. Ignored by other types. */
-	};
 
 	/** Initializer struct for D3D12HeapBackend::CreateHeap. */
 	struct D3D12HeapCreateInformation
 	{
-		D3D12HeapProperties Properties; /**< Memory of the heap. */
+		D3D12HeapMemory Memory; /**< Memory of the heap. */
+
+		/**
+		 * Memory the heap is in instead when Memory is in memory pool L1 and GPU memory is close to its budget, or when the heap fails to
+		 * create. No fallback if not set.
+		 */
+		TOptional<D3D12HeapMemory> FallbackMemory;
+
 		D3D12_HEAP_FLAGS Flags = D3D12_HEAP_FLAG_NONE; /**< Resource classes accepted by the heap. */
 		u64 Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT; /**< Heap alignment. */
 	};
 
-	/** Class of buffer pages that buffers are slices of. Each class has its own persistent allocator and scratch page pool. */
-	enum class D3D12PageClass : u32
-	{
-		Default,                /**< Device-local slices without unordered access. */
-		DefaultUnorderedAccess, /**< Device-local slices supporting unordered access. */
-		GpuUpload,              /**< Persistently mapped CPU-to-GPU slices in GPU memory, or in system memory once GPU memory is close to its budget. */
-		GpuUploadOrDefault,     /**< Persistently mapped CPU-to-GPU slices in GPU memory, or unmapped in default heaps once GPU memory is close to its budget. */
-		CustomWriteBack,        /**< Persistently mapped slices in custom heaps the CPU caches, of mapped and staging buffers. See render::D3D12GpuDevice::GetBufferHeapProperties(). */
-		CustomWriteCombine,     /**< Persistently mapped slices in write-combined custom heaps, of mapped and staging buffers. See render::D3D12GpuDevice::GetBufferHeapProperties(). */
-		Count                   /**< Number of page classes. */
-	};
-
-	/** Class of native heaps that resources are placed in. Each class has its own persistent allocator. */
+	/**
+	 * Class of native heaps that resources are placed in. Each class has its own persistent allocator, and buffer classes their own scratch
+	 * page pool. GpuMemoryRequirements::MemoryType reported by render::D3D12GpuDevice is the class.
+	 */
 	enum class D3D12HeapClass : u32
 	{
 		DefaultBuffer,                  /**< GPU-local buffers. */
@@ -112,41 +76,10 @@ namespace b3d
 		DefaultRenderTargetTexture,     /**< GPU-local, non-multisampled RT/DS textures. */
 		DefaultMsaaRenderTargetTexture, /**< GPU-local multisampled RT/DS textures. */
 		GpuUploadBuffer,                /**< CPU-writable buffers in GPU memory, or in system memory once GPU memory is close to its budget. */
-		GpuUploadOrDefaultBuffer,       /**< CPU-writable buffers in GPU memory, or unmapped in default heaps once GPU memory is close to its budget. */
-		CustomWriteBackBuffer,          /**< Mapped and staging buffers in custom heaps the CPU caches. */
-		CustomWriteCombineBuffer,       /**< Mapped and staging buffers in write-combined custom heaps. */
+		GpuUploadOrDefaultBuffer,       /**< CPU-writable buffers in GPU memory, or unmapped in default memory once GPU memory is close to its budget. */
+		CustomWriteBackBuffer,          /**< Mapped and staging buffers in system memory the CPU caches. */
+		CustomWriteCombineBuffer,       /**< Mapped and staging buffers in write-combined system memory. */
 		Count                           /**< Number of heap classes. */
-	};
-
-	/**
-	 * What a GpuMemoryRequirements::MemoryType reported by render::D3D12GpuDevice stands for: a class of buffer pages, or a class of heaps
-	 * that resources are placed in. Exactly one of PageClass and HeapClass is valid; the other is Count.
-	 */
-	struct D3D12MemoryType
-	{
-		explicit D3D12MemoryType(D3D12PageClass pageClass)
-			: PageClass(pageClass)
-		{ }
-
-		explicit D3D12MemoryType(D3D12HeapClass heapClass)
-			: HeapClass(heapClass)
-		{ }
-
-		/** Returns the memory type @p memoryType stands for, a GpuMemoryRequirements::MemoryType reported by render::D3D12GpuDevice. */
-		static D3D12MemoryType Decode(u32 memoryType)
-		{
-			constexpr u32 kPageClassCount = (u32)D3D12PageClass::Count;
-			return memoryType < kPageClassCount ? D3D12MemoryType((D3D12PageClass)memoryType) : D3D12MemoryType((D3D12HeapClass)(memoryType - kPageClassCount));
-		}
-
-		/** Returns the GpuMemoryRequirements::MemoryType reported for this memory type. */
-		u32 Encode() const { return PageClass != D3D12PageClass::Count ? (u32)PageClass : (u32)D3D12PageClass::Count + (u32)HeapClass; }
-
-		/** Number of distinct values Encode() can return. */
-		static constexpr u32 kEncodedCount = (u32)D3D12PageClass::Count + (u32)D3D12HeapClass::Count;
-
-		D3D12PageClass PageClass = D3D12PageClass::Count; /**< Class of buffer pages, or Count if the memory type is a heap class. */
-		D3D12HeapClass HeapClass = D3D12HeapClass::Count; /**< Class of heaps, or Count if the memory type is a page class. */
 	};
 
 	/** D3D12 implementation of the GpuHeapBackend trait. */

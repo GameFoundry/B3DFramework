@@ -35,8 +35,6 @@ namespace b3d
 		class D3D12SwapChain;
 		class D3D12Image;
 		class D3D12Buffer;
-		class D3D12BufferPage;
-		class D3D12BufferPool;
 		class D3D12ResourceManager;
 		class D3D12GpuTimelineFence;
 		class D3D12DescriptorHeap;

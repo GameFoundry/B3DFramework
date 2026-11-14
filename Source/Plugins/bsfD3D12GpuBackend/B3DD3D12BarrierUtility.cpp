@@ -173,20 +173,6 @@ D3D12_BARRIER_SYNC D3D12BarrierUtility::GetCompatibleSync(const D3D12BarrierScop
 	return D3D12_BARRIER_SYNC_ALL;
 }
 
-D3D12_GLOBAL_BARRIER D3D12BarrierUtility::GetGlobalBufferBarrier(D3D12_RESOURCE_FLAGS resourceFlags, const GpuBarrierScope& scope)
-{
-	const D3D12BarrierScope beforeScope = GetBufferScope(scope.SourceStages, scope.SourceAccess, resourceFlags);
-	const D3D12BarrierScope afterScope = GetBufferScope(scope.DestinationStages, scope.DestinationAccess, resourceFlags);
-
-	D3D12_GLOBAL_BARRIER barrier{};
-	barrier.SyncBefore = GetCompatibleSync(beforeScope);
-	barrier.SyncAfter = afterScope.Sync;
-	barrier.AccessBefore = beforeScope.Access;
-	barrier.AccessAfter = afterScope.Access;
-
-	return barrier;
-}
-
 D3D12_GLOBAL_BARRIER D3D12BarrierUtility::GetAliasGlobalBarrier(const GpuBarrierScope& scope)
 {
 	// Render target, depth-stencil and resolve accesses are tied to texture layouts, which global barriers do not express
@@ -259,36 +245,6 @@ D3D12_GLOBAL_BARRIER D3D12BarrierUtility::GetAliasGlobalBarrier(const GpuBarrier
 	barrier.AccessAfter = afterScope.Access;
 
 	return barrier;
-}
-
-void D3D12BarrierUtility::MergeGlobalBarrier(D3D12_GLOBAL_BARRIER& target, const D3D12_GLOBAL_BARRIER& source)
-{
-	// Common access covers every access, so it absorbs the others
-	const auto fnMergeAccess = [](D3D12_BARRIER_ACCESS first, D3D12_BARRIER_ACCESS second)
-	{
-		if(first == D3D12_BARRIER_ACCESS_NO_ACCESS)
-			return second;
-
-		if(second == D3D12_BARRIER_ACCESS_NO_ACCESS)
-			return first;
-
-		if(first == D3D12_BARRIER_ACCESS_COMMON || second == D3D12_BARRIER_ACCESS_COMMON)
-			return D3D12_BARRIER_ACCESS_COMMON;
-
-		return first | second;
-	};
-
-	target.SyncBefore |= source.SyncBefore;
-	target.SyncAfter |= source.SyncAfter;
-	target.AccessBefore = fnMergeAccess(target.AccessBefore, source.AccessBefore);
-	target.AccessAfter = fnMergeAccess(target.AccessAfter, source.AccessAfter);
-
-	// Global barriers with common access on one side require it on the other
-	if(target.AccessBefore == D3D12_BARRIER_ACCESS_COMMON || target.AccessAfter == D3D12_BARRIER_ACCESS_COMMON)
-	{
-		target.AccessBefore = D3D12_BARRIER_ACCESS_COMMON;
-		target.AccessAfter = D3D12_BARRIER_ACCESS_COMMON;
-	}
 }
 
 D3D12_BUFFER_BARRIER D3D12BarrierUtility::GetBufferBarrier(ID3D12Resource* resource, const GpuBarrierScope& scope)

@@ -10,7 +10,6 @@
 #include "B3DD3D12GpuQueue.h"
 #include "B3DD3D12Texture.h"
 #include "B3DD3D12GpuBuffer.h"
-#include "B3DD3D12BufferPool.h"
 #include "B3DD3D12Framebuffer.h"
 #include "B3DD3D12Queries.h"
 #include "B3DD3D12SwapChain.h"
@@ -1395,8 +1394,7 @@ void D3D12GpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source,
 		mResourceTracker.TrackBufferUsage(d3d12Source->GetD3D12Buffer(), GpuAccessFlag::Read, range.SourceOffset);
 		mResourceTracker.TrackBufferUsage(d3d12Destination->GetD3D12Buffer(), GpuAccessFlag::Write, range.DestinationOffset);
 
-		mCommandList->CopyBufferRegion(destinationResource, d3d12Destination->GetD3D12Buffer()->GetOffset() + range.DestinationOffset,
-			sourceResource, d3d12Source->GetD3D12Buffer()->GetOffset() + range.SourceOffset, range.Size);
+		mCommandList->CopyBufferRegion(destinationResource, range.DestinationOffset, sourceResource, range.SourceOffset, range.Size);
 	}
 }
 
@@ -1425,7 +1423,7 @@ void D3D12GpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source
 	const u32 subresourceIndex = mipLevel + arrayLayer * textureDesc.MipLevels;
 
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
-	GetD3D12GpuDevice().GetD3D12Device()->GetCopyableFootprints(&textureDesc, subresourceIndex, 1, d3d12Source->GetD3D12Buffer()->GetOffset() + bufferOffset, &footprint, nullptr, nullptr, nullptr);
+	GetD3D12GpuDevice().GetD3D12Device()->GetCopyableFootprints(&textureDesc, subresourceIndex, 1, bufferOffset, &footprint, nullptr, nullptr, nullptr);
 
 	// The staging buffer was laid out using the texture's staging pitch, which is what the copy must read with
 	footprint.Footprint.RowPitch = d3d12Destination->GetStagingRowPitchInBytes(mipLevel);
@@ -1672,7 +1670,7 @@ void D3D12GpuCommandBuffer::CopyTextureToBuffer(const TShared<Texture>& source, 
 	const u32 subresourceIndex = mipLevel + arrayLayer * textureDesc.MipLevels;
 
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
-	GetD3D12GpuDevice().GetD3D12Device()->GetCopyableFootprints(&textureDesc, subresourceIndex, 1, d3d12Destination->GetD3D12Buffer()->GetOffset() + bufferOffset, &footprint, nullptr, nullptr, nullptr);
+	GetD3D12GpuDevice().GetD3D12Device()->GetCopyableFootprints(&textureDesc, subresourceIndex, 1, bufferOffset, &footprint, nullptr, nullptr, nullptr);
 
 	// The staging buffer is laid out using the texture's staging pitch, which is what the copy must write with
 	footprint.Footprint.RowPitch = d3d12Source->GetStagingRowPitchInBytes(mipLevel);
@@ -1716,7 +1714,7 @@ void D3D12GpuCommandBuffer::CopyImageToBuffer(D3D12Image* source, D3D12Buffer* d
 	mResourceTracker.TrackBufferUsage(destination, GpuAccessFlag::Write);
 
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
-	footprint.Offset = destination->GetOffset();
+	footprint.Offset = 0;
 	footprint.Footprint.Format = source->GetViewFormat();
 	footprint.Footprint.Width = width;
 	footprint.Footprint.Height = height;
@@ -1795,7 +1793,6 @@ bool D3D12GpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarri
 		barrierCase = transfersQueue ? BarrierCase::TransferAcquire : BarrierCase::SplitAcquire;
 
 	const bool recordsAliasGlobalBarrier = barrierCase == BarrierCase::Full || barrierCase == BarrierCase::SplitRelease;
-	const bool recordsBufferGlobalBarrier = barrierCase == BarrierCase::Full || barrierCase == BarrierCase::SplitAcquire;
 	const bool writesBackLayouts = barrierCase == BarrierCase::Full || barrierCase == BarrierCase::SplitAcquire || barrierCase == BarrierCase::TransferAcquire;
 
 	const GpuQueueType releaseQueueType = transfersQueue ? *split->GetReleaseQueueType() : GetQueueType();
@@ -1821,8 +1818,6 @@ bool D3D12GpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarri
 		aliasScope.DestinationAccess |= scope.DestinationAccess;
 	};
 
-	D3D12_GLOBAL_BARRIER bufferGlobalBarrier{ D3D12_BARRIER_SYNC_NONE, D3D12_BARRIER_SYNC_NONE, D3D12_BARRIER_ACCESS_NO_ACCESS, D3D12_BARRIER_ACCESS_NO_ACCESS };
-
 	// Buffer barriers
 	TInlineArray<D3D12_BUFFER_BARRIER, 8> bufferBarriers;
 	const auto fnAddBufferBarrier = [&](D3D12Buffer& buffer, const GpuBarrier& barrier)
@@ -1838,17 +1833,6 @@ bool D3D12GpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarri
 		}
 
 		const GpuBarrierScope scope = fnGetScope(barrier);
-		D3D12BufferPage* const page = buffer.GetPage();
-		if(page != nullptr)
-		{
-			if(recordsBufferGlobalBarrier)
-			{
-				const D3D12_RESOURCE_FLAGS flags = page != nullptr ? page->GetFlags() : D3D12_RESOURCE_FLAG_NONE;
-				D3D12BarrierUtility::MergeGlobalBarrier(bufferGlobalBarrier, D3D12BarrierUtility::GetGlobalBufferBarrier(flags, scope));
-			}
-
-			return;
-		}
 
 		// A buffer barrier without work on either side orders nothing. Both halves of a split barrier make the same choice.
 		D3D12_BUFFER_BARRIER nativeBarrier = D3D12BarrierUtility::GetBufferBarrier(buffer.GetD3D12Resource(), scope);
@@ -2022,9 +2006,6 @@ bool D3D12GpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarri
 	batch.EndGroup();
 	if(aliasScope.SourceStages != GpuStageFlag::None)
 		batch.AddGlobalBarrier(D3D12BarrierUtility::GetAliasGlobalBarrier(aliasScope));
-
-	if(bufferGlobalBarrier.SyncBefore != D3D12_BARRIER_SYNC_NONE && bufferGlobalBarrier.SyncAfter != D3D12_BARRIER_SYNC_NONE)
-		batch.AddGlobalBarrier(bufferGlobalBarrier);
 
 	for(const D3D12_BUFFER_BARRIER& bufferBarrier : bufferBarriers)
 		batch.AddBufferBarrier(bufferBarrier);

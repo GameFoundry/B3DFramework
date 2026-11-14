@@ -92,20 +92,33 @@ void D3D12BarrierTestSuite::TestBufferBarrierScopes()
 	B3D_TEST_ASSERT(indexBufferScope.Sync == D3D12_BARRIER_SYNC_INDEX_INPUT)
 	B3D_TEST_ASSERT(indexBufferScope.Access == D3D12_BARRIER_ACCESS_INDEX_BUFFER)
 
+	// Buffer barriers take the resource flags from the resource, so the rest needs a buffer without unordered access
+	D3D12GpuDevice* const device = static_cast<D3D12GpuDevice*>(GetActiveD3D12Device());
+	if(device == nullptr)
+		return;
+
+	const TShared<render::GpuBuffer> buffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 64));
+	ID3D12Resource* const resource = buffer != nullptr ? static_cast<D3D12GpuBuffer*>(buffer.get())->GetD3D12Resource() : nullptr;
+	B3D_TEST_ASSERT(resource != nullptr)
+	if(resource == nullptr)
+		return;
+
+	B3D_TEST_ASSERT((resource->GetDesc().Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS) == 0)
+
 	const GpuStageFlags destinationStages = GpuStageFlag::ComputeShaderNonUniform;
-	const D3D12_GLOBAL_BARRIER rayTracingUniformBarrier = D3D12BarrierUtility::GetGlobalBufferBarrier(D3D12_RESOURCE_FLAG_NONE,
+	const D3D12_BUFFER_BARRIER rayTracingUniformBarrier = D3D12BarrierUtility::GetBufferBarrier(resource,
 		GpuBarrierScope(GpuStageFlag::RayTracingShaderUniform, GpuAccessFlag::Read, destinationStages, GpuAccessFlag::Read));
 	B3D_TEST_ASSERT(rayTracingUniformBarrier.SyncBefore == D3D12_BARRIER_SYNC_RAYTRACING)
 	B3D_TEST_ASSERT(rayTracingUniformBarrier.AccessBefore == D3D12_BARRIER_ACCESS_CONSTANT_BUFFER)
 
 	// Shader writes to a buffer without unordered access leave only the vertex buffer access, which the shader stages cannot name
-	const D3D12_GLOBAL_BARRIER shaderAndVertexBarrier = D3D12BarrierUtility::GetGlobalBufferBarrier(D3D12_RESOURCE_FLAG_NONE,
+	const D3D12_BUFFER_BARRIER shaderAndVertexBarrier = D3D12BarrierUtility::GetBufferBarrier(resource,
 		GpuBarrierScope(GpuStageFlag::VertexInputAttributes | GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Read | GpuAccessFlag::Write,
 			destinationStages, GpuAccessFlag::Read));
 	B3D_TEST_ASSERT(shaderAndVertexBarrier.SyncBefore == D3D12_BARRIER_SYNC_ALL_SHADING)
 	B3D_TEST_ASSERT(shaderAndVertexBarrier.AccessBefore == D3D12_BARRIER_ACCESS_VERTEX_BUFFER)
 
-	const D3D12_GLOBAL_BARRIER rayTracingAndVertexBarrier = D3D12BarrierUtility::GetGlobalBufferBarrier(D3D12_RESOURCE_FLAG_NONE,
+	const D3D12_BUFFER_BARRIER rayTracingAndVertexBarrier = D3D12BarrierUtility::GetBufferBarrier(resource,
 		GpuBarrierScope(GpuStageFlag::VertexInputAttributes | GpuStageFlag::RayTracingShaderNonUniform, GpuAccessFlag::Read | GpuAccessFlag::Write,
 			destinationStages, GpuAccessFlag::Read));
 	B3D_TEST_ASSERT(rayTracingAndVertexBarrier.SyncBefore == D3D12_BARRIER_SYNC_ALL)
@@ -882,11 +895,6 @@ void D3D12BarrierTestSuite::TestCpuWrittenBufferPlacement()
 	if(gpuDevice == nullptr)
 		return;
 
-	const GpuDeviceCapabilities& capabilities = gpuDevice->GetCapabilities();
-	D3D12_HEAP_TYPE expectedHeapType = D3D12_HEAP_TYPE_CUSTOM;
-	if(gpuDevice->HasFullSpeedMappableGpuMemory() && !capabilities.HasCapability(RSC_UNIFIED_MEMORY))
-		expectedHeapType = D3D12_HEAP_TYPE_GPU_UPLOAD;
-
 	const TShared<render::GpuBuffer> buffer = gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(256));
 	B3D_TEST_ASSERT(buffer != nullptr)
 	if(buffer == nullptr)
@@ -899,18 +907,17 @@ void D3D12BarrierTestSuite::TestCpuWrittenBufferPlacement()
 	if(resource == nullptr)
 		return;
 
-	// Assumes GPU memory isn't close to its budget, which would place the buffer in a custom heap in system memory
+	// Every heap is a custom heap. The buffer is in the memory of a GPU upload heap with full-speed mapped GPU memory, and of an upload heap
+	// elsewhere. Assumes GPU memory isn't close to its budget, which would place the buffer in the memory of an upload heap.
 	D3D12_HEAP_PROPERTIES heapProperties = {};
 	D3D12_HEAP_FLAGS heapFlags = D3D12_HEAP_FLAG_NONE;
 	B3D_TEST_ASSERT(SUCCEEDED(resource->GetHeapProperties(&heapProperties, &heapFlags)))
-	B3D_TEST_ASSERT(heapProperties.Type == expectedHeapType)
 
-	// Without full-speed mapped GPU memory, the custom heap has the properties of an upload heap
-	if(!gpuDevice->HasFullSpeedMappableGpuMemory())
-	{
-		B3D_TEST_ASSERT(heapProperties.CPUPageProperty == D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE)
-		B3D_TEST_ASSERT(heapProperties.MemoryPoolPreference == D3D12_MEMORY_POOL_L0)
-	}
+	const D3D12_HEAP_TYPE equivalentHeapType = gpuDevice->HasFullSpeedMappableGpuMemory() ? D3D12_HEAP_TYPE_GPU_UPLOAD : D3D12_HEAP_TYPE_UPLOAD;
+	const D3D12_HEAP_PROPERTIES expectedHeapProperties = gpuDevice->GetD3D12Device()->GetCustomHeapProperties(0, equivalentHeapType);
+	B3D_TEST_ASSERT(heapProperties.Type == D3D12_HEAP_TYPE_CUSTOM)
+	B3D_TEST_ASSERT(heapProperties.CPUPageProperty == expectedHeapProperties.CPUPageProperty)
+	B3D_TEST_ASSERT(heapProperties.MemoryPoolPreference == expectedHeapProperties.MemoryPoolPreference)
 }
 
 void D3D12BarrierTestSuite::TestGpuReadBufferPlacement()
@@ -936,33 +943,41 @@ void D3D12BarrierTestSuite::TestGpuReadBufferPlacement()
 		return true;
 	};
 
+	// Every heap is a custom heap, in the memory of a heap type
+	const auto fnIsMemoryOf = [device](const D3D12_HEAP_PROPERTIES& heapProperties, D3D12_HEAP_TYPE heapType)
+	{
+		const D3D12_HEAP_PROPERTIES expectedHeapProperties = device->GetD3D12Device()->GetCustomHeapProperties(0, heapType);
+		return heapProperties.Type == D3D12_HEAP_TYPE_CUSTOM && heapProperties.CPUPageProperty == expectedHeapProperties.CPUPageProperty &&
+			heapProperties.MemoryPoolPreference == expectedHeapProperties.MemoryPoolPreference;
+	};
+
 	const auto fnIsCustomHeap = [](const D3D12_HEAP_PROPERTIES& heapProperties)
 	{
 		return heapProperties.Type == D3D12_HEAP_TYPE_CUSTOM && heapProperties.MemoryPoolPreference == D3D12_MEMORY_POOL_L0 &&
 			(heapProperties.CPUPageProperty == D3D12_CPU_PAGE_PROPERTY_WRITE_BACK || heapProperties.CPUPageProperty == D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE);
 	};
 
-	// Assumes GPU memory isn't close to its budget, which would place a GPU upload heap buffer in a default heap
+	// Assumes GPU memory isn't close to its budget, which would place a buffer in mapped GPU memory in default memory
 	const TShared<render::GpuBuffer> deviceBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 64));
 	D3D12_HEAP_PROPERTIES heapProperties = {};
 	if(fnGetHeapProperties(deviceBuffer, heapProperties))
 	{
 		B3D_TEST_ASSERT((deviceBuffer->GetMappedMemory() != nullptr) == hasFullSpeedMappableMemory)
 		if(!hasFullSpeedMappableMemory)
-			B3D_TEST_ASSERT(heapProperties.Type == D3D12_HEAP_TYPE_DEFAULT)
+			B3D_TEST_ASSERT(fnIsMemoryOf(heapProperties, D3D12_HEAP_TYPE_DEFAULT))
 		else if(isUnified)
 			B3D_TEST_ASSERT(fnIsCustomHeap(heapProperties))
 		else
-			B3D_TEST_ASSERT(heapProperties.Type == D3D12_HEAP_TYPE_GPU_UPLOAD)
+			B3D_TEST_ASSERT(fnIsMemoryOf(heapProperties, D3D12_HEAP_TYPE_GPU_UPLOAD))
 	}
 
-	// Buffers the GPU writes are in default heaps
+	// Buffers the GPU writes are in default memory
 	const TShared<render::GpuBuffer> gpuWrittenBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 64,
 		GpuBufferFlag::GpuWrite));
 	if(fnGetHeapProperties(gpuWrittenBuffer, heapProperties))
 	{
 		B3D_TEST_ASSERT(gpuWrittenBuffer->GetMappedMemory() == nullptr)
-		B3D_TEST_ASSERT(heapProperties.Type == D3D12_HEAP_TYPE_DEFAULT)
+		B3D_TEST_ASSERT(fnIsMemoryOf(heapProperties, D3D12_HEAP_TYPE_DEFAULT))
 	}
 
 	// Buffers in cached memory are in custom heaps, CPU-cached unless the device maps uncached GPU memory there
@@ -984,12 +999,18 @@ void D3D12BarrierTestSuite::TestGpuReadBufferPlacement()
 		B3D_TEST_ASSERT(deviceMemoryType != mappedMemoryType)
 	}
 
-	// Mapped heaps have no buffer pages for unordered access views yet
+	// Buffers in mapped memory that shaders write are mapped and have unordered access
 	const GpuBufferMemory mappedMemories[] = { GpuBufferMemory::Mapped, GpuBufferMemory::MappedCached };
 	for(const GpuBufferMemory memory : mappedMemories)
 	{
-		LoggingScope logs(*this);
-		logs.ExpectError("D3D12 can't create buffers shaders write in mapped memory (GpuBufferMemory::Mapped or MappedCached) yet.");
-		B3D_TEST_ASSERT(device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 64, GpuBufferFlag::GpuWrite, memory)) == nullptr)
+		const TShared<render::GpuBuffer> mappedGpuWrittenBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), 64,
+			GpuBufferFlag::GpuWrite, memory));
+		ID3D12Resource* const resource = mappedGpuWrittenBuffer != nullptr ? static_cast<D3D12GpuBuffer*>(mappedGpuWrittenBuffer.get())->GetD3D12Resource() : nullptr;
+		B3D_TEST_ASSERT(resource != nullptr)
+		if(resource == nullptr)
+			continue;
+
+		B3D_TEST_ASSERT(mappedGpuWrittenBuffer->GetMappedMemory() != nullptr)
+		B3D_TEST_ASSERT((resource->GetDesc().Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS) != 0)
 	}
 }

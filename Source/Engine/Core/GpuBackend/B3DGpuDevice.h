@@ -249,10 +249,7 @@ namespace b3d
 		 */
 		virtual IGpuAllocator& GetPersistentAllocator(u32 memoryType) = 0;
 
-		/**
-		 * Appends every persistent allocator of the device created so far to @p outAllocators, including those of memory not reported by
-		 * GetMemoryRequirements(), such as suballocated buffer pages. Thread safe.
-		 */
+		/** Appends every persistent allocator of the device created so far to @p outAllocators. Thread safe. */
 		virtual void GetPersistentAllocators(TArray<IGpuAllocator*>& outAllocators) = 0;
 
 		/**
