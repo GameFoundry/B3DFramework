@@ -124,7 +124,7 @@ fi # host unit tests
 # only runs in that category) gets no conflicting override. The Editor category runs the editor itself in headless mode and
 # captures a screenshot of its UI, using the same snapshot mechanism as the example snapshot tests.
 # It is skipped on platforms where the editor binary was not built.
-COMMON_TESTS="AdvancedLowLevelRendering Audio Decals GUI GUICulling Lighting LowLevelRendering Particles Physics PhysicallyBasedShading SkeletalAnimation VectorGraphics"
+COMMON_TESTS="AdvancedLowLevelRendering Audio Decals GUI GUICulling Lighting LowLevelRendering Particles Physics PhysicallyBasedShading SkeletalAnimation TextQuality VectorGraphics"
 
 declare -A CATEGORY_ARGS=()
 declare -A CATEGORY_TESTS=()
