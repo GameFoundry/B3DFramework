@@ -41,6 +41,8 @@ namespace b3d
 		class D3D12DescriptorManager;
 		class D3D12BindlessHeap;
 		class D3D12QueryHeap;
+		class D3D12AccelerationStructure;
+		class D3D12GpuAccelerationStructure;
 
 		/** Maximum number of back buffers reserved by D3D12 render-window surface storage. */
 		constexpr u32 kD3D12MaximumBackBufferCount = 3;

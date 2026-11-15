@@ -291,8 +291,13 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferViewType vi
 	if(mBuffer == nullptr)
 		return {};
 
+	// Shaders read vertex and index buffers only as raw words, since vertex streams interleave formats and indices may be 16-bit
 	const bool isRaw = viewType == GpuBufferViewType::Raw;
-	if(isRaw && information.Type != GpuBufferType::StructuredStorage)
+	const bool isVertexOrIndex = information.Type == GpuBufferType::Vertex || information.Type == GpuBufferType::Index;
+	if(isRaw && information.Type != GpuBufferType::StructuredStorage && !isVertexOrIndex)
+		return {};
+
+	if(!isRaw && information.Type == GpuBufferType::Index)
 		return {};
 
 	// Only typed views of simple storage buffers have an element format, which defaults to the buffer's own
@@ -310,7 +315,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferViewType vi
 	if(type == ViewType::CBV && (offset % kConstantBufferViewSizeAlignment != 0 || offset > mTotalSize || mSuballocationSize > mTotalSize - offset))
 		return {};
 
-	const bool supportsShaderViews = information.Type == GpuBufferType::SimpleStorage || information.Type == GpuBufferType::StructuredStorage || information.Type == GpuBufferType::Vertex;
+	const bool supportsShaderViews = information.Type == GpuBufferType::SimpleStorage || information.Type == GpuBufferType::StructuredStorage || isVertexOrIndex;
 	if(type != ViewType::CBV && !supportsShaderViews)
 		return {};
 
@@ -377,7 +382,13 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferViewType vi
 
 	u32 elementCount;
 	u32 elementStride;
-	if(information.Type == GpuBufferType::StructuredStorage)
+	if(isRaw && isVertexOrIndex)
+	{
+		// Core pads vertex and index buffers to whole words, so an odd number of 16-bit indices ends in a full word
+		elementCount = mTotalSize / sizeof(u32);
+		elementStride = sizeof(u32);
+	}
+	else if(information.Type == GpuBufferType::StructuredStorage)
 	{
 		elementCount = information.StructuredStorage.Count;
 		elementStride = information.StructuredStorage.ElementSize;
@@ -395,7 +406,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12GpuBuffer::GetOrCreateView(GpuBufferViewType vi
 		elementStride = b3d::GpuBuffer::GetFormatSize(format);
 	}
 
-	if(isRaw)
+	if(isRaw && !isVertexOrIndex)
 	{
 		elementCount = (elementCount * elementStride) / sizeof(u32);
 		elementStride = sizeof(u32);

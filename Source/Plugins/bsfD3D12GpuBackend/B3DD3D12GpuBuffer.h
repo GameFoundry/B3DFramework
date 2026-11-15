@@ -119,7 +119,8 @@ namespace b3d
 			 * Returns a CPU descriptor handle for a shader resource view (SRV) of the buffer, viewing it as a read-only
 			 * storage buffer. Returns a zeroed handle if the buffer cannot be viewed this way.
 			 *
-			 * @param	viewType	How the view interprets the buffer contents. Only structured storage buffers can be viewed as raw.
+			 * @param	viewType	How the view interprets the buffer contents. Structured storage, vertex and index buffers can be viewed as raw,
+			 *						and index buffers only as raw.
 			 * @param	format		Element format of a typed view of a simple storage buffer, or BF_UNKNOWN for the buffer's own
 			 *						format. Ignored by other views.
 			 */
@@ -130,7 +131,8 @@ namespace b3d
 			 * storage buffer. Returns a zeroed handle if the buffer cannot be viewed this way, or was not created with
 			 * GpuBufferFlag::GpuWrite.
 			 *
-			 * @param	viewType	How the view interprets the buffer contents. Only structured storage buffers can be viewed as raw.
+			 * @param	viewType	How the view interprets the buffer contents. Structured storage, vertex and index buffers can be viewed as raw,
+			 *						and index buffers only as raw.
 			 * @param	format		Element format of a typed view of a simple storage buffer, or BF_UNKNOWN for the buffer's own
 			 *						format. Ignored by other views.
 			 */

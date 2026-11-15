@@ -18,7 +18,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** Memory of a native heap. Every heap is a custom heap, so its memory is a CPU page property and a memory pool. */
+	/** Memory of a native heap, as the CPU page property and memory pool of a custom heap. */
 	struct D3D12HeapMemory
 	{
 		D3D12HeapMemory() = default;
@@ -62,6 +62,12 @@ namespace b3d
 
 		D3D12_HEAP_FLAGS Flags = D3D12_HEAP_FLAG_NONE; /**< Resource classes accepted by the heap. */
 		u64 Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT; /**< Heap alignment. */
+
+		/**
+		 * Type of the heap. Heaps are custom heaps in Memory, unless they hold resources that D3D12 places only in heaps of another type. Memory
+		 * must then be the memory of that type, and the heap has no fallback.
+		 */
+		D3D12_HEAP_TYPE Type = D3D12_HEAP_TYPE_CUSTOM;
 	};
 
 	/**
@@ -79,6 +85,7 @@ namespace b3d
 		GpuUploadOrDefaultBuffer,       /**< CPU-writable buffers in GPU memory, or unmapped in default memory once GPU memory is close to its budget. */
 		CustomWriteBackBuffer,          /**< Mapped and staging buffers in system memory the CPU caches. */
 		CustomWriteCombineBuffer,       /**< Mapped and staging buffers in write-combined system memory. */
+		AccelerationStructure,          /**< Acceleration structures, in default heaps (see render::D3D12GpuDevice::GetHeapCreateInformation()). */
 		Count                           /**< Number of heap classes. */
 	};
 

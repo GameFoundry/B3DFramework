@@ -11,6 +11,7 @@
 #include "B3DD3D12GpuBackend.h"
 #include "Managers/B3DD3D12DescriptorManager.h"
 
+#include "B3DD3D12GpuAccelerationStructure.h"
 #include "B3DD3D12GpuBuffer.h"
 #include "B3DD3D12GpuParameterSet.h"
 #include "B3DD3D12GpuParameterSetPool.h"
@@ -121,8 +122,15 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter) : mAdapter(adapter)
 	ComPtr<ID3D12InfoQueue> infoQueue;
 	if(SUCCEEDED(mDevice.As(&infoQueue)))
 	{
-		D3D12_MESSAGE_ID deniedMessages[3] = { D3D12_MESSAGE_ID_DEGENERATE_SPLIT_BARRIER };
+		D3D12_MESSAGE_ID deniedMessages[5] = { D3D12_MESSAGE_ID_DEGENERATE_SPLIT_BARRIER };
 		UINT deniedMessageCount = 1;
+
+		// Acceleration structure builds name buffers by address, and transient buffers that alias share addresses, so the debug layer reports
+		// that it can't tell which buffer a build means
+		deniedMessages[deniedMessageCount++] = D3D12_MESSAGE_ID_HEAP_ADDRESS_RANGE_INTERSECTS_MULTIPLE_BUFFERS;
+
+		// Command buffers that only issue barriers, like ones that return resources to rest, are a hint some drivers optimize, not an error
+		deniedMessages[deniedMessageCount++] = D3D12_MESSAGE_ID_NON_OPTIMAL_BARRIER_ONLY_EXECUTE_COMMAND_LISTS;
 
 		// Poisoned surfaces are cleared to values other than the ones they were created with, which the debug layer reports as slow
 		if(gGpuPoisonUnloadedAttachments)
@@ -345,6 +353,123 @@ TShared<render::GpuBuffer> D3D12GpuDevice::CreateGpuBufferInternal(const GpuBuff
 	return output;
 }
 
+TShared<render::GpuAccelerationStructure> D3D12GpuDevice::CreateGpuAccelerationStructureInternal(const GpuAccelerationStructureCreateInformation& createInformation)
+{
+	// A structure is a buffer of its own in GPU memory. Its address must be a multiple of 256, which tight alignment alone doesn't guarantee.
+	const D3D12_RESOURCE_DESC resourceDescription = D3D12GpuBuffer::GetResourceDescription(createInformation.Size,
+		D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS | D3D12_RESOURCE_FLAG_RAYTRACING_ACCELERATION_STRUCTURE, mIsTightAlignmentSupported);
+
+	const D3D12_RESOURCE_ALLOCATION_INFO allocationInfo = mDevice->GetResourceAllocationInfo(0, 1, &resourceDescription);
+	if(!B3D_ENSURE_LOG(allocationInfo.SizeInBytes != UINT64_MAX && allocationInfo.Alignment <= UINT32_MAX, "D3D12: Unsupported acceleration structure '{0}' of {1} bytes.",
+		createInformation.Name, createInformation.Size))
+	{
+		return nullptr;
+	}
+
+	const u32 alignment = (u32)std::max(allocationInfo.Alignment, (u64)D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT);
+
+	GpuMemoryAllocator& allocator = GetOrCreateGpuMemoryAllocator(D3D12HeapClass::AccelerationStructure);
+	GpuAllocation allocation;
+	if(!allocator.TryAllocate(allocationInfo.SizeInBytes, alignment, allocation))
+	{
+		B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to allocate {0} bytes for acceleration structure '{1}'.", allocationInfo.SizeInBytes, createInformation.Name);
+		return nullptr;
+	}
+
+	ComPtr<ID3D12Resource> resource;
+	GpuAllocation placedAllocation;
+	const HRESULT result = CreateResource(resourceDescription, allocation, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, resource, placedAllocation);
+	if(FAILED(result))
+	{
+		allocator.Free(allocation);
+
+		B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to create acceleration structure '{0}' of {1} bytes (hr={2}).", createInformation.Name, createInformation.Size,
+			(u32)result);
+		return nullptr;
+	}
+
+	D3D12Buffer* const buffer = mResourceManager->Create<D3D12Buffer>(allocation, std::move(resource), nullptr, createInformation.Name);
+	D3D12AccelerationStructure* const accelerationStructure = mResourceManager->Create<D3D12AccelerationStructure>(*buffer, createInformation.Name);
+	return B3DMakeShared<D3D12GpuAccelerationStructure>(*this, createInformation, *accelerationStructure);
+}
+
+bool D3D12GpuDevice::GetAccelerationStructureSizes(const GpuAccelerationStructureInputs& inputs, GpuAccelerationStructureSizes& outSizes) const
+{
+	if(!GpuDevice::GetAccelerationStructureSizes(inputs, outSizes))
+		return false;
+
+	FrameAllocatorScope frameScope;
+
+	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS nativeInputs;
+	FrameVector<D3D12_RAYTRACING_GEOMETRY_DESC> geometries;
+	D3D12AccelerationStructure::GetBuildInputs(inputs, nativeInputs, geometries);
+
+	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO prebuildInformation = {};
+	mEnhancedDevice->GetRaytracingAccelerationStructurePrebuildInfo(&nativeInputs, &prebuildInformation);
+
+	// Buffer sizes are 32-bit
+	static constexpr UINT64 kMaximumSize = std::numeric_limits<u32>::max();
+	if(prebuildInformation.ResultDataMaxSizeInBytes > kMaximumSize || prebuildInformation.ScratchDataSizeInBytes > kMaximumSize)
+	{
+		B3D_LOG(Error, LogRenderBackend, "An acceleration structure needs {0} bytes and its build {1} bytes of scratch memory. Neither can exceed 4 GiB.",
+			(u64)prebuildInformation.ResultDataMaxSizeInBytes, (u64)prebuildInformation.ScratchDataSizeInBytes);
+		return false;
+	}
+
+	outSizes = GpuAccelerationStructureSizes((u32)prebuildInformation.ResultDataMaxSizeInBytes, (u32)prebuildInformation.ScratchDataSizeInBytes);
+	return true;
+}
+
+bool D3D12GpuDevice::WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance> instances, void* destination) const
+{
+	if(!GpuDevice::WriteRayTracingInstances(instances, destination))
+		return false;
+
+	auto* const output = static_cast<D3D12_RAYTRACING_INSTANCE_DESC*>(destination);
+	for(u32 instanceIndex = 0; instanceIndex < (u32)instances.size(); instanceIndex++)
+	{
+		const GpuRayTracingInstance& instance = instances[instanceIndex];
+
+		UINT flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
+		if(instance.Flags.IsSet(GpuRayTracingInstanceFlag::DisableTriangleCulling))
+			flags |= D3D12_RAYTRACING_INSTANCE_FLAG_TRIANGLE_CULL_DISABLE;
+
+		// Rays treat clockwise triangles as front facing by default, in a left-handed system. The engine's world is right-handed, so the face
+		// rasterization considers the front face looks the other way, unless the instance flips it.
+		if(!instance.Flags.IsSet(GpuRayTracingInstanceFlag::FlipTriangleFacing))
+			flags |= D3D12_RAYTRACING_INSTANCE_FLAG_TRIANGLE_FRONT_COUNTERCLOCKWISE;
+
+		if(instance.Flags.IsSet(GpuRayTracingInstanceFlag::ForceOpaque))
+			flags |= D3D12_RAYTRACING_INSTANCE_FLAG_FORCE_OPAQUE;
+
+		if(instance.Flags.IsSet(GpuRayTracingInstanceFlag::ForceNonOpaque))
+			flags |= D3D12_RAYTRACING_INSTANCE_FLAG_FORCE_NON_OPAQUE;
+
+		// A structure never changes its memory, so its address stays valid. D3D12 treats an instance without one as inactive.
+		D3D12_GPU_VIRTUAL_ADDRESS bottomLevelAddress = 0;
+		if(instance.BottomLevel != nullptr)
+			bottomLevelAddress = static_cast<const D3D12GpuAccelerationStructure&>(*instance.BottomLevel).GetD3D12Resource()->GetGPUVirtualAddress();
+
+		D3D12_RAYTRACING_INSTANCE_DESC nativeInstance;
+		for(u32 row = 0; row < 3; row++)
+		{
+			for(u32 column = 0; column < 4; column++)
+				nativeInstance.Transform[row][column] = instance.Transform[row][column];
+		}
+
+		nativeInstance.InstanceID = instance.InstanceId;
+		nativeInstance.InstanceMask = instance.Mask;
+		nativeInstance.InstanceContributionToHitGroupIndex = instance.HitGroupIndexOffset;
+		nativeInstance.Flags = flags;
+		nativeInstance.AccelerationStructure = bottomLevelAddress;
+
+		// The destination may be write-combined memory, so each instance is written once and never read
+		memcpy(&output[instanceIndex], &nativeInstance, sizeof(nativeInstance));
+	}
+
+	return true;
+}
+
 GpuVertexInput* D3D12GpuDevice::CreateVertexInput(u32 id, const GpuVertexInputLayout& layout)
 {
 	return mResourceManager->Create<D3D12VertexInput>(id, layout);
@@ -394,7 +519,14 @@ GpuMemoryRequirements D3D12GpuDevice::GetMemoryRequirements(const GpuBufferCreat
 	}
 
 	// Views can need more alignment than the resource: a constant buffer view's address must be 256-byte aligned
-	const u64 viewAlignment = createInformation.Type == GpuBufferType::Uniform ? D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT : D3D12_RAW_UAV_SRV_BYTE_ALIGNMENT;
+	u64 viewAlignment = createInformation.Type == GpuBufferType::Uniform ? D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT : D3D12_RAW_UAV_SRV_BYTE_ALIGNMENT;
+
+	// Acceleration structure builds can use any GPU-only structured storage buffer with unordered access as scratch memory, whose address
+	// must be a multiple of the scratch alignment
+	const bool isScratchCapable = createInformation.Type == GpuBufferType::StructuredStorage && createInformation.Flags.IsSet(GpuBufferFlag::GpuWrite) &&
+		createInformation.Memory == GpuBufferMemory::Device;
+	if(isScratchCapable && mCapabilities.HasCapability(RSC_ACCELERATION_STRUCTURES))
+		viewAlignment = std::max(viewAlignment, (u64)mCapabilities.RayTracing.ScratchOffsetAlignment);
 
 	output.MemoryType = (u32)GetBufferHeapClass(createInformation.Type, createInformation.Memory, createInformation.Flags);
 	output.Size = allocationInfo.SizeInBytes;
@@ -682,6 +814,13 @@ D3D12HeapCreateInformation D3D12GpuDevice::GetHeapCreateInformation(D3D12HeapCla
 	case D3D12HeapClass::CustomWriteCombineBuffer:
 		output.Memory = D3D12HeapMemory(D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE, D3D12_MEMORY_POOL_L0);
 		break;
+	case D3D12HeapClass::AccelerationStructure:
+		// D3D12 places structures in default heaps or custom heaps with their properties, but for resources with the structure flag the runtime
+		// checks the memory pool of custom heaps backwards (measured on Agility SDK 1.619.4: it requires L0 on discrete GPUs and L1 on unified
+		// memory, where L1 is invalid; 1.620.2 is the same). 1.618.3 fixed this only for resources created in the structure state. Default heaps
+		// work everywhere.
+		output.Type = D3D12_HEAP_TYPE_DEFAULT;
+		break;
 	default:
 		B3D_ASSERT(false && "Invalid D3D12 heap class.");
 		break;
@@ -702,9 +841,10 @@ D3D12GpuDevice::GpuMemoryAllocator& D3D12GpuDevice::GetOrCreateGpuMemoryAllocato
 	GpuMemoryAllocator::Configuration configuration;
 	configuration.HeapCreateInfo = GetHeapCreateInformation(heapClass);
 
-	// Mapped memory holds less, since mostly small buffers the CPU writes are in it
+	// Mapped memory and structures hold less, since mostly small buffers the CPU writes, and few structures, are in them
 	const bool isMapped = configuration.HeapCreateInfo.Memory.CpuPageProperty != D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE;
-	configuration.InitialHeapSize = isMapped ? 16ull * 1024 * 1024 : 64ull * 1024 * 1024;
+	const bool isSmall = isMapped || heapClass == D3D12HeapClass::AccelerationStructure;
+	configuration.InitialHeapSize = isSmall ? 16ull * 1024 * 1024 : 64ull * 1024 * 1024;
 	configuration.MaxHeapSize = 256ull * 1024 * 1024;
 	configuration.GrowthFactor = 2;
 	configuration.MaxEmptyHeapCount = 1;
@@ -1046,7 +1186,7 @@ void D3D12GpuDevice::InitializeCapabilities()
 		mCapabilities.MaximumBindlessSamplerCount = D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE - D3D12DescriptorManager::kSamplerTableDescriptorCount;
 	}
 
-	// Every heap is a custom heap, in the memory of a heap type on this adapter. Unlike upload and readback heaps, custom heaps in their
+	// Heaps are custom heaps, in the memory of a heap type on this adapter. Unlike upload and readback heaps, custom heaps in their
 	// memory are both read and written by GPU copies.
 	const auto fnGetHeapMemory = [this](D3D12_HEAP_TYPE heapType)
 	{
@@ -1085,34 +1225,39 @@ void D3D12GpuDevice::InitializeCapabilities()
 		mHasFullSpeedMappableGpuMemory = true;
 	}
 
-	// TODO - Enable once the backend creates and builds acceleration structures. Until then the device reports no ray tracing capability.
-#if 0
-	// Tier 1.0 has acceleration structures and pipelines, and tier 1.1 adds inline ray tracing. The rest are API constants.
+	// Ray tracing needs tier 1.1, which adds inline ray tracing to tier 1.0's acceleration structures and pipelines. The limits are API constants.
 	D3D12_FEATURE_DATA_D3D12_OPTIONS5 options5 = {};
 	const bool hasOptions5 = SUCCEEDED(mDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &options5, sizeof(options5)));
-	if(gGpuRayTracing.Get() && hasOptions5 && options5.RaytracingTier >= D3D12_RAYTRACING_TIER_1_0)
+	if(gGpuRayTracing.Get() && hasOptions5 && options5.RaytracingTier >= D3D12_RAYTRACING_TIER_1_1)
 	{
+		B3D_LOG(Info, LogRenderBackend, "D3D12: Ray tracing tier {0}.{1}.", (u32)options5.RaytracingTier / 10, (u32)options5.RaytracingTier % 10);
+
 		GpuRayTracingCapabilities& rayTracing = mCapabilities.RayTracing;
+		rayTracing.ScratchOffsetAlignment = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT;
+		rayTracing.InstanceSize = sizeof(D3D12_RAYTRACING_INSTANCE_DESC);
+		rayTracing.MaximumInstanceCount = D3D12_RAYTRACING_MAX_INSTANCES_PER_TOP_LEVEL_ACCELERATION_STRUCTURE;
+		rayTracing.MaximumGeometryCount = D3D12_RAYTRACING_MAX_GEOMETRIES_PER_BOTTOM_LEVEL_ACCELERATION_STRUCTURE;
+		rayTracing.MaximumPrimitiveCount = D3D12_RAYTRACING_MAX_PRIMITIVES_PER_BOTTOM_LEVEL_ACCELERATION_STRUCTURE;
+
+		// An acceleration structure view is an ordinary descriptor in the shader-visible heap
+		rayTracing.SupportsBindlessAccelerationStructures = mSupportsBindlessResources;
+
+		mCapabilities.SetCapability(RSC_ACCELERATION_STRUCTURES);
+		mCapabilities.SetCapability(RSC_RAY_QUERY);
+
+		// TODO - Enable once the backend creates ray tracing pipelines and shader binding tables (phase 5.2 step 3)
+#if 0
 		rayTracing.ShaderGroupHandleSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
 		rayTracing.ShaderRecordAlignment = D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT;
 		rayTracing.ShaderTableAlignment = D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT;
 		rayTracing.MaximumShaderRecordStride = D3D12_RAYTRACING_MAX_SHADER_RECORD_STRIDE;
 		rayTracing.MaximumRecursionDepth = D3D12_RAYTRACING_MAX_DECLARABLE_TRACE_RECURSION_DEPTH;
 		rayTracing.MaximumHitAttributeSize = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
-		rayTracing.ScratchOffsetAlignment = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT;
-		rayTracing.InstanceSize = sizeof(D3D12_RAYTRACING_INSTANCE_DESC);
-		rayTracing.MaximumInstanceCount = D3D12_RAYTRACING_MAX_INSTANCES_PER_TOP_LEVEL_ACCELERATION_STRUCTURE;
-		rayTracing.MaximumGeometryCount = D3D12_RAYTRACING_MAX_GEOMETRIES_PER_BOTTOM_LEVEL_ACCELERATION_STRUCTURE;
-		rayTracing.MaximumPrimitiveCount = D3D12_RAYTRACING_MAX_PRIMITIVES_PER_BOTTOM_LEVEL_ACCELERATION_STRUCTURE;
 		rayTracing.SupportsCallablePrograms = true;
 
-		mCapabilities.SetCapability(RSC_ACCELERATION_STRUCTURES);
 		mCapabilities.SetCapability(RSC_RAY_TRACING_PIPELINE);
-
-		if(options5.RaytracingTier >= D3D12_RAYTRACING_TIER_1_1)
-			mCapabilities.SetCapability(RSC_RAY_QUERY);
-	}
 #endif
+	}
 
 	mCapabilities.Conventions.NdcYAxis = GpuBackendConventions::Axis::Up;
 	mCapabilities.Conventions.MatrixOrder = GpuBackendConventions::MatrixOrder::ColumnMajor;

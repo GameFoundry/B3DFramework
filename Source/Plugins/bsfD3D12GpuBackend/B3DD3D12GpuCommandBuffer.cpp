@@ -9,6 +9,7 @@
 #include "B3DD3D12GpuPipelineParameterLayout.h"
 #include "B3DD3D12GpuQueue.h"
 #include "B3DD3D12Texture.h"
+#include "B3DD3D12GpuAccelerationStructure.h"
 #include "B3DD3D12GpuBuffer.h"
 #include "B3DD3D12Framebuffer.h"
 #include "B3DD3D12Queries.h"
@@ -604,6 +605,64 @@ void D3D12GpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u3
 	BindPushConstants(false);
 
 	mCommandList->Dispatch(groupCountX, groupCountY, groupCountZ);
+}
+
+bool D3D12GpuCommandBuffer::BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild> builds)
+{
+	if(!GpuCommandBuffer::BuildAccelerationStructures(builds))
+		return false;
+
+	EnsureValidThread();
+
+	// D3D12 builds one structure per call. Builds of one engine call are independent, so no barrier goes between them.
+	FrameAllocatorScope frameScope;
+	FrameVector<D3D12_RAYTRACING_GEOMETRY_DESC> geometries;
+	for(const GpuAccelerationStructureBuild& build : builds)
+	{
+		D3D12AccelerationStructure* const destination = static_cast<D3D12GpuAccelerationStructure&>(*build.Destination).GetD3D12Resource();
+		D3D12Buffer* const scratch = static_cast<D3D12GpuBuffer&>(*build.ScratchBuffer).GetD3D12Buffer();
+		if(destination == nullptr || scratch == nullptr)
+			continue;
+
+		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC buildDescription = {};
+		D3D12AccelerationStructure::GetBuildInputs(build.Inputs, buildDescription.Inputs, geometries);
+		buildDescription.DestAccelerationStructureData = destination->GetGPUVirtualAddress();
+		buildDescription.ScratchAccelerationStructureData = scratch->GetGPUVirtualAddress() + build.ScratchOffset;
+		buildDescription.SourceAccelerationStructureData = 0;
+
+		// Scratch-capable buffers are aligned by D3D12GpuDevice::GetMemoryRequirements()
+		B3D_ASSERT(buildDescription.ScratchAccelerationStructureData % GetD3D12GpuDevice().GetCapabilities().RayTracing.ScratchOffsetAlignment == 0);
+
+		mResourceTracker.TrackResourceUsage(destination, GpuAccessFlag::Write);
+		mResourceTracker.TrackBufferUsage(scratch, GpuAccessFlag::Read | GpuAccessFlag::Write);
+
+		for(const TShared<GpuAccelerationStructure>& bottomLevel : build.BottomLevels)
+		{
+			if(bottomLevel != nullptr)
+				mResourceTracker.TrackResourceUsage(static_cast<D3D12GpuAccelerationStructure&>(*bottomLevel).GetD3D12Resource(), GpuAccessFlag::Read);
+		}
+
+		const auto fnTrackInput = [this](const TShared<GpuBuffer>& buffer)
+		{
+			if(buffer == nullptr)
+				return;
+
+			if(D3D12Buffer* const nativeBuffer = static_cast<D3D12GpuBuffer&>(*buffer).GetD3D12Buffer())
+				mResourceTracker.TrackBufferUsage(nativeBuffer, GpuAccessFlag::Read);
+		};
+
+		for(const GpuRayTracingGeometry& geometry : build.Inputs.Geometries)
+		{
+			fnTrackInput(geometry.VertexBuffer);
+			fnTrackInput(geometry.IndexBuffer);
+		}
+
+		fnTrackInput(build.Inputs.InstanceBuffer);
+
+		mCommandList->BuildRaytracingAccelerationStructure(&buildDescription, 0, nullptr);
+	}
+
+	return true;
 }
 
 void D3D12GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& createInformation)
@@ -1818,24 +1877,11 @@ bool D3D12GpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarri
 		aliasScope.DestinationAccess |= scope.DestinationAccess;
 	};
 
-	// Buffer barriers
+	// Buffer barriers, which acceleration structures use too, on the buffers that store them
 	TInlineArray<D3D12_BUFFER_BARRIER, 8> bufferBarriers;
-	const auto fnAddBufferBarrier = [&](D3D12Buffer& buffer, const GpuBarrier& barrier)
+	const auto fnRecordBufferBarrier = [&](D3D12_BUFFER_BARRIER nativeBarrier)
 	{
-		mResourceTracker.TrackBufferUsage(&buffer, barrier.Destination.Access | GpuAccessFlag::Read);
-
-		if(barrier.Flags.IsSet(GpuBarrierFlag::AliasAcquire))
-		{
-			if(recordsAliasGlobalBarrier)
-				fnAddAliasScope(barrier);
-
-			return;
-		}
-
-		const GpuBarrierScope scope = fnGetScope(barrier);
-
 		// A buffer barrier without work on either side orders nothing. Both halves of a split barrier make the same choice.
-		D3D12_BUFFER_BARRIER nativeBarrier = D3D12BarrierUtility::GetBufferBarrier(buffer.GetD3D12Resource(), scope);
 		if(nativeBarrier.SyncBefore == D3D12_BARRIER_SYNC_NONE || nativeBarrier.SyncAfter == D3D12_BARRIER_SYNC_NONE)
 			return;
 
@@ -1855,6 +1901,28 @@ bool D3D12GpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarri
 		}
 
 		bufferBarriers.Add(nativeBarrier);
+	};
+
+	const auto fnAddBufferBarrier = [&](D3D12Buffer& buffer, const GpuBarrier& barrier)
+	{
+		mResourceTracker.TrackBufferUsage(&buffer, barrier.Destination.Access | GpuAccessFlag::Read);
+
+		if(barrier.Flags.IsSet(GpuBarrierFlag::AliasAcquire))
+		{
+			if(recordsAliasGlobalBarrier)
+				fnAddAliasScope(barrier);
+
+			return;
+		}
+
+		fnRecordBufferBarrier(D3D12BarrierUtility::GetBufferBarrier(buffer.GetD3D12Resource(), fnGetScope(barrier)));
+	};
+
+	// Acceleration structures are never transient, so they are never alias acquired
+	const auto fnAddAccelerationStructureBarrier = [&](D3D12AccelerationStructure& accelerationStructure, const GpuBarrier& barrier)
+	{
+		mResourceTracker.TrackResourceUsage(&accelerationStructure, barrier.Destination.Access | GpuAccessFlag::Read);
+		fnRecordBufferBarrier(D3D12BarrierUtility::GetAccelerationStructureBarrier(accelerationStructure.GetBuffer().GetD3D12Resource(), fnGetScope(barrier)));
 	};
 
 	// Texture barriers. Alias releases go to their own list, recorded before the activations of the textures that take over their memory.
@@ -1961,6 +2029,16 @@ bool D3D12GpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarri
 			continue;
 
 		fnAddBufferBarrier(*buffer, barrier);
+	}
+
+	for(const GpuAccelerationStructureBarrier& barrier : barriers.AccelerationStructureBarriers)
+	{
+		auto* const gpuAccelerationStructure = static_cast<D3D12GpuAccelerationStructure*>(barrier.Object.get());
+		D3D12AccelerationStructure* const accelerationStructure = gpuAccelerationStructure != nullptr ? gpuAccelerationStructure->GetD3D12Resource() : nullptr;
+		if(accelerationStructure == nullptr)
+			continue;
+
+		fnAddAccelerationStructureBarrier(*accelerationStructure, barrier);
 	}
 
 	for(const GpuTextureBarrier& barrier : barriers.TextureBarriers)

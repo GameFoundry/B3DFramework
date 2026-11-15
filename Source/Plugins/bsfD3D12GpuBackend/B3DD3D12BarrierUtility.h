@@ -62,6 +62,12 @@ namespace b3d
 			/** Builds a whole-resource native buffer barrier. */
 			static D3D12_BUFFER_BARRIER GetBufferBarrier(ID3D12Resource* resource, const GpuBarrierScope& scope);
 
+			/**
+			 * Builds a native barrier for an acceleration structure, on the buffer @p resource that stores it. Unlike other buffers, structures are
+			 * only accessed through the acceleration structure access bits.
+			 */
+			static D3D12_BUFFER_BARRIER GetAccelerationStructureBarrier(ID3D12Resource* resource, const GpuBarrierScope& scope);
+
 			/** Builds a native texture barrier for one resolved, single-aspect subresource range. */
 			static D3D12_TEXTURE_BARRIER GetTextureBarrier(ID3D12Resource* resource, const GpuTextureSubresourceRange& range, const GpuBarrierScope& scope, GpuImageLayout logicalBeforeLayout, GpuImageLayout logicalAfterLayout, const D3D12TextureLayout& nativeBeforeLayout, const D3D12TextureLayout& nativeAfterLayout, D3D12_TEXTURE_BARRIER_FLAGS flags);
 
@@ -93,6 +99,9 @@ namespace b3d
 
 			/** Converts a logical buffer use into native access flags allowed by @p resourceFlags. */
 			static D3D12_BARRIER_ACCESS GetBufferAccess(GpuStageFlags stages, GpuAccessFlags access, D3D12_RESOURCE_FLAGS resourceFlags);
+
+			/** Converts a logical acceleration structure use into native access flags. */
+			static D3D12_BARRIER_ACCESS GetAccelerationStructureAccess(GpuStageFlags stages, GpuAccessFlags access);
 
 			/** Converts a logical texture use into native access flags compatible with @p layout and @p aspects. */
 			static D3D12_BARRIER_ACCESS GetTextureAccess(GpuStageFlags stages, GpuAccessFlags access, GpuImageLayout layout, GpuTextureAspectFlags aspects);

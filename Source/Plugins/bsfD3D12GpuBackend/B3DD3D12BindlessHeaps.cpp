@@ -1,6 +1,7 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DD3D12BindlessHeaps.h"
+#include "B3DD3D12GpuAccelerationStructure.h"
 #include "B3DD3D12GpuBuffer.h"
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12SamplerState.h"
@@ -47,7 +48,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3D12BindlessHeaps::GetViewHandle(const GpuBindlessR
 		sourceHandle = static_cast<D3D12GpuBuffer*>(view.Buffer.Object)->GetSRVHandle(view.Buffer.ViewType, view.Buffer.Format);
 		break;
 	case GpuBindlessResourceType::AccelerationStructure:
-		// No D3D12 acceleration structures yet, so the error below reports the view
+		sourceHandle = static_cast<D3D12GpuAccelerationStructure*>(view.AccelerationStructure.Object)->GetD3D12Resource()->GetSRVHandle();
 		break;
 	case GpuBindlessResourceType::None:
 		break;

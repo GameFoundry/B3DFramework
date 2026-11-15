@@ -27,8 +27,10 @@ namespace
 		if((access & D3D12_BARRIER_ACCESS_RENDER_TARGET) != 0)
 			sync |= D3D12_BARRIER_SYNC_RENDER_TARGET | D3D12_BARRIER_SYNC_DRAW;
 
+		// Acceleration structure builds access their scratch memory as unordered access
 		if((access & D3D12_BARRIER_ACCESS_UNORDERED_ACCESS) != 0)
-			sync |= D3D12_BARRIER_SYNC_VERTEX_SHADING | D3D12_BARRIER_SYNC_PIXEL_SHADING | D3D12_BARRIER_SYNC_COMPUTE_SHADING | D3D12_BARRIER_SYNC_RAYTRACING | D3D12_BARRIER_SYNC_DRAW | D3D12_BARRIER_SYNC_ALL_SHADING | D3D12_BARRIER_SYNC_CLEAR_UNORDERED_ACCESS_VIEW;
+			sync |= D3D12_BARRIER_SYNC_VERTEX_SHADING | D3D12_BARRIER_SYNC_PIXEL_SHADING | D3D12_BARRIER_SYNC_COMPUTE_SHADING | D3D12_BARRIER_SYNC_RAYTRACING | D3D12_BARRIER_SYNC_DRAW | D3D12_BARRIER_SYNC_ALL_SHADING | D3D12_BARRIER_SYNC_CLEAR_UNORDERED_ACCESS_VIEW |
+				D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE;
 
 		if((access & (D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ | D3D12_BARRIER_ACCESS_DEPTH_STENCIL_WRITE)) != 0)
 			sync |= D3D12_BARRIER_SYNC_DEPTH_STENCIL | D3D12_BARRIER_SYNC_DRAW;
@@ -39,6 +41,16 @@ namespace
 
 		if((access & D3D12_BARRIER_ACCESS_INDIRECT_ARGUMENT) != 0)
 			sync |= D3D12_BARRIER_SYNC_EXECUTE_INDIRECT;
+
+		// Rays traced in compute and ray tracing shaders, and builds reading bottom level structures, read acceleration structures. The debug layer
+		// rejects vertex and pixel shading with structure reads.
+		if((access & D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ) != 0)
+			sync |= D3D12_BARRIER_SYNC_COMPUTE_SHADING | D3D12_BARRIER_SYNC_RAYTRACING | D3D12_BARRIER_SYNC_ALL_SHADING |
+				D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE | D3D12_BARRIER_SYNC_COPY_RAYTRACING_ACCELERATION_STRUCTURE |
+				D3D12_BARRIER_SYNC_EMIT_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO;
+
+		if((access & D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE) != 0)
+			sync |= D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE | D3D12_BARRIER_SYNC_COPY_RAYTRACING_ACCELERATION_STRUCTURE;
 
 		if((access & (D3D12_BARRIER_ACCESS_COPY_SOURCE | D3D12_BARRIER_ACCESS_COPY_DEST)) != 0)
 			sync |= D3D12_BARRIER_SYNC_COPY;
@@ -155,8 +167,19 @@ D3D12BarrierScope D3D12BarrierUtility::GetBufferScope(GpuStageFlags stages, GpuA
 
 D3D12_BARRIER_SYNC D3D12BarrierUtility::GetCompatibleSync(const D3D12BarrierScope& scope)
 {
-	if(ContainsOnly(scope.Sync, GetAccessCompatibleSyncs(scope.Access)))
+	const D3D12_BARRIER_SYNC compatibleSyncs = GetAccessCompatibleSyncs(scope.Access);
+	if(ContainsOnly(scope.Sync, compatibleSyncs))
 		return scope.Sync;
+
+	// Structure reads don't accept vertex and pixel shading, but accept all shading, which includes them
+	constexpr D3D12_BARRIER_ACCESS kStructureAccesses = (D3D12_BARRIER_ACCESS)(D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ | D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE);
+	if(ContainsOnly(scope.Access, kStructureAccesses))
+	{
+		constexpr D3D12_BARRIER_SYNC kGraphicsShaderSyncs = (D3D12_BARRIER_SYNC)(D3D12_BARRIER_SYNC_VERTEX_SHADING | D3D12_BARRIER_SYNC_PIXEL_SHADING);
+		const D3D12_BARRIER_SYNC sync = (D3D12_BARRIER_SYNC)((scope.Sync & ~kGraphicsShaderSyncs) | D3D12_BARRIER_SYNC_ALL_SHADING);
+		if(ContainsOnly(sync, compatibleSyncs))
+			return sync;
+	}
 
 	// If the access scopes don't match the sync, we need to expand the sync mask. e.g. PIXEL_SHADING | DEPTH_STENCIL sync is not allowed with DEPTH_STENCIL_READ flag, but DRAW sync scope is.
 	constexpr D3D12_BARRIER_SYNC kDrawSyncs = (D3D12_BARRIER_SYNC)(D3D12_BARRIER_SYNC_INDEX_INPUT | D3D12_BARRIER_SYNC_VERTEX_SHADING | D3D12_BARRIER_SYNC_PIXEL_SHADING | D3D12_BARRIER_SYNC_DEPTH_STENCIL | D3D12_BARRIER_SYNC_RENDER_TARGET);
@@ -247,6 +270,43 @@ D3D12_GLOBAL_BARRIER D3D12BarrierUtility::GetAliasGlobalBarrier(const GpuBarrier
 	return barrier;
 }
 
+D3D12_BUFFER_BARRIER D3D12BarrierUtility::GetAccelerationStructureBarrier(ID3D12Resource* resource, const GpuBarrierScope& scope)
+{
+	B3D_ASSERT(resource != nullptr);
+
+	D3D12BarrierScope beforeScope;
+	beforeScope.Sync = GetStageSync(scope.SourceStages);
+	beforeScope.Access = GetAccelerationStructureAccess(scope.SourceStages, scope.SourceAccess);
+
+	D3D12BarrierScope afterScope;
+	afterScope.Sync = GetStageSync(scope.DestinationStages);
+	afterScope.Access = GetAccelerationStructureAccess(scope.DestinationStages, scope.DestinationAccess);
+
+	D3D12_BUFFER_BARRIER barrier{};
+	barrier.SyncBefore = GetCompatibleSync(beforeScope);
+	barrier.SyncAfter = GetCompatibleSync(afterScope);
+	barrier.AccessBefore = beforeScope.Access;
+	barrier.AccessAfter = afterScope.Access;
+	barrier.pResource = resource;
+	barrier.Offset = 0;
+	barrier.Size = UINT64_MAX;
+
+	return barrier;
+}
+
+D3D12_BARRIER_ACCESS D3D12BarrierUtility::GetAccelerationStructureAccess(GpuStageFlags stages, GpuAccessFlags access)
+{
+	D3D12_BARRIER_ACCESS nativeAccess = D3D12_BARRIER_ACCESS_COMMON;
+	if(access.IsSet(GpuAccessFlag::Read) && stages.IsSetAny(GpuStageFlag::AllShaderAccelerationStructure | GpuStageFlag::AccelerationStructureBuild))
+		nativeAccess |= D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ;
+
+	if(access.IsSet(GpuAccessFlag::Write) && stages.IsSet(GpuStageFlag::AccelerationStructureBuild))
+		nativeAccess |= D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE;
+
+	// Host accesses map to no GPU access, and a scope without synchronization must name no access
+	return nativeAccess != D3D12_BARRIER_ACCESS_COMMON ? nativeAccess : D3D12_BARRIER_ACCESS_NO_ACCESS;
+}
+
 D3D12_BUFFER_BARRIER D3D12BarrierUtility::GetBufferBarrier(ID3D12Resource* resource, const GpuBarrierScope& scope)
 {
 	B3D_ASSERT(resource != nullptr);
@@ -329,8 +389,10 @@ D3D12_BARRIER_ACCESS D3D12BarrierUtility::GetBufferAccess(GpuStageFlags stages, 
 	if(stages.IsSetAny(GpuStageFlag::VertexShaderNonUniform | GpuStageFlag::FragmentShaderNonUniform | GpuStageFlag::ComputeShaderNonUniform | GpuStageFlag::RayTracingShaderNonUniform))
 		nativeAccess |= writes ? D3D12_BARRIER_ACCESS_UNORDERED_ACCESS : D3D12_BARRIER_ACCESS_SHADER_RESOURCE;
 
-	// TODO - Rays traced against acceleration structures, and builds accessing acceleration structures and their scratch memory, need
-	// the acceleration structure access bits and their compatible syncs (phase 5.2). Scratch memory may need unordered access instead.
+	// The only buffers builds access in this stage, other than the structures (see GetAccelerationStructureAccess()), are their scratch memory,
+	// which they read and write as unordered access
+	if(stages.IsSet(GpuStageFlag::AccelerationStructureBuild))
+		nativeAccess |= D3D12_BARRIER_ACCESS_UNORDERED_ACCESS;
 
 	// Builds read their geometry and instances as shader resources
 	if(stages.IsSet(GpuStageFlag::AccelerationStructureBuildInput) && reads)

@@ -28,9 +28,15 @@ IGpuHeap* D3D12HeapBackend::CreateHeap(u64 sizeInBytes, const D3D12HeapCreateInf
 {
 	D3D12_HEAP_DESC heapDesc = {};
 	heapDesc.SizeInBytes = sizeInBytes;
-	heapDesc.Properties.Type = D3D12_HEAP_TYPE_CUSTOM;
-	heapDesc.Properties.CPUPageProperty = createInformation.Memory.CpuPageProperty;
-	heapDesc.Properties.MemoryPoolPreference = createInformation.Memory.MemoryPool;
+	heapDesc.Properties.Type = createInformation.Type;
+	if(createInformation.Type == D3D12_HEAP_TYPE_CUSTOM)
+	{
+		heapDesc.Properties.CPUPageProperty = createInformation.Memory.CpuPageProperty;
+		heapDesc.Properties.MemoryPoolPreference = createInformation.Memory.MemoryPool;
+	}
+	else
+		B3D_ASSERT(!createInformation.FallbackMemory.has_value());
+
 	heapDesc.Properties.CreationNodeMask = 0;
 	heapDesc.Properties.VisibleNodeMask = 0;
 	heapDesc.Alignment = createInformation.Alignment;

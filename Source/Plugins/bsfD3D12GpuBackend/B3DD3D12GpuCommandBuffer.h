@@ -97,6 +97,7 @@ namespace b3d
 			void Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance) override;
 			void DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance) override;
 			void DispatchCompute(u32 groupCountX, u32 groupCountY, u32 groupCountZ) override;
+			bool BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild> builds) override;
 			void BeginRenderPass(const RenderPassCreateInformation& createInformation) override;
 			void EndRenderPass() override;
 			bool IsInRenderPass() const override { return mState == GpuCommandBufferState::RecordingRenderPass; }

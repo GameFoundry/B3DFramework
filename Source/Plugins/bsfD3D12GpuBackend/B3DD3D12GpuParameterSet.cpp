@@ -4,6 +4,7 @@
 #include "B3DD3D12GpuParameterSetPool.h"
 #include "B3DD3D12GpuDevice.h"
 #include "B3DD3D12GpuPipelineParameterLayout.h"
+#include "B3DD3D12GpuAccelerationStructure.h"
 #include "B3DD3D12GpuBuffer.h"
 #include "GpuBackend/B3DGpuResourceTracker.h"
 #include "B3DD3D12Texture.h"
@@ -180,6 +181,22 @@ bool D3D12GpuParameters::SetSamplerState(u32 slot, const TShared<SamplerState>& 
 	return true;
 }
 
+bool D3D12GpuParameters::SetAccelerationStructure(u32 slot, const TShared<GpuAccelerationStructure>& accelerationStructure, u32 arrayIndex)
+{
+	if(!GpuParameterSet::SetAccelerationStructure(slot, accelerationStructure, arrayIndex))
+		return false;
+
+	// A structure keeps its view for its whole life, so the descriptor never goes stale. An empty slot gets the null structure view.
+	ResolvedDescriptor descriptor;
+	if(accelerationStructure != nullptr)
+		descriptor.Handle = static_cast<D3D12GpuAccelerationStructure&>(*accelerationStructure).GetD3D12Resource()->GetSRVHandle();
+
+	if(DescriptorBinding* binding = FindDescriptorBinding(slot))
+		StoreDescriptor(*binding, arrayIndex, descriptor);
+
+	return true;
+}
+
 bool D3D12GpuParameters::TrackResources(const GpuPipelineParameterSetLayout& pipelineSetLayout, GpuResourceTracker& resourceTracker)
 {
 	const TShared<GpuPipelineParameterSetLayout>& setLayout = GetLayout();
@@ -264,6 +281,14 @@ bool D3D12GpuParameters::TrackResources(const GpuPipelineParameterSetLayout& pip
 
 						resourceTracker.TrackBufferUsage(static_cast<D3D12GpuBuffer*>(buffer)->GetD3D12Buffer(), accessFlags);
 					}
+					break;
+				}
+				case GpuParameterType::AccelerationStructure:
+				{
+					// Bottom level structures are kept alive by the top level structure
+					if(GpuAccelerationStructure* const accelerationStructure = mAccelerationStructures[dataIndex].get())
+						resourceTracker.TrackResourceUsage(static_cast<D3D12GpuAccelerationStructure*>(accelerationStructure)->GetD3D12Resource(), GpuAccessFlag::Read);
+
 					break;
 				}
 				case GpuParameterType::Sampler:

@@ -67,6 +67,7 @@ namespace b3d
 			bool SetStorageTexture(u32 slot, const TShared<Texture>& texture, const TextureSurface& surface, u32 arrayIndex = 0) override;
 			bool SetStorageBuffer(u32 slot, const TShared<GpuBuffer>& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation()) override;
 			bool SetSamplerState(u32 slot, const TShared<SamplerState>& sampler, u32 arrayIndex = 0) override;
+			bool SetAccelerationStructure(u32 slot, const TShared<GpuAccelerationStructure>& accelerationStructure, u32 arrayIndex = 0) override;
 
 			/** Packs the descriptor tables as the set's own layout packs them (see D3D12GpuPipelineParameterSetLayout). Descriptors hold no image layouts, so @p attachments are ignored. */
 			void Flush(TArrayView<const GpuRenderPassAttachmentUsage> attachments = {}) override;
