@@ -26,6 +26,8 @@ namespace b3d
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetCpuCached", (void*)&ScriptMeshImportOptions::InternalGetCpuCached);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetCpuCached", (void*)&ScriptMeshImportOptions::InternalSetCpuCached);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSupportsRayTracing", (void*)&ScriptMeshImportOptions::InternalGetSupportsRayTracing);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSupportsRayTracing", (void*)&ScriptMeshImportOptions::InternalSetSupportsRayTracing);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetImportNormals", (void*)&ScriptMeshImportOptions::InternalGetImportNormals);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetImportNormals", (void*)&ScriptMeshImportOptions::InternalSetImportNormals);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetImportTangents", (void*)&ScriptMeshImportOptions::InternalGetImportTangents);
@@ -87,6 +89,28 @@ namespace b3d
 			return;
 
 		static_cast<MeshImportOptions*>(self->GetNativeObject())->CpuCached = value;
+	}
+
+	bool ScriptMeshImportOptions::InternalGetSupportsRayTracing(ScriptMeshImportOptions* self)
+	{
+		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
+		tmp__output = static_cast<MeshImportOptions*>(self->GetNativeObject())->SupportsRayTracing;
+
+		bool __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	void ScriptMeshImportOptions::InternalSetSupportsRayTracing(ScriptMeshImportOptions* self, bool value)
+	{
+		if(!self->IsNativeObjectValid())
+			return;
+
+		static_cast<MeshImportOptions*>(self->GetNativeObject())->SupportsRayTracing = value;
 	}
 
 	bool ScriptMeshImportOptions::InternalGetImportNormals(ScriptMeshImportOptions* self)

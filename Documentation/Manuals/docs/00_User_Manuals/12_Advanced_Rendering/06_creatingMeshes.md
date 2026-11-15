@@ -19,6 +19,7 @@ Supported mesh usage flags are:
  - @b3d::MeshFlag::Static - Specify for normal meshes that are created once (or updated very rarely)
  - @b3d::MeshFlag::Dynamic - Specify for meshes that are updated often (e.g. every frame)
  - @b3d::MeshFlag::KeepCPUCopy - Specify that any data written to the mesh (from the CPU) will be cached internally, allowing it to be accessed through **Mesh::GetCachedData()**. Uses extra memory as data needs to be stored in both normal and GPU memory.
+ - @b3d::MeshFlag::SupportsRayTracing - The mesh can be used as ray tracing geometry. Set by default, together with **Static**. It has no effect on **Dynamic** meshes, or on devices without ray tracing support. Setting the `gpu.RayTracing` config variable to false turns ray tracing off for every mesh, including meshes loaded with this flag. Ray tracing needs 32-bit indices and the vertex formats @b3d::RendererMeshData produces. A mesh in other formats can't be ray traced, and creating it with this flag logs a warning, so create such meshes without it. Leave it out for meshes that rays never hit, to save its small cost. See the [ray tracing](../../Developer_Manuals/Low_Level_rendering/rayTracing) manual.
 
 ~~~~~~~~~~~~~{.cpp}
 // Creates an empty mesh with 36 indices and 8 vertices

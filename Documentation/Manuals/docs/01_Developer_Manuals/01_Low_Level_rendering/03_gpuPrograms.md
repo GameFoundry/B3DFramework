@@ -4,7 +4,14 @@ title: GPU programs
 
 Now that we understand how command buffers work, let's explore what operations we can perform with them. The first step in rendering is setting up GPU programs - the programmable parts of the GPU pipeline. In other literature these are often called shaders (the framework uses the word shader for a higher level concept, so we won't call them that).
 
-There are six types of GPU programs: vertex, hull (tesselation control), domain (tesselation evaluation), geometry, fragment (pixel) and compute programs. Each is used for a different purpose but has the same interface. We assume the user is familiar with the GPU pipeline and what the different program types do.
+GPU programs come in three groups, one for each kind of pipeline they run in:
+ - **Graphics** - vertex, hull (tesselation control), domain (tesselation evaluation), geometry and fragment (pixel) programs.
+ - **Compute** - compute programs.
+ - **Ray tracing** - ray generation, miss, closest hit, any hit, intersection and callable programs. They need a device with @b3d::RSC_RAY_TRACING_PIPELINE, and @b3d::IsRayTracingProgramType tells them apart from the other types.
+
+Each type is a @b3d::GpuProgramType, and all of them share the same interface. We assume the user is familiar with the GPU pipeline and what the different program types do. Ray tracing is described in the [ray tracing](../Low_Level_rendering/rayTracing) manual.
+
+@b3d::GpuProgram::IsSupported reports whether the device can run a program. Ray tracing programs, and programs of other types that trace rays inline, run only on devices with the matching capabilities.
 
 > Note that if you are using Banshee Shading Language you do not need to create GPU programs manually - any shaders you import and materials created from those shaders will have GPU programs created internally, but they will be hidden from the normal user.
 
@@ -16,6 +23,8 @@ To create a GPU program you need to fill out a @b3d::GpuProgramCreateInformation
  - @b3d::GpuProgramCreateInformation::Type - @b3d::GpuProgramType of the GPU program (vertex, fragment, etc.).
 
 @b3d::GpuProgramCreateInformation::ShaderReflection optionally carries @b3d::ShaderReflection produced if source code was cross compiled from a higher-level shader language. Its entry-point metadata supplements native bytecode reflection with information such as compute threadgroup dimensions and declared push-constant size. BSL supplies it automatically. The object is shared and must not be modified after attaching it to a program.
+
+@b3d::GpuProgramCreateInformation::GetEntryPointReflection and @b3d::GpuProgram::GetEntryPointReflection return that metadata for the program's entry point, as @b3d::GpuProgramEntryPointReflection. For ray tracing programs it includes the size of the ray payload and of the hit attributes. A BSL pass with ray tracing entry points holds one program per entry point in @b3d::PassInformation::Programs, so you find a program by the name of its entry point (@b3d::GpuProgramCreateInformation::EntryPoint).
 
 GPU programs are created on the GPU device. You access the GPU device through a @b3d::render::GpuCommandBuffer object.
 
@@ -52,9 +61,12 @@ if(!myProgram->IsCompiled())
 ~~~~~~~~~~~~~
 
 # Using GPU programs for rendering
-To use a GPU program in a draw or dispatch call, you must first create a GPU pipeline object using the relevant GPU programs. There are two types of pipeline states:
- - @b3d::GpuGraphicsPipelineState - Supports vertex, hull, domain, geometry and fragment programs. At minimum requires a vertex program, while most pipelines will use vertex & fragment programs.
- - @b3d::GpuComputePipelineState - Supports only the compute GPU program type.
+To use a GPU program in a draw or dispatch call, you must first create a GPU pipeline object using the relevant GPU programs. There are three types of pipeline states:
+ - @b3d::GpuGraphicsPipelineState - Supports vertex, hull, domain, geometry and fragment programs, for draws. At minimum requires a vertex program, while most pipelines will use vertex & fragment programs.
+ - @b3d::GpuComputePipelineState - Supports only the compute GPU program type, for compute dispatches.
+ - @b3d::GpuRayTracingPipelineState - Supports the ray tracing program types, for ray dispatches. It holds many programs at once, grouped by what they do in a ray's path, and is covered in the [ray tracing](../Low_Level_rendering/rayTracing) manual.
+
+This manual covers the first two.
 
 To create a graphics pipeline you need to fill out the @b3d::GpuGraphicsPipelineStateCreateInformation structure with references to relevant GPU programs, followed by a call to GPU device's CreateGpuGraphicsPipelineState method.
 

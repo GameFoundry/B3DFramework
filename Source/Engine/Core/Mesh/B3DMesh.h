@@ -40,7 +40,7 @@ namespace b3d
 		Vector<SubMesh> SubMeshes;
 
 		/** Optimizes performance depending on planned usage of the mesh. */
-		MeshFlags Flags = MeshFlag::Static;
+		MeshFlags Flags = MeshFlag::Static | MeshFlag::SupportsRayTracing;
 
 		/**
 		 * Size of indices, use smaller size for better performance, however be careful not to go over the number of
@@ -147,7 +147,7 @@ namespace b3d
 		mutable TShared<MeshData> mCPUData;
 
 		TShared<VertexDescription> mVertexDescription;
-		MeshFlags mFlags = MeshFlag::Static;
+		MeshFlags mFlags = MeshFlag::Static | MeshFlag::SupportsRayTracing;
 		IndexType mIndexType = IT_32BIT;
 		TShared<Skeleton> mSkeleton; // Immutable
 		TShared<MorphShapes> mMorphShapes; // Immutable
@@ -183,7 +183,7 @@ namespace b3d
 		 * @param	indexType		Size of indices, use smaller size for better performance, however be careful not to
 		 *								go over the number of vertices limited by the size.
 		 */
-		static HMesh Create(u32 vertexCount, u32 indexCount, const TShared<VertexDescription>& vertexDescription, MeshFlags flags = MeshFlag::Static, DrawOperationType primitiveType = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT);
+		static HMesh Create(u32 vertexCount, u32 indexCount, const TShared<VertexDescription>& vertexDescription, MeshFlags flags = MeshFlag::Static | MeshFlag::SupportsRayTracing, DrawOperationType primitiveType = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT);
 
 		/**
 		 * Creates a new empty mesh.
@@ -212,7 +212,7 @@ namespace b3d
 		 * @param	primitiveType	Determines how should the provided indices be interpreted by the pipeline. Default
 		 *								option is a triangle strip, where three indices represent a single triangle.
 		 */
-		static HMesh Create(const TShared<MeshData>& initialData, MeshFlags flags = MeshFlag::Static, DrawOperationType primitiveType = DOT_TRIANGLE_LIST);
+		static HMesh Create(const TShared<MeshData>& initialData, MeshFlags flags = MeshFlag::Static | MeshFlag::SupportsRayTracing, DrawOperationType primitiveType = DOT_TRIANGLE_LIST);
 
 		/** @name Internal
 		 *  @{
@@ -237,7 +237,7 @@ namespace b3d
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
-		static TShared<Mesh> CreateShared(const TShared<MeshData>& initialData, MeshFlags flags = MeshFlag::Static, DrawOperationType primitiveType = DOT_TRIANGLE_LIST);
+		static TShared<Mesh> CreateShared(const TShared<MeshData>& initialData, MeshFlags flags = MeshFlag::Static | MeshFlag::SupportsRayTracing, DrawOperationType primitiveType = DOT_TRIANGLE_LIST);
 
 		/**
 		 * Creates a new empty and uninitialized mesh. You will need to manually initialize the mesh before using it.
@@ -253,6 +253,8 @@ namespace b3d
 
 	namespace render
 	{
+		class RayTracingGeometry;
+
 		/** @addtogroup Renderer
 		 *  @{
 		 */
@@ -280,6 +282,20 @@ namespace b3d
 
 			/** Returns an object containing all shapes used for morph animation, if any are available. */
 			TShared<MorphShapes> GetMorphShapes() const { return mMorphShapes; }
+
+			/**
+			 * Returns true if the mesh can be used as ray tracing geometry: it has MeshFlag::SupportsRayTracing, isn't MeshFlag::Dynamic, its
+			 * vertices and indices are in the formats RayTracingGeometry needs (a warning is logged if they aren't), and the device has
+			 * RSC_ACCELERATION_STRUCTURES. Its vertex and index buffers can then be build inputs, and are bindless on devices with bindless
+			 * heaps. Becomes false if GetOrCreateRayTracingGeometry() can't create the geometry.
+			 */
+			bool SupportsRayTracing() const { return mSupportsRayTracing; }
+
+			/**
+			 * Returns the ray tracing geometry of the mesh, creating it on first use, or null if the mesh doesn't support ray tracing or has
+			 * no triangle list sub-mesh. A write to the mesh marks the geometry as not built.
+			 */
+			const TShared<RayTracingGeometry>& GetOrCreateRayTracingGeometry();
 
 			/**
 			 * Updates the current mesh with the provided data.
@@ -319,7 +335,7 @@ namespace b3d
 			 * @param	indexType			Size of indices, use smaller size for better performance, however be careful not to
 			 *									go over the number of vertices limited by the size.
 			 */
-			static TShared<Mesh> Create(u32 vertexCount, u32 indexCount, const TShared<VertexDescription>& vertexDescription, MeshFlags flags = MeshFlag::Static, DrawOperationType primitiveType = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT);
+			static TShared<Mesh> Create(u32 vertexCount, u32 indexCount, const TShared<VertexDescription>& vertexDescription, MeshFlags flags = MeshFlag::Static | MeshFlag::SupportsRayTracing, DrawOperationType primitiveType = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT);
 
 			/**
 			 * Creates a new empty mesh.
@@ -349,7 +365,7 @@ namespace b3d
 			 * @param	drawOp			Determines how should the provided indices be interpreted by the pipeline. Default
 			 *								option is a triangle strip, where three indices represent a single triangle.
 			 */
-			static TShared<Mesh> Create(const TShared<MeshData>& initialData, MeshFlags flags = MeshFlag::Static, DrawOperationType drawOp = DOT_TRIANGLE_LIST);
+			static TShared<Mesh> Create(const TShared<MeshData>& initialData, MeshFlags flags = MeshFlag::Static | MeshFlag::SupportsRayTracing, DrawOperationType drawOp = DOT_TRIANGLE_LIST);
 
 		protected:
 			friend class b3d::Mesh;
@@ -366,6 +382,8 @@ namespace b3d
 			TShared<MeshData> mTempInitialMeshData;
 			TShared<Skeleton> mSkeleton; // Immutable
 			TShared<MorphShapes> mMorphShapes; // Immutable
+			bool mSupportsRayTracing = false;
+			TShared<RayTracingGeometry> mRayTracingGeometry;
 		};
 
 		/** @} */

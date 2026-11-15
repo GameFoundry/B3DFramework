@@ -34,6 +34,18 @@ namespace b3d
 			set { Internal_SetCpuCached(mCachedPtr, value); }
 		}
 
+		/// <summary>
+		/// Determines whether the mesh can be used as ray tracing geometry. See MeshFlag::SupportsRayTracing. Turn it off for 
+		/// meshes that rays never hit.
+		/// </summary>
+		[ShowInInspector]
+		[NativeWrapper]
+		public bool SupportsRayTracing
+		{
+			get { return Internal_GetSupportsRayTracing(mCachedPtr); }
+			set { Internal_SetSupportsRayTracing(mCachedPtr, value); }
+		}
+
 		/// <summary>Determines should mesh normals be imported if available.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
@@ -158,6 +170,10 @@ namespace b3d
 		private static extern bool Internal_GetCpuCached(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetCpuCached(IntPtr thisPtr, bool value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern bool Internal_GetSupportsRayTracing(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_SetSupportsRayTracing(IntPtr thisPtr, bool value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_GetImportNormals(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

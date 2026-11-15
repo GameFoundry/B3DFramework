@@ -425,11 +425,13 @@ shader MyShader
 ~~~~~~~~~~~~~~
 
 # Ray tracing
-A shader can trace rays through the scene and react to what they hit. The scene's geometry is stored in an **acceleration structure**, an object built on the CPU that lets the GPU find what a ray hits without testing every triangle. It is made of **instances**, each of which places one mesh in the scene. A shader receives an acceleration structure as a parameter of type `RaytracingAccelerationStructure`, and can trace rays through it in two ways:
+A shader can trace rays through the scene and react to what they hit. The scene's geometry is stored in an **acceleration structure**, an object the GPU builds from your geometry that lets it find what a ray hits without testing every triangle. It is made of **instances**, each of which places one mesh in the scene. A shader receives an acceleration structure as a parameter of type `RaytracingAccelerationStructure`, and can trace rays through it in two ways:
  - **Ray tracing passes** - The pass is made of ray tracing programs. One of them starts rays with `TraceRay`, and the GPU runs other programs of the pass for what each ray hits or misses.
  - **Inline ray tracing** - A program of any type, for example a fragment or a compute program, calls **RayTraceClosest** or **RayTraceAny** and gets the hit back as the return value.
 
 Each way needs its own support from the GPU device: the @b3d::RSC_RAY_TRACING_PIPELINE capability for ray tracing passes, and the @b3d::RSC_RAY_QUERY capability for inline ray tracing. Check for them with @b3d::GpuDeviceCapabilities::HasCapability.
+
+This section covers the shader side. Building acceleration structures, creating ray tracing pipelines and shader binding tables, and dispatching rays from C++ are described in the [Ray tracing](../../Developer_Manuals/Low_Level_rendering/rayTracing) manual.
 
 A ray is described by the HLSL `RayDesc` struct, with the members `Origin`, `TMin`, `Direction` and `TMax`. BSL declares it for you, together with `BuiltInTriangleIntersectionAttributes`, the `RAY_FLAG_*` and `HIT_KIND_*` constants, and the `RayHit` and `RayCandidate` structs described below. A shader can't declare anything of its own under these names.
 

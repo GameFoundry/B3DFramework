@@ -29,6 +29,8 @@ namespace b3d
 	private:
 		static bool InternalGetCpuCached(ScriptMeshImportOptions* self);
 		static void InternalSetCpuCached(ScriptMeshImportOptions* self, bool value);
+		static bool InternalGetSupportsRayTracing(ScriptMeshImportOptions* self);
+		static void InternalSetSupportsRayTracing(ScriptMeshImportOptions* self, bool value);
 		static bool InternalGetImportNormals(ScriptMeshImportOptions* self);
 		static void InternalSetImportNormals(ScriptMeshImportOptions* self, bool value);
 		static bool InternalGetImportTangents(ScriptMeshImportOptions* self);

@@ -26,6 +26,12 @@ float4 fsmain(VStoFS input) : SV_Target0
 }
 ~~~~~~~~~~~~~
 
+Wrap the index in `NonUniformResourceIndex` when threads of one draw or dispatch can read different slots, for example when the index comes from the instance or the mesh a ray hit. Without it the GPU may assume all threads read the same slot, and some GPUs then read the wrong resource for some of the threads.
+
+~~~~~~~~~~~~~{.hlsl}
+ByteAddressBuffer indices = ResourceDescriptorHeap[NonUniformResourceIndex(meshIndexBufferIndex)];
+~~~~~~~~~~~~~
+
 Functions can return resources and samplers read from the heaps, on their own or as members of a struct.
 
 ~~~~~~~~~~~~~{.hlsl}
@@ -38,7 +44,9 @@ Texture2D<float4> GetMaterialTexture(uint materialIndex)
 The resource heap holds read-only views only:
  - textures, as any `Texture*` type,
  - simple storage buffers, as `Buffer<T>`,
- - structured storage buffers, as `StructuredBuffer<T>`, or as raw 32-bit words through `ByteAddressBuffer`.
+ - structured storage buffers, as `StructuredBuffer<T>`, or as raw 32-bit words through `ByteAddressBuffer`,
+ - vertex and index buffers, as raw 32-bit words through `ByteAddressBuffer`,
+ - top level acceleration structures, as `RaytracingAccelerationStructure`, on devices that support it (see below).
 
 `RW*` types, append and consume buffers and constant buffers can't be read through the heap. Bind them through a parameter set as usual. The heaps are bound at parameter set 7 (register space 7 in HLSL), so programs that access them can't declare their own parameters there.
 
@@ -50,7 +58,7 @@ On Metal, two more restrictions apply:
 
 # Bindless textures and buffers
 
-Create a texture with the @b3d::TextureUsageFlag::Bindless usage flag, or a buffer with the @b3d::GpuBufferFlag::Bindless flag, to give it a heap slot. The slot of its default view is allocated on creation, and @b3d::render::Texture::GetBindlessIndex or @b3d::render::GpuBuffer::GetBindlessIndex return its index.
+Create a texture with the @b3d::TextureUsageFlag::Bindless usage flag, or a buffer with the @b3d::GpuBufferFlag::Bindless flag, to give it a heap slot. The slot of its default view is allocated on creation, and @b3d::render::Texture::GetBindlessIndex or @b3d::render::GpuBuffer::GetBindlessIndex return its index. The default view of a vertex or index buffer is raw, so programs read it as a `ByteAddressBuffer`.
 
 ~~~~~~~~~~~~~{.cpp}
 TextureCreateInformation textureInformation;
@@ -69,7 +77,7 @@ u32 bufferIndex = buffer->GetBindlessIndex();
 
 Other views get their own slots on first request:
  - @b3d::render::Texture::GetOrCreateBindlessIndex views a @b3d::TextureSurface of the texture, such as a single mip level.
- - @b3d::render::GpuBuffer::GetOrCreateBindlessIndex views a simple storage buffer with another element format (@b3d::GpuBufferViewType::Typed), or a structured storage buffer as raw 32-bit words (@b3d::GpuBufferViewType::Raw), which programs read as a `ByteAddressBuffer`.
+ - @b3d::render::GpuBuffer::GetOrCreateBindlessIndex views a simple storage buffer with another element format (@b3d::GpuBufferViewType::Typed), or a structured storage buffer as raw 32-bit words (@b3d::GpuBufferViewType::Raw), which programs read as a `ByteAddressBuffer`. Vertex and index buffers have no other view than the raw one.
 
 ~~~~~~~~~~~~~{.cpp}
 // View of the first mip level only
@@ -89,11 +97,18 @@ Indices are valid until the resource is destroyed. The slots are reused once the
 A command buffer that accesses the heaps must finish recording in the frame it started recording in. At the end of a frame the device may switch to a new native heap, and indices allocated afterwards are only valid in work recorded afterwards. @b3d::render::GpuCommandBuffer::End logs an error for a command buffer recorded across the end of a frame in which the heap switched.
 
 A bindless resource must:
- - be a texture, or a simple or structured storage buffer, with no suballocations,
+ - be a texture, a simple or structured storage buffer, or a vertex or index buffer, with no suballocations,
  - not be aliased or transient, so it can't come from the transient resource allocator or a frame graph,
  - stay at rest. Programs read it through the heap without barriers, so any pass that writes it must return it to its resting state, as frame graph passes do for imported resources.
 
 Writes to bindless resources never discard their memory. Defragmentation may move them (see @b3d::GpuMemoryDefragmenter), and updates their slots to the moved memory at the end of the frame, so their indices stay valid.
+
+# Acceleration structures
+On devices with @b3d::GpuRayTracingCapabilities::SupportsBindlessAccelerationStructures, a top level acceleration structure created with @b3d::GpuAccelerationStructureFlag::Bindless gets a heap slot, and @b3d::render::GpuAccelerationStructure::GetBindlessIndex returns its index. Other devices must bind acceleration structures through parameter sets. See the [ray tracing](../Low_Level_rendering/rayTracing) manual.
+
+~~~~~~~~~~~~~{.hlsl}
+RaytracingAccelerationStructure scene = ResourceDescriptorHeap[SceneIndex];
+~~~~~~~~~~~~~
 
 # Samplers
 

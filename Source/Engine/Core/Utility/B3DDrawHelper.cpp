@@ -1251,7 +1251,7 @@ Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, cons
 	for(u32 i = 0; i < 4; i++)
 	{
 		if(meshData[i])
-			meshes[i] = Mesh::CreateShared(meshData[i]);
+			meshes[i] = Mesh::CreateShared(meshData[i], MeshFlag::Static);
 	}
 
 	for(auto& entry : meshInfos)

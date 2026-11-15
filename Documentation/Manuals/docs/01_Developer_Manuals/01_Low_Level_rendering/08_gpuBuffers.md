@@ -46,7 +46,7 @@ GpuBufferCreateInformation createInformation = GpuBufferCreateInformation::Creat
 TShared<render::GpuBuffer> buffer = gpuDevice->CreateGpuBuffer(createInformation);
 ~~~~~~~~~~~~~
 
-Programs can also read and write a structured storage buffer as raw 32-bit words at byte addresses, through the HLSL **ByteAddressBuffer** and **RWByteAddressBuffer** types. Bind the buffer to such a parameter as to any other storage buffer. Only structured storage buffers can be bound this way: binding a simple storage buffer logs an error and leaves the parameter unchanged.
+Programs can also read and write a structured storage buffer as raw 32-bit words at byte addresses, through the HLSL **ByteAddressBuffer** and **RWByteAddressBuffer** types. Bind the buffer to such a parameter as to any other storage buffer. Only structured storage, vertex and index buffers can be bound this way: binding a simple storage buffer logs an error and leaves the parameter unchanged. Vertex and index buffers can also be read as raw words through the bindless heap, where a `ByteAddressBuffer` is their only view (see the [bindless resources](../Low_Level_rendering/bindlessResources) manual). Hit shaders use this to read the vertices and indices of the triangle a ray hit.
 
 ~~~~~~~~~~~~~{.cpp}
 // HLSL: ByteAddressBuffer Words;
@@ -71,8 +71,8 @@ Mapped GPU memory is limited: on integrated GPUs the part reserved for the GPU c
 The @b3d::GpuBufferFlag flags describe how the GPU uses a buffer, independently of its memory:
  - @b3d::GpuBufferFlag::None - Shaders only read the buffer. GPU copies can still write it.
  - @b3d::GpuBufferFlag::GpuWrite - Shaders write the buffer (see load-store buffers below). With `Mapped` or `MappedCached`, shaders write the mapped memory directly.
- - @b3d::GpuBufferFlag::Bindless - The buffer is accessed through the bindless heap.
- - @b3d::GpuBufferFlag::AccelerationStructureInput - The buffer holds geometry or instances an acceleration structure is built from.
+ - @b3d::GpuBufferFlag::Bindless - The buffer is accessed through the bindless heap. Valid for simple and structured storage buffers, and for vertex and index buffers.
+ - @b3d::GpuBufferFlag::AccelerationStructureInput - The buffer holds geometry or instances an acceleration structure is built from: the vertices or indices of a geometry, or the instances of a top level structure. Valid for vertex, index and structured storage buffers, on devices with @b3d::RSC_ACCELERATION_STRUCTURES. See the [ray tracing](../Low_Level_rendering/rayTracing) manual.
 
 Only `Device` buffers can be transient.
 

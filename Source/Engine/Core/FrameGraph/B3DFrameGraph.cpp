@@ -4,6 +4,7 @@
 
 #include "B3DApplication.h"
 #include "GpuBackend/Allocators/B3DGpuTransientHeapPool.h"
+#include "GpuBackend/B3DGpuAccelerationStructure.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
@@ -20,7 +21,7 @@
 namespace b3d
 {
 	TConfigVariable<bool> gFrameGraphAsyncCompute("gpu.FrameGraphAsyncCompute",
-		"If enabled, compute passes that prefer the async compute queue run on it. If disabled, every pass runs on the graphics queue.", true);
+		"If enabled, compute, copy and acceleration structure passes that prefer the async compute queue run on it. If disabled, every pass runs on the graphics queue.", true);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	TConfigVariable<bool> gFrameGraphSerialRecording("gpu.FrameGraphSerialRecording",
@@ -140,6 +141,12 @@ namespace b3d::render
 			mExportedBuffers.Add(buffer);
 	}
 
+	void FrameGraphPass::Export(const TShared<GpuAccelerationStructure>& accelerationStructure)
+	{
+		if(accelerationStructure != nullptr)
+			mExportedAccelerationStructures.Add(accelerationStructure);
+	}
+
 	void FrameGraphRasterPass::SetColorAttachment(u32 index, const TShared<Texture>& texture, FrameGraphAttachmentLoad load, u32 mipLevel, u32 face, u32 faceCount)
 	{
 		if(!B3D_ENSURE_LOG(index < B3D_MAXIMUM_RENDER_TARGET_COUNT, "Color attachment index {0} is out of range.", index))
@@ -205,11 +212,40 @@ namespace b3d::render
 		mResources.Add(resource);
 	}
 
+	void FrameGraphAccelerationStructurePass::AddBuild(const GpuAccelerationStructureBuild& build)
+	{
+		if(build.Destination != nullptr)
+			mDestinations.push_back(build.Destination);
+
+		if(build.ScratchBuffer != nullptr)
+			mScratchBuffers.push_back(build.ScratchBuffer);
+
+		for(const TShared<GpuAccelerationStructure>& bottomLevel : build.BottomLevels)
+		{
+			if(bottomLevel != nullptr)
+				mBottomLevels.push_back(bottomLevel);
+		}
+
+		const GpuAccelerationStructureInputs& inputs = build.Inputs;
+		if(inputs.InstanceBuffer != nullptr)
+			mInputBuffers.push_back(inputs.InstanceBuffer);
+
+		for(const GpuRayTracingGeometry& geometry : inputs.Geometries)
+		{
+			if(geometry.VertexBuffer != nullptr)
+				mInputBuffers.push_back(geometry.VertexBuffer);
+
+			if(geometry.IndexBuffer != nullptr)
+				mInputBuffers.push_back(geometry.IndexBuffer);
+		}
+	}
+
 	GpuBarriers FrameGraph::BarrierList::GetBarriers() const
 	{
 		return GpuBarriers(TArrayView<const GpuBufferBarrier>(BufferBarriers.data(), (u32)BufferBarriers.size()),
 			TArrayView<const GpuTextureBarrier>(TextureBarriers.data(), (u32)TextureBarriers.size()),
-			TArrayView<const GpuRenderTargetBarrier>(RenderTargetBarriers.data(), (u32)RenderTargetBarriers.size()));
+			TArrayView<const GpuRenderTargetBarrier>(RenderTargetBarriers.data(), (u32)RenderTargetBarriers.size()),
+			TArrayView<const GpuAccelerationStructureBarrier>(AccelerationStructureBarriers.data(), (u32)AccelerationStructureBarriers.size()));
 	}
 
 	FrameGraph::FrameGraph(GpuWorkContext& context, const StringView& name, FrameGraphFlags flags)
@@ -331,6 +367,30 @@ namespace b3d::render
 		resource.Type = ResourceType::Imported;
 		resource.Buffer = buffer;
 		resource.RestingState = GpuBackendUtility::GetRestingState(*buffer, GQT_GRAPHICS);
+
+		AddResource(std::move(resource));
+	}
+
+	void FrameGraph::ImportAccelerationStructure(const TShared<GpuAccelerationStructure>& accelerationStructure)
+	{
+		B3D_ASSERT(!mIsCompiled && "Resources cannot be imported after Compile().");
+		if(accelerationStructure == nullptr)
+			return;
+
+		// A structure the graph already has needs no second import
+		if(accelerationStructure->GetFrameGraphResourceIndex() != ~0u)
+		{
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			B3D_ENSURE_LOG(accelerationStructure->GetFrameGraphId() == mId, "Acceleration structure '{0}' is already a resource of another frame graph.",
+				accelerationStructure->GetName());
+#endif
+			return;
+		}
+
+		Resource resource;
+		resource.Type = ResourceType::Imported;
+		resource.AccelerationStructure = accelerationStructure;
+		resource.RestingState = GpuBackendUtility::GetRestingState(*accelerationStructure, GQT_GRAPHICS);
 
 		AddResource(std::move(resource));
 	}
@@ -545,6 +605,58 @@ namespace b3d::render
 		}
 	}
 
+	void FrameGraph::AddAccelerationStructurePass(const StringView& name, FrameGraphAccelerationStructurePass&& pass, Function<void(FrameGraphPassContext&)> execute)
+	{
+		Pass& output = AddPass(name, PassType::AccelerationStructure, pass, std::move(execute));
+
+		// Finds the graph resource of an object the pass accesses. Objects outside of the graph are at rest, which only allows reads.
+		const auto fnFindResource = [this, &output](const auto& object, bool isWritten)
+		{
+			const u32 resourceIndex = object.GetFrameGraphResourceIndex();
+			if(resourceIndex == ~0u)
+			{
+				B3D_ENSURE_LOG(!isWritten, "Pass '{0}' writes '{1}' in a build, but it is not a resource of the graph. Import it first.", output.Name, object.GetName());
+				return ~0u;
+			}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			if(!B3D_ENSURE_LOG(object.GetFrameGraphId() == mId, "Pass '{0}' builds with '{1}', which is a resource of another frame graph.", output.Name, object.GetName()))
+				return ~0u;
+#endif
+
+			return resourceIndex;
+		};
+
+		// A build overwrites the whole destination without reading it
+		for(const TShared<GpuAccelerationStructure>& destination : pass.mDestinations)
+		{
+			const u32 resourceIndex = fnFindResource(*destination, true);
+			if(resourceIndex != ~0u)
+				DeclareAccess(output, resourceIndex, GpuTextureSubresourceRange(), GpuAccessState(GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Write), true);
+		}
+
+		for(const TShared<GpuBuffer>& scratchBuffer : pass.mScratchBuffers)
+		{
+			const u32 resourceIndex = fnFindResource(*scratchBuffer, true);
+			if(resourceIndex != ~0u)
+				DeclareAccess(output, resourceIndex, GpuTextureSubresourceRange(), GpuAccessState(GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Read | GpuAccessFlag::Write));
+		}
+
+		for(const TShared<GpuAccelerationStructure>& bottomLevel : pass.mBottomLevels)
+		{
+			const u32 resourceIndex = fnFindResource(*bottomLevel, false);
+			if(resourceIndex != ~0u)
+				DeclareAccess(output, resourceIndex, GpuTextureSubresourceRange(), GpuAccessState(GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Read));
+		}
+
+		for(const TShared<GpuBuffer>& inputBuffer : pass.mInputBuffers)
+		{
+			const u32 resourceIndex = fnFindResource(*inputBuffer, false);
+			if(resourceIndex != ~0u)
+				DeclareAccess(output, resourceIndex, GpuTextureSubresourceRange(), GpuAccessState(GpuStageFlag::AccelerationStructureBuildInput, GpuAccessFlag::Read));
+		}
+	}
+
 	/** State the stages of FrameGraph::Compile() pass on to each other. Lives in the frame allocator scope of Compile(). */
 	struct FrameGraph::CompileContext
 	{
@@ -623,12 +735,32 @@ namespace b3d::render
 
 	bool FrameGraph::Resource::IsShared() const
 	{
-		return Buffer != nullptr || (Texture != nullptr && GpuBackendUtility::IsConcurrentlyReadable(Texture->GetProperties().Usage));
+		return Buffer != nullptr || AccelerationStructure != nullptr || (Texture != nullptr && GpuBackendUtility::IsConcurrentlyReadable(Texture->GetProperties().Usage));
 	}
 
 	GpuAccessState FrameGraph::Resource::GetQueueRestingState(GpuQueueType queueType) const
 	{
-		return Texture != nullptr ? GpuBackendUtility::GetRestingState(*Texture, queueType) : GpuBackendUtility::GetRestingState(*Buffer, queueType);
+		if(Texture != nullptr)
+			return GpuBackendUtility::GetRestingState(*Texture, queueType);
+
+		if(AccelerationStructure != nullptr)
+			return GpuBackendUtility::GetRestingState(*AccelerationStructure, queueType);
+
+		return GpuBackendUtility::GetRestingState(*Buffer, queueType);
+	}
+
+	StringView FrameGraph::Resource::GetName() const
+	{
+		if(Texture != nullptr)
+			return Texture->GetName();
+
+		if(Buffer != nullptr)
+			return Buffer->GetName();
+
+		if(AccelerationStructure != nullptr)
+			return AccelerationStructure->GetName();
+
+		return "Window";
 	}
 
 	void FrameGraph::Compile()
@@ -1092,7 +1224,7 @@ namespace b3d::render
 		// Each half names only stages of the queue it is recorded on
 		barrier.Source.Stages &= GpuBackendUtility::GetQueueStageFlags(sourceQueueType);
 
-		if(discardsContents && resource.Buffer == nullptr)
+		if(discardsContents && resource.HasLayouts())
 			barrier.Source.Layout = GpuImageLayout::Undefined;
 
 		barrier.Destination = destination;
@@ -1740,7 +1872,7 @@ namespace b3d::render
 			for(CompileContext::PlannedBarrier& barrier : context.PlannedBarriers)
 			{
 				const Resource& resource = mResources[barrier.ResourceIndex];
-				if(!barrier.IsSplit || barrier.ReleaseQueueType != barrier.AcquireQueueType || resource.Buffer != nullptr || resource.FullRange.GetAspectCount() != 2)
+				if(!barrier.IsSplit || barrier.ReleaseQueueType != barrier.AcquireQueueType || !resource.HasLayouts() || resource.FullRange.GetAspectCount() != 2)
 					continue;
 
 				barrier.IsSplit = false;
@@ -1834,7 +1966,7 @@ namespace b3d::render
 			const Resource& resource = mResources[first.ResourceIndex];
 
 			TInlineArray<GpuTextureSubresourceRange, 4> ranges;
-			if(first.IsWholeResource || resource.Buffer != nullptr)
+			if(first.IsWholeResource || !resource.HasLayouts())
 				ranges.Add(GpuTextureSubresourceRange::AllSubresources());
 			else
 			{
@@ -1909,6 +2041,8 @@ namespace b3d::render
 			{
 				if(resource.Buffer != nullptr)
 					list.BufferBarriers.emplace_back(resource.Buffer, first.Source, first.Destination, first.Flags);
+				else if(resource.AccelerationStructure != nullptr)
+					list.AccelerationStructureBarriers.emplace_back(resource.AccelerationStructure, first.Source, first.Destination, first.Flags);
 				else if(resource.Texture != nullptr)
 					list.TextureBarriers.emplace_back(resource.Texture, first.Source, first.Destination, range, first.Flags);
 				else
@@ -2348,7 +2482,7 @@ namespace b3d::render
 
 	u32 FrameGraph::AddResource(Resource&& resource)
 	{
-		if(resource.Buffer == nullptr)
+		if(resource.HasLayouts())
 			resource.SubresourceCount = resource.FullRange.GetSubresourceCount();
 
 		const u32 resourceIndex = (u32)mResources.size();
@@ -2364,6 +2498,8 @@ namespace b3d::render
 			resource.Texture->SetFrameGraphResourceIndex(resourceIndex);
 		else if(resource.Buffer != nullptr)
 			resource.Buffer->SetFrameGraphResourceIndex(resourceIndex);
+		else if(resource.AccelerationStructure != nullptr)
+			resource.AccelerationStructure->SetFrameGraphResourceIndex(resourceIndex);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		const u32 graphId = resourceIndex != ~0u ? mId : 0;
@@ -2371,6 +2507,8 @@ namespace b3d::render
 			resource.Texture->SetFrameGraphId(graphId);
 		else if(resource.Buffer != nullptr)
 			resource.Buffer->SetFrameGraphId(graphId);
+		else if(resource.AccelerationStructure != nullptr)
+			resource.AccelerationStructure->SetFrameGraphId(graphId);
 #endif
 	}
 
@@ -2392,6 +2530,16 @@ namespace b3d::render
 #endif
 
 		return buffer.GetFrameGraphResourceIndex();
+	}
+
+	u32 FrameGraph::FindResource(const GpuAccelerationStructure& accelerationStructure) const
+	{
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		if(accelerationStructure.GetFrameGraphId() != mId)
+			return ~0u;
+#endif
+
+		return accelerationStructure.GetFrameGraphResourceIndex();
 	}
 
 	FrameGraph::Pass& FrameGraph::AddPass(const StringView& name, PassType type, FrameGraphPass& pass, Function<void(FrameGraphPassContext&)>&& execute)
@@ -2420,13 +2568,27 @@ namespace b3d::render
 		{
 			parameters->ForEachBoundResource(nullptr, [this, &output](const GpuParameterSetResource& bound)
 			{
-				// Acceleration structures cannot be imported into the graph, so a bound one is at rest, and slots only read them
-				if(bound.Uniform->Type == GpuParameterType::AccelerationStructure)
-					return;
-
 				const bool isTexture = bound.Uniform->Type == GpuParameterType::SampledTexture || bound.Uniform->Type == GpuParameterType::StorageTexture;
-				const u32 resourceIndex = isTexture ? bound.Texture.Object->GetFrameGraphResourceIndex() : bound.Buffer.Object->GetFrameGraphResourceIndex();
-				const StringView resourceName = isTexture ? StringView(bound.Texture.Object->GetName()) : StringView(bound.Buffer.Object->GetName());
+				const bool isAccelerationStructure = bound.Uniform->Type == GpuParameterType::AccelerationStructure;
+
+				u32 resourceIndex;
+				StringView resourceName;
+				if(isTexture)
+				{
+					resourceIndex = bound.Texture.Object->GetFrameGraphResourceIndex();
+					resourceName = bound.Texture.Object->GetName();
+				}
+				else if(isAccelerationStructure)
+				{
+					resourceIndex = bound.AccelerationStructure.Object->GetFrameGraphResourceIndex();
+					resourceName = bound.AccelerationStructure.Object->GetName();
+				}
+				else
+				{
+					resourceIndex = bound.Buffer.Object->GetFrameGraphResourceIndex();
+					resourceName = bound.Buffer.Object->GetName();
+				}
+
 				if(resourceIndex == ~0u)
 				{
 					// Resources outside of the graph are at rest, which only allows reads
@@ -2446,7 +2608,8 @@ namespace b3d::render
 				}
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-				const u32 graphId = isTexture ? bound.Texture.Object->GetFrameGraphId() : bound.Buffer.Object->GetFrameGraphId();
+				const u32 graphId = isTexture ? bound.Texture.Object->GetFrameGraphId() : isAccelerationStructure ? bound.AccelerationStructure.Object->GetFrameGraphId()
+					: bound.Buffer.Object->GetFrameGraphId();
 				if(!B3D_ENSURE_LOG(graphId == mId, "Pass '{0}' binds '{1}' in slot '{2}', which is a resource of another frame graph.", output.Name, resourceName, bound.Uniform->Name))
 					return;
 #endif
@@ -2478,6 +2641,9 @@ namespace b3d::render
 					DeclareAccess(output, resourceIndex, range, GpuAccessState(GpuBackendUtility::GetStageFlags(stageUse | GpuResourceUseFlag::ShaderAccess), bound.Access, GpuImageLayout::General));
 					break;
 				}
+				case GpuParameterType::AccelerationStructure:
+					DeclareAccess(output, resourceIndex, GpuTextureSubresourceRange(), GpuAccessState(GpuBackendUtility::GetStageFlags(stageUse | GpuResourceUseFlag::AccelerationStructure), bound.Access));
+					break;
 				default:
 					break;
 				}
@@ -2503,6 +2669,9 @@ namespace b3d::render
 		for(const TShared<GpuBuffer>& buffer : pass.mExportedBuffers)
 			fnExport(FindResource(*buffer));
 
+		for(const TShared<GpuAccelerationStructure>& accelerationStructure : pass.mExportedAccelerationStructures)
+			fnExport(FindResource(*accelerationStructure));
+
 		return output;
 	}
 
@@ -2510,7 +2679,7 @@ namespace b3d::render
 	{
 		const Resource& resource = mResources[resourceIndex];
 
-		const StringView resourceName = resource.Texture != nullptr ? StringView(resource.Texture->GetName()) : resource.Buffer != nullptr ? StringView(resource.Buffer->GetName()) : StringView("Window");
+		const StringView resourceName = resource.GetName();
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		// Readers of an exported resource rely on its resting state
@@ -2574,7 +2743,7 @@ namespace b3d::render
 			}
 		};
 
-		if(resource.Buffer != nullptr)
+		if(!resource.HasLayouts())
 		{
 			fnDeclareSubresource(0);
 			return;

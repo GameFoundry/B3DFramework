@@ -10,6 +10,7 @@
 #include "Renderer/B3DRendererManager.h"
 #include "Renderer/B3DRenderer.h"
 #include "Mesh/B3DMeshUtility.h"
+#include "RayTracing/B3DRayTracingGeometry.h"
 
 using namespace b3d;
 
@@ -340,6 +341,11 @@ TShared<RendererMeshData> RendererMeshData::Create(const TShared<MeshData>& mesh
 
 TShared<VertexDescription> RendererMeshData::VertexLayoutVertexDesc(VertexLayout type)
 {
+	// Ray tracing geometry reads meshes in these formats, so imported meshes can be traced
+	static_assert(render::RayTracingGeometry::kPositionType == VET_FLOAT3 && render::RayTracingGeometry::kNormalType == VET_UBYTE4_NORM &&
+		render::RayTracingGeometry::kTangentType == VET_UBYTE4_NORM && render::RayTracingGeometry::kUvType == VET_FLOAT2,
+		"The vertex formats of renderer mesh data must match the formats of ray tracing geometry.");
+
 	TInlineArray<VertexElement, 8> vertexElements;
 	i32 intType = (i32)type;
 

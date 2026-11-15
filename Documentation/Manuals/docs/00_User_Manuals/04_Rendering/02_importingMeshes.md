@@ -174,6 +174,14 @@ meshData->GetVertexData(VES_POSITION, positions.data(),
 
 > **MeshData** is explained in detail in the [creating meshes](../12_Advanced_Rendering/06_creatingMeshes.md) manual.
 
+## Ray tracing
+@b3d::MeshImportOptions::SupportsRayTracing determines whether the mesh can be used as ray tracing geometry (see @b3d::MeshFlag::SupportsRayTracing). It is on by default. Turn it off for meshes that rays never hit. To turn ray tracing off for every mesh, including meshes already imported with this option, set the `gpu.RayTracing` config variable to false.
+
+~~~~~~~~~~~~~{.cpp}
+// The mesh is never ray traced
+importOptions->SupportsRayTracing = false;
+~~~~~~~~~~~~~
+
 # Reading mesh data
 When you have CPU-cached mesh data, you can read various vertex attributes:
 

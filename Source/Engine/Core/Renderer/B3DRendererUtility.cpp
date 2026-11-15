@@ -77,7 +77,7 @@ RendererUtility::RendererUtility()
 		Sphere localSphere(Vector3::kZero, 1.0f);
 		ShapeMeshes3D::SolidSphere(localSphere, positionData, nullptr, nullptr, 0, vertexDesc->GetVertexStride(), indexData, 0, 3);
 
-		mUnitSphereStencilMesh = Mesh::Create(meshData);
+		mUnitSphereStencilMesh = Mesh::Create(meshData, MeshFlag::Static);
 	}
 
 	{
@@ -98,7 +98,7 @@ RendererUtility::RendererUtility()
 		AABox localBox(-Vector3::kOne, Vector3::kOne);
 		ShapeMeshes3D::SolidAaBox(localBox, positionData, nullptr, nullptr, 0, vertexDescription->GetVertexStride(), indexData, 0);
 
-		mUnitBoxStencilMesh = Mesh::Create(meshData);
+		mUnitBoxStencilMesh = Mesh::Create(meshData, MeshFlag::Static);
 	}
 
 	{
@@ -158,7 +158,7 @@ RendererUtility::RendererUtility()
 			}
 		}
 
-		mSpotLightStencilMesh = Mesh::Create(meshData);
+		mSpotLightStencilMesh = Mesh::Create(meshData, MeshFlag::Static);
 	}
 
 	{
@@ -179,7 +179,7 @@ RendererUtility::RendererUtility()
 		AABox localBox(-Vector3::kOne * 1500.0f, Vector3::kOne * 1500.0f);
 		ShapeMeshes3D::SolidAaBox(localBox, positionData, nullptr, nullptr, 0, vertexDescription->GetVertexStride(), indexData, 0);
 
-		mSkyBoxMesh = Mesh::Create(meshData);
+		mSkyBoxMesh = Mesh::Create(meshData, MeshFlag::Static);
 	}
 }
 

@@ -109,6 +109,9 @@ TShared<Resource> FBXImporter::Import(const Path& filePath, TShared<const Import
 	if(meshImportOptions->CpuCached)
 		meshCreateInformation.Flags |= MeshFlag::KeepCPUCopy;
 
+	if(meshImportOptions->SupportsRayTracing)
+		meshCreateInformation.Flags |= MeshFlag::SupportsRayTracing;
+
 	TShared<Mesh> mesh = Mesh::CreateShared(rendererMeshData->GetData(), meshCreateInformation);
 
 	const String fileName = filePath.GetFilename(false);
@@ -129,6 +132,9 @@ Vector<SubResourceRaw> FBXImporter::ImportAll(const Path& filePath, TShared<cons
 	desc.Flags = MeshFlag::Static;
 	if(meshImportOptions->CpuCached)
 		desc.Flags |= MeshFlag::KeepCPUCopy;
+
+	if(meshImportOptions->SupportsRayTracing)
+		desc.Flags |= MeshFlag::SupportsRayTracing;
 
 	TShared<Mesh> mesh = Mesh::CreateShared(rendererMeshData->GetData(), desc);
 

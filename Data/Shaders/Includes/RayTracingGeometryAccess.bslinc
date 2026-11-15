@@ -1,0 +1,106 @@
+mixin RayTracingGeometryAccess
+{
+	code
+	{
+		/** Where one vertex attribute of a mesh lives. Matches RayTracingVertexStream. */
+		struct RayTracingVertexStream
+		{
+			uint BufferIndex; // Bindless index of the vertex buffer, read as a ByteAddressBuffer
+			uint Offset; // Offset of the attribute of the first vertex, in bytes
+			uint Stride; // Distance between the attributes of consecutive vertices, in bytes, or 0 for a value every vertex shares
+		};
+
+		/**
+		 * Where the triangles and vertex attributes of one geometry of a bottom level structure live. Matches RayTracingGeometryLayout. Indices
+		 * are 32-bit, positions three floats, normals and tangents four 8-bit unsigned normalized values that map to [-1, 1], and texture
+		 * coordinates two floats. Geometries without normals, tangents or texture coordinates read normal (0, 0, 1), tangent (1, 0, 0) with
+		 * handedness 1, and texture coordinates (0, 0).
+		 */
+		struct RayTracingGeometryLayout
+		{
+			uint IndexBufferIndex; // Bindless index of the index buffer, read as a ByteAddressBuffer
+			uint FirstIndex; // Position of the geometry's first index in the index buffer
+
+			RayTracingVertexStream Position;
+			RayTracingVertexStream Normal;
+			RayTracingVertexStream Tangent;
+			RayTracingVertexStream Uv;
+		};
+
+		/** Returns the three vertex indices of triangle @p primitiveIndex of the geometry, as rays report it in PrimitiveIndex(). */
+		uint3 LoadTriangleIndices(RayTracingGeometryLayout layout, uint primitiveIndex)
+		{
+			ByteAddressBuffer indices = ResourceDescriptorHeap[NonUniformResourceIndex(layout.IndexBufferIndex)];
+			return indices.Load3((layout.FirstIndex + primitiveIndex * 3) * 4);
+		}
+
+		/** Returns the byte addresses of the attributes in @p stream of the vertices with @p indices. */
+		uint3 GetVertexAddresses(RayTracingVertexStream stream, uint3 indices)
+		{
+			return stream.Offset + indices * stream.Stride;
+		}
+
+		/** Blends the attributes of the three vertices of a triangle with @p barycentrics, the weights of the second and third vertex. */
+		float4 InterpolateTriangle(float4 first, float4 second, float4 third, float2 barycentrics)
+		{
+			return first * (1.0f - barycentrics.x - barycentrics.y) + second * barycentrics.x + third * barycentrics.y;
+		}
+
+		/** Decodes four 8-bit unsigned normalized values from @p bits, the first in the lowest byte, and maps them to [-1, 1]. */
+		float4 UnpackRayTracingSignedUnorm4(uint bits)
+		{
+			return float4(bits & 0xFF, (bits >> 8) & 0xFF, (bits >> 16) & 0xFF, bits >> 24) * (2.0f / 255.0f) - 1.0f;
+		}
+
+		/**
+		 * Returns the attribute in @p stream, four 8-bit unsigned normalized values mapped to [-1, 1], at a point of the triangle with vertex
+		 * @p indices, interpolated with @p barycentrics: the weights of the second and third vertex, as rays report them.
+		 */
+		float4 InterpolateSignedUnorm4(RayTracingVertexStream stream, uint3 indices, float2 barycentrics)
+		{
+			ByteAddressBuffer vertices = ResourceDescriptorHeap[NonUniformResourceIndex(stream.BufferIndex)];
+			uint3 addresses = GetVertexAddresses(stream, indices);
+
+			return InterpolateTriangle(UnpackRayTracingSignedUnorm4(vertices.Load(addresses.x)), UnpackRayTracingSignedUnorm4(vertices.Load(addresses.y)),
+				UnpackRayTracingSignedUnorm4(vertices.Load(addresses.z)), barycentrics);
+		}
+
+		/**
+		 * Returns the object space position at a point of the triangle with vertex @p indices, interpolated with @p barycentrics: the weights
+		 * of the second and third vertex, as rays report them.
+		 */
+		float3 InterpolatePosition(RayTracingGeometryLayout layout, uint3 indices, float2 barycentrics)
+		{
+			ByteAddressBuffer vertices = ResourceDescriptorHeap[NonUniformResourceIndex(layout.Position.BufferIndex)];
+			uint3 addresses = GetVertexAddresses(layout.Position, indices);
+
+			return InterpolateTriangle(float4(asfloat(vertices.Load3(addresses.x)), 0.0f), float4(asfloat(vertices.Load3(addresses.y)), 0.0f),
+				float4(asfloat(vertices.Load3(addresses.z)), 0.0f), barycentrics).xyz;
+		}
+
+		/** Returns the object space normal, which isn't normalized, at a point of a triangle. Parameters are as in InterpolatePosition(). */
+		float3 InterpolateNormal(RayTracingGeometryLayout layout, uint3 indices, float2 barycentrics)
+		{
+			return InterpolateSignedUnorm4(layout.Normal, indices, barycentrics).xyz;
+		}
+
+		/**
+		 * Returns the object space tangent in XYZ, which isn't normalized, and the handedness of the bitangent in W, at a point of a triangle.
+		 * Parameters are as in InterpolatePosition().
+		 */
+		float4 InterpolateTangent(RayTracingGeometryLayout layout, uint3 indices, float2 barycentrics)
+		{
+			return InterpolateSignedUnorm4(layout.Tangent, indices, barycentrics);
+		}
+
+		/** Returns the first set of texture coordinates at a point of a triangle. Parameters are as in InterpolatePosition(). */
+		float2 InterpolateUv(RayTracingGeometryLayout layout, uint3 indices, float2 barycentrics)
+		{
+			ByteAddressBuffer vertices = ResourceDescriptorHeap[NonUniformResourceIndex(layout.Uv.BufferIndex)];
+			uint3 addresses = GetVertexAddresses(layout.Uv, indices);
+
+			return InterpolateTriangle(float4(asfloat(vertices.Load2(addresses.x)), 0.0f, 0.0f), float4(asfloat(vertices.Load2(addresses.y)), 0.0f, 0.0f),
+				float4(asfloat(vertices.Load2(addresses.z)), 0.0f, 0.0f), barycentrics).xy;
+		}
+	};
+};

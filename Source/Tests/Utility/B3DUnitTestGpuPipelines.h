@@ -79,6 +79,16 @@ namespace b3d
 	TShared<GpuComputePipelineState> CreateTestInlineRayTracingBindlessPipeline(GpuDevice& device);
 
 	/**
+	 * Creates a compute pipeline that traces one ray per thread group along +Z against the top level acceleration structure Scene, from the
+	 * origin in element N of the structured buffer RayOrigins (float4). On a hit it reads the triangle through RayTracingGeometryAccess.bslinc,
+	 * with the layout at element InstanceID() + GeometryIndex() of the structured buffer Layouts, and writes into element N of the
+	 * structured buffer Hits: the interpolated position and 1, the interpolated normal and U, then V padded to four floats, then the
+	 * triangle's vertex indices and the instance id. A miss writes zeros. Returns null if the shader cannot be resolved for the active
+	 * backend.
+	 */
+	TShared<GpuComputePipelineState> CreateTestRayTracingGeometryInlinePipeline(GpuDevice& device);
+
+	/**
 	 * Creates the programs of the ray tracing test shader @p name from Data/Shaders/Tests, by entry point name. RayTracingPipeline has:
 	 *  - TraceTestRays (ray generation): thread N reads its ray from element N of the structured buffer Rays (origin, direction, then the hit
 	 *    group contribution, geometry multiplier and miss index as four words), traces it against the top level acceleration structure Scene
@@ -88,6 +98,10 @@ namespace b3d
 	 *  - ClosestHitA, ClosestHitB and ClosestHitC (closest hit): set the payload to 10, 11 and 12.
 	 *
 	 * RayTracingOtherParameters declares other parameters, and has WriteZero (ray generation).
+	 *
+	 * RayTracingGeometryPipeline has TraceGeometryRays (ray generation), MissGeometry (miss) and ReadGeometry (closest hit), which together
+	 * do what the pipeline of CreateTestRayTracingGeometryInlinePipeline() does, with the same parameters. Every geometry uses hit group
+	 * record 0.
 	 *
 	 * Returns no programs if the shader cannot be resolved for the active backend.
 	 */

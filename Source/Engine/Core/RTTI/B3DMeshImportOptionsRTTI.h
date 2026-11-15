@@ -32,6 +32,7 @@ namespace b3d
 			B3D_RTTI_MEMBER(ReduceKeyFrames, 9)
 			B3D_RTTI_MEMBER_CONTAINER(AnimationEvents, 10)
 			B3D_RTTI_MEMBER(ImportRootMotion, 11)
+			B3D_RTTI_MEMBER(SupportsRayTracing, 12)
 		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override

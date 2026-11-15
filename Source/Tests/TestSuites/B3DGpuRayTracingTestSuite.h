@@ -47,5 +47,22 @@ namespace b3d
 		 * RSC_ACCELERATION_STRUCTURES and RSC_RAY_TRACING_PIPELINE.
 		 */
 		void TestRayTracingPipelineRecords();
+
+		/**
+		 * Builds a bottom and a top level structure in a frame graph and traces a ray against the result: in one graph that builds both and
+		 * traces, in a graph that rebuilds and exports the top level structure on the async compute queue from a bottom level structure at
+		 * rest, and in a graph that traces against the structure at rest. Checks that a build of a structure that is not imported is an
+		 * error. Runs only with RSC_ACCELERATION_STRUCTURES and RSC_RAY_QUERY.
+		 */
+		void TestFrameGraph();
+
+		/**
+		 * Builds the ray tracing geometry of a mesh with two triangle list sub-meshes and a line list, in a RayTracingScene, and reads the
+		 * triangles rays hit through RayTracingGeometryAccess.bslinc, inline and from closest hit programs: indices, interpolated positions,
+		 * normals and texture coordinates. Then moves, removes and adds instances, writes the mesh, and outgrows the top level structure,
+		 * and checks the passes each build adds. Checks that meshes without MeshFlag::SupportsRayTracing, or on devices without
+		 * RSC_ACCELERATION_STRUCTURES and RSC_RAY_QUERY, have no geometry.
+		 */
+		void TestRayTracingGeometry();
 	};
 } // namespace b3d

@@ -41,6 +41,13 @@ namespace b3d
 		 * will be kept. This allows you to access mesh data on the CPU.
 		 */
 		KeepCPUCopy = 1 << 3,
+
+		/**
+		 * Mesh can be used as ray tracing geometry: its triangle list sub-meshes can be built into a bottom level acceleration structure, and
+		 * ray tracing shaders can read its vertices and indices. Has no effect on Dynamic meshes, or on devices without acceleration
+		 * structures.
+		 */
+		SupportsRayTracing = 1 << 4,
 	};
 
 	using MeshFlags = Flags<MeshFlag>;

@@ -78,7 +78,7 @@ A pass can touch three kinds of resources.
 | Kind | Created by | Passes may | Lifetime |
 |------|------------|------------|----------|
 | Transient | @b3d::render::FrameGraph::CreateTexture, @b3d::render::FrameGraph::CreateBuffer | Read and write | Within the graph, unless extracted |
-| Imported | **GpuDevice**, then @b3d::render::FrameGraph::ImportTexture, @b3d::render::FrameGraph::ImportBuffer or @b3d::render::FrameGraph::ImportRenderTarget | Read and write | Owned by the caller |
+| Imported | **GpuDevice**, then @b3d::render::FrameGraph::ImportTexture, @b3d::render::FrameGraph::ImportBuffer, @b3d::render::FrameGraph::ImportAccelerationStructure or @b3d::render::FrameGraph::ImportRenderTarget | Read and write | Owned by the caller |
 | Resting | **GpuDevice** | Only read | Owned by the caller |
 
 ## Transient resources
@@ -92,6 +92,8 @@ See the [transient resources](../Low_Level_rendering/transientResources) manual 
 Import any resource the graph did not create that a pass needs to write. Imported resources must be initialized and at rest when imported, and the graph returns them to rest at the end. A resource can only be a resource of one graph at a time, and importing the same resource twice into a graph has no further effect.
 
 Render targets are imported as a whole with **ImportRenderTarget()**, which is the only way to render into a window. The surfaces of a window can only be accessed as attachments.
+
+Acceleration structures can only be imported, with **ImportAccelerationStructure()**: a graph cannot create one as a transient. They have a single subresource and no layouts, and can be read on several queues at once.
 
 ## Resting resources
 Every other resource is at rest, which means it can be read from any shader stage without a barrier. Passes may bind and read these without any declaration, but never write them. Long-lived data such as meshes, material textures and uniform buffers are normally used this way. Binding a resting resource in a slot that writes it reports an error telling you to import it.
@@ -123,13 +125,13 @@ graph.AddComputePass("Generate", std::move(pass), fnExecute);
 ~~~~~~~~~~~~~
 
 # Passes
-There are three types of passes, added with @b3d::render::FrameGraph::AddRasterPass, @b3d::render::FrameGraph::AddComputePass and @b3d::render::FrameGraph::AddCopyPass. Each takes a name, a description of the pass and a function that records its commands. The name labels the pass in GPU captures and profiler samples.
+There are four types of passes, added with @b3d::render::FrameGraph::AddRasterPass, @b3d::render::FrameGraph::AddComputePass, @b3d::render::FrameGraph::AddCopyPass and @b3d::render::FrameGraph::AddAccelerationStructurePass. Each takes a name, a description of the pass and a function that records its commands. The name labels the pass in GPU captures and profiler samples.
 
 ## Declaring parameter sets
 Raster and compute passes declare the resources they bind through parameter sets. Add each set to the pass with @b3d::render::FrameGraphPass::AddParameterSet, and assign its resources before you add the pass to the graph, because the graph reads the set at that point.
 
 Each graph resource in a set counts as an access of the pass, determined by the slot it is bound to:
- - Uniform buffers and sampled textures are read.
+ - Uniform buffers, sampled textures and acceleration structures are read.
  - Storage buffers and storage textures are read and written, unless the shader declares a read-only buffer.
  - The shader stages come from the slot.
 
@@ -211,6 +213,34 @@ graph.AddCopyPass("Copy", std::move(pass), [source, destination, byteCount](Fram
 	context.GetCommandBuffer().CopyBufferToBuffer(source, destination, 0, 0, byteCount);
 });
 ~~~~~~~~~~~~~
+
+## Acceleration structure passes
+A @b3d::render::FrameGraphAccelerationStructurePass builds acceleration structures with @b3d::render::GpuCommandBuffer::BuildAccelerationStructures. Declare each build with @b3d::render::FrameGraphAccelerationStructurePass::AddBuild, which reads what the build accesses from its description:
+ - The destination is written, and its previous contents are discarded.
+ - The scratch buffer is read and written.
+ - The bottom level structures of a top level build, and the vertex, index and instance buffers, are read.
+
+The destination and the scratch buffer must be resources of the graph, so import the destination and create the scratch buffer as a transient. Objects that are only read are declared if they are resources of the graph, and read at rest otherwise.
+
+Export a built structure from its pass, so later passes and work after the graph can trace rays against it without declaring it. Ray tracing itself, both inline and with **DispatchRays()**, goes in compute passes.
+
+~~~~~~~~~~~~~{.cpp}
+graph.ImportAccelerationStructure(topLevel);
+const TShared<GpuBuffer> scratchBuffer = graph.CreateBuffer("Scratch", scratchBufferInformation);
+
+const GpuAccelerationStructureBuild build(topLevelInputs, topLevel, scratchBuffer);
+
+FrameGraphAccelerationStructurePass pass;
+pass.AddBuild(build);
+pass.Export(topLevel);
+
+graph.AddAccelerationStructurePass("Build scene", std::move(pass), [build](FrameGraphPassContext& context)
+{
+	context.GetCommandBuffer().BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(&build, 1));
+});
+~~~~~~~~~~~~~
+
+@b3d::render::RayTracingScene and @b3d::render::RayTracingGeometry add these passes for you. See the [ray tracing](../Low_Level_rendering/rayTracing) manual for builds, scenes and tracing.
 
 # Culling
 **Compile()** culls every pass whose writes nothing observes. A write is observed if a later surviving pass reads it, if the resource outlives the graph (it is imported or extracted), or if the resource is exported after the pass. Transients used only by culled passes never get memory.
@@ -350,7 +380,7 @@ Work that runs outside of the frame creates a graph of its own, on the render th
 Only one graph may execute at a time, because the submissions of a graph must reach the queues without another graph's submissions between them. A pass function therefore cannot execute another graph. Development builds report overlapping executions as an error.
 
 # Async compute
-Compute and copy passes created with @b3d::render::FrameGraphPassFlag::AsyncCompute prefer the async compute queue, so they can overlap graphics work.
+Compute, copy and acceleration structure passes created with @b3d::render::FrameGraphPassFlag::AsyncCompute prefer the async compute queue, so they can overlap graphics work.
 
 ~~~~~~~~~~~~~{.cpp}
 FrameGraphComputePass pass(FrameGraphPassFlag::AsyncCompute);

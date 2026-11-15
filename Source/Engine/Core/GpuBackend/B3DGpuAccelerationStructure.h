@@ -337,6 +337,23 @@ namespace b3d
 			static bool ValidateInputs(const GpuDevice& device, const GpuAccelerationStructureInputs& inputs);
 #endif
 
+			/**
+			 * Registers the structure as resource @p resourceIndex of a frame graph, or unregisters it if @p resourceIndex is ~0u. The
+			 * structure is a resource of at most one frame graph. See FrameGraph.
+			 */
+			void SetFrameGraphResourceIndex(u32 resourceIndex) { mFrameGraphResourceIndex = resourceIndex; }
+
+			/** Returns the index of the structure among the resources of its frame graph, or ~0u if it is a resource of none. */
+			u32 GetFrameGraphResourceIndex() const { return mFrameGraphResourceIndex; }
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			/** Sets the id of the frame graph the structure is a resource of, or zero if none, so graphs detect resources of other graphs. */
+			void SetFrameGraphId(u32 graphId) { mFrameGraphId = graphId; }
+
+			/** Returns the id set by SetFrameGraphId(). */
+			u32 GetFrameGraphId() const { return mFrameGraphId; }
+#endif
+
 			/** @} */
 
 		protected:
@@ -359,6 +376,11 @@ namespace b3d
 			String mName;
 			GpuBindlessResourceSlots mBindlessSlots;
 			TArray<IGpuResource*> mPinnedBottomLevels;
+			u32 mFrameGraphResourceIndex = ~0u; /**< See SetFrameGraphResourceIndex(). */
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+			u32 mFrameGraphId = 0; /**< See SetFrameGraphId(). */
+#endif
 		};
 
 		/** @} */

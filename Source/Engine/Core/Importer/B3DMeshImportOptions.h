@@ -87,6 +87,10 @@ namespace b3d
 		B3D_SCRIPT_EXPORT()
 		bool CpuCached = false;
 
+		/** Determines whether the mesh can be used as ray tracing geometry. See MeshFlag::SupportsRayTracing. */
+		B3D_SCRIPT_EXPORT()
+		bool SupportsRayTracing = true;
+
 		/**	Determines should mesh normals be imported if available. */
 		B3D_SCRIPT_EXPORT()
 		bool ImportNormals = true;

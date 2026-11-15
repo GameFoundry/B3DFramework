@@ -135,7 +135,7 @@ case "$PLATFORM" in
 		CATEGORY_ARGS["Vulkan"]=""
 		CATEGORY_ARGS["D3D12"]="--gpu.backend=bsfD3D12GpuBackend"
 		CATEGORY_ARGS["Editor"]=""
-		CATEGORY_TESTS["Vulkan"]="$COMMON_TESTS NullBackends"
+		CATEGORY_TESTS["Vulkan"]="$COMMON_TESTS NullBackends RayTracing"
 		CATEGORY_TESTS["D3D12"]="$COMMON_TESTS"
 		CATEGORY_TESTS["Editor"]="Editor"
 		;;

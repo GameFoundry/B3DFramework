@@ -11,7 +11,8 @@ Every resource has a resting state, returned by @b3d::GpuBackendUtility::GetRest
 
 The resting state is what a resource can do without any barrier:
  - Textures are sampled from every shader stage, in **GpuImageLayout::ShaderReadOnly**.
- - Buffers are readable as vertex, index and indirect arguments, and from every shader stage.
+ - Buffers are readable as vertex, index and indirect arguments, from every shader stage, and as acceleration structure build inputs.
+ - Acceleration structures are readable by rays traced in every shader stage that can trace rays, and by builds (a top level build reads its bottom level structures), in the stages @b3d::GpuBackendUtility::GetAccelerationStructureStageFlags returns.
  - Readback buffers (**GpuBufferType::StagingRead**) are readable by the host, and upload buffers (**GpuBufferType::StagingWrite**) by copies.
  - The surfaces of a window can only be accessed as attachments, and rest in their attachment layouts.
 
@@ -28,6 +29,12 @@ Resting states depend on the queue, so pass the queue type of the command buffer
  - **Layout** - The layout of an image, ignored for buffers. A source in **GpuImageLayout::Undefined** discards the image's contents, which can be cheaper if you are about to overwrite them.
  - **Compression** - How compression may encode the image's contents, as @b3d::render::GpuCompressionHint. Only read from the source. **Unknown** is always correct, and a more precise value can make the barrier cheaper.
  - **Queues** - Other queues that access the resource in this state, described under the queues section below.
+
+There is a barrier type for each kind of resource:
+ - @b3d::render::GpuBufferBarrier - A buffer.
+ - @b3d::render::GpuTextureBarrier - A range of subresources of a texture.
+ - @b3d::render::GpuRenderTargetBarrier - One surface of a render target. It is the only way to transition the surfaces of a window, which cannot be accessed as textures.
+ - @b3d::render::GpuAccelerationStructureBarrier - An acceleration structure, on devices with @b3d::RSC_ACCELERATION_STRUCTURES.
 
 This is how a write to a buffer looks, taking the buffer from its resting state and returning it there:
 
@@ -55,7 +62,22 @@ commandBuffer->CopyBufferToTexture(stagingBuffer, texture, 0, mipLevel, arrayLay
 commandBuffer->IssueBarriers(GpuTextureBarrier(texture, transferWrite, restingState, range));
 ~~~~~~~~~~~~~
 
-@b3d::render::GpuBufferBarrier and @b3d::render::GpuTextureBarrier cover buffers and textures. @b3d::render::GpuRenderTargetBarrier covers one surface of a render target, and is the only way to transition the surfaces of a window, which cannot be accessed as textures.
+Acceleration structures have no layouts, and their barriers may only use the stages @b3d::GpuBackendUtility::GetAccelerationStructureStageFlags returns:
+ - @b3d::render::GpuStageFlag::AccelerationStructureBuild - Builds writing the structure, or reading the bottom level structures of a top level structure. Builds also access their scratch buffers in this stage.
+ - The stages that trace rays against a structure, combined in @b3d::render::GpuStageFlag::AllShaderAccelerationStructure: **VertexShaderAccelerationStructure**, **FragmentShaderAccelerationStructure**, **ComputeShaderAccelerationStructure** and **RayTracingShaderAccelerationStructure**. These are separate from the stages that read buffers and textures.
+
+Builds read their vertex, index and instance buffers in @b3d::render::GpuStageFlag::AccelerationStructureBuildInput, which is part of the resting state of buffers. This takes a structure out of its resting state for a build, and returns it there:
+
+~~~~~~~~~~~~~{.cpp}
+const GpuAccessState restingState = GpuBackendUtility::GetRestingState(*accelerationStructure, commandBuffer->GetQueueType());
+const GpuAccessState buildWrite(GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Write);
+
+commandBuffer->IssueBarriers(GpuAccelerationStructureBarrier(accelerationStructure, restingState, buildWrite));
+commandBuffer->BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(&build, 1));
+commandBuffer->IssueBarriers(GpuAccelerationStructureBarrier(accelerationStructure, buildWrite, restingState));
+~~~~~~~~~~~~~
+
+The [ray tracing](../Low_Level_rendering/rayTracing) manual shows a complete build, including its scratch buffer.
 
 To issue several barriers at once, which is cheaper than issuing them one by one, pass arrays through @b3d::render::GpuBarriers. It refers to the barriers without copying them, so they must stay valid until the call returns.
 
@@ -126,7 +148,7 @@ graphicsCommands->AcquireBarriers(barrier, split);
 gpuContext.SubmitCommandBuffer(graphicsCommands, GpuQueueMask::kAll);
 ~~~~~~~~~~~~~
 
-Textures that @b3d::GpuBackendUtility::IsConcurrentlyReadable accepts, and buffers, can be read by several queues at once. Those textures are either sampleable only, or created with **TextureUsageFlag::AllowConcurrentQueueReads**. Other textures rest on the graphics queue, and must be transferred before another queue can access them.
+Textures that @b3d::GpuBackendUtility::IsConcurrentlyReadable accepts, buffers and acceleration structures can be read by several queues at once. Those textures are either sampleable only, or created with **TextureUsageFlag::AllowConcurrentQueueReads**. Other textures rest on the graphics queue, and must be transferred before another queue can access them.
 
 When several queues access a resource in one state, set **GpuAccessState::Queues** to the queues involved, so backends whose image layouts depend on the queue can pick a layout that all of them can use. Both barriers around a state must name the same queues.
 

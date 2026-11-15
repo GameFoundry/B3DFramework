@@ -10,6 +10,9 @@
 #include "CoreObject/B3DRenderThread.h"
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuDeviceCapabilities.h"
+#include "GpuBackend/B3DVertexData.h"
+#include "RayTracing/B3DRayTracingGeometry.h"
 #include "Threading/B3DAsyncOp.h"
 #include "GpuBackend/B3DVertexDescription.h"
 #include "Resources/B3DResources.h"
@@ -258,6 +261,7 @@ Mesh::~Mesh()
 {
 	ASSERT_IF_NOT_RENDER_THREAD;
 
+	mRayTracingGeometry = nullptr;
 	mVertexData = nullptr;
 	mIndexBuffer = nullptr;
 	mVertexDescription = nullptr;
@@ -277,6 +281,24 @@ void Mesh::Initialize()
 		memory = GpuBufferMemory::Mapped;
 
 	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+
+	mSupportsRayTracing = mFlags.IsSet(MeshFlag::SupportsRayTracing) && !mFlags.IsSet(MeshFlag::Dynamic) &&
+		gpuDevice->GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES);
+
+	if(mSupportsRayTracing && !RayTracingGeometry::IsSupportedFormat(*mVertexDescription, mIndexType))
+	{
+		B3D_LOG(Warning, LogMesh, "A mesh with MeshFlag::SupportsRayTracing has vertices or indices in formats ray tracing doesn't support, so it "
+			"can't be ray traced. Convert its data with RendererMeshData::Convert() and use 32-bit indices, or create it without the flag.");
+		mSupportsRayTracing = false;
+	}
+
+	if(mSupportsRayTracing)
+	{
+		flags |= GpuBufferFlag::AccelerationStructureInput;
+
+		if(gpuDevice->GetBindlessHeaps() != nullptr)
+			flags |= GpuBufferFlag::Bindless;
+	}
 
 	GpuBufferInformation indexBufferCreateInformation;
 	indexBufferCreateInformation.Type = GpuBufferType::Index;
@@ -337,6 +359,21 @@ TShared<VertexDescription> Mesh::GetVertexDescription() const
 	ASSERT_IF_NOT_RENDER_THREAD;
 
 	return mVertexDescription;
+}
+
+const TShared<RayTracingGeometry>& Mesh::GetOrCreateRayTracingGeometry()
+{
+	ASSERT_IF_NOT_RENDER_THREAD;
+
+	if(mRayTracingGeometry == nullptr && mSupportsRayTracing)
+	{
+		mRayTracingGeometry = RayTracingGeometry::Create(*GetApplication().GetPrimaryGpuDevice(), *mVertexData, mIndexBuffer, mProperties.SubMeshes);
+
+		// A mesh that has no geometry now never will, so later calls don't try again
+		mSupportsRayTracing = mRayTracingGeometry != nullptr;
+	}
+
+	return mRayTracingGeometry;
 }
 
 void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool performUpdateBounds, const TShared<GpuCommandBuffer>& commandBuffer)
@@ -419,6 +456,10 @@ void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool pe
 
 		GpuBufferUtility::Write(gpuContext, vertexBuffer, 0, bufferSize, sourceVertexBufferData, discardEntireBuffer ? GpuBufferWriteFlag::Discard : GpuBufferWriteFlag::Normal, commandBuffer);
 	}
+
+	// The bottom level structure holds the old triangles until it is built again
+	if(mRayTracingGeometry != nullptr)
+		mRayTracingGeometry->MarkNotBuilt();
 
 	if(performUpdateBounds)
 		UpdateBounds(meshData);

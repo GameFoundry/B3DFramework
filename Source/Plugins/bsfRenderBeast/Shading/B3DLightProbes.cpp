@@ -669,7 +669,7 @@ void LightProbes::UpdateProbes(FrameGraph& graph)
 		capIdx++;
 	}
 
-	mVolumeMesh = Mesh::Create(meshData);
+	mVolumeMesh = Mesh::Create(meshData, MeshFlag::Static);
 
 	// Map vertices to actual SH coefficient indices, and write GPU buffer with tetrahedron information
 	if((mNumValidTetrahedra + numValidFaces) > mMaxTetrahedra)

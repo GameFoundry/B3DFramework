@@ -24,5 +24,5 @@ void MeshManager::OnStartUp()
 	indices[1] = 0;
 	indices[2] = 0;
 
-	mDummyMesh = Mesh::Create(mDummyMeshData);
+	mDummyMesh = Mesh::Create(mDummyMeshData, MeshFlag::Static);
 }

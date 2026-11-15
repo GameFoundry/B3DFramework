@@ -96,6 +96,11 @@ namespace b3d
 		return CreateComputePipeline(device, "InlineRayTracingBindless");
 	}
 
+	TShared<GpuComputePipelineState> CreateTestRayTracingGeometryInlinePipeline(GpuDevice& device)
+	{
+		return CreateComputePipeline(device, "RayTracingGeometryInline");
+	}
+
 	UnorderedMap<String, TShared<GpuProgram>> CreateTestRayTracingPrograms(GpuDevice& device, const String& name)
 	{
 		UnorderedMap<String, TShared<GpuProgram>> programs;

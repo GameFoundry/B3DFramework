@@ -35,6 +35,7 @@
 #include "Utility/B3DTime.h"
 #include "Input/B3DInput.h"
 #include "Managers/B3DMeshManager.h"
+#include "RayTracing/B3DRayTracingManager.h"
 #include "Utility/B3DDeferredCallManager.h"
 #include "Localization/B3DStringTableManager.h"
 #include "Profiling/B3DProfilerCPU.h"
@@ -160,6 +161,7 @@ Application::~Application()
 
 	Importer::ShutDown();
 	MeshManager::ShutDown();
+	render::RayTracingManager::ShutDown(); // Before the render thread and the GPU devices go away
 	PrefabManager::ShutDown();
 
 	Input::ShutDown();
@@ -307,6 +309,7 @@ void Application::OnStartUp()
 
 	GpuProfiler::StartUp();
 	MeshManager::StartUp();
+	render::RayTracingManager::StartUp();
 	Importer::StartUp();
 	AudioManager::StartUp(mInformation.Audio);
 	FolderMonitorManager::StartUp();

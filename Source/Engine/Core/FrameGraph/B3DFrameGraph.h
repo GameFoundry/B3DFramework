@@ -13,6 +13,7 @@
 namespace b3d
 {
 	class GpuWorkContext;
+	struct GpuAccelerationStructureBuild;
 
 	/**
 	 * If enabled, passes created with render::FrameGraphPassFlag::AsyncCompute run on the async compute queue. If disabled, every pass
@@ -44,8 +45,8 @@ namespace b3d
 			None = 0,
 
 			/**
-			 * The pass prefers the async compute queue, so it may overlap graphics work. Compute and copy passes only: a raster pass reports
-			 * it and runs on the graphics queue. The pass runs on the graphics queue too if gFrameGraphAsyncCompute is disabled or the device
+			 * The pass prefers the async compute queue, so it may overlap graphics work. Compute, copy and acceleration structure passes
+			 * only: a raster pass reports it and runs on the graphics queue. The pass runs on the graphics queue too if gFrameGraphAsyncCompute is disabled or the device
 			 * has no compute queue. A pass that prefers the async compute queue may only read resources at rest that can be read on several
 			 * queues at once (see GpuBackendUtility::IsConcurrentlyReadable()). Others must be imported.
 			 */
@@ -155,6 +156,9 @@ namespace b3d
 			/** @copydoc Export(const TShared<Texture>&) */
 			void Export(const TShared<GpuBuffer>& buffer);
 
+			/** @copydoc Export(const TShared<Texture>&) */
+			void Export(const TShared<GpuAccelerationStructure>& accelerationStructure);
+
 		protected:
 			friend class FrameGraph;
 
@@ -166,6 +170,7 @@ namespace b3d
 			TInlineArray<TShared<GpuParameterSet>, 4> mParameterSets;
 			TInlineArray<TShared<Texture>, 2> mExportedTextures;
 			TInlineArray<TShared<GpuBuffer>, 2> mExportedBuffers;
+			TInlineArray<TShared<GpuAccelerationStructure>, 2> mExportedAccelerationStructures;
 		};
 
 		/** Describes a pass of a FrameGraph that draws into attachments. The graph opens the render pass before the pass executes. */
@@ -274,6 +279,35 @@ namespace b3d
 			TInlineArray<CopyResource, 4> mResources;
 		};
 
+		/**
+		 * Describes a pass of a FrameGraph that builds acceleration structures with GpuCommandBuffer::BuildAccelerationStructures(). Ray
+		 * tracing dispatches and inline tracing use FrameGraphComputePass instead.
+		 */
+		class B3D_EXPORT FrameGraphAccelerationStructurePass : public FrameGraphPass
+		{
+		public:
+			/** Creates a pass with @p flags. */
+			explicit FrameGraphAccelerationStructurePass(FrameGraphPassFlags flags = FrameGraphPassFlag::None)
+				: FrameGraphPass(flags)
+			{ }
+
+			/**
+			 * Declares what @p build reads and writes. The pass's execute function records the build. The destination and the scratch
+			 * buffer are written, so they must be resources of the graph, and the destination's previous contents are discarded. The
+			 * bottom level structures and the vertex, index and instance buffers are only read, so they are declared if they are resources
+			 * of the graph, and read at rest otherwise.
+			 */
+			void AddBuild(const GpuAccelerationStructureBuild& build);
+
+		private:
+			friend class FrameGraph;
+
+			Vector<TShared<GpuAccelerationStructure>> mDestinations;
+			Vector<TShared<GpuAccelerationStructure>> mBottomLevels;
+			Vector<TShared<GpuBuffer>> mScratchBuffers;
+			Vector<TShared<GpuBuffer>> mInputBuffers; /**< Vertex, index and instance buffers. */
+		};
+
 		/** Pass and barrier counts of a compiled FrameGraph. */
 		struct FrameGraphStatistics
 		{
@@ -310,20 +344,22 @@ namespace b3d
 
 		/**
 		 * Describes the GPU work of a frame, or a part of it, as passes and the resources they read and write, then records it with
-		 * barriers. Passes are declared first with AddRasterPass(), AddComputePass() and AddCopyPass(), then Compile() plans the
-		 * work and Execute() records and submits it.
+		 * barriers. Passes are declared first with AddRasterPass(), AddComputePass(), AddCopyPass() and AddAccelerationStructurePass(),
+		 * then Compile() plans the work and Execute() records and submits it.
 		 *
 		 * Resources:
 		 *  - Transient: created by CreateTexture() or CreateBuffer(). Memory is shared with transients of disjoint lifetimes, through
 		 *    the work context's GpuTransientResourceAllocator. Valid only within the graph, unless extracted.
-		 *  - Imported: existing resources registered with ImportTexture(), ImportBuffer() or ImportRenderTarget(). They are at rest when
-		 *    imported, and the graph returns them to rest after their export or at the end of the graph.
+		 *  - Imported: existing resources registered with ImportTexture(), ImportBuffer(), ImportAccelerationStructure() or
+		 *    ImportRenderTarget(). They are at rest when imported, and the graph returns them to rest after their export or at the end of
+		 *    the graph. Acceleration structures can only be imported.
 		 *  - Resting: every other resource. Passes may read them without a declaration, but never write them.
 		 *
 		 * A pass reads whatever the pass declared before it wrote. Passes whose writes nothing observes are culled, along with their
 		 * transients. Barriers are split whenever other passes run between the accesses they order.
 		 *
-		 * Passes run on the graphics queue, unless a compute or copy pass prefers the async compute queue (FrameGraphPassFlag::AsyncCompute).
+		 * Passes run on the graphics queue, unless a compute, copy or acceleration structure pass prefers the async compute queue
+		 * (FrameGraphPassFlag::AsyncCompute).
 		 * The graph then submits its passes as several command buffers on both queues, with the queue waits their accesses require, and
 		 * ends with the graphics queue waiting on the compute queue.
 		 *
@@ -364,6 +400,9 @@ namespace b3d
 			/** Registers @p buffer, which must be at rest, as a resource of the graph so passes may write it. */
 			void ImportBuffer(const TShared<GpuBuffer>& buffer);
 
+			/** Registers @p accelerationStructure, which must be at rest, as a resource of the graph so passes may build it. */
+			void ImportAccelerationStructure(const TShared<GpuAccelerationStructure>& accelerationStructure);
+
 			/**
 			 * Registers every surface of @p target as a resource of the graph, so raster passes can render into it with
 			 * FrameGraphRasterPass::SetRenderTarget(). The surfaces of a window rest in their attachment layouts.
@@ -390,6 +429,12 @@ namespace b3d
 
 			/** Adds a pass that copies between the resources of @p pass. @p execute records the pass's commands after Compile(). */
 			void AddCopyPass(const StringView& name, FrameGraphCopyPass&& pass, Function<void(FrameGraphPassContext&)> execute);
+
+			/**
+			 * Adds a pass that builds the acceleration structures of @p pass. @p execute records the builds after Compile(). Export a built
+			 * structure from the pass so later passes, and later work, can trace rays against it without declaring it.
+			 */
+			void AddAccelerationStructurePass(const StringView& name, FrameGraphAccelerationStructurePass&& pass, Function<void(FrameGraphPassContext&)> execute);
 
 			/** Culls passes, places transients and plans every barrier. No passes can be added afterwards. */
 			void Compile();
@@ -431,7 +476,7 @@ namespace b3d
 			enum class ResourceType : u8
 			{
 				Transient, /**< Created by the graph, placed by the transient resource allocator. */
-				Imported, /**< Existing texture or buffer. */
+				Imported, /**< Existing texture, buffer or acceleration structure. */
 				Surface /**< Surface of an imported render target that is not a texture, such as a window's. */
 			};
 
@@ -440,25 +485,37 @@ namespace b3d
 			{
 				Raster,
 				Compute,
-				Copy
+				Copy,
+				AccelerationStructure
 			};
 
-			/** Texture, buffer or render target surface the graph tracks. */
+			/** Texture, buffer, acceleration structure or render target surface the graph tracks. */
 			struct Resource
 			{
 				/** Returns true if the queues can read the resource at the same time, without transferring it between them. */
 				bool IsShared() const;
 
-				/** Returns the resting state of the texture or buffer on @p queueType. Not for surfaces. RestingState is the one of the graphics queue. */
+				/**
+				 * Returns the resting state of the texture, buffer or acceleration structure on @p queueType. Not for surfaces. RestingState is
+				 * the one of the graphics queue.
+				 */
 				GpuAccessState GetQueueRestingState(GpuQueueType queueType) const;
+
+				/** Returns true if the resource is a texture or a surface, whose subresources have layouts. */
+				bool HasLayouts() const { return Buffer == nullptr && AccelerationStructure == nullptr; }
+
+				/** Returns the name of the resource, for messages. */
+				StringView GetName() const;
 
 				ResourceType Type = ResourceType::Transient;
 				TShared<render::Texture> Texture; /**< Set for textures. */
 				TShared<GpuBuffer> Buffer; /**< Set for buffers. */
+				TShared<GpuAccelerationStructure> AccelerationStructure; /**< Set for acceleration structures. */
 				TShared<RenderTarget> Target; /**< Set for render target surfaces. */
 				RenderSurfaceMaskBits Surface = RT_NONE; /**< Surface of Target. */
 
-				GpuTextureSubresourceRange FullRange; /**< Every subresource of a texture or surface. Buffers have one subresource. */
+				/** Every subresource of a texture or surface. Buffers and acceleration structures have one subresource. */
+				GpuTextureSubresourceRange FullRange;
 				u32 FirstSubresourceIndex = 0; /**< Index of the resource's first subresource among the subresources of all resources. */
 				u32 SubresourceCount = 1;
 
@@ -516,11 +573,12 @@ namespace b3d
 				GpuBarriers GetBarriers() const;
 
 				/** Returns true if the list has no barriers. */
-				bool IsEmpty() const { return BufferBarriers.empty() && TextureBarriers.empty() && RenderTargetBarriers.empty(); }
+				bool IsEmpty() const { return BufferBarriers.empty() && TextureBarriers.empty() && RenderTargetBarriers.empty() && AccelerationStructureBarriers.empty(); }
 
 				Vector<GpuBufferBarrier> BufferBarriers;
 				Vector<GpuTextureBarrier> TextureBarriers;
 				Vector<GpuRenderTargetBarrier> RenderTargetBarriers;
+				Vector<GpuAccelerationStructureBarrier> AccelerationStructureBarriers;
 			};
 
 			/** Split barriers released at one point and acquired at another, recorded with one GpuSplitBarrier. */
@@ -587,6 +645,9 @@ namespace b3d
 
 			/** Returns the index of @p buffer among the graph's resources, or ~0u if it is not one. */
 			u32 FindResource(const GpuBuffer& buffer) const;
+
+			/** Returns the index of @p accelerationStructure among the graph's resources, or ~0u if it is not one. */
+			u32 FindResource(const GpuAccelerationStructure& accelerationStructure) const;
 
 			/** Adds a pass, and declares the accesses of its parameter sets and exports. */
 			Pass& AddPass(const StringView& name, PassType type, FrameGraphPass& pass, Function<void(FrameGraphPassContext&)>&& execute);

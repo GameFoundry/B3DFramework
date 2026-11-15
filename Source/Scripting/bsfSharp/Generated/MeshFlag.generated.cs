@@ -14,13 +14,20 @@ namespace b3d
 	public enum MeshFlag
 	{
 		/// <summary>
+		/// Mesh can be used as ray tracing geometry: its triangle list sub-meshes can be built into a bottom level acceleration 
+		/// structure, and ray tracing shaders can read its vertices and indices. Has no effect on Dynamic meshes, or on devices 
+		/// without acceleration structures. Leave it out to save the small cost of ray tracing support on meshes that rays never 
+		/// hit.
+		/// </summary>
+		SupportsRayTracing = 16,
+		/// <summary>
 		/// Mesh is not going to change ever, or is going to change rarely. Mesh vertex &amp; index buffers will be allocated in 
 		/// GPU memory.
 		/// </summary>
 		Static = 1,
 		/// <summary>
-		/// Mesh is going to change often (e.g. every frame). Mesh vertex &amp; index buffers will be allocated in CPU memory 
-		/// which is GPU accessible.
+		/// Mesh is going to change often (e.g. every frame). Mesh vertex &amp; index buffers will be allocated in memory the CPU 
+		/// writes directly. Ignored with UnorderedAccess.
 		/// </summary>
 		Dynamic = 2,
 		/// <summary>

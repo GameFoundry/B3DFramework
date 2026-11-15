@@ -4,6 +4,17 @@
 #include "Utility/B3DGpuBarrierTestUtility.h"
 #include "Utility/B3DUnitTestGpuPipelines.h"
 #include "CoreObject/B3DRenderThread.h"
+#include "FrameGraph/B3DFrameGraph.h"
+#include "Mesh/B3DMesh.h"
+#include "Mesh/B3DMeshData.h"
+#include "RayTracing/B3DRayTracingGeometry.h"
+#include "RayTracing/B3DRayTracingScene.h"
+#include "Renderer/B3DRenderer.h"
+#include "Renderer/B3DRendererMeshData.h"
+#include "GpuBackend/B3DVertexData.h"
+#include "GpuBackend/B3DVertexDescription.h"
+#include "Math/B3DVector2.h"
+#include "Math/B3DVector4.h"
 #include "GpuBackend/B3DGpuAccelerationStructure.h"
 #include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
@@ -35,6 +46,8 @@ GpuRayTracingTestSuite::GpuRayTracingTestSuite()
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestInlineRayTracing)
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestRayTracingPipelineCreation)
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestRayTracingPipelineRecords)
+	B3D_ADD_TEST(GpuRayTracingTestSuite::TestFrameGraph)
+	B3D_ADD_TEST(GpuRayTracingTestSuite::TestRayTracingGeometry)
 }
 
 void GpuRayTracingTestSuite::TestAccelerationStructureCreation()
@@ -962,6 +975,692 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 		B3D_TEST_ASSERT_MSG(actual[0] == 1.0f && std::abs(actual[1] - 5.0f) < kTolerance && actual[2] == 9.0f && actual[3] == 1.0f,
 			StringUtility::Format("Heap ray: hit {0}, distance {1}, instance id {2}, instance index {3}.", actual[0], actual[1], actual[2], actual[3]))
 	}, "GpuRayTracingTestSuite::TestInlineRayTracing", true);
+}
+
+void GpuRayTracingTestSuite::TestFrameGraph()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	const GpuDeviceCapabilities& capabilities = device->GetCapabilities();
+	if(!capabilities.HasCapability(RSC_ACCELERATION_STRUCTURES) || !capabilities.HasCapability(RSC_RAY_QUERY))
+		return;
+
+	// Shaders are resources, which are created outside of the render thread
+	const TShared<GpuComputePipelineState> pipeline = CreateTestInlineRayTracingPipeline(*device);
+	B3D_TEST_ASSERT(pipeline != nullptr)
+	if(pipeline == nullptr)
+		return;
+
+	LoggingScope logs(*this);
+	logs.ExpectError("Pass 'Resting build' writes 'Resting top level' in a build, but it is not a resource of the graph. Import it first.");
+
+	GetRenderThread().PostCommand([this, &device, &pipeline]()
+	{
+		const GpuRayTracingCapabilities& rayTracing = device->GetCapabilities().RayTracing;
+		const GpuBufferFlags inputFlags = GpuBufferFlag::AccelerationStructureInput;
+
+		// One triangle at Z = 5
+		const float vertexData[] = { 0.0f, 0.0f, 5.0f, 1.0f, 0.0f, 5.0f, 0.0f, 1.0f, 5.0f };
+		const TShared<render::GpuBuffer> vertices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(12, 3, inputFlags, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> instances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(rayTracing.InstanceSize, 1, inputFlags,
+			GpuBufferMemory::Mapped));
+		B3D_TEST_ASSERT(vertices != nullptr && instances != nullptr)
+		if(vertices == nullptr || instances == nullptr)
+			return;
+
+		{
+			const render::GpuBufferMappedScope mapping = vertices->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			std::memcpy(mapping.GetMappedMemory(), vertexData, sizeof(vertexData));
+		}
+
+		const GpuRayTracingGeometry geometry(vertices, 12, 3);
+		const GpuAccelerationStructureInputs bottomLevelInputs(TArrayView<const GpuRayTracingGeometry>(&geometry, 1));
+		const GpuAccelerationStructureInputs topLevelInputs(instances, 1);
+		GpuAccelerationStructureSizes bottomLevelSizes;
+		GpuAccelerationStructureSizes topLevelSizes;
+		B3D_TEST_ASSERT(device->GetAccelerationStructureSizes(bottomLevelInputs, bottomLevelSizes) && device->GetAccelerationStructureSizes(topLevelInputs, topLevelSizes))
+
+		const TShared<GpuAccelerationStructure> bottomLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::BottomLevel, bottomLevelSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "Graph bottom level"));
+		const TShared<GpuAccelerationStructure> topLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::TopLevel, topLevelSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "Graph top level"));
+		B3D_TEST_ASSERT(bottomLevel != nullptr && topLevel != nullptr)
+		if(bottomLevel == nullptr || topLevel == nullptr)
+			return;
+
+		// Writes the single instance of the top level structure, with @p instanceId. The GPU must not be reading the instance buffer.
+		const auto fnWriteInstance = [this, &device, &instances, &bottomLevel](u32 instanceId)
+		{
+			const render::GpuBufferMappedScope mapping = instances->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			const GpuRayTracingInstance instance(bottomLevel.get(), Matrix4::kIdentity, instanceId);
+			B3D_TEST_ASSERT(device->WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance>(&instance, 1), mapping.GetMappedMemory()))
+		};
+
+		const TestRay ray(Vector3(0.25f, 0.25f, 0.0f), Vector3(0.0f, 0.0f, 1.0f));
+		const TShared<render::GpuBuffer> rayBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(TestRay), 1,
+			GpuBufferFlag::None, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> hitBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(TestHit), 1, GpuBufferFlag::GpuWrite));
+		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(sizeof(TestHit)));
+		B3D_TEST_ASSERT(rayBuffer != nullptr && hitBuffer != nullptr && readback != nullptr)
+		if(rayBuffer == nullptr || hitBuffer == nullptr || readback == nullptr)
+			return;
+
+		{
+			const render::GpuBufferMappedScope mapping = rayBuffer->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			std::memcpy(mapping.GetMappedMemory(), &ray, sizeof(ray));
+		}
+
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		const u32 scratchSize = std::max(bottomLevelSizes.BuildScratchSize, topLevelSizes.BuildScratchSize);
+		const TShared<GpuAccelerationStructure> bottomLevels[] = { bottomLevel };
+
+		// Builds that share a transient scratch buffer, so the graph orders them
+		const auto fnCreateScratch = [scratchSize](FrameGraph& graph)
+		{
+			return graph.CreateBuffer("Build scratch", GpuBufferCreateInformation::CreateStructuredStorage(4, AlignUp(scratchSize, 4) / 4, GpuBufferFlag::GpuWrite));
+		};
+
+		const auto fnAddBottomLevelBuild = [&](FrameGraph& graph, const TShared<render::GpuBuffer>& scratch)
+		{
+			const GpuAccelerationStructureBuild build(bottomLevelInputs, bottomLevel, scratch);
+
+			FrameGraphAccelerationStructurePass pass;
+			pass.AddBuild(build);
+			graph.AddAccelerationStructurePass("Build bottom level", std::move(pass), [build](FrameGraphPassContext& passContext)
+			{
+				passContext.GetCommandBuffer().BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(&build, 1));
+			});
+		};
+
+		const auto fnAddTopLevelBuild = [&](FrameGraph& graph, const char* name, const TShared<GpuAccelerationStructure>& destination, const TShared<render::GpuBuffer>& scratch,
+			bool exports, FrameGraphPassFlags flags)
+		{
+			GpuAccelerationStructureBuild build(topLevelInputs, destination, scratch);
+			build.BottomLevels = TArrayView<const TShared<GpuAccelerationStructure>>(bottomLevels, 1);
+
+			FrameGraphAccelerationStructurePass pass(flags);
+			pass.AddBuild(build);
+			if(exports)
+				pass.Export(destination);
+
+			graph.AddAccelerationStructurePass(name, std::move(pass), [build](FrameGraphPassContext& passContext)
+			{
+				passContext.GetCommandBuffer().BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(&build, 1));
+			});
+		};
+
+		// Traces the ray against the top level structure, and copies what it hit into the readback buffer
+		const auto fnAddTrace = [&](FrameGraph& graph)
+		{
+			graph.ImportBuffer(hitBuffer);
+			graph.ImportBuffer(readback);
+
+			const TShared<render::GpuParameterSet> parameterSet = context->GetParameterSetPool().Create(pipeline->GetParameterLayout()->GetSet(0), 0);
+			B3D_TEST_ASSERT(parameterSet->SetAccelerationStructure("Scene", topLevel))
+			parameterSet->SetStorageBuffer("Rays", rayBuffer);
+			parameterSet->SetStorageBuffer("Hits", hitBuffer);
+
+			FrameGraphComputePass tracePass;
+			tracePass.AddParameterSet(parameterSet);
+			graph.AddComputePass("Trace", std::move(tracePass), [&pipeline, parameterSet](FrameGraphPassContext& passContext)
+			{
+				render::GpuCommandBuffer& commands = passContext.GetCommandBuffer();
+				commands.SetGpuComputePipelineState(pipeline);
+				commands.SetGpuParameterSet(parameterSet);
+				commands.DispatchCompute(1);
+			});
+
+			FrameGraphCopyPass copyPass;
+			copyPass.AddSource(hitBuffer);
+			copyPass.AddDestination(readback);
+			graph.AddCopyPass("Read hit", std::move(copyPass), [source = hitBuffer, destination = readback](FrameGraphPassContext& passContext)
+			{
+				passContext.GetCommandBuffer().CopyBufferToBuffer(source, destination, 0, 0, sizeof(TestHit));
+			});
+		};
+
+		// Executes @p graph and checks that the ray hit the instance with @p instanceId. The graph's end makes the copy visible to the host.
+		const auto fnCheckHit = [&](FrameGraph& graph, u32 instanceId, const char* name)
+		{
+			graph.Compile();
+			graph.Execute();
+			device->WaitUntilIdle();
+
+			TestHit hit;
+			{
+				const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
+				B3D_TEST_ASSERT(mapping.IsValid())
+				if(!mapping.IsValid())
+					return;
+
+				std::memcpy(&hit, mapping.GetMappedMemory(), sizeof(hit));
+			}
+
+			B3D_TEST_ASSERT_MSG(hit.IsHit != 0.0f && std::abs(hit.Distance - 5.0f) < 1e-4f && hit.InstanceId == instanceId,
+				StringUtility::Format("{0}: hit {1}, distance {2}, instance id {3}.", name, hit.IsHit, hit.Distance, hit.InstanceId))
+
+			device->EndFrame();
+		};
+
+		// Bottom level build, top level build and trace in one graph. Every pass declares the structures it uses, the top level build reads the
+		// bottom level the graph built, and the builds share scratch memory.
+		fnWriteInstance(7);
+		{
+			FrameGraph graph(*context, "Ray tracing graph");
+			graph.ImportAccelerationStructure(bottomLevel);
+			graph.ImportAccelerationStructure(topLevel);
+
+			const TShared<render::GpuBuffer> scratch = fnCreateScratch(graph);
+			fnAddBottomLevelBuild(graph, scratch);
+			fnAddTopLevelBuild(graph, "Build top level", topLevel, scratch, false, FrameGraphPassFlag::None);
+			fnAddTrace(graph);
+			fnCheckHit(graph, 7, "Build, build and trace");
+		}
+
+		// Rebuilds the top level structure, on the async compute queue if there is one, from the bottom level structure at rest. The build
+		// exports the structure, and the trace reads it after the export.
+		fnWriteInstance(9);
+		{
+			FrameGraph graph(*context, "Ray tracing graph");
+			graph.ImportAccelerationStructure(topLevel);
+
+			fnAddTopLevelBuild(graph, "Build top level", topLevel, fnCreateScratch(graph), true, FrameGraphPassFlag::AsyncCompute);
+			fnAddTrace(graph);
+			fnCheckHit(graph, 9, "Exported async build and trace");
+		}
+
+		// A later graph traces against the structure at rest
+		{
+			FrameGraph graph(*context, "Ray tracing graph");
+			fnAddTrace(graph);
+			fnCheckHit(graph, 9, "Trace at rest");
+		}
+
+		// A build writes its destination, which must be imported. The graph is never compiled, so nothing is recorded.
+		{
+			const TShared<GpuAccelerationStructure> restingTopLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+				GpuAccelerationStructureType::TopLevel, topLevelSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "Resting top level"));
+			B3D_TEST_ASSERT(restingTopLevel != nullptr)
+			if(restingTopLevel == nullptr)
+				return;
+
+			FrameGraph graph(*context, "Ray tracing graph");
+			fnAddTopLevelBuild(graph, "Resting build", restingTopLevel, fnCreateScratch(graph), false, FrameGraphPassFlag::None);
+		}
+	}, "GpuRayTracingTestSuite::TestFrameGraph", true);
+}
+
+namespace
+{
+	/** What the RayTracingGeometryInline and RayTracingGeometryPipeline test shaders read from the triangle a ray hits. */
+	struct GeometryHit
+	{
+		Vector3 Position;
+		float IsHit;
+		Vector3 Normal;
+		float U;
+		float V;
+		float Padding[3];
+		u32 Indices[3];
+		u32 InstanceId;
+	};
+
+	static_assert(sizeof(GeometryHit) == 64, "GeometryHit must match the layout of the shaders' structure.");
+
+	/** What a ray of TestRayTracingGeometry() is expected to read. */
+	struct ExpectedGeometryHit
+	{
+		/** A miss. */
+		ExpectedGeometryHit() = default;
+
+		/**
+		 * @param	position		Interpolated position, in the space of the mesh.
+		 * @param	normal			Interpolated normal.
+		 * @param	u				Interpolated U.
+		 * @param	v				Interpolated V.
+		 * @param	firstIndex		Index of the triangle's first vertex. The others follow it.
+		 * @param	instanceId		Id of the instance the ray hits.
+		 */
+		ExpectedGeometryHit(const Vector3& position, const Vector3& normal, float u, float v, u32 firstIndex, u32 instanceId)
+			: IsHit(true), Position(position), Normal(normal), U(u), V(v), FirstIndex(firstIndex), InstanceId(instanceId)
+		{ }
+
+		bool IsHit = false;
+		Vector3 Position;
+		Vector3 Normal;
+		float U = 0.0f;
+		float V = 0.0f;
+		u32 FirstIndex = 0;
+		u32 InstanceId = 0;
+	};
+} // namespace
+
+void GpuRayTracingTestSuite::TestRayTracingGeometry()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	const GpuDeviceCapabilities& capabilities = device->GetCapabilities();
+	const bool supportsRayTracing = capabilities.HasCapability(RSC_ACCELERATION_STRUCTURES) && capabilities.HasCapability(RSC_RAY_QUERY);
+
+	// Shaders are resources, which are created outside of the render thread. The shaders read the mesh through the bindless heap.
+	const bool readsGeometry = supportsRayTracing && device->GetBindlessHeaps() != nullptr;
+	const TShared<GpuComputePipelineState> inlinePipeline = readsGeometry ? CreateTestRayTracingGeometryInlinePipeline(*device) : nullptr;
+	B3D_TEST_ASSERT(!readsGeometry || inlinePipeline != nullptr)
+
+	TShared<GpuRayTracingPipelineState> rayTracingPipeline;
+	if(readsGeometry && capabilities.HasCapability(RSC_RAY_TRACING_PIPELINE))
+	{
+		UnorderedMap<String, TShared<GpuProgram>> programs = CreateTestRayTracingPrograms(*device, "RayTracingGeometryPipeline");
+		B3D_TEST_ASSERT(programs.size() == 3)
+		if(programs.size() == 3)
+		{
+			GpuRayTracingPipelineStateCreateInformation information;
+			information.RayGenerationPrograms.push_back(programs["TraceGeometryRays"]);
+			information.MissPrograms.push_back(programs["MissGeometry"]);
+			information.HitGroups.push_back(GpuRayTracingHitGroup(programs["ReadGeometry"]));
+
+			rayTracingPipeline = device->CreateGpuRayTracingPipelineState(information);
+			B3D_TEST_ASSERT(rayTracingPipeline != nullptr)
+		}
+	}
+
+	LoggingScope logs(*this);
+	logs.IgnoreWarning("Shader binding tables are in system memory");
+	if(supportsRayTracing)
+	{
+		logs.ExpectWarning("has vertices or indices in formats ray tracing doesn't support");
+	}
+
+	GetRenderThread().PostCommand([this, &device, supportsRayTracing, &inlinePipeline, &rayTracingPipeline]()
+	{
+		// Two triangles at Z = 5, and a line list sub-mesh between them. Each vertex has its own normal and texture coordinates. The mesh is
+		// converted to the formats ray tracing geometry needs, which pack the normals into 8 bits per component.
+		const Vector3 positions[] = { Vector3(0.0f, 0.0f, 5.0f), Vector3(1.0f, 0.0f, 5.0f), Vector3(0.0f, 1.0f, 5.0f),
+			Vector3(2.0f, 0.0f, 5.0f), Vector3(3.0f, 0.0f, 5.0f), Vector3(2.0f, 1.0f, 5.0f) };
+		const Vector3 normals[] = { Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f),
+			Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, 1.0f) };
+		const Vector2 uvs[] = { Vector2(0.0f, 0.0f), Vector2(1.0f, 0.0f), Vector2(0.0f, 1.0f), Vector2(0.5f, 0.5f), Vector2(1.0f, 0.5f), Vector2(0.5f, 1.0f) };
+
+		TInlineArray<VertexElement, 8> vertexElements;
+		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
+		vertexElements.Add(VertexElement(VET_FLOAT3, VES_NORMAL));
+		vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
+
+		// Fills mesh data with the vertices above in @p vertexDescription, and indices of @p indexType
+		const auto fnCreateMeshData = [&](const TShared<VertexDescription>& vertexDescription, IndexType indexType)
+		{
+			const TShared<MeshData> meshData = B3DMakeShared<MeshData>(6, 6, vertexDescription, indexType);
+			meshData->SetVertexData(VES_POSITION, (void*)positions, sizeof(positions));
+			meshData->SetVertexData(VES_NORMAL, (void*)normals, sizeof(normals));
+			meshData->SetVertexData(VES_TEXCOORD, (void*)uvs, sizeof(uvs));
+
+			for(u32 index = 0; index < 6; index++)
+			{
+				if(indexType == IT_32BIT)
+					meshData->GetIndices32()[index] = index;
+				else
+					meshData->GetIndices16()[index] = (u16)index;
+			}
+
+			return meshData;
+		};
+
+		const TShared<VertexDescription> floatDescription = B3DMakeShared<VertexDescription>(vertexElements);
+		const TShared<MeshData> meshData = RendererMeshData::Convert(fnCreateMeshData(floatDescription, IT_32BIT));
+
+		MeshCreateInformation meshInformation;
+		meshInformation.SubMeshes = { SubMesh(0, 3, DOT_TRIANGLE_LIST), SubMesh(0, 2, DOT_LINE_LIST), SubMesh(3, 3, DOT_TRIANGLE_LIST) };
+		B3D_TEST_ASSERT(meshInformation.Flags.IsSet(MeshFlag::SupportsRayTracing))
+
+		const TShared<render::Mesh> mesh = render::Mesh::Create(meshData, meshInformation);
+		const TShared<render::Mesh> plainMesh = render::Mesh::Create(meshData, MeshFlag::Static);
+
+		const TShared<render::GpuBuffer> vertexBuffer = mesh->GetVertexData()->GetBuffer(0);
+		const GpuBufferFlags meshBufferFlags = vertexBuffer->GetInformation().Flags;
+
+		// A mesh without the flag, or on a device without acceleration structures, costs nothing extra
+		B3D_TEST_ASSERT(!plainMesh->SupportsRayTracing() && plainMesh->GetOrCreateRayTracingGeometry() == nullptr)
+		B3D_TEST_ASSERT(!plainMesh->GetIndexBuffer()->GetInformation().Flags.IsSet(GpuBufferFlag::AccelerationStructureInput))
+		B3D_TEST_ASSERT(mesh->SupportsRayTracing() == supportsRayTracing && meshBufferFlags.IsSet(GpuBufferFlag::AccelerationStructureInput) == supportsRayTracing)
+		if(!supportsRayTracing)
+		{
+			B3D_TEST_ASSERT(mesh->GetOrCreateRayTracingGeometry() == nullptr)
+			return;
+		}
+
+		B3D_TEST_ASSERT(mesh->GetIndexBuffer()->GetInformation().Flags.IsSet(GpuBufferFlag::AccelerationStructureInput))
+		B3D_TEST_ASSERT(meshBufferFlags.IsSet(GpuBufferFlag::Bindless) == (device->GetBindlessHeaps() != nullptr))
+
+		// Meshes with 16-bit indices, or vertex attributes in other formats, have no geometry
+		// Meshes with 16-bit indices, or vertex attributes in other formats, don't support ray tracing, and their buffers cost nothing extra
+		const TShared<MeshData> shortIndexData = RendererMeshData::Convert(fnCreateMeshData(floatDescription, IT_16BIT));
+		const TShared<MeshData> floatNormalData = fnCreateMeshData(floatDescription, IT_32BIT);
+		B3D_TEST_ASSERT(RayTracingGeometry::IsSupportedFormat(*meshData->GetVertexDescription(), meshData->GetIndexType()))
+		B3D_TEST_ASSERT(!RayTracingGeometry::IsSupportedFormat(*shortIndexData->GetVertexDescription(), shortIndexData->GetIndexType()))
+		B3D_TEST_ASSERT(!RayTracingGeometry::IsSupportedFormat(*floatNormalData->GetVertexDescription(), floatNormalData->GetIndexType()))
+
+		for(const TShared<MeshData>& unsupportedData : { shortIndexData, floatNormalData })
+		{
+			const TShared<render::Mesh> unsupportedMesh = render::Mesh::Create(unsupportedData, meshInformation);
+			B3D_TEST_ASSERT(!unsupportedMesh->SupportsRayTracing() && unsupportedMesh->GetOrCreateRayTracingGeometry() == nullptr)
+			B3D_TEST_ASSERT(!unsupportedMesh->GetIndexBuffer()->GetInformation().Flags.IsSet(GpuBufferFlag::AccelerationStructureInput))
+		}
+
+		// A mesh without triangles has no geometry, and stops supporting ray tracing once that is known
+		MeshCreateInformation lineInformation = meshInformation;
+		lineInformation.SubMeshes = { SubMesh(0, 2, DOT_LINE_LIST) };
+		const TShared<render::Mesh> lineMesh = render::Mesh::Create(meshData, lineInformation);
+		B3D_TEST_ASSERT(lineMesh->SupportsRayTracing() && lineMesh->GetOrCreateRayTracingGeometry() == nullptr && !lineMesh->SupportsRayTracing())
+
+		const TShared<RayTracingGeometry> geometry = mesh->GetOrCreateRayTracingGeometry();
+		B3D_TEST_ASSERT(geometry != nullptr && geometry == mesh->GetOrCreateRayTracingGeometry())
+		if(geometry == nullptr)
+			return;
+
+		B3D_TEST_ASSERT(!geometry->IsBuilt() && geometry->GetAccelerationStructure() != nullptr)
+
+		// The line list has no geometry
+		const TArrayView<const u32> geometryIndices = geometry->GetSubMeshGeometryIndices();
+		B3D_TEST_ASSERT(geometryIndices.Size() == 3 && geometryIndices[0] == 0 && geometryIndices[1] == ~0u && geometryIndices[2] == 1)
+
+		const TArrayView<const RayTracingGeometryLayout> layouts = geometry->GetGeometryLayouts();
+		B3D_TEST_ASSERT(layouts.Size() == 2)
+		if(layouts.Size() != 2)
+			return;
+
+		B3D_TEST_ASSERT(layouts[0].FirstIndex == 0 && layouts[1].FirstIndex == 3)
+		B3D_TEST_ASSERT(layouts[1].Position.Offset == 0 && layouts[1].Position.Stride == 24 && layouts[1].Normal.Offset == 12 && layouts[1].Uv.Offset == 16)
+		B3D_TEST_ASSERT(layouts[1].Position.BufferIndex == vertexBuffer->GetBindlessIndex())
+
+		// The mesh has no tangents, so they come from the default value every vertex shares
+		B3D_TEST_ASSERT(layouts[1].Tangent.Stride == 0 && layouts[1].Tangent.BufferIndex != layouts[1].Position.BufferIndex)
+
+		// The mesh's initial contents are written through the renderer's context
+		render::GetRenderer()->GetGpuContext().SubmitTransferCommandBuffers();
+		device->WaitUntilIdle();
+
+		// Instance ids index a table with the layouts of each instance's geometries, from the id on
+		RayTracingScene scene(*device, "Test scene");
+		const u32 firstSlot = scene.AddInstance(RayTracingGeometryInstance(geometry, Matrix4::kIdentity, 0));
+		const u32 secondSlot = scene.AddInstance(RayTracingGeometryInstance(geometry, Matrix4::Translation(Vector3(0.0f, 10.0f, 0.0f)), 2));
+		B3D_TEST_ASSERT(scene.GetInstanceCount() == 2 && scene.GetAccelerationStructure() == nullptr)
+
+		const Vector4 rayOrigins[] = { Vector4(0.25f, 0.25f, 0.0f, 0.0f), Vector4(2.25f, 0.25f, 0.0f, 0.0f), Vector4(2.25f, 10.25f, 0.0f, 0.0f),
+			Vector4(0.25f, 20.25f, 0.0f, 0.0f) };
+		static constexpr u32 kRayCount = sizeof(rayOrigins) / sizeof(rayOrigins[0]);
+
+		const TShared<render::GpuBuffer> rayBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(Vector4), kRayCount,
+			GpuBufferFlag::None, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> layoutBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(RayTracingGeometryLayout), 4,
+			GpuBufferFlag::None, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> hitBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(GeometryHit), kRayCount,
+			GpuBufferFlag::GpuWrite));
+		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kRayCount * sizeof(GeometryHit)));
+		B3D_TEST_ASSERT(rayBuffer != nullptr && layoutBuffer != nullptr && hitBuffer != nullptr && readback != nullptr)
+		if(rayBuffer == nullptr || layoutBuffer == nullptr || hitBuffer == nullptr || readback == nullptr)
+			return;
+
+		{
+			const render::GpuBufferMappedScope rayMapping = rayBuffer->Map(GpuMapOption::Write);
+			const render::GpuBufferMappedScope layoutMapping = layoutBuffer->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(rayMapping.IsValid() && layoutMapping.IsValid())
+			if(!rayMapping.IsValid() || !layoutMapping.IsValid())
+				return;
+
+			std::memcpy(rayMapping.GetMappedMemory(), rayOrigins, sizeof(rayOrigins));
+
+			RayTracingGeometryLayout* layoutTable = static_cast<RayTracingGeometryLayout*>(layoutMapping.GetMappedMemory());
+			for(u32 instanceId : { 0u, 2u })
+				std::memcpy(&layoutTable[instanceId], layouts.data(), 2 * sizeof(RayTracingGeometryLayout));
+		}
+
+		TShared<render::GpuShaderBindingTable> table;
+		if(rayTracingPipeline != nullptr)
+		{
+			GpuShaderBindingTableCreateInformation tableInformation;
+			tableInformation.Pipeline = rayTracingPipeline;
+			tableInformation.RayGenerationRecords.push_back(0);
+			tableInformation.MissRecords.push_back(0);
+			tableInformation.HitGroupRecords.push_back(0);
+
+			table = device->CreateGpuShaderBindingTable(tableInformation);
+			B3D_TEST_ASSERT(table != nullptr)
+		}
+
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		TShared<GpuAccelerationStructure> previousTopLevel;
+
+		// Builds the scene in a graph that traces the rays inline, then traces them through the pipeline in a second graph, and checks what
+		// each read. @p buildPassCount is the number of passes the scene build is expected to add.
+		const auto fnTrace = [&](const char* name, std::initializer_list<ExpectedGeometryHit> expectedHits, u32 buildPassCount)
+		{
+			FrameGraph graph(*context, "Ray tracing geometry graph");
+			scene.Build(graph);
+			graph.ImportBuffer(hitBuffer);
+			graph.ImportBuffer(readback);
+
+			// The inline trace reads the top level structure the build exported
+			u32 tracePassCount = 0;
+			if(inlinePipeline != nullptr)
+			{
+				const TShared<render::GpuParameterSet> parameterSet = context->GetParameterSetPool().Create(inlinePipeline->GetParameterLayout()->GetSet(0), 0);
+				B3D_TEST_ASSERT(parameterSet->SetAccelerationStructure("Scene", scene.GetAccelerationStructure()))
+				parameterSet->SetStorageBuffer("RayOrigins", rayBuffer);
+				parameterSet->SetStorageBuffer("Layouts", layoutBuffer);
+				parameterSet->SetStorageBuffer("Hits", hitBuffer);
+
+				FrameGraphComputePass pass;
+				pass.AddParameterSet(parameterSet);
+				graph.AddComputePass("Trace inline", std::move(pass), [parameterSet, &inlinePipeline](FrameGraphPassContext& passContext)
+				{
+					render::GpuCommandBuffer& commands = passContext.GetCommandBuffer();
+					commands.SetGpuComputePipelineState(inlinePipeline);
+					commands.SetGpuParameterSet(parameterSet);
+					commands.DispatchCompute(kRayCount);
+				});
+
+				FrameGraphCopyPass copyPass;
+				copyPass.AddSource(hitBuffer);
+				copyPass.AddDestination(readback);
+				graph.AddCopyPass("Read hits", std::move(copyPass), [source = hitBuffer, destination = readback](FrameGraphPassContext& passContext)
+				{
+					passContext.GetCommandBuffer().CopyBufferToBuffer(source, destination, 0, 0, kRayCount * sizeof(GeometryHit));
+				});
+
+				tracePassCount = 2;
+			}
+
+			graph.Compile();
+			graph.Execute();
+			device->WaitUntilIdle();
+
+			B3D_TEST_ASSERT_MSG(graph.GetStatistics().PassCount == buildPassCount + tracePassCount, StringUtility::Format("{0}: {1} passes, expected {2}.", name,
+				graph.GetStatistics().PassCount, buildPassCount + tracePassCount))
+
+			const auto fnCheckHits = [&](const char* mode)
+			{
+				const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
+				B3D_TEST_ASSERT(mapping.IsValid())
+				if(!mapping.IsValid())
+					return;
+
+				const GeometryHit* hits = static_cast<const GeometryHit*>(mapping.GetMappedMemory());
+				u32 rayIndex = 0;
+				for(const ExpectedGeometryHit& expected : expectedHits)
+				{
+					const GeometryHit& actual = hits[rayIndex];
+					const String message = StringUtility::Format("{0}, {1}, ray {2}: hit {3}, position ({4}, {5}, {6}), normal ({7}, {8}, {9}), uv ({10}, {11}), "
+						"indices ({12}, {13}, {14}), instance id {15}.", name, mode, rayIndex, actual.IsHit, actual.Position.X, actual.Position.Y, actual.Position.Z,
+						actual.Normal.X, actual.Normal.Y, actual.Normal.Z, actual.U, actual.V, actual.Indices[0], actual.Indices[1], actual.Indices[2], actual.InstanceId);
+
+					// Normals are stored in 8 bits per component, so each component can be off by up to 2 / 255
+					static constexpr float kTolerance = 1e-4f;
+					static constexpr float kNormalTolerance = 2e-2f;
+					B3D_TEST_ASSERT_MSG((actual.IsHit != 0.0f) == expected.IsHit, message)
+					if(expected.IsHit)
+					{
+						B3D_TEST_ASSERT_MSG(actual.Position.Distance(expected.Position) < kTolerance && actual.Normal.Distance(expected.Normal) < kNormalTolerance, message)
+						B3D_TEST_ASSERT_MSG(std::abs(actual.U - expected.U) < kTolerance && std::abs(actual.V - expected.V) < kTolerance, message)
+						B3D_TEST_ASSERT_MSG(actual.Indices[0] == expected.FirstIndex && actual.Indices[1] == expected.FirstIndex + 1 && actual.Indices[2] == expected.FirstIndex + 2, message)
+						B3D_TEST_ASSERT_MSG(actual.InstanceId == expected.InstanceId, message)
+					}
+
+					rayIndex++;
+				}
+			};
+
+			if(inlinePipeline != nullptr)
+				fnCheckHits("inline");
+
+			device->EndFrame();
+
+			// Closest hit programs read the same values, in a later graph that traces against the structure at rest
+			if(table == nullptr)
+				return;
+
+			FrameGraph pipelineGraph(*context, "Ray tracing geometry pipeline graph");
+			pipelineGraph.ImportBuffer(hitBuffer);
+			pipelineGraph.ImportBuffer(readback);
+
+			const TShared<render::GpuParameterSet> parameterSet = context->GetParameterSetPool().Create(rayTracingPipeline->GetParameterLayout()->GetSet(0), 0);
+			B3D_TEST_ASSERT(parameterSet->SetAccelerationStructure("Scene", scene.GetAccelerationStructure()))
+			parameterSet->SetStorageBuffer("RayOrigins", rayBuffer);
+			parameterSet->SetStorageBuffer("Layouts", layoutBuffer);
+			parameterSet->SetStorageBuffer("Hits", hitBuffer);
+
+			FrameGraphComputePass pass;
+			pass.AddParameterSet(parameterSet);
+			pipelineGraph.AddComputePass("Trace through the pipeline", std::move(pass), [parameterSet, &table](FrameGraphPassContext& passContext)
+			{
+				render::GpuCommandBuffer& commands = passContext.GetCommandBuffer();
+				commands.SetGpuParameterSet(parameterSet);
+				commands.DispatchRays(table, 0, kRayCount, 1);
+			});
+
+			FrameGraphCopyPass copyPass;
+			copyPass.AddSource(hitBuffer);
+			copyPass.AddDestination(readback);
+			pipelineGraph.AddCopyPass("Read hits", std::move(copyPass), [source = hitBuffer, destination = readback](FrameGraphPassContext& passContext)
+			{
+				passContext.GetCommandBuffer().CopyBufferToBuffer(source, destination, 0, 0, kRayCount * sizeof(GeometryHit));
+			});
+
+			pipelineGraph.Compile();
+			pipelineGraph.Execute();
+			device->WaitUntilIdle();
+
+			fnCheckHits("pipeline");
+			device->EndFrame();
+		};
+
+		const Vector3 interpolatedNormal(0.5f, 0.25f, 0.25f);
+		const ExpectedGeometryHit miss = ExpectedGeometryHit();
+
+		// The first build adds a pass for the bottom level structure and one for the top level structure
+		fnTrace("First build", { ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 0),
+			ExpectedGeometryHit(Vector3(2.25f, 0.25f, 5.0f), interpolatedNormal, 0.625f, 0.625f, 3, 0),
+			ExpectedGeometryHit(Vector3(2.25f, 0.25f, 5.0f), interpolatedNormal, 0.625f, 0.625f, 3, 2), miss }, 2);
+
+		B3D_TEST_ASSERT(geometry->IsBuilt() && scene.GetAccelerationStructure() != nullptr)
+		B3D_TEST_ASSERT(scene.GetAccelerationStructure() == nullptr || scene.GetAccelerationStructure()->GetType() == GpuAccelerationStructureType::TopLevel)
+		previousTopLevel = scene.GetAccelerationStructure();
+
+		// Nothing changed, so the build adds no passes, and so no scratch or instance memory
+		fnTrace("Unchanged", { ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 0),
+			ExpectedGeometryHit(Vector3(2.25f, 0.25f, 5.0f), interpolatedNormal, 0.625f, 0.625f, 3, 0),
+			ExpectedGeometryHit(Vector3(2.25f, 0.25f, 5.0f), interpolatedNormal, 0.625f, 0.625f, 3, 2), miss }, 0);
+
+		// A moved instance rebuilds only the top level structure, in place
+		scene.SetInstanceTransform(secondSlot, Matrix4::Translation(Vector3(0.0f, 20.0f, 0.0f)));
+		fnTrace("Moved", { ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 0),
+			ExpectedGeometryHit(Vector3(2.25f, 0.25f, 5.0f), interpolatedNormal, 0.625f, 0.625f, 3, 0), miss,
+			ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 2) }, 1);
+		B3D_TEST_ASSERT(scene.GetAccelerationStructure() == previousTopLevel)
+
+		// A removed instance's slot is reused by the next one
+		scene.RemoveInstance(firstSlot);
+		B3D_TEST_ASSERT(scene.GetInstanceCount() == 1)
+		fnTrace("Removed", { miss, miss, miss, ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 2) }, 1);
+		B3D_TEST_ASSERT(scene.AddInstance(RayTracingGeometryInstance(geometry, Matrix4::kIdentity, 0)) == firstSlot)
+
+		// A write to the mesh rebuilds its bottom level structure, and the top level structure with it
+		mesh->WriteData(*meshData, false);
+		B3D_TEST_ASSERT(!geometry->IsBuilt())
+		render::GetRenderer()->GetGpuContext().SubmitTransferCommandBuffers();
+		device->WaitUntilIdle();
+		fnTrace("Rewritten", { ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 0),
+			ExpectedGeometryHit(Vector3(2.25f, 0.25f, 5.0f), interpolatedNormal, 0.625f, 0.625f, 3, 0), miss,
+			ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 2) }, 2);
+
+		// More instances than the top level structure has room for replace it with a larger one
+		for(u32 instanceIndex = 0; instanceIndex < 20; instanceIndex++)
+			scene.AddInstance(RayTracingGeometryInstance(geometry, Matrix4::Translation(Vector3(0.0f, 100.0f + instanceIndex * 10.0f, 0.0f)), 0));
+
+		fnTrace("Grown", { ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 0),
+			ExpectedGeometryHit(Vector3(2.25f, 0.25f, 5.0f), interpolatedNormal, 0.625f, 0.625f, 3, 0), miss,
+			ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 2) }, 1);
+		B3D_TEST_ASSERT(scene.GetAccelerationStructure() != previousTopLevel && scene.GetInstanceCount() == 22)
+
+		// Vertices with only positions read the default normal and texture coordinates, from one value every vertex shares
+		TInlineArray<VertexElement, 8> positionElements;
+		positionElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
+
+		const TShared<MeshData> positionMeshData = B3DMakeShared<MeshData>(6, 6, B3DMakeShared<VertexDescription>(positionElements), IT_32BIT);
+		positionMeshData->SetVertexData(VES_POSITION, (void*)positions, sizeof(positions));
+		for(u32 index = 0; index < 6; index++)
+			positionMeshData->GetIndices32()[index] = index;
+
+		const TShared<render::Mesh> positionMesh = render::Mesh::Create(positionMeshData, meshInformation);
+		const TShared<RayTracingGeometry> positionGeometry = positionMesh->GetOrCreateRayTracingGeometry();
+		B3D_TEST_ASSERT(positionGeometry != nullptr && positionGeometry->GetGeometryLayouts().Size() == 2)
+		if(positionGeometry == nullptr || positionGeometry->GetGeometryLayouts().Size() != 2)
+			return;
+
+		const RayTracingGeometryLayout& positionLayout = positionGeometry->GetGeometryLayouts()[0];
+		B3D_TEST_ASSERT(positionLayout.Normal.Stride == 0 && positionLayout.Tangent.Stride == 0 && positionLayout.Uv.Stride == 0)
+		B3D_TEST_ASSERT(positionLayout.Normal.BufferIndex == positionLayout.Uv.BufferIndex && positionLayout.Normal.Offset != positionLayout.Uv.Offset)
+		B3D_TEST_ASSERT((positionLayout.Normal.BufferIndex != kGpuBindlessInvalidIndex) == (device->GetBindlessHeaps() != nullptr))
+
+		// Every geometry reads its defaults from the same buffer
+		B3D_TEST_ASSERT(positionLayout.Normal.BufferIndex == layouts[1].Tangent.BufferIndex)
+
+		render::GetRenderer()->GetGpuContext().SubmitTransferCommandBuffers();
+		device->WaitUntilIdle();
+
+		{
+			const render::GpuBufferMappedScope layoutMapping = layoutBuffer->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(layoutMapping.IsValid())
+			if(!layoutMapping.IsValid())
+				return;
+
+			std::memcpy(layoutMapping.GetMappedMemory(), positionGeometry->GetGeometryLayouts().data(), 2 * sizeof(RayTracingGeometryLayout));
+		}
+
+		// The new geometry adds a pass for its bottom level structure
+		const Vector3 defaultNormal(0.0f, 0.0f, 1.0f);
+		scene.UpdateInstance(firstSlot, RayTracingGeometryInstance(positionGeometry, Matrix4::kIdentity, 0));
+		fnTrace("Default attributes", { ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), defaultNormal, 0.0f, 0.0f, 0, 0),
+			ExpectedGeometryHit(Vector3(2.25f, 0.25f, 5.0f), defaultNormal, 0.0f, 0.0f, 3, 0), miss,
+			ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 2) }, 2);
+	}, "GpuRayTracingTestSuite::TestRayTracingGeometry", true);
 }
 
 namespace
