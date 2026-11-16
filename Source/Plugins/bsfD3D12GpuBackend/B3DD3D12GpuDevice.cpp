@@ -22,6 +22,7 @@
 #include "B3DD3D12Queries.h"
 #include "B3DD3D12ResourceManager.h"
 #include "B3DD3D12SamplerState.h"
+#include "B3DD3D12GpuShaderBindingTable.h"
 #include "B3DD3D12Texture.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
@@ -634,6 +635,30 @@ TShared<GpuComputePipelineState> D3D12GpuDevice::CreateGpuComputePipelineState(c
 	return output;
 }
 
+TShared<GpuRayTracingPipelineState> D3D12GpuDevice::CreateGpuRayTracingPipelineStateInternal(const GpuRayTracingPipelineStateCreateInformation& createInformation, GpuObjectCreateFlags flags)
+{
+	TShared<D3D12GpuRayTracingPipelineState> output = B3DMakeSharedFromExisting<D3D12GpuRayTracingPipelineState>(new(B3DAllocate<D3D12GpuRayTracingPipelineState>())
+		D3D12GpuRayTracingPipelineState(createInformation, *this));
+
+	if(!flags.IsSet(GpuObjectCreateFlag::DeferredInitialize))
+		output->Initialize();
+
+	return output;
+}
+
+TShared<GpuShaderBindingTable> D3D12GpuDevice::CreateGpuShaderBindingTableInternal(const GpuShaderBindingTableCreateInformation& createInformation)
+{
+	const D3D12GpuRayTracingPipelineState& pipeline = static_cast<const D3D12GpuRayTracingPipelineState&>(*createInformation.Pipeline);
+	if(!B3D_ENSURE_LOG(pipeline.GetD3D12StateObject() != nullptr, "Cannot create a shader binding table for a ray tracing pipeline that failed to compile."))
+		return nullptr;
+
+	TShared<D3D12GpuShaderBindingTable> output = B3DMakeShared<D3D12GpuShaderBindingTable>(*this, createInformation);
+	if(output->GetBuffer() == nullptr)
+		return nullptr;
+
+	return output;
+}
+
 TShared<GpuPipelineParameterLayout> D3D12GpuDevice::CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation)
 {
 	return B3DMakeSharedFromExisting<D3D12GpuPipelineParameterLayout>(new (B3DAllocate<D3D12GpuPipelineParameterLayout>()) D3D12GpuPipelineParameterLayout(createInformation, *this));
@@ -959,6 +984,11 @@ namespace
 		case D3D12_AUTO_BREADCRUMB_OP_BEGINSUBMISSION: return "BeginSubmission";
 		case D3D12_AUTO_BREADCRUMB_OP_ENDSUBMISSION: return "EndSubmission";
 		case D3D12_AUTO_BREADCRUMB_OP_WRITEBUFFERIMMEDIATE: return "WriteBufferImmediate";
+		case D3D12_AUTO_BREADCRUMB_OP_BUILDRAYTRACINGACCELERATIONSTRUCTURE: return "BuildRaytracingAccelerationStructure";
+		case D3D12_AUTO_BREADCRUMB_OP_EMITRAYTRACINGACCELERATIONSTRUCTUREPOSTBUILDINFO: return "EmitRaytracingAccelerationStructurePostbuildInfo";
+		case D3D12_AUTO_BREADCRUMB_OP_COPYRAYTRACINGACCELERATIONSTRUCTURE: return "CopyRaytracingAccelerationStructure";
+		case D3D12_AUTO_BREADCRUMB_OP_DISPATCHRAYS: return "DispatchRays";
+		case D3D12_AUTO_BREADCRUMB_OP_SETPIPELINESTATE1: return "SetPipelineState1";
 		default: return "<other>";
 		}
 	}
@@ -1245,8 +1275,6 @@ void D3D12GpuDevice::InitializeCapabilities()
 		mCapabilities.SetCapability(RSC_ACCELERATION_STRUCTURES);
 		mCapabilities.SetCapability(RSC_RAY_QUERY);
 
-		// TODO - Enable once the backend creates ray tracing pipelines and shader binding tables (phase 5.2 step 3)
-#if 0
 		rayTracing.ShaderGroupHandleSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
 		rayTracing.ShaderRecordAlignment = D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT;
 		rayTracing.ShaderTableAlignment = D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT;
@@ -1256,7 +1284,6 @@ void D3D12GpuDevice::InitializeCapabilities()
 		rayTracing.SupportsCallablePrograms = true;
 
 		mCapabilities.SetCapability(RSC_RAY_TRACING_PIPELINE);
-#endif
 	}
 
 	mCapabilities.Conventions.NdcYAxis = GpuBackendConventions::Axis::Up;

@@ -97,6 +97,7 @@ namespace b3d
 			void Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance) override;
 			void DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance) override;
 			void DispatchCompute(u32 groupCountX, u32 groupCountY, u32 groupCountZ) override;
+			bool DispatchRays(const TShared<GpuShaderBindingTable>& table, u32 rayGenerationRecordIndex, u32 width, u32 height, u32 depth) override;
 			bool BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild> builds) override;
 			void BeginRenderPass(const RenderPassCreateInformation& createInformation) override;
 			void EndRenderPass() override;
@@ -231,6 +232,14 @@ namespace b3d
 			/** Binds the current graphics pipeline to the command buffer. Returns true if bind was successful. */
 			bool BindGraphicsPipeline();
 
+			/**
+			 * Completes the bind of @p pipeline, a pipeline state or a ray tracing state object the caller already set on the command list.
+			 * Binds the descriptor heaps if they aren't bound yet and sets @p rootSignature as the compute root signature if it differs from
+			 * the current one. Compute and ray tracing pipelines share the compute root arguments, which are bound with @p parameterLayout
+			 * from now on and are marked for rebinding before the next dispatch.
+			 */
+			void FinishComputePipelineBind(D3D12Resource& pipeline, D3D12RootSignature& rootSignature, const TShared<GpuPipelineParameterLayout>& parameterLayout);
+
 			/** Binds any dynamic states to the pipeline, as required. */
 			void BindDynamicStates(bool forceAll);
 
@@ -310,9 +319,13 @@ namespace b3d
 			u32 mRequiredVertexBufferBindingCount = 0;
 			D3D12Pipeline* mLastBoundGraphicsPipeline = nullptr; /**< Pipeline variant currently set on the command list. */
 
+			/** Compute pipeline state or ray tracing state object currently set on the command list. Null if a graphics pipeline replaced it. */
+			D3D12Resource* mLastBoundComputePipeline = nullptr;
+			D3D12RootSignature* mLastBoundComputeRootSignature = nullptr; /**< Root signature currently set on the compute side of the command list. */
+			TShared<GpuPipelineParameterLayout> mComputeParameterLayout; /**< Layout of the pipeline last bound on the compute side of the command list. */
+
 			bool mGraphicsPipelineRequiresBind : 1;
 			bool mGraphicsRootSignatureRequiresBind : 1;
-			bool mComputePipelineRequiresBind : 1;
 			bool mPrimitiveTopologyRequiresBind : 1;
 			bool mViewportRequiresBind : 1;
 			bool mStencilReferenceValueRequiresBind : 1;

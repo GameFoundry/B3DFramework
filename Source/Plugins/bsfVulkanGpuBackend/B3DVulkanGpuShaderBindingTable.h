@@ -33,23 +33,13 @@ namespace b3d
 			VulkanBuffer* GetBuffer() const { return mBuffer; }
 
 			/** Returns ray generation record @p recordIndex as the region vkCmdTraceRaysKHR() takes: the record alone, with its size equal to its stride. */
-			VkStridedDeviceAddressRegionKHR GetRayGenerationRegion(u32 recordIndex) const;
+			VkStridedDeviceAddressRegionKHR GetRayGenerationRecordRegion(u32 recordIndex) const;
 
-			/** Returns the region of the miss records. Zeros if the table has none. */
-			const VkStridedDeviceAddressRegionKHR& GetMissRegion() const { return mMissRegion; }
-
-			/** Returns the region of the hit group records. Zeros if the table has none. */
-			const VkStridedDeviceAddressRegionKHR& GetHitGroupRegion() const { return mHitGroupRegion; }
-
-			/** Returns the region of the callable records. Zeros if the table has none. */
-			const VkStridedDeviceAddressRegionKHR& GetCallableRegion() const { return mCallableRegion; }
+			/** Returns @p region of the table as the region vkCmdTraceRaysKHR() takes. Zeros if @p region is empty. */
+			VkStridedDeviceAddressRegionKHR GetDeviceAddressRegion(const GpuShaderBindingTableRegion& region) const;
 
 		private:
 			VulkanBuffer* mBuffer = nullptr;
-			VkStridedDeviceAddressRegionKHR mRayGenerationRegion{}; /**< Every ray generation record. A dispatch passes one of them. */
-			VkStridedDeviceAddressRegionKHR mMissRegion{};
-			VkStridedDeviceAddressRegionKHR mHitGroupRegion{};
-			VkStridedDeviceAddressRegionKHR mCallableRegion{};
 		};
 
 		/** @} */

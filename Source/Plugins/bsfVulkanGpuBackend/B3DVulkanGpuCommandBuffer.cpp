@@ -890,9 +890,11 @@ bool VulkanGpuCommandBuffer::DispatchRays(const TShared<GpuShaderBindingTable>& 
 	BindBindlessHeaps(BindPoint::RayTracing, *parameterLayout, pipelineState.GetPipelineLayoutHandle());
 	BindPushConstants(BindPoint::RayTracing, *parameterLayout, pipelineState.GetPipelineLayoutHandle());
 
-	const VkStridedDeviceAddressRegionKHR rayGenerationRegion = vulkanTable.GetRayGenerationRegion(rayGenerationRecordIndex);
-	vkCmdTraceRaysKHR(mCommandBufferHandle, &rayGenerationRegion, &vulkanTable.GetMissRegion(), &vulkanTable.GetHitGroupRegion(), &vulkanTable.GetCallableRegion(),
-		width, height, depth);
+	const VkStridedDeviceAddressRegionKHR rayGenerationRegion = vulkanTable.GetRayGenerationRecordRegion(rayGenerationRecordIndex);
+	const VkStridedDeviceAddressRegionKHR missRegion = vulkanTable.GetDeviceAddressRegion(vulkanTable.GetMissRegion());
+	const VkStridedDeviceAddressRegionKHR hitGroupRegion = vulkanTable.GetDeviceAddressRegion(vulkanTable.GetHitGroupRegion());
+	const VkStridedDeviceAddressRegionKHR callableRegion = vulkanTable.GetDeviceAddressRegion(vulkanTable.GetCallableRegion());
+	vkCmdTraceRaysKHR(mCommandBufferHandle, &rayGenerationRegion, &missRegion, &hitGroupRegion, &callableRegion, width, height, depth);
 
 	return true;
 }

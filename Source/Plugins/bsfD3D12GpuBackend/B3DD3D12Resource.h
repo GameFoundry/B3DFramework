@@ -60,6 +60,9 @@ namespace b3d
 		/** Tracked D3D12 root signature. */
 		using D3D12RootSignature = TD3D12GpuObject<ID3D12RootSignature>;
 
+		/** Tracked D3D12 state object. */
+		using D3D12StateObject = TD3D12GpuObject<ID3D12StateObject>;
+
 		/** @} */
 	} // namespace render
 } // namespace b3d

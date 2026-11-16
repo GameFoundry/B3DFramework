@@ -30,5 +30,12 @@ namespace b3d
 		 * debug layer accepts them. Skipped without the debug layer.
 		 */
 		void TestBarriers();
+
+		/**
+		 * Checks that the regions of a shader binding table start at multiples of 64 bytes with records 32 bytes apart (64 for ray generation
+		 * records), and that its records are the shader identifiers of their groups, or zeros for an empty hit group record. Runs only on
+		 * devices with ray tracing pipelines.
+		 */
+		void TestShaderBindingTable();
 	};
 } // namespace b3d

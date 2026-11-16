@@ -5,11 +5,20 @@
 #include "B3DD3D12GpuAccelerationStructure.h"
 #include "B3DD3D12GpuBuffer.h"
 #include "B3DD3D12GpuDevice.h"
+#include "B3DD3D12GpuPipelineState.h"
+#include "B3DD3D12GpuShaderBindingTable.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "GpuBackend/B3DGpuAccelerationStructure.h"
 #include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
+#include "GpuBackend/B3DGpuProgram.h"
+#include "GpuBackend/B3DGpuShaderBindingTable.h"
+#include "Material/B3DPass.h"
+#include "Material/B3DShader.h"
+#include "Material/B3DShaderRegistry.h"
+#include "Material/B3DVariation.h"
+#include "Resources/B3DBuiltinResources.h"
 #include "Math/B3DMatrix4.h"
 #include "Math/B3DVector3.h"
 
@@ -51,6 +60,7 @@ D3D12RayTracingTestSuite::D3D12RayTracingTestSuite()
 	B3D_ADD_TEST(D3D12RayTracingTestSuite::TestAddresses)
 	B3D_ADD_TEST(D3D12RayTracingTestSuite::TestInstanceLayout)
 	B3D_ADD_TEST(D3D12RayTracingTestSuite::TestBarriers)
+	B3D_ADD_TEST(D3D12RayTracingTestSuite::TestShaderBindingTable)
 }
 
 void D3D12RayTracingTestSuite::TestAddresses()
@@ -282,4 +292,133 @@ void D3D12RayTracingTestSuite::TestBarriers()
 
 		commandList->Close();
 	}, "D3D12RayTracingTestSuite::TestBarriers", true);
+}
+
+void D3D12RayTracingTestSuite::TestShaderBindingTable()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	if(!device->GetCapabilities().HasCapability(RSC_RAY_TRACING_PIPELINE))
+		return;
+
+	// The programs of the RayTracingPipeline test shader, by entry point
+	const TShared<Shader> shader = ShaderRegistry::Instance().GetOrCompileShader<false>(Path("Tests/RayTracingPipeline.bsl"), BuiltinResources::kBuiltinShaderCachePrefix,
+		ShaderDefines());
+	B3D_TEST_ASSERT(shader != nullptr)
+	if(shader == nullptr)
+		return;
+
+	const Vector<TShared<Variation>> variations = shader->GetCompatibleVariations();
+	B3D_TEST_ASSERT(variations.size() == 1)
+	if(variations.size() != 1)
+		return;
+
+	if(!variations[0]->IsCompiled())
+		variations[0]->Compile().BlockUntilComplete();
+
+	B3D_TEST_ASSERT(variations[0]->IsCompiled() && variations[0]->GetPassCount() == 1)
+	if(!variations[0]->IsCompiled() || variations[0]->GetPassCount() != 1)
+		return;
+
+	UnorderedMap<String, TShared<GpuProgram>> programs;
+	for(const GpuProgramCreateInformation& programInformation : variations[0]->GetPass(0)->GetInformation().Programs)
+		programs[programInformation.EntryPoint] = device->CreateGpuProgram(programInformation);
+
+	GpuRayTracingPipelineStateCreateInformation pipelineInformation;
+	pipelineInformation.RayGenerationPrograms.push_back(programs["TraceTestRays"]);
+	pipelineInformation.RayGenerationPrograms.push_back(programs["WriteIndices"]);
+	pipelineInformation.MissPrograms.push_back(programs["MissA"]);
+	pipelineInformation.HitGroups.push_back(GpuRayTracingHitGroup(programs["ClosestHitA"]));
+	pipelineInformation.HitGroups.push_back(GpuRayTracingHitGroup(programs["ClosestHitB"]));
+	pipelineInformation.HitGroups.push_back(GpuRayTracingHitGroup(programs["ClosestHitC"]));
+
+	const TShared<GpuRayTracingPipelineState> pipeline = device->CreateGpuRayTracingPipelineState(pipelineInformation);
+	B3D_TEST_ASSERT(pipeline != nullptr)
+	if(pipeline == nullptr)
+		return;
+
+	// Three hit group records, the middle one empty, and no callable records
+	GpuShaderBindingTableCreateInformation tableInformation;
+	tableInformation.Pipeline = pipeline;
+	tableInformation.RayGenerationRecords.push_back(0);
+	tableInformation.RayGenerationRecords.push_back(1);
+	tableInformation.MissRecords.push_back(0);
+	tableInformation.HitGroupRecords.push_back(0);
+	tableInformation.HitGroupRecords.push_back(kGpuShaderBindingTableEmptyRecord);
+	tableInformation.HitGroupRecords.push_back(2);
+
+	TShared<GpuShaderBindingTable> table;
+	{
+		// The first table of the process warns when the CPU can't write the GPU's memory.
+		LoggingScope logs(*this);
+		logs.IgnoreWarning("Shader binding tables are in system memory");
+		table = device->CreateGpuShaderBindingTable(tableInformation);
+	}
+
+	B3D_TEST_ASSERT(table != nullptr)
+	if(table == nullptr)
+		return;
+
+	const D3D12GpuShaderBindingTable& d3d12Table = static_cast<const D3D12GpuShaderBindingTable&>(*table);
+	const D3D12GpuRayTracingPipelineState& d3d12Pipeline = static_cast<const D3D12GpuRayTracingPipelineState&>(*pipeline);
+	B3D_TEST_ASSERT(d3d12Table.GetBuffer() != nullptr)
+	if(d3d12Table.GetBuffer() == nullptr)
+		return;
+
+	// Every region starts at a multiple of 64 bytes. Records are 32 bytes apart, and ray generation records 64, because a dispatch passes
+	// one of them as a table of its own.
+	const D3D12_GPU_VIRTUAL_ADDRESS tableAddress = d3d12Table.GetBuffer()->GetGPUVirtualAddress();
+	const auto fnCheckRegion = [this, tableAddress](const GpuShaderBindingTableRegion& region, u32 recordCount, u32 stride, const char* name)
+	{
+		const String message = StringUtility::Format("{0} region: offset {1}, stride {2}, size {3}.", name, region.Offset, region.Stride, region.Size);
+		B3D_TEST_ASSERT_MSG((tableAddress + region.Offset) % D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT == 0, message)
+		B3D_TEST_ASSERT_MSG(region.Stride == stride && region.Size == stride * recordCount, message)
+	};
+
+	fnCheckRegion(d3d12Table.GetRayGenerationRegion(), 2, D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT, "Ray generation");
+	fnCheckRegion(d3d12Table.GetMissRegion(), 1, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT, "Miss");
+	fnCheckRegion(d3d12Table.GetHitGroupRegion(), 3, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT, "Hit group");
+
+	const GpuShaderBindingTableRegion& callableRegion = d3d12Table.GetCallableRegion();
+	B3D_TEST_ASSERT(callableRegion.Offset == 0 && callableRegion.Stride == 0 && callableRegion.Size == 0)
+
+	// Records hold the identifiers of their groups, numbered ray generation, miss, then hit groups. The empty record is zeros. The table
+	// stays mapped.
+	const u8* const tableData = static_cast<const u8*>(d3d12Table.GetBuffer()->GetMappedData());
+	B3D_TEST_ASSERT(tableData != nullptr)
+	if(tableData == nullptr)
+		return;
+
+	const auto fnGetRecord = [tableData](const GpuShaderBindingTableRegion& region, u32 recordIndex)
+	{
+		return tableData + region.Offset + recordIndex * region.Stride;
+	};
+
+	const auto fnGetIdentifier = [&d3d12Pipeline](u32 groupIndex)
+	{
+		const TArrayView<const u8> identifier = d3d12Pipeline.GetShaderGroupHandle(groupIndex);
+		return identifier.size() == D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES ? identifier.data() : nullptr;
+	};
+
+	for(u32 groupIndex = 0; groupIndex < 6; groupIndex++)
+		B3D_TEST_ASSERT(fnGetIdentifier(groupIndex) != nullptr)
+
+	if(fnGetIdentifier(5) == nullptr)
+		return;
+
+	const u32 identifierSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
+	const GpuShaderBindingTableRegion& hitGroupRegion = d3d12Table.GetHitGroupRegion();
+	const u8 zeros[D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES] = {};
+	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(d3d12Table.GetRayGenerationRegion(), 0), fnGetIdentifier(0), identifierSize) == 0)
+	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(d3d12Table.GetRayGenerationRegion(), 1), fnGetIdentifier(1), identifierSize) == 0)
+	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(d3d12Table.GetMissRegion(), 0), fnGetIdentifier(2), identifierSize) == 0)
+	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(hitGroupRegion, 0), fnGetIdentifier(3), identifierSize) == 0)
+	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(hitGroupRegion, 1), zeros, identifierSize) == 0)
+	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(hitGroupRegion, 2), fnGetIdentifier(5), identifierSize) == 0)
+
+	// Identifiers of different groups differ
+	B3D_TEST_ASSERT(std::memcmp(fnGetIdentifier(3), fnGetIdentifier(4), identifierSize) != 0)
 }

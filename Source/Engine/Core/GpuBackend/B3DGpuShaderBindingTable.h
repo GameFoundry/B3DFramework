@@ -6,6 +6,8 @@
 
 namespace b3d
 {
+	struct GpuRayTracingCapabilities;
+
 	/** @addtogroup GpuBackend
 	 *  @{
 	 */
@@ -33,6 +35,14 @@ namespace b3d
 
 		/** Per record, index into the pipeline's CallablePrograms. The index CallShader() is called with picks the record. */
 		Vector<u32> CallableRecords;
+	};
+
+	/** Records of one kind in the memory of a shader binding table. All values are in bytes. Zeros if the table has no records of the kind. */
+	struct GpuShaderBindingTableRegion
+	{
+		u32 Offset = 0; /**< Offset of the first record from the start of the table. A multiple of GpuRayTracingCapabilities::ShaderTableAlignment. */
+		u32 Stride = 0; /**< Distance between two records. */
+		u32 Size = 0; /**< Stride times the number of records. */
 	};
 
 	/** Descriptor structure used for initializing a shader binding table. */
@@ -65,13 +75,52 @@ namespace b3d
 			/** Returns the pipeline whose programs the records run. */
 			const TShared<GpuRayTracingPipelineState>& GetPipeline() const { return mInformation.Pipeline; }
 
+			/** Returns the number of bytes the records of the table take. */
+			u32 GetSize() const { return mSize; }
+
+			/**
+			 * Returns where the ray generation records are. Their stride is a multiple of the table alignment, so each record can be passed as
+			 * a region of its own.
+			 */
+			const GpuShaderBindingTableRegion& GetRayGenerationRegion() const { return mRayGenerationRegion; }
+
+			/** Returns where the miss records are. */
+			const GpuShaderBindingTableRegion& GetMissRegion() const { return mMissRegion; }
+
+			/** Returns where the hit group records are. */
+			const GpuShaderBindingTableRegion& GetHitGroupRegion() const { return mHitGroupRegion; }
+
+			/** Returns where the callable records are. */
+			const GpuShaderBindingTableRegion& GetCallableRegion() const { return mCallableRegion; }
+
 		protected:
-			/** @param	createInformation	Records of the table, which the device validated. */
-			GpuShaderBindingTable(const GpuShaderBindingTableCreateInformation& createInformation)
-				: mInformation(createInformation)
-			{ }
+			/**
+			 * Computes where the records go from @p capabilities.
+			 *
+			 * @param	createInformation	Records of the table, which the device validated.
+			 * @param	capabilities		Ray tracing capabilities of the device that creates the table.
+			 */
+			GpuShaderBindingTable(const GpuShaderBindingTableCreateInformation& createInformation, const GpuRayTracingCapabilities& capabilities);
+
+			/**
+			 * Writes every record into @p destination, which has GetSize() bytes. A record is the identifier of its shader group, and an empty
+			 * hit group record is zeros. Groups are numbered ray generation programs first, then miss programs, hit groups and callable programs.
+			 *
+			 * @param	destination				Memory of the table.
+			 * @param	fnGetGroupIdentifier	Returns the identifier of a shader group by its number, GpuRayTracingCapabilities::ShaderGroupHandleSize
+			 *									bytes.
+			 */
+			void WriteRecords(u8* destination, const Function<TArrayView<const u8>(u32)>& fnGetGroupIdentifier) const;
 
 			GpuShaderBindingTableInformation mInformation;
+
+		private:
+			u32 mSize = 0;
+			u32 mShaderGroupHandleSize = 0;
+			GpuShaderBindingTableRegion mRayGenerationRegion;
+			GpuShaderBindingTableRegion mMissRegion;
+			GpuShaderBindingTableRegion mHitGroupRegion;
+			GpuShaderBindingTableRegion mCallableRegion;
 		};
 	} // namespace render
 

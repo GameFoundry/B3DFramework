@@ -285,21 +285,22 @@ void VulkanRayTracingTestSuite::TestShaderBindingTable()
 	for(u32 recordIndex = 0; recordIndex < 2; recordIndex++)
 	{
 		// A dispatch passes one ray generation record, whose size must equal its stride
-		const VkStridedDeviceAddressRegionKHR region = vulkanTable.GetRayGenerationRegion(recordIndex);
+		const VkStridedDeviceAddressRegionKHR region = vulkanTable.GetRayGenerationRecordRegion(recordIndex);
 		fnCheckRegion(region, 1, "Ray generation");
 	}
 
-	fnCheckRegion(vulkanTable.GetMissRegion(), 1, "Miss");
-	fnCheckRegion(vulkanTable.GetHitGroupRegion(), 3, "Hit group");
+	const VkStridedDeviceAddressRegionKHR missRegion = vulkanTable.GetDeviceAddressRegion(vulkanTable.GetMissRegion());
+	const VkStridedDeviceAddressRegionKHR hitGroupRegion = vulkanTable.GetDeviceAddressRegion(vulkanTable.GetHitGroupRegion());
+	fnCheckRegion(missRegion, 1, "Miss");
+	fnCheckRegion(hitGroupRegion, 3, "Hit group");
 
-	const VkStridedDeviceAddressRegionKHR& callableRegion = vulkanTable.GetCallableRegion();
+	const VkStridedDeviceAddressRegionKHR callableRegion = vulkanTable.GetDeviceAddressRegion(vulkanTable.GetCallableRegion());
 	B3D_TEST_ASSERT(callableRegion.deviceAddress == 0 && callableRegion.stride == 0 && callableRegion.size == 0)
 
 	// Records hold the handles of their groups, numbered ray generation, miss, then hit groups. The empty record is zeros. The table is in
 	// host-visible memory, which stays mapped.
 	const VulkanBuffer& buffer = *vulkanTable.GetBuffer();
 	const VkDeviceAddress tableAddress = buffer.GetDeviceAddress();
-	const VkStridedDeviceAddressRegionKHR& hitGroupRegion = vulkanTable.GetHitGroupRegion();
 	const u8* const tableData = static_cast<const u8*>(buffer.GetMappedMemory());
 	B3D_TEST_ASSERT(tableData != nullptr)
 	if(tableData == nullptr)
@@ -316,8 +317,8 @@ void VulkanRayTracingTestSuite::TestShaderBindingTable()
 	B3D_TEST_ASSERT(firstHitGroupHandle.size() == handleSize && lastHitGroupHandle.size() == handleSize)
 
 	const Vector<u8> zeros(handleSize, 0);
-	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(vulkanTable.GetRayGenerationRegion(1), 0), vulkanPipeline.GetShaderGroupHandle(1).data(), handleSize) == 0)
-	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(vulkanTable.GetMissRegion(), 0), vulkanPipeline.GetShaderGroupHandle(2).data(), handleSize) == 0)
+	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(vulkanTable.GetRayGenerationRecordRegion(1), 0), vulkanPipeline.GetShaderGroupHandle(1).data(), handleSize) == 0)
+	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(missRegion, 0), vulkanPipeline.GetShaderGroupHandle(2).data(), handleSize) == 0)
 	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(hitGroupRegion, 0), firstHitGroupHandle.data(), handleSize) == 0)
 	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(hitGroupRegion, 1), zeros.data(), handleSize) == 0)
 	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(hitGroupRegion, 2), lastHitGroupHandle.data(), handleSize) == 0)

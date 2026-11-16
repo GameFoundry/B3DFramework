@@ -100,6 +100,44 @@ namespace b3d
 			D3D12Pipeline* mPipelineState = nullptr;
 		};
 
+		/** DirectX 12 implementation of a ray tracing pipeline state: one ray tracing state object with every program of the pipeline. */
+		class D3D12GpuRayTracingPipelineState : public GpuRayTracingPipelineState
+		{
+		public:
+			D3D12GpuRayTracingPipelineState(const GpuRayTracingPipelineStateCreateInformation& createInformation, GpuDevice& device);
+			~D3D12GpuRayTracingPipelineState() override;
+
+			void Initialize() override;
+
+			/** Returns the tracked state object. Null if a program of the pipeline didn't compile, or the state object couldn't be created. */
+			D3D12StateObject* GetD3D12StateObject() const { return mStateObject; }
+
+			/** Returns the tracked root signature used by this pipeline. */
+			D3D12RootSignature* GetRootSignature() const;
+
+			/** Returns the D3D12 parameter layout backing the root signature. */
+			D3D12GpuPipelineParameterLayout* GetD3D12ParameterLayout() const;
+
+			/**
+			 * Returns the shader identifier of shader group @p groupIndex, which a shader binding table record holds. Groups are numbered in
+			 * this order: ray generation programs, miss programs, hit groups, then callable programs, each in the order of its list in
+			 * GetInformation(). Empty if the pipeline has no state object.
+			 */
+			TArrayView<const u8> GetShaderGroupHandle(u32 groupIndex) const
+			{
+				if(mStateObject == nullptr)
+					return TArrayView<const u8>();
+
+				B3D_ASSERT((groupIndex + 1) * (size_t)D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES <= mShaderIdentifiers.size());
+				return TArrayView<const u8>(mShaderIdentifiers.data() + (size_t)groupIndex * D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES,
+					D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+			}
+
+		private:
+			D3D12StateObject* mStateObject = nullptr;
+			Vector<u8> mShaderIdentifiers; /**< Identifier of every shader group, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES bytes each. */
+		};
+
 		/** @} */
 	} // namespace render
 } // namespace b3d

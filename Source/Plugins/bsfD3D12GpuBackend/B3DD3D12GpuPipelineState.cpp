@@ -275,3 +275,178 @@ D3D12GpuPipelineParameterLayout* D3D12GpuComputePipelineState::GetD3D12Parameter
 	return static_cast<D3D12GpuPipelineParameterLayout*>(mParameterLayout.get());
 }
 
+
+D3D12GpuRayTracingPipelineState::D3D12GpuRayTracingPipelineState(const GpuRayTracingPipelineStateCreateInformation& createInformation, GpuDevice& device)
+	: GpuRayTracingPipelineState(device, createInformation)
+{ }
+
+D3D12GpuRayTracingPipelineState::~D3D12GpuRayTracingPipelineState()
+{
+	if(mStateObject != nullptr)
+		mStateObject->Destroy();
+}
+
+void D3D12GpuRayTracingPipelineState::Initialize()
+{
+	GpuRayTracingPipelineState::Initialize();
+
+	u32 programCount = (u32)(mData.RayGenerationPrograms.size() + mData.MissPrograms.size() + mData.CallablePrograms.size());
+	programCount += (u32)mData.HitGroups.size() * 3;
+
+	// Every program is a library of its own with one export, renamed after its place in the pipeline: entry points of different programs
+	// often share a name, and export names must be unique within a state object. Listing the export leaves out every other function of the
+	// library. The arrays are reserved, so the descriptions can point into them.
+	Vector<WString> exportNames;
+	Vector<WString> entryPoints;
+	Vector<D3D12_EXPORT_DESC> exports;
+	Vector<D3D12_DXIL_LIBRARY_DESC> libraries;
+	exportNames.reserve(programCount);
+	entryPoints.reserve(programCount);
+	exports.reserve(programCount);
+	libraries.reserve(programCount);
+
+	// Like compute pipelines, a pipeline with a program that didn't compile is never created, and dispatches with it fail
+	bool areProgramsCompiled = true;
+	const auto fnAddProgram = [&](const TShared<GpuProgram>& program) -> const wchar_t*
+	{
+		if(program == nullptr)
+			return nullptr;
+
+		const D3D12GpuProgram& d3d12Program = static_cast<const D3D12GpuProgram&>(*program);
+		const D3D12_SHADER_BYTECODE& bytecode = d3d12Program.GetShaderBytecode();
+		if(!d3d12Program.IsCompiled() || bytecode.BytecodeLength == 0)
+		{
+			areProgramsCompiled = false;
+			return nullptr;
+		}
+
+		exportNames.push_back(ToWideString(StringUtility::Format("Program{0}", exportNames.size())));
+		entryPoints.push_back(ToWideString(d3d12Program.GetEntryPoint()));
+
+		D3D12_EXPORT_DESC& exportDescription = exports.emplace_back();
+		exportDescription.Name = exportNames.back().c_str();
+		exportDescription.ExportToRename = entryPoints.back().c_str();
+		exportDescription.Flags = D3D12_EXPORT_FLAG_NONE;
+
+		D3D12_DXIL_LIBRARY_DESC& library = libraries.emplace_back();
+		library.DXILLibrary = bytecode;
+		library.NumExports = 1;
+		library.pExports = &exportDescription;
+
+		return exportDescription.Name;
+	};
+
+	// Export of every shader group, in the order GetShaderGroupHandle() numbers them
+	Vector<const wchar_t*> groupExports;
+	for(const TShared<GpuProgram>& program : mData.RayGenerationPrograms)
+		groupExports.push_back(fnAddProgram(program));
+
+	for(const TShared<GpuProgram>& program : mData.MissPrograms)
+		groupExports.push_back(fnAddProgram(program));
+
+	Vector<WString> hitGroupNames;
+	Vector<D3D12_HIT_GROUP_DESC> hitGroups;
+	hitGroupNames.reserve(mData.HitGroups.size());
+	hitGroups.reserve(mData.HitGroups.size());
+	for(const GpuRayTracingHitGroup& hitGroup : mData.HitGroups)
+	{
+		hitGroupNames.push_back(ToWideString(StringUtility::Format("HitGroup{0}", hitGroupNames.size())));
+
+		D3D12_HIT_GROUP_DESC& hitGroupDescription = hitGroups.emplace_back();
+		hitGroupDescription.HitGroupExport = hitGroupNames.back().c_str();
+		hitGroupDescription.Type = hitGroup.IntersectionProgram != nullptr ? D3D12_HIT_GROUP_TYPE_PROCEDURAL_PRIMITIVE : D3D12_HIT_GROUP_TYPE_TRIANGLES;
+		hitGroupDescription.ClosestHitShaderImport = fnAddProgram(hitGroup.ClosestHitProgram);
+		hitGroupDescription.AnyHitShaderImport = fnAddProgram(hitGroup.AnyHitProgram);
+		hitGroupDescription.IntersectionShaderImport = fnAddProgram(hitGroup.IntersectionProgram);
+
+		groupExports.push_back(hitGroupDescription.HitGroupExport);
+	}
+
+	for(const TShared<GpuProgram>& program : mData.CallablePrograms)
+		groupExports.push_back(fnAddProgram(program));
+
+	D3D12RootSignature* const rootSignature = GetRootSignature();
+	if(!areProgramsCompiled || rootSignature == nullptr)
+		return;
+
+	// Without association subobjects, the configurations and the global root signature apply to every export. Programs have no local
+	// root signatures, since records hold only shader identifiers.
+	D3D12_RAYTRACING_SHADER_CONFIG shaderConfiguration;
+	shaderConfiguration.MaxPayloadSizeInBytes = mMaximumPayloadSize;
+	shaderConfiguration.MaxAttributeSizeInBytes = mMaximumAttributeSize;
+
+	D3D12_RAYTRACING_PIPELINE_CONFIG pipelineConfiguration;
+	pipelineConfiguration.MaxTraceRecursionDepth = mData.MaximumRecursionDepth;
+
+	D3D12_GLOBAL_ROOT_SIGNATURE globalRootSignature;
+	globalRootSignature.pGlobalRootSignature = rootSignature->Get();
+
+	Vector<D3D12_STATE_SUBOBJECT> subobjects;
+	subobjects.reserve(libraries.size() + hitGroups.size() + 3);
+	for(const D3D12_DXIL_LIBRARY_DESC& library : libraries)
+		subobjects.push_back({ D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY, &library });
+
+	for(const D3D12_HIT_GROUP_DESC& hitGroupDescription : hitGroups)
+		subobjects.push_back({ D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP, &hitGroupDescription });
+
+	subobjects.push_back({ D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_SHADER_CONFIG, &shaderConfiguration });
+	subobjects.push_back({ D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG, &pipelineConfiguration });
+	subobjects.push_back({ D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE, &globalRootSignature });
+
+	D3D12_STATE_OBJECT_DESC stateObjectDescription;
+	stateObjectDescription.Type = D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE;
+	stateObjectDescription.NumSubobjects = (u32)subobjects.size();
+	stateObjectDescription.pSubobjects = subobjects.data();
+
+	D3D12GpuDevice& device = static_cast<D3D12GpuDevice&>(mGpuDevice);
+	const String& pipelineName = mData.RayGenerationPrograms[0]->GetName();
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	const Timer compileTimer;
+#endif
+
+	// No collections or pipeline library: one state object with every program, created now
+	ComPtr<ID3D12StateObject> stateObject;
+	const HRESULT result = device.GetD3D12Device10()->CreateStateObject(&stateObjectDescription, IID_PPV_ARGS(&stateObject));
+	if(FAILED(result))
+	{
+		// The debug layer names the subobject it rejected
+		B3D_LOG(Error, LogRenderBackend, "Failed to create the ray tracing pipeline of '{0}' (hr={1}).", pipelineName, (u32)result);
+		device.LogDebugLayerMessages();
+		return;
+	}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	if(gGpuDumpPipelineTimings.Get())
+		B3D_LOG(Info, LogRenderBackend, "[PIPELINE] ray tracing {0} ms {1}", compileTimer.GetMicroseconds() / 1000.0, pipelineName);
+#endif
+
+	// Read once, for every shader binding table created from the pipeline
+	ComPtr<ID3D12StateObjectProperties> properties;
+	const HRESULT propertiesResult = stateObject.As(&properties);
+	B3D_ASSERT(SUCCEEDED(propertiesResult));
+	(void)propertiesResult;
+
+	mShaderIdentifiers.resize((size_t)D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES * groupExports.size());
+	for(u32 groupIndex = 0; groupIndex < (u32)groupExports.size(); groupIndex++)
+	{
+		const void* const identifier = properties->GetShaderIdentifier(groupExports[groupIndex]);
+		B3D_ASSERT(identifier != nullptr);
+
+		std::memcpy(mShaderIdentifiers.data() + (size_t)groupIndex * D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, identifier, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+	}
+
+	mStateObject = device.GetResourceManager().Create<D3D12StateObject>(std::move(stateObject), "D3D12 ray tracing pipeline");
+	B3D_LOG(Verbose, LogRenderBackend, "Created ray tracing pipeline state");
+}
+
+D3D12RootSignature* D3D12GpuRayTracingPipelineState::GetRootSignature() const
+{
+	D3D12GpuPipelineParameterLayout* parameterLayout = GetD3D12ParameterLayout();
+	return parameterLayout != nullptr ? parameterLayout->GetRootSignature() : nullptr;
+}
+
+D3D12GpuPipelineParameterLayout* D3D12GpuRayTracingPipelineState::GetD3D12ParameterLayout() const
+{
+	return static_cast<D3D12GpuPipelineParameterLayout*>(mParameterLayout.get());
+}
