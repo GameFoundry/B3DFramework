@@ -540,8 +540,8 @@ bool GpuDevice::WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance>
 		if(!B3D_ENSURE_LOG((instance.Flags & forcedOpacity) != forcedOpacity, "Ray tracing instance {0} cannot force its geometry to be both opaque and non-opaque.", instanceIndex))
 			return false;
 
-		if(!B3D_ENSURE_LOG(instance.BottomLevel != nullptr && instance.BottomLevel->GetType() == GpuAccelerationStructureType::BottomLevel,
-			"Ray tracing instance {0} must reference a bottom level acceleration structure.", instanceIndex))
+		if(!B3D_ENSURE_LOG(instance.BottomLevel == nullptr || instance.BottomLevel->GetType() == GpuAccelerationStructureType::BottomLevel,
+			"Ray tracing instance {0} references a top level acceleration structure. Instances can only reference bottom level ones.", instanceIndex))
 		{
 			return false;
 		}

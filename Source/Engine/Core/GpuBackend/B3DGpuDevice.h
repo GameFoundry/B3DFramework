@@ -236,7 +236,7 @@ namespace b3d
 		 * Converts @p instances to the layout top level acceleration structure builds read, see GpuAccelerationStructureInputs::InstanceBuffer.
 		 * Thread safe.
 		 *
-		 * @param	instances		Instances to convert. Their bottom level structures must stay alive while the call runs.
+		 * @param	instances		Instances to convert. Their bottom level structures, if any, must stay alive while the call runs.
 		 * @param	destination		Memory that receives the instances, GpuRayTracingCapabilities::InstanceSize bytes each.
 		 * @return					False, with the reason logged, if the device doesn't support acceleration structures or an instance is
 		 *							invalid. Nothing is written then.

@@ -256,7 +256,7 @@ namespace b3d
 		GpuRayTracingInstance() = default;
 
 		/**
-		 * @param	bottomLevel		Structure the instance places in the scene.
+		 * @param	bottomLevel		Structure the instance places in the scene. Null for an empty instance, which rays never hit.
 		 * @param	transform		Transform from the space of the structure to the space of the scene.
 		 * @param	instanceId		Value shaders read as the instance id.
 		 */
@@ -270,7 +270,10 @@ namespace b3d
 		u8 Mask = 0xFF; /**< Rays only hit the instance if this and their instance mask have a bit in common. */
 		GpuRayTracingInstanceFlags Flags;
 
-		/** Bottom level structure the instance places in the scene. Must be in the build's GpuAccelerationStructureBuild::BottomLevels. */
+		/**
+		 * Bottom level structure the instance places in the scene. Must be in the build's GpuAccelerationStructureBuild::BottomLevels. Null
+		 * makes the instance empty, so rays never hit it.
+		 */
 		const render::GpuAccelerationStructure* BottomLevel = nullptr;
 	};
 

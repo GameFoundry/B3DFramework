@@ -477,13 +477,11 @@ void GpuRayTracingTestSuite::TestAccelerationStructureQueries()
 			B3D_TEST_ASSERT(!device->WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance>(&instance, 1), instanceData.data()))
 		}
 
+		// An instance without a bottom level structure is empty
 		{
-			LoggingScope logs(*this);
-			logs.ExpectError("Ray tracing instance 0 must reference a bottom level acceleration structure.");
-
 			const GpuRayTracingInstance instance(nullptr, Matrix4::kIdentity);
 			Vector<u8> instanceData(rayTracing.InstanceSize);
-			B3D_TEST_ASSERT(!device->WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance>(&instance, 1), instanceData.data()))
+			B3D_TEST_ASSERT(device->WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance>(&instance, 1), instanceData.data()))
 		}
 
 		// Builds are checked before anything is recorded
@@ -665,7 +663,7 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 		if(opaqueBottomLevel == nullptr || nonOpaqueBottomLevel == nullptr)
 			return;
 
-		// Instances 10 units apart along Y, each with its own mask bit or flags
+		// Instances 10 units apart along Y, each with its own mask bit or flags. The last one is empty.
 		const auto fnCreateInstance = [](const TShared<GpuAccelerationStructure>& bottomLevel, float offsetY, u32 instanceId, u32 mask, GpuRayTracingInstanceFlags flags)
 		{
 			GpuRayTracingInstance instance(bottomLevel.get(), Matrix4::Translation(Vector3(0.0f, offsetY, 0.0f)), instanceId);
@@ -674,7 +672,7 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 			return instance;
 		};
 
-		static constexpr u32 kInstanceCount = 6;
+		static constexpr u32 kInstanceCount = 7;
 		const GpuRayTracingInstance instanceDescriptions[kInstanceCount] =
 		{
 			fnCreateInstance(opaqueBottomLevel, 0.0f, 7, 0x01, GpuRayTracingInstanceFlag::None),
@@ -682,7 +680,8 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 			fnCreateInstance(opaqueBottomLevel, 20.0f, 11, 0x04, GpuRayTracingInstanceFlag::DisableTriangleCulling),
 			fnCreateInstance(nonOpaqueBottomLevel, 30.0f, 13, 0x08, GpuRayTracingInstanceFlag::None),
 			fnCreateInstance(nonOpaqueBottomLevel, 40.0f, 15, 0x08, GpuRayTracingInstanceFlag::ForceOpaque),
-			fnCreateInstance(opaqueBottomLevel, 50.0f, 17, 0x08, GpuRayTracingInstanceFlag::ForceNonOpaque)
+			fnCreateInstance(opaqueBottomLevel, 50.0f, 17, 0x08, GpuRayTracingInstanceFlag::ForceNonOpaque),
+			fnCreateInstance(TShared<GpuAccelerationStructure>(), 60.0f, 19, 0xFF, GpuRayTracingInstanceFlag::None)
 		};
 
 		const TShared<render::GpuBuffer> instances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(rayTracing.InstanceSize, kInstanceCount, inputFlags, GpuBufferMemory::Mapped));
@@ -821,7 +820,8 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 			TestRay(Vector3(0.25f, 30.25f, 0.0f), forward, 0, 0x08, 0),
 			TestRay(Vector3(0.25f, 40.25f, 0.0f), forward, 0, 0x08, 2),
 			TestRay(Vector3(0.25f, 50.25f, 0.0f), forward, 0, 0x08, 2),
-			TestRay(Vector3(0.25f, 30.25f, 0.0f), forward, kForceOpaque, 0x08, 2)
+			TestRay(Vector3(0.25f, 30.25f, 0.0f), forward, kForceOpaque, 0x08, 2),
+			TestRay(Vector3(0.25f, 60.25f, 0.0f), forward)
 		};
 
 		const ExpectedHit expectedHits[] =
@@ -842,7 +842,8 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 			ExpectedHit(5.0f, 0.25f, 0.25f, 3, 13, 0, 0, true), // Without callbacks, non-opaque triangles are hits
 			ExpectedHit(5.0f, 0.25f, 0.25f, 4, 15, 0, 0, true), // The instance forces the non-opaque triangle to be opaque
 			ExpectedHit(1), // The instance forces the opaque triangle to be non-opaque, and the callback rejects it
-			ExpectedHit(5.0f, 0.25f, 0.25f, 3, 13, 0, 0, true) // The ray forces the non-opaque triangle to be opaque
+			ExpectedHit(5.0f, 0.25f, 0.25f, 3, 13, 0, 0, true), // The ray forces the non-opaque triangle to be opaque
+			ExpectedHit() // The instance is empty
 		};
 
 		static constexpr u32 kRayCount = sizeof(rays) / sizeof(rays[0]);
