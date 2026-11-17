@@ -32,6 +32,9 @@ namespace b3d
 			/** Returns the buffer that holds the records. */
 			VulkanBuffer* GetBuffer() const { return mBuffer; }
 
+			/** Returns where the records are in the buffer. */
+			const GpuShaderBindingTableIdentifierLayout& GetLayout() const { return mLayout; }
+
 			/** Returns ray generation record @p recordIndex as the region vkCmdTraceRaysKHR() takes: the record alone, with its size equal to its stride. */
 			VkStridedDeviceAddressRegionKHR GetRayGenerationRecordRegion(u32 recordIndex) const;
 
@@ -39,6 +42,7 @@ namespace b3d
 			VkStridedDeviceAddressRegionKHR GetDeviceAddressRegion(const GpuShaderBindingTableRegion& region) const;
 
 		private:
+			GpuShaderBindingTableIdentifierLayout mLayout;
 			VulkanBuffer* mBuffer = nullptr;
 		};
 

@@ -8,8 +8,9 @@
 using namespace b3d;
 using namespace b3d::render;
 
-GpuShaderBindingTable::GpuShaderBindingTable(const GpuShaderBindingTableCreateInformation& createInformation, const GpuRayTracingCapabilities& capabilities)
-	: mInformation(createInformation), mShaderGroupHandleSize(capabilities.ShaderGroupHandleSize)
+GpuShaderBindingTableIdentifierLayout::GpuShaderBindingTableIdentifierLayout(const GpuShaderBindingTableInformation& information,
+	const GpuRayTracingCapabilities& capabilities)
+	: mShaderGroupHandleSize(capabilities.ShaderGroupHandleSize)
 {
 	// A record is the identifier of its group. Every region starts at a multiple of the table alignment. Ray generation records are that far
 	// apart too, because a dispatch passes one of them as a region of its own.
@@ -29,13 +30,14 @@ GpuShaderBindingTable::GpuShaderBindingTable(const GpuShaderBindingTableCreateIn
 		mSize += region.Size;
 	};
 
-	fnPlaceRegion(mInformation.RayGenerationRecords, rayGenerationStride, mRayGenerationRegion);
-	fnPlaceRegion(mInformation.MissRecords, recordStride, mMissRegion);
-	fnPlaceRegion(mInformation.HitGroupRecords, recordStride, mHitGroupRegion);
-	fnPlaceRegion(mInformation.CallableRecords, recordStride, mCallableRegion);
+	fnPlaceRegion(information.RayGenerationRecords, rayGenerationStride, mRayGenerationRegion);
+	fnPlaceRegion(information.MissRecords, recordStride, mMissRegion);
+	fnPlaceRegion(information.HitGroupRecords, recordStride, mHitGroupRegion);
+	fnPlaceRegion(information.CallableRecords, recordStride, mCallableRegion);
 }
 
-void GpuShaderBindingTable::WriteRecords(u8* destination, const Function<TArrayView<const u8>(u32)>& fnGetGroupIdentifier) const
+void GpuShaderBindingTableIdentifierLayout::WriteRecords(const GpuShaderBindingTableInformation& information, u8* destination,
+	const Function<TArrayView<const u8>(u32)>& fnGetGroupIdentifier) const
 {
 	// Padding and empty hit group records stay zeros, which run no program
 	std::memset(destination, 0, mSize);
@@ -54,12 +56,12 @@ void GpuShaderBindingTable::WriteRecords(u8* destination, const Function<TArrayV
 		}
 	};
 
-	const GpuRayTracingPipelineStateInformation& programs = mInformation.Pipeline->GetInformation();
+	const GpuRayTracingPipelineStateInformation& programs = information.Pipeline->GetInformation();
 	const u32 firstMissGroupIndex = (u32)programs.RayGenerationPrograms.size();
 	const u32 firstHitGroupIndex = firstMissGroupIndex + (u32)programs.MissPrograms.size();
 	const u32 firstCallableGroupIndex = firstHitGroupIndex + (u32)programs.HitGroups.size();
-	fnWriteRecords(mInformation.RayGenerationRecords, mRayGenerationRegion, 0);
-	fnWriteRecords(mInformation.MissRecords, mMissRegion, firstMissGroupIndex);
-	fnWriteRecords(mInformation.HitGroupRecords, mHitGroupRegion, firstHitGroupIndex);
-	fnWriteRecords(mInformation.CallableRecords, mCallableRegion, firstCallableGroupIndex);
+	fnWriteRecords(information.RayGenerationRecords, mRayGenerationRegion, 0);
+	fnWriteRecords(information.MissRecords, mMissRegion, firstMissGroupIndex);
+	fnWriteRecords(information.HitGroupRecords, mHitGroupRegion, firstHitGroupIndex);
+	fnWriteRecords(information.CallableRecords, mCallableRegion, firstCallableGroupIndex);
 }

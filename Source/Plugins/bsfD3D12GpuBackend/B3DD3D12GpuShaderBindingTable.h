@@ -34,6 +34,9 @@ namespace b3d
 			/** Returns the buffer that holds the records. */
 			D3D12Buffer* GetBuffer() const { return mBuffer; }
 
+			/** Returns where the records are in the buffer. */
+			const GpuShaderBindingTableIdentifierLayout& GetLayout() const { return mLayout; }
+
 			/** Returns ray generation record @p recordIndex as the range DispatchRays() takes. */
 			D3D12_GPU_VIRTUAL_ADDRESS_RANGE GetRayGenerationRecordRange(u32 recordIndex) const;
 
@@ -41,6 +44,7 @@ namespace b3d
 			D3D12_GPU_VIRTUAL_ADDRESS_RANGE_AND_STRIDE GetAddressRange(const GpuShaderBindingTableRegion& region) const;
 
 		private:
+			GpuShaderBindingTableIdentifierLayout mLayout;
 			D3D12Buffer* mBuffer = nullptr;
 		};
 

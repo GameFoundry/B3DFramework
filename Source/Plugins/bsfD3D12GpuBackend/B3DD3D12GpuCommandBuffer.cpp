@@ -625,9 +625,9 @@ bool D3D12GpuCommandBuffer::DispatchRays(const TShared<GpuShaderBindingTable>& t
 
 	D3D12_DISPATCH_RAYS_DESC dispatchDescription;
 	dispatchDescription.RayGenerationShaderRecord = d3d12Table.GetRayGenerationRecordRange(rayGenerationRecordIndex);
-	dispatchDescription.MissShaderTable = d3d12Table.GetAddressRange(d3d12Table.GetMissRegion());
-	dispatchDescription.HitGroupTable = d3d12Table.GetAddressRange(d3d12Table.GetHitGroupRegion());
-	dispatchDescription.CallableShaderTable = d3d12Table.GetAddressRange(d3d12Table.GetCallableRegion());
+	dispatchDescription.MissShaderTable = d3d12Table.GetAddressRange(d3d12Table.GetLayout().GetMissRegion());
+	dispatchDescription.HitGroupTable = d3d12Table.GetAddressRange(d3d12Table.GetLayout().GetHitGroupRegion());
+	dispatchDescription.CallableShaderTable = d3d12Table.GetAddressRange(d3d12Table.GetLayout().GetCallableRegion());
 	dispatchDescription.Width = width;
 	dispatchDescription.Height = height;
 	dispatchDescription.Depth = depth;

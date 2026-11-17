@@ -156,16 +156,19 @@ namespace b3d
 	 */
 	struct B3D_EXPORT GpuRayTracingCapabilities
 	{
-		/** Size in bytes of the handle that identifies a ray tracing program group in a shader table record. */
+		/**
+		 * Size in bytes of the handle that identifies a ray tracing program group in a shader table record. Zero if the device's shader
+		 * binding tables don't hold such handles (see GpuShaderBindingTableIdentifierLayout), as do the next three values.
+		 */
 		u32 ShaderGroupHandleSize = 0;
 
-		/** Alignment in bytes of each record in a shader table. */
+		/** Alignment in bytes of each record in a shader table whose records are group handles. */
 		u32 ShaderRecordAlignment = 0;
 
-		/** Alignment in bytes of the start of each shader table. */
+		/** Alignment in bytes of the start of each shader table whose records are group handles. */
 		u32 ShaderTableAlignment = 0;
 
-		/** Maximum distance in bytes between consecutive records of a shader table. */
+		/** Maximum distance in bytes between consecutive records of a shader table whose records are group handles. */
 		u32 MaximumShaderRecordStride = 0;
 
 		/** Maximum number of nested ray traces a ray tracing pipeline can perform. */

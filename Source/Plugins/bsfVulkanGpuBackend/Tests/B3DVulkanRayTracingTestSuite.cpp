@@ -289,12 +289,12 @@ void VulkanRayTracingTestSuite::TestShaderBindingTable()
 		fnCheckRegion(region, 1, "Ray generation");
 	}
 
-	const VkStridedDeviceAddressRegionKHR missRegion = vulkanTable.GetDeviceAddressRegion(vulkanTable.GetMissRegion());
-	const VkStridedDeviceAddressRegionKHR hitGroupRegion = vulkanTable.GetDeviceAddressRegion(vulkanTable.GetHitGroupRegion());
+	const VkStridedDeviceAddressRegionKHR missRegion = vulkanTable.GetDeviceAddressRegion(vulkanTable.GetLayout().GetMissRegion());
+	const VkStridedDeviceAddressRegionKHR hitGroupRegion = vulkanTable.GetDeviceAddressRegion(vulkanTable.GetLayout().GetHitGroupRegion());
 	fnCheckRegion(missRegion, 1, "Miss");
 	fnCheckRegion(hitGroupRegion, 3, "Hit group");
 
-	const VkStridedDeviceAddressRegionKHR callableRegion = vulkanTable.GetDeviceAddressRegion(vulkanTable.GetCallableRegion());
+	const VkStridedDeviceAddressRegionKHR callableRegion = vulkanTable.GetDeviceAddressRegion(vulkanTable.GetLayout().GetCallableRegion());
 	B3D_TEST_ASSERT(callableRegion.deviceAddress == 0 && callableRegion.stride == 0 && callableRegion.size == 0)
 
 	// Records hold the handles of their groups, numbered ray generation, miss, then hit groups. The empty record is zeros. The table is in

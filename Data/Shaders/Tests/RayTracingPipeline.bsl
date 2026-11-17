@@ -22,8 +22,8 @@ shader RayTracingPipeline
 		StructuredBuffer<TestRay> Rays;
 		RWStructuredBuffer<uint> Results;
 
-		// TODO(ps5, metal) - Ray tracing pipelines come with phases 5.3 and 5.4
-#if !defined(PS5) && !defined(METAL)
+		// TODO(metal) - Ray tracing pipelines come with phase 5.4
+#if !defined(METAL)
 		// Writes the value of the program that ran for each ray, or 1 if none did
 		[shader("raygeneration")]
 		void TraceTestRays()

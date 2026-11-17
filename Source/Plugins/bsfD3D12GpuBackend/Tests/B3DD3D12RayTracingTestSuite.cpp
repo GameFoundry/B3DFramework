@@ -378,11 +378,11 @@ void D3D12RayTracingTestSuite::TestShaderBindingTable()
 		B3D_TEST_ASSERT_MSG(region.Stride == stride && region.Size == stride * recordCount, message)
 	};
 
-	fnCheckRegion(d3d12Table.GetRayGenerationRegion(), 2, D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT, "Ray generation");
-	fnCheckRegion(d3d12Table.GetMissRegion(), 1, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT, "Miss");
-	fnCheckRegion(d3d12Table.GetHitGroupRegion(), 3, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT, "Hit group");
+	fnCheckRegion(d3d12Table.GetLayout().GetRayGenerationRegion(), 2, D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT, "Ray generation");
+	fnCheckRegion(d3d12Table.GetLayout().GetMissRegion(), 1, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT, "Miss");
+	fnCheckRegion(d3d12Table.GetLayout().GetHitGroupRegion(), 3, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT, "Hit group");
 
-	const GpuShaderBindingTableRegion& callableRegion = d3d12Table.GetCallableRegion();
+	const GpuShaderBindingTableRegion& callableRegion = d3d12Table.GetLayout().GetCallableRegion();
 	B3D_TEST_ASSERT(callableRegion.Offset == 0 && callableRegion.Stride == 0 && callableRegion.Size == 0)
 
 	// Records hold the identifiers of their groups, numbered ray generation, miss, then hit groups. The empty record is zeros. The table
@@ -410,11 +410,11 @@ void D3D12RayTracingTestSuite::TestShaderBindingTable()
 		return;
 
 	const u32 identifierSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
-	const GpuShaderBindingTableRegion& hitGroupRegion = d3d12Table.GetHitGroupRegion();
+	const GpuShaderBindingTableRegion& hitGroupRegion = d3d12Table.GetLayout().GetHitGroupRegion();
 	const u8 zeros[D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES] = {};
-	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(d3d12Table.GetRayGenerationRegion(), 0), fnGetIdentifier(0), identifierSize) == 0)
-	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(d3d12Table.GetRayGenerationRegion(), 1), fnGetIdentifier(1), identifierSize) == 0)
-	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(d3d12Table.GetMissRegion(), 0), fnGetIdentifier(2), identifierSize) == 0)
+	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(d3d12Table.GetLayout().GetRayGenerationRegion(), 0), fnGetIdentifier(0), identifierSize) == 0)
+	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(d3d12Table.GetLayout().GetRayGenerationRegion(), 1), fnGetIdentifier(1), identifierSize) == 0)
+	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(d3d12Table.GetLayout().GetMissRegion(), 0), fnGetIdentifier(2), identifierSize) == 0)
 	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(hitGroupRegion, 0), fnGetIdentifier(3), identifierSize) == 0)
 	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(hitGroupRegion, 1), zeros, identifierSize) == 0)
 	B3D_TEST_ASSERT(std::memcmp(fnGetRecord(hitGroupRegion, 2), fnGetIdentifier(5), identifierSize) == 0)

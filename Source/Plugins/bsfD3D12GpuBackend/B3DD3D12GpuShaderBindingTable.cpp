@@ -12,14 +12,14 @@ using namespace b3d;
 using namespace b3d::render;
 
 D3D12GpuShaderBindingTable::D3D12GpuShaderBindingTable(D3D12GpuDevice& device, const GpuShaderBindingTableCreateInformation& createInformation)
-	: GpuShaderBindingTable(createInformation, device.GetCapabilities().RayTracing)
+	: GpuShaderBindingTable(createInformation), mLayout(createInformation, device.GetCapabilities().RayTracing)
 {
 	const D3D12GpuRayTracingPipelineState& pipeline = static_cast<const D3D12GpuRayTracingPipelineState&>(*mInformation.Pipeline);
 
 	// The CPU writes the table once, through a mapping, into the GPU's local memory if it can. Tables start at a multiple of 64.
-	const D3D12_RESOURCE_DESC resourceDescription = D3D12GpuBuffer::GetResourceDescription(GetSize(), D3D12_RESOURCE_FLAG_NONE, device.IsTightAlignmentSupported());
+	const D3D12_RESOURCE_DESC resourceDescription = D3D12GpuBuffer::GetResourceDescription(mLayout.GetSize(), D3D12_RESOURCE_FLAG_NONE, device.IsTightAlignmentSupported());
 	const D3D12_RESOURCE_ALLOCATION_INFO allocationInfo = device.GetD3D12Device()->GetResourceAllocationInfo(0, 1, &resourceDescription);
-	if(!B3D_ENSURE_LOG(allocationInfo.SizeInBytes != UINT64_MAX && allocationInfo.Alignment <= UINT32_MAX, "D3D12: Unsupported shader binding table of {0} bytes.", GetSize()))
+	if(!B3D_ENSURE_LOG(allocationInfo.SizeInBytes != UINT64_MAX && allocationInfo.Alignment <= UINT32_MAX, "D3D12: Unsupported shader binding table of {0} bytes.", mLayout.GetSize()))
 		return;
 
 	const u32 alignment = (u32)std::max(allocationInfo.Alignment, (u64)device.GetCapabilities().RayTracing.ShaderTableAlignment);
@@ -50,14 +50,14 @@ D3D12GpuShaderBindingTable::D3D12GpuShaderBindingTable(D3D12GpuDevice& device, c
 		resource.Reset();
 		allocator.Free(allocation);
 
-		B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to create a shader binding table of {0} bytes (hr={1}).", GetSize(), (u32)result);
+		B3D_LOG(Error, LogRenderBackend, "D3D12: Failed to create a shader binding table of {0} bytes (hr={1}).", mLayout.GetSize(), (u32)result);
 		return;
 	}
 
 	mBuffer = device.GetResourceManager().Create<D3D12Buffer>(allocation, std::move(resource), mappedData, "Shader binding table");
 
 	// The writes are visible to the GPU once a command buffer that uses the table is submitted
-	WriteRecords((u8*)mappedData, [&pipeline](u32 groupIndex) { return pipeline.GetShaderGroupHandle(groupIndex); });
+	mLayout.WriteRecords(mInformation, (u8*)mappedData, [&pipeline](u32 groupIndex) { return pipeline.GetShaderGroupHandle(groupIndex); });
 }
 
 D3D12GpuShaderBindingTable::~D3D12GpuShaderBindingTable()
@@ -69,7 +69,7 @@ D3D12GpuShaderBindingTable::~D3D12GpuShaderBindingTable()
 
 D3D12_GPU_VIRTUAL_ADDRESS_RANGE D3D12GpuShaderBindingTable::GetRayGenerationRecordRange(u32 recordIndex) const
 {
-	const GpuShaderBindingTableRegion& records = GetRayGenerationRegion();
+	const GpuShaderBindingTableRegion& records = mLayout.GetRayGenerationRegion();
 
 	D3D12_GPU_VIRTUAL_ADDRESS_RANGE range;
 	range.StartAddress = mBuffer->GetGPUVirtualAddress() + records.Offset + (u64)recordIndex * records.Stride;

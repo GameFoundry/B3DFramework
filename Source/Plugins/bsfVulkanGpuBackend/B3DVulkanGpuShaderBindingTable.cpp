@@ -10,7 +10,7 @@ using namespace b3d;
 using namespace b3d::render;
 
 VulkanGpuShaderBindingTable::VulkanGpuShaderBindingTable(VulkanGpuDevice& device, const GpuShaderBindingTableCreateInformation& createInformation)
-	: GpuShaderBindingTable(createInformation, device.GetCapabilities().RayTracing)
+	: GpuShaderBindingTable(createInformation), mLayout(createInformation, device.GetCapabilities().RayTracing)
 {
 	const VulkanGpuRayTracingPipelineState& pipeline = static_cast<const VulkanGpuRayTracingPipelineState&>(*mInformation.Pipeline);
 
@@ -22,7 +22,7 @@ VulkanGpuShaderBindingTable::VulkanGpuShaderBindingTable(VulkanGpuDevice& device
 	bufferCreateInformation.VkCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	bufferCreateInformation.VkCreateInfo.pNext = nullptr;
 	bufferCreateInformation.VkCreateInfo.flags = 0;
-	bufferCreateInformation.VkCreateInfo.size = GetSize();
+	bufferCreateInformation.VkCreateInfo.size = mLayout.GetSize();
 	bufferCreateInformation.VkCreateInfo.usage = VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
 	bufferCreateInformation.VkCreateInfo.sharingMode = usesConcurrentSharing ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
 	bufferCreateInformation.VkCreateInfo.queueFamilyIndexCount = usesConcurrentSharing ? (u32)queueFamilies.Size() : 0;
@@ -40,7 +40,8 @@ VulkanGpuShaderBindingTable::VulkanGpuShaderBindingTable(VulkanGpuDevice& device
 	mBuffer = device.CreateBuffer(bufferCreateInformation, memoryFlags, fallbackMemoryFlags);
 
 	// The host writes are visible to the GPU once a command buffer that uses the table is submitted
-	WriteRecords(mBuffer->Map(0, GetSize()), [&pipeline](u32 groupIndex) { return pipeline.GetShaderGroupHandle(groupIndex); });
+	mLayout.WriteRecords(mInformation, mBuffer->Map(0, mLayout.GetSize()),
+		[&pipeline](u32 groupIndex) { return pipeline.GetShaderGroupHandle(groupIndex); });
 	mBuffer->Unmap(true);
 }
 
@@ -52,7 +53,7 @@ VulkanGpuShaderBindingTable::~VulkanGpuShaderBindingTable()
 
 VkStridedDeviceAddressRegionKHR VulkanGpuShaderBindingTable::GetRayGenerationRecordRegion(u32 recordIndex) const
 {
-	const GpuShaderBindingTableRegion& records = GetRayGenerationRegion();
+	const GpuShaderBindingTableRegion& records = mLayout.GetRayGenerationRegion();
 
 	VkStridedDeviceAddressRegionKHR region;
 	region.deviceAddress = mBuffer->GetDeviceAddress() + records.Offset + (VkDeviceSize)recordIndex * records.Stride;
