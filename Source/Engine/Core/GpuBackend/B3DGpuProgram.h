@@ -18,6 +18,32 @@ namespace b3d
 	struct GpuProgramBytecode;
 	struct ShaderReflection;
 
+	/** Ray tracing system values a program reads, other than its payload. */
+	enum class GpuRayTracingSystemValueFlag : u32
+	{
+		None = 0,
+		DispatchRaysIndex = 1 << 0,
+		DispatchRaysDimensions = 1 << 1,
+		WorldRayOrigin = 1 << 2,
+		WorldRayDirection = 1 << 3,
+		ObjectRayOrigin = 1 << 4,
+		ObjectRayDirection = 1 << 5,
+		RayTMin = 1 << 6,
+		RayTCurrent = 1 << 7,
+		RayFlags = 1 << 8,
+		InstanceIndex = 1 << 9,
+		InstanceId = 1 << 10,
+		GeometryIndex = 1 << 11,
+		PrimitiveIndex = 1 << 12,
+		HitKind = 1 << 13,
+		ObjectToWorld = 1 << 14, /**< ObjectToWorld3x4() or ObjectToWorld4x3(). */
+		WorldToObject = 1 << 15, /**< WorldToObject3x4() or WorldToObject4x3(). */
+		HitAttributes = 1 << 16 /**< The hit attributes parameter of a closest hit or any hit program. */
+	};
+
+	using GpuRayTracingSystemValueFlags = Flags<GpuRayTracingSystemValueFlag, u32>;
+	B3D_FLAGS_OPERATORS(GpuRayTracingSystemValueFlag)
+
 	/** Source metadata for one entry point, before native bytecode reflection. */
 	struct GpuProgramEntryPointReflection
 	{
@@ -36,6 +62,9 @@ namespace b3d
 		 * largest attributes an intersection program reports. Zero for other programs.
 		 */
 		u32 HitAttributeSize = 0;
+
+		/** Ray tracing system values the program reads. Empty for programs other than ray tracing pipeline programs. */
+		GpuRayTracingSystemValueFlags RayTracingSystemValues;
 	};
 
 	/** Identifies what a GpuDescriptorTableEntry describes: a pointer to a nested table, or a leaf resource binding. */
@@ -236,6 +265,12 @@ namespace b3d
 		/** Version of the compiler that compiled the bytecode. */
 		u32 CompilerVersion = 0;
 
+		/**
+		 * Identifies the programs the program was compiled with (IGpuBytecodeCompiler::CompileBytecodeGroup()). A ray tracing pipeline
+		 * only combines programs with the same value. Zero for programs compiled on their own.
+		 */
+		Array<u64, 2> ProgramGroupHash = { 0, 0 };
+
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
 		/************************************************************************/
@@ -312,6 +347,9 @@ namespace b3d
 		 * the same bindings.
 		 */
 		const Array<u64, 2>& GetParameterLayoutHash() const;
+
+		/** Returns the GpuProgramBytecode::ProgramGroupHash of the program's bytecode, or zero if it has no bytecode. */
+		const Array<u64, 2>& GetProgramGroupHash() const;
 
 	protected:
 		GpuProgram(GpuDevice& device, const GpuProgramCreateInformation& createInformation);

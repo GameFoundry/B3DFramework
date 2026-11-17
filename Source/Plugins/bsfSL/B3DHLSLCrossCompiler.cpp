@@ -919,6 +919,40 @@ static String CrossCompile(const String& hlsl, const TOptional<GpuProgramType>& 
 		if(reflectionData.usesInlineRayTracing)
 			entryPoint.Features |= GpuProgramFeatureFlag::RayQuery;
 
+		struct SystemValue
+		{
+			u32 XscValue;
+			GpuRayTracingSystemValueFlag Flag;
+		};
+
+		using XscSystemValues = Xsc::Reflection::RayTracingSystemValues;
+		static constexpr SystemValue kSystemValues[] =
+		{
+			{ XscSystemValues::DispatchRaysIndex, GpuRayTracingSystemValueFlag::DispatchRaysIndex },
+			{ XscSystemValues::DispatchRaysDimensions, GpuRayTracingSystemValueFlag::DispatchRaysDimensions },
+			{ XscSystemValues::WorldRayOrigin, GpuRayTracingSystemValueFlag::WorldRayOrigin },
+			{ XscSystemValues::WorldRayDirection, GpuRayTracingSystemValueFlag::WorldRayDirection },
+			{ XscSystemValues::ObjectRayOrigin, GpuRayTracingSystemValueFlag::ObjectRayOrigin },
+			{ XscSystemValues::ObjectRayDirection, GpuRayTracingSystemValueFlag::ObjectRayDirection },
+			{ XscSystemValues::RayTMin, GpuRayTracingSystemValueFlag::RayTMin },
+			{ XscSystemValues::RayTCurrent, GpuRayTracingSystemValueFlag::RayTCurrent },
+			{ XscSystemValues::RayFlags, GpuRayTracingSystemValueFlag::RayFlags },
+			{ XscSystemValues::InstanceIndex, GpuRayTracingSystemValueFlag::InstanceIndex },
+			{ XscSystemValues::InstanceID, GpuRayTracingSystemValueFlag::InstanceId },
+			{ XscSystemValues::GeometryIndex, GpuRayTracingSystemValueFlag::GeometryIndex },
+			{ XscSystemValues::PrimitiveIndex, GpuRayTracingSystemValueFlag::PrimitiveIndex },
+			{ XscSystemValues::HitKind, GpuRayTracingSystemValueFlag::HitKind },
+			{ XscSystemValues::ObjectToWorld, GpuRayTracingSystemValueFlag::ObjectToWorld },
+			{ XscSystemValues::WorldToObject, GpuRayTracingSystemValueFlag::WorldToObject },
+			{ XscSystemValues::HitAttributes, GpuRayTracingSystemValueFlag::HitAttributes },
+		};
+
+		for(const SystemValue& systemValue : kSystemValues)
+		{
+			if((entryFunction->rayTracingSystemValues & systemValue.XscValue) != 0)
+				entryPoint.RayTracingSystemValues |= systemValue.Flag;
+		}
+
 		outReflection.EntryPoints.emplace(inputDesc.entryPoint.c_str(), std::move(entryPoint));
 	}
 

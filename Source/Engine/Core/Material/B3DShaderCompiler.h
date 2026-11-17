@@ -118,6 +118,18 @@ namespace b3d
 		virtual TShared<GpuProgramBytecode> CompileBytecode(const GpuProgramCreateInformation& createInformation) = 0;
 
 		/**
+		 * Compiles @p programs as one group: the ray tracing pipeline programs of one pass of one shader variation. A ray tracing
+		 * pipeline only combines programs of one group. Backends whose programs call each other through a contract fixed at compile
+		 * time fit the contract to the group. Every returned bytecode gets the group's GpuProgramBytecode::ProgramGroupHash.
+		 *
+		 * @param	programs	Programs to compile. Each must be a ray generation, miss, closest hit, any hit, intersection or callable
+		 *						program.
+		 * @return				Bytecode of each program, in the order of @p programs; null where compilation failed. Empty, with the
+		 *						reason logged, if a program has another type.
+		 */
+		Vector<TShared<GpuProgramBytecode>> CompileBytecodeGroup(TArrayView<const GpuProgramCreateInformation> programs);
+
+		/**
 		 * Returns true if this compiler can compile programs of @p type. A shader fails to compile for the compiler's
 		 * shading language while it has an entry point of another type, and CompileBytecode() is never called for one.
 		 */
@@ -130,6 +142,13 @@ namespace b3d
 		 * @return				True if the bytecode is current, false if it should be recompiled.
 		 */
 		virtual bool IsUpToDate(const GpuProgramBytecode& bytecode) const = 0;
+
+	protected:
+		/**
+		 * Compiles the programs of CompileBytecodeGroup(), which has validated them and sets the group hash afterwards. The default
+		 * compiles each program with CompileBytecode().
+		 */
+		virtual Vector<TShared<GpuProgramBytecode>> CompileBytecodeGroupInternal(TArrayView<const GpuProgramCreateInformation> programs);
 	};
 
 	/** Keeps track of all available shader compilers. */

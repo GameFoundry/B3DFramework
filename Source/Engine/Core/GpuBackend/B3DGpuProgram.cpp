@@ -141,6 +141,12 @@ const Array<u64, 2>& GpuProgram::GetParameterLayoutHash() const
 	return mShaderReflection != nullptr ? mShaderReflection->ParameterLayoutHash : empty;
 }
 
+const Array<u64, 2>& GpuProgram::GetProgramGroupHash() const
+{
+	static const Array<u64, 2> empty = { 0, 0 };
+	return mBytecode != nullptr ? mBytecode->ProgramGroupHash : empty;
+}
+
 /************************************************************************/
 /* 								SERIALIZATION                      		*/
 /************************************************************************/

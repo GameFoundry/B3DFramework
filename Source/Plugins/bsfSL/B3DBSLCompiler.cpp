@@ -233,6 +233,34 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const CoreVariantType<Shader
 template ShaderCompilerResult BSLCompiler::TCompileVariation<false>(const CoreVariantType<Shader, false>&, const ShaderVariationParameters&, const String&, CoreVariantType<Variation, false>& outVariation);
 template ShaderCompilerResult BSLCompiler::TCompileVariation<true>(const CoreVariantType<Shader, true>&, const ShaderVariationParameters&, const String&, CoreVariantType<Variation, true>& outVariation);
 
+/**
+ * Returns why a ray tracing pipeline program of @p program can't compile, or an empty string if it can. Pipeline programs pass
+ * per-dispatch data through ordinary uniform buffers, so they can't use push constants or dynamic offsets.
+ */
+static String ValidateRayTracingPipelineProgram(const GpuProgramCreateInformation& program)
+{
+	const GpuProgramEntryPointReflection& reflection = program.GetEntryPointReflection();
+	if(reflection.PushConstantBufferSize > 0)
+	{
+		return StringUtility::Format("Ray tracing pipeline program \"{0}\" declares push constants, which ray tracing pipeline programs can't use. "
+			"Pass the data through a uniform buffer.", program.EntryPoint);
+	}
+
+	if(program.ShaderReflection != nullptr && program.ShaderReflection->Parameters != nullptr)
+	{
+		for(const auto& entry : program.ShaderReflection->Parameters->GetUniformBuffers())
+		{
+			if(entry.second.UsesDynamicOffset)
+			{
+				return StringUtility::Format("Ray tracing pipeline program \"{0}\" binds uniform buffer \"{1}\" with a dynamic offset, which ray tracing "
+					"pipeline programs can't use.", program.EntryPoint, entry.second.Name);
+			}
+		}
+	}
+
+	return String();
+}
+
 template<bool IsRenderProxy>
 ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BSLParsedShaderData& parsedShader, const ShaderCompilerMetaData& shaderMetaData, const String& language, CoreVariantType<Variation, IsRenderProxy>& outVariation)
 {
@@ -323,11 +351,32 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BS
 				program.Source = std::move(output.Source);
 				program.ShaderReflection = std::move(output.Reflection);
 
-				if(bytecodeCompiler != nullptr)
+				// Ray tracing pipeline programs compile as a group, once the pass's programs are known
+				if(IsRayTracingProgramType(entryPoint.Type))
+				{
+					compileResult.ErrorMessage = ValidateRayTracingPipelineProgram(program);
+					if(!compileResult.ErrorMessage.empty())
+						return compileResult;
+				}
+				else if(bytecodeCompiler != nullptr)
 					program.Bytecode = bytecodeCompiler->CompileBytecode(program);
 			}
 
 			shaderPassInformation.Programs.push_back(std::move(program));
+		}
+
+		// A pass doesn't mix ray tracing pipeline programs with other programs, so the group is the pass
+		Vector<GpuProgramCreateInformation>& programs = shaderPassInformation.Programs;
+		if(crossCompiles && bytecodeCompiler != nullptr && !programs.empty() && IsRayTracingProgramType(programs.front().Type))
+		{
+			const Vector<TShared<GpuProgramBytecode>> bytecodes = bytecodeCompiler->CompileBytecodeGroup(
+				TArrayView<const GpuProgramCreateInformation>(programs.data(), programs.size()));
+
+			if(bytecodes.size() == programs.size())
+			{
+				for(u32 programIndex = 0; programIndex < (u32)programs.size(); programIndex++)
+					programs[programIndex].Bytecode = bytecodes[programIndex];
+			}
 		}
 
 		const TShared<PassType> pass = PassType::Create(shaderPassInformation);

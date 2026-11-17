@@ -5,6 +5,7 @@
 #include "Material/B3DShaderVariation.h"
 #include "RTTI/B3DShaderCompilerRTTI.h"
 #include "GpuBackend/B3DGpuDevice.h"
+#include "Material/B3DShader.h"
 
 using namespace b3d;
 
@@ -36,6 +37,46 @@ TShared<IGpuBytecodeCompiler> ShaderCompilers::GetBytecodeCompiler(const String&
 		return found->second;
 
 	return nullptr;
+}
+
+Vector<TShared<GpuProgramBytecode>> IGpuBytecodeCompiler::CompileBytecodeGroup(TArrayView<const GpuProgramCreateInformation> programs)
+{
+	// The group is identified by its programs' code, so identical groups (the same code in two variations) share the hash
+	StringStream groupCode;
+	for(const GpuProgramCreateInformation& program : programs)
+	{
+		if(!B3D_ENSURE_LOG(IsRayTracingProgramType(program.Type), "Program '{0}' is a {1} program. Only ray tracing pipeline programs compile in groups.",
+			program.Name, GetProgramTypeName(program.Type)))
+		{
+			return {};
+		}
+
+		groupCode << (u32)program.Type << ':' << program.EntryPoint.size() << ':' << program.EntryPoint << ':' << program.Source.size() << ':' << program.Source;
+	}
+
+	const Array<u64, 2> groupHash = Shader::ComputeHash(groupCode.str());
+
+	Vector<TShared<GpuProgramBytecode>> bytecodes = CompileBytecodeGroupInternal(programs);
+	B3D_ASSERT(bytecodes.size() == programs.size());
+
+	for(const TShared<GpuProgramBytecode>& bytecode : bytecodes)
+	{
+		if(bytecode != nullptr)
+			bytecode->ProgramGroupHash = groupHash;
+	}
+
+	return bytecodes;
+}
+
+Vector<TShared<GpuProgramBytecode>> IGpuBytecodeCompiler::CompileBytecodeGroupInternal(TArrayView<const GpuProgramCreateInformation> programs)
+{
+	Vector<TShared<GpuProgramBytecode>> bytecodes;
+	bytecodes.reserve(programs.size());
+
+	for(const GpuProgramCreateInformation& program : programs)
+		bytecodes.push_back(CompileBytecode(program));
+
+	return bytecodes;
 }
 
 ShaderCompilers::ShaderCompilers()

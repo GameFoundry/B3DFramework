@@ -21,6 +21,9 @@
 
 using namespace b3d;
 
+/** GpuProgramBytecode::ProgramGroupHash of programs compiled on their own. */
+static const Array<u64, 2> kNoProgramGroupHash = { 0, 0 };
+
 void CoreTestSuite::TestShaderRegistryCacheVersion()
 {
 	B3D_TEST_ASSERT(ShaderRegistry::GetShaderCacheName("Renderer/", "Test") == "Renderer/Test/")
@@ -248,6 +251,10 @@ shader SharedStageReflectionTest
 		B3D_TEST_ASSERT(vertex.ShaderReflection->Parameters->GetTextureParameters().at("InternalTexture").IsInternal)
 		B3D_TEST_ASSERT(vertex.Bytecode != nullptr && vertex.Bytecode->Instructions.Data != nullptr)
 		B3D_TEST_ASSERT(fragment.Bytecode != nullptr && fragment.Bytecode->Instructions.Data != nullptr)
+
+		// Only ray tracing pipeline programs compile in groups
+		B3D_TEST_ASSERT(vertex.Bytecode == nullptr || vertex.Bytecode->ProgramGroupHash == kNoProgramGroupHash)
+		B3D_TEST_ASSERT(fragment.Bytecode == nullptr || fragment.Bytecode->ProgramGroupHash == kNoProgramGroupHash)
 	}
 
 	// Renderer and low-level variations may differ; only public Material interfaces must remain compatible.
@@ -490,17 +497,18 @@ shader RayTracingPipelineTest
 		GpuProgramType Type;
 		u32 RayPayloadSize;
 		u32 HitAttributeSize;
+		GpuRayTracingSystemValueFlags SystemValues;
 	};
 
 	const ExpectedEntryPoint expectedEntryPoints[] =
 	{
-		{ "RayGen", GPT_RAY_GENERATION_PROGRAM, 0, 0 },
-		{ "SkyMiss", GPT_MISS_PROGRAM, 16, 0 },
-		{ "ShadowMiss", GPT_MISS_PROGRAM, 16, 0 },
-		{ "ClosestHit", GPT_CLOSEST_HIT_PROGRAM, 16, 8 },
-		{ "AnyHit", GPT_ANY_HIT_PROGRAM, 16, 8 },
-		{ "IntersectSphere", GPT_INTERSECTION_PROGRAM, 0, 12 },
-		{ "Shade", GPT_CALLABLE_PROGRAM, 0, 0 },
+		{ "RayGen", GPT_RAY_GENERATION_PROGRAM, 0, 0, GpuRayTracingSystemValueFlag::DispatchRaysIndex },
+		{ "SkyMiss", GPT_MISS_PROGRAM, 16, 0, GpuRayTracingSystemValueFlag::None },
+		{ "ShadowMiss", GPT_MISS_PROGRAM, 16, 0, GpuRayTracingSystemValueFlag::None },
+		{ "ClosestHit", GPT_CLOSEST_HIT_PROGRAM, 16, 8, GpuRayTracingSystemValueFlag::HitAttributes },
+		{ "AnyHit", GPT_ANY_HIT_PROGRAM, 16, 8, GpuRayTracingSystemValueFlag::HitAttributes },
+		{ "IntersectSphere", GPT_INTERSECTION_PROGRAM, 0, 12, GpuRayTracingSystemValueFlag::ObjectRayOrigin },
+		{ "Shade", GPT_CALLABLE_PROGRAM, 0, 0, GpuRayTracingSystemValueFlag::None },
 	};
 
 	const auto compilesPipelinePrograms = [](const String& language)
@@ -570,7 +578,15 @@ shader RayTracingPipelineTest
 			B3D_TEST_ASSERT(entryPoint.Type == expected.Type)
 			B3D_TEST_ASSERT_MSG(entryPoint.RayPayloadSize == expected.RayPayloadSize, found->Name)
 			B3D_TEST_ASSERT_MSG(entryPoint.HitAttributeSize == expected.HitAttributeSize, found->Name)
+			B3D_TEST_ASSERT_MSG(entryPoint.RayTracingSystemValues == expected.SystemValues, found->Name)
 			B3D_TEST_ASSERT(!entryPoint.Features.IsSet(GpuProgramFeatureFlag::RayQuery))
+
+			// The programs of a pass compile as one group
+			if(found->Bytecode != nullptr && programs.front().Bytecode != nullptr)
+			{
+				B3D_TEST_ASSERT_MSG(found->Bytecode->ProgramGroupHash != kNoProgramGroupHash, found->Name)
+				B3D_TEST_ASSERT_MSG(found->Bytecode->ProgramGroupHash == programs.front().Bytecode->ProgramGroupHash, found->Name)
+			}
 
 			if(expected.Type == GPT_RAY_GENERATION_PROGRAM && found->Bytecode != nullptr && found->Bytecode->ParameterDescription != nullptr)
 			{
@@ -600,8 +616,47 @@ shader RayTracingPipelineTest
 				B3D_TEST_ASSERT(restored.EntryPoint == original.EntryPoint && restored.Type == original.Type)
 				B3D_TEST_ASSERT(restored.GetEntryPointReflection().RayPayloadSize == original.GetEntryPointReflection().RayPayloadSize)
 				B3D_TEST_ASSERT(restored.GetEntryPointReflection().HitAttributeSize == original.GetEntryPointReflection().HitAttributeSize)
+				B3D_TEST_ASSERT(restored.GetEntryPointReflection().RayTracingSystemValues == original.GetEntryPointReflection().RayTracingSystemValues)
+				B3D_TEST_ASSERT(restored.Bytecode == nullptr || original.Bytecode == nullptr ||
+					restored.Bytecode->ProgramGroupHash == original.Bytecode->ProgramGroupHash)
 			}
 		}
+	}
+
+	// Pipeline programs pass per-dispatch data through ordinary uniform buffers, so push constants and dynamic offsets fail to cook
+	const String invalidSource = R"(
+shader RayTracingPipelineInvalidTest
+{
+	pass { };
+	code
+	{
+		RWTexture2D<float4> gOutput;
+
+		#if INVALID_CASE == 1
+		[pushConstant] cbuffer PushData { float4 gExtra; };
+		#else
+		[internal] [dynamicOffset] cbuffer PerDispatch { float4 gExtra; };
+		#endif
+
+		[shader("raygeneration")]
+		void RayGen() { gOutput[DispatchRaysIndex().xy] = gExtra; }
+	};
+};
+)";
+
+	const char* invalidCaseErrors[] =
+	{
+		"declares push constants",
+		"binds uniform buffer \"PerDispatch\" with a dynamic offset"
+	};
+
+	for(u32 caseIndex = 0; caseIndex < 2 && !pipelineLanguages.empty(); caseIndex++)
+	{
+		TShared<Shader> invalidShader;
+		const ShaderCompilerResult invalidResult = compiler->Compile("RayTracingPipelineInvalidTest", invalidSource, { { "INVALID_CASE", ToString(caseIndex + 1) } },
+			pipelineLanguages, true, invalidShader);
+		B3D_TEST_ASSERT_MSG(invalidShader == nullptr, invalidCaseErrors[caseIndex])
+		B3D_TEST_ASSERT_MSG(invalidResult.ErrorMessage.find(invalidCaseErrors[caseIndex]) != String::npos, invalidResult.ErrorMessage)
 	}
 
 	// Programs exist on the render thread, for devices with ray tracing pipelines. Materials ignore ray tracing passes.

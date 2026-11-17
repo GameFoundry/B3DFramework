@@ -1729,6 +1729,7 @@ void GpuRayTracingTestSuite::TestRayTracingPipelineCreation()
 	// Shaders are resources, which are created outside of the render thread
 	UnorderedMap<String, TShared<GpuProgram>> programs = CreateTestRayTracingPrograms(*device, "RayTracingPipeline");
 	UnorderedMap<String, TShared<GpuProgram>> otherPrograms = CreateTestRayTracingPrograms(*device, "RayTracingOtherParameters");
+	UnorderedMap<String, TShared<GpuProgram>> otherGroupPrograms = CreateTestRayTracingPrograms(*device, "RayTracingOtherGroup");
 	bool areProgramsCreated = true;
 	const auto fnCheckPrograms = [this, &areProgramsCreated](UnorderedMap<String, TShared<GpuProgram>>& shaderPrograms, std::initializer_list<const char*> entryPoints)
 	{
@@ -1743,6 +1744,7 @@ void GpuRayTracingTestSuite::TestRayTracingPipelineCreation()
 
 	fnCheckPrograms(programs, { "TraceTestRays", "WriteIndices", "MissA", "MissB", "ClosestHitA", "ClosestHitB", "ClosestHitC" });
 	fnCheckPrograms(otherPrograms, { "WriteZero" });
+	fnCheckPrograms(otherGroupPrograms, { "WriteOtherIndices" });
 	if(!areProgramsCreated)
 		return;
 
@@ -1822,6 +1824,15 @@ void GpuRayTracingTestSuite::TestRayTracingPipelineCreation()
 		information.RayGenerationPrograms.push_back(otherPrograms["WriteZero"]);
 		fnExpectPipelineError(information, StringUtility::Format("Ray generation program 2 of a ray tracing pipeline, '{0}', declares other parameters than '{1}'. "
 			"Every program of a pipeline must declare the same parameters.", otherPrograms["WriteZero"]->GetName(), programs["TraceTestRays"]->GetName()));
+	}
+
+	// The parameters match, but the program comes from another shader
+	{
+		GpuRayTracingPipelineStateCreateInformation information = validInformation;
+		information.RayGenerationPrograms.push_back(otherGroupPrograms["WriteOtherIndices"]);
+		fnExpectPipelineError(information, StringUtility::Format("Ray generation program 2 of a ray tracing pipeline, '{0}', was compiled in another group than '{1}'. "
+			"Every program of a pipeline must come from the same pass of one shader variation.", otherGroupPrograms["WriteOtherIndices"]->GetName(),
+			programs["TraceTestRays"]->GetName()));
 	}
 
 	// The pipeline takes the largest payload (one uint) and attributes (two barycentrics) of its programs

@@ -10,6 +10,7 @@
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DGpuPipelineState.h"
 #include "GpuBackend/B3DGpuProgram.h"
+#include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DGpuShaderBindingTable.h"
 #include "GpuBackend/B3DGpuVertexInputManager.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
@@ -364,7 +365,8 @@ TShared<GpuRayTracingPipelineState> GpuDevice::CreateGpuRayTracingPipelineState(
 		return nullptr;
 	}
 
-	// Every program has the type of its place, runs on the device, and declares the parameters of the first program. @p role names its place.
+	// Every program has the type of its place, runs on the device, uses no push constants or dynamic offsets, and declares the parameters of the
+	// first program and was compiled in its group. @p role names its place.
 	const u32 maximumHitAttributeSize = capabilities.RayTracing.MaximumHitAttributeSize;
 	const GpuProgram* firstProgram = nullptr;
 	const auto fnValidateProgram = [&firstProgram, maximumHitAttributeSize](const GpuProgram& program, GpuProgramType type, const String& role)
@@ -375,17 +377,42 @@ TShared<GpuRayTracingPipelineState> GpuDevice::CreateGpuRayTracingPipelineState(
 		if(!B3D_ENSURE_LOG(program.IsSupported(), "{0} of a ray tracing pipeline, '{1}', can't run on the GPU device.", role, program.GetName()))
 			return false;
 
-		const u32 hitAttributeSize = program.GetEntryPointReflection().HitAttributeSize;
-		if(!B3D_ENSURE_LOG(hitAttributeSize <= maximumHitAttributeSize, "{0} of a ray tracing pipeline, '{1}', has {2} bytes of hit attributes. The maximum is {3}.",
-			role, program.GetName(), hitAttributeSize, maximumHitAttributeSize))
+		const GpuProgramEntryPointReflection& reflection = program.GetEntryPointReflection();
+		if(!B3D_ENSURE_LOG(reflection.HitAttributeSize <= maximumHitAttributeSize, "{0} of a ray tracing pipeline, '{1}', has {2} bytes of hit attributes. The maximum is {3}.",
+			role, program.GetName(), reflection.HitAttributeSize, maximumHitAttributeSize))
 		{
 			return false;
+		}
+
+		// Ray tracing pipeline programs bind per-dispatch data through ordinary uniform buffers
+		if(!B3D_ENSURE_LOG(reflection.PushConstantBufferSize == 0, "{0} of a ray tracing pipeline, '{1}', declares push constants, which ray tracing pipeline programs can't use.",
+			role, program.GetName()))
+		{
+			return false;
+		}
+
+		if(const TShared<GpuProgramParameterDescription> parameters = program.GetParameterDescription())
+		{
+			for(const auto& entry : parameters->UniformBuffers)
+			{
+				if(!B3D_ENSURE_LOG(!entry.second.UsesDynamicOffset, "{0} of a ray tracing pipeline, '{1}', binds uniform buffer '{2}' with a dynamic offset, which ray tracing pipeline programs can't use.",
+					role, program.GetName(), entry.second.Name))
+				{
+					return false;
+				}
+			}
 		}
 
 		if(firstProgram == nullptr)
 			firstProgram = &program;
 		else if(!B3D_ENSURE_LOG(program.GetParameterLayoutHash() == firstProgram->GetParameterLayoutHash(),
 			"{0} of a ray tracing pipeline, '{1}', declares other parameters than '{2}'. Every program of a pipeline must declare the same parameters.",
+			role, program.GetName(), firstProgram->GetName()))
+		{
+			return false;
+		}
+		else if(!B3D_ENSURE_LOG(program.GetProgramGroupHash() == firstProgram->GetProgramGroupHash(),
+			"{0} of a ray tracing pipeline, '{1}', was compiled in another group than '{2}'. Every program of a pipeline must come from the same pass of one shader variation.",
 			role, program.GetName(), firstProgram->GetName()))
 		{
 			return false;

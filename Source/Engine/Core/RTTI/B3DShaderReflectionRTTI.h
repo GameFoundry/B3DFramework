@@ -9,7 +9,7 @@
 namespace b3d
 {
 	template <>
-	struct RTTIPlainType<GpuProgramEntryPointReflection> : RTTIPlainTypeHelper<GpuProgramEntryPointReflection, TID_GpuProgramEntryPointReflection, 2>
+	struct RTTIPlainType<GpuProgramEntryPointReflection> : RTTIPlainTypeHelper<GpuProgramEntryPointReflection, TID_GpuProgramEntryPointReflection, 3>
 	{
 		template<class Processor>
 		static void RTTIEnumerateFields(GpuProgramEntryPointReflection& object, Processor& processor, u8 version)
@@ -26,6 +26,9 @@ namespace b3d
 				processor(object.RayPayloadSize);
 				processor(object.HitAttributeSize);
 			}
+
+			if(version > 2)
+				processor(object.RayTracingSystemValues);
 		}
 	};
 

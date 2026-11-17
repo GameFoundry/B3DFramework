@@ -33,6 +33,7 @@ namespace b3d
 			B3D_RTTI_MEMBER(CompilerVersion, 5)
 			B3D_RTTI_MEMBER(ResourceTableLayout, 6)
 			B3D_RTTI_MEMBER(ThreadGroupSize, 7)
+			B3D_RTTI_MEMBER(ProgramGroupHash, 8)
 		B3D_RTTI_END_MEMBERS
 
 	public:

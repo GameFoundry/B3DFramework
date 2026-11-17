@@ -99,6 +99,9 @@ namespace b3d
 	 *
 	 * RayTracingOtherParameters declares other parameters, and has WriteZero (ray generation).
 	 *
+	 * RayTracingOtherGroup declares the parameters of RayTracingPipeline, and has WriteOtherIndices (ray generation), which writes 2000 plus
+	 * the ray index. Being in another shader, it can't share a pipeline with the programs of RayTracingPipeline.
+	 *
 	 * RayTracingGeometryPipeline has TraceGeometryRays (ray generation), MissGeometry (miss) and ReadGeometry (closest hit), which together
 	 * do what the pipeline of CreateTestRayTracingGeometryInlinePipeline() does, with the same parameters. Every geometry uses hit group
 	 * record 0.
