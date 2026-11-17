@@ -7,6 +7,7 @@
 #include "B3DMetalSamplerState.h"
 #include "B3DMetalTexture.h"
 #include "B3DMetalUtility.h"
+#include "B3DMetalGpuAccelerationStructure.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuQueue.h"
@@ -85,19 +86,19 @@ namespace b3d
 				return MetalUtility::GetArgumentValue(static_cast<MetalTexture*>(view.Texture.Object)->GetSubresourceView(view.Texture.Surface, false).gpuResourceID);
 			case GpuBindlessResourceType::Buffer:
 			{
+				// Structured storage buffers and raw views, including those of vertex and index buffers, are read through a pointer
 				auto* buffer = static_cast<MetalGpuBuffer*>(view.Buffer.Object);
-				if (buffer->GetInformation().Type == GpuBufferType::StructuredStorage)
+				if (view.Buffer.ViewType == GpuBufferViewType::Raw || buffer->GetInformation().Type == GpuBufferType::StructuredStorage)
 					return buffer->GetMetalBuffer().gpuAddress;
 
 				return MetalUtility::GetArgumentValue(buffer->GetTextureBufferView(view.Buffer.Format, 0, 0, false).gpuResourceID);
 			}
 			case GpuBindlessResourceType::AccelerationStructure:
+				return MetalUtility::GetArgumentValue(static_cast<MetalGpuAccelerationStructure*>(view.AccelerationStructure.Object)->GetMetalResource()->GetMetalHandle().gpuResourceID);
 			case GpuBindlessResourceType::None:
 				break;
 			}
 
-			// No Metal acceleration structures yet. A zero entry reads as a null resource.
-			B3D_LOG(Error, LogRenderBackend, "Cannot write the view of '{0}' into a bindless resource slot, Metal doesn't support it.", view.GetResourceName());
 			return 0;
 		}
 

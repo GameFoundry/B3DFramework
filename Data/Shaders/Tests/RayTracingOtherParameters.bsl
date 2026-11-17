@@ -7,7 +7,7 @@ shader RayTracingOtherParameters
 		// Declares other parameters than RayTracingPipeline, so their programs can't share a pipeline
 		RWStructuredBuffer<uint> Output;
 
-		// TODO(metal) - Ray tracing pipelines come with phase 5.4
+		// Metal has no ray tracing pipelines, and traces rays inline only
 #if !defined(METAL)
 		[shader("raygeneration")]
 		void WriteZero()

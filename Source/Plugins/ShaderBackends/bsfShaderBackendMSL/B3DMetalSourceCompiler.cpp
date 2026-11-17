@@ -439,6 +439,35 @@ namespace
 		String MslSource;
 	};
 
+	/**
+	 * Works around SPIRV-Cross wrapping an unsized acceleration structure array of an argument buffer, such as the bindless resource
+	 * heap, in spvDescriptorArray without emitting that template. The array's members are plain structures, so the wrapper is
+	 * replaced by a pointer to the first one, which shaders index the same way.
+	 */
+	void ReplaceAccelerationStructureDescriptorArrays(String& mslSource)
+	{
+		static constexpr StringView kWrapperPrefix = "spvDescriptorArray<raytracing::acceleration_structure<raytracing::instancing>> ";
+		static constexpr StringView kPointerPrefix = "const device raytracing::acceleration_structure<raytracing::instancing>* ";
+
+		size_t declarationStart = mslSource.find(kWrapperPrefix);
+		while(declarationStart != String::npos)
+		{
+			// The declaration is "<wrapper> <name> {<array>};"
+			const size_t nameStart = declarationStart + kWrapperPrefix.size();
+			const size_t initializerStart = mslSource.find(" {", nameStart);
+			const size_t initializerEnd = initializerStart != String::npos ? mslSource.find("};", initializerStart) : String::npos;
+			if(initializerEnd == String::npos)
+				break;
+
+			const String name = mslSource.substr(nameStart, initializerStart - nameStart);
+			const String array = mslSource.substr(initializerStart + 2, initializerEnd - initializerStart - 2);
+			const String declaration = String(kPointerPrefix) + name + " = " + array + ";";
+
+			mslSource.replace(declarationStart, initializerEnd + 2 - declarationStart, declaration);
+			declarationStart = mslSource.find(kWrapperPrefix, declarationStart + declaration.size());
+		}
+	}
+
 	/** Compiles HLSL to MSL and returns the generated source together with any diagnostics. */
 	MetalSourceCompilation CompileMetalSource(const String& hlslSource, GpuProgramType programType, const TShared<ShaderReflection>& shaderReflection)
 	{
@@ -616,6 +645,8 @@ namespace
 			compilation.Result.ErrorMessage = "SPIRV-Cross produced empty MSL source.";
 			return compilation;
 		}
+
+		ReplaceAccelerationStructureDescriptorArrays(compilation.MslSource);
 
 		if(usesPushConstants && compilation.MslSource.find(StringUtility::Format("[[buffer({0})]]", kMetalPushConstantBufferIndex)) == String::npos)
 		{

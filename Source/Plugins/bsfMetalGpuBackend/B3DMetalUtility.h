@@ -11,6 +11,7 @@
 namespace b3d
 {
 	struct GpuBufferInformation;
+	struct GpuAccelerationStructureInputs;
 
 	namespace render
 	{
@@ -126,6 +127,17 @@ namespace b3d
 
 			/** Converts a Tier 2 resource ID into the 64-bit value stored in argument buffers and bindless heaps. */
 			static u64 GetArgumentValue(MTLResourceID resourceId);
+
+			/**
+			 * Converts @p inputs, which the core validated, into a descriptor that size queries and builds accept. Buffers that don't have
+			 * their native buffer yet get empty ranges, which size queries ignore. Returns nil, with the reason logged, if Metal cannot
+			 * describe the inputs.
+			 *
+			 * @param	inputs					Geometry or instances of the acceleration structure.
+			 * @param	emptyInstanceBuffer		Any non-empty buffer. Used as the instance buffer of a top level structure without instances
+			 *									and without its own instance buffer, since Metal requires one even though it reads none of it.
+			 */
+			static MTL4AccelerationStructureDescriptor* GetAccelerationStructureDescriptor(const GpuAccelerationStructureInputs& inputs, id<MTLBuffer> emptyInstanceBuffer);
 		};
 
 		/** @} */

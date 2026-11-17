@@ -11,6 +11,7 @@
 #include "B3DMetalTexture.h"
 #include "B3DMetalSamplerState.h"
 #include "B3DMetalUtility.h"
+#include "B3DMetalGpuAccelerationStructure.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
 #include "Debug/B3DLog.h"
 
@@ -211,6 +212,15 @@ namespace b3d
 			return true;
 		}
 
+		bool MetalGpuParameters::SetAccelerationStructure(u32 slot, const TShared<GpuAccelerationStructure>& accelerationStructure, u32 arrayIndex)
+		{
+			if (!GpuParameterSet::SetAccelerationStructure(slot, accelerationStructure, arrayIndex))
+				return false;
+
+			mBindingsDirty = true;
+			return true;
+		}
+
 		GpuBuffer* MetalGpuParameters::GetBoundUniformBuffer(u32 slot, u32& outOffset) const
 		{
 			const u32 sequentialResourceIndex = mParameterSetLayout->GetSequentialResourceIndex(slot, 0);
@@ -263,6 +273,10 @@ namespace b3d
 						case GpuParameterType::StorageTexture:
 							if (auto* texture = static_cast<MetalTexture*>(mStorageTextureData[sequentialResourceIndex].Texture.get()))
 								nativeHandle = texture->GetMetalTexture();
+							break;
+						case GpuParameterType::AccelerationStructure:
+							if (auto* accelerationStructure = static_cast<MetalGpuAccelerationStructure*>(mAccelerationStructures[sequentialResourceIndex].get()))
+								nativeHandle = accelerationStructure->GetMetalResource()->GetMetalHandle();
 							break;
 						default:
 							break;
@@ -392,6 +406,17 @@ namespace b3d
 						id<MTLTexture> view = texture != nullptr ? texture->GetSubresourceView(data.Surface, binding.Type == GpuParameterType::StorageTexture) : nil;
 						value = view != nil ? MetalUtility::GetArgumentValue(view.gpuResourceID) : 0;
 						resolvedResource = view;
+						break;
+					}
+					case GpuParameterType::AccelerationStructure:
+					{
+						auto* accelerationStructure = static_cast<MetalGpuAccelerationStructure*>(mAccelerationStructures[sequentialResourceIndex].get());
+						id<MTLAccelerationStructure> metalAccelerationStructure = accelerationStructure != nullptr ? accelerationStructure->GetMetalResource()->GetMetalHandle() : nil;
+						nativeHandle = metalAccelerationStructure;
+
+						// A zero entry reads as a null structure, which rays never hit
+						value = metalAccelerationStructure != nil ? MetalUtility::GetArgumentValue(metalAccelerationStructure.gpuResourceID) : 0;
+						resolvedResource = metalAccelerationStructure;
 						break;
 					}
 					case GpuParameterType::Sampler:
@@ -541,7 +566,21 @@ namespace b3d
 					});
 			};
 
-			return trackedUniformBuffers && trackedStorageBuffers
+			// Bottom levels a top level references are kept alive by the top level itself (see GpuAccelerationStructure)
+			const bool trackedAccelerationStructures = fnForEachBinding(GpuParameterType::AccelerationStructure,
+				[&](u32 slot, u32 arraySize)
+				{
+					for (u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
+					{
+						auto* accelerationStructure = static_cast<MetalGpuAccelerationStructure*>(mAccelerationStructures[mParameterSetLayout->GetSequentialResourceIndex(slot, arrayIndex)].get());
+						if (accelerationStructure != nullptr)
+							resourceTracker.TrackResourceUsage(accelerationStructure->GetMetalResource(), GpuAccessFlag::Read);
+					}
+
+					return true;
+				});
+
+			return trackedUniformBuffers && trackedStorageBuffers && trackedAccelerationStructures
 				&& fnTrackTextures(GpuParameterType::SampledTexture, mSampledTextureData, GpuAccessFlag::Read)
 				&& fnTrackTextures(GpuParameterType::StorageTexture, mStorageTextureData, GpuAccessFlag::Read | GpuAccessFlag::Write);
 		}

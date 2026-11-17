@@ -156,6 +156,8 @@ namespace b3d
 			TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType,
 				IGpuCompletionTracker& completionTracker) override;
 			IGpuTransientHeapPool* GetTransientHeapPool(u32 memoryType) override;
+			bool GetAccelerationStructureSizes(const GpuAccelerationStructureInputs& inputs, GpuAccelerationStructureSizes& outSizes) const override;
+			bool WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance> instances, void* destination) const override;
 
 			void ConvertProjectionMatrix(const Matrix4& input, Matrix4& output) override;
 			GpuUniformBufferInformation GenerateUniformBufferInformation(const String& name, TArray<GpuUniformBufferMemberInformation>& inOutUniforms) override;
@@ -188,6 +190,7 @@ namespace b3d
 			TShared<Texture> CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
 			TShared<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags) override;
 			GpuVertexInput* CreateVertexInput(u32 id, const GpuVertexInputLayout& layout) override;
+			TShared<GpuAccelerationStructure> CreateGpuAccelerationStructureInternal(const GpuAccelerationStructureCreateInformation& createInformation) override;
 
 			/** Initializes capabilities by querying the underlying MTLDevice. */
 			void InitializeCapabilities();

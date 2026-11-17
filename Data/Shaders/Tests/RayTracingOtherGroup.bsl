@@ -16,7 +16,7 @@ shader RayTracingOtherGroup
 		StructuredBuffer<TestRay> Rays;
 		RWStructuredBuffer<uint> Results;
 
-		// TODO(metal) - Ray tracing pipelines come with phase 5.4
+		// Metal has no ray tracing pipelines, and traces rays inline only
 #if !defined(METAL)
 		[shader("raygeneration")]
 		void WriteOtherIndices()

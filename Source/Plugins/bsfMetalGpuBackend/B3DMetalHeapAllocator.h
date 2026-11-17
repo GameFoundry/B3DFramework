@@ -165,8 +165,14 @@ namespace b3d
 			id<MTLTexture> AllocateTexture(MTLTextureDescriptor* descriptor, const GpuAllocation& requestedAllocation, GpuAllocation& outAllocation);
 
 			/**
-			 * Releases the memory of a buffer or texture created by AllocateBuffer() or AllocateTexture(), given the allocation
-			 * they output. The GPU must have finished every command buffer that accesses the resource.
+			 * Creates storage for an acceleration structure of @p size bytes in private memory, placed in a heap of the persistent
+			 * allocator if it fits, see AllocateBuffer(). Returns nil on failure. Release the structure through Free().
+			 */
+			id<MTLAccelerationStructure> AllocateAccelerationStructure(u64 size, GpuAllocation& outAllocation);
+
+			/**
+			 * Releases the memory of a resource created by AllocateBuffer(), AllocateTexture() or AllocateAccelerationStructure(),
+			 * given the allocation they output. The GPU must have finished every command buffer that accesses the resource.
 			 */
 			void Free(id<MTLResource> resource, GpuAllocation& allocation);
 

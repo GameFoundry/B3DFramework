@@ -22,7 +22,7 @@ shader RayTracingGeometryPipeline
 		StructuredBuffer<RayTracingGeometryLayout> Layouts;
 		RWStructuredBuffer<GeometryHit> Hits;
 
-		// TODO(metal) - Ray tracing pipelines come with phase 5.4
+		// Metal has no ray tracing pipelines, and traces rays inline only
 #if !defined(METAL)
 		// Traces ray N from RayOrigins[N] along +Z, and writes what the closest hit program read into Hits[N]
 		[shader("raygeneration")]

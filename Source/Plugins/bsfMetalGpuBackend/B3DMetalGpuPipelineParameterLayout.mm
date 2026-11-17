@@ -84,6 +84,7 @@ namespace b3d
 			static_assert(kTypeOrderStorageTexture == 2, "Canonical type order changed; update table below.");
 			static_assert(kTypeOrderStorageBuffer  == 3, "Canonical type order changed; update table below.");
 			static_assert(kTypeOrderSampler        == 4, "Canonical type order changed; update table below.");
+			static_assert(kTypeOrderAccelerationStructure == 5, "Canonical type order changed; update table below.");
 			constexpr GpuParameterType kOrderedTypes[] =
 			{
 				GpuParameterType::UniformBuffer,	// kTypeOrderUniformBuffer
@@ -91,6 +92,7 @@ namespace b3d
 				GpuParameterType::StorageTexture,	// kTypeOrderStorageTexture
 				GpuParameterType::StorageBuffer,	// kTypeOrderStorageBuffer
 				GpuParameterType::Sampler,			// kTypeOrderSampler
+				GpuParameterType::AccelerationStructure, // kTypeOrderAccelerationStructure
 			};
 
 			for (GpuParameterType orderedType : kOrderedTypes)

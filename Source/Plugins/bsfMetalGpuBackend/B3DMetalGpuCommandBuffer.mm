@@ -21,6 +21,8 @@
 #include "B3DMetalHeapAllocator.h"
 #include "B3DMetalShaderABI.h"
 #include "B3DMetalUtility.h"
+#include "B3DMetalGpuAccelerationStructure.h"
+#include "GpuBackend/B3DGpuAccelerationStructure.h"
 #include "B3DIMetalRenderWindowSurface.h"
 #include "GpuBackend/B3DRenderWindow.h"
 #include "GpuBackend/B3DGpuSubmitThread.h"
@@ -1480,6 +1482,72 @@ namespace b3d
 				SetEncoderStencilReference(value);
 		}
 
+		bool MetalGpuCommandBuffer::BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild> builds)
+		{
+			if (!GpuCommandBuffer::BuildAccelerationStructures(builds))
+				return false;
+
+			if (builds.IsEmpty())
+				return true;
+
+			// Descriptors are created before switching encoders, so failed builds don't split the current pass
+			id<MTLDevice> device = mGpuDevice.GetMetalDevice();
+			TInlineArray<MTL4AccelerationStructureDescriptor*, 4> descriptors;
+			for (const GpuAccelerationStructureBuild& build : builds)
+			{
+				MTL4AccelerationStructureDescriptor* descriptor = MetalUtility::GetAccelerationStructureDescriptor(build.Inputs, mGpuDevice.GetDummyArgumentBuffer());
+				if (descriptor == nil)
+					return false;
+
+				descriptors.Add(descriptor);
+			}
+
+			id<MTL4ComputeCommandEncoder> encoder = OpenComputeEncoder();
+			if (encoder == nil)
+				return false;
+
+			[[maybe_unused]] const u32 scratchAlignment = mGpuDevice.GetCapabilities().RayTracing.ScratchOffsetAlignment;
+			for (u32 buildIndex = 0; buildIndex < (u32)builds.size(); buildIndex++)
+			{
+				const GpuAccelerationStructureBuild& build = builds[buildIndex];
+				MetalAccelerationStructure* const destination = static_cast<MetalGpuAccelerationStructure&>(*build.Destination).GetMetalResource();
+				MetalBuffer* const scratch = static_cast<MetalGpuBuffer&>(*build.ScratchBuffer).GetMetalResource();
+
+				mResourceTracker.TrackResourceUsage(destination, GpuAccessFlag::Write);
+				mResourceTracker.TrackBufferUsage(scratch, GpuAccessFlag::Read | GpuAccessFlag::Write);
+
+				for (const TShared<GpuAccelerationStructure>& bottomLevel : build.BottomLevels)
+				{
+					if (bottomLevel != nullptr)
+						mResourceTracker.TrackResourceUsage(static_cast<MetalGpuAccelerationStructure&>(*bottomLevel).GetMetalResource(), GpuAccessFlag::Read);
+				}
+
+				for (const GpuRayTracingGeometry& geometry : build.Inputs.Geometries)
+				{
+					mResourceTracker.TrackBufferUsage(static_cast<MetalGpuBuffer&>(*geometry.VertexBuffer).GetMetalResource(), GpuAccessFlag::Read);
+
+					if (geometry.IndexBuffer != nullptr)
+						mResourceTracker.TrackBufferUsage(static_cast<MetalGpuBuffer&>(*geometry.IndexBuffer).GetMetalResource(), GpuAccessFlag::Read);
+				}
+
+				if (build.Inputs.InstanceBuffer != nullptr)
+					mResourceTracker.TrackBufferUsage(static_cast<MetalGpuBuffer&>(*build.Inputs.InstanceBuffer).GetMetalResource(), GpuAccessFlag::Read);
+
+				if (mRecordingFailed)
+					return false;
+
+				// Builds of one call must use separate scratch ranges, so each range is only as large as its build needs
+				const NSUInteger scratchSize = [device accelerationStructureSizesWithDescriptor:descriptors[buildIndex]].buildScratchBufferSize;
+				const MTLGPUAddress scratchAddress = scratch->GetMetalHandle().gpuAddress + build.ScratchOffset;
+				B3D_ASSERT(scratchAddress % scratchAlignment == 0 && "The scratch address of an acceleration structure build is not aligned.");
+
+				[encoder buildAccelerationStructure:destination->GetMetalHandle() descriptor:descriptors[buildIndex] scratchBuffer:MTL4BufferRangeMake(scratchAddress, scratchSize)];
+			}
+
+			mEncoderHasWork = true;
+			return true;
+		}
+
 		void MetalGpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> ranges)
 		{
 			GpuCommandBuffer::CopyBufferToBuffer(source, destination, ranges);
@@ -2250,6 +2318,16 @@ namespace b3d
 				range.AspectMask &= barrier.SubresourceRange.AspectMask;
 
 				fnAddImageBarrier(static_cast<MetalImage&>(*attachment->Image), range, barrier);
+			}
+
+			for (const GpuAccelerationStructureBarrier& barrier : barriers.AccelerationStructureBarriers)
+			{
+				auto* const gpuAccelerationStructure = static_cast<MetalGpuAccelerationStructure*>(barrier.Object.get());
+				if (gpuAccelerationStructure == nullptr)
+					continue;
+
+				mResourceTracker.TrackResourceUsage(gpuAccelerationStructure->GetMetalResource(), barrier.Destination.Access | GpuAccessFlag::Read);
+				fnAddBarrier(barrier);
 			}
 
 			if (stageBarrier.IsEmpty())

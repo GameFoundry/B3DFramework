@@ -124,7 +124,7 @@ fi # host unit tests
 # only runs in that category) gets no conflicting override. The Editor category runs the editor itself in headless mode and
 # captures a screenshot of its UI, using the same snapshot mechanism as the example snapshot tests.
 # It is skipped on platforms where the editor binary was not built.
-COMMON_TESTS="AdvancedLowLevelRendering Audio Decals GUI GUICulling Lighting LowLevelRendering Particles Physics PhysicallyBasedShading SkeletalAnimation TextQuality VectorGraphics"
+COMMON_TESTS="AdvancedLowLevelRendering Audio Decals GUI GUICulling Lighting LowLevelRendering Particles Physics PhysicallyBasedShading RayTracing SkeletalAnimation TextQuality VectorGraphics"
 
 declare -A CATEGORY_ARGS=()
 declare -A CATEGORY_TESTS=()
@@ -135,8 +135,8 @@ case "$PLATFORM" in
 		CATEGORY_ARGS["Vulkan"]=""
 		CATEGORY_ARGS["D3D12"]="--gpu.backend=bsfD3D12GpuBackend"
 		CATEGORY_ARGS["Editor"]=""
-		CATEGORY_TESTS["Vulkan"]="$COMMON_TESTS NullBackends RayTracing"
-		CATEGORY_TESTS["D3D12"]="$COMMON_TESTS RayTracing"
+		CATEGORY_TESTS["Vulkan"]="$COMMON_TESTS NullBackends"
+		CATEGORY_TESTS["D3D12"]="$COMMON_TESTS"
 		CATEGORY_TESTS["Editor"]="Editor"
 		;;
 	darwin)

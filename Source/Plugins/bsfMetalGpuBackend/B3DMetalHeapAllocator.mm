@@ -370,6 +370,38 @@ namespace b3d
 			return texture;
 		}
 
+		id<MTLAccelerationStructure> MetalHeapAllocator::AllocateAccelerationStructure(u64 size, GpuAllocation& outAllocation)
+		{
+			outAllocation.Reset();
+
+			id<MTLDevice> device = mDevice.GetMetalDevice();
+			if (device == nil || size == 0)
+				return nil;
+
+			IGpuAllocator& allocator = *mAllocators[(u32)MetalMemoryType::Private];
+			const MTLSizeAndAlign sizeAndAlign = [device heapAccelerationStructureSizeAndAlignWithSize:size];
+
+			GpuAllocation allocation;
+			if (allocator.TryAllocate(sizeAndAlign.size, (u32)sizeAndAlign.align, allocation))
+			{
+				MetalGpuHeap& heap = ToMetalGpuHeap(allocation.Heap);
+				id<MTLAccelerationStructure> accelerationStructure = [heap.Heap newAccelerationStructureWithSize:size offset:allocation.Offset];
+				if (accelerationStructure != nil)
+				{
+					outAllocation = allocation;
+					return accelerationStructure;
+				}
+
+				allocator.FreeAndReclaim(allocation);
+			}
+
+			id<MTLAccelerationStructure> accelerationStructure = [device newAccelerationStructureWithSize:size];
+			if (accelerationStructure != nil)
+				mResidencySet.Add(accelerationStructure);
+
+			return accelerationStructure;
+		}
+
 		void MetalHeapAllocator::Free(id<MTLResource> resource, GpuAllocation& allocation)
 		{
 			if (!allocation.HasMemory())

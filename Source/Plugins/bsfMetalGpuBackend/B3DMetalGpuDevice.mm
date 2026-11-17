@@ -40,6 +40,8 @@
 #include "GpuBackend/B3DGpuSubmitThread.h"
 #include "B3DMetalVertexInput.h"
 #include "B3DMetalUtility.h"
+#include "B3DMetalGpuAccelerationStructure.h"
+#include "GpuBackend/B3DGpuAccelerationStructure.h"
 
 
 namespace b3d
@@ -311,6 +313,124 @@ namespace b3d
 			mCapabilities.MaximumBindlessSamplerCount = (u32)[mMetalDevice maxArgumentBufferSamplerCount];
 
 			mCapabilities.AddShaderProfile(kGpuProgramLanguageName);
+
+			// Rays are only traced inline. Metal has no ray tracing pipelines, and the backend doesn't emulate them. Inline tracing
+			// must work from every program type, so devices that cannot trace from render stages support none of it.
+			if (gGpuRayTracing.Get() && [mMetalDevice supportsRaytracing] && [mMetalDevice supportsRaytracingFromRender])
+			{
+				// Metal has no device query for these. The counts are the standard limits, for structures built without
+				// MTLAccelerationStructureUsageExtendedLimits, from the table in Apple's documentation of that option:
+				// https://developer.apple.com/documentation/metal/mtlaccelerationstructureusage/extendedlimits
+				//
+				// Neither that documentation, the build methods nor the Metal feature set tables state a scratch alignment. 256 bytes is
+				// what D3D12 requires (D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT). It is a conservative choice, not a
+				// documented Metal requirement, and costs only some padding between builds that share a scratch buffer.
+				GpuRayTracingCapabilities& rayTracing = mCapabilities.RayTracing;
+				rayTracing.ScratchOffsetAlignment = 256;
+				rayTracing.InstanceSize = sizeof(MTLIndirectAccelerationStructureInstanceDescriptor);
+				rayTracing.MaximumInstanceCount = 1ull << 24;
+				rayTracing.MaximumGeometryCount = 1ull << 24;
+				rayTracing.MaximumPrimitiveCount = 1ull << 28;
+				rayTracing.SupportsBindlessAccelerationStructures = true;
+
+				mCapabilities.SetCapability(RSC_ACCELERATION_STRUCTURES);
+				mCapabilities.SetCapability(RSC_RAY_QUERY);
+			}
+		}
+
+		bool MetalGpuDevice::GetAccelerationStructureSizes(const GpuAccelerationStructureInputs& inputs, GpuAccelerationStructureSizes& outSizes) const
+		{
+			if (!GpuDevice::GetAccelerationStructureSizes(inputs, outSizes))
+				return false;
+
+			MTL4AccelerationStructureDescriptor* descriptor = MetalUtility::GetAccelerationStructureDescriptor(inputs, GetDummyArgumentBuffer());
+			if (descriptor == nil)
+				return false;
+
+			const MTLAccelerationStructureSizes sizes = [mMetalDevice accelerationStructureSizesWithDescriptor:descriptor];
+
+			// Buffer sizes are 32-bit
+			static constexpr NSUInteger kMaximumSize = std::numeric_limits<u32>::max();
+			if (sizes.accelerationStructureSize > kMaximumSize || sizes.buildScratchBufferSize > kMaximumSize)
+			{
+				B3D_LOG(Error, LogRenderBackend, "An acceleration structure needs {0} bytes and its build {1} bytes of scratch memory. Neither can exceed 4 GiB.",
+					(u64)sizes.accelerationStructureSize, (u64)sizes.buildScratchBufferSize);
+				return false;
+			}
+
+			outSizes = GpuAccelerationStructureSizes((u32)sizes.accelerationStructureSize, (u32)sizes.buildScratchBufferSize);
+			return true;
+		}
+
+		bool MetalGpuDevice::WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance> instances, void* destination) const
+		{
+			if (!GpuDevice::WriteRayTracingInstances(instances, destination))
+				return false;
+
+			auto* const output = static_cast<MTLIndirectAccelerationStructureInstanceDescriptor*>(destination);
+			for (u32 instanceIndex = 0; instanceIndex < (u32)instances.size(); instanceIndex++)
+			{
+				const GpuRayTracingInstance& instance = instances[instanceIndex];
+
+				MTLAccelerationStructureInstanceOptions options = MTLAccelerationStructureInstanceOptionNone;
+				if (instance.Flags.IsSet(GpuRayTracingInstanceFlag::DisableTriangleCulling))
+					options |= MTLAccelerationStructureInstanceOptionDisableTriangleCulling;
+
+				// Metal's front face is clockwise in a left-handed system. The engine's world is right-handed, so the face rasterization
+				// considers the front face looks the other way, unless the instance flips it.
+				if (!instance.Flags.IsSet(GpuRayTracingInstanceFlag::FlipTriangleFacing))
+					options |= MTLAccelerationStructureInstanceOptionTriangleFrontFacingWindingCounterClockwise;
+
+				if (instance.Flags.IsSet(GpuRayTracingInstanceFlag::ForceOpaque))
+					options |= MTLAccelerationStructureInstanceOptionOpaque;
+
+				if (instance.Flags.IsSet(GpuRayTracingInstanceFlag::ForceNonOpaque))
+					options |= MTLAccelerationStructureInstanceOptionNonOpaque;
+
+				MTLIndirectAccelerationStructureInstanceDescriptor nativeInstance;
+				for (u32 column = 0; column < 4; column++)
+				{
+					nativeInstance.transformationMatrix.columns[column] =
+						MTLPackedFloat3Make(instance.Transform[0][column], instance.Transform[1][column], instance.Transform[2][column]);
+				}
+
+				nativeInstance.options = options;
+				nativeInstance.mask = instance.Mask;
+				nativeInstance.intersectionFunctionTableOffset = instance.HitGroupIndexOffset;
+				nativeInstance.userID = instance.InstanceId;
+
+				// A structure never changes its native object, so its resource ID stays valid. Metal has no inactive instances, so an
+				// empty instance gets a mask that no ray has a bit in common with.
+				if (instance.BottomLevel != nullptr)
+				{
+					nativeInstance.accelerationStructureID =
+						static_cast<const MetalGpuAccelerationStructure&>(*instance.BottomLevel).GetMetalResource()->GetMetalHandle().gpuResourceID;
+				}
+				else
+				{
+					nativeInstance.accelerationStructureID = MTLResourceID{ 0 };
+					nativeInstance.mask = 0;
+				}
+
+				// The destination may be write-combined memory, so each instance is written once and never read
+				std::memcpy(&output[instanceIndex], &nativeInstance, sizeof(nativeInstance));
+			}
+
+			return true;
+		}
+
+		TShared<GpuAccelerationStructure> MetalGpuDevice::CreateGpuAccelerationStructureInternal(const GpuAccelerationStructureCreateInformation& createInformation)
+		{
+			GpuAllocation allocation;
+			id<MTLAccelerationStructure> nativeAccelerationStructure = mHeapAllocator->AllocateAccelerationStructure(createInformation.Size, allocation);
+			if (nativeAccelerationStructure == nil)
+			{
+				B3D_LOG(Error, LogRenderBackend, "Failed to create Metal acceleration structure '{0}' of {1} bytes.", createInformation.Name, createInformation.Size);
+				return nullptr;
+			}
+
+			MetalAccelerationStructure* const accelerationStructure = mResourceManager->Create<MetalAccelerationStructure>(nativeAccelerationStructure, allocation, createInformation.Name);
+			return B3DMakeShared<MetalGpuAccelerationStructure>(*this, createInformation, *accelerationStructure);
 		}
 
 		u32 MetalGpuDevice::GetQueueCount(GpuQueueType type) const

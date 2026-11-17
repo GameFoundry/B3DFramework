@@ -4,6 +4,8 @@
 #include "Image/B3DPixelUtility.h"
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
+#include "GpuBackend/B3DGpuAccelerationStructure.h"
+#include "B3DMetalGpuBuffer.h"
 #include "Debug/B3DLog.h"
 #include "Threading/B3DThreading.h"
 #include <atomic>
@@ -503,6 +505,81 @@ namespace b3d
 			u64 value;
 			std::memcpy(&value, &resourceId, sizeof(value));
 			return value;
+		}
+
+		MTL4AccelerationStructureDescriptor* MetalUtility::GetAccelerationStructureDescriptor(const GpuAccelerationStructureInputs& inputs, id<MTLBuffer> emptyInstanceBuffer)
+		{
+			// Offsets go into the ranges, which extend to the end of their buffers
+			const auto fnGetRange = [](const TShared<GpuBuffer>& buffer, u32 offset)
+			{
+				id<MTLBuffer> metalBuffer = buffer != nullptr ? static_cast<MetalGpuBuffer&>(*buffer).GetMetalBuffer() : nil;
+				if (metalBuffer == nil || offset >= [metalBuffer length])
+					return MTL4BufferRangeMake(0, 0);
+
+				return MTL4BufferRangeMake(metalBuffer.gpuAddress + offset, [metalBuffer length] - offset);
+			};
+
+			MTLAccelerationStructureUsage usage = MTLAccelerationStructureUsageNone;
+			if (inputs.Flags.IsSet(GpuAccelerationStructureBuildFlag::PreferFastTrace))
+				usage |= MTLAccelerationStructureUsagePreferFastIntersection;
+
+			if (inputs.Flags.IsSet(GpuAccelerationStructureBuildFlag::PreferFastBuild))
+				usage |= MTLAccelerationStructureUsagePreferFastBuild;
+
+			if (inputs.Flags.IsSet(GpuAccelerationStructureBuildFlag::MinimizeMemory))
+				usage |= MTLAccelerationStructureUsageMinimizeMemory;
+
+			if (inputs.Type == GpuAccelerationStructureType::TopLevel)
+			{
+				// Indirect instances name their bottom level structure by resource ID, so no list of structures is needed
+				MTL4InstanceAccelerationStructureDescriptor* descriptor = [[MTL4InstanceAccelerationStructureDescriptor alloc] init];
+				descriptor.usage = usage;
+				descriptor.instanceDescriptorType = MTLAccelerationStructureInstanceDescriptorTypeIndirect;
+				descriptor.instanceDescriptorStride = sizeof(MTLIndirectAccelerationStructureInstanceDescriptor);
+				descriptor.instanceCount = inputs.InstanceCount;
+				descriptor.instanceDescriptorBuffer = fnGetRange(inputs.InstanceBuffer, inputs.InstanceOffset);
+
+				// Metal needs an instance buffer even for a structure without instances, which reads none of it
+				if (inputs.InstanceCount == 0 && descriptor.instanceDescriptorBuffer.bufferAddress == 0)
+					descriptor.instanceDescriptorBuffer = MTL4BufferRangeMake(emptyInstanceBuffer.gpuAddress, [emptyInstanceBuffer length]);
+
+				return descriptor;
+			}
+
+			NSMutableArray<MTL4AccelerationStructureGeometryDescriptor*>* geometries = [NSMutableArray arrayWithCapacity:inputs.Geometries.size()];
+			for (u32 geometryIndex = 0; geometryIndex < (u32)inputs.Geometries.size(); geometryIndex++)
+			{
+				const GpuRayTracingGeometry& source = inputs.Geometries[geometryIndex];
+				if (source.VertexType != VET_FLOAT3)
+				{
+					B3D_LOG(Error, LogRenderBackend, "Geometry {0} of an acceleration structure must have VET_FLOAT3 vertex positions.", geometryIndex);
+					return nil;
+				}
+
+				const bool isIndexed = source.IndexBuffer != nullptr;
+
+				MTL4AccelerationStructureTriangleGeometryDescriptor* geometry = [[MTL4AccelerationStructureTriangleGeometryDescriptor alloc] init];
+				geometry.opaque = source.Flags.IsSet(GpuRayTracingGeometryFlag::Opaque);
+				geometry.allowDuplicateIntersectionFunctionInvocation = !source.Flags.IsSet(GpuRayTracingGeometryFlag::NoDuplicateAnyHitInvocation);
+				geometry.vertexBuffer = fnGetRange(source.VertexBuffer, source.VertexOffset);
+				geometry.vertexFormat = MTLAttributeFormatFloat3;
+				geometry.vertexStride = source.VertexStride;
+				geometry.triangleCount = (isIndexed ? source.IndexCount : source.VertexCount) / 3;
+
+				if (isIndexed)
+				{
+					geometry.indexBuffer = fnGetRange(source.IndexBuffer, source.IndexOffset);
+					geometry.indexType = source.IndexType == IT_16BIT ? MTLIndexTypeUInt16 : MTLIndexTypeUInt32;
+				}
+
+				[geometries addObject:geometry];
+			}
+
+			MTL4PrimitiveAccelerationStructureDescriptor* descriptor = [[MTL4PrimitiveAccelerationStructureDescriptor alloc] init];
+			descriptor.usage = usage;
+			descriptor.geometryDescriptors = geometries;
+
+			return descriptor;
 		}
 	} // namespace render
 } // namespace b3d
