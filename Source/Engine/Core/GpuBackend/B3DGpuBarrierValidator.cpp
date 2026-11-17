@@ -241,8 +241,9 @@ namespace b3d::render
 
 		if(error == nullptr)
 		{
-			const GpuAccessState* const undeclaredState = GetUndeclaredState(GpuBackendUtility::GetRestingState(accelerationStructure, mQueueType));
-			error = ApplyAccess(mAccelerationStructures[&accelerationStructure], mQueueType, GpuImageLayout::Undefined, stages, access, undeclaredState, mOperation);
+			// GetUndeclaredState() returns a pointer to its argument, so the resting state must outlive the access
+			const GpuAccessState restingState = GpuBackendUtility::GetRestingState(accelerationStructure, mQueueType);
+			error = ApplyAccess(mAccelerationStructures[&accelerationStructure], mQueueType, GpuImageLayout::Undefined, stages, access, GetUndeclaredState(restingState), mOperation);
 		}
 
 		B3D_ENSURE_LOG(error == nullptr, "{0} Acceleration structure: '{1}'.", error, accelerationStructure.GetName());
