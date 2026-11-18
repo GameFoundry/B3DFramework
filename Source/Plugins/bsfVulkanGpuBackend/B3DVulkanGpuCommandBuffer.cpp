@@ -1419,17 +1419,12 @@ VulkanGpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmit
 	return submitInformation;
 }
 
-void VulkanGpuCommandBuffer::NotifyWasSubmitted(GpuQueueId queueId)
-{
-	AssertIfNotSubmitThread();
-
-	mSubmittedQueueId = queueId;
-	mResourceTracker.NotifyUsed(queueId);
-}
-
 void VulkanGpuCommandBuffer::NotifyWillQueueForSubmit(GpuQueueId queueId, GpuQueueMask syncMask)
 {
 	GpuCommandBuffer::NotifyWillQueueForSubmit(queueId, syncMask);
+
+	mSubmittedQueueId = queueId;
+	mResourceTracker.NotifyUsed(queueId);
 
 	// Clear everything not allowed on the submit thread
 	mGraphicsPipeline = nullptr;

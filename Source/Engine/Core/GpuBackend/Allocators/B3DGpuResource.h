@@ -254,10 +254,10 @@ namespace b3d
 	 * @par Lifecycle
 	 *
 	 * Backends call the Notify* methods on their resources at the appropriate command-buffer lifecycle points:
-	 *   - NotifyBound  — resource recorded into a command buffer (not yet submitted)
-	 *   - NotifyUsed   — command buffer submitted to a GPU queue
+	 *   - NotifyBound  — resource recorded into a command buffer (not yet queued for submission)
+	 *   - NotifyUsed   — command buffer queued for submission to a GPU queue
 	 *   - NotifyDone   — GPU finished executing the command buffer
-	 *   - NotifyUnbound — command buffer destroyed/reset before submission
+	 *   - NotifyUnbound — command buffer destroyed/reset before it was queued for submission
 	 *
 	 * The framework does not drive these calls itself; per-command-buffer tracking is each backend's
 	 * concern. Independently of command buffers, NotifyPinned / NotifyUnpinned keep the resource alive while
@@ -310,13 +310,13 @@ namespace b3d
 		}
 
 		/**
-		 * Notifies the resource that it is currently bound to a command buffer. Buffer hasn't yet been submitted so the
-		 * resource isn't being used on the GPU yet. Must eventually be followed by a NotifyUsed() or NotifyUnbound().
+		 * Notifies the resource that it is currently bound to a command buffer. Buffer hasn't yet been queued for submission so
+		 * the resource isn't being used on the GPU yet. Must eventually be followed by a NotifyUsed() or NotifyUnbound().
 		 */
 		void NotifyBound();
 
 		/**
-		 * Notifies the resource that it is currently being used on a submitted command buffer. Must follow a
+		 * Notifies the resource that it is currently being used on a command buffer queued for submission. Must follow a
 		 * NotifyBound(). Must eventually be followed by a NotifyDone().
 		 *
 		 * @param	queueId		ID of the queue the resource is being used in.
@@ -333,7 +333,7 @@ namespace b3d
 		void NotifyDone(GpuQueueId queueId, GpuAccessFlags useFlags);
 
 		/**
-		 * Notifies the resource that it is no longer queued on the command buffer without ever being submitted to the GPU.
+		 * Notifies the resource that it is no longer queued on the command buffer without ever being queued for submission to the GPU.
 		 * Must follow a NotifyBound() if NotifyUsed() wasn't called.
 		 */
 		void NotifyUnbound();
@@ -378,14 +378,17 @@ namespace b3d
 			return mDestroyRequested;
 		}
 
-		/** Number of recorded-but-not-yet-submitted command buffers currently referencing this resource. */
+		/**
+		 * Number of command buffers referencing this resource, from recording until they finish executing or are discarded. Those not yet
+		 * queued for submission number GetBoundCount() - GetUseCount().
+		 */
 		virtual u32 GetBoundCount() const
 		{
 			Lock lock(mMutex);
 			return mBountCount;
 		}
 
-		/** Number of in-flight submissions currently referencing this resource. */
+		/** Number of command buffers referencing this resource that are queued for submission or executing on the GPU. */
 		virtual u32 GetUseCount() const
 		{
 			Lock lock(mMutex);

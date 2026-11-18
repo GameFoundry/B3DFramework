@@ -62,8 +62,9 @@ namespace b3d
 			u32 GetId() const { return mId; }
 
 			/**
-			 * Called on the owner thread just before the command buffer is handed to the submit thread. Releases the
-			 * recording state the submit thread must not touch.
+			 * Called on the owner thread just before the command buffer is handed to the submit thread. Marks the tracked
+			 * resources as in use on @p queueId, unless recording failed, and releases the recording state the submit thread
+			 * must not touch.
 			 */
 			void NotifyWillQueueForSubmit(GpuQueueId queueId, GpuQueueMask syncMask) override;
 
@@ -396,10 +397,10 @@ namespace b3d
 			/** Set once mUsedQueryPools were notified of the pending submission, so a failure is reported as a failed submission. */
 			bool mQueryPoolsQueuedForSubmission = false;
 
-			/** Queue the command buffer was last submitted on, used to route the tracker's completion notification. */
+			/** Queue the command buffer was last queued for submission on, used to route the tracker's completion notification. */
 			GpuQueueId mSubmittedQueueId;
 
-			/** True after resource tracking has been promoted from bound to submitted use. */
+			/** True after resource tracking has been promoted from bound to in use, when the buffer was queued for submission. */
 			bool mResourcesSubmitted = false;
 
 			/** Prevents further encoding or native submission after an unrecoverable recording failure. */

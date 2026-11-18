@@ -2343,8 +2343,6 @@ namespace b3d
 			// mUsedQueryPools may be touched here. mQueueSyncMask is already folded into @p syncMask.
 			AssertIfNotSubmitThread();
 
-			mSubmittedQueueId = submitQueue.GetId();
-
 			if (mRecordingFailed)
 			{
 				mQueueSyncMask = GpuQueueMask();
@@ -2375,9 +2373,6 @@ namespace b3d
 			}
 
 			GpuSubmitThread& submitThread = mGpuDevice.GetSubmitThread();
-
-			mResourceTracker.NotifyUsed(mSubmittedQueueId);
-			mResourcesSubmitted = true;
 
 			// Queue waits apply to all work committed after them, so they precede the commit. Frame fence values are committed
 			// event values, so waiting on them cannot deadlock, and queues in the sync mask are already waited on at a later value.
@@ -2473,6 +2468,13 @@ namespace b3d
 
 			mQueryPoolsQueuedForSubmission = !mUsedQueryPools.Empty();
 
+			mSubmittedQueueId = queueId;
+			if (!mRecordingFailed)
+			{
+				mResourceTracker.NotifyUsed(queueId);
+				mResourcesSubmitted = true;
+			}
+
 			// Clears everything the submit thread must not touch. mUsedQueryPools stays, ExecuteSubmitOnSubmitThread() needs it.
 			mBoundGraphicsPipeline = nullptr;
 			mBoundComputePipeline = nullptr;
@@ -2485,8 +2487,8 @@ namespace b3d
 
 		void MetalGpuCommandBuffer::ClearRecordingState()
 		{
-			// Same as VulkanGpuCommandBuffer::ClearRecordingState(). Resources of a buffer that failed before submission
-			// were never marked used, so they are only unbound.
+			// Same as VulkanGpuCommandBuffer::ClearRecordingState(). Resources of a buffer that was never queued, or whose recording
+			// failed, were never marked used, so they are only unbound.
 			if (mResourcesSubmitted)
 				mResourceTracker.NotifyDone(mSubmittedQueueId);
 			else

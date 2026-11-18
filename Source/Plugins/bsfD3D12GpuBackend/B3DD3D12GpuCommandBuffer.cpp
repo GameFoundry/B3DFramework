@@ -1394,6 +1394,9 @@ void D3D12GpuCommandBuffer::NotifyWillQueueForSubmit(GpuQueueId queueId, GpuQueu
 
 	EnsureValidThread();
 
+	mSubmittedQueueId = queueId;
+	mResourceTracker.NotifyUsed(queueId);
+
 	// Clear everything not allowed on the submit thread.
 	mGraphicsPipeline = nullptr;
 	mComputePipeline = nullptr;
@@ -1401,14 +1404,6 @@ void D3D12GpuCommandBuffer::NotifyWillQueueForSubmit(GpuQueueId queueId, GpuQueu
 	mBoundParameterSets.clear();
 	mIndexBuffer = nullptr;
 	mVertexBuffers.clear();
-}
-
-void D3D12GpuCommandBuffer::NotifyWasSubmittedToQueue(GpuQueueId queueId)
-{
-	AssertIfNotSubmitThread();
-
-	mSubmittedQueueId = queueId;
-	mResourceTracker.NotifyUsed(queueId);
 }
 
 bool D3D12GpuCommandBuffer::UpdateExecutionStatus(bool block)

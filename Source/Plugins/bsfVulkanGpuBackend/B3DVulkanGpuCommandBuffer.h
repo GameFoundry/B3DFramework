@@ -172,9 +172,6 @@ namespace b3d
 			 */
 			VulkanGpuCommandBufferSubmitInformation PrepareForSubmitOnSubmitThread(GpuQueueType queueType);
 
-			/** Notifies the command buffer that it has been submitted successfully. Submit thread only. */
-			void NotifyWasSubmitted(GpuQueueId queueId);
-
 			/** Called when the command buffer is about to be sent to the submit queue for submit. */
 			void NotifyWillQueueForSubmit(GpuQueueId queueId, GpuQueueMask syncMask) override;
 

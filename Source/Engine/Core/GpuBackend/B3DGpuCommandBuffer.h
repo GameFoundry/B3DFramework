@@ -1118,8 +1118,8 @@ namespace b3d
 
 			/**
 			 * Called on the owning thread just before the command buffer is queued for submission on the submit thread, in submission
-			 * order. Backends release any state the submit thread must not touch, and call the base implementation, which validates
-			 * split barriers in development builds.
+			 * order. Backends mark the resources the command buffer tracks as used on @p queueId, release any state the submit thread
+			 * must not touch, and call the base implementation, which validates split barriers in development builds.
 			 *
 			 * @param	queueId		Queue the command buffer is submitted on.
 			 * @param	syncMask	Queues the submission waits for.

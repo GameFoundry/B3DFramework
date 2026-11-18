@@ -156,17 +156,10 @@ namespace b3d
 
 			/**
 			 * Called on the owning thread just before the command buffer is queued for submission on the submit
-			 * thread. Releases any state that must not be touched from the submit thread.
+			 * thread. Marks every tracked resource as in use on @p queueId and releases any state that must not 
+			 * be touched from the submit thread.
 			 */
 			void NotifyWillQueueForSubmit(GpuQueueId queueId, GpuQueueMask syncMask) override;
-
-			/**
-			 * Called on the submit thread when the command buffer is executed on a queue. Marks every tracked
-			 * resource as in-flight (NotifyUsed) and remembers the queue for the matching NotifyDone on completion.
-			 *
-			 * @note Submit thread only.
-			 */
-			void NotifyWasSubmittedToQueue(GpuQueueId queueId);
 
 			/**
 			 * Checks if the command buffer still executing on the GPU.

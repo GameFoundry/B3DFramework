@@ -739,10 +739,13 @@ namespace b3d::render
 		 */
 		virtual GpuQueueMask GetUseMask(GpuAccessFlags accessFlags = GpuAccessFlag::Read | GpuAccessFlag::Write) = 0;
 
-		/** Number of recorded-but-not-yet-submitted command buffers currently referencing this buffer. */
+		/**
+		 * Number of command buffers referencing this buffer, from recording until they finish executing or are discarded. Those not yet
+		 * queued for submission number GetBoundCount() - GetUseCount().
+		 */
 		virtual u32 GetBoundCount() const = 0;
 
-		/** Number of in-flight submissions currently referencing this buffer. */
+		/** Number of command buffers referencing this buffer that are queued for submission or executing on the GPU. */
 		virtual u32 GetUseCount() const = 0;
 
 		/** Returns the resource that tracks the GPU use of the buffer, or null if the backend tracks none. */

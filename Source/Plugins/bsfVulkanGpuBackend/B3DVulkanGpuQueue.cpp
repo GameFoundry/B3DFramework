@@ -268,7 +268,6 @@ void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const VulkanGpuCommandBufferSub
 	}
 
 	mLastSubmittedProgressValue = mNextProgressValue++;
-	primaryCommandBuffer->NotifyWasSubmitted(GetId());
 }
 
 VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageIndex, GpuQueueMask syncMask, TArrayView<VulkanSemaphore* const> waitSemaphores)
