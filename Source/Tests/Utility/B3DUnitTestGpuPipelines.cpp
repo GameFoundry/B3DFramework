@@ -86,6 +86,24 @@ namespace b3d
 		return CreateComputePipeline(device, "ByteAddressBufferAccess");
 	}
 
+	TShared<GpuGraphicsPipelineState> CreateTestSkinCacheDrawPipeline(GpuDevice& device)
+	{
+		const TShared<Pass> pass = ResolveTestPass("SkinCacheDraw");
+		if(pass == nullptr)
+			return nullptr;
+
+		const PassInformation& passInformation = pass->GetInformation();
+
+		GpuGraphicsPipelineStateCreateInformation pipelineInformation;
+		pipelineInformation.BlendState = passInformation.BlendStateInformation;
+		pipelineInformation.RasterizerState = passInformation.RasterizerStateInformation;
+		pipelineInformation.DepthStencilState = passInformation.DepthStencilStateInformation;
+		pipelineInformation.VertexProgram = device.CreateGpuProgram(pass->GetGpuProgramCreateInformation(GPT_VERTEX_PROGRAM));
+		pipelineInformation.FragmentProgram = device.CreateGpuProgram(pass->GetGpuProgramCreateInformation(GPT_FRAGMENT_PROGRAM));
+
+		return device.CreateGpuGraphicsPipelineState(pipelineInformation);
+	}
+
 	TShared<GpuComputePipelineState> CreateTestInlineRayTracingPipeline(GpuDevice& device)
 	{
 		return CreateComputePipeline(device, "InlineRayTracing");

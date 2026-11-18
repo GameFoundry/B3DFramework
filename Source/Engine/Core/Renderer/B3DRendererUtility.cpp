@@ -213,10 +213,33 @@ void RendererUtility::Draw(GpuCommandBuffer& commandBuffer, const TShared<MeshBa
 void RendererUtility::Draw(GpuCommandBuffer& commandBuffer, const TShared<MeshBase>& mesh, const SubMesh& subMesh, u32 instanceCount)
 {
 	TShared<VertexData> vertexData = mesh->GetVertexData();
+	BindVertexData(commandBuffer, *vertexData);
 
-	commandBuffer.SetVertexDescription(mesh->GetVertexData()->VertexDescription);
+	TShared<GpuBuffer> indexBuffer = mesh->GetIndexBuffer();
+	commandBuffer.SetIndexBuffer(indexBuffer);
 
-	auto& vertexBuffers = vertexData->GetBuffers();
+	commandBuffer.SetDrawOperation(subMesh.DrawOp);
+
+	u32 indexCount = subMesh.IndexCount;
+	commandBuffer.DrawIndexed(subMesh.IndexOffset + mesh->GetIndexOffset(), indexCount, mesh->GetVertexOffset(), vertexData->VertexCount, instanceCount);
+
+	mesh->NotifyUsedOnGPU();
+}
+
+void RendererUtility::Draw(GpuCommandBuffer& commandBuffer, const VertexData& vertexData, const TShared<GpuBuffer>& indexBuffer, const SubMesh& subMesh, u32 instanceCount)
+{
+	BindVertexData(commandBuffer, vertexData);
+
+	commandBuffer.SetIndexBuffer(indexBuffer);
+	commandBuffer.SetDrawOperation(subMesh.DrawOp);
+	commandBuffer.DrawIndexed(subMesh.IndexOffset, subMesh.IndexCount, 0, vertexData.VertexCount, instanceCount);
+}
+
+void RendererUtility::BindVertexData(GpuCommandBuffer& commandBuffer, const VertexData& vertexData)
+{
+	commandBuffer.SetVertexDescription(vertexData.VertexDescription);
+
+	auto& vertexBuffers = vertexData.GetBuffers();
 	if(vertexBuffers.size() > 0)
 	{
 		TShared<GpuBuffer> buffers[B3D_MAX_BOUND_VERTEX_BUFFERS];
@@ -239,16 +262,6 @@ void RendererUtility::Draw(GpuCommandBuffer& commandBuffer, const TShared<MeshBa
 
 		commandBuffer.SetVertexBuffers(startSlot, buffers, endSlot - startSlot + 1);
 	}
-
-	TShared<GpuBuffer> indexBuffer = mesh->GetIndexBuffer();
-	commandBuffer.SetIndexBuffer(indexBuffer);
-
-	commandBuffer.SetDrawOperation(subMesh.DrawOp);
-
-	u32 indexCount = subMesh.IndexCount;
-	commandBuffer.DrawIndexed(subMesh.IndexOffset + mesh->GetIndexOffset(), indexCount, mesh->GetVertexOffset(), vertexData->VertexCount, instanceCount);
-
-	mesh->NotifyUsedOnGPU();
 }
 
 void RendererUtility::DrawMorph(GpuCommandBuffer& commandBuffer, const TShared<MeshBase>& mesh, const SubMesh& subMesh, const TShared<GpuBuffer>& morphVertices, const TShared<VertexDescription>& morphVertexDescription)

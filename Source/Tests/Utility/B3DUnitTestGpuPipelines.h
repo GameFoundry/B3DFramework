@@ -61,6 +61,14 @@ namespace b3d
 	TShared<GpuComputePipelineState> CreateTestByteAddressBufferAccessPipeline(GpuDevice& device);
 
 	/**
+	 * Creates a graphics pipeline that reads POSITION, NORMAL, TANGENT and TEXCOORD0 of mesh vertices, with normals and tangents as 8-bit
+	 * unorm values, and draws without depth testing or culling. Mesh space X in [-0.5, 0.5] and Y in [0, 1] cover the viewport. Its single
+	 * color target receives 1 in red, the texture coordinates in green and blue, and in alpha the squared length of the normal times the
+	 * absolute handedness of the tangent, clamped to 1. Returns null if the shader cannot be resolved for the active backend.
+	 */
+	TShared<GpuGraphicsPipelineState> CreateTestSkinCacheDrawPipeline(GpuDevice& device);
+
+	/**
 	 * Creates a compute pipeline that traces one ray per thread group against the top level acceleration structure Scene. Group N reads its
 	 * ray from element N of the structured buffer Rays (origin and minimum distance, direction and maximum distance, then ray flags, instance
 	 * mask and mode as four words), and writes what the ray hit into element N of the structured buffer Hits: 1 or 0 for a hit or a miss,

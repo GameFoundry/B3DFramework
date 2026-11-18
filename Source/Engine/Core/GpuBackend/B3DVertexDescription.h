@@ -22,7 +22,8 @@ namespace b3d
 		VES_BITANGENT = 7, /**< Bitangent */
 		VES_TANGENT = 8, /**< Tangent */
 		VES_POSITIONT = 9, /**< Transformed position */
-		VES_PSIZE = 10 /**< Point size */
+		VES_PSIZE = 10, /**< Point size */
+		VES_PADDING = 11 /**< Bytes that no shader input reads, but are still part of the buffer. */
 	};
 
 	/**	Types used to identify base types of vertex element contents. */
@@ -164,6 +165,9 @@ namespace b3d
 
 		/**	Returns the vertex element with the specified semantic. */
 		const VertexElement* GetElement(VertexElementSemantic semantic, u32 semanticIndex = 0, u32 streamIndex = 0) const;
+
+		/** Returns the first element with @p semantic and @p semanticIndex in any stream, or null if there is none. */
+		const VertexElement* FindElement(VertexElementSemantic semantic, u32 semanticIndex = 0) const;
 
 		/** Returns all the elements of the definition. */
 		const TInlineArray<VertexElement, 8>& GetElements() const { return mVertexElements; }

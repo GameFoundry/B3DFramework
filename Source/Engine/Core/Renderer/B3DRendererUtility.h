@@ -324,6 +324,19 @@ namespace b3d
 			void Draw(GpuCommandBuffer& commandBuffer, const TShared<MeshBase>& mesh, const SubMesh& subMesh, u32 instanceCount = 1);
 
 			/**
+			 * Draws @p subMesh with the vertices of @p vertexData and the indices of @p indexBuffer.
+			 *
+			 * @param	commandBuffer	Command buffer to encode the draw command on.
+			 * @param	vertexData		Vertex buffers and their description. Buffers are bound to the streams their description assigns them.
+			 * @param	indexBuffer		Indices of the vertices of @p vertexData that form the primitives of @p subMesh.
+			 * @param	subMesh			Range of indices to draw, and the primitives they form.
+			 * @param	instanceCount	Number of times to draw the sub-mesh using instanced rendering.
+			 *
+			 * @note	Render thread.
+			 */
+			void Draw(GpuCommandBuffer& commandBuffer, const VertexData& vertexData, const TShared<GpuBuffer>& indexBuffer, const SubMesh& subMesh, u32 instanceCount = 1);
+
+			/**
 			 * Draws the specified mesh with an additional vertex buffer containing morph shape vertices.
 			 *
 			 * @param	commandBuffer			Command buffer to encode the draw command on.
@@ -378,12 +391,6 @@ namespace b3d
 			/** Returns a unit axis aligned box stencil mesh. */
 			TShared<Mesh> GetBoxStencil() const { return mUnitBoxStencilMesh; }
 
-			/** Number of sides in the cone mesh used for spot light stencil volumes. */
-			static constexpr u32 kSpotLightStencilSideCount = 20;
-
-			/** Number of slices in the cone mesh used for spot light stencil volumes. */
-			static constexpr u32 kSpotLightStencilSliceCount = 10;
-
 			/**
 			 * Returns a stencil mesh used for a spot light. Actual vertex positions need to be computed in shader as this
 			 * method will return uninitialized vertex positions.
@@ -393,7 +400,16 @@ namespace b3d
 			/** Returns a mesh that can be used for rendering a skybox. */
 			TShared<Mesh> GetSkyBoxMesh() const { return mSkyBoxMesh; }
 
+			/** Number of sides in the cone mesh used for spot light stencil volumes. */
+			static constexpr u32 kSpotLightStencilSideCount = 20;
+
+			/** Number of slices in the cone mesh used for spot light stencil volumes. */
+			static constexpr u32 kSpotLightStencilSliceCount = 10;
+
 		private:
+			/** Binds the vertex description and the vertex buffers of @p vertexData. */
+			void BindVertexData(GpuCommandBuffer& commandBuffer, const VertexData& vertexData);
+
 			static constexpr u32 kNumQuadVbSlots = 1024;
 
 			TShared<GpuBuffer> mFullScreenQuadIB;

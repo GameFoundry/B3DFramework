@@ -326,6 +326,17 @@ const VertexElement* VertexDescription::GetElement(VertexElementSemantic semanti
 	return nullptr;
 }
 
+const VertexElement* VertexDescription::FindElement(VertexElementSemantic semantic, u32 semanticIndex) const
+{
+	for(const VertexElement& element : mVertexElements)
+	{
+		if(element.GetSemantic() == semantic && element.GetSemanticIndex() == semanticIndex)
+			return &element;
+	}
+
+	return nullptr;
+}
+
 bool VertexDescription::IsCompatibleWithShaderInputs(const VertexDescription& vertexBufferDescription, const VertexDescription& shaderInputDescription)
 {
 	const TInlineArray<VertexElement, 8>& vertexBufferElements = vertexBufferDescription.GetElements();

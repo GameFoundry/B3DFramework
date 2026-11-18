@@ -14,22 +14,10 @@ namespace b3d::render
 {
 	namespace
 	{
-		/** Returns the first element of @p description with @p semantic and semantic index 0, in any stream, or null if there is none. */
-		const VertexElement* FindElement(const VertexDescription& description, VertexElementSemantic semantic)
-		{
-			for(const VertexElement& element : description.GetElements())
-			{
-				if(element.GetSemantic() == semantic && element.GetSemanticIndex() == 0)
-					return &element;
-			}
-
-			return nullptr;
-		}
-
 		/** Returns true if @p description has no element with @p semantic and semantic index 0, or its element is of @p type. */
 		bool IsOptionalElementOfType(const VertexDescription& description, VertexElementSemantic semantic, VertexElementType type)
 		{
-			const VertexElement* element = FindElement(description, semantic);
+			const VertexElement* element = description.FindElement(semantic);
 			return element == nullptr || element->GetType() == type;
 		}
 
@@ -57,7 +45,7 @@ namespace b3d::render
 		if(indexType != kIndexType)
 			return false;
 
-		const VertexElement* position = FindElement(vertexDescription, VES_POSITION);
+		const VertexElement* position = vertexDescription.FindElement(VES_POSITION);
 		if(position == nullptr || position->GetType() != kPositionType)
 			return false;
 
@@ -99,14 +87,14 @@ namespace b3d::render
 			return nullptr;
 		}
 
-		const VertexElement* position = FindElement(description, VES_POSITION);
+		const VertexElement* position = description.FindElement(VES_POSITION);
 
 		RayTracingGeometryLayout meshLayout;
 		meshLayout.IndexBufferIndex = indexBuffer->GetBindlessIndex();
 		meshLayout.Position = GetVertexStream(vertexData, position);
-		meshLayout.Normal = GetVertexStream(vertexData, FindElement(description, VES_NORMAL));
-		meshLayout.Tangent = GetVertexStream(vertexData, FindElement(description, VES_TANGENT));
-		meshLayout.Uv = GetVertexStream(vertexData, FindElement(description, VES_TEXCOORD));
+		meshLayout.Normal = GetVertexStream(vertexData, description.FindElement(VES_NORMAL));
+		meshLayout.Tangent = GetVertexStream(vertexData, description.FindElement(VES_TANGENT));
+		meshLayout.Uv = GetVertexStream(vertexData, description.FindElement(VES_TEXCOORD));
 
 		const TShared<GpuBuffer> positionBuffer = vertexData.GetBuffer(position->GetStreamIndex());
 		if(positionBuffer == nullptr)

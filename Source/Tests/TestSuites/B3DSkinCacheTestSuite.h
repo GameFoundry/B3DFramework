@@ -1,0 +1,58 @@
+//************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
+//*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
+#pragma once
+
+#include "Testing/B3DTestSuite.h"
+
+namespace b3d
+{
+	/**
+	 * Tests for the skin cache, on a procedural mesh: a column of rings skinned to three bones, with up to four bones per vertex. The
+	 * deformed vertices are read back and compared with a CPU implementation of the same math.
+	 */
+	class SkinCacheTestSuite : public TestSuite
+	{
+	public:
+		SkinCacheTestSuite();
+
+	private:
+		/**
+		 * Deforms an entry to the bind pose: no vertex data before the first update, positions equal to the mesh's, normals and tangents
+		 * within 1/255 of the mesh's normalized ones, and the tangents' handedness kept.
+		 */
+		void TestBindPose();
+
+		/**
+		 * Deforms an entry to fixed bone transforms: positions within 1e-5 of the CPU reference, normals and tangents within 1/255, and the
+		 * tangents' handedness kept.
+		 */
+		void TestSkinning();
+
+		/**
+		 * Deforms an entry that keeps previous positions through several poses and checks which buffers its vertex data binds as POSITION0
+		 * and POSITION1, and what they hold: one buffer for both after the first deformation, a second buffer after the second, swapped
+		 * roles after the third, the current buffer for both after an update without a new pose, and the right previous positions after
+		 * the next pose.
+		 */
+		void TestPreviousPositions();
+
+		/**
+		 * Checks that an update adds a pass only for changed poses: the same pose twice adds none, a changed morph shape weight alone adds
+		 * one. Checks that poses with the wrong number of bones or weights are rejected, and which meshes get no entry.
+		 */
+		void TestChangeDetection();
+
+		/**
+		 * Checks the entry's vertex description: POSITION0, NORMAL0 and TANGENT0 resolve to the entry's streams, TEXCOORD0 to the mesh's,
+		 * and the mesh's stream keeps its stride. Draws the deformed mesh in the graph that deformed it and probes pixels that only the
+		 * deformed shape covers.
+		 */
+		void TestVertexLayout();
+
+		/**
+		 * Deforms two entries, one of them with previous positions, in one graph: one pass, not culled, and no validation errors. A later
+		 * graph draws the exported buffers at rest without declaring them, and a third deforms them again after that draw.
+		 */
+		void TestFrameGraph();
+	};
+} // namespace b3d
