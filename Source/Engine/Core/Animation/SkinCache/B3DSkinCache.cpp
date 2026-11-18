@@ -1,6 +1,6 @@
 //************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "SkinCache/B3DSkinCache.h"
+#include "Animation/SkinCache/B3DSkinCache.h"
 
 #include "Animation/B3DMorphShapes.h"
 #include "Animation/B3DSkeleton.h"
@@ -17,7 +17,7 @@
 #include "RayTracing/B3DRayTracingGeometry.h"
 #include "Renderer/B3DGpuUniformBuffer.h"
 #include "Renderer/B3DRendererMaterial.h"
-#include "SkinCache/B3DMorphShapeBuffers.h"
+#include "Animation/SkinCache/B3DMorphShapeBuffers.h"
 #include "ThirdParty/CityHash/city.h"
 #include "Utility/B3DBitwise.h"
 

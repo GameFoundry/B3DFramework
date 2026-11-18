@@ -38,23 +38,30 @@ static const ShaderVariationParameters* kDecalVariationParameterLookup[2][3] = {
 	  &GetDecalShaderVariation<true, MSAAMode::Full>() }
 };
 
-/** Returns a specific base pass shader variation. */
+/**
+ * Returns a specific base pass shader variation. @p animType is RenderableAnimType::None for vertices a skin cache deformed, which use the
+ * DEFORMED variation if @p deformed is true.
+ */
 template <bool WRITE_VELOCITY>
-static const ShaderVariationParameters* GetBasePassVariation(bool shaderCanWriteVelocity, RenderableAnimType animType)
+static const ShaderVariationParameters* GetBasePassVariation(bool shaderCanWriteVelocity, RenderableAnimType animType, bool deformed)
 {
+	if(deformed)
+		return &GetVertexInputVariation<false, false, true, WRITE_VELOCITY>(shaderCanWriteVelocity);
+
 	const ShaderVariationParameters* VAR_LOOKUP[4];
-	VAR_LOOKUP[0] = &GetVertexInputVariation<false, false, WRITE_VELOCITY>(shaderCanWriteVelocity);
-	VAR_LOOKUP[1] = &GetVertexInputVariation<true, false, WRITE_VELOCITY>(shaderCanWriteVelocity);
-	VAR_LOOKUP[2] = &GetVertexInputVariation<false, true, WRITE_VELOCITY>(shaderCanWriteVelocity);
-	VAR_LOOKUP[3] = &GetVertexInputVariation<true, true, WRITE_VELOCITY>(shaderCanWriteVelocity);
+	VAR_LOOKUP[0] = &GetVertexInputVariation<false, false, false, WRITE_VELOCITY>(shaderCanWriteVelocity);
+	VAR_LOOKUP[1] = &GetVertexInputVariation<true, false, false, WRITE_VELOCITY>(shaderCanWriteVelocity);
+	VAR_LOOKUP[2] = &GetVertexInputVariation<false, true, false, WRITE_VELOCITY>(shaderCanWriteVelocity);
+	VAR_LOOKUP[3] = &GetVertexInputVariation<true, true, false, WRITE_VELOCITY>(shaderCanWriteVelocity);
 
 	return VAR_LOOKUP[(int)animType];
 }
 
 /** Initializes a specific base pass variation on the provided material and returns the variation index. */
-static u32 InitAndRetrieveBasePassVariation(Material& material, bool shaderCanWriteVelocity, bool writeVelocity, RenderableAnimType animType)
+static u32 InitAndRetrieveBasePassVariation(Material& material, bool shaderCanWriteVelocity, bool writeVelocity, RenderableAnimType animType, bool deformed)
 {
-	const ShaderVariationParameters* const variationParameters = writeVelocity ? GetBasePassVariation<true>(shaderCanWriteVelocity, animType) : GetBasePassVariation<false>(shaderCanWriteVelocity, animType);
+	const ShaderVariationParameters* const variationParameters = writeVelocity ? GetBasePassVariation<true>(shaderCanWriteVelocity, animType, deformed)
+		: GetBasePassVariation<false>(shaderCanWriteVelocity, animType, deformed);
 
 	FindVariationInformation findInformation;
 	findInformation.VariationParameters = variationParameters;
@@ -73,7 +80,11 @@ static u32 InitAndRetrieveBasePassVariation(Material& material, bool shaderCanWr
 	return variationIndex;
 }
 
-static void ValidateBasePassMaterial(Material& material, RenderableAnimType animType, u32 variationIndex, VertexDescription& vertexBufferDescription)
+/**
+ * Logs a warning if the vertices of @p vertexBufferDescription lack an input of the variation. @p deformed is true for vertices a skin cache
+ * deforms, whose vertex data adds the previous positions to the mesh's vertices.
+ */
+static void ValidateBasePassMaterial(Material& material, RenderableAnimType animType, bool deformed, u32 variationIndex, VertexDescription& vertexBufferDescription)
 {
 	// Validate mesh <-> shader vertex bindings
 	u32 passCount = material.GetPassCount(variationIndex);
@@ -93,6 +104,14 @@ static void ValidateBasePassMaterial(Material& material, RenderableAnimType anim
 				auto removeIter = std::remove_if(missingElements.begin(), missingElements.end(), [](const VertexElement& x)
 												 { return (x.GetSemantic() == VES_POSITION && x.GetSemanticIndex() == 1) ||
 													   (x.GetSemantic() == VES_NORMAL && x.GetSemanticIndex() == 1); });
+
+				missingElements.erase(removeIter, missingElements.end());
+			}
+
+			if(deformed)
+			{
+				auto removeIter = std::remove_if(missingElements.begin(), missingElements.end(), [](const VertexElement& x)
+												 { return x.GetSemantic() == VES_POSITION && x.GetSemanticIndex() == 1; });
 
 				missingElements.erase(removeIter, missingElements.end());
 			}
@@ -153,6 +172,10 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 			const MeshProperties& meshProps = mesh->GetProperties();
 			TShared<VertexDescription> vertexDescription = mesh->GetVertexData()->VertexDescription;
 
+			// An animated renderable with a skin cache entry draws the entry's vertices with the variations of a static one
+			SkinCacheEntry* const skinCacheEntry = proxy.GetSkinCacheEntry().get();
+			const RenderableAnimType animType = skinCacheEntry != nullptr ? RenderableAnimType::None : proxy.GetAnimType();
+
 			for(u32 subMeshIndex = 0; subMeshIndex < (u32)meshProps.SubMeshes.size(); subMeshIndex++)
 			{
 				renderState->DrawCommands.push_back(RenderableDrawCommand());
@@ -161,7 +184,8 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 				drawCommand.Type = (u32)DrawCommandType::Renderable;
 				drawCommand.Mesh = mesh;
 				drawCommand.SubMesh = meshProps.SubMeshes[subMeshIndex];
-				drawCommand.AnimType = proxy.GetAnimType();
+				drawCommand.AnimType = animType;
+				drawCommand.SkinCacheEntry = skinCacheEntry;
 				drawCommand.AnimationId = proxy.GetAnimationId();
 				drawCommand.MorphShapeVersion = 0;
 				drawCommand.MorphShapeBuffer = proxy.GetMorphShapeBuffer();
@@ -188,13 +212,12 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 																 { return x.Identifier == "WRITE_VELOCITY"; }) != variationParams.end();
 
 				const bool writeVelocity = shaderCanWriteVelocity && proxy.GetWriteVelocity();
+				const bool deformed = skinCacheEntry != nullptr;
 
-				RenderableAnimType animType = proxy.GetAnimType();
-
-				drawCommand.DefaultVariationIndex = InitAndRetrieveBasePassVariation(*drawCommand.Material, shaderCanWriteVelocity, false, animType);
+				drawCommand.DefaultVariationIndex = InitAndRetrieveBasePassVariation(*drawCommand.Material, shaderCanWriteVelocity, false, animType, false);
 
 #if B3D_DEBUG
-				ValidateBasePassMaterial(*drawCommand.Material, animType, drawCommand.DefaultVariationIndex, *vertexDescription);
+				ValidateBasePassMaterial(*drawCommand.Material, animType, deformed, drawCommand.DefaultVariationIndex, *vertexDescription);
 #endif
 
 				// Generate or assigned renderer specific data for the material
@@ -203,10 +226,11 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 
 				if(writeVelocity)
 				{
-					drawCommand.WriteVelocityVariationIndex = InitAndRetrieveBasePassVariation(*drawCommand.Material, shaderCanWriteVelocity, true, animType);
+					// Only the velocity variation reads the previous positions of deformed vertices
+					drawCommand.WriteVelocityVariationIndex = InitAndRetrieveBasePassVariation(*drawCommand.Material, shaderCanWriteVelocity, true, animType, deformed);
 
 #if B3D_DEBUG
-					ValidateBasePassMaterial(*drawCommand.Material, animType, drawCommand.WriteVelocityVariationIndex, *vertexDescription);
+					ValidateBasePassMaterial(*drawCommand.Material, animType, deformed, drawCommand.WriteVelocityVariationIndex, *vertexDescription);
 #endif
 
 					// Note: Using the same params as the non-velocity variation. There are assumed to be no differences
@@ -360,7 +384,8 @@ void RenderableObjectStorage::PrepareVisibleRenderable(PackedRendererId id, cons
 	bool isAnimated = false;
 	if(frameInfo.PerSceneFrameData.Animation != nullptr)
 	{
-		isAnimated = proxy.GetAnimationId() != (u64)-1;
+		// A renderable with a skin cache entry was posed through the cache
+		isAnimated = proxy.GetAnimationId() != (u64)-1 && proxy.GetSkinCacheEntry() == nullptr;
 
 		if(isAnimated)
 		{

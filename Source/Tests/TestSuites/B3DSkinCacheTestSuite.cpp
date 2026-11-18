@@ -34,8 +34,8 @@
 #include "Renderer/B3DRendererUtility.h"
 #include "Scene/B3DSceneInstance.h"
 #include "Scene/B3DSceneObject.h"
-#include "SkinCache/B3DMorphShapeBuffers.h"
-#include "SkinCache/B3DSkinCache.h"
+#include "Animation/SkinCache/B3DMorphShapeBuffers.h"
+#include "Animation/SkinCache/B3DSkinCache.h"
 #include "Threading/B3DAsyncOp.h"
 
 using namespace b3d;
@@ -836,6 +836,7 @@ void SkinCacheTestSuite::TestPreviousPositions()
 	GetRenderThread().PostCommand([this, &device]()
 	{
 		const TShared<MeshData> meshData = CreateTestMeshData();
+		const TShared<render::Mesh> mesh = CreateTestMesh(*device, meshData, true, false);
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 
 		SkinCache cache(*device, "Test skin cache");
@@ -942,6 +943,7 @@ void SkinCacheTestSuite::TestChangeDetection()
 	GetRenderThread().PostCommand([this, &device]()
 	{
 		const TShared<MeshData> meshData = CreateTestMeshData();
+		const TShared<render::Mesh> mesh = CreateTestMesh(*device, meshData, true, true);
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 
 		SkinCache cache(*device, "Test skin cache");
@@ -990,6 +992,7 @@ void SkinCacheTestSuite::TestChangeDetection()
 
 		B3D_TEST_ASSERT(!UpdateAndExecute(*this, cache, *context, *device))
 
+		// A mesh without a skeleton or morph shapes gets no entry, nor does one whose vertices the cache can't read
 		const TShared<render::Mesh> staticMesh = render::Mesh::Create(meshData, MeshCreateInformation());
 		B3D_TEST_ASSERT(cache.CreateEntry(SkinCacheEntryCreateInformation(staticMesh)) == nullptr)
 
@@ -1036,6 +1039,7 @@ void SkinCacheTestSuite::TestVertexLayout()
 	GetRenderThread().PostCommand([this, &device, &pipeline]()
 	{
 		const TShared<MeshData> meshData = CreateTestMeshData();
+		const TShared<render::Mesh> mesh = CreateTestMesh(*device, meshData, true, false);
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 
 		SkinCache cache(*device, "Test skin cache");
@@ -1145,6 +1149,7 @@ void SkinCacheTestSuite::TestFrameGraph()
 	GetRenderThread().PostCommand([this, &device, &pipeline]()
 	{
 		const TShared<MeshData> meshData = CreateTestMeshData();
+		const TShared<render::Mesh> mesh = CreateTestMesh(*device, meshData, true, false);
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 
 		SkinCache cache(*device, "Test skin cache");

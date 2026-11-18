@@ -484,10 +484,10 @@ namespace b3d
 				Vector<Command> commandsPerAnimationType[4];
 
 				static const ShaderVariationParameters* kVariationLookup[4];
-				kVariationLookup[0] = &GetVertexInputVariation<false, false, false>(false);
-				kVariationLookup[1] = &GetVertexInputVariation<true, false, false>(false);
-				kVariationLookup[2] = &GetVertexInputVariation<false, true, false>(false);
-				kVariationLookup[3] = &GetVertexInputVariation<true, true, false>(false);
+				kVariationLookup[0] = &GetVertexInputVariation<false, false, false, false>(false);
+				kVariationLookup[1] = &GetVertexInputVariation<true, false, false, false>(false);
+				kVariationLookup[2] = &GetVertexInputVariation<false, true, false, false>(false);
+				kVariationLookup[3] = &GetVertexInputVariation<true, true, false, false>(false);
 
 				// Make a list of relevant renderables and prepare them for rendering
 				for(u32 renderableIndex = 0; renderableIndex < renderableStorage.GetRenderableCount(); renderableIndex++)
@@ -546,14 +546,7 @@ namespace b3d
 					for(const Command& command : commands)
 					{
 						if(command.IsDrawCommand)
-						{
-							const RenderableDrawCommand& drawCommand = *command.DrawCommand;
-
-							if(drawCommand.MorphVertexDefinition == nullptr)
-								GetRendererUtility().Draw(commandBuffer, drawCommand.Mesh, drawCommand.SubMesh);
-							else
-								GetRendererUtility().DrawMorph(commandBuffer, drawCommand.Mesh, drawCommand.SubMesh, drawCommand.MorphShapeBuffer, drawCommand.MorphVertexDefinition);
-						}
+							command.DrawCommand->Draw(commandBuffer);
 						else
 						{
 							command.Material->Bind(commandBuffer, command.GpuParameterSet);

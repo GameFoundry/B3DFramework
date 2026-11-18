@@ -13,7 +13,7 @@
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DVertexData.h"
 #include "RayTracing/B3DRayTracingGeometry.h"
-#include "SkinCache/B3DMorphShapeBuffers.h"
+#include "Animation/SkinCache/B3DMorphShapeBuffers.h"
 #include "Threading/B3DAsyncOp.h"
 #include "GpuBackend/B3DVertexDescription.h"
 #include "Resources/B3DResources.h"

@@ -18,10 +18,23 @@
 	#define VERTEX_INPUT_UV 1
 #endif
 
+// DEFORMED: the vertices were deformed by a skin cache
+#ifndef DEFORMED
+	#define DEFORMED 0
+#endif
+
 mixin VertexCommon
 {
 	code
 	{
+		// Each code block is preprocessed on its own, so VertexInput repeats this
+		#if DEFORMED
+			#undef SKINNED
+			#define SKINNED 0
+			#undef MORPH
+			#define MORPH 0
+		#endif
+
 		struct VStoFS
 		{
 			float4 position : SV_Position;
@@ -70,7 +83,11 @@ mixin VertexCommon
 			#if MORPH
 				float3 deltaPosition : POSITION1;
 				float4 deltaNormal : NORMAL1;
-			#endif				
+			#endif
+
+			#if DEFORMED && VERTEX_INPUT_PREVIOUS_CLIP_SPACE
+				float3 previousPosition : POSITION1;
+			#endif
 		};
 		
 		// Vertex input containing only position data

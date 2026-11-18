@@ -15,6 +15,7 @@
 #include "Utility/B3DTime.h"
 #include "Animation/B3DAnimationScene.h"
 #include "Animation/B3DSkeleton.h"
+#include "Animation/SkinCache/B3DSkinCache.h"
 #include "Components/B3DLight.h"
 #include "Renderer/B3DRendererExtension.h"
 #include "Renderer/B3DRenderSettings.h"
@@ -426,6 +427,22 @@ bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInf
 	RenderableObjectStorage& renderableStorage = scene.GetRenderableStorage();
 	for(u32 i = 0; i < renderableStorage.GetRenderableCount(); i++)
 		renderableStorage.PrepareRenderable(i, frameInfo);
+
+	// Deform the vertices of the animated renderables whose pose changed, before any render target draws them
+	if(frameInfo.PerSceneFrameData.Animation != nullptr)
+		renderableStorage.SetSkinCachePoses(*frameInfo.PerSceneFrameData.Animation);
+
+	{
+		// Covers the graph's execution, because pass functions may read data the passes allocated from the frame allocator
+		FrameAllocatorScope frameScope;
+
+		FrameGraph graph(GetGpuContext(), "SceneUpdate");
+		if(renderableStorage.UpdateSkinCache(graph))
+		{
+			graph.Compile();
+			graph.Execute();
+		}
+	}
 
 	scene.PrepareParticleSystems(frameInfo);
 

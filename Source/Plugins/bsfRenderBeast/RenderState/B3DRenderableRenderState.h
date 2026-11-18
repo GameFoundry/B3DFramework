@@ -46,8 +46,14 @@ namespace b3d
 			/** Identifier of the animation running on the renderable's mesh. -1 if no animation. */
 			u64 AnimationId;
 
-			/** Type of animation applied to this element, if any. */
+			/** Type of animation applied to this element, if any. None if the element draws the vertices of SkinCacheEntry. */
 			RenderableAnimType AnimType;
+
+			/**
+			 * Skin cache entry whose deformed vertices the element draws, instead of the mesh's, or null. Owned by the renderable's proxy,
+			 * which outlives the element.
+			 */
+			SkinCacheEntry* SkinCacheEntry = nullptr;
 
 			/** Vertex buffer containing element's morph shape vertices, if it has any. */
 			TShared<GpuBuffer> MorphShapeBuffer;

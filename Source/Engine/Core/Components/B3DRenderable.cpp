@@ -20,8 +20,23 @@
 #include "Scene/B3DSceneObjectFragments.h"
 #include "Scene/B3DGameObjectCollection.h"
 #include "RTTI/B3DRenderableRTTI.h"
+#include "Animation/B3DAnimationScene.h"
+#include "Animation/B3DSkeleton.h"
+#include "Animation/SkinCache/B3DMorphShapeBuffers.h"
+#include "Animation/SkinCache/B3DSkinCache.h"
+#include "Utility/B3DConfigVariable.h"
 
 using namespace b3d;
+
+namespace b3d::render
+{
+	// TODO - Remove with vertex-shader skinning and the CPU morph blend, after which every animated renderable uses the skin cache
+	TConfigVariable<bool> gRenderSkinCache("render.SkinCache",
+		"Animated renderables draw vertices the skin cache deforms on the GPU. If false they are skinned in the vertex shader and their morph "
+		"shapes are blended on the CPU. Read when a renderable's render state is created.",
+		true,
+		ConfigVariableFlag::ReadOnly);
+}
 
 ecs::Renderable& ecs::CreateRenderable(ecs::Registry& registry, ecs::Entity entity, const TShared<RendererScene>& rendererScene, const Transform& transform)
 {
@@ -468,9 +483,28 @@ namespace b3d
 				proxy.mWorldTransformMatrix = proxy.mTransform.GetMatrix();
 				proxy.mWorldTransformMatrixWithoutScale = Matrix4::TRS(proxy.mTransform.GetPosition(), proxy.mTransform.GetRotation(), Vector3::kOne);
 
-				proxy.CreateAnimationBuffers();
+				// An animated renderable draws the vertices its skin cache entry deforms, if the cache can deform its mesh. The entry is kept
+				// while the mesh and what the entry produces stay the same, so it keeps its deformed vertices.
+				const TShared<render::Mesh>& mesh = proxy.mData.Mesh;
+				if(render::gRenderSkinCache && proxy.mData.AnimType != RenderableAnimType::None && mesh != nullptr)
+				{
+					const render::SkinCacheEntryFlags skinCacheEntryFlags = proxy.mData.WriteVelocity ? render::SkinCacheEntryFlag::PreviousPositions : render::SkinCacheEntryFlag::None;
+					if(proxy.mSkinCacheEntry == nullptr || proxy.mSkinCacheEntry->GetMesh() != mesh || proxy.mSkinCacheEntry->GetFlags() != skinCacheEntryFlags)
+						proxy.mSkinCacheEntry = storage.CreateSkinCacheEntry(render::SkinCacheEntryCreateInformation(mesh, skinCacheEntryFlags, "Renderable"));
+				}
+				else
+					proxy.mSkinCacheEntry = nullptr;
 
-				if(proxy.mData.AnimType == RenderableAnimType::Morph || proxy.mData.AnimType == RenderableAnimType::SkinnedMorph)
+				if(proxy.mSkinCacheEntry == nullptr)
+					proxy.CreateAnimationBuffers();
+				else
+				{
+					proxy.mBoneMatrixBuffer = nullptr;
+					proxy.mPreviousBoneMatrixBuffer = nullptr;
+					proxy.mMorphShapeBuffer = nullptr;
+				}
+
+				if(proxy.mSkinCacheEntry == nullptr && (proxy.mData.AnimType == RenderableAnimType::Morph || proxy.mData.AnimType == RenderableAnimType::SkinnedMorph))
 				{
 					TInlineArray<VertexElement, 8> vertexElements = proxy.mData.Mesh->GetVertexDescription()->GetElements();
 					vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION, 1, 1));
@@ -538,6 +572,63 @@ namespace b3d
 
 	using RenderableSyncBatch = TRendererObjectECSSyncBatch<RenderableFullUpdateChannel, RenderableTransformUpdateChannel>;
 } // namespace b3d
+
+RenderableObjectStorageBase::RenderableObjectStorageBase()
+	: mSkinCache(B3DMakeUnique<render::SkinCache>(*GetApplication().GetPrimaryGpuDevice(), "Renderables"))
+{ }
+
+RenderableObjectStorageBase::~RenderableObjectStorageBase() = default;
+
+TShared<render::SkinCacheEntry> RenderableObjectStorageBase::CreateSkinCacheEntry(const render::SkinCacheEntryCreateInformation& createInformation)
+{
+	TShared<render::SkinCacheEntry> entry = mSkinCache->CreateEntry(createInformation);
+	mHasUnposedSkinCacheEntries |= entry != nullptr;
+
+	return entry;
+}
+
+void RenderableObjectStorageBase::SetSkinCachePoses(const EvaluatedAnimationData& animationData)
+{
+	// The animation system returns the same data until it evaluates again
+	if(animationData.EvaluationIndex == mSkinCachePoseEvaluationIndex && !mHasUnposedSkinCacheEntries)
+		return;
+
+	mSkinCachePoseEvaluationIndex = animationData.EvaluationIndex;
+	mHasUnposedSkinCacheEntries = false;
+
+	// TODO - Instead of iterating all renderable proxies, keep a list of those with skin cache, as that's going to be a much smaller subset
+	for(u32 proxyIndex = 0; proxyIndex < (u32)mRenderableProxies.size(); proxyIndex++)
+	{
+		const render::RenderableProxy& proxy = mRenderableProxies[proxyIndex];
+		render::SkinCacheEntry* const entry = proxy.GetSkinCacheEntry().get();
+		if(entry == nullptr)
+			continue;
+
+		// Animations that weren't evaluated, such as culled ones, keep their last pose
+		const auto found = animationData.Infos.find(proxy.GetAnimationId());
+		if(found == animationData.Infos.end())
+			continue;
+
+		// The animation is evaluated for the mesh it had then, which lags behind a mesh change by a frame when it is asynchronous
+		const render::Mesh& mesh = *entry->GetMesh();
+		const u32 boneCount = mesh.GetSkeleton() != nullptr ? mesh.GetSkeleton()->GetBoneCount() : 0;
+		const u32 morphShapeCount = mesh.GetMorphShapeBuffers() != nullptr ? mesh.GetMorphShapeBuffers()->GetShapeCount() : 0;
+
+		const EvaluatedAnimationData::PoseInfo& poseInfo = found->second.PoseInfo;
+		const EvaluatedAnimationData::MorphShapeInfo& morphShapeInfo = found->second.MorphShapeInfo;
+		if(poseInfo.BoneCount != boneCount || morphShapeInfo.WeightCount != morphShapeCount)
+			continue;
+
+		const TArrayView<const Matrix4> boneTransforms(boneCount > 0 ? &animationData.Transforms[poseInfo.BoneStartIndex] : nullptr, boneCount);
+		const TArrayView<const float> morphShapeWeights(morphShapeCount > 0 ? &animationData.MorphShapeWeights[morphShapeInfo.WeightStartIndex] : nullptr, morphShapeCount);
+		entry->SetPose(boneTransforms, morphShapeWeights);
+	}
+}
+
+bool RenderableObjectStorageBase::UpdateSkinCache(render::FrameGraph& graph)
+{
+	return mSkinCache->Update(graph);
+}
 
 void* RenderableObjectStorageBase::SyncRead(ecs::Registry& registry, FrameAllocator& allocator)
 {

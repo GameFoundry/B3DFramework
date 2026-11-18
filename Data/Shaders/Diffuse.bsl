@@ -9,6 +9,7 @@ shader Surface
 	variations
 	{
 		WRITE_VELOCITY = { false, true };
+		DEFORMED = { false, true };
 	};
 	
 	code

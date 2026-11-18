@@ -20,6 +20,14 @@ namespace b3d
 
 	class RendererScene;
 
+	namespace render
+	{
+		class FrameGraph;
+		class SkinCache;
+		class SkinCacheEntry;
+		struct SkinCacheEntryCreateInformation;
+	}
+
 	/** @addtogroup Rendering-Internal
 	 *  @{
 	 */
@@ -361,6 +369,12 @@ namespace b3d
 			/** Returns vertex declaration used for rendering meshes containing morph shape information. */
 			const TShared<VertexDescription>& GetMorphVertexDescription() const { return mMorphVertexDescription; }
 
+			/**
+			 * Returns the skin cache entry that holds the renderable's deformed vertices, or null if the renderable isn't animated or doesn't
+			 * use the skin cache. A renderable with an entry draws the entry's vertices and has no bone or morph shape buffers.
+			 */
+			const TShared<SkinCacheEntry>& GetSkinCacheEntry() const { return mSkinCacheEntry; }
+
 			/**	Returns the transform matrix that is applied to the object when its being rendered. */
 			Matrix4 GetWorldTransformMatrix() const { return mWorldTransformMatrix; }
 
@@ -388,6 +402,7 @@ namespace b3d
 			TShared<GpuBuffer> mPreviousBoneMatrixBuffer;
 			TShared<GpuBuffer> mMorphShapeBuffer;
 			TShared<VertexDescription> mMorphVertexDescription;
+			TShared<SkinCacheEntry> mSkinCacheEntry;
 
 			Transform mTransform;
 			Matrix4 mWorldTransformMatrix = kIdentityTag;
@@ -408,6 +423,9 @@ namespace b3d
 	class B3D_EXPORT RenderableObjectStorageBase : public RendererObjectStorage
 	{
 	public:
+		RenderableObjectStorageBase();
+		~RenderableObjectStorageBase() override;
+
 		void* SyncRead(ecs::Registry& registry, FrameAllocator& allocator) override;
 		void SyncWrite(void* batchData, FrameAllocator& allocator) override;
 
@@ -438,8 +456,34 @@ namespace b3d
 		 */
 		virtual void UpdateRenderState(TArrayView<const PackedRendererId> slotIds) = 0;
 
+		/** Returns the skin cache that holds the deformed vertices of the animated renderables. */
+		const render::SkinCache& GetSkinCache() const { return *mSkinCache; }
+
+		/**
+		 * Sets the poses of the skin cache entries of the animated renderables from @p animationData. Does nothing if @p animationData is
+		 * the result of the evaluation the entries were last posed with, unless entries were created since.
+		 */
+		void SetSkinCachePoses(const EvaluatedAnimationData& animationData);
+
+		/**
+		 * Adds passes to @p graph that deform the vertices of the skin cache entries whose pose changed. See SkinCache::Update().
+		 *
+		 * @return	True if any pass was added.
+		 */
+		bool UpdateSkinCache(render::FrameGraph& graph);
+
 	protected:
+		friend struct RenderableFullUpdateChannel;
+
+		/** Creates an entry in the skin cache, which the next SetSkinCachePoses() poses. See SkinCache::CreateEntry(). */
+		TShared<render::SkinCacheEntry> CreateSkinCacheEntry(const render::SkinCacheEntryCreateInformation& createInformation);
+
+		// Declared before the proxies, which own its entries, so it is destroyed after them
+		TUnique<render::SkinCache> mSkinCache;
 		TChunkedArray<render::RenderableProxy> mRenderableProxies;
+
+		u64 mSkinCachePoseEvaluationIndex = 0; /**< EvaluatedAnimationData::EvaluationIndex of the data the entries were last posed with. */
+		bool mHasUnposedSkinCacheEntries = false; /**< True if entries were created since the entries were last posed. */
 	};
 
 	/** @} */
