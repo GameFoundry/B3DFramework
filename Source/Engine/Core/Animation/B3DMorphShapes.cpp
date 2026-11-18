@@ -59,6 +59,15 @@ MorphShapes::MorphShapes(const Vector<TShared<MorphChannel>>& channels, u32 numV
 {
 }
 
+u32 MorphShapes::GetShapeCount() const
+{
+	u32 shapeCount = 0;
+	for(const TShared<MorphChannel>& channel : mChannels)
+		shapeCount += channel->GetShapeCount();
+
+	return shapeCount;
+}
+
 TShared<MorphShapes> MorphShapes::Create(const Vector<TShared<MorphChannel>>& channels, u32 numVertices)
 {
 	MorphShapes* raw = new(B3DAllocate<MorphShapes>()) MorphShapes(channels, numVertices);

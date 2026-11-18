@@ -253,6 +253,7 @@ namespace b3d
 
 	namespace render
 	{
+		class MorphShapeBuffers;
 		class RayTracingGeometry;
 
 		/** @addtogroup Renderer
@@ -282,6 +283,9 @@ namespace b3d
 
 			/** Returns an object containing all shapes used for morph animation, if any are available. */
 			TShared<MorphShapes> GetMorphShapes() const { return mMorphShapes; }
+
+			/** Returns the morph shape buffers of the mesh. Null if the mesh has no morph shapes, or if the buffers couldn't be created. */
+			const TShared<MorphShapeBuffers>& GetMorphShapeBuffers() const;
 
 			/**
 			 * Returns true if the mesh can be used as ray tracing geometry: it has MeshFlag::SupportsRayTracing, isn't MeshFlag::Dynamic, its
@@ -382,6 +386,7 @@ namespace b3d
 			TShared<MeshData> mTempInitialMeshData;
 			TShared<Skeleton> mSkeleton; // Immutable
 			TShared<MorphShapes> mMorphShapes; // Immutable
+			TShared<MorphShapeBuffers> mMorphShapeBuffers;
 			bool mSupportsRayTracing = false;
 			TShared<RayTracingGeometry> mRayTracingGeometry;
 		};

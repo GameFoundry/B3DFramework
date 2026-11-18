@@ -2,8 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DSkinCacheTestSuite.h"
 #include "Utility/B3DUnitTestGpuPipelines.h"
+#include "Animation/B3DAnimationClip.h"
+#include "Animation/B3DAnimationScene.h"
 #include "Animation/B3DMorphShapes.h"
 #include "Animation/B3DSkeleton.h"
+#include "Components/B3DAnimation.h"
+#include "Components/B3DRenderable.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "FrameGraph/B3DFrameGraph.h"
 #include "GpuBackend/B3DGpuBackend.h"
@@ -28,6 +32,9 @@
 #include "Renderer/B3DRenderer.h"
 #include "Renderer/B3DRendererMeshData.h"
 #include "Renderer/B3DRendererUtility.h"
+#include "Scene/B3DSceneInstance.h"
+#include "Scene/B3DSceneObject.h"
+#include "SkinCache/B3DMorphShapeBuffers.h"
 #include "SkinCache/B3DSkinCache.h"
 #include "Threading/B3DAsyncOp.h"
 
@@ -79,15 +86,16 @@ namespace
 
 	/**
 	 * Returns the vertices of the test mesh: rings of radius kRingRadius around the Y axis from Y = 0 to 1, with outward normals, tangents
-	 * around the axis whose handedness alternates, and kUv. Rings take one of four sets of up to four bone weights, each of which adds up
-	 * to exactly 1.
+	 * around the axis whose handedness alternates, and kUv. If @p hasBoneWeights is true, rings take one of four sets of up to four bone
+	 * weights, each of which adds up to exactly 1.
 	 */
-	TShared<MeshData> CreateTestMeshData()
+	TShared<MeshData> CreateTestMeshData(bool hasBoneWeights = true)
 	{
-		const VertexLayout layout = (VertexLayout)((i32)VertexLayout::Position | (i32)VertexLayout::Normal | (i32)VertexLayout::Tangent | (i32)VertexLayout::UV0 |
-			(i32)VertexLayout::BoneWeights);
-		const TShared<RendererMeshData> rendererMeshData = RendererMeshData::Create(kVertexCount, kIndexCount, layout);
+		i32 layout = (i32)VertexLayout::Position | (i32)VertexLayout::Normal | (i32)VertexLayout::Tangent | (i32)VertexLayout::UV0;
+		if(hasBoneWeights)
+			layout |= (i32)VertexLayout::BoneWeights;
 
+		const TShared<RendererMeshData> rendererMeshData = RendererMeshData::Create(kVertexCount, kIndexCount, (VertexLayout)layout);
 		Vector<Vector3> positions;
 		Vector<Vector3> normals;
 		Vector<Vector4> tangents;
@@ -161,40 +169,72 @@ namespace
 		rendererMeshData->SetNormals(normals.data(), (u32)(normals.size() * sizeof(Vector3)));
 		rendererMeshData->SetTangents(tangents.data(), (u32)(tangents.size() * sizeof(Vector4)));
 		rendererMeshData->SetUV0(uvs.data(), (u32)(uvs.size() * sizeof(Vector2)));
-		rendererMeshData->SetBoneWeights(boneWeights.data(), (u32)(boneWeights.size() * sizeof(BoneWeight)));
 		rendererMeshData->SetIndices(indices.data(), (u32)(indices.size() * sizeof(u32)));
+
+		if(hasBoneWeights)
+			rendererMeshData->SetBoneWeights(boneWeights.data(), (u32)(boneWeights.size() * sizeof(BoneWeight)));
 
 		return rendererMeshData->GetData();
 	}
 
 	/**
-	 * Creates the render thread mesh of @p meshData, with a skeleton of kBoneCount bones, and if @p hasMorphShapes is true, a channel of
-	 * kMorphShapeCount morph shapes. Waits until the GPU holds its contents.
+	 * Returns the morph shapes of the test mesh: a channel of kMorphShapeCount shapes, at frame weights 0.5 and 1. The first moves rings 2
+	 * to 5 outwards and up and tilts their normals up, the second moves rings 4 to 7 by an amount that varies around the ring and tilts
+	 * their normals sideways, so rings 4 and 5 have the deltas of both shapes and the other rings have none.
 	 */
-	TShared<render::Mesh> CreateTestMesh(GpuDevice& device, const TShared<MeshData>& meshData, bool hasMorphShapes)
+	TShared<MorphShapes> CreateTestMorphShapes()
 	{
-		BoneInformation bones[kBoneCount];
-		for(u32 boneIndex = 0; boneIndex < kBoneCount; boneIndex++)
+		Vector<MorphVertex> firstShapeVertices;
+		Vector<MorphVertex> secondShapeVertices;
+		for(u32 ringIndex = 2; ringIndex < 8; ringIndex++)
 		{
-			bones[boneIndex].Name = "Bone" + ToString(boneIndex);
-			bones[boneIndex].Parent = boneIndex == 0 ? (u32)-1 : boneIndex - 1;
-			bones[boneIndex].LocalTfrm = Transform::kIdentity;
-			bones[boneIndex].InvBindPose = Matrix4::kIdentity;
+			for(u32 ringVertexIndex = 0; ringVertexIndex < kRingVertexCount; ringVertexIndex++)
+			{
+				const u32 vertexIndex = ringIndex * kRingVertexCount + ringVertexIndex;
+				const float angle = Math::kTwoPi * ringVertexIndex / (float)kRingVertexCount;
+
+				if(ringIndex <= 5)
+					firstShapeVertices.push_back(MorphVertex(Vector3(0.1f * std::cos(angle), 0.05f, 0.1f * std::sin(angle)), Vector3(0.0f, 0.6f, 0.0f), vertexIndex));
+
+				if(ringIndex >= 4)
+				{
+					const float amount = (float)(ringVertexIndex % 3);
+					secondShapeVertices.push_back(MorphVertex(Vector3(0.03f, -0.08f, 0.02f) * amount, Vector3(-0.4f, 0.0f, 0.3f), vertexIndex));
+				}
+			}
 		}
 
+		const TShared<MorphChannel> channel = MorphChannel::Create("Channel", { MorphShape::Create("First", 0.5f, firstShapeVertices),
+			MorphShape::Create("Second", 1.0f, secondShapeVertices) });
+
+		return MorphShapes::Create({ channel }, kVertexCount);
+	}
+
+	/**
+	 * Creates the render thread mesh of @p meshData, with a skeleton of kBoneCount bones if @p hasSkeleton is true, and the shapes of
+	 * CreateTestMorphShapes() if @p hasMorphShapes is true. Waits until the GPU holds its contents.
+	 */
+	TShared<render::Mesh> CreateTestMesh(GpuDevice& device, const TShared<MeshData>& meshData, bool hasSkeleton, bool hasMorphShapes)
+	{
 		MeshCreateInformation meshInformation;
 		meshInformation.SubMeshes = { SubMesh(0, kIndexCount, DOT_TRIANGLE_LIST) };
-		meshInformation.Skeleton = Skeleton::Create(bones, kBoneCount);
+
+		if(hasSkeleton)
+		{
+			BoneInformation bones[kBoneCount];
+			for(u32 boneIndex = 0; boneIndex < kBoneCount; boneIndex++)
+			{
+				bones[boneIndex].Name = "Bone" + ToString(boneIndex);
+				bones[boneIndex].Parent = boneIndex == 0 ? (u32)-1 : boneIndex - 1;
+				bones[boneIndex].LocalTfrm = Transform::kIdentity;
+				bones[boneIndex].InvBindPose = Matrix4::kIdentity;
+			}
+
+			meshInformation.Skeleton = Skeleton::Create(bones, kBoneCount);
+		}
 
 		if(hasMorphShapes)
-		{
-			const Vector<MorphVertex> firstShapeVertices = { MorphVertex(Vector3(0.1f, 0.0f, 0.0f), Vector3::kZero, 0) };
-			const Vector<MorphVertex> secondShapeVertices = { MorphVertex(Vector3(0.0f, 0.1f, 0.0f), Vector3::kZero, 1) };
-			const TShared<MorphChannel> channel = MorphChannel::Create("Channel", { MorphShape::Create("First", 0.5f, firstShapeVertices),
-				MorphShape::Create("Second", 1.0f, secondShapeVertices) });
-
-			meshInformation.MorphShapes = MorphShapes::Create({ channel }, kVertexCount);
-		}
+			meshInformation.MorphShapes = CreateTestMorphShapes();
 
 		const TShared<render::Mesh> mesh = render::Mesh::Create(meshData, meshInformation);
 
@@ -217,60 +257,110 @@ namespace
 	}
 
 	/**
-	 * Returns the vertices of @p meshData deformed by @p pose, computed like the deformation shader does: the bone transforms blended by
-	 * the vertex's weights, applied to the position and to the normal and tangent unpacked from 8 bits, which are then normalized.
+	 * Returns the vertices of @p meshData deformed like the deformation shader does. Normals and tangents are unpacked from 8 bits. The
+	 * deltas of @p morphShapes, weighted by @p morphShapeWeights, are added to the position and, scaled by the sum of the absolute weights
+	 * clamped to 1 over that sum, to the normal; the tangent is then made orthogonal to the normal. Then the bone transforms of @p pose,
+	 * blended by the vertex's weights, are applied to all three. Normals and tangents are normalized last. An empty @p pose skips
+	 * skinning, and null @p morphShapes skip morph shapes.
 	 */
-	Vector<DeformedVertex> DeformOnCpu(const MeshData& meshData, TArrayView<const Matrix4> pose)
+	Vector<DeformedVertex> DeformOnCpu(const MeshData& meshData, TArrayView<const Matrix4> pose, const MorphShapes* morphShapes = nullptr,
+		TArrayView<const float> morphShapeWeights = TArrayView<const float>())
 	{
 		const u32 stride = meshData.GetVertexDescription()->GetVertexStride(0);
 		const u8* const positionData = meshData.GetElementData(VES_POSITION);
 		const u8* const normalData = meshData.GetElementData(VES_NORMAL);
 		const u8* const tangentData = meshData.GetElementData(VES_TANGENT);
-		const u8* const blendIndexData = meshData.GetElementData(VES_BLEND_INDICES);
-		const u8* const blendWeightData = meshData.GetElementData(VES_BLEND_WEIGHTS);
 
 		Vector<DeformedVertex> vertices(kVertexCount);
 		for(u32 vertexIndex = 0; vertexIndex < kVertexCount; vertexIndex++)
 		{
 			const u32 vertexOffset = vertexIndex * stride;
-
-			Vector3 position;
-			std::memcpy(&position, positionData + vertexOffset, sizeof(Vector3));
-
-			float blendWeights[4];
-			std::memcpy(blendWeights, blendWeightData + vertexOffset, sizeof(blendWeights));
-
-			const u8* const blendIndices = blendIndexData + vertexOffset;
 			const u8* const normalBytes = normalData + vertexOffset;
 			const u8* const tangentBytes = tangentData + vertexOffset;
 
-			float blendMatrix[3][4] = {};
-			for(u32 influenceIndex = 0; influenceIndex < 4; influenceIndex++)
+			DeformedVertex& vertex = vertices[vertexIndex];
+			std::memcpy(&vertex.Position, positionData + vertexOffset, sizeof(Vector3));
+			vertex.Normal = Vector3(UnpackComponent(normalBytes[0]), UnpackComponent(normalBytes[1]), UnpackComponent(normalBytes[2]));
+			vertex.Tangent = Vector3(UnpackComponent(tangentBytes[0]), UnpackComponent(tangentBytes[1]), UnpackComponent(tangentBytes[2]));
+			vertex.NormalW = normalBytes[3];
+			vertex.TangentW = tangentBytes[3];
+		}
+
+		if(morphShapes != nullptr)
+		{
+			// Shapes are visited in order, so each vertex sums its deltas in the order the shader does
+			Vector<Vector3> normalDeltas(kVertexCount, Vector3::kZero);
+			Vector<float> weightSums(kVertexCount, 0.0f);
+			u32 shapeIndex = 0;
+			for(const TShared<MorphChannel>& channel : morphShapes->GetChannels())
 			{
-				const Matrix4& boneTransform = pose[blendIndices[influenceIndex]];
-				for(u32 row = 0; row < 3; row++)
+				for(const TShared<MorphShape>& shape : channel->GetShapes())
 				{
-					for(u32 column = 0; column < 4; column++)
-						blendMatrix[row][column] += blendWeights[influenceIndex] * boneTransform[row][column];
+					const float weight = morphShapeWeights[shapeIndex++];
+					if(std::abs(weight) < 0.0001f)
+						continue;
+
+					for(const MorphVertex& morphVertex : shape->GetVertices())
+					{
+						vertices[morphVertex.SourceIdx].Position += morphVertex.DeltaPosition * weight;
+						normalDeltas[morphVertex.SourceIdx] += morphVertex.DeltaNormal * weight;
+						weightSums[morphVertex.SourceIdx] += std::abs(weight);
+					}
 				}
 			}
 
-			const Vector3 normal(UnpackComponent(normalBytes[0]), UnpackComponent(normalBytes[1]), UnpackComponent(normalBytes[2]));
-			const Vector3 tangent(UnpackComponent(tangentBytes[0]), UnpackComponent(tangentBytes[1]), UnpackComponent(tangentBytes[2]));
-
-			DeformedVertex& vertex = vertices[vertexIndex];
-			for(u32 row = 0; row < 3; row++)
+			for(u32 vertexIndex = 0; vertexIndex < kVertexCount; vertexIndex++)
 			{
-				const float* const blendRow = blendMatrix[row];
-				vertex.Position[row] = blendRow[0] * position.X + blendRow[1] * position.Y + blendRow[2] * position.Z + blendRow[3];
-				vertex.Normal[row] = blendRow[0] * normal.X + blendRow[1] * normal.Y + blendRow[2] * normal.Z;
-				vertex.Tangent[row] = blendRow[0] * tangent.X + blendRow[1] * tangent.Y + blendRow[2] * tangent.Z;
-			}
+				DeformedVertex& vertex = vertices[vertexIndex];
+				if(weightSums[vertexIndex] > 0.0001f)
+					vertex.Normal += normalDeltas[vertexIndex] * (std::min(weightSums[vertexIndex], 1.0f) / weightSums[vertexIndex]);
 
+				vertex.Normal = Vector3::Normalize(vertex.Normal);
+				vertex.Tangent = Vector3::Normalize(vertex.Tangent - vertex.Normal * vertex.Tangent.Dot(vertex.Normal));
+			}
+		}
+
+		if(!pose.IsEmpty())
+		{
+			const u8* const blendIndexData = meshData.GetElementData(VES_BLEND_INDICES);
+			const u8* const blendWeightData = meshData.GetElementData(VES_BLEND_WEIGHTS);
+			for(u32 vertexIndex = 0; vertexIndex < kVertexCount; vertexIndex++)
+			{
+				const u32 vertexOffset = vertexIndex * stride;
+
+				float blendWeights[4];
+				std::memcpy(blendWeights, blendWeightData + vertexOffset, sizeof(blendWeights));
+				const u8* const blendIndices = blendIndexData + vertexOffset;
+
+				float blendMatrix[3][4] = {};
+				for(u32 influenceIndex = 0; influenceIndex < 4; influenceIndex++)
+				{
+					const Matrix4& boneTransform = pose[blendIndices[influenceIndex]];
+					for(u32 row = 0; row < 3; row++)
+					{
+						for(u32 column = 0; column < 4; column++)
+							blendMatrix[row][column] += blendWeights[influenceIndex] * boneTransform[row][column];
+					}
+				}
+
+				DeformedVertex& vertex = vertices[vertexIndex];
+				const Vector3 position = vertex.Position;
+				const Vector3 normal = vertex.Normal;
+				const Vector3 tangent = vertex.Tangent;
+				for(u32 row = 0; row < 3; row++)
+				{
+					const float* const blendRow = blendMatrix[row];
+					vertex.Position[row] = blendRow[0] * position.X + blendRow[1] * position.Y + blendRow[2] * position.Z + blendRow[3];
+					vertex.Normal[row] = blendRow[0] * normal.X + blendRow[1] * normal.Y + blendRow[2] * normal.Z;
+					vertex.Tangent[row] = blendRow[0] * tangent.X + blendRow[1] * tangent.Y + blendRow[2] * tangent.Z;
+				}
+			}
+		}
+
+		for(DeformedVertex& vertex : vertices)
+		{
 			vertex.Normal = Vector3::Normalize(vertex.Normal);
 			vertex.Tangent = Vector3::Normalize(vertex.Tangent);
-			vertex.NormalW = normalBytes[3];
-			vertex.TangentW = tangentBytes[3];
 		}
 
 		return vertices;
@@ -330,17 +420,17 @@ namespace
 
 	/**
 	 * Returns a description of the first vertex of @p actual that differs from @p expected: a position by more than @p positionTolerance,
-	 * a normal or tangent by more than kNormalTolerance, or another fourth byte of the normal or tangent. Returns an empty string if every
-	 * vertex matches.
+	 * a normal or tangent by more than @p normalTolerance, or another fourth byte of the normal or tangent. Returns an empty string if
+	 * every vertex matches.
 	 */
-	String FindMismatch(const Vector<DeformedVertex>& expected, const Vector<DeformedVertex>& actual, float positionTolerance)
+	String FindMismatch(const Vector<DeformedVertex>& expected, const Vector<DeformedVertex>& actual, float positionTolerance, float normalTolerance = kNormalTolerance)
 	{
 		for(u32 vertexIndex = 0; vertexIndex < kVertexCount; vertexIndex++)
 		{
 			const DeformedVertex& expectedVertex = expected[vertexIndex];
 			const DeformedVertex& actualVertex = actual[vertexIndex];
-			if(IsWithin(actualVertex.Position, expectedVertex.Position, positionTolerance) && IsWithin(actualVertex.Normal, expectedVertex.Normal, kNormalTolerance) &&
-				IsWithin(actualVertex.Tangent, expectedVertex.Tangent, kNormalTolerance) && actualVertex.NormalW == expectedVertex.NormalW &&
+			if(IsWithin(actualVertex.Position, expectedVertex.Position, positionTolerance) && IsWithin(actualVertex.Normal, expectedVertex.Normal, normalTolerance) &&
+				IsWithin(actualVertex.Tangent, expectedVertex.Tangent, normalTolerance) && actualVertex.NormalW == expectedVertex.NormalW &&
 				actualVertex.TangentW == expectedVertex.TangentW)
 			{
 				continue;
@@ -438,6 +528,9 @@ SkinCacheTestSuite::SkinCacheTestSuite()
 {
 	B3D_ADD_TEST(SkinCacheTestSuite::TestBindPose)
 	B3D_ADD_TEST(SkinCacheTestSuite::TestSkinning)
+	B3D_ADD_TEST(SkinCacheTestSuite::TestMorph)
+	B3D_ADD_TEST(SkinCacheTestSuite::TestMorphMatchesAnimation)
+	B3D_ADD_TEST(SkinCacheTestSuite::TestMorphAndSkinning)
 	B3D_ADD_TEST(SkinCacheTestSuite::TestPreviousPositions)
 	B3D_ADD_TEST(SkinCacheTestSuite::TestChangeDetection)
 	B3D_ADD_TEST(SkinCacheTestSuite::TestVertexLayout)
@@ -454,7 +547,7 @@ void SkinCacheTestSuite::TestBindPose()
 	GetRenderThread().PostCommand([this, &device]()
 	{
 		const TShared<MeshData> meshData = CreateTestMeshData();
-		const TShared<render::Mesh> mesh = CreateTestMesh(*device, meshData, false);
+		const TShared<render::Mesh> mesh = CreateTestMesh(*device, meshData, true, false);
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 
 		SkinCache cache(*device, "Test skin cache");
@@ -502,7 +595,7 @@ void SkinCacheTestSuite::TestSkinning()
 	GetRenderThread().PostCommand([this, &device]()
 	{
 		const TShared<MeshData> meshData = CreateTestMeshData();
-		const TShared<render::Mesh> mesh = CreateTestMesh(*device, meshData, false);
+		const TShared<render::Mesh> mesh = CreateTestMesh(*device, meshData, true, false);
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 
 		SkinCache cache(*device, "Test skin cache");
@@ -527,6 +620,212 @@ void SkinCacheTestSuite::TestSkinning()
 	}, "SkinCacheTestSuite::TestSkinning", true);
 }
 
+void SkinCacheTestSuite::TestMorph()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	GetRenderThread().PostCommand([this, &device]()
+	{
+		// A mesh without a skeleton or blend data, which only morph shapes deform
+		const TShared<MeshData> meshData = CreateTestMeshData(false);
+		const TShared<render::Mesh> mesh = CreateTestMesh(*device, meshData, false, true);
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+
+		SkinCache cache(*device, "Test skin cache");
+		const TShared<SkinCacheEntry> entry = cache.CreateEntry(SkinCacheEntryCreateInformation(mesh, SkinCacheEntryFlag::None, "Morph"));
+		B3D_TEST_ASSERT(entry != nullptr)
+		if(entry == nullptr)
+			return;
+
+		// All weights at zero, as in the bind pose, then positive, negative and zero weights. Rings 4 and 5 have the deltas of both shapes.
+		const Vector<float> weightSets[] = { Vector<float>(kMorphShapeCount, 0.0f), { 0.75f, 0.0f }, { 0.6f, -0.4f }, { -1.0f, 1.5f } };
+		for(const Vector<float>& weights : weightSets)
+		{
+			entry->SetPose(TArrayView<const Matrix4>(), weights);
+			B3D_TEST_ASSERT(UpdateAndExecute(*this, cache, *context, *device))
+			B3D_TEST_ASSERT(entry->GetVertexData() != nullptr)
+			if(entry->GetVertexData() == nullptr)
+				return;
+
+			const Vector<DeformedVertex> expected = DeformOnCpu(*meshData, TArrayView<const Matrix4>(), mesh->GetMorphShapes().get(), weights);
+			const String mismatch = FindMismatch(expected, ReadDeformedVertices(*context, *entry->GetVertexData()), kPositionTolerance);
+			B3D_TEST_ASSERT_MSG(mismatch.empty(), StringUtility::Format("Weights ({0}, {1}): {2}", weights[0], weights[1], mismatch))
+		}
+
+		// The mesh's morph shape buffers were created when it was initialized, and hold every shape
+		const TShared<MorphShapeBuffers>& morphShapeBuffers = mesh->GetMorphShapeBuffers();
+		B3D_TEST_ASSERT(morphShapeBuffers != nullptr && morphShapeBuffers->GetShapeCount() == kMorphShapeCount)
+	}, "SkinCacheTestSuite::TestMorph", true);
+}
+
+void SkinCacheTestSuite::TestMorphMatchesAnimation()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+
+	// The animation system evaluates on the main thread. Its frame curve keeps the channel at 0.75, between its two shapes, so both have
+	// a weight.
+	const TShared<MeshData> meshData = CreateTestMeshData(false);
+	MeshCreateInformation meshInformation;
+	meshInformation.SubMeshes = { SubMesh(0, kIndexCount, DOT_TRIANGLE_LIST) };
+	meshInformation.MorphShapes = CreateTestMorphShapes();
+	const HMesh mesh = b3d::Mesh::Create(meshData, meshInformation);
+
+	Vector<TKeyframe<float>> keyframes(2);
+	for(u32 keyframeIndex = 0; keyframeIndex < 2; keyframeIndex++)
+	{
+		keyframes[keyframeIndex].Value = 0.75f;
+		keyframes[keyframeIndex].InTangent = 0.0f;
+		keyframes[keyframeIndex].OutTangent = 0.0f;
+		keyframes[keyframeIndex].Time = (float)keyframeIndex;
+	}
+
+	const TShared<AnimationCurves> curves = B3DMakeShared<AnimationCurves>();
+	curves->Generic.push_back(TNamedAnimationCurve<float>("Channel", AnimationCurveFlag::MorphFrame, TAnimationCurve<float>(keyframes)));
+	const HAnimationClip clip = AnimationClip::Create(curves);
+
+	const TShared<SceneInstance> scene = SceneInstance::Create("SkinCacheTestSuite");
+	const HSceneObject sceneObject = scene->CreateSceneObject("Morph");
+	sceneObject->AddComponent<Renderable>()->SetMesh(mesh);
+
+	const HAnimation animation = sceneObject->AddComponent<Animation>();
+	animation->SetEnableCull(false);
+
+	AnimationClipState state;
+	state.Speed = 0.0f;
+	state.WrapMode = AnimationWrapMode::Clamp;
+	animation->SetState(clip, state);
+	animation->SetMorphChannelWeight("Channel", 0.9f);
+
+	// The weights of the shapes, and the deltas the animation system blends from them on the CPU for the vertex shader
+	Vector<float> weights;
+	TShared<MeshData> blendedDeltas;
+	const EvaluatedAnimationData* const animationData = scene->GetAnimationScene()->Update(false);
+	if(animationData != nullptr)
+	{
+		const auto found = animationData->Infos.find(animation->GetAnimationId());
+		if(found != animationData->Infos.end() && found->second.MorphShapeInfo.WeightCount == kMorphShapeCount)
+		{
+			const float* const firstWeight = &animationData->MorphShapeWeights[found->second.MorphShapeInfo.WeightStartIndex];
+			weights.assign(firstWeight, firstWeight + kMorphShapeCount);
+			blendedDeltas = found->second.MorphShapeInfo.MeshData;
+		}
+	}
+
+	scene->Destroy();
+
+	B3D_TEST_ASSERT_MSG(weights.size() == kMorphShapeCount && blendedDeltas != nullptr, "The animation has no morph shape weights or blended deltas.")
+	if(weights.size() != kMorphShapeCount || blendedDeltas == nullptr)
+		return;
+
+	B3D_TEST_ASSERT_MSG(weights[0] > 0.0f && weights[1] > 0.0f, StringUtility::Format("Shape weights ({0}, {1}), expected both above zero.", weights[0], weights[1]))
+
+	GetRenderThread().PostCommand([this, &device, &mesh, &meshData, &weights, &blendedDeltas]()
+	{
+		// The mesh's initial contents are written through the renderer's context
+		GetRenderer()->GetGpuContext().SubmitTransferCommandBuffers();
+		device->WaitUntilIdle();
+
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		SkinCache cache(*device, "Test skin cache");
+		const TShared<SkinCacheEntry> entry = cache.CreateEntry(SkinCacheEntryCreateInformation(B3DGetRenderProxy(mesh.Get()), SkinCacheEntryFlag::None,
+			"Morph as animated"));
+		B3D_TEST_ASSERT(entry != nullptr)
+		if(entry == nullptr)
+			return;
+
+		entry->SetPose(TArrayView<const Matrix4>(), weights);
+		B3D_TEST_ASSERT(UpdateAndExecute(*this, cache, *context, *device) && entry->GetVertexData() != nullptr)
+		if(entry->GetVertexData() == nullptr)
+			return;
+
+		// What the vertex shader computes from the blended deltas: the position delta added, and the normal moved by the normal delta,
+		// stored at half scale, times the weight in the fourth byte, with the tangent made orthogonal to it
+		Vector<DeformedVertex> expected = DeformOnCpu(*meshData, TArrayView<const Matrix4>());
+		const u32 deltaStride = blendedDeltas->GetVertexDescription()->GetVertexStride(1);
+		const u8* const positionDeltas = blendedDeltas->GetElementData(VES_POSITION, 1, 1);
+		const u8* const normalDeltas = blendedDeltas->GetElementData(VES_NORMAL, 1, 1);
+		for(u32 vertexIndex = 0; vertexIndex < kVertexCount; vertexIndex++)
+		{
+			DeformedVertex& vertex = expected[vertexIndex];
+
+			Vector3 positionDelta;
+			std::memcpy(&positionDelta, positionDeltas + vertexIndex * deltaStride, sizeof(Vector3));
+
+			const u8* const normalDelta = normalDeltas + vertexIndex * deltaStride;
+			const Vector3 unpackedNormalDelta(UnpackComponent(normalDelta[0]), UnpackComponent(normalDelta[1]), UnpackComponent(normalDelta[2]));
+
+			vertex.Position += positionDelta;
+			vertex.Normal = Vector3::Normalize(vertex.Normal + unpackedNormalDelta * 2.0f * (normalDelta[3] / 255.0f));
+			vertex.Tangent = Vector3::Normalize(vertex.Tangent - vertex.Normal * vertex.Tangent.Dot(vertex.Normal));
+		}
+
+		// The blended normal deltas and their weights are stored in 8 bits, so normals and tangents may differ by a few more steps
+		const String mismatch = FindMismatch(expected, ReadDeformedVertices(*context, *entry->GetVertexData()), kPositionTolerance, 6.0f / 255.0f);
+		B3D_TEST_ASSERT_MSG(mismatch.empty(), mismatch)
+	}, "SkinCacheTestSuite::TestMorphMatchesAnimation", true);
+}
+
+void SkinCacheTestSuite::TestMorphAndSkinning()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	GetRenderThread().PostCommand([this, &device]()
+	{
+		// Three meshes with the same vertices: one with a skeleton and morph shapes, one with only a skeleton, one with only morph shapes
+		const TShared<MeshData> meshData = CreateTestMeshData();
+		const TShared<render::Mesh> skinnedMorphMesh = CreateTestMesh(*device, meshData, true, true);
+		const TShared<render::Mesh> skinnedMesh = CreateTestMesh(*device, meshData, true, false);
+		const TShared<render::Mesh> morphMesh = CreateTestMesh(*device, meshData, false, true);
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+
+		SkinCache cache(*device, "Test skin cache");
+		const TShared<SkinCacheEntry> skinnedMorphEntry = cache.CreateEntry(SkinCacheEntryCreateInformation(skinnedMorphMesh, SkinCacheEntryFlag::PreviousPositions,
+			"Skinned morph"));
+		const TShared<SkinCacheEntry> skinnedEntry = cache.CreateEntry(SkinCacheEntryCreateInformation(skinnedMesh, SkinCacheEntryFlag::None, "Skinned"));
+		const TShared<SkinCacheEntry> morphEntry = cache.CreateEntry(SkinCacheEntryCreateInformation(morphMesh, SkinCacheEntryFlag::None, "Morph"));
+		B3D_TEST_ASSERT(skinnedMorphEntry != nullptr && skinnedEntry != nullptr && morphEntry != nullptr)
+		if(skinnedMorphEntry == nullptr || skinnedEntry == nullptr || morphEntry == nullptr)
+			return;
+
+		// Each update deforms the three entries in one pass, with a shader variation each
+		const float poseAmounts[] = { 1.0f, -0.7f };
+		const Vector<float> weightSets[] = { { 0.5f, 0.8f }, { -0.3f, 0.0f } };
+		for(u32 poseIndex = 0; poseIndex < 2; poseIndex++)
+		{
+			const Vector<Matrix4> pose = CreatePose(poseAmounts[poseIndex]);
+			const Vector<float>& weights = weightSets[poseIndex];
+			skinnedMorphEntry->SetPose(pose, weights);
+			skinnedEntry->SetPose(pose);
+			morphEntry->SetPose(TArrayView<const Matrix4>(), weights);
+			B3D_TEST_ASSERT(UpdateAndExecute(*this, cache, *context, *device))
+
+			const auto fnCheckEntry = [&](const char* name, const SkinCacheEntry& entry, const Vector<DeformedVertex>& expected)
+			{
+				B3D_TEST_ASSERT_MSG(entry.GetVertexData() != nullptr, StringUtility::Format("Pose {0}, {1}: no vertex data.", poseIndex, name))
+				if(entry.GetVertexData() == nullptr)
+					return;
+
+				const String mismatch = FindMismatch(expected, ReadDeformedVertices(*context, *entry.GetVertexData()), kPositionTolerance);
+				B3D_TEST_ASSERT_MSG(mismatch.empty(), StringUtility::Format("Pose {0}, {1}: {2}", poseIndex, name, mismatch))
+			};
+
+			fnCheckEntry("skinned morph", *skinnedMorphEntry, DeformOnCpu(*meshData, pose, skinnedMorphMesh->GetMorphShapes().get(), weights));
+			fnCheckEntry("skinned", *skinnedEntry, DeformOnCpu(*meshData, pose));
+			fnCheckEntry("morph", *morphEntry, DeformOnCpu(*meshData, TArrayView<const Matrix4>(), morphMesh->GetMorphShapes().get(), weights));
+		}
+	}, "SkinCacheTestSuite::TestMorphAndSkinning", true);
+}
+
 void SkinCacheTestSuite::TestPreviousPositions()
 {
 	GpuBackend& backend = GpuBackend::Instance();
@@ -537,7 +836,6 @@ void SkinCacheTestSuite::TestPreviousPositions()
 	GetRenderThread().PostCommand([this, &device]()
 	{
 		const TShared<MeshData> meshData = CreateTestMeshData();
-		const TShared<render::Mesh> mesh = CreateTestMesh(*device, meshData, false);
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 
 		SkinCache cache(*device, "Test skin cache");
@@ -644,7 +942,6 @@ void SkinCacheTestSuite::TestChangeDetection()
 	GetRenderThread().PostCommand([this, &device]()
 	{
 		const TShared<MeshData> meshData = CreateTestMeshData();
-		const TShared<render::Mesh> mesh = CreateTestMesh(*device, meshData, true);
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 
 		SkinCache cache(*device, "Test skin cache");
@@ -693,7 +990,6 @@ void SkinCacheTestSuite::TestChangeDetection()
 
 		B3D_TEST_ASSERT(!UpdateAndExecute(*this, cache, *context, *device))
 
-		// A mesh without a skeleton gets no entry, nor does one whose vertices the cache can't read
 		const TShared<render::Mesh> staticMesh = render::Mesh::Create(meshData, MeshCreateInformation());
 		B3D_TEST_ASSERT(cache.CreateEntry(SkinCacheEntryCreateInformation(staticMesh)) == nullptr)
 
@@ -740,7 +1036,6 @@ void SkinCacheTestSuite::TestVertexLayout()
 	GetRenderThread().PostCommand([this, &device, &pipeline]()
 	{
 		const TShared<MeshData> meshData = CreateTestMeshData();
-		const TShared<render::Mesh> mesh = CreateTestMesh(*device, meshData, false);
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 
 		SkinCache cache(*device, "Test skin cache");
@@ -850,7 +1145,6 @@ void SkinCacheTestSuite::TestFrameGraph()
 	GetRenderThread().PostCommand([this, &device, &pipeline]()
 	{
 		const TShared<MeshData> meshData = CreateTestMeshData();
-		const TShared<render::Mesh> mesh = CreateTestMesh(*device, meshData, false);
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 
 		SkinCache cache(*device, "Test skin cache");

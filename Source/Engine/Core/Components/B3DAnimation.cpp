@@ -232,9 +232,7 @@ void AnimationProxy::RebuildClips(Vector<AnimationClipInfo>& inOutClipInfos, con
 			MorphChannelCount = morphShapes->GetChannelCount();
 			MorphVertexCount = morphShapes->GetVertexCount();
 
-			MorphShapeCount = 0;
-			for(u32 morphChannelIndex = 0; morphChannelIndex < MorphChannelCount; morphChannelIndex++)
-				MorphShapeCount += morphShapes->GetChannel(morphChannelIndex)->GetShapeCount();
+			MorphShapeCount = morphShapes->GetShapeCount();
 		}
 		else
 		{

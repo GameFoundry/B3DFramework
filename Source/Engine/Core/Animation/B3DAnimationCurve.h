@@ -293,7 +293,7 @@ namespace b3d
 		 * @param	curve	Curve containing the animation data.
 		 */
 		TNamedAnimationCurve(const String& name, AnimationCurveFlags flags, const TAnimationCurve<T> curve)
-			: Name(name), Curve(curve)
+			: Name(name), Flags(flags), Curve(curve)
 		{}
 
 		/** Name of the curve. */

@@ -6,7 +6,8 @@ shader SkinCacheDeformation
 
 	variations
 	{
-		SKINNED = { true };
+		SKINNED = { false, true };
+		MORPH = { false, true };
 	};
 
 	code
@@ -18,6 +19,13 @@ shader SkinCacheDeformation
 
 		// Poses of every entry deformed this frame: three rows of each bone's transform, then the morph shape weights
 		ByteAddressBuffer gPoses;
+
+		#if MORPH
+		// Morph shapes of the mesh, shared by its entries: the index of each vertex's first delta in gMorphDeltas, then the number of
+		// deltas; and per delta, sorted by vertex, a position delta and a normal delta of three floats each, then the shape index
+		ByteAddressBuffer gMorphVertexRanges;
+		ByteAddressBuffer gMorphDeltas;
+		#endif
 
 		RWByteAddressBuffer gPositions; // float3 per vertex
 		RWByteAddressBuffer gNormalsTangents; // Normal, then tangent with its handedness in W, 8-bit unorm per component
@@ -75,6 +83,32 @@ shader SkinCacheDeformation
 
 			float3 normal = UnpackUnorm4(packedNormal).xyz * 2.0f - 1.0f;
 			float3 tangent = UnpackUnorm4(packedTangent).xyz * 2.0f - 1.0f;
+
+			#if MORPH
+			// Shapes add their weighted deltas. The normal moves by the weighted average of the normal deltas, scaled by the sum of the
+			// absolute weights clamped to 1, and the tangent is made orthogonal to it again.
+			uint2 deltaRange = gMorphVertexRanges.Load2(vertexIndex * 4);
+			float3 normalDelta = 0.0f;
+			float weightSum = 0.0f;
+			for(uint deltaIndex = deltaRange.x; deltaIndex < deltaRange.y; deltaIndex++)
+			{
+				uint deltaAddress = deltaIndex * 28;
+				uint shapeIndex = gMorphDeltas.Load(deltaAddress + 24);
+				float weight = asfloat(gPoses.Load(gMorphShapeWeightOffset + shapeIndex * 4));
+				if(abs(weight) < 0.0001f)
+					continue;
+
+				position += asfloat(gMorphDeltas.Load3(deltaAddress)) * weight;
+				normalDelta += asfloat(gMorphDeltas.Load3(deltaAddress + 12)) * weight;
+				weightSum += abs(weight);
+			}
+
+			if(weightSum > 0.0001f)
+				normal += normalDelta * (min(weightSum, 1.0f) / weightSum);
+
+			normal = normalize(normal);
+			tangent = normalize(tangent - dot(tangent, normal) * normal);
+			#endif
 
 			#if SKINNED
 			uint packedBlendIndices = gSourceTangentFrames.Load(tangentFrameAddress + gBlendIndicesOffset);

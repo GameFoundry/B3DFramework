@@ -104,15 +104,20 @@ const EvaluatedAnimationData* AnimationScene::Update(bool async)
 
 	// Prepare the write buffer
 	u32 totalBoneCount = 0;
+	u32 totalMorphShapeCount = 0;
 	for(auto& anim : mProxies)
 	{
 		if(anim->Skeleton != nullptr)
 			totalBoneCount += anim->Skeleton->GetBoneCount();
+
+		totalMorphShapeCount += anim->MorphShapeCount;
 	}
 
 	// Prepare the write buffer
 	EvaluatedAnimationData& renderData = mAnimData[mPoseWriteBufferIndex];
 	renderData.Transforms.resize(totalBoneCount);
+	renderData.MorphShapeWeights.resize(totalMorphShapeCount);
+	renderData.EvaluationIndex = ++mEvaluationCount;
 	renderData.Infos.clear();
 
 	// Queue animation evaluation tasks
@@ -122,18 +127,20 @@ const EvaluatedAnimationData* AnimationScene::Update(bool async)
 	}
 
 	u32 currentBoneIndex = 0;
+	u32 currentMorphShapeWeightIndex = 0;
 	for(auto& anim : mProxies)
 	{
-		GetApplication().GetTaskScheduler().Post(SchedulerTask([this, anim, currentBoneIndex]()
+		GetApplication().GetTaskScheduler().Post(SchedulerTask([this, anim, currentBoneIndex, currentMorphShapeWeightIndex]()
 		{
-			u32 boneIndex = currentBoneIndex;
-			EvaluateAnimation(anim.get(), boneIndex);
+			EvaluateAnimation(anim.get(), currentBoneIndex, currentMorphShapeWeightIndex);
 
 			mWorkerWaitGroup.NotifyDone();
 		}, "AnimWorker"));
 
 		if(anim->Skeleton != nullptr)
 			currentBoneIndex += anim->Skeleton->GetBoneCount();
+
+		currentMorphShapeWeightIndex += anim->MorphShapeCount;
 	}
 
 	// Wait for tasks to complete
@@ -161,7 +168,7 @@ const EvaluatedAnimationData* AnimationScene::Update(bool async)
 	return output;
 }
 
-void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& outBoneIndex)
+void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32 boneStartIndex, u32 morphShapeWeightStartIndex)
 {
 	// Culling
 	if(anim->CullEnabled)
@@ -201,11 +208,11 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& outBoneIndex)
 
 		EvaluatedAnimationData::PoseInfo& poseInfo = animInfo.PoseInfo;
 		poseInfo.AnimationId = anim->AnimationId;
-		poseInfo.BoneStartIndex = outBoneIndex;
+		poseInfo.BoneStartIndex = boneStartIndex;
 		poseInfo.BoneCount = boneCount;
 
 		memset(anim->SkeletonPose.HasOverride, 0, sizeof(bool) * anim->SkeletonPose.NumBones);
-		Matrix4* boneDst = renderData.Transforms.data() + outBoneIndex;
+		Matrix4* boneDst = renderData.Transforms.data() + boneStartIndex;
 
 		// Copy transforms from mapped scene objects
 		u32 boneTfrmIdx = 0;
@@ -223,8 +230,6 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& outBoneIndex)
 
 		// Animate bones
 		anim->Skeleton->GetPose(boneDst, anim->SkeletonPose, anim->SkeletonMask, anim->Layers, anim->LayerCount);
-
-		outBoneIndex += boneCount;
 		hasAnimInfo = true;
 	}
 	else
@@ -363,14 +368,16 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& outBoneIndex)
 			{
 				for(u32 j = 0; j < channelInfo.ShapeCount - 1; j++)
 				{
+					const u32 shapeIndex = channelInfo.ShapeStart + j;
+
 					float prevShapeWeight;
 					if(j > 0)
-						prevShapeWeight = anim->MorphShapeInfos[j - 1].FrameWeight;
+						prevShapeWeight = anim->MorphShapeInfos[shapeIndex - 1].FrameWeight;
 					else
 						prevShapeWeight = 0.0f; // Base shape, blend between it and the first frame
 
-					float nextShapeWeight = anim->MorphShapeInfos[j + 1].FrameWeight;
-					MorphShapeInfo& shapeInfo = anim->MorphShapeInfos[j];
+					float nextShapeWeight = anim->MorphShapeInfos[shapeIndex + 1].FrameWeight;
+					MorphShapeInfo& shapeInfo = anim->MorphShapeInfos[shapeIndex];
 
 					float relative = frameWeight - shapeInfo.FrameWeight;
 					if(relative <= 0.0f)
@@ -386,11 +393,12 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& outBoneIndex)
 					}
 					else
 					{
+						// Past its own frame weight the shape fades out, as the next one fades in
 						float diff = nextShapeWeight - shapeInfo.FrameWeight;
 						if(diff > 0.0f)
 						{
 							float t = relative / diff;
-							shapeInfo.FinalWeight = std::min(t, 1.0f);
+							shapeInfo.FinalWeight = 1.0f - std::min(t, 1.0f);
 						}
 						else
 							shapeInfo.FinalWeight = 0.0f;
@@ -426,6 +434,11 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& outBoneIndex)
 				shapeInfo.FinalWeight *= channelInfo.Weight;
 			}
 		}
+
+		animInfo.MorphShapeInfo.WeightStartIndex = morphShapeWeightStartIndex;
+		animInfo.MorphShapeInfo.WeightCount = anim->MorphShapeCount;
+		for(u32 i = 0; i < anim->MorphShapeCount; i++)
+			renderData.MorphShapeWeights[morphShapeWeightStartIndex + i] = anim->MorphShapeInfos[i].FinalWeight;
 
 		// Generate morph shape vertices
 		if(anim->MorphChannelWeightsDirty || hasMorphCurves)

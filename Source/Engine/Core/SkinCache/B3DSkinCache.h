@@ -108,16 +108,17 @@ namespace b3d::render
 		friend class SkinCache;
 
 		/**
-		 * Creates an entry in the bind pose and adds it to @p cache. The mesh of @p createInformation must have a skeleton, and vertices
-		 * IsSupportedFormat() accepts.
+		 * Creates an entry in the bind pose and adds it to @p cache. The mesh of @p createInformation must have a skeleton or morph shapes,
+		 * and vertices IsSupportedFormat() accepts.
 		 */
 		SkinCacheEntry(SkinCache& cache, const SkinCacheEntryCreateInformation& createInformation);
 
 		/**
-		 * Returns true if the entry can deform @p vertexData: positions of three floats, and normals, tangents, blend indices and blend
-		 * weights in the formats of RendererMeshData::VertexLayoutVertexDesc() in one stream, with buffers bound to both streams.
+		 * Returns true if an entry can deform the vertices of @p mesh: positions of three floats, and normals, tangents and, if the mesh has
+		 * a skeleton, blend indices and blend weights in the formats of RendererMeshData::VertexLayoutVertexDesc() in one stream, with
+		 * buffers bound to both streams.
 		 */
-		static bool IsSupportedFormat(const VertexData& vertexData);
+		static bool IsSupportedFormat(const render::Mesh& mesh);
 
 		static constexpr u32 kInvalidIndex = ~0u; /**< Index of an entry that isn't in a list of its cache. */
 
@@ -131,8 +132,8 @@ namespace b3d::render
 		SkinCacheEntryFlags mFlags;
 		String mName;
 		u32 mVertexCount = 0;
-		u32 mBoneCount = 0;
-		u32 mMorphShapeCount = 0;
+		u32 mBoneCount = 0; /**< Number of bones of the mesh's skeleton. Zero for a mesh without one, which isn't skinned. */
+		u32 mMorphShapeCount = 0; /**< Number of morph shapes of the mesh, in all of its channels. */
 
 		/** @name Where the deformation reads the mesh's vertices
 		 *  @{
@@ -143,8 +144,8 @@ namespace b3d::render
 		u32 mTangentFrameStreamIndex = 0; /**< Stream of the mesh's vertices with the normals, tangents, blend indices and blend weights. */
 		u32 mNormalOffset = 0; /**< Offset of the normal in a vertex of the tangent frame stream, in bytes. */
 		u32 mTangentOffset = 0; /**< Offset of the tangent in a vertex of the tangent frame stream, in bytes. */
-		u32 mBlendIndicesOffset = 0; /**< Offset of the blend indices in a vertex of the tangent frame stream, in bytes. */
-		u32 mBlendWeightsOffset = 0; /**< Offset of the blend weights in a vertex of the tangent frame stream, in bytes. */
+		u32 mBlendIndicesOffset = 0; /**< Offset of the blend indices in a vertex of the tangent frame stream, in bytes. Zero without a skeleton. */
+		u32 mBlendWeightsOffset = 0; /**< Offset of the blend weights in a vertex of the tangent frame stream, in bytes. Zero without a skeleton. */
 
 		/** @} */
 
@@ -209,9 +210,11 @@ namespace b3d::render
 		SkinCache& operator=(const SkinCache&) = delete;
 
 		/**
-		 * Creates an entry in the bind pose, which the next Update() deforms it to. Returns null if the mesh has no skeleton, or if its
-		 * vertices don't have positions of three floats, and normals, tangents, blend indices and blend weights in the formats of
-		 * RendererMeshData::VertexLayoutVertexDesc() in one stream, which also logs a warning. Entries must be destroyed before the cache.
+		 * Creates an entry in the bind pose, which the next Update() deforms it to. Returns null if the mesh has neither a skeleton nor
+		 * morph shapes, or if its vertices don't have positions of three floats, and normals, tangents and, if it has a skeleton, blend
+		 * indices and blend weights in the formats of RendererMeshData::VertexLayoutVertexDesc() in one stream, which also logs a warning.
+		 * Also returns null, logging an error, if the mesh has morph shapes but its morph shape buffers couldn't be created. Entries must be
+		 * destroyed before the cache.
 		 */
 		TShared<SkinCacheEntry> CreateEntry(const SkinCacheEntryCreateInformation& createInformation);
 

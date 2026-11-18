@@ -34,6 +34,9 @@ namespace b3d
 		{
 			TShared<MeshData> MeshData;
 			u32 Version;
+
+			u32 WeightStartIndex = 0; /**< Index of the weight of the animation's first morph shape in MorphShapeWeights. */
+			u32 WeightCount = 0; /**< Number of morph shapes of the animation. */
 		};
 
 		/** Contains meta-data about where calculated animation data is stored. */
@@ -50,6 +53,15 @@ namespace b3d
 
 		/** Global joint transforms for all skeletons in the scene. */
 		Vector<Matrix4> Transforms;
+
+		/**
+		 * Weight of every morph shape of every animation: how much of the shape is added to the base mesh. An animation's weights are in
+		 * the order of its mesh's channels, then of the shapes within a channel.
+		 */
+		Vector<float> MorphShapeWeights;
+
+		/** Number of the evaluation that produced the data. Two results with the same number hold the same data. */
+		u64 EvaluationIndex = 0;
 
 		/** True if the animation is being evaluated asynchronously along with rendering (delayed one frame). */
 		bool AsynchronousEvaluation = false;
@@ -126,13 +138,16 @@ namespace b3d
 		/**
 		 * Evaluates animation for a single object and writes the result in the currently active write buffer.
 		 *
-		 * @param	anim			Proxy representing the animation to evaluate.
-		 * @param	outBoneIndex	Index in the output buffer in which to write evaluated bone information. This will be
-		 *							automatically advanced by the number of written bone transforms.
+		 * @param	anim							Proxy representing the animation to evaluate.
+		 * @param	boneStartIndex					Index in EvaluatedAnimationData::Transforms of the transform of the animation's
+		 *											first bone.
+		 * @param	morphShapeWeightStartIndex		Index in EvaluatedAnimationData::MorphShapeWeights of the weight of the
+		 *											animation's first morph shape.
 		 */
-		void EvaluateAnimation(AnimationProxy* anim, u32& outBoneIndex);
+		void EvaluateAnimation(AnimationProxy* anim, u32 boneStartIndex, u32 morphShapeWeightStartIndex);
 
 		u64 mNextId = 1;
+		u64 mEvaluationCount = 0; /**< Number of evaluations started so far. */
 		UnorderedMap<u64, Animation*> mAnimations;
 
 		float mUpdateRate = 1.0f / 60.0f;

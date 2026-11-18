@@ -149,6 +149,9 @@ namespace b3d
 		/** Returns the number of vertices per morph shape. */
 		u32 GetVertexCount() const { return mVertexCount; }
 
+		/** Returns the number of morph shapes, in all channels. */
+		u32 GetShapeCount() const;
+
 		/** Creates a new set of morph shapes. */
 		static TShared<MorphShapes> Create(const Vector<TShared<MorphChannel>>& channels, u32 numVertices);
 

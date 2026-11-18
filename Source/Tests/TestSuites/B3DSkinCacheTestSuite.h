@@ -7,8 +7,8 @@
 namespace b3d
 {
 	/**
-	 * Tests for the skin cache, on a procedural mesh: a column of rings skinned to three bones, with up to four bones per vertex. The
-	 * deformed vertices are read back and compared with a CPU implementation of the same math.
+	 * Tests for the skin cache, on a procedural mesh: a column of rings skinned to three bones, with up to four bones per vertex, and two
+	 * morph shapes that overlap on some rings. The deformed vertices are read back and compared with a CPU implementation of the same math.
 	 */
 	class SkinCacheTestSuite : public TestSuite
 	{
@@ -27,6 +27,25 @@ namespace b3d
 		 * tangents' handedness kept.
 		 */
 		void TestSkinning();
+
+		/**
+		 * Deforms an entry of a mesh with morph shapes and no skeleton to all-zero, positive, negative and zero weights, on vertices that no
+		 * shape moves, that one shape moves and that two shapes move: positions within 1e-5 of the CPU reference, normals and tangents
+		 * within 1/255.
+		 */
+		void TestMorph();
+
+		/**
+		 * Evaluates morph shape weights with the animation system, deforms an entry to them and compares its vertices with what the vertex
+		 * shader computes from the deltas the animation system blends on the CPU. Goes away with that blend.
+		 */
+		void TestMorphMatchesAnimation();
+
+		/**
+		 * Deforms entries of a mesh with a skeleton and morph shapes, of one with only a skeleton and of one with only morph shapes in one
+		 * update, each with its own shader variation, and compares them with the CPU reference.
+		 */
+		void TestMorphAndSkinning();
 
 		/**
 		 * Deforms an entry that keeps previous positions through several poses and checks which buffers its vertex data binds as POSITION0

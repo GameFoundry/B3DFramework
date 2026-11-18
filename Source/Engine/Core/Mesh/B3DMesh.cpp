@@ -13,6 +13,7 @@
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DVertexData.h"
 #include "RayTracing/B3DRayTracingGeometry.h"
+#include "SkinCache/B3DMorphShapeBuffers.h"
 #include "Threading/B3DAsyncOp.h"
 #include "GpuBackend/B3DVertexDescription.h"
 #include "Resources/B3DResources.h"
@@ -337,6 +338,10 @@ void Mesh::Initialize()
 		mTempInitialMeshData = nullptr;
 	}
 
+	// Written through the renderer's context, as the vertex data is
+	if(mMorphShapes != nullptr)
+		mMorphShapeBuffers = MorphShapeBuffers::Create(GetRenderer()->GetGpuContext(), *mMorphShapes);
+
 	MeshBase::Initialize();
 }
 
@@ -374,6 +379,13 @@ const TShared<RayTracingGeometry>& Mesh::GetOrCreateRayTracingGeometry()
 	}
 
 	return mRayTracingGeometry;
+}
+
+const TShared<MorphShapeBuffers>& Mesh::GetMorphShapeBuffers() const
+{
+	ASSERT_IF_NOT_RENDER_THREAD;
+
+	return mMorphShapeBuffers;
 }
 
 void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool performUpdateBounds, const TShared<GpuCommandBuffer>& commandBuffer)

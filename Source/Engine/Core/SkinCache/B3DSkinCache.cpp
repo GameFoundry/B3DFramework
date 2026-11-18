@@ -17,6 +17,7 @@
 #include "RayTracing/B3DRayTracingGeometry.h"
 #include "Renderer/B3DGpuUniformBuffer.h"
 #include "Renderer/B3DRendererMaterial.h"
+#include "SkinCache/B3DMorphShapeBuffers.h"
 #include "ThirdParty/CityHash/city.h"
 #include "Utility/B3DBitwise.h"
 
@@ -51,13 +52,16 @@ namespace b3d::render
 		/** Size of the transform of one bone in the pose buffer, in bytes: three rows of four floats. */
 		constexpr u32 kBoneTransformSize = 48;
 
-		/** Parameter set of an entry, and the number of vertices its dispatch deforms. */
+		class SkinCacheDeformationMaterial;
+
+		/** Variation and parameter set of an entry's dispatch, and the number of vertices it deforms. */
 		struct SkinCacheDeformationDispatch
 		{
-			SkinCacheDeformationDispatch(const TShared<GpuParameterSet>& set, u32 vertexCount)
-				: Set(set), VertexCount(vertexCount)
+			SkinCacheDeformationDispatch(SkinCacheDeformationMaterial* material, const TShared<GpuParameterSet>& set, u32 vertexCount)
+				: Material(material), Set(set), VertexCount(vertexCount)
 			{ }
 
+			SkinCacheDeformationMaterial* Material = nullptr;
 			TShared<GpuParameterSet> Set;
 			u32 VertexCount = 0;
 		};
@@ -78,14 +82,24 @@ namespace b3d::render
 				mParameterLayout->GetStorageBufferParameter("gPositions", mPositionsParameter);
 				mParameterLayout->GetStorageBufferParameter("gNormalsTangents", mNormalsTangentsParameter);
 				mParameterLayout->TryGetUniformBufferParameter("Parameters", mParametersParameter);
+
+				// Only the variation that deforms morph shapes reads them
+				mHasMorphShapes = mVariationParameters.GetBool("MORPH");
+				if(mHasMorphShapes)
+				{
+					mParameterLayout->GetStorageBufferParameter("gMorphVertexRanges", mMorphVertexRangesParameter);
+					mParameterLayout->GetStorageBufferParameter("gMorphDeltas", mMorphDeltasParameter);
+				}
 			}
 
 			/**
 			 * Creates the parameter set of @p pass, which deforms the vertices in @p sourcePositions and @p sourceTangentFrames by a pose
-			 * in @p poses, into @p positions and @p normalsTangents. Returns the set to pass to Execute().
+			 * in @p poses, and by @p morphShapeBuffers in the variation that deforms morph shapes, into @p positions and @p normalsTangents.
+			 * Returns the set to pass to Execute().
 			 */
 			TShared<GpuParameterSet> Prepare(FrameGraphPass& pass, const TShared<GpuBuffer>& sourcePositions, const TShared<GpuBuffer>& sourceTangentFrames,
-				const TShared<GpuBuffer>& poses, const TShared<GpuBuffer>& positions, const TShared<GpuBuffer>& normalsTangents, const TShared<GpuBuffer>& parameters)
+				const TShared<MorphShapeBuffers>& morphShapeBuffers, const TShared<GpuBuffer>& poses, const TShared<GpuBuffer>& positions,
+				const TShared<GpuBuffer>& normalsTangents, const TShared<GpuBuffer>& parameters)
 			{
 				const TShared<GpuParameterSet> set = CreateGpuParameterSet(pass);
 				mSourcePositionsParameter.Set(set, sourcePositions);
@@ -95,27 +109,53 @@ namespace b3d::render
 				mNormalsTangentsParameter.Set(set, normalsTangents);
 				mParametersParameter.Set(set, parameters);
 
+				if(mHasMorphShapes)
+				{
+					mMorphVertexRangesParameter.Set(set, morphShapeBuffers->GetVertexRanges());
+					mMorphDeltasParameter.Set(set, morphShapeBuffers->GetDeltas());
+				}
+
 				return set;
 			}
 
-			/** Binds the material once, then each set of @p dispatches, from Prepare(), with a dispatch over its vertices. */
-			void Execute(FrameGraphPassContext& context, TArrayView<const SkinCacheDeformationDispatch> dispatches) const
+			/**
+			 * Binds the material and the set of each of @p dispatches, from Prepare(), with a dispatch over its vertices. A material is
+			 * bound only if the dispatch before used another one, so @p dispatches should be sorted by material.
+			 */
+			static void Execute(FrameGraphPassContext& context, TArrayView<const SkinCacheDeformationDispatch> dispatches)
 			{
 				GpuCommandBuffer& commandBuffer = context.GetCommandBuffer();
 
-				Bind(commandBuffer);
+				const SkinCacheDeformationMaterial* boundMaterial = nullptr;
 				for(const SkinCacheDeformationDispatch& dispatch : dispatches)
 				{
+					if(dispatch.Material != boundMaterial)
+					{
+						dispatch.Material->Bind(commandBuffer);
+						boundMaterial = dispatch.Material;
+					}
+
 					commandBuffer.SetGpuParameterSet(dispatch.Set);
 					commandBuffer.DispatchCompute(Math::DivideAndRoundUp(dispatch.VertexCount, kDeformationGroupSize));
 				}
 			}
 
-			/** Returns the variation that deforms skinned meshes. */
-			static SkinCacheDeformationMaterial* GetVariation(GpuWorkContext& context)
+			/** Returns the variation that applies bone transforms if @p skinned is true, and morph shapes if @p morph is true. */
+			static SkinCacheDeformationMaterial* GetVariation(GpuWorkContext& context, bool skinned, bool morph)
 			{
-				static ShaderVariationParameters variation = ShaderVariationParameters({ ShaderVariationParameter("SKINNED", true) });
-				return Get(context, variation);
+				static ShaderVariationParameters variations[2][2] =
+				{
+					{
+						ShaderVariationParameters({ ShaderVariationParameter("SKINNED", false), ShaderVariationParameter("MORPH", false) }),
+						ShaderVariationParameters({ ShaderVariationParameter("SKINNED", false), ShaderVariationParameter("MORPH", true) })
+					},
+					{
+						ShaderVariationParameters({ ShaderVariationParameter("SKINNED", true), ShaderVariationParameter("MORPH", false) }),
+						ShaderVariationParameters({ ShaderVariationParameter("SKINNED", true), ShaderVariationParameter("MORPH", true) })
+					}
+				};
+
+				return Get(context, variations[skinned][morph]);
 			}
 
 		private:
@@ -124,7 +164,10 @@ namespace b3d::render
 			GpuParameterStorageBuffer mPosesParameter;
 			GpuParameterStorageBuffer mPositionsParameter;
 			GpuParameterStorageBuffer mNormalsTangentsParameter;
+			GpuParameterStorageBuffer mMorphVertexRangesParameter;
+			GpuParameterStorageBuffer mMorphDeltasParameter;
 			GpuParameterUniformBuffer mParametersParameter;
+			bool mHasMorphShapes = false;
 		};
 
 		/** Returns the hash of a pose of @p boneTransforms and @p morphShapeWeights. */
@@ -145,20 +188,19 @@ namespace b3d::render
 		const VertexElement* normal = meshDescription.FindElement(VES_NORMAL);
 
 		mVertexCount = meshVertexData->VertexCount;
-		mBoneCount = mMesh->GetSkeleton()->GetBoneCount();
+		mMorphShapeCount = mMesh->GetMorphShapeBuffers() != nullptr ? mMesh->GetMorphShapeBuffers()->GetShapeCount() : 0;
 		mPositionStreamIndex = position->GetStreamIndex();
 		mPositionOffset = position->GetOffset();
 		mTangentFrameStreamIndex = normal->GetStreamIndex();
 		mNormalOffset = normal->GetOffset();
 		mTangentOffset = meshDescription.FindElement(VES_TANGENT)->GetOffset();
-		mBlendIndicesOffset = meshDescription.FindElement(VES_BLEND_INDICES)->GetOffset();
-		mBlendWeightsOffset = meshDescription.FindElement(VES_BLEND_WEIGHTS)->GetOffset();
 
-		const TShared<MorphShapes> morphShapes = mMesh->GetMorphShapes();
-		if(morphShapes != nullptr)
+		const TShared<Skeleton> skeleton = mMesh->GetSkeleton();
+		if(skeleton != nullptr)
 		{
-			for(const TShared<MorphChannel>& channel : morphShapes->GetChannels())
-				mMorphShapeCount += channel->GetShapeCount();
+			mBoneCount = skeleton->GetBoneCount();
+			mBlendIndicesOffset = meshDescription.FindElement(VES_BLEND_INDICES)->GetOffset();
+			mBlendWeightsOffset = meshDescription.FindElement(VES_BLEND_WEIGHTS)->GetOffset();
 		}
 
 		// The mesh's streams keep their offsets and strides, with the attributes the entry deforms turned into padding, and the entry's
@@ -194,26 +236,32 @@ namespace b3d::render
 		SkinCache::AddToList(mCache.mEntries, *this, &SkinCacheEntry::mEntriesIndex);
 	}
 
-	bool SkinCacheEntry::IsSupportedFormat(const VertexData& vertexData)
+	bool SkinCacheEntry::IsSupportedFormat(const render::Mesh& mesh)
 	{
 		// Normals, tangents and blend data are read from one stream, positions from the same or another one
+		const VertexData& vertexData = *mesh.GetVertexData();
 		const VertexDescription& description = *vertexData.VertexDescription;
 		const VertexElement* position = description.FindElement(VES_POSITION);
 		const VertexElement* normal = description.FindElement(VES_NORMAL);
 		const VertexElement* tangent = description.FindElement(VES_TANGENT);
-		const VertexElement* blendIndices = description.FindElement(VES_BLEND_INDICES);
-		const VertexElement* blendWeights = description.FindElement(VES_BLEND_WEIGHTS);
 		if(position == nullptr || position->GetType() != VET_FLOAT3 || normal == nullptr || normal->GetType() != VET_UBYTE4_NORM || tangent == nullptr ||
-			tangent->GetType() != VET_UBYTE4_NORM || blendIndices == nullptr || blendIndices->GetType() != VET_UBYTE4 || blendWeights == nullptr ||
-			blendWeights->GetType() != VET_FLOAT4)
+			tangent->GetType() != VET_UBYTE4_NORM)
 		{
 			return false;
 		}
 
 		const u32 tangentFrameStreamIndex = normal->GetStreamIndex();
-		return tangent->GetStreamIndex() == tangentFrameStreamIndex && blendIndices->GetStreamIndex() == tangentFrameStreamIndex &&
-			blendWeights->GetStreamIndex() == tangentFrameStreamIndex && vertexData.IsBufferBound(position->GetStreamIndex()) &&
-			vertexData.IsBufferBound(tangentFrameStreamIndex);
+		if(tangent->GetStreamIndex() != tangentFrameStreamIndex || !vertexData.IsBufferBound(position->GetStreamIndex()) || !vertexData.IsBufferBound(tangentFrameStreamIndex))
+			return false;
+
+		// Only skinning reads the blend data
+		if(mesh.GetSkeleton() == nullptr)
+			return true;
+
+		const VertexElement* blendIndices = description.FindElement(VES_BLEND_INDICES);
+		const VertexElement* blendWeights = description.FindElement(VES_BLEND_WEIGHTS);
+		return blendIndices != nullptr && blendIndices->GetType() == VET_UBYTE4 && blendIndices->GetStreamIndex() == tangentFrameStreamIndex &&
+			blendWeights != nullptr && blendWeights->GetType() == VET_FLOAT4 && blendWeights->GetStreamIndex() == tangentFrameStreamIndex;
 	}
 
 	SkinCacheEntry::~SkinCacheEntry()
@@ -318,15 +366,21 @@ namespace b3d::render
 		if(mesh == nullptr)
 			return nullptr;
 
-		// TODO: Meshes with morph shapes and no skeleton get an entry once the cache deforms morph shapes
-		const TShared<Skeleton> skeleton = mesh->GetSkeleton();
-		if(skeleton == nullptr)
+		const TShared<MorphShapes> morphShapes = mesh->GetMorphShapes();
+		const u32 morphShapeCount = morphShapes != nullptr ? morphShapes->GetShapeCount() : 0;
+		if(mesh->GetSkeleton() == nullptr && morphShapeCount == 0)
 			return nullptr;
 
-		if(!SkinCacheEntry::IsSupportedFormat(*mesh->GetVertexData()))
+		if(!SkinCacheEntry::IsSupportedFormat(*mesh))
 		{
-			B3D_LOG(Warning, LogRenderer, "Skin cache '{0}' can't deform mesh '{1}': its vertices need positions of three floats, and normals, tangents, blend indices "
-				"and blend weights in the formats of RendererMeshData::VertexLayoutVertexDesc(), in one stream.", mName, createInformation.Name);
+			B3D_LOG(Warning, LogRenderer, "Skin cache '{0}' can't deform mesh '{1}': its vertices need positions of three floats, and normals, tangents and, if it has a "
+				"skeleton, blend indices and blend weights in the formats of RendererMeshData::VertexLayoutVertexDesc(), in one stream.", mName, createInformation.Name);
+			return nullptr;
+		}
+
+		if(morphShapeCount > 0 && mesh->GetMorphShapeBuffers() == nullptr)
+		{
+			B3D_LOG(Error, LogRenderer, "Skin cache '{0}' can't deform mesh '{1}': the mesh has no morph shape buffers.", mName, createInformation.Name);
 			return nullptr;
 		}
 
@@ -344,9 +398,6 @@ namespace b3d::render
 			return false;
 
 		GpuWorkContext& context = graph.GetWorkContext();
-		SkinCacheDeformationMaterial* const material = SkinCacheDeformationMaterial::GetVariation(context);
-		if(!B3D_ENSURE_LOG(material != nullptr, "Skin cache '{0}' can't deform its entries, its deformation shader isn't available.", mName))
-			return false;
 
 		// Each deformation writes the position buffer that doesn't hold the current positions, if the entry keeps the previous ones.
 		// Buffers are created on first use. Entries whose buffers can't be created stay queued for the next update.
@@ -442,6 +493,13 @@ namespace b3d::render
 			const TShared<VertexData> meshVertexData = entry.mMesh->GetVertexData();
 			const VertexDescription& meshDescription = *meshVertexData->VertexDescription;
 
+			SkinCacheDeformationMaterial* const material = SkinCacheDeformationMaterial::GetVariation(context, entry.mBoneCount > 0, entry.mMorphShapeCount > 0);
+			if(!B3D_ENSURE_LOG(material != nullptr, "Skin cache '{0}' can't deform entry '{1}', its deformation shader isn't available.", mName, entry.mName))
+			{
+				AddToList(mEntriesQueuedForUpdate, entry, &SkinCacheEntry::mEntriesQueuedForUpdateIndex);
+				continue;
+			}
+
 			const TShared<GpuBuffer> parameterBuffer = gSkinCacheDeformationUniformDefinition.CreateScratchBuffer(context);
 			if(!B3D_ENSURE_LOG(parameterBuffer != nullptr, "Skin cache '{0}' couldn't create the parameters of entry '{1}'.", mName, entry.mName))
 			{
@@ -468,8 +526,8 @@ namespace b3d::render
 			graph.ImportBuffer(entry.mNormalTangentBuffer);
 
 			const TShared<GpuParameterSet> set = material->Prepare(pass, meshVertexData->GetBuffer(entry.mPositionStreamIndex), meshVertexData->GetBuffer(entry.mTangentFrameStreamIndex),
-				poseBuffer, positionBuffer, entry.mNormalTangentBuffer, parameterBuffer);
-			dispatches.push_back(SkinCacheDeformationDispatch(set, entry.mVertexCount));
+				entry.mMesh->GetMorphShapeBuffers(), poseBuffer, positionBuffer, entry.mNormalTangentBuffer, parameterBuffer);
+			dispatches.push_back(SkinCacheDeformationDispatch(material, set, entry.mVertexCount));
 
 			pass.Export(positionBuffer);
 			pass.Export(entry.mNormalTangentBuffer);
@@ -493,9 +551,15 @@ namespace b3d::render
 		if(dispatches.empty())
 			return false;
 
-		graph.AddComputePass("Skin cache deformation", std::move(pass), [material, dispatches = std::move(dispatches)](FrameGraphPassContext& passContext)
+		// Dispatches of one variation follow each other, so each variation is bound once
+		std::stable_sort(dispatches.begin(), dispatches.end(), [](const SkinCacheDeformationDispatch& left, const SkinCacheDeformationDispatch& right)
 		{
-			material->Execute(passContext, dispatches);
+			return std::less<const SkinCacheDeformationMaterial*>()(left.Material, right.Material);
+		});
+
+		graph.AddComputePass("Skin cache deformation", std::move(pass), [dispatches = std::move(dispatches)](FrameGraphPassContext& passContext)
+		{
+			SkinCacheDeformationMaterial::Execute(passContext, dispatches);
 		});
 
 		return true;
