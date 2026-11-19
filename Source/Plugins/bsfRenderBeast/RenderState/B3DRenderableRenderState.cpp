@@ -19,10 +19,8 @@ void RenderableDrawCommand::Draw(GpuCommandBuffer& commandBuffer) const
 		if(SkinCacheEntry->HasDeformedVertices())
 			GetRendererUtility().Draw(commandBuffer, *SkinCacheEntry->GetVertexData(), Mesh->GetIndexBuffer(), SubMesh);
 	}
-	else if(MorphVertexDefinition == nullptr)
-		GetRendererUtility().Draw(commandBuffer, Mesh, SubMesh);
 	else
-		GetRendererUtility().DrawMorph(commandBuffer, Mesh, SubMesh, MorphShapeBuffer, MorphVertexDefinition);
+		GetRendererUtility().Draw(commandBuffer, Mesh, SubMesh);
 }
 
 void RenderableRenderState::UpdatePerObjectData(const RenderableProxy& proxy)

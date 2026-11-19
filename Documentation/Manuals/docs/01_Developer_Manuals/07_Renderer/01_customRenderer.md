@@ -64,6 +64,39 @@ class MyRenderer : public Renderer
 
 The implementation of your rendering method should iterate over all renderable objects, cameras, lights or other provided objects (depending on what kind of rendering you wish to do). The rendering happens through the low-level rendering API as described in earlier manuals. At the end of rendering, every render target in every active camera should be filled with an image of the rendered scene. During rendering you should consider mesh and material set on renderable objects, and optionally apply lighting, special or post-processing effects as needed. 
 
+## Animated renderables
+Renderables animated with skeletal or morph shape animation aren't deformed in the vertex shader. Each one has a @b3d::render::SkinCacheEntry, owned by its **render::RenderableProxy** and returned by @b3d::render::RenderableProxy::GetSkinCacheEntry, which holds its vertices deformed on the GPU. The renderable storage owns the scene's @b3d::render::SkinCache. Once per frame, before anything draws the renderables, your renderer:
+ - Hands the entries their poses from the scene's evaluated animation data, by calling @b3d::RenderableObjectStorageBase::SetSkinCachePoses.
+ - Adds the passes that deform the entries whose pose changed to a frame graph, by calling @b3d::RenderableObjectStorageBase::UpdateSkinCache, then compiles and executes the graph if it returned true.
+
+~~~~~~~~~~~~~{.cpp}
+RenderableObjectStorageBase& storage = *scene.GetRenderableStorage();
+if(perSceneFrameData.Animation != nullptr)
+	storage.SetSkinCachePoses(*perSceneFrameData.Animation);
+
+FrameGraph graph(GetGpuContext(), "SceneUpdate");
+if(storage.UpdateSkinCache(graph))
+{
+	graph.Compile();
+	graph.Execute();
+}
+~~~~~~~~~~~~~
+
+A renderable with an entry is drawn with the entry's vertices and the mesh's indices, through @b3d::render::RendererUtility::Draw. An entry has no vertices until it is first deformed, which @b3d::render::SkinCacheEntry::HasDeformedVertices reports. A renderable whose mesh the skin cache can't deform has no entry, and is drawn like a static one.
+
+~~~~~~~~~~~~~{.cpp}
+const TShared<SkinCacheEntry>& entry = proxy.GetSkinCacheEntry();
+if(entry != nullptr)
+{
+	if(entry->HasDeformedVertices())
+		GetRendererUtility().Draw(commandBuffer, *entry->GetVertexData(), mesh->GetIndexBuffer(), subMesh);
+}
+else
+	GetRendererUtility().Draw(commandBuffer, mesh, subMesh);
+~~~~~~~~~~~~~
+
+An entry created for a renderable that writes velocity also keeps the positions of the previous pose. Its vertex data binds them as `POSITION1`, which the `DEFORMED` variation of surface shaders reads to compute velocity.
+
 ## Name
 You are required to give your renderer a name by overriding @b3d::render::Renderer::GetName. 
 

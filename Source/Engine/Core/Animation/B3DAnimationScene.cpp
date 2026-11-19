@@ -8,20 +8,9 @@
 #include "Components/B3DCamera.h"
 #include "Animation/B3DMorphShapes.h"
 #include "Components/B3DAnimation.h"
-#include "Mesh/B3DMeshData.h"
-#include "Mesh/B3DMeshUtility.h"
 #include "Renderer/B3DRenderSettings.h"
 
 using namespace b3d;
-
-AnimationScene::AnimationScene()
-{
-	TInlineArray<VertexElement, 8> vertexElements;
-	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION, 1, 1));
-	vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_NORMAL, 1, 1));
-
-	mBlendShapeVertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
-}
 
 void AnimationScene::SetPaused(bool paused)
 {
@@ -195,9 +184,6 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32 boneStartIndex,
 	// Evaluation
 	EvaluatedAnimationData& renderData = mAnimData[mPoseWriteBufferIndex];
 
-	u32 prevPoseBufferIdx = (mPoseWriteBufferIndex + RenderThread::kSyncBufferCount) % (RenderThread::kSyncBufferCount + 1);
-	EvaluatedAnimationData& prevRenderData = mAnimData[prevPoseBufferIdx];
-
 	EvaluatedAnimationData::AnimationInfo animInfo;
 	bool hasAnimInfo = false;
 
@@ -318,29 +304,16 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32 boneStartIndex,
 	// Update morph shapes
 	if(anim->MorphShapeCount > 0)
 	{
-		auto found = prevRenderData.Infos.find(anim->AnimationId);
-		if(found != prevRenderData.Infos.end())
-			animInfo.MorphShapeInfo = found->second.MorphShapeInfo;
-		else
-			animInfo.MorphShapeInfo.Version = 1; // 0 is considered invalid version
-
-		// Recalculate weights if curves are present
-		bool hasMorphCurves = false;
+		// Shape weights, from the channel weights and the frame positions on the curves
 		for(u32 i = 0; i < anim->MorphChannelCount; i++)
 		{
 			MorphChannelInfo& channelInfo = anim->MorphChannelInfos[i];
 			if(channelInfo.WeightCurveIdx != (u32)-1)
-			{
 				channelInfo.Weight = Math::Clamp01(anim->GenericCurveOutputs[channelInfo.WeightCurveIdx]);
-				hasMorphCurves = true;
-			}
 
 			float frameWeight;
 			if(channelInfo.FrameCurveIndex != (u32)-1)
-			{
 				frameWeight = Math::Clamp01(anim->GenericCurveOutputs[channelInfo.FrameCurveIndex]);
-				hasMorphCurves = true;
-			}
 			else
 				frameWeight = 0.0f;
 
@@ -440,78 +413,8 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32 boneStartIndex,
 		for(u32 i = 0; i < anim->MorphShapeCount; i++)
 			renderData.MorphShapeWeights[morphShapeWeightStartIndex + i] = anim->MorphShapeInfos[i].FinalWeight;
 
-		// Generate morph shape vertices
-		if(anim->MorphChannelWeightsDirty || hasMorphCurves)
-		{
-			TShared<MeshData> meshData = B3DMakeShared<MeshData>(anim->MorphVertexCount, 0, mBlendShapeVertexDescription);
-
-			u8* bufferData = meshData->GetData();
-			memset(bufferData, 0, meshData->GetSize());
-
-			u32 tempDataSize = (sizeof(Vector3) + sizeof(float)) * anim->MorphVertexCount;
-			u8* tempData = (u8*)B3DStackAllocate(tempDataSize);
-			memset(tempData, 0, tempDataSize);
-
-			Vector3* tempNormals = (Vector3*)tempData;
-			float* accumulatedWeight = (float*)(tempData + sizeof(Vector3) * anim->MorphVertexCount);
-
-			u8* positions = meshData->GetElementData(VES_POSITION, 1, 1);
-			u8* normals = meshData->GetElementData(VES_NORMAL, 1, 1);
-
-			u32 stride = mBlendShapeVertexDescription->GetVertexStride(1);
-
-			for(u32 i = 0; i < anim->MorphShapeCount; i++)
-			{
-				const MorphShapeInfo& info = anim->MorphShapeInfos[i];
-				float absWeight = Math::Abs(info.FinalWeight);
-
-				if(absWeight < 0.0001f)
-					continue;
-
-				const Vector<MorphVertex>& morphVertices = info.Shape->GetVertices();
-				u32 numVertices = (u32)morphVertices.size();
-				for(u32 j = 0; j < numVertices; j++)
-				{
-					const MorphVertex& vertex = morphVertices[j];
-
-					Vector3* destPos = (Vector3*)(positions + vertex.SourceIdx * stride);
-					*destPos += vertex.DeltaPosition * info.FinalWeight;
-
-					tempNormals[vertex.SourceIdx] += vertex.DeltaNormal * info.FinalWeight;
-					accumulatedWeight[vertex.SourceIdx] += absWeight;
-				}
-			}
-
-			for(u32 i = 0; i < anim->MorphVertexCount; i++)
-			{
-				PackedNormal* destNrm = (PackedNormal*)(normals + i * stride);
-
-				if(accumulatedWeight[i] > 0.0001f)
-				{
-					Vector3 normal = tempNormals[i] / accumulatedWeight[i];
-					normal /= 2.0f; // Accumulated normal is in range [-2, 2] but our normal packing method assumes [-1, 1] range
-
-					MeshUtility::PackNormals(&normal, (u8*)destNrm, 1, sizeof(Vector3), stride);
-					destNrm->W = (u8)(std::min(1.0f, accumulatedWeight[i]) * 255.999f);
-				}
-				else
-				{
-					*destNrm = { { 127, 127, 127, 0 } };
-				}
-			}
-
-			B3DStackFree(tempData);
-
-			animInfo.MorphShapeInfo.MeshData = meshData;
-
-			animInfo.MorphShapeInfo.Version++;
-			anim->MorphChannelWeightsDirty = false;
-		}
-
 		hasAnimInfo = true;
 	}
-	else
-		animInfo.MorphShapeInfo.Version = 1;
 
 	if(hasAnimInfo)
 	{

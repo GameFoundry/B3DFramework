@@ -264,46 +264,6 @@ void RendererUtility::BindVertexData(GpuCommandBuffer& commandBuffer, const Vert
 	}
 }
 
-void RendererUtility::DrawMorph(GpuCommandBuffer& commandBuffer, const TShared<MeshBase>& mesh, const SubMesh& subMesh, const TShared<GpuBuffer>& morphVertices, const TShared<VertexDescription>& morphVertexDescription)
-{
-	// Bind buffers and draw
-	TShared<VertexData> vertexData = mesh->GetVertexData();
-	commandBuffer.SetVertexDescription(morphVertexDescription);
-
-	auto& meshBuffers = vertexData->GetBuffers();
-	TShared<GpuBuffer> allBuffers[B3D_MAX_BOUND_VERTEX_BUFFERS];
-
-	u32 endSlot = 0;
-	u32 startSlot = B3D_MAX_BOUND_VERTEX_BUFFERS;
-	for(auto iter = meshBuffers.begin(); iter != meshBuffers.end(); ++iter)
-	{
-		if(!B3D_ENSURE_LOG(iter->first < B3D_MAX_BOUND_VERTEX_BUFFERS, "Buffer index out of range"))
-			return;
-
-		startSlot = std::min(iter->first, startSlot);
-		endSlot = std::max(iter->first, endSlot);
-	}
-
-	startSlot = std::min(1U, startSlot);
-	endSlot = std::max(1U, endSlot);
-
-	for(auto iter = meshBuffers.begin(); iter != meshBuffers.end(); ++iter)
-		allBuffers[iter->first - startSlot] = iter->second;
-
-	allBuffers[1] = morphVertices;
-	commandBuffer.SetVertexBuffers(startSlot, allBuffers, endSlot - startSlot + 1);
-
-	TShared<GpuBuffer> indexBuffer = mesh->GetIndexBuffer();
-	commandBuffer.SetIndexBuffer(indexBuffer);
-
-	commandBuffer.SetDrawOperation(subMesh.DrawOp);
-
-	u32 indexCount = subMesh.IndexCount;
-	commandBuffer.DrawIndexed(subMesh.IndexOffset + mesh->GetIndexOffset(), indexCount, mesh->GetVertexOffset(), vertexData->VertexCount, 1);
-
-	mesh->NotifyUsedOnGPU();
-}
-
 void RendererUtility::DrawScreenQuad(GpuCommandBuffer& commandBuffer, const Area2& uv, const Vector2I& textureSize, u32 numInstances, bool flipUV)
 {
 	// Note: Consider drawing the quad using a single large triangle for possibly better performance

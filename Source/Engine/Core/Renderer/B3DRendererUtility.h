@@ -337,21 +337,6 @@ namespace b3d
 			void Draw(GpuCommandBuffer& commandBuffer, const VertexData& vertexData, const TShared<GpuBuffer>& indexBuffer, const SubMesh& subMesh, u32 instanceCount = 1);
 
 			/**
-			 * Draws the specified mesh with an additional vertex buffer containing morph shape vertices.
-			 *
-			 * @param	commandBuffer			Command buffer to encode the draw command on.
-			 * @param	mesh					Mesh to draw.
-			 * @param	subMesh					Portion of the mesh to draw.
-			 * @param	morphVertices			Buffer containing the morph shape vertices. Will be bound to stream 1.
-			 *									Expected to contain the same number of vertices as the source mesh.
-			 * @param	morphVertexDescription	Object describing vertices of the provided mesh and the vertices
-			 *									provided in the morph vertex buffer.
-			 *
-			 * @note	Render thread.
-			 */
-			void DrawMorph(GpuCommandBuffer& commandBuffer, const TShared<MeshBase>& mesh, const SubMesh& subMesh, const TShared<GpuBuffer>& morphVertices, const TShared<VertexDescription>& morphVertexDescription);
-
-			/**
 			 * Draws a quad over the entire viewport in normalized device coordinates.
 			 *
 			 * @param	commandBuffer	Command buffer to encode the draw command on.

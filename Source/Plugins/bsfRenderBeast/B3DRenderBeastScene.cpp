@@ -38,30 +38,21 @@ static const ShaderVariationParameters* kDecalVariationParameterLookup[2][3] = {
 	  &GetDecalShaderVariation<true, MSAAMode::Full>() }
 };
 
-/**
- * Returns a specific base pass shader variation. @p animType is RenderableAnimType::None for vertices a skin cache deformed, which use the
- * DEFORMED variation if @p deformed is true.
- */
+/** Returns a specific base pass shader variation. @p deformed is true for vertices a skin cache deformed. */
 template <bool WRITE_VELOCITY>
-static const ShaderVariationParameters* GetBasePassVariation(bool shaderCanWriteVelocity, RenderableAnimType animType, bool deformed)
+static const ShaderVariationParameters* GetBasePassVariation(bool shaderCanWriteVelocity, bool deformed)
 {
 	if(deformed)
-		return &GetVertexInputVariation<false, false, true, WRITE_VELOCITY>(shaderCanWriteVelocity);
+		return &GetVertexInputVariation<true, WRITE_VELOCITY>(shaderCanWriteVelocity);
 
-	const ShaderVariationParameters* VAR_LOOKUP[4];
-	VAR_LOOKUP[0] = &GetVertexInputVariation<false, false, false, WRITE_VELOCITY>(shaderCanWriteVelocity);
-	VAR_LOOKUP[1] = &GetVertexInputVariation<true, false, false, WRITE_VELOCITY>(shaderCanWriteVelocity);
-	VAR_LOOKUP[2] = &GetVertexInputVariation<false, true, false, WRITE_VELOCITY>(shaderCanWriteVelocity);
-	VAR_LOOKUP[3] = &GetVertexInputVariation<true, true, false, WRITE_VELOCITY>(shaderCanWriteVelocity);
-
-	return VAR_LOOKUP[(int)animType];
+	return &GetVertexInputVariation<false, WRITE_VELOCITY>(shaderCanWriteVelocity);
 }
 
 /** Initializes a specific base pass variation on the provided material and returns the variation index. */
-static u32 InitAndRetrieveBasePassVariation(Material& material, bool shaderCanWriteVelocity, bool writeVelocity, RenderableAnimType animType, bool deformed)
+static u32 InitAndRetrieveBasePassVariation(Material& material, bool shaderCanWriteVelocity, bool writeVelocity, bool deformed)
 {
-	const ShaderVariationParameters* const variationParameters = writeVelocity ? GetBasePassVariation<true>(shaderCanWriteVelocity, animType, deformed)
-		: GetBasePassVariation<false>(shaderCanWriteVelocity, animType, deformed);
+	const ShaderVariationParameters* const variationParameters = writeVelocity ? GetBasePassVariation<true>(shaderCanWriteVelocity, deformed)
+		: GetBasePassVariation<false>(shaderCanWriteVelocity, deformed);
 
 	FindVariationInformation findInformation;
 	findInformation.VariationParameters = variationParameters;
@@ -84,7 +75,7 @@ static u32 InitAndRetrieveBasePassVariation(Material& material, bool shaderCanWr
  * Logs a warning if the vertices of @p vertexBufferDescription lack an input of the variation. @p deformed is true for vertices a skin cache
  * deforms, whose vertex data adds the previous positions to the mesh's vertices.
  */
-static void ValidateBasePassMaterial(Material& material, RenderableAnimType animType, bool deformed, u32 variationIndex, VertexDescription& vertexBufferDescription)
+static void ValidateBasePassMaterial(Material& material, bool deformed, u32 variationIndex, VertexDescription& vertexBufferDescription)
 {
 	// Validate mesh <-> shader vertex bindings
 	u32 passCount = material.GetPassCount(variationIndex);
@@ -97,16 +88,6 @@ static void ValidateBasePassMaterial(Material& material, RenderableAnimType anim
 		if(shaderVertexDescription && !VertexDescription::IsCompatibleWithShaderInputs(vertexBufferDescription, *shaderVertexDescription))
 		{
 			TInlineArray<VertexElement, 8> missingElements = VertexDescription::GetMissingElementsForShaderInput(vertexBufferDescription, *shaderVertexDescription);
-
-			// If using morph shapes ignore POSITION1 and NORMAL1 missing since we assign them from within the renderer
-			if(animType == RenderableAnimType::Morph || animType == RenderableAnimType::SkinnedMorph)
-			{
-				auto removeIter = std::remove_if(missingElements.begin(), missingElements.end(), [](const VertexElement& x)
-												 { return (x.GetSemantic() == VES_POSITION && x.GetSemanticIndex() == 1) ||
-													   (x.GetSemantic() == VES_NORMAL && x.GetSemanticIndex() == 1); });
-
-				missingElements.erase(removeIter, missingElements.end());
-			}
 
 			if(deformed)
 			{
@@ -172,9 +153,8 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 			const MeshProperties& meshProps = mesh->GetProperties();
 			TShared<VertexDescription> vertexDescription = mesh->GetVertexData()->VertexDescription;
 
-			// An animated renderable with a skin cache entry draws the entry's vertices with the variations of a static one
+			// An animated renderable draws the vertices of its skin cache entry
 			SkinCacheEntry* const skinCacheEntry = proxy.GetSkinCacheEntry().get();
-			const RenderableAnimType animType = skinCacheEntry != nullptr ? RenderableAnimType::None : proxy.GetAnimType();
 
 			for(u32 subMeshIndex = 0; subMeshIndex < (u32)meshProps.SubMeshes.size(); subMeshIndex++)
 			{
@@ -184,12 +164,7 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 				drawCommand.Type = (u32)DrawCommandType::Renderable;
 				drawCommand.Mesh = mesh;
 				drawCommand.SubMesh = meshProps.SubMeshes[subMeshIndex];
-				drawCommand.AnimType = animType;
 				drawCommand.SkinCacheEntry = skinCacheEntry;
-				drawCommand.AnimationId = proxy.GetAnimationId();
-				drawCommand.MorphShapeVersion = 0;
-				drawCommand.MorphShapeBuffer = proxy.GetMorphShapeBuffer();
-				drawCommand.MorphVertexDefinition = proxy.GetMorphVertexDescription();
 
 				drawCommand.Material = proxy.GetMaterial(subMeshIndex);
 				if(drawCommand.Material == nullptr)
@@ -203,8 +178,6 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 					drawCommand.Material = Material::Create(DefaultMaterial::Get()->GetShader());
 
 				// Determine which variation to use
-				static_assert((u32)RenderableAnimType::Count == 4, "RenderableAnimType is expected to have four sequential entries.");
-
 				const TShared<Shader>& shader = drawCommand.Material->GetShader();
 
 				const Vector<ShaderVariationParameterInformation>& variationParams = shader->GetVariationParameters();
@@ -214,10 +187,10 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 				const bool writeVelocity = shaderCanWriteVelocity && proxy.GetWriteVelocity();
 				const bool deformed = skinCacheEntry != nullptr;
 
-				drawCommand.DefaultVariationIndex = InitAndRetrieveBasePassVariation(*drawCommand.Material, shaderCanWriteVelocity, false, animType, false);
+				drawCommand.DefaultVariationIndex = InitAndRetrieveBasePassVariation(*drawCommand.Material, shaderCanWriteVelocity, false, false);
 
 #if B3D_DEBUG
-				ValidateBasePassMaterial(*drawCommand.Material, animType, deformed, drawCommand.DefaultVariationIndex, *vertexDescription);
+				ValidateBasePassMaterial(*drawCommand.Material, false, drawCommand.DefaultVariationIndex, *vertexDescription);
 #endif
 
 				// Generate or assigned renderer specific data for the material
@@ -227,10 +200,10 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 				if(writeVelocity)
 				{
 					// Only the velocity variation reads the previous positions of deformed vertices
-					drawCommand.WriteVelocityVariationIndex = InitAndRetrieveBasePassVariation(*drawCommand.Material, shaderCanWriteVelocity, true, animType, deformed);
+					drawCommand.WriteVelocityVariationIndex = InitAndRetrieveBasePassVariation(*drawCommand.Material, shaderCanWriteVelocity, true, deformed);
 
 #if B3D_DEBUG
-					ValidateBasePassMaterial(*drawCommand.Material, animType, deformed, drawCommand.WriteVelocityVariationIndex, *vertexDescription);
+					ValidateBasePassMaterial(*drawCommand.Material, deformed, drawCommand.WriteVelocityVariationIndex, *vertexDescription);
 #endif
 
 					// Note: Using the same params as the non-velocity variation. There are assumed to be no differences
@@ -267,14 +240,6 @@ void RenderableObjectStorage::CreateRenderState(TArrayView<const PackedRendererI
 			// Store shared parameter set and buffer offset for render-time binding
 			drawCommand.SharedPerObjectParameterSet = renderState->PerObjectParameterSet;
 			drawCommand.PerObjectBufferOffset = renderState->PerObjectSuballocation.GetSuballocationOffset();
-
-			// Set 0 is null for a shader without material parameters
-			TShared<GpuParameterSet> gpuParameterSet = drawCommand.ParameterAdapter->GetGpuParameterSet();
-			if(gpuParameterSet != nullptr)
-			{
-				gpuParameterSet->TryGetStorageBufferParameter("boneMatrices", drawCommand.BoneMatrixBufferParameter);
-				gpuParameterSet->TryGetStorageBufferParameter("prevBoneMatrices", drawCommand.PreviousBoneMatrixBufferParameter);
-			}
 
 			// The Forward flag comes from the forward lighting include; transparent surfaces without it are unlit
 			const ShaderFlags shaderFlags = shader->GetFlags();
@@ -376,39 +341,11 @@ void RenderableObjectStorage::PrepareVisibleRenderable(PackedRendererId id, cons
 		return;
 
 	RenderableRenderState* renderState = mRenderables[id];
-	RenderableProxy& proxy = GetRenderableProxy(id);
-
-	// Note: Before uploading bone matrices perhaps check if they has actually been changed since last frame
-	TShared<GpuBuffer> boneMatrixBuffer;
-	TShared<GpuBuffer> previousBoneMatrixBuffer;
-	bool isAnimated = false;
-	if(frameInfo.PerSceneFrameData.Animation != nullptr)
-	{
-		// A renderable with a skin cache entry was posed through the cache
-		isAnimated = proxy.GetAnimationId() != (u64)-1 && proxy.GetSkinCacheEntry() == nullptr;
-
-		if(isAnimated)
-		{
-			proxy.UpdateAnimationBuffers(*frameInfo.PerSceneFrameData.Animation);
-			boneMatrixBuffer = proxy.GetBoneMatrixBuffer();
-			previousBoneMatrixBuffer = proxy.GetPreviousBoneMatrixBuffer();
-		}
-	}
 
 	// Note: Could this step be moved in notifyRenderableUpdated, so it only triggers when material actually gets
 	// changed? Although it shouldn't matter much because if the internal versions keeping track of dirty params.
 	for(auto& element : renderState->DrawCommands)
-	{
 		element.ParameterAdapter->Update(element.Material, element.MaterialAnimationTime);
-
-		// Note: If renderable is not writing to velocity, then these buffer don't have to be rebound every frame. Potential optimization for future.
-		if(isAnimated)
-		{
-			const TShared<GpuParameterSet>& set = element.ParameterAdapter->GetGpuParameterSet();
-			element.BoneMatrixBufferParameter.Set(set, boneMatrixBuffer);
-			element.PreviousBoneMatrixBufferParameter.Set(set, previousBoneMatrixBuffer);
-		}
-	}
 
 	mRenderBeastScene->mRenderableReady[id] = true;
 }

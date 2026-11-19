@@ -4,37 +4,11 @@ mixin VertexInput
 {
 	mixin VertexCommon;
 
-	#ifndef NO_ANIMATION
-	variations
-	{
-		SKINNED = { false, true };
-		MORPH = { false, true };
-	};
-	#endif
-
 	code
 	{
-		// Deformed vertices are drawn with the code of static ones (see VertexCommon)
-		#if DEFORMED
-			#undef SKINNED
-			#define SKINNED 0
-			#undef MORPH
-			#define MORPH 0
-		#endif
-
 		float4 GetVertexPosition(VertexInput input, VertexIntermediate intermediate)
 		{
-			#if MORPH
-				float4 position = float4(input.position + input.deltaPosition, 1.0f);
-			#else
-				float4 position = float4(input.position, 1.0f);
-			#endif			
-		
-			#if SKINNED
-				position = float4(mul(intermediate.blendMatrix, position), 1.0f);
-			#endif
-		
-			return position;
+			return float4(input.position, 1.0f);
 		}
 		
 		float4 GetVertexWorldPosition(VertexInput input, VertexIntermediate intermediate, float4x4 worldTransform)
@@ -44,18 +18,7 @@ mixin VertexInput
 		
 		float4 GetVertexWorldPosition(VertexInput_PO input, float4x4 worldTransform)
 		{
-			#if MORPH
-				float4 position = float4(input.position + input.deltaPosition, 1.0f);
-			#else
-				float4 position = float4(input.position, 1.0f);
-			#endif			
-		
-			#if SKINNED
-				float3x4 blendMatrix = getBlendMatrix(input.blendWeights, input.blendIndices);
-				position = float4(mul(blendMatrix, position), 1.0f);
-			#endif
-		
-			return mul(worldTransform, position);
+			return mul(worldTransform, float4(input.position, 1.0f));
 		}
 		
 		// Note: This can be made optional if velocity buffer isn't required
@@ -63,16 +26,8 @@ mixin VertexInput
 		{
 			#if DEFORMED && VERTEX_INPUT_PREVIOUS_CLIP_SPACE
 				float4 position = float4(input.previousPosition, 1.0f);
-			#elif MORPH
-				float4 position = float4(input.position + input.deltaPosition, 1.0f);
 			#else
 				float4 position = float4(input.position, 1.0f);
-			#endif			
-		
-			#if SKINNED
-				#if VERTEX_INPUT_PREVIOUS_CLIP_SPACE
-					position = float4(mul(intermediate.prevBlendMatrix, position), 1.0f);
-				#endif
 			#endif
 		
 			return mul(previousWorldTransform, position);

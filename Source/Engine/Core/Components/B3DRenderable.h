@@ -352,26 +352,8 @@ namespace b3d
 			u64 GetAnimationId() const { return mAnimationId; }
 
 			/**
-			 * Updates internal animation buffers from the contents of the provided animation data object. Does nothing if
-			 * renderable is not affected by animation.
-			 */
-			void UpdateAnimationBuffers(const EvaluatedAnimationData& animData);
-
-			/** Returns the GPU buffer containing element's bone matrices, if it has any. */
-			const TShared<GpuBuffer>& GetBoneMatrixBuffer() const { return mBoneMatrixBuffer; }
-
-			/** Returns the GPU buffer containing element's bone matrices for the previous frame, if it has any. */
-			const TShared<GpuBuffer>& GetPreviousBoneMatrixBuffer() const { return mPreviousBoneMatrixBuffer; }
-
-			/** Returns the vertex buffer containing element's morph shape vertices, if it has any. */
-			const TShared<GpuBuffer>& GetMorphShapeBuffer() const { return mMorphShapeBuffer; }
-
-			/** Returns vertex declaration used for rendering meshes containing morph shape information. */
-			const TShared<VertexDescription>& GetMorphVertexDescription() const { return mMorphVertexDescription; }
-
-			/**
-			 * Returns the skin cache entry that holds the renderable's deformed vertices, or null if the renderable isn't animated or doesn't
-			 * use the skin cache. A renderable with an entry draws the entry's vertices and has no bone or morph shape buffers.
+			 * Returns the skin cache entry that holds the renderable's deformed vertices, or null if the renderable isn't animated or the
+			 * cache can't deform its mesh. A renderable with an entry draws the entry's vertices.
 			 */
 			const TShared<SkinCacheEntry>& GetSkinCacheEntry() const { return mSkinCacheEntry; }
 
@@ -388,20 +370,12 @@ namespace b3d
 			/** Returns the renderable data. Used by the CRTP getter interface. */
 			const TRenderableData<true>& GetRenderableData() const { return mData; }
 
-			/** Creates any buffers required for renderable animation. Should be called whenever animation properties change. */
-			void CreateAnimationBuffers();
-
 			/** Renderable data (mesh, materials, layer, etc.). */
 			TRenderableData<true> mData;
 
 			PackedRendererId mRendererId = kInvalidPackedRendererId;
 			u64 mAnimationId = (u64)-1;
-			u32 mMorphShapeVersion = 0;
 
-			TShared<GpuBuffer> mBoneMatrixBuffer;
-			TShared<GpuBuffer> mPreviousBoneMatrixBuffer;
-			TShared<GpuBuffer> mMorphShapeBuffer;
-			TShared<VertexDescription> mMorphVertexDescription;
 			TShared<SkinCacheEntry> mSkinCacheEntry;
 
 			Transform mTransform;

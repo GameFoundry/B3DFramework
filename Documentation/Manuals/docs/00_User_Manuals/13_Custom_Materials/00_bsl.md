@@ -1272,23 +1272,23 @@ forward				 | true, false				   | false					| Notifies the renderer that this ob
 priority			 | integer					   | 0						| Allows you to force objects with this shader to render before others. Objects with higher priority will be rendered before those with lower priority. If sorting is enabled, objects will be sorted within their priority groups (i.e. priority takes precedence over sort mode).
 
 # Variations
-Sometimes you need a few versions of the same shader, that are mostly similar but have some minor differences between them. For example, when rendering objects you might need to support a vertex shader for static meshes, as well as those using skinned and/or morph animation. 
+Sometimes you need a few versions of the same shader, that are mostly similar but have some minor differences between them. For example, when rendering objects you might need a version of a surface shader that writes per-pixel velocity, and one that doesn't.
 
 This is where the **variations** block comes into play. It allows you to specify a set of permutations for which the shader will be compiled. During shader import every permutation of that shader will be parsed, enabling pre-processor \#define blocks depending on the current permutation. The \#defines take on the name of their variation, and one of the user provided values.
 
 ~~~~~~~~~~~~~~
-// An example shader supporting different mesh animation modes
-shader VertexInput
+// An example shader that can write velocity, for static meshes and for animated meshes
+shader MyShader
 {
 	// This will be be compiled using 4 different variations:
-	// - Static (no animation) (SKINNED = false, MORPH = false)
-	// - Skinned animation (SKINNED = true, MORPH = false)
-	// - Morph animation (SKINNED = false, MORPH = true)
-	// - Skinned morph animation (SKINNED = true, MORPH = true)
+	// - No velocity, static mesh (WRITE_VELOCITY = false, DEFORMED = false)
+	// - Velocity, static mesh (WRITE_VELOCITY = true, DEFORMED = false)
+	// - No velocity, animated mesh (WRITE_VELOCITY = false, DEFORMED = true)
+	// - Velocity, animated mesh (WRITE_VELOCITY = true, DEFORMED = true)
 	variations
 	{
-		SKINNED = { false, true };
-		MORPH = { false, true };
+		WRITE_VELOCITY = { false, true };
+		DEFORMED = { false, true };
 	};
 
 	code
@@ -1300,15 +1300,10 @@ shader VertexInput
 			float4 tangent : TANGENT; // Note: Half-precision could be used
 			float2 uv0 : TEXCOORD0;
 			
-			#if SKINNED
-				uint4 blendIndices : BLENDINDICES;
-				float4 blendWeights : BLENDWEIGHT;
+			// The vertices of an animated mesh also hold their positions in the previous frame
+			#if DEFORMED && WRITE_VELOCITY
+				float3 previousPosition : POSITION1;
 			#endif
-			
-			#if MORPH
-				float3 deltaPosition : POSITION1;
-				float4 deltaNormal : NORMAL1;
-			#endif				
 		};
 		
 		// Potentially more code...

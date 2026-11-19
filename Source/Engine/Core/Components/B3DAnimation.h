@@ -152,7 +152,6 @@ namespace b3d
 	/** Morph shape and its contribution to the final shape. */
 	struct MorphShapeInfo
 	{
-		TShared<MorphShape> Shape;
 		float FrameWeight;
 		float FinalWeight;
 	};
@@ -256,8 +255,6 @@ namespace b3d
 		MorphShapeInfo* MorphShapeInfos = nullptr;
 		u32 MorphChannelCount = 0;
 		u32 MorphShapeCount = 0;
-		u32 MorphVertexCount = 0;
-		bool MorphChannelWeightsDirty = false;
 
 		// Culling
 		AABox Bounds;

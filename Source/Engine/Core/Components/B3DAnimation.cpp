@@ -85,9 +85,6 @@ void AnimationProxy::Clear()
 		layer.~AnimationStateLayer();
 	}
 
-	for(u32 morphShapeIndex = 0; morphShapeIndex < MorphShapeCount; morphShapeIndex++)
-		MorphShapeInfos[morphShapeIndex].Shape.~TShared<MorphShape>();
-
 	// All of the memory is part of the same buffer, so we only need to free the first element
 	B3DFree(Layers);
 	Layers = nullptr;
@@ -230,15 +227,12 @@ void AnimationProxy::RebuildClips(Vector<AnimationClipInfo>& inOutClipInfos, con
 		if(morphShapes != nullptr)
 		{
 			MorphChannelCount = morphShapes->GetChannelCount();
-			MorphVertexCount = morphShapes->GetVertexCount();
-
 			MorphShapeCount = morphShapes->GetShapeCount();
 		}
 		else
 		{
 			MorphChannelCount = 0;
 			MorphShapeCount = 0;
-			MorphVertexCount = 0;
 		}
 
 		u32 boneMappingCount = boneCount * clipCount;
@@ -334,11 +328,7 @@ void AnimationProxy::RebuildClips(Vector<AnimationClipInfo>& inOutClipInfos, con
 				for(u32 shapeIndex = 0; shapeIndex < shapeCount; shapeIndex++)
 				{
 					MorphShapeInfo& shapeInfo = MorphShapeInfos[currentShapeIndex];
-					new(&shapeInfo.Shape) TShared<MorphShape>();
-
-					TShared<MorphShape> shape = morphChannel->GetShape(shapeIndex);
-					shapeInfo.Shape = shape;
-					shapeInfo.FrameWeight = shape->GetWeight();
+					shapeInfo.FrameWeight = morphChannel->GetShape(shapeIndex)->GetWeight();
 					shapeInfo.FinalWeight = 0.0f;
 
 					currentShapeIndex++;
@@ -362,8 +352,6 @@ void AnimationProxy::RebuildClips(Vector<AnimationClipInfo>& inOutClipInfos, con
 					}
 				}
 			}
-
-			MorphChannelWeightsDirty = true;
 		}
 
 		u32 currentLayerIndex = 0;
@@ -580,8 +568,6 @@ void AnimationProxy::UpdateMorphChannelWeights(const Vector<float>& weights)
 		else
 			MorphChannelInfos[morphChannelIndex].Weight = 0.0f;
 	}
-
-	MorphChannelWeightsDirty = true;
 }
 
 void AnimationProxy::UpdateTransforms(const Vector<SceneObjectMappingCurveInfo>& sceneObjects)

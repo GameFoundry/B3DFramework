@@ -29,12 +29,9 @@ namespace b3d
 			u32 BoneCount;
 		};
 
-		/** Contains data about a calculated morph shape. */
+		/** Contains data about the evaluated morph shapes of an animation. */
 		struct MorphShapeInfo
 		{
-			TShared<MeshData> MeshData;
-			u32 Version;
-
 			u32 WeightStartIndex = 0; /**< Index of the weight of the animation's first morph shape in MorphShapeWeights. */
 			u32 WeightCount = 0; /**< Number of morph shapes of the animation. */
 		};
@@ -74,7 +71,7 @@ namespace b3d
 	class B3D_EXPORT AnimationScene
 	{
 	public:
-		AnimationScene();
+		AnimationScene() = default;
 
 		/** Pauses or resumes the animation evaluation. */
 		void SetPaused(bool paused);
@@ -156,8 +153,6 @@ namespace b3d
 		float mNextAnimationUpdateTime = 0.0f;
 		float mLastAnimationDeltaTime = 0.0f;
 		bool mPaused = false;
-
-		TShared<VertexDescription> mBlendShapeVertexDescription;
 
 		// Animation thread
 		Vector<TShared<AnimationProxy>> mProxies;

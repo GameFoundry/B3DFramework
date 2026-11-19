@@ -27,14 +27,6 @@ mixin VertexCommon
 {
 	code
 	{
-		// Each code block is preprocessed on its own, so VertexInput repeats this
-		#if DEFORMED
-			#undef SKINNED
-			#define SKINNED 0
-			#undef MORPH
-			#define MORPH 0
-		#endif
-
 		struct VStoFS
 		{
 			float4 position : SV_Position;
@@ -75,16 +67,6 @@ mixin VertexCommon
 				float4 tangent : TANGENT; // Note: Half-precision could be used
 			#endif
 			
-			#if SKINNED
-				uint4 blendIndices : BLENDINDICES;
-				float4 blendWeights : BLENDWEIGHT;
-			#endif
-			
-			#if MORPH
-				float3 deltaPosition : POSITION1;
-				float4 deltaNormal : NORMAL1;
-			#endif
-
 			#if DEFORMED && VERTEX_INPUT_PREVIOUS_CLIP_SPACE
 				float3 previousPosition : POSITION1;
 			#endif
@@ -98,96 +80,21 @@ mixin VertexCommon
 			#else
 				float3 position : POSITION;
 			#endif
-			
-			#if SKINNED
-				uint4 blendIndices : BLENDINDICES;
-				float4 blendWeights : BLENDWEIGHT;
-			#endif			
-			
-			#if MORPH
-				float3 deltaPosition : POSITION1;
-			#endif	
 		};			
 		
 		struct VertexIntermediate
 		{
-			#if SKINNED
-				float3x4 blendMatrix;
-				
-				#if VERTEX_INPUT_PREVIOUS_CLIP_SPACE
-					float3x4 prevBlendMatrix;
-				#endif
-			#endif
-		
 			#if VERTEX_INPUT_LIGHTING
 				float3 worldNormal; // Note: Half-precision could be used
 				float4 worldTangent; // Note: Half-precision could be used
 			#endif
 		};
 		
-		#if SKINNED
-		[internal] Buffer<float4> boneMatrices;
-		[internal] Buffer<float4> prevBoneMatrices;
-		
-		float3x4 getBoneMatrix(uint idx)
-		{
-			float4 row0 = boneMatrices[idx * 3 + 0];
-			float4 row1 = boneMatrices[idx * 3 + 1];
-			float4 row2 = boneMatrices[idx * 3 + 2];
-			
-			return float3x4(row0, row1, row2);
-		}
-		
-		float3x4 getPrevBoneMatrix(uint idx)
-		{
-			float4 row0 = prevBoneMatrices[idx * 3 + 0];
-			float4 row1 = prevBoneMatrices[idx * 3 + 1];
-			float4 row2 = prevBoneMatrices[idx * 3 + 2];
-			
-			return float3x4(row0, row1, row2);
-		}
-		
-		float3x4 getBlendMatrix(float4 blendWeights, uint4 blendIndices)
-		{
-			float3x4 result = blendWeights.x * getBoneMatrix(blendIndices.x);
-			result += blendWeights.y * getBoneMatrix(blendIndices.y);
-			result += blendWeights.z * getBoneMatrix(blendIndices.z);
-			result += blendWeights.w * getBoneMatrix(blendIndices.w);
-			
-			return result;
-		}
-		
-		float3x4 getPrevBlendMatrix(float4 blendWeights, uint4 blendIndices)
-		{
-			float3x4 result = blendWeights.x * getPrevBoneMatrix(blendIndices.x);
-			result += blendWeights.y * getPrevBoneMatrix(blendIndices.y);
-			result += blendWeights.z * getPrevBoneMatrix(blendIndices.z);
-			result += blendWeights.w * getPrevBoneMatrix(blendIndices.w);
-			
-			return result;
-		}
-		#endif
-		
 		#if VERTEX_INPUT_LIGHTING
-		float3x3 getTangentToLocal(VertexInput input, out float tangentSign
-			#if SKINNED
-			, float3x4 blendMatrix
-			#endif
-			)
+		float3x3 getTangentToLocal(VertexInput input, out float tangentSign)
 		{
 			float3 normal = input.normal * 2.0f - 1.0f;
 			float3 tangent = input.tangent.xyz * 2.0f - 1.0f;
-			
-			#if MORPH
-				float3 deltaNormal = (input.deltaNormal.xyz * 2.0f - 1.0f) * 2.0f;
-				normal = normalize(normal + deltaNormal * input.deltaNormal.w);
-				tangent = normalize(tangent - dot(tangent, normal) * normal);
-			#endif
-			
-			#if SKINNED
-				normal = mul(blendMatrix, float4(normal, 0.0f)).xyz;
-				tangent = mul(blendMatrix, float4(tangent, 0.0f)).xyz;
-			#endif
 			
 			tangentSign = input.tangent.w < 0.5f ? -1.0f : 1.0f;
 			float3 bitangent = cross(normal, tangent) * tangentSign;
@@ -217,24 +124,9 @@ mixin VertexCommon
 		{
 			VertexIntermediate result;
 			
-			float tangentSign;
-			#if SKINNED
-				result.blendMatrix = getBlendMatrix(input.blendWeights, input.blendIndices);
-
-				#if VERTEX_INPUT_LIGHTING
-					float3x3 tangentToLocal = getTangentToLocal(input, tangentSign, result.blendMatrix);
-				#endif
-				
-				#if VERTEX_INPUT_PREVIOUS_CLIP_SPACE
-					result.prevBlendMatrix = getPrevBlendMatrix(input.blendWeights, input.blendIndices);
-				#endif
-			#else
-				#if VERTEX_INPUT_LIGHTING
-					float3x3 tangentToLocal = getTangentToLocal(input, tangentSign);
-				#endif
-			#endif
-			
 			#if VERTEX_INPUT_LIGHTING
+				float tangentSign;
+				float3x3 tangentToLocal = getTangentToLocal(input, tangentSign);
 				float3x3 tangentToWorld = mul((float3x3)gMatWorldNoScale, tangentToLocal);
 				
 				// Note: Consider transposing these externally, for easier reads

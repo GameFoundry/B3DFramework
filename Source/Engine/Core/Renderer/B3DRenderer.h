@@ -50,27 +50,20 @@ namespace b3d
 		/**
 		 * Returns a specific vertex input shader variation. DEFORMED (vertices a skin cache deformed, with the previous positions as
 		 * POSITION1) is a variation only of shaders that support velocity writes, as nothing else reads the previous positions. Other
-		 * shaders draw deformed vertices with the static variation, and DEFORMED is ignored for them.
+		 * shaders draw deformed vertices like static ones, and have no vertex input variations.
 		 */
-		template <bool SKINNED, bool MORPH, bool DEFORMED, bool WRITE_VELOCITY>
+		template <bool DEFORMED, bool WRITE_VELOCITY>
 		static const ShaderVariationParameters& GetVertexInputVariation(bool supportsVelocityWrites)
 		{
 			if(!supportsVelocityWrites)
 			{
-				static ShaderVariationParameters variation = ShaderVariationParameters(
-					{
-						ShaderVariationParameter("SKINNED", SKINNED),
-						ShaderVariationParameter("MORPH", MORPH),
-					});
-
+				static ShaderVariationParameters variation;
 				return variation;
 			}
 			else
 			{
 				static ShaderVariationParameters variation = ShaderVariationParameters(
 					{
-						ShaderVariationParameter("SKINNED", SKINNED),
-						ShaderVariationParameter("MORPH", MORPH),
 						ShaderVariationParameter("DEFORMED", DEFORMED),
 						ShaderVariationParameter("WRITE_VELOCITY", WRITE_VELOCITY),
 					});

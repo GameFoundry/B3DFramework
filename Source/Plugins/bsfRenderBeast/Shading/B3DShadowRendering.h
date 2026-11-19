@@ -40,30 +40,11 @@ namespace b3d
 		{
 			RMAT_DEF("ShadowDepthNormal.bsl");
 
-			/** Helper method used for initializing variations of this material. */
-			template <bool SKINNED, bool MORPH>
-			static const ShaderVariationParameters& GetVariation()
-			{
-				static ShaderVariationParameters variation = ShaderVariationParameters(
-					{ ShaderVariationParameter("SKINNED", SKINNED),
-					  ShaderVariationParameter("MORPH", MORPH) });
-
-				return variation;
-			}
-
 		public:
 			ShadowDepthNormalMaterial() = default;
 
 			/** Binds all the provided buffers to the provided GpuParameterSet object. */
 			static void PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms);
-
-			/**
-			 * Returns the material variation matching the provided parameters.
-			 *
-			 * @param	skinned		True if the shadow caster supports bone animation.
-			 * @param	morph		True if the shadow caster supports morph shape animation.
-			 */
-			static ShadowDepthNormalMaterial* GetVariation(bool skinned, bool morph);
 		};
 
 		/** Material used for rendering a single face of a shadow map, without running the pixel shader. */
@@ -71,30 +52,11 @@ namespace b3d
 		{
 			RMAT_DEF("ShadowDepthNormalNoPS.bsl");
 
-			/** Helper method used for initializing variations of this material. */
-			template <bool SKINNED, bool MORPH>
-			static const ShaderVariationParameters& GetVariation()
-			{
-				static ShaderVariationParameters variation = ShaderVariationParameters(
-					{ ShaderVariationParameter("SKINNED", SKINNED),
-					  ShaderVariationParameter("MORPH", MORPH) });
-
-				return variation;
-			}
-
 		public:
 			ShadowDepthNormalNoPSMaterial() = default;
 
 			/** Binds all the provided buffers to the provided GpuParameterSet object. */
 			static void PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms);
-
-			/**
-			 * Returns the material variation matching the provided parameters.
-			 *
-			 * @param	skinned		True if the shadow caster supports bone animation.
-			 * @param	morph		True if the shadow caster supports morph shape animation.
-			 */
-			static ShadowDepthNormalNoPSMaterial* GetVariation(bool skinned, bool morph);
 		};
 
 		/** Material used for rendering a single face of a shadow map, for a directional light. */
@@ -102,30 +64,11 @@ namespace b3d
 		{
 			RMAT_DEF("ShadowDepthDirectional.bsl");
 
-			/** Helper method used for initializing variations of this material. */
-			template <bool SKINNED, bool MORPH>
-			static const ShaderVariationParameters& GetVariation()
-			{
-				static ShaderVariationParameters variation = ShaderVariationParameters(
-					{ ShaderVariationParameter("SKINNED", SKINNED),
-					  ShaderVariationParameter("MORPH", MORPH) });
-
-				return variation;
-			}
-
 		public:
 			ShadowDepthDirectionalMaterial() = default;
 
 			/** Binds all the provided buffers to the provided GpuParameterSet object. */
 			static void PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms);
-
-			/**
-			 * Returns the material variation matching the provided parameters.
-			 *
-			 * @param	skinned		True if the shadow caster supports bone animation.
-			 * @param	morph		True if the shadow caster supports morph shape animation.
-			 */
-			static ShadowDepthDirectionalMaterial* GetVariation(bool skinned, bool morph);
 		};
 
 		B3D_UNIFORM_BUFFER_BEGIN(ShadowCubeMatricesUniformDefinition)
@@ -145,30 +88,11 @@ namespace b3d
 		{
 			RMAT_DEF("ShadowDepthCube.bsl");
 
-			/** Helper method used for initializing variations of this material. */
-			template <bool SKINNED, bool MORPH>
-			static const ShaderVariationParameters& GetVariation()
-			{
-				static ShaderVariationParameters variation = ShaderVariationParameters(
-					{ ShaderVariationParameter("SKINNED", SKINNED),
-					  ShaderVariationParameter("MORPH", MORPH) });
-
-				return variation;
-			}
-
 		public:
 			ShadowDepthCubeMaterial() = default;
 
 			/** Binds all the provided buffers to the provided GpuParameterSet object. */
 			static void PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms, const GpuBufferSuballocation& shadowCubeMatrices, const GpuBufferSuballocation& shadowCubeMasks);
-
-			/**
-			 * Returns the material variation matching the provided parameters.
-			 *
-			 * @param	skinned		True if the shadow caster supports bone animation.
-			 * @param	morph		True if the shadow caster supports morph shape animation.
-			 */
-			static ShadowDepthCubeMaterial* GetVariation(bool skinned, bool morph);
 		};
 
 		B3D_UNIFORM_BUFFER_BEGIN(ShadowProjectVertUniformDefinition)

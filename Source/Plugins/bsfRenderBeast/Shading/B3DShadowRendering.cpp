@@ -32,68 +32,14 @@ namespace b3d
 			gpuParameters->SetUniformBuffer("ShadowParams", shadowUniforms);
 		}
 
-		ShadowDepthNormalMaterial* ShadowDepthNormalMaterial::GetVariation(bool skinned, bool morph)
-		{
-			if(skinned)
-			{
-				if(morph)
-					return Get(GetVariation<true, true>());
-
-				return Get(GetVariation<true, false>());
-			}
-			else
-			{
-				if(morph)
-					return Get(GetVariation<false, true>());
-
-				return Get(GetVariation<false, false>());
-			}
-		}
-
 		void ShadowDepthNormalNoPSMaterial::PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms)
 		{
 			gpuParameters->SetUniformBuffer("ShadowParams", shadowUniforms);
 		}
 
-		ShadowDepthNormalNoPSMaterial* ShadowDepthNormalNoPSMaterial::GetVariation(bool skinned, bool morph)
-		{
-			if(skinned)
-			{
-				if(morph)
-					return Get(GetVariation<true, true>());
-
-				return Get(GetVariation<true, false>());
-			}
-			else
-			{
-				if(morph)
-					return Get(GetVariation<false, true>());
-
-				return Get(GetVariation<false, false>());
-			}
-		}
-
 		void ShadowDepthDirectionalMaterial::PopulateParameters(const TShared<GpuParameterSet>& gpuParameters, const GpuBufferSuballocation& shadowUniforms)
 		{
 			gpuParameters->SetUniformBuffer("ShadowParams", shadowUniforms);
-		}
-
-		ShadowDepthDirectionalMaterial* ShadowDepthDirectionalMaterial::GetVariation(bool skinned, bool morph)
-		{
-			if(skinned)
-			{
-				if(morph)
-					return Get(GetVariation<true, true>());
-
-				return Get(GetVariation<true, false>());
-			}
-			else
-			{
-				if(morph)
-					return Get(GetVariation<false, true>());
-
-				return Get(GetVariation<false, false>());
-			}
 		}
 
 		ShadowCubeMatricesUniformDefinition gShadowCubeMatricesUniformDefinition;
@@ -104,24 +50,6 @@ namespace b3d
 			gpuParameters->TrySetUniformBuffer("ShadowParams", shadowUniforms);
 			gpuParameters->SetUniformBuffer("ShadowCubeMatrices", shadowCubeMatrices);
 			gpuParameters->SetUniformBuffer("ShadowCubeMasks", shadowCubeMasks);
-		}
-
-		ShadowDepthCubeMaterial* ShadowDepthCubeMaterial::GetVariation(bool skinned, bool morph)
-		{
-			if(skinned)
-			{
-				if(morph)
-					return Get(GetVariation<true, true>());
-
-				return Get(GetVariation<true, false>());
-			}
-			else
-			{
-				if(morph)
-					return Get(GetVariation<false, true>());
-
-				return Get(GetVariation<false, false>());
-			}
 		}
 
 		ShadowProjectUniformDefinition gShadowProjectUniformDefinition;
@@ -477,17 +405,9 @@ namespace b3d
 			template <class Options>
 			static void AddPass(FrameGraph& graph, const StringView& name, RenderBeastScene& scene, const FrameInfo& frameInfo, FrameGraphRasterPass&& pass, const Options& options)
 			{
-				static_assert((u32)RenderableAnimType::Count == 4, "RenderableAnimType is expected to have four sequential entries.");
-
 				RenderableObjectStorage& renderableStorage = scene.GetRenderableStorage();
 
-				Vector<Command> commandsPerAnimationType[4];
-
-				static const ShaderVariationParameters* kVariationLookup[4];
-				kVariationLookup[0] = &GetVertexInputVariation<false, false, false, false>(false);
-				kVariationLookup[1] = &GetVertexInputVariation<true, false, false, false>(false);
-				kVariationLookup[2] = &GetVertexInputVariation<false, true, false, false>(false);
-				kVariationLookup[3] = &GetVertexInputVariation<true, true, false, false>(false);
+				Vector<Command> commands;
 
 				// Make a list of relevant renderables and prepare them for rendering
 				for(u32 renderableIndex = 0; renderableIndex < renderableStorage.GetRenderableCount(); renderableIndex++)
@@ -507,29 +427,15 @@ namespace b3d
 					renderableCommand.Renderable = renderable;
 					renderableCommand.PerObjectParameterSet = perObjectParameterSet; // TODO - Should sort objects by set if possible, to avoid switching sets
 
-					bool renderableBound[4];
-					B3DZeroOut(renderableBound);
+					if(renderable->DrawCommands.empty())
+						continue;
+
+					options.Prepare(renderableCommand, bounds);
+					commands.push_back(renderableCommand);
 
 					for(auto& drawCommand : renderable->DrawCommands)
-					{
-						const u32 animationTypeIndex = (u32)drawCommand.AnimType;
-
-						if(!renderableBound[animationTypeIndex])
-						{
-							options.Prepare(renderableCommand, bounds, *kVariationLookup[animationTypeIndex]);
-
-							commandsPerAnimationType[animationTypeIndex].push_back(renderableCommand);
-							renderableBound[animationTypeIndex] = true;
-						}
-
-						commandsPerAnimationType[animationTypeIndex].push_back(Command(&drawCommand));
-					}
+						commands.push_back(Command(&drawCommand));
 				}
-
-				// Renderables draw grouped by animation type
-				Vector<Command> commands;
-				for(const Vector<Command>& animationTypeCommands : commandsPerAnimationType)
-					commands.insert(commands.end(), animationTypeCommands.begin(), animationTypeCommands.end());
 
 				const Area2 viewportArea = options.GetViewportArea();
 				graph.AddRasterPass(name, std::move(pass), [commands = std::move(commands), viewportArea](FrameGraphPassContext& context)
@@ -586,9 +492,9 @@ namespace b3d
 				return BoundingVolume.Intersects(bounds);
 			}
 
-			void Prepare(ShadowRenderQueue::Command& command, const Sphere& bounds, const ShaderVariationParameters& variation) const
+			void Prepare(ShadowRenderQueue::Command& command, const Sphere& bounds) const
 			{
-				const ShadowDepthCubeMaterial* material = ShadowDepthCubeMaterial::Get(variation);
+				const ShadowDepthCubeMaterial* material = ShadowDepthCubeMaterial::Get();
 
 				command.Material = material;
 				command.GpuParameterSet = material->CreateGpuParameterSet();
@@ -636,9 +542,9 @@ namespace b3d
 				return BoundingVolume.Intersects(bounds);
 			}
 
-			void Prepare(ShadowRenderQueue::Command& command, const Sphere& bounds, const ShaderVariationParameters& variation) const
+			void Prepare(ShadowRenderQueue::Command& command, const Sphere& bounds) const
 			{
-				const ShadowDepthNormalNoPSMaterial* material = ShadowDepthNormalNoPSMaterial::Get(variation);
+				const ShadowDepthNormalNoPSMaterial* material = ShadowDepthNormalNoPSMaterial::Get();
 
 				command.Material = material;
 				command.GpuParameterSet = material->CreateGpuParameterSet();
@@ -679,9 +585,9 @@ namespace b3d
 				return BoundingVolume.Intersects(bounds);
 			}
 
-			void Prepare(ShadowRenderQueue::Command& command, const Sphere& bounds, const ShaderVariationParameters& variation) const
+			void Prepare(ShadowRenderQueue::Command& command, const Sphere& bounds) const
 			{
-				const ShadowDepthNormalMaterial* material = ShadowDepthNormalMaterial::Get(variation);
+				const ShadowDepthNormalMaterial* material = ShadowDepthNormalMaterial::Get();
 
 				command.Material = material;
 				command.GpuParameterSet = material->CreateGpuParameterSet();
@@ -722,9 +628,9 @@ namespace b3d
 				return BoundingVolume.Intersects(bounds);
 			}
 
-			void Prepare(ShadowRenderQueue::Command& command, const Sphere& bounds, const ShaderVariationParameters& variation) const
+			void Prepare(ShadowRenderQueue::Command& command, const Sphere& bounds) const
 			{
-				const ShadowDepthDirectionalMaterial* material = ShadowDepthDirectionalMaterial::Get(variation);
+				const ShadowDepthDirectionalMaterial* material = ShadowDepthDirectionalMaterial::Get();
 
 				command.Material = material;
 				command.GpuParameterSet = material->CreateGpuParameterSet();

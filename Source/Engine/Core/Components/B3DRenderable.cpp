@@ -24,19 +24,8 @@
 #include "Animation/B3DSkeleton.h"
 #include "Animation/SkinCache/B3DMorphShapeBuffers.h"
 #include "Animation/SkinCache/B3DSkinCache.h"
-#include "Utility/B3DConfigVariable.h"
 
 using namespace b3d;
-
-namespace b3d::render
-{
-	// TODO - Remove with vertex-shader skinning and the CPU morph blend, after which every animated renderable uses the skin cache
-	TConfigVariable<bool> gRenderSkinCache("render.SkinCache",
-		"Animated renderables draw vertices the skin cache deforms on the GPU. If false they are skinned in the vertex shader and their morph "
-		"shapes are blended on the CPU. Read when a renderable's render state is created.",
-		true,
-		ConfigVariableFlag::ReadOnly);
-}
 
 ecs::Renderable& ecs::CreateRenderable(ecs::Registry& registry, ecs::Entity entity, const TShared<RendererScene>& rendererScene, const Transform& transform)
 {
@@ -483,10 +472,10 @@ namespace b3d
 				proxy.mWorldTransformMatrix = proxy.mTransform.GetMatrix();
 				proxy.mWorldTransformMatrixWithoutScale = Matrix4::TRS(proxy.mTransform.GetPosition(), proxy.mTransform.GetRotation(), Vector3::kOne);
 
-				// An animated renderable draws the vertices its skin cache entry deforms, if the cache can deform its mesh. The entry is kept
-				// while the mesh and what the entry produces stay the same, so it keeps its deformed vertices.
+				// An animated renderable draws the vertices its skin cache entry deforms. The entry is kept while the mesh and what the entry
+				// produces stay the same, so it keeps its deformed vertices. A mesh the cache can't deform is drawn undeformed.
 				const TShared<render::Mesh>& mesh = proxy.mData.Mesh;
-				if(render::gRenderSkinCache && proxy.mData.AnimType != RenderableAnimType::None && mesh != nullptr)
+				if(proxy.mData.AnimType != RenderableAnimType::None && mesh != nullptr)
 				{
 					const render::SkinCacheEntryFlags skinCacheEntryFlags = proxy.mData.WriteVelocity ? render::SkinCacheEntryFlag::PreviousPositions : render::SkinCacheEntryFlag::None;
 					if(proxy.mSkinCacheEntry == nullptr || proxy.mSkinCacheEntry->GetMesh() != mesh || proxy.mSkinCacheEntry->GetFlags() != skinCacheEntryFlags)
@@ -494,26 +483,6 @@ namespace b3d
 				}
 				else
 					proxy.mSkinCacheEntry = nullptr;
-
-				if(proxy.mSkinCacheEntry == nullptr)
-					proxy.CreateAnimationBuffers();
-				else
-				{
-					proxy.mBoneMatrixBuffer = nullptr;
-					proxy.mPreviousBoneMatrixBuffer = nullptr;
-					proxy.mMorphShapeBuffer = nullptr;
-				}
-
-				if(proxy.mSkinCacheEntry == nullptr && (proxy.mData.AnimType == RenderableAnimType::Morph || proxy.mData.AnimType == RenderableAnimType::SkinnedMorph))
-				{
-					TInlineArray<VertexElement, 8> vertexElements = proxy.mData.Mesh->GetVertexDescription()->GetElements();
-					vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION, 1, 1));
-					vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_NORMAL, 1, 1));
-
-					proxy.mMorphVertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
-				}
-				else
-					proxy.mMorphVertexDescription = nullptr;
 
 				if(wasRegistered)
 					renderStatesToDestroy.push_back(rendererId);
@@ -642,30 +611,6 @@ void RenderableObjectStorageBase::SyncWrite(void* rawData, FrameAllocator& alloc
 
 namespace b3d { namespace render
 {
-static TShared<GpuBuffer> CreateBoneMatrixBuffer(u32 boneCount)
-{
-	GpuBufferCreateInformation bufferCreateInformation;
-	bufferCreateInformation.Type = GpuBufferType::SimpleStorage;
-	bufferCreateInformation.Memory = GpuBufferMemory::Mapped;
-	bufferCreateInformation.SimpleStorage.Count = boneCount * 3;
-	bufferCreateInformation.SimpleStorage.Format = BF_32X4F;
-
-	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
-	TShared<GpuBuffer> buffer = gpuDevice->CreateGpuBuffer(bufferCreateInformation);
-
-	GpuBufferMappedScope mapping = buffer->Map(GpuMapOption::Write);
-	u8* currentWriteLocation = (u8*)mapping.GetMappedMemory();
-
-	// Initialize bone transforms to identity, so the object renders properly even if no animation is animating it
-	for(u32 boneIndex = 0; boneIndex < boneCount; ++boneIndex)
-	{
-		memcpy(currentWriteLocation, &Matrix4::kIdentity, 12 * sizeof(float)); // Assuming row-major format
-		currentWriteLocation += 12 * sizeof(float);
-	}
-
-	return buffer;
-}
-
 Bounds RenderableProxy::GetBounds() const
 {
 	if(mData.UseOverrideBounds)
@@ -689,117 +634,5 @@ Bounds RenderableProxy::GetBounds() const
 	}
 }
 
-void RenderableProxy::CreateAnimationBuffers()
-{
-	if(mData.AnimType == RenderableAnimType::Skinned || mData.AnimType == RenderableAnimType::SkinnedMorph)
-	{
-		TShared<Skeleton> skeleton = mData.Mesh->GetSkeleton();
-		u32 boneCount = skeleton != nullptr ? skeleton->GetBoneCount() : 0;
-
-		if(boneCount > 0)
-		{
-			mBoneMatrixBuffer = CreateBoneMatrixBuffer(boneCount);
-
-			if(mData.WriteVelocity)
-				mPreviousBoneMatrixBuffer = CreateBoneMatrixBuffer(boneCount);
-			else
-				mPreviousBoneMatrixBuffer = nullptr;
-		}
-		else
-		{
-			mBoneMatrixBuffer = nullptr;
-			mPreviousBoneMatrixBuffer = nullptr;
-		}
-	}
-	else
-	{
-		mBoneMatrixBuffer = nullptr;
-		mPreviousBoneMatrixBuffer = nullptr;
-	}
-
-	if(mData.AnimType == RenderableAnimType::Morph || mData.AnimType == RenderableAnimType::SkinnedMorph)
-	{
-		// Note: Not handling velocity writing for morph animations
-
-		TShared<MorphShapes> morphShapes = mData.Mesh->GetMorphShapes();
-
-		const u32 vertexSize = sizeof(Vector3) + sizeof(u32);
-		const u32 vertexCount = morphShapes->GetVertexCount();
-
-		GpuBufferCreateInformation vertexBufferCreateInformation;
-		vertexBufferCreateInformation.Type = GpuBufferType::Vertex;
-		vertexBufferCreateInformation.Memory = GpuBufferMemory::Mapped;
-		vertexBufferCreateInformation.Vertex.ElementSize = vertexSize;
-		vertexBufferCreateInformation.Vertex.Count = vertexCount;
-
-		const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
-		TShared<GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
-
-		u32 totalSize = vertexSize * vertexCount;
-
-		GpuBufferMappedScope mapping = vertexBuffer->Map(GpuMapOption::Write);
-		memset(mapping.GetMappedMemory(), 0, totalSize);
-
-		mMorphShapeBuffer = vertexBuffer;
-	}
-	else
-		mMorphShapeBuffer = nullptr;
-
-	mMorphShapeVersion = 0;
-}
-
-void RenderableProxy::UpdateAnimationBuffers(const EvaluatedAnimationData& animData)
-{
-	if(mAnimationId == (u64)-1)
-		return;
-
-	const EvaluatedAnimationData::AnimationInfo* animInfo = nullptr;
-
-	auto found = animData.Infos.find(mAnimationId);
-	if(found != animData.Infos.end())
-		animInfo = &found->second;
-
-	if(animInfo == nullptr)
-		return;
-
-	GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
-	if(mData.AnimType == RenderableAnimType::Skinned || mData.AnimType == RenderableAnimType::SkinnedMorph)
-	{
-		const EvaluatedAnimationData::PoseInfo& poseInfo = animInfo->PoseInfo;
-
-		if(mData.WriteVelocity)
-			std::swap(mBoneMatrixBuffer, mPreviousBoneMatrixBuffer);
-
-		// Note: If multiple elements are using the same animation (not possible atm), this buffer should be shared by
-		// all such elements
-		const u32 bufferSize = poseInfo.BoneCount * 3 * sizeof(Vector4);
-		u8* const temporaryBuffer = (u8*)B3DStackAllocate(bufferSize);
-		u8* currentWriteLocation = temporaryBuffer;
-		for(u32 boneIndex = 0; boneIndex < poseInfo.BoneCount; ++boneIndex)
-		{
-			const Matrix4& transform = animData.Transforms[poseInfo.BoneStartIndex + boneIndex];
-			memcpy(currentWriteLocation, &transform, 12 * sizeof(float)); // Assuming row-major format
-
-			currentWriteLocation += 12 * sizeof(float);
-		}
-
-		GpuBufferUtility::Write(gpuContext, mBoneMatrixBuffer, 0, bufferSize, temporaryBuffer, GpuBufferWriteFlag::Discard);
-		B3DStackFree(temporaryBuffer);
-	}
-
-	if(mData.AnimType == RenderableAnimType::Morph || mData.AnimType == RenderableAnimType::SkinnedMorph)
-	{
-		if(mMorphShapeVersion != animInfo->MorphShapeInfo.Version)
-		{
-			TShared<MeshData> meshData = animInfo->MorphShapeInfo.MeshData;
-
-			u32 bufferSize = meshData->GetSize();
-			u8* data = meshData->GetData();
-
-			GpuBufferUtility::Write(gpuContext, mMorphShapeBuffer, 0, bufferSize, data, GpuBufferWriteFlag::Discard);
-			mMorphShapeVersion = animInfo->MorphShapeInfo.Version;
-		}
-	}
-}
 }}
 

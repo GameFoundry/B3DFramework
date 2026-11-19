@@ -36,12 +36,6 @@ namespace b3d
 		void TestMorph();
 
 		/**
-		 * Evaluates morph shape weights with the animation system, deforms an entry to them and compares its vertices with what the vertex
-		 * shader computes from the deltas the animation system blends on the CPU. Goes away with that blend.
-		 */
-		void TestMorphMatchesAnimation();
-
-		/**
 		 * Deforms entries of a mesh with a skeleton and morph shapes, of one with only a skeleton and of one with only morph shapes in one
 		 * update, each with its own shader variation, and compares them with the CPU reference.
 		 */

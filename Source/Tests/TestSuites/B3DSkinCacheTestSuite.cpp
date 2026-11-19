@@ -2,12 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DSkinCacheTestSuite.h"
 #include "Utility/B3DUnitTestGpuPipelines.h"
-#include "Animation/B3DAnimationClip.h"
-#include "Animation/B3DAnimationScene.h"
 #include "Animation/B3DMorphShapes.h"
 #include "Animation/B3DSkeleton.h"
-#include "Components/B3DAnimation.h"
-#include "Components/B3DRenderable.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "FrameGraph/B3DFrameGraph.h"
 #include "GpuBackend/B3DGpuBackend.h"
@@ -32,8 +28,6 @@
 #include "Renderer/B3DRenderer.h"
 #include "Renderer/B3DRendererMeshData.h"
 #include "Renderer/B3DRendererUtility.h"
-#include "Scene/B3DSceneInstance.h"
-#include "Scene/B3DSceneObject.h"
 #include "Animation/SkinCache/B3DMorphShapeBuffers.h"
 #include "Animation/SkinCache/B3DSkinCache.h"
 #include "Threading/B3DAsyncOp.h"
@@ -529,7 +523,6 @@ SkinCacheTestSuite::SkinCacheTestSuite()
 	B3D_ADD_TEST(SkinCacheTestSuite::TestBindPose)
 	B3D_ADD_TEST(SkinCacheTestSuite::TestSkinning)
 	B3D_ADD_TEST(SkinCacheTestSuite::TestMorph)
-	B3D_ADD_TEST(SkinCacheTestSuite::TestMorphMatchesAnimation)
 	B3D_ADD_TEST(SkinCacheTestSuite::TestMorphAndSkinning)
 	B3D_ADD_TEST(SkinCacheTestSuite::TestPreviousPositions)
 	B3D_ADD_TEST(SkinCacheTestSuite::TestChangeDetection)
@@ -659,117 +652,6 @@ void SkinCacheTestSuite::TestMorph()
 		const TShared<MorphShapeBuffers>& morphShapeBuffers = mesh->GetMorphShapeBuffers();
 		B3D_TEST_ASSERT(morphShapeBuffers != nullptr && morphShapeBuffers->GetShapeCount() == kMorphShapeCount)
 	}, "SkinCacheTestSuite::TestMorph", true);
-}
-
-void SkinCacheTestSuite::TestMorphMatchesAnimation()
-{
-	GpuBackend& backend = GpuBackend::Instance();
-	if(backend.GetDeviceCount() == 0)
-		return;
-
-	const TShared<GpuDevice> device = backend.GetDevice(0);
-
-	// The animation system evaluates on the main thread. Its frame curve keeps the channel at 0.75, between its two shapes, so both have
-	// a weight.
-	const TShared<MeshData> meshData = CreateTestMeshData(false);
-	MeshCreateInformation meshInformation;
-	meshInformation.SubMeshes = { SubMesh(0, kIndexCount, DOT_TRIANGLE_LIST) };
-	meshInformation.MorphShapes = CreateTestMorphShapes();
-	const HMesh mesh = b3d::Mesh::Create(meshData, meshInformation);
-
-	Vector<TKeyframe<float>> keyframes(2);
-	for(u32 keyframeIndex = 0; keyframeIndex < 2; keyframeIndex++)
-	{
-		keyframes[keyframeIndex].Value = 0.75f;
-		keyframes[keyframeIndex].InTangent = 0.0f;
-		keyframes[keyframeIndex].OutTangent = 0.0f;
-		keyframes[keyframeIndex].Time = (float)keyframeIndex;
-	}
-
-	const TShared<AnimationCurves> curves = B3DMakeShared<AnimationCurves>();
-	curves->Generic.push_back(TNamedAnimationCurve<float>("Channel", AnimationCurveFlag::MorphFrame, TAnimationCurve<float>(keyframes)));
-	const HAnimationClip clip = AnimationClip::Create(curves);
-
-	const TShared<SceneInstance> scene = SceneInstance::Create("SkinCacheTestSuite");
-	const HSceneObject sceneObject = scene->CreateSceneObject("Morph");
-	sceneObject->AddComponent<Renderable>()->SetMesh(mesh);
-
-	const HAnimation animation = sceneObject->AddComponent<Animation>();
-	animation->SetEnableCull(false);
-
-	AnimationClipState state;
-	state.Speed = 0.0f;
-	state.WrapMode = AnimationWrapMode::Clamp;
-	animation->SetState(clip, state);
-	animation->SetMorphChannelWeight("Channel", 0.9f);
-
-	// The weights of the shapes, and the deltas the animation system blends from them on the CPU for the vertex shader
-	Vector<float> weights;
-	TShared<MeshData> blendedDeltas;
-	const EvaluatedAnimationData* const animationData = scene->GetAnimationScene()->Update(false);
-	if(animationData != nullptr)
-	{
-		const auto found = animationData->Infos.find(animation->GetAnimationId());
-		if(found != animationData->Infos.end() && found->second.MorphShapeInfo.WeightCount == kMorphShapeCount)
-		{
-			const float* const firstWeight = &animationData->MorphShapeWeights[found->second.MorphShapeInfo.WeightStartIndex];
-			weights.assign(firstWeight, firstWeight + kMorphShapeCount);
-			blendedDeltas = found->second.MorphShapeInfo.MeshData;
-		}
-	}
-
-	scene->Destroy();
-
-	B3D_TEST_ASSERT_MSG(weights.size() == kMorphShapeCount && blendedDeltas != nullptr, "The animation has no morph shape weights or blended deltas.")
-	if(weights.size() != kMorphShapeCount || blendedDeltas == nullptr)
-		return;
-
-	B3D_TEST_ASSERT_MSG(weights[0] > 0.0f && weights[1] > 0.0f, StringUtility::Format("Shape weights ({0}, {1}), expected both above zero.", weights[0], weights[1]))
-
-	GetRenderThread().PostCommand([this, &device, &mesh, &meshData, &weights, &blendedDeltas]()
-	{
-		// The mesh's initial contents are written through the renderer's context
-		GetRenderer()->GetGpuContext().SubmitTransferCommandBuffers();
-		device->WaitUntilIdle();
-
-		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
-		SkinCache cache(*device, "Test skin cache");
-		const TShared<SkinCacheEntry> entry = cache.CreateEntry(SkinCacheEntryCreateInformation(B3DGetRenderProxy(mesh.Get()), SkinCacheEntryFlag::None,
-			"Morph as animated"));
-		B3D_TEST_ASSERT(entry != nullptr)
-		if(entry == nullptr)
-			return;
-
-		entry->SetPose(TArrayView<const Matrix4>(), weights);
-		B3D_TEST_ASSERT(UpdateAndExecute(*this, cache, *context, *device) && entry->GetVertexData() != nullptr)
-		if(entry->GetVertexData() == nullptr)
-			return;
-
-		// What the vertex shader computes from the blended deltas: the position delta added, and the normal moved by the normal delta,
-		// stored at half scale, times the weight in the fourth byte, with the tangent made orthogonal to it
-		Vector<DeformedVertex> expected = DeformOnCpu(*meshData, TArrayView<const Matrix4>());
-		const u32 deltaStride = blendedDeltas->GetVertexDescription()->GetVertexStride(1);
-		const u8* const positionDeltas = blendedDeltas->GetElementData(VES_POSITION, 1, 1);
-		const u8* const normalDeltas = blendedDeltas->GetElementData(VES_NORMAL, 1, 1);
-		for(u32 vertexIndex = 0; vertexIndex < kVertexCount; vertexIndex++)
-		{
-			DeformedVertex& vertex = expected[vertexIndex];
-
-			Vector3 positionDelta;
-			std::memcpy(&positionDelta, positionDeltas + vertexIndex * deltaStride, sizeof(Vector3));
-
-			const u8* const normalDelta = normalDeltas + vertexIndex * deltaStride;
-			const Vector3 unpackedNormalDelta(UnpackComponent(normalDelta[0]), UnpackComponent(normalDelta[1]), UnpackComponent(normalDelta[2]));
-
-			vertex.Position += positionDelta;
-			vertex.Normal = Vector3::Normalize(vertex.Normal + unpackedNormalDelta * 2.0f * (normalDelta[3] / 255.0f));
-			vertex.Tangent = Vector3::Normalize(vertex.Tangent - vertex.Normal * vertex.Tangent.Dot(vertex.Normal));
-		}
-
-		// The blended normal deltas and their weights are stored in 8 bits, so normals and tangents may differ by a few more steps
-		const String mismatch = FindMismatch(expected, ReadDeformedVertices(*context, *entry->GetVertexData()), kPositionTolerance, 6.0f / 255.0f);
-		B3D_TEST_ASSERT_MSG(mismatch.empty(), mismatch)
-	}, "SkinCacheTestSuite::TestMorphMatchesAnimation", true);
 }
 
 void SkinCacheTestSuite::TestMorphAndSkinning()
