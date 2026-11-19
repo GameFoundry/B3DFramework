@@ -4,6 +4,8 @@
 #include "B3DApplication.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuResourceTracker.h"
+#include "GpuBackend/B3DGpuTransferQueue.h"
 #include "GpuBackend/B3DGpuSwapChain.h"
 #include "Threading/B3DBlockingCall.h"
 #include "Threading/B3DScheduler.h"
@@ -85,6 +87,18 @@ void GpuSubmitThread::QueueSubmit(const TShared<GpuCommandBuffer>& commandBuffer
 	auto fnCommand = [this, commandBuffer, &queue, syncMask, signalFences = std::move(signalFences)]() mutable
 	{
 		syncMask |= commandBuffer->GetQueueSyncMask();
+
+		// Uploads queued to the resources the command buffer uses, and to bindless resources it may use, run first
+		GpuTransferQueue& transferQueue = mGpuDevice.GetTransferQueue();
+		const TArrayView<IGpuResource* const> uploadDestinations = commandBuffer->GetResourceTracker().GetResourcesWithQueuedUploads();
+
+		if(!uploadDestinations.IsEmpty() || transferQueue.HasUntrackedUploads())
+		{
+			const GpuQueue* uploadQueue = SubmitUploads(transferQueue.RecordQueuedUploads(uploadDestinations));
+			if(uploadQueue != nullptr)
+				syncMask |= GpuQueueMask(uploadQueue->GetId());
+		}
+
 		mBackend.ExecuteSubmit(queue, commandBuffer, syncMask, signalFences);
 
 		if (signalFences.Empty())
@@ -100,6 +114,40 @@ void GpuSubmitThread::QueueSubmit(const TShared<GpuCommandBuffer>& commandBuffer
 
 	if (blocking)
 		WaitUntilIdle();
+}
+
+void GpuSubmitThread::QueueUploadSubmit(IGpuResource& destination)
+{
+	auto fnCommand = [this, destination = &destination]()
+	{
+		SubmitUploads(mGpuDevice.GetTransferQueue().RecordQueuedUploads(TArrayView<IGpuResource* const>(&destination, 1)));
+	};
+
+	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "Upload submit");
+}
+
+void GpuSubmitThread::QueueAllUploadsSubmit()
+{
+	auto fnCommand = [this]()
+	{
+		SubmitUploads(mGpuDevice.GetTransferQueue().RecordAllQueuedUploads());
+	};
+
+	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "Upload submit");
+}
+
+GpuQueue* GpuSubmitThread::SubmitUploads(const TShared<GpuCommandBuffer>& commandBuffer)
+{
+	if(commandBuffer == nullptr)
+		return nullptr;
+
+	GpuQueue& uploadQueue = *mGpuDevice.GetQueue(GQT_GRAPHICS, 0);
+
+	commandBuffer->End();
+	commandBuffer->NotifyWillQueueForSubmit(uploadQueue.GetId(), GpuQueueMask::kAll);
+	mBackend.ExecuteSubmit(uploadQueue, commandBuffer, GpuQueueMask::kAll, {});
+
+	return &uploadQueue;
 }
 
 TArrayView<const u64> GpuSubmitThread::ConsumeFrameFence(const GpuQueue& queue)

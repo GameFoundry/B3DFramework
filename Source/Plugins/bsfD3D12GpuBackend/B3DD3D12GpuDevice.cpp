@@ -253,6 +253,7 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter) : mAdapter(adapter)
 	// All native queues and managers are ready; submissions remain owned by the device until destruction.
 	IGpuSubmitThreadBackend& submitThreadBackend = *this;
 	mSubmitThread = B3DMakeUnique<GpuSubmitThread>(*this, submitThreadBackend);
+	CreateTransferQueue();
 }
 
 D3D12GpuDevice::~D3D12GpuDevice()
@@ -260,6 +261,7 @@ D3D12GpuDevice::~D3D12GpuDevice()
 	if (mSubmitThread != nullptr)
 	{
 		WaitUntilIdle();
+		DestroyTransferQueue();
 		mSubmitThread = nullptr;
 	}
 
@@ -550,7 +552,7 @@ void D3D12GpuDevice::GetPersistentAllocators(TArray<IGpuAllocator*>& outAllocato
 	}
 }
 
-TUnique<IGpuAllocator> D3D12GpuDevice::CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker)
+TUnique<IGpuAllocator> D3D12GpuDevice::CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker, GpuScratchAllocatorFlags flags)
 {
 	// Scratch allocations are only supported for buffers
 	const D3D12HeapClass heapClass = (D3D12HeapClass)memoryType;
@@ -562,6 +564,9 @@ TUnique<IGpuAllocator> D3D12GpuDevice::CreateScratchAllocator(u32 memoryType, IG
 	ScratchAllocator::Configuration configuration;
 	configuration.PageSize = pagePool.GetPageSize();
 	configuration.HeapCreateInfo = GetHeapCreateInformation(heapClass);
+
+	if(flags.IsSet(GpuScratchAllocatorFlag::ThreadSafe))
+		return B3DMakeUnique<ThreadSafeScratchAllocator>(mHeapBackend.get(), &completionTracker, configuration, &pagePool);
 
 	return B3DMakeUnique<ScratchAllocator>(mHeapBackend.get(), &completionTracker, configuration, &pagePool);
 }

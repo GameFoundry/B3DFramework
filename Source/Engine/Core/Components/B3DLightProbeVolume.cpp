@@ -416,8 +416,7 @@ void LightProbeVolume::Initialize()
 		}
 	}
 
-	GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
-	TextureUtility::Write(gpuContext, mCoefficients, *coeffData, 0, 0, TextureWriteFlag::Discard);
+	TextureUtility::Write(mCoefficients, *coeffData, 0, 0, TextureWriteFlag::Discard);
 	mInitCoefficients.clear();
 
 	const TShared<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();

@@ -141,7 +141,7 @@ namespace b3d
 			TUnique<GpuParameterSetPool> CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation) override;
 			TShared<GpuTimelineFence> CreateTimelineFence() override;
 			TShared<GpuSplitBarrier> CreateSplitBarrier(TOptional<GpuQueueType> releaseQueue, TOptional<GpuQueueType> acquireQueue) override;
-			TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker) override;
+			TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker, GpuScratchAllocatorFlags flags) override;
 			IGpuTransientHeapPool* GetTransientHeapPool(u32 memoryType) override;
 
 			void ConvertProjectionMatrix(const Matrix4& input, Matrix4& output) override;

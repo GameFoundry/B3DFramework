@@ -282,8 +282,6 @@ namespace b3d
 			ComPtr<ID3D12Fence> mFence;
 			u64 mFenceValue = 0;
 
-			/** Tracks every resource used on the command buffer: lifetime (bound/use counts) and render pass attachments. */
-			GpuResourceTracker mResourceTracker;
 			D3D12BindlessHeap* mResourceHeap = nullptr; /**< Shader-visible CBV/SRV/UAV heap bound since the first pipeline was bound. Null before. */
 
 			/** Queue the command buffer was submitted on; identifies the queue for NotifyDone. */

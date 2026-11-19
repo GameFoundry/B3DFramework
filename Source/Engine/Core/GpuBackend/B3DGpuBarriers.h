@@ -26,7 +26,66 @@ namespace b3d
 
 	namespace render
 	{
-		enum class GpuImageLayout;
+		/** Image layout - determines how an image is accessed in GPU operations. */
+		enum class GpuImageLayout
+		{
+			/**
+			 * Undefined layout - initial state or don't care.
+			 * Transitioning from Undefined may discard image contents.
+			 */
+			Undefined,
+
+			/**
+			 * General purpose layout - supports all operations but may not be optimal.
+			 * Required for storage images (UAV) and some read-write operations.
+			 */
+			General,
+
+			/**
+			 * Optimal for color attachment writes (render targets).
+			 * Used during rendering to color attachments.
+			 */
+			ColorAttachment,
+
+			/**
+			 * Optimal for depth/stencil attachment writes.
+			 * Used during rendering to depth/stencil attachments.
+			 */
+			DepthStencilAttachment,
+
+			/**
+			 * Optimal for depth/stencil attachment reads (read-only depth).
+			 * Used when depth/stencil is bound but not written to, and potentially sampled.
+			 */
+			DepthStencilReadOnly,
+
+			/** Optimal when the depth aspect is read-only (sampleable) while the stencil aspect is written. */
+			DepthReadOnlyStencilAttachment,
+
+			/** Optimal when the depth aspect is written while the stencil aspect is read-only (sampleable). */
+			DepthAttachmentStencilReadOnly,
+
+			/**
+			 * Optimal for shader reads (sampling, texelFetch).
+			 * Most common layout for texture sampling.
+			 */
+			ShaderReadOnly,
+
+			/** Optimal for transfer source operations (copies, blits). */
+			TransferSource,
+
+			/** Optimal for transfer destination operations (copies, blits). */
+			TransferDestination,
+
+			/** Layout used while reading a multisampled image during a resolve operation. */
+			ResolveSource,
+
+			/** Layout used while writing a single-sampled image during a resolve operation. */
+			ResolveDestination,
+
+			/** Layout for presenting to swap chain. Only used for swap chain images. */
+			Present
+		};
 
 		/**
 		 * Determines on which pipeline stage and in what manner a resource is being accessed. Combined with read/write

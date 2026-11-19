@@ -414,6 +414,7 @@ namespace b3d
 	class AudioClipImportOptions;
 	class AnimationClip;
 	class GpuDevice;
+	class GpuTransferQueue;
 	class GpuWorkContext;
 	template <class T>
 	class TAnimationCurve;

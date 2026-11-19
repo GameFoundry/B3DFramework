@@ -708,8 +708,6 @@ namespace b3d::render
 		if(!gpuDevice)
 			return renderBuffers;
 
-		GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
-
 		TInlineArray<VertexElement, 2> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT2, VES_POSITION));
 		vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
@@ -725,7 +723,7 @@ namespace b3d::render
 		renderBuffers.IndexBuffer = gpuDevice->CreateGpuBuffer(indexBufferCreateInformation, GpuObjectCreateFlag::RenderThreadDestroy);
 
 		const u32 indexBufferSize = indexCount * sizeof(u32);
-		GpuBufferUtility::Write(gpuContext, renderBuffers.IndexBuffer, 0, indexBufferSize, mRawRenderData.Indices.data());
+		GpuBufferUtility::Write(renderBuffers.IndexBuffer, 0, indexBufferSize, mRawRenderData.Indices.data());
 
 		GpuBufferCreateInformation vertexBufferCreateInformation;
 		vertexBufferCreateInformation.Type = GpuBufferType::Vertex;
@@ -735,7 +733,7 @@ namespace b3d::render
 		renderBuffers.VertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation, GpuObjectCreateFlag::RenderThreadDestroy);
 
 		const u32 vertexBufferSize = renderBuffers.VertexDescription->GetVertexStride() * vertexCount;
-		GpuBufferUtility::Write(gpuContext, renderBuffers.VertexBuffer, 0, vertexBufferSize, mRawRenderData.Vertices.data());
+		GpuBufferUtility::Write(renderBuffers.VertexBuffer, 0, vertexBufferSize, mRawRenderData.Vertices.data());
 
 		u32 uniformBlockCount = 0;
 		for(const auto& command : mRawRenderData.RenderCommands)

@@ -5,7 +5,11 @@
 
 namespace b3d::render
 {
-	NullResource::NullResource(NullResourceManager* owner, const StringView& name)
-		: IGpuResource(owner, name)
+	NullBufferResource::NullBufferResource(NullResourceManager* owner, const StringView& name)
+		: IGpuBufferResource(owner, name)
+	{}
+
+	NullImageResource::NullImageResource(NullResourceManager* owner, const StringView& name, u32 faceCount, u32 mipLevelCount, GpuTextureAspectFlags aspectMask)
+		: IGpuImageResource(owner, name, faceCount, mipLevelCount, aspectMask)
 	{}
 } // namespace b3d::render

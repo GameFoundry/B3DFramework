@@ -50,6 +50,9 @@ namespace b3d
 			void InsertLabel(const StringView& name) override {}
 			void End() override;
 
+			/** Copies between the CPU memory of the buffers, so data written through staging buffers reaches the destination. */
+			void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> ranges) override;
+
 			/** Writes a black image, the contents of every null window. */
 			void CopyWindowToBuffer(const TShared<RenderWindow>& source, const TShared<GpuBuffer>& destination) override;
 

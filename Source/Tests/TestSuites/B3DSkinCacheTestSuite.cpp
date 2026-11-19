@@ -10,6 +10,7 @@
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuTransferQueue.h"
 #include "GpuBackend/B3DGpuPipelineState.h"
 #include "GpuBackend/B3DGpuVertexInputManager.h"
 #include "GpuBackend/B3DGpuWorkContext.h"
@@ -232,8 +233,8 @@ namespace
 
 		const TShared<render::Mesh> mesh = render::Mesh::Create(meshData, meshInformation);
 
-		// The mesh's initial contents are written through the renderer's context
-		GetRenderer()->GetGpuContext().SubmitTransferCommandBuffers();
+		// The mesh's initial contents are written through the transfer queue
+		device.GetTransferQueue().SubmitQueuedUploads();
 		device.WaitUntilIdle();
 
 		return mesh;

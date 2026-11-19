@@ -6,6 +6,8 @@
 #include "GpuBackend/B3DGpuDevice.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DGpuBackend.h"
+#include "GpuBackend/B3DGpuSubmitThread.h"
+#include "B3DNullResourceManager.h"
 #include "GpuBackend/Allocators/B3DGpuTlsfAllocator.h"
 
 namespace b3d
@@ -46,7 +48,7 @@ namespace b3d
 		 * reasonable capabilities to allow content to be loaded and processed, but all draw calls and
 		 * resource operations are no-ops. Useful for testing rendering logic without requiring GPU hardware.
 		 */
-		class NullGpuDevice : public GpuDevice
+		class NullGpuDevice : public GpuDevice, private IGpuSubmitThreadBackend
 		{
 		public:
 			static constexpr const char* kGpuProgramLanguageName = kGpuProgramLanguageNullsl;
@@ -70,7 +72,7 @@ namespace b3d
 
 			u32 GetQueueCount(GpuQueueType type) const override;
 			TShared<GpuQueue> GetQueue(GpuQueueType type, u32 index) const override;
-			void WaitUntilIdle() override {}
+			void WaitUntilIdle() override;
 			void BeginFrame() override {}
 
 			TShared<render::GpuCommandBufferPool> CreateGpuCommandBufferPool(const render::GpuCommandBufferPoolCreateInformation& createInformation) override;
@@ -95,6 +97,23 @@ namespace b3d
 
 			/** @} */
 
+			/** Returns the manager that owns the native resources of the device's buffers and textures. */
+			NullResourceManager& GetResourceManager() { return mResourceManager; }
+
+			/**
+			 * @name IGpuSubmitThreadBackend implementation
+			 * Nothing executes on the null device, so submitted work completes immediately.
+			 * @{
+			 */
+
+			void ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences) override;
+			void RefreshCompletionState(GpuQueue& queue, bool forceWait, u64 lastFenceValue = ~0ull) override {}
+			u64 GetLastSubmittedFenceValue(const GpuQueue& queue) const override { return 0; }
+			void ExecuteWaitUntilIdle() override {}
+			void ExecuteWaitUntilIdle(GpuQueue& queue) override {}
+
+			/** @} */
+
 		private:
 			/** Contains data about a set of queues of a specific type. */
 			struct QueueInfo
@@ -112,6 +131,7 @@ namespace b3d
 			void InitializeCapabilities();
 
 			bool mIsInitialized = false;
+			NullResourceManager mResourceManager;
 			QueueInfo mQueueInfos[GQT_COUNT];
 			GpuDeviceCapabilities mCapabilities;
 			TShared<VideoModeInfo> mVideoModeInfo;

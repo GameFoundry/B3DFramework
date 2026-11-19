@@ -153,8 +153,7 @@ namespace b3d
 			TShared<GpuPipelineParameterSetLayout> CreateGpuPipelineParameterSetLayout(const GpuProgramParameterDescription& parameterDescription, const TShared<GpuResourceTableLayout>& resourceTableLayout, u32 tableIndex) override;
 			TUnique<GpuParameterSetPool> CreateParameterSetPool(const GpuParameterSetPoolCreateInformation& createInformation) override;
 			TShared<GpuTimelineFence> CreateTimelineFence() override;
-			TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType,
-				IGpuCompletionTracker& completionTracker) override;
+			TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker, GpuScratchAllocatorFlags flags) override;
 			IGpuTransientHeapPool* GetTransientHeapPool(u32 memoryType) override;
 			bool GetAccelerationStructureSizes(const GpuAccelerationStructureInputs& inputs, GpuAccelerationStructureSizes& outSizes) const override;
 			bool WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance> instances, void* destination) const override;

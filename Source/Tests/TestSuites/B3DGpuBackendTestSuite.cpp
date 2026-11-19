@@ -13,6 +13,7 @@
 #include "GpuBackend/B3DGpuBindlessHeapPool.h"
 #include "GpuBackend/B3DGpuCompletionTracker.h"
 #include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuTransferQueue.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DGpuMemoryDefragmenter.h"
 #include "GpuBackend/B3DGpuSplitBarrier.h"
@@ -109,6 +110,7 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestCpuWrittenBufferReadback)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestBufferMemory)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestCpuWrittenBufferRelocation)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestTransferQueue)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestTransientResourceAllocator)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestTransientResourceExecution)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestTransientResourcePlacement)
@@ -1530,7 +1532,7 @@ void GpuBackendTestSuite::TestCpuWrittenBufferReadback()
 			writtenWords[wordIndex] = wordIndex * 3 + 1;
 
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
-		render::GpuBufferUtility::Write(*context, buffer, 0, sizeof(writtenWords), writtenWords);
+		render::GpuBufferUtility::Write(buffer, 0, sizeof(writtenWords), writtenWords);
 
 		// Reads only part of the buffer, at an offset
 		static constexpr u32 kFirstReadWord = 8;
@@ -1603,7 +1605,7 @@ void GpuBackendTestSuite::TestBufferMemory()
 			for(u32 wordIndex = 0; wordIndex < kWordCount; wordIndex++)
 				writtenWords[wordIndex] = 0xB0F00000 + (caseIndex << 8) + wordIndex;
 
-			render::GpuBufferUtility::Write(*context, buffer, 0, sizeof(writtenWords), writtenWords);
+			render::GpuBufferUtility::Write(buffer, 0, sizeof(writtenWords), writtenWords);
 
 			// A GPU copy reads what the CPU wrote, then the buffer returns to rest
 			const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Buffer memory"));
@@ -1709,8 +1711,8 @@ void GpuBackendTestSuite::TestCpuWrittenBufferRelocation()
 				words[wordIndex] = 0xA0000000 + wordIndex;
 
 			const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
-			render::GpuBufferUtility::Write(*context, buffer, 0, kWordCount * sizeof(u32), words.Data());
-			context->SubmitTransferCommandBuffers(true);
+			render::GpuBufferUtility::Write(buffer, 0, kWordCount * sizeof(u32), words.Data());
+			device->GetTransferQueue().SubmitQueuedUploads();
 			device->WaitUntilIdle();
 
 			GpuBindlessHeaps* const bindlessHeaps = device->GetBindlessHeaps();
@@ -1734,8 +1736,8 @@ void GpuBackendTestSuite::TestCpuWrittenBufferRelocation()
 
 			// Run passes until the tested buffer moves. Each pass moves the resources highest in memory first, which may be ones other tests left
 			// behind. The move's copy is submitted like at the end of a frame, and right after, while the GPU may still be copying the contents,
-			// the CPU rewrites the first half of the buffer through GpuBufferUtility, which stages the write behind the copy. Buffers in mapped
-			// memory never move.
+			// the CPU rewrites the first half of the buffer through GpuBufferUtility, which queues the write on the transfer queue, behind the
+			// copy. Buffers in mapped memory never move.
 			GpuMemoryDefragmenter& defragmenter = device->GetMemoryDefragmenter();
 			const bool wasEnabled = gGpuDefragmentation.Get();
 			gGpuDefragmentation.Set(true);
@@ -1752,7 +1754,8 @@ void GpuBackendTestSuite::TestCpuWrittenBufferRelocation()
 					for(u32 wordIndex = 0; wordIndex < kRewrittenWordCount; wordIndex++)
 						words[wordIndex] = 0xB0000000 + wordIndex;
 
-					render::GpuBufferUtility::Write(*context, buffer, 0, kRewrittenWordCount * sizeof(u32), words.Data());
+					render::GpuBufferUtility::Write(buffer, 0, kRewrittenWordCount * sizeof(u32), words.Data());
+					device->GetTransferQueue().SubmitQueuedUploads();
 				}
 
 				context->SubmitTransferCommandBuffers(true);
@@ -1784,6 +1787,283 @@ void GpuBackendTestSuite::TestCpuWrittenBufferRelocation()
 			device->WaitUntilIdle();
 		}
 	}, "GpuBackendTestSuite::TestCpuWrittenBufferRelocation", true);
+}
+
+void GpuBackendTestSuite::TestTransferQueue()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	GetRenderThread().PostCommand([this, &device]()
+	{
+		static constexpr u32 kWordCount = 64;
+		static constexpr u32 kSize = kWordCount * sizeof(u32);
+
+		GpuTransferQueue& transferQueue = device->GetTransferQueue();
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		const TShared<render::GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
+		const GpuAccessState transferRead(GpuStageFlag::Transfer, GpuAccessFlag::Read);
+		const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
+
+		// Buffers shaders write are never written through a mapping, so their writes go through the transfer queue
+		const auto fnCreateBuffer = [&device](GpuBufferMemory memory, GpuBufferFlags flags = GpuBufferFlag::GpuWrite)
+		{
+			return device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kWordCount, flags, memory));
+		};
+
+		const auto fnFillWords = [](u32* words, u32 firstValue)
+		{
+			for(u32 wordIndex = 0; wordIndex < kWordCount; wordIndex++)
+				words[wordIndex] = firstValue + wordIndex;
+		};
+
+		const auto fnHasQueuedUploads = [](const render::GpuBuffer& buffer)
+		{
+			return buffer.GetGpuResource()->HasQueuedUploads();
+		};
+
+		// Records a copy of @p buffer into a new readback buffer, at rest before and after
+		struct Readback
+		{
+			TShared<render::GpuCommandBuffer> Commands;
+			TShared<render::GpuBuffer> Buffer;
+		};
+
+		const auto fnRecordReadback = [&](const TShared<render::GpuBuffer>& buffer, const TShared<render::GpuCommandBuffer>& commands)
+		{
+			Readback readback;
+			readback.Commands = commands;
+			readback.Buffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kSize));
+
+			const GpuAccessState restingState = GpuBackendUtility::GetRestingState(*buffer, commands->GetQueueType());
+			const GpuBufferBarrier copyBarriers[] = { GpuBufferBarrier(buffer, restingState, transferRead), GpuBufferBarrier(readback.Buffer, GpuAccessState(), transferWrite) };
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(copyBarriers, 2)));
+			commands->CopyBufferToBuffer(buffer, readback.Buffer, 0, 0, kSize);
+
+			const GpuBufferBarrier restBarriers[] = { GpuBufferBarrier(buffer, transferRead, restingState), GpuBarrierTestUtility::CreateReadbackBarrier(readback.Buffer) };
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(restBarriers, 2)));
+
+			return readback;
+		};
+
+		const auto fnCreateReadback = [&](const TShared<render::GpuBuffer>& buffer, const char* name)
+		{
+			return fnRecordReadback(buffer, pool->Create(render::GpuCommandBufferCreateInformation::Create(name)));
+		};
+
+		// Submits @p readback, waits for it, and returns true if it read @p expectedWords
+		const auto fnSubmitAndCompare = [&](const Readback& readback, const u32* expectedWords)
+		{
+			context->SubmitCommandBuffer(readback.Commands);
+			device->WaitUntilIdle();
+
+			const render::GpuBufferMappedScope mapping = readback.Buffer->Map(GpuMapOption::Read);
+			return mapping.IsValid() && memcmp(mapping.GetMappedMemory(), expectedWords, kSize) == 0;
+		};
+
+		// Queues an upload of @p firstValue onwards into @p buffer through a staging buffer of its own
+		const auto fnQueueStagingUpload = [&](const TShared<render::GpuBuffer>& buffer, u32 firstValue)
+		{
+			GpuStagingBuffer staging = transferQueue.CreateStagingBuffer(kSize);
+			{
+				const render::GpuBufferMappedScope mapping = staging.GetBuffer()->Map(GpuMapOption::Write);
+				fnFillWords((u32*)mapping.GetMappedMemory(), firstValue);
+			}
+
+			transferQueue.QueueUpload(std::move(staging), buffer, 0, kSize);
+		};
+
+		const TShared<render::GpuBuffer> buffer = fnCreateBuffer(GpuBufferMemory::Device);
+		const TShared<render::GpuBuffer> scratchBuffer = fnCreateBuffer(GpuBufferMemory::Device);
+		B3D_TEST_ASSERT(buffer != nullptr && scratchBuffer != nullptr)
+		if(buffer == nullptr || scratchBuffer == nullptr)
+			return;
+
+		u32 words[kWordCount];
+
+		// A queued write runs before a command buffer recorded after it
+		{
+			fnFillWords(words, 0xA0000000);
+			render::GpuBufferUtility::Write(buffer, 0, kSize, words);
+			B3D_TEST_ASSERT(fnHasQueuedUploads(*buffer))
+
+			B3D_TEST_ASSERT(fnSubmitAndCompare(fnCreateReadback(buffer, "Queued write"), words))
+			B3D_TEST_ASSERT(!fnHasQueuedUploads(*buffer))
+		}
+
+		// A discarding write to a buffer a recorded command buffer uses gives the buffer a new native buffer, so each command buffer reads the
+		// contents it was recorded after
+		const GpuBufferMemory recreatedMemories[] = { GpuBufferMemory::Device, GpuBufferMemory::Mapped };
+		for(GpuBufferMemory memory : recreatedMemories)
+		{
+			const TShared<render::GpuBuffer> recreatedBuffer = fnCreateBuffer(memory, memory == GpuBufferMemory::Device ? GpuBufferFlag::GpuWrite : GpuBufferFlag::None);
+			B3D_TEST_ASSERT(recreatedBuffer != nullptr)
+			if(recreatedBuffer == nullptr)
+				continue;
+
+			u32 firstWords[kWordCount];
+			fnFillWords(firstWords, 0xA1000000 + ((u32)memory << 16));
+			render::GpuBufferUtility::Write(recreatedBuffer, 0, kSize, firstWords);
+			transferQueue.SubmitQueuedUploads(*recreatedBuffer);
+			device->WaitUntilIdle();
+
+			const Readback firstReadback = fnCreateReadback(recreatedBuffer, "Read before discard");
+
+			u32 secondWords[kWordCount];
+			fnFillWords(secondWords, 0xA2000000 + ((u32)memory << 16));
+			render::GpuBufferUtility::Write(recreatedBuffer, 0, kSize, secondWords, GpuBufferWriteFlag::Discard);
+
+			const Readback secondReadback = fnCreateReadback(recreatedBuffer, "Read after discard");
+
+			B3D_TEST_ASSERT_MSG(fnSubmitAndCompare(firstReadback, firstWords), StringUtility::Format("Memory {0}: read before discard.", (u32)memory))
+			B3D_TEST_ASSERT_MSG(fnSubmitAndCompare(secondReadback, secondWords), StringUtility::Format("Memory {0}: read after discard.", (u32)memory))
+		}
+
+		// Queued writes run in order, and a write that covers an earlier queued write replaces it
+		{
+			fnFillWords(words, 0xA3000000);
+			render::GpuBufferUtility::Write(buffer, 0, kSize, words);
+
+			u32 firstPartialWords[16];
+			u32 secondPartialWords[16];
+			for(u32 wordIndex = 0; wordIndex < 16; wordIndex++)
+			{
+				firstPartialWords[wordIndex] = 0xA4000000 + wordIndex;
+				secondPartialWords[wordIndex] = 0xA5000000 + wordIndex;
+			}
+
+			render::GpuBufferUtility::Write(buffer, 16 * sizeof(u32), sizeof(firstPartialWords), firstPartialWords);
+			render::GpuBufferUtility::Write(buffer, 24 * sizeof(u32), sizeof(secondPartialWords), secondPartialWords);
+			memcpy(words + 16, firstPartialWords, sizeof(firstPartialWords));
+			memcpy(words + 24, secondPartialWords, sizeof(secondPartialWords));
+
+			B3D_TEST_ASSERT(fnSubmitAndCompare(fnCreateReadback(buffer, "Ordered writes"), words))
+
+			u32 replacedWords[kWordCount];
+			fnFillWords(replacedWords, 0xA6000000);
+			render::GpuBufferUtility::Write(buffer, 0, kSize, replacedWords);
+
+			fnFillWords(words, 0xA7000000);
+			render::GpuBufferUtility::Write(buffer, 0, kSize, words);
+
+			B3D_TEST_ASSERT(fnSubmitAndCompare(fnCreateReadback(buffer, "Replaced write"), words))
+		}
+
+		// A write nothing pulls in runs at the end of the frame, and Read() sees writes queued before it
+		{
+			fnFillWords(words, 0xA8000000);
+			render::GpuBufferUtility::Write(buffer, 0, kSize, words);
+
+			device->EndFrame();
+			device->WaitUntilIdle();
+			B3D_TEST_ASSERT(!fnHasQueuedUploads(*buffer))
+			B3D_TEST_ASSERT(fnSubmitAndCompare(fnCreateReadback(buffer, "End of frame write"), words))
+
+			fnFillWords(words, 0xA9000000);
+			render::GpuBufferUtility::Write(buffer, 0, kSize, words);
+
+			u32 readWords[kWordCount] = {};
+			render::GpuBufferUtility::Read(*context, buffer, 0, kSize, readWords);
+			B3D_TEST_ASSERT(memcmp(readWords, words, kSize) == 0)
+			device->WaitUntilIdle();
+		}
+
+		// Command buffers don't track bindless buffers, so writes to them run before the next submitted command buffer
+		if(device->GetBindlessHeaps() != nullptr)
+		{
+			const TShared<render::GpuBuffer> bindlessBuffer = fnCreateBuffer(GpuBufferMemory::Device, GpuBufferFlag::GpuWrite | GpuBufferFlag::Bindless);
+			B3D_TEST_ASSERT(bindlessBuffer != nullptr)
+			if(bindlessBuffer != nullptr)
+			{
+				fnFillWords(words, 0xAA000000);
+				render::GpuBufferUtility::Write(bindlessBuffer, 0, kSize, words);
+				B3D_TEST_ASSERT(transferQueue.HasUntrackedUploads())
+
+				context->SubmitCommandBuffer(pool->Create(render::GpuCommandBufferCreateInformation::Create("Unrelated")));
+				device->WaitUntilIdle();
+				B3D_TEST_ASSERT(!fnHasQueuedUploads(*bindlessBuffer) && !transferQueue.HasUntrackedUploads())
+				B3D_TEST_ASSERT(fnSubmitAndCompare(fnCreateReadback(bindlessBuffer, "Bindless write"), words))
+			}
+		}
+
+		// Uploads through other staging buffers over later frames don't reuse the memory of a staging buffer created before them and
+		// queued after them
+		{
+			GpuStagingBuffer heldStaging = transferQueue.CreateStagingBuffer(kSize);
+			B3D_TEST_ASSERT(heldStaging.GetBuffer() != nullptr)
+			device->EndFrame();
+
+			fnFillWords(words, 0xAB000000);
+			{
+				const render::GpuBufferMappedScope mapping = heldStaging.GetBuffer()->Map(GpuMapOption::Write);
+				memcpy(mapping.GetMappedMemory(), words, kSize);
+			}
+
+			for(u32 frameIndex = 0; frameIndex < 4; frameIndex++)
+			{
+				fnQueueStagingUpload(scratchBuffer, 0xEE000000 + (frameIndex << 16));
+				device->EndFrame();
+				device->WaitUntilIdle();
+			}
+
+			transferQueue.QueueUpload(std::move(heldStaging), buffer, 0, kSize);
+			B3D_TEST_ASSERT(fnSubmitAndCompare(fnCreateReadback(buffer, "Held staging"), words))
+		}
+
+		// The same holds for a copy recorded into a command buffer that is submitted frames later
+		{
+			const TShared<render::GpuCommandBuffer> lateCommands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Late upload"));
+
+			fnFillWords(words, 0xAC000000);
+			render::GpuBufferUtility::Write(buffer, 0, kSize, words, GpuBufferWriteFlag::Normal, lateCommands);
+			B3D_TEST_ASSERT(!fnHasQueuedUploads(*buffer))
+
+			for(u32 frameIndex = 0; frameIndex < 4; frameIndex++)
+			{
+				fnQueueStagingUpload(scratchBuffer, 0xEF000000 + (frameIndex << 16));
+				device->EndFrame();
+				device->WaitUntilIdle();
+			}
+
+			B3D_TEST_ASSERT(fnSubmitAndCompare(fnRecordReadback(buffer, lateCommands), words))
+		}
+
+		// A texture write queued on the transfer queue is visible to Read()
+		{
+			static constexpr u32 kTextureSize = 4;
+			const TShared<render::Texture> texture = device->CreateTexture(TextureCreateInformation::Create2D(PF_R32U, kTextureSize, kTextureSize));
+			B3D_TEST_ASSERT(texture != nullptr)
+			if(texture != nullptr)
+			{
+				const TShared<PixelData> written = PixelData::Create(kTextureSize, kTextureSize, 1, PF_R32U);
+				const TShared<PixelData> read = PixelData::Create(kTextureSize, kTextureSize, 1, PF_R32U);
+				for(u32 row = 0; row < kTextureSize; row++)
+				{
+					u32* const rowElements = reinterpret_cast<u32*>(written->GetData() + row * written->GetRowPitch());
+					for(u32 column = 0; column < kTextureSize; column++)
+						rowElements[column] = 0xAD000000 + row * kTextureSize + column;
+				}
+
+				render::TextureUtility::Write(texture, *written);
+				B3D_TEST_ASSERT(texture->GetGpuResource()->HasQueuedUploads())
+
+				render::TextureUtility::Read(*context, texture, *read);
+
+				bool matches = true;
+				for(u32 row = 0; row < kTextureSize; row++)
+				{
+					const u8* const writtenRow = written->GetData() + row * written->GetRowPitch();
+					const u8* const readRow = read->GetData() + row * read->GetRowPitch();
+					matches &= memcmp(writtenRow, readRow, kTextureSize * sizeof(u32)) == 0;
+				}
+
+				B3D_TEST_ASSERT(matches)
+				device->WaitUntilIdle();
+			}
+		}
+	}, "GpuBackendTestSuite::TestTransferQueue", true);
 }
 
 void GpuBackendTestSuite::TestFramebufferAttachmentUsage()

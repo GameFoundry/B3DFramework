@@ -222,10 +222,10 @@ namespace b3d
 
 			// Upload the data shared by all chunks. Without a command buffer the uploads go on the transfer command buffer, which
 			// is submitted before the first chunk's graph, and leave the resources at rest.
-			render::TextureUtility::Write(gpuContext, inputTexture, *source);
+			render::TextureUtility::Write(inputTexture, *source);
 
 			if(bestErrorTexture != nullptr)
-				render::TextureUtility::Write(gpuContext, bestErrorTexture, *bestErrorTextureInitialData);
+				render::TextureUtility::Write(bestErrorTexture, *bestErrorTextureInitialData);
 
 			for(u32 tableIndex = 0; tableIndex < (u32)render::TextureCompressTable::Count; ++tableIndex)
 			{
@@ -233,7 +233,7 @@ namespace b3d
 					continue;
 
 				const TArrayView<const u32> tableData = render::GetTextureCompressTableData((render::TextureCompressTable)tableIndex);
-				render::GpuBufferUtility::Write(gpuContext, tables[tableIndex], 0, (u32)(tableData.Size() * sizeof(u32)), tableData.Data());
+				render::GpuBufferUtility::Write(tables[tableIndex], 0, (u32)(tableData.Size() * sizeof(u32)), tableData.Data());
 			}
 
 			// Resources of one chunk submission in flight. A chunk reuses them only after the previous chunk using them completes.

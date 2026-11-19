@@ -402,7 +402,7 @@ for(const RayTracingGeometryLayout& layout : mesh->GetOrCreateRayTracingGeometry
 // Every ray reads the layouts, so they live in the memory the GPU reads fastest
 TShared<GpuBuffer> layoutBuffer = gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(RayTracingGeometryLayout),
 	(u32)layouts.size()));
-GpuBufferUtility::Write(gpuContext, layoutBuffer, 0, (u32)(layouts.size() * sizeof(RayTracingGeometryLayout)), layouts.data());
+GpuBufferUtility::Write(layoutBuffer, 0, (u32)(layouts.size() * sizeof(RayTracingGeometryLayout)), layouts.data());
 ~~~~~~~~~~~~~
 
 ~~~~~~~~~~~~~{.hlsl}

@@ -912,7 +912,7 @@ namespace
 		const render::GpuAccessState discardedOutputRest = render::GpuBarrierTestUtility::GetDiscardedRestingState(*outputTexture, commandBuffer->GetQueueType());
 		const render::GpuAccessState computeWrite(render::GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write, render::GpuImageLayout::General);
 
-		render::TextureUtility::Write(gpuContext, inputTexture, *compressed, 0, 0, render::TextureWriteFlag::Normal, commandBuffer);
+		render::TextureUtility::Write(inputTexture, *compressed, 0, 0, render::TextureWriteFlag::Normal, commandBuffer);
 		commandBuffer->IssueBarriers(render::GpuTextureBarrier(outputTexture, discardedOutputRest, computeWrite));
 		material->Execute(*commandBuffer, inputTexture, outputTexture, parameters, size);
 		commandBuffer->IssueBarriers(render::GpuTextureBarrier(outputTexture, computeWrite, outputRest));

@@ -22,7 +22,7 @@ namespace b3d
 			NullGpuQueue(GpuDevice& device, GpuQueueType type, u32 index);
 
 			void SubmitCommandBuffer(const GpuSubmissionInformation& information) override;
-			void WaitUntilIdle() override {}
+			void WaitUntilIdle() override;
 		};
 
 		/** @} */

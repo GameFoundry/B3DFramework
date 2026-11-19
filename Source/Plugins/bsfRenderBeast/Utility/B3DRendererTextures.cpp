@@ -184,8 +184,7 @@ TShared<render::Texture> GeneratePreintegratedEnvBrdf()
 		}
 	}
 
-	GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
-	TextureUtility::Write(gpuContext, texture, *pixelData);
+	TextureUtility::Write(texture, *pixelData);
 
 	return texture;
 }
@@ -220,7 +219,7 @@ TShared<render::Texture> GenerateDefaultIndirect()
 		data->SetColorAt(Color::kBlack, 0, 1);
 		data->SetColorAt(Color::kBlack, 1, 1);
 
-		TextureUtility::Write(gpuContext, skyTexture, *data, 0, sides[i]);
+		TextureUtility::Write(skyTexture, *data, 0, sides[i]);
 	}
 
 	{
@@ -231,7 +230,7 @@ TShared<render::Texture> GenerateDefaultIndirect()
 		data->SetColorAt(skyColor, 0, 1);
 		data->SetColorAt(skyColor, 1, 1);
 
-		TextureUtility::Write(gpuContext, skyTexture, *data, 0, CF_PositiveY);
+		TextureUtility::Write(skyTexture, *data, 0, CF_PositiveY);
 	}
 
 	{
@@ -242,7 +241,7 @@ TShared<render::Texture> GenerateDefaultIndirect()
 		data->SetColorAt(Color::kBlack, 0, 1);
 		data->SetColorAt(Color::kBlack, 1, 1);
 
-		TextureUtility::Write(gpuContext, skyTexture, *data, 0, CF_NegativeY);
+		TextureUtility::Write(skyTexture, *data, 0, CF_NegativeY);
 	}
 
 	TextureCreateInformation irradianceCubemapDesc;

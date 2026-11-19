@@ -483,7 +483,6 @@ namespace b3d
 			RenderTargetClearValues mRenderPassDiscardClearValues;
 #endif
 
-			GpuResourceTracker mResourceTracker;
 			GpuQueueId mSubmittedQueueId;
 
 			TShared<VulkanGpuGraphicsPipelineState> mGraphicsPipeline;

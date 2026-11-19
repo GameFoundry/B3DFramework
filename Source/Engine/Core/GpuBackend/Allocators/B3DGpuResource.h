@@ -405,6 +405,9 @@ namespace b3d
 		/** Returns queues on which the resource currently has in-flight accesses matching @p useFlags. */
 		GpuQueueMask GetUseInfo(GpuAccessFlags useFlags) const;
 
+		/** Returns true while uploads to the resource are queued on GpuTransferQueue. Thread safe. */
+		bool HasQueuedUploads() const { return mHasQueuedUploads.load(std::memory_order_relaxed); }
+
 		/**
 		 * Queues the resource for destruction. If the resource is currently bound to a command buffer or pinned, the actual
 		 * free is deferred until the bound and pin counts drop to zero; otherwise the manager frees it immediately. Only valid for
@@ -473,10 +476,13 @@ namespace b3d
 		u8 mWriteUses[kMaximumGpuQueueCount] = {};
 
 	private:
+		friend class GpuTransferQueue;
+
 		/** Deletes the resource. Caller must ensure resource is not being used on the GPU or bound to a command buffer. */
 		void DestroyImmediately();
 
 		bool mDestroyRequested = false;
+		std::atomic<bool> mHasQueuedUploads = false; /**< See HasQueuedUploads(). Set and cleared by GpuTransferQueue. */
 	};
 
 #if B3D_BUILD_TYPE_DEVELOPMENT

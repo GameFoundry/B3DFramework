@@ -148,7 +148,7 @@ namespace b3d
 				return;
 			}
 
-			render::GpuBufferUtility::Write(gpuContext, inputBuffer, 0, baseWidth * baseHeight * sizeof(float) * 4, convertedSource->GetData());
+			render::GpuBufferUtility::Write(inputBuffer, 0, baseWidth * baseHeight * sizeof(float) * 4, convertedSource->GetData());
 
 			render::FrameGraph graph(gpuContext, "GenerateMipmap");
 

@@ -122,14 +122,16 @@ void GpuMemoryDefragmenter::Run(GpuWorkContext& gpuContext)
 	mFirstAllocatorIndex = (mFirstAllocatorIndex + 1) % allocatorCount;
 
 	// Create a target at the destination of each move. Moves whose native resource is referenced by a command buffer that was not
-	// submitted yet are cancelled: the copy would be ordered before that command buffer, so writes it records would be lost.
+	// submitted yet are cancelled: the copy would be ordered before that command buffer, so writes it records would be lost. Moves of
+	// resources with uploads queued on the transfer queue are cancelled too: the uploads target the old native resource.
 	TArray<Relocation> relocations;
 	for(GpuAllocationMove& move : moves)
 	{
 		Relocation relocation;
 		relocation.Size = move.Source.Size;
 
-		if(!GetGpuResource(move.Owner)->IsBound())
+		const IGpuResource* const resource = GetGpuResource(move.Owner);
+		if(!resource->IsBound() && !resource->HasQueuedUploads())
 		{
 			if(render::Texture* texture = move.Owner.GetTexture())
 			{

@@ -23,10 +23,13 @@ namespace b3d
 
 			// Allocate a dummy buffer for persistently mapped memory
 			mMappedMemory = B3DAllocate(mTotalSize);
+			mBuffer = CreateBufferResource();
 		}
 
 		NullGpuBuffer::~NullGpuBuffer()
 		{
+			mBuffer->Destroy();
+
 			if(mAllocation.IsOwned())
 				mAllocation.Allocator->Free(mAllocation);
 
@@ -35,6 +38,26 @@ namespace b3d
 				B3DFree(mMappedMemory);
 				mMappedMemory = nullptr;
 			}
+		}
+
+		void NullGpuBuffer::RecreateInternalBuffer()
+		{
+			// The CPU memory stays, since nothing reads the old contents on the null device
+			NullBufferResource* const newBuffer = CreateBufferResource();
+			mBuffer->Destroy();
+			mBuffer = newBuffer;
+		}
+
+		void NullGpuBuffer::SwapInternalBuffer(GpuBuffer& other)
+		{
+			NullGpuBuffer& otherBuffer = static_cast<NullGpuBuffer&>(other);
+			std::swap(mAllocation, otherBuffer.mAllocation);
+			std::swap(mBuffer, otherBuffer.mBuffer);
+		}
+
+		NullBufferResource* NullGpuBuffer::CreateBufferResource()
+		{
+			return static_cast<NullGpuDevice&>(GetDevice()).GetResourceManager().Create<NullBufferResource>(GetName());
 		}
 	} // namespace render
 } // namespace b3d

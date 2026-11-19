@@ -186,7 +186,7 @@ namespace b3d
 			return *pagePool;
 		}
 
-		TUnique<IGpuAllocator> MetalHeapAllocator::CreateScratchAllocator(MetalMemoryType memoryType, IGpuCompletionTracker& completionTracker)
+		TUnique<IGpuAllocator> MetalHeapAllocator::CreateScratchAllocator(MetalMemoryType memoryType, IGpuCompletionTracker& completionTracker, GpuScratchAllocatorFlags flags)
 		{
 			if (memoryType >= MetalMemoryType::Count)
 				return nullptr;
@@ -196,6 +196,9 @@ namespace b3d
 			ScratchAllocator::Configuration configuration;
 			configuration.PageSize = pagePool.GetPageSize();
 			configuration.HeapCreateInfo.MemoryType = memoryType;
+
+			if (flags.IsSet(GpuScratchAllocatorFlag::ThreadSafe))
+				return B3DMakeUnique<ThreadSafeScratchAllocator>(&mBackend, &completionTracker, configuration, &pagePool);
 
 			return B3DMakeUnique<ScratchAllocator>(&mBackend, &completionTracker, configuration, &pagePool);
 		}

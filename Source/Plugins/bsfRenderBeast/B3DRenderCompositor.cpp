@@ -745,7 +745,7 @@ void RCNodeParticleSort::Render(const RenderCompositorNodeInputs& inputs)
 
 		waitGroup.Wait();
 
-		GpuBufferUtility::Write(GetRenderer()->GetGpuContext(), ParticleIndices, 0, indexCount * (u32)sizeof(u32), indicesData, GpuBufferWriteFlag::Discard);
+		GpuBufferUtility::Write(ParticleIndices, 0, indexCount * (u32)sizeof(u32), indicesData, GpuBufferWriteFlag::Discard);
 	}
 	B3DClearAllocatorFrame();
 }

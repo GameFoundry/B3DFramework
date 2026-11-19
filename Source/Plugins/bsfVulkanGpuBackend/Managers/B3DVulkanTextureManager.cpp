@@ -54,9 +54,6 @@ void VulkanTextureManager::OnStartUp()
 {
 	TextureManager::OnStartUp();
 
-	// No renderer-owned work context exists yet at backend startup; see TextureManager::OnStartUp().
-	TShared<GpuWorkContext> gpuContext = GpuWorkContext::Create(mGpuDevice);
-
 	int idx = 0;
 	for(auto& entry : DummyTexTypes)
 	{
@@ -78,7 +75,7 @@ void VulkanTextureManager::OnStartUp()
 
 		createInformation.Name = "VulkanDummyRead";
 		mDummyReadTextures[idx] = std::static_pointer_cast<VulkanTexture>(mGpuDevice.CreateTexture(createInformation));
-		TextureUtility::Write(*gpuContext, mDummyReadTextures[idx], *pixelData);
+		TextureUtility::Write(mDummyReadTextures[idx], *pixelData);
 
 		createInformation.Name = "VulkanDummyStorage";
 		createInformation.Usage = TextureUsageFlag::AllowUnorderedAccessOnTheGPU | TextureUsageFlag::MutableFormat;

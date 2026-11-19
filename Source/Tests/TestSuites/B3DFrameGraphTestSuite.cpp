@@ -743,7 +743,7 @@ void FrameGraphTestSuite::TestRestingReads()
 		}
 
 		const TShared<render::GpuCommandBuffer> uploadCommands = test.Pool->Create(GpuCommandBufferCreateInformation::Create("Upload"));
-		TextureUtility::Write(*test.Context, uploaded, *pixels, 0, 0, TextureWriteFlag::Normal, uploadCommands);
+		TextureUtility::Write(uploaded, *pixels, 0, 0, TextureWriteFlag::Normal, uploadCommands);
 		test.Context->SubmitCommandBuffer(uploadCommands, GpuQueueMask::kNone);
 
 		// A graph writes a render target texture, and returns it to rest at its end
@@ -1082,7 +1082,7 @@ void FrameGraphTestSuite::TestRasterPass()
 		const TShared<GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
 
 		const TShared<render::GpuCommandBuffer> uploadCommands = pool->Create(GpuCommandBufferCreateInformation::Create("Upload"));
-		TextureUtility::Write(*context, source, *pixels, 0, 0, TextureWriteFlag::Normal, uploadCommands);
+		TextureUtility::Write(source, *pixels, 0, 0, TextureWriteFlag::Normal, uploadCommands);
 		context->SubmitCommandBuffer(uploadCommands, GpuQueueMask::kNone);
 
 		information.Usage = TextureUsageFlag::RenderTarget;

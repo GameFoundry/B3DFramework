@@ -30,6 +30,7 @@ namespace b3d
 {
 	class GpuPipelineParameterSetLayout;
 	class GpuCommandCapture;
+	class GpuTransferQueue;
 	class IGpuAllocator;
 	class IGpuTransientHeapPool;
 	struct GpuMemoryRequirements;
@@ -67,6 +68,16 @@ namespace b3d
 	/** @addtogroup GpuBackend
 	 *  @{
 	 */
+
+	/** Flags that control how GpuDevice::CreateScratchAllocator() creates an allocator. */
+	enum class GpuScratchAllocatorFlag
+	{
+		None = 0,
+		ThreadSafe = 1 << 0 /**< The allocator may be used from multiple threads at once. */
+	};
+
+	using GpuScratchAllocatorFlags = Flags<GpuScratchAllocatorFlag>;
+	B3D_FLAGS_OPERATORS(GpuScratchAllocatorFlag)
 
 	/**
 	 * Provides access to a particular GPU device.
@@ -125,7 +136,7 @@ namespace b3d
 
 		/**
 		 * Returns the submit thread responsible for executing queue submit and present operations for this device.
-		 * Only valid on backends that construct one during startup.
+		 * Only valid once the device has started up, and until it shuts down.
 		 */
 		render::GpuSubmitThread& GetSubmitThread() const
 		{
@@ -133,19 +144,26 @@ namespace b3d
 			return *mSubmitThread;
 		}
 
-		/**
-		 * Returns true if the submit thread is running. It doesn't run during device startup and shutdown, or on backends
-		 * that don't construct one.
-		 */
+		/** Returns true if the submit thread is running. It doesn't run during device startup and shutdown. */
 		bool HasSubmitThread() const { return mSubmitThread != nullptr; }
+
+		/**
+		 * Returns the queue that uploads CPU data to buffers and textures. Like the submit thread, only valid once the device has started
+		 * up, and until it shuts down. Thread safe.
+		 */
+		GpuTransferQueue& GetTransferQueue() const
+		{
+			B3D_ASSERT(mTransferQueue != nullptr);
+			return *mTransferQueue;
+		}
 
 		/** Notifies the device the rendering for the current frame will start. See EndFrame(). Render thread only. */
 		virtual void BeginFrame() = 0;
 
 		/**
-		 * Notifies the device the rendering for the current frame has ended, see BeginFrame(). Blocks until the previous frame's
-		 * resources are safe to reuse, then reclaims unused heaps of every transient heap pool, and advances the frame index.
-		 * Render thread only.
+		 * Notifies the device the rendering for the current frame has ended, see BeginFrame(). Submits the uploads queued on the transfer
+		 * queue, blocks until the previous frame's resources are safe to reuse, then reclaims unused heaps of every transient heap pool, and
+		 * advances the frame index. Render thread only.
 		 */
 		void EndFrame();
 
@@ -383,12 +401,13 @@ namespace b3d
 		/**
 		 * Backend factory for a context-owned scratch (linear/bump) allocator. Manufactures an
 		 * allocator for memory type @p memoryType, drawing pages from the device's shared per-type page
-		 * pool and retiring them against @p completionTracker. Ownership transfers to the caller.
+		 * pool and retiring them against @p completionTracker. Ownership transfers to the caller. Without
+		 * GpuScratchAllocatorFlag::ThreadSafe in @p flags the allocator must only be used by one thread at a time.
 		 *
 		 * The base implementation returns nullptr (context scratch allocation unsupported); backends
 		 * that support it override this.
 		 */
-		virtual TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker);
+		virtual TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker, GpuScratchAllocatorFlags flags = GpuScratchAllocatorFlag::None);
 
 		/**
 		 * Returns the transient heap pool that resources of memory type @p memoryType, as reported by GetMemoryRequirements(),
@@ -483,6 +502,15 @@ namespace b3d
 
 		GpuDevice();
 
+		/** Creates the transfer queue. Backends call it right after creating the submit thread. */
+		void CreateTransferQueue();
+
+		/**
+		 * Destroys the transfer queue, dropping the uploads still queued on it. Backends call it once the device is idle, before destroying
+		 * the submit thread.
+		 */
+		void DestroyTransferQueue();
+
 		/**
 		 * Creates a new GPU texture at @p allocation, which is pending or has memory that satisfies the texture's memory
 		 * requirements. See CreateTexture(const TextureCreateInformation&, const GpuAllocation&, GpuObjectCreateFlags).
@@ -557,6 +585,9 @@ namespace b3d
 
 		/** Thread responsible for executing queue submit and present operations. Constructed by backends that use one. */
 		TUnique<render::GpuSubmitThread> mSubmitThread;
+
+		/** See GetTransferQueue(). Created and destroyed through CreateTransferQueue() and DestroyTransferQueue(). */
+		TUnique<GpuTransferQueue> mTransferQueue;
 
 		/**
 		 * Completion tracker whose marker is the frame index, advanced by EndFrame(). Transient heap pools defer the destruction

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "B3DPrerequisites.h"
-#include "GpuBackend/B3DGpuCommandBuffer.h"
+#include "GpuBackend/B3DGpuBarriers.h"
 #include "Utility/B3DTArrayView.h"
 
 namespace b3d

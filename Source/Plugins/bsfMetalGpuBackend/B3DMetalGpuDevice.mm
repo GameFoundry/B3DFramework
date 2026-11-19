@@ -58,6 +58,7 @@ namespace b3d
 			if (mSubmitThread != nullptr)
 			{
 				WaitUntilIdle();
+				DestroyTransferQueue();
 				mSubmitThread = nullptr;
 			}
 
@@ -225,6 +226,7 @@ namespace b3d
 
 			IGpuSubmitThreadBackend& submitThreadBackend = *this;
 			mSubmitThread = B3DMakeUnique<GpuSubmitThread>(*this, submitThreadBackend);
+			CreateTransferQueue();
 
 			mIsInitialized = true;
 			return true;
@@ -551,12 +553,12 @@ namespace b3d
 		}
 
 		TUnique<IGpuAllocator> MetalGpuDevice::CreateScratchAllocator(u32 memoryType,
-			IGpuCompletionTracker& completionTracker)
+			IGpuCompletionTracker& completionTracker, GpuScratchAllocatorFlags flags)
 		{
 			if (mHeapAllocator == nullptr || memoryType >= (u32)MetalMemoryType::Count)
 				return nullptr;
 
-			return mHeapAllocator->CreateScratchAllocator((MetalMemoryType)memoryType, completionTracker);
+			return mHeapAllocator->CreateScratchAllocator((MetalMemoryType)memoryType, completionTracker, flags);
 		}
 
 		IGpuTransientHeapPool* MetalGpuDevice::GetTransientHeapPool(u32 memoryType)

@@ -3,6 +3,7 @@
 #include "B3DNullTexture.h"
 #include "B3DNullGpuDevice.h"
 #include "Image/B3DPixelData.h"
+#include "GpuBackend/B3DGpuBackendUtility.h"
 
 namespace b3d
 {
@@ -21,10 +22,14 @@ namespace b3d
 			}
 			else
 				mAllocation = allocation;
+
+			mImage = CreateImageResource();
 		}
 
 		NullTexture::~NullTexture()
 		{
+			mImage->Destroy();
+
 			if(mAllocation.IsOwned())
 				mAllocation.Allocator->Free(mAllocation);
 
@@ -33,6 +38,26 @@ namespace b3d
 				B3DDelete(mMappedBuffer);
 				mMappedBuffer = nullptr;
 			}
+		}
+
+		void NullTexture::RecreateInternalTexture()
+		{
+			NullImageResource* const newImage = CreateImageResource();
+			mImage->Destroy();
+			mImage = newImage;
+		}
+
+		void NullTexture::SwapInternalTexture(Texture& other)
+		{
+			NullTexture& otherTexture = static_cast<NullTexture&>(other);
+			std::swap(mAllocation, otherTexture.mAllocation);
+			std::swap(mImage, otherTexture.mImage);
+		}
+
+		NullImageResource* NullTexture::CreateImageResource()
+		{
+			return mGpuDevice.GetResourceManager().Create<NullImageResource>(GetName(), mProperties.GetFaceCount(), mProperties.MipMapCount + 1,
+				GpuBackendUtility::GetFormatAspects(mProperties.Format));
 		}
 
 		GpuTextureMappedScope NullTexture::Map(u32 mipLevel, u32 arrayLayer, GpuMapOptions options)

@@ -96,7 +96,7 @@ Render targets are imported as a whole with **ImportRenderTarget()**, which is t
 Acceleration structures can only be imported, with **ImportAccelerationStructure()**: a graph cannot create one as a transient. They have a single subresource and no layouts, and can be read on several queues at once.
 
 ## Resting resources
-Every other resource is at rest, which means it can be read from any shader stage without a barrier. Passes may bind and read these without any declaration, but never write them. Long-lived data such as meshes, material textures and uniform buffers are normally used this way. Binding a resting resource in a slot that writes it reports an error telling you to import it.
+Every other resource is at rest, which means it can be read from any shader stage without a barrier. Passes may bind and read these without any declaration, but never write them. Long-lived data such as meshes, material textures and uniform buffers are normally used this way. Write them before the graph runs, with @b3d::render::GpuBufferUtility::Write or @b3d::render::TextureUtility::Write: writes queued on the device's transfer queue run before the first submission of the graph that uses the resource. Binding a resting resource in a slot that writes it reports an error telling you to import it.
 
 Resources kept across frames, such as shadow maps or history buffers, are created on the **GpuDevice** by the system that keeps them, then imported into the graphs that write them.
 

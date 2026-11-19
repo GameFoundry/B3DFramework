@@ -12,6 +12,7 @@ namespace b3d
 {
 	class GpuDevice;
 	class GpuSwapChain;
+	class IGpuResource;
 }
 
 namespace b3d::render
@@ -128,6 +129,12 @@ namespace b3d::render
 		 */
 		void QueueSubmit(const TShared<GpuCommandBuffer>& commandBuffer, GpuQueue& queue, GpuQueueMask syncMask, TInlineArray<GpuTimelineFenceAndValue, 2> signalFences, bool blocking = false);
 
+		/** Queues a submission of the uploads queued to @p destination, and to bindless destinations. See GpuTransferQueue. */
+		void QueueUploadSubmit(IGpuResource& destination);
+
+		/** Queues a submission of every queued upload. See GpuTransferQueue. */
+		void QueueAllUploadsSubmit();
+
 		/**
 		 * Queues an operation that acquires a swap chain image. Acquired images can be written to and eventually presented to the screen.
 		 * Each acquire call must have a matching present call, which will unacquire the image and make it free for further acquires. Note
@@ -212,6 +219,12 @@ namespace b3d::render
 
 		/** Removes the fence signals of @p queue whose submissions are complete up to @p lastFenceValue. Submit thread only. */
 		void RemoveFenceSignals(const GpuQueue& queue, u64 lastFenceValue);
+
+		/**
+		 * Ends and submits @p commandBuffer, recorded by GpuTransferQueue, on the first graphics queue, waiting for all earlier work on every
+		 * queue. Returns the queue, or null if @p commandBuffer is null. Submit thread only.
+		 */
+		GpuQueue* SubmitUploads(const TShared<GpuCommandBuffer>& commandBuffer);
 
 		GpuDevice& mGpuDevice;
 		IGpuSubmitThreadBackend& mBackend;

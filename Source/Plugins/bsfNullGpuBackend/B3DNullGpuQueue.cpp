@@ -14,14 +14,19 @@ namespace b3d
 
 		void NullGpuQueue::SubmitCommandBuffer(const GpuSubmissionInformation& information)
 		{
-			// Nothing executes on the null device, so submitted work completes immediately
-			GpuCommandBuffer* const commandBuffer = information.CommandBuffer.get();
-			if(commandBuffer == nullptr)
+			if(information.CommandBuffer == nullptr)
 				return;
 
-			commandBuffer->OnDidComplete();
-			commandBuffer->OnDidComplete.Clear();
-			commandBuffer->OnDestroyed.Clear();
+			// The submit thread runs the uploads the command buffer uses first, and then completes it immediately
+			mGpuDevice.GetSubmitThread().QueueSubmit(information.CommandBuffer, *this, information.SyncMask, information.SignalFences);
+		}
+
+		void NullGpuQueue::WaitUntilIdle()
+		{
+			// Waits for the submit thread to run the submissions queued before, including the copies of the uploads they use. Nothing else
+			// runs during device startup and shutdown, when the submit thread doesn't exist.
+			if(mGpuDevice.HasSubmitThread())
+				mGpuDevice.GetSubmitThread().WaitUntilIdle(*this);
 		}
 	} // namespace render
 } // namespace b3d

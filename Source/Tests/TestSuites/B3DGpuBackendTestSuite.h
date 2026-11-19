@@ -48,6 +48,14 @@ namespace b3d
 		void TestCpuWrittenBufferRelocation();
 
 		/**
+		 * Writes buffers and textures through GpuTransferQueue. Verifies that queued writes run before command buffers recorded after them, in
+		 * order, that a covering write replaces an earlier one, that a discarding write leaves earlier command buffers reading the old contents,
+		 * that EndFrame() and Read() run outstanding writes, that writes to bindless buffers run before any submitted command buffer, and that
+		 * staging memory isn't reused before the copies from it are done.
+		 */
+		void TestTransferQueue();
+
+		/**
 		 * Verifies the transient resource cache across scopes and frames, cache eviction by idle frames and by cache size, the release of
 		 * idle heaps, concurrent scopes of two contexts sharing a heap, the persistent memory fallback, that transient buffers get no CPU
 		 * access, and the validation of transient resource use.

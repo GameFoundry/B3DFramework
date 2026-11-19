@@ -16,6 +16,8 @@
 #include "GpuBackend/B3DGpuBackendUtility.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "FrameGraph/B3DFrameGraph.h"
+#include "GpuBackend/B3DGpuTransferQueue.h"
+#include "GpuBackend/Allocators/B3DGpuResource.h"
 
 using namespace b3d;
 
@@ -255,8 +257,7 @@ TAsyncOp<void> Texture::WriteData(const TShared<PixelData>& data, u32 face, u32 
 		bool _discardEntireBuffer, TAsyncOp<void>& asyncOp)
 	{
 		render::TextureWriteFlags flags = _discardEntireBuffer ? render::TextureWriteFlag::Discard : render::TextureWriteFlag::Normal;
-		GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
-		render::TextureUtility::Write(gpuContext, texture, *_pixData, _mipLevel, _face, flags);
+		render::TextureUtility::Write(texture, *_pixData, _mipLevel, _face, flags);
 		_pixData->UnlockInternal();
 		asyncOp.CompleteOperation();
 	};
@@ -479,6 +480,9 @@ void Texture::SetAllocation(const GpuAllocation& allocation, GpuObjectCreateFlag
 	if(!B3D_ENSURE_LOG(!flags.IsSet(GpuObjectCreateFlag::Aliased) || allocation.HasMemory(), "Only a texture moved to a fixed memory location can be aliased. Texture: '{0}'.", mName))
 		return;
 
+	// Transient textures, the only ones placed this way while initialized, are written through command buffers
+	B3D_ASSERT((GetGpuResource() == nullptr || !GetGpuResource()->HasQueuedUploads()) && "Cannot move a texture with uploads queued on GpuTransferQueue.");
+
 	mRequestedAllocation = allocation;
 	mIsAliased = flags.IsSet(GpuObjectCreateFlag::Aliased);
 
@@ -528,8 +532,7 @@ void Texture::Initialize()
 
 	if(mInitData != nullptr)
 	{
-		GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
-		TextureUtility::Write(gpuContext, std::static_pointer_cast<Texture>(GetShared()), *mInitData, 0, 0, TextureWriteFlag::Discard);
+		TextureUtility::Write(std::static_pointer_cast<Texture>(GetShared()), *mInitData, 0, 0, TextureWriteFlag::Discard);
 		mInitData->UnlockInternal();
 		mInitData = nullptr;
 	}
@@ -704,7 +707,7 @@ TShared<GpuBuffer> TextureUtility::CreateStagingBuffer(GpuWorkContext& gpuContex
 	return gpuContext.CreateScratchGpuBuffer(createInformation);
 }
 
-void TextureUtility::Write(GpuWorkContext& gpuContext, const TShared<Texture>& texture, const PixelData& source, u32 mipLevel, u32 arrayLayer, TextureWriteFlags flags, TShared<GpuCommandBuffer> commandBuffer)
+void TextureUtility::Write(const TShared<Texture>& texture, const PixelData& source, u32 mipLevel, u32 arrayLayer, TextureWriteFlags flags, const TShared<GpuCommandBuffer>& commandBuffer)
 {
 	ASSERT_IF_NOT_RENDER_THREAD
 	B3D_ASSERT(texture != nullptr);
@@ -736,15 +739,21 @@ void TextureUtility::Write(GpuWorkContext& gpuContext, const TShared<Texture>& t
 	if(noOverwrite)
 		mapOptions |= GpuMapOption::NoOverwrite;
 
+	GpuTransferQueue& transferQueue = texture->GetDevice().GetTransferQueue();
+
 	// Check is the GPU currently reading or writing from the image
 	const GpuQueueMask subresourceUseMask = texture->GetUseMask(mipLevel, arrayLayer, GpuAccessFlag::Read | GpuAccessFlag::Write);
 	const u32 subresourceIndex = textureProperties.MapToSubresourceIndex(arrayLayer, mipLevel);
 	const u32 subresourceUseCount = texture->GetUseCount(subresourceIndex);
 	const u32 subresourceBoundCount = texture->GetBoundCount(subresourceIndex);
 
+	// Uploads queued earlier would overwrite a direct write once they run
+	const IGpuResource* const gpuResource = texture->GetGpuResource();
+	const bool hasQueuedUploads = gpuResource != nullptr && gpuResource->HasQueuedUploads();
+
 	// Try direct mapping if texture supports it
 	void* mappedMemory = texture->GetMappedMemory();
-	if(mappedMemory != nullptr)
+	if(mappedMemory != nullptr && !hasQueuedUploads)
 	{
 		const bool isBound = subresourceBoundCount > 0;
 
@@ -760,11 +769,8 @@ void TextureUtility::Write(GpuWorkContext& gpuContext, const TShared<Texture>& t
 			|| (!isBound && !supportsGPUWrites) // Image not bound and not being used, nor are there any pending GPU writes
 			|| noOverwrite; // If no-overwrite flag is set, user guarantees he won't touch the memory the GPU is using
 
-		if(shouldMapDirectly)
+		if(shouldMapDirectly && (!recreateImage || transferQueue.TryRecreateInternalTexture(*texture)))
 		{
-			if(recreateImage)
-				texture->RecreateInternalTexture();
-			
 			GpuTextureMappedScope scope = texture->Map(mipLevel, arrayLayer, mapOptions);
 			PixelUtility::BulkPixelConversion(source, scope.GetPixelData());
 
@@ -774,6 +780,15 @@ void TextureUtility::Write(GpuWorkContext& gpuContext, const TShared<Texture>& t
 
 	// Fall back to staging buffer approach
 
+	// A command buffer recorded but not submitted yet that uses the image pulls in the queued upload when it is submitted, so it would see
+	// this write instead of the contents it was recorded after. Recreating the internal image leaves the old one to that command buffer.
+	// With an explicit command buffer, the caller orders the copy.
+	const bool isBoundWithoutUse = subresourceBoundCount > subresourceUseCount;
+	if(isBoundWithoutUse && commandBuffer == nullptr && !(canDiscardContents && transferQueue.TryRecreateInternalTexture(*texture)))
+	{
+		B3D_LOG(Warning, LogRenderBackend, "Writing to an image '{0}' that a recorded command buffer which isn't submitted yet uses, without providing an explicit command buffer. The write is queued on the transfer queue and runs before that command buffer, so the command buffer sees it instead of the contents it was recorded after.", texture->GetName());
+	}
+
 	// Create staging buffer
 	const u32 mipWidth = Math::Max(1u, textureProperties.Width >> mipLevel);
 	const u32 mipHeight = Math::Max(1u, textureProperties.Height >> mipLevel);
@@ -781,56 +796,31 @@ void TextureUtility::Write(GpuWorkContext& gpuContext, const TShared<Texture>& t
 
 	PixelData lockedArea(mipWidth, mipHeight, mipDepth, textureProperties.Format);
 	ApplyRowAndSlicePitch(texture->GetStagingBufferPitchForSubresource(arrayLayer, mipLevel), lockedArea);
-	TShared<GpuBuffer> stagingBuffer = CreateStagingBuffer(gpuContext, texture, lockedArea, false);
 
-	if(!B3D_ENSURE(stagingBuffer != nullptr))
+	GpuStagingBuffer stagingBuffer = transferQueue.CreateStagingBuffer(lockedArea.GetSize());
+	if(!B3D_ENSURE(stagingBuffer.GetBuffer() != nullptr))
 		return;
 
 	// Copy data to staging buffer
 	{
-		GpuBufferMappedScope bufferScope = stagingBuffer->Map(GpuMapOption::Write);
+		GpuBufferMappedScope bufferScope = stagingBuffer.GetBuffer()->Map(GpuMapOption::Write);
 		lockedArea.SetExternalBuffer(static_cast<u8*>(bufferScope.GetMappedMemory()));
 		PixelUtility::BulkPixelConversion(source, lockedArea);
 	}
 
-	// If the image is used in any way on the GPU, we need to wait for that use to finish before we issue our copy -
-	// unless the user promised via no-overwrite not to touch any region the GPU is using.
-	GpuQueueMask syncMask;
-	if(!subresourceUseMask.IsEmpty() && !mapOptions.IsSet(GpuMapOption::NoOverwrite)) // Image is currently used on the GPU
-		syncMask = subresourceUseMask;
-
-	// Check if the image will still be bound somewhere after the command buffers using it finish. If it is, we have to recreate the internal image otherwise the copy
-	// operation might just get overwritten by those command buffers when the execute. This is because the transfer command buffers are always submitted before regular
-	// command buffers. If user provided an explicit command buffer, then it's up to him to ensure the correct ordering.
-	const bool isBoundWithoutUse = subresourceBoundCount > subresourceUseCount;
-	if(isBoundWithoutUse && commandBuffer == nullptr)
+	// Uploads queued on the transfer queue wait for all earlier work on every queue
+	if(commandBuffer == nullptr)
 	{
-		if(!canDiscardContents)
-		{
-			B3D_LOG(Warning, LogRenderBackend, "Writing to a image '{0}' that is currently bound on a command buffer, without providing an explicit command buffer. Such writes will be queued on the transfer buffer which is submitted before any user command buffers. This means multiple writes will overwrite it each other if not careful.", texture->GetName());
-		}
-		else
-			texture->RecreateInternalTexture();
+		transferQueue.QueueUpload(std::move(stagingBuffer), texture, mipLevel, arrayLayer);
+		return;
 	}
 
-	// Get or create command buffer
-	if(commandBuffer == nullptr)
-		commandBuffer = gpuContext.GetTransferCommandBuffer();
+	transferQueue.RecordUpload(std::move(stagingBuffer), texture, mipLevel, arrayLayer, *commandBuffer);
 
-	// Take the subresource from its resting state and return it there. The copy overwrites the whole subresource, so its old contents
-	// are discarded.
-	const GpuAccessState restingState = GpuBackendUtility::GetRestingState(*texture, commandBuffer->GetQueueType());
-	const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write, GpuImageLayout::TransferDestination);
-	const GpuTextureSubresourceRange range(mipLevel, 1, arrayLayer, 1, GpuBackendUtility::GetFormatAspects(textureProperties.Format));
-
-	GpuAccessState discardedRestingState = restingState;
-	discardedRestingState.Layout = GpuImageLayout::Undefined;
-
-	commandBuffer->IssueBarriers(GpuTextureBarrier(texture, discardedRestingState, transferWrite, range));
-	commandBuffer->CopyBufferToTexture(stagingBuffer, texture, 0, mipLevel, arrayLayer);
-	commandBuffer->IssueBarriers(GpuTextureBarrier(texture, transferWrite, restingState, range));
-
-	commandBuffer->AddQueueSyncMask(syncMask);
+	// If the image is used in any way on the GPU, we need to wait for that use to finish before we issue our copy -
+	// unless the user promised via no-overwrite not to touch any region the GPU is using.
+	if(!subresourceUseMask.IsEmpty() && !noOverwrite)
+		commandBuffer->AddQueueSyncMask(subresourceUseMask);
 }
 
 void TextureUtility::Read(GpuWorkContext& gpuContext, const TShared<Texture>& texture, PixelData& destination, u32 mipLevel, u32 arrayLayer, const TShared<GpuQueue>& gpuQueue)
@@ -857,6 +847,12 @@ void TextureUtility::Read(GpuWorkContext& gpuContext, const TShared<Texture>& te
 
 	const bool supportsGPUWrites = textureProperties.Usage.IsSetAny(TextureUsageFlag::AllowUnorderedAccessOnTheGPU);
 
+	// Uploads queued to the texture are submitted ahead of the copy below, on the same queue
+	const IGpuResource* const gpuResource = texture->GetGpuResource();
+	const bool hasQueuedUploads = gpuResource != nullptr && gpuResource->HasQueuedUploads();
+	if(hasQueuedUploads)
+		texture->GetDevice().GetTransferQueue().SubmitQueuedUploads(*texture);
+
 	// Check is the GPU currently writing to the texture
 	const GpuQueueMask subresourceWriteUseMask = texture->GetUseMask(mipLevel, arrayLayer, GpuAccessFlag::Write);
 
@@ -867,7 +863,7 @@ void TextureUtility::Read(GpuWorkContext& gpuContext, const TShared<Texture>& te
 		// Note: Even if GPU isn't currently using the buffer, but the buffer supports GPU writes, we consider it as
 		// being used because the write could have completed yet still not visible, so we need to wait for any
 		// GPU operations to complete.
-		const bool isUsedOnGPU = !subresourceWriteUseMask.IsEmpty() || supportsGPUWrites;
+		const bool isUsedOnGPU = !subresourceWriteUseMask.IsEmpty() || supportsGPUWrites || hasQueuedUploads;
 
 		// If used on the GPU, we need to wait until all write operations complete before mapping it
 		if(isUsedOnGPU)
@@ -875,7 +871,7 @@ void TextureUtility::Read(GpuWorkContext& gpuContext, const TShared<Texture>& te
 			TShared<GpuCommandBuffer> commandBuffer = gpuContext.GetTransferCommandBuffer();
 
 			// Make any writes visible before mapping
-			if(supportsGPUWrites)
+			if(supportsGPUWrites || hasQueuedUploads)
 			{
 				// The barrier keeps the subresource's resting layout. The subresource needs no barrier back to rest, because the host reads it
 				// after the command buffer completes, and any later GPU access is submitted after that.
@@ -970,7 +966,7 @@ TAsyncOp<TShared<PixelData>> TextureUtility::ReadAsync(FrameGraph& graph, const 
 	return op;
 }
 
-void TextureUtility::Clear(GpuWorkContext& gpuContext, const TShared<Texture>& texture, const Color& value, u32 mipLevel, u32 arrayLayer, const TShared<GpuCommandBuffer>& commandBuffer)
+void TextureUtility::Clear(const TShared<Texture>& texture, const Color& value, u32 mipLevel, u32 arrayLayer, const TShared<GpuCommandBuffer>& commandBuffer)
 {
 	ASSERT_IF_NOT_RENDER_THREAD
 
@@ -990,6 +986,6 @@ void TextureUtility::Clear(GpuWorkContext& gpuContext, const TShared<Texture>& t
 	TShared<PixelData> data = textureProperties.AllocBuffer(arrayLayer, mipLevel);
 	data->SetColors(value);
 
-	Write(gpuContext, texture, *data, mipLevel, arrayLayer, TextureWriteFlag::Discard, commandBuffer);
+	Write(texture, *data, mipLevel, arrayLayer, TextureWriteFlag::Discard, commandBuffer);
 }
 }}

@@ -39,10 +39,10 @@ TShared<GpuDevice> device = ...;
 // Create a context for this thread's work
 TShared<GpuWorkContext> gpuContext = GpuWorkContext::Create(*device);
 
-// Record uploads and submit command buffers through the context
-TShared<render::Texture> texture = ...;
-PixelData pixelData = ...;
-render::TextureUtility::Write(*gpuContext, texture, pixelData);
+// Submit command buffers and read back results through the context
+TShared<render::GpuBuffer> buffer = ...;
+Vector<u8> contents(contentsSize);
+render::GpuBufferUtility::Read(*gpuContext, buffer, 0, contentsSize, contents.data());
 
 // When the context goes out of scope its destructor submits any pending work, blocks until the
 // GPU finishes it, and reclaims the memory the context allocated.
@@ -63,9 +63,9 @@ gpuContext.SubmitCommandBuffer(commandBuffer);
 See the [command buffers](../Low_Level_rendering/commandBuffers) manual for how to record a command buffer.
 
 # Transfers and uploads
-Copy and upload work is recorded into a dedicated transfer command buffer, obtained with @b3d::GpuWorkContext::GetTransferCommandBuffer. The high-level @b3d::render::GpuBufferUtility and @b3d::render::TextureUtility helpers record into it for you, staging data through the context's scratch memory when needed — they take the context as their first argument (see the [GPU buffers](../Low_Level_rendering/gpuBuffers) and [load-store textures](../Low_Level_rendering/loadStoreTextures) manuals).
+Copy work of your own can be recorded into a dedicated transfer command buffer, obtained with @b3d::GpuWorkContext::GetTransferCommandBuffer. Recorded transfers are submitted automatically before the next command buffer you submit through the context. To force them to execute on their own — for example before reading back a resource the transfers write — call @b3d::GpuWorkContext::SubmitTransferCommandBuffers.
 
-Recorded transfers are submitted automatically before the next command buffer you submit through the context. To force them to execute on their own — for example before reading back a resource the transfers write — call @b3d::GpuWorkContext::SubmitTransferCommandBuffers.
+Uploads through @b3d::render::GpuBufferUtility::Write, @b3d::render::TextureUtility::Write and @b3d::render::TextureUtility::Clear don't need a context. They go through the device's @b3d::GpuTransferQueue, which any thread can use (see the [GPU buffers](../Low_Level_rendering/gpuBuffers) manual). The read utilities still take a context as their first argument.
 
 # Lifetime rules
 A few rules follow from a context being single-owner state:

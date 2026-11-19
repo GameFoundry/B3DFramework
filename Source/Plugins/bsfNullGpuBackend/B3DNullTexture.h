@@ -5,6 +5,7 @@
 #include "B3DNullPrerequisites.h"
 #include "B3DNullGpuDevice.h"
 #include "Image/B3DTexture.h"
+#include "B3DNullResource.h"
 
 namespace b3d
 {
@@ -32,20 +33,25 @@ namespace b3d
 			GpuQueueMask GetUseMask(u32 mipLevel, u32 arrayLayer, GpuAccessFlags accessFlags = GpuAccessFlag::Read | GpuAccessFlag::Write) const override { return GpuQueueMask(); }
 			u32 GetBoundCount(u32 subresourceIdx = 0) const override { (void)subresourceIdx; return 0; }
 			u32 GetUseCount(u32 subresourceIdx = 0) const override { (void)subresourceIdx; return 0; }
+			IGpuResource* GetGpuResource() const override { return mImage; }
 
 		protected:
 			friend class NullGpuDevice;
 
 			void Initialize() override {}
-			void RecreateInternalTexture() override {}
-			void SwapInternalTexture(Texture& other) override { std::swap(mAllocation, static_cast<NullTexture&>(other).mAllocation); }
+			void RecreateInternalTexture() override;
+			void SwapInternalTexture(Texture& other) override;
 			GpuTextureMappedScope Map(u32 mipLevel, u32 arrayLayer, GpuMapOptions options) override;
 
 		private:
 			NullGpuDevice& mGpuDevice;
 			PixelData* mMappedBuffer = nullptr;
 			String mName;
+			/** Creates a native resource for the texture. */
+			NullImageResource* CreateImageResource();
+
 			GpuAllocation mAllocation; /**< Memory the texture is placed at. Freed on destruction if owned. */
+			NullImageResource* mImage = nullptr; /**< Native resource of the texture. */
 		};
 
 		/** @} */

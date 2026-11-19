@@ -129,7 +129,7 @@ namespace b3d
 			 * Pages are recycled through a pool shared by every scratch allocator of the same memory type. Returns null if
 			 * @p memoryType is invalid.
 			 */
-			TUnique<IGpuAllocator> CreateScratchAllocator(MetalMemoryType memoryType, IGpuCompletionTracker& completionTracker);
+			TUnique<IGpuAllocator> CreateScratchAllocator(MetalMemoryType memoryType, IGpuCompletionTracker& completionTracker, GpuScratchAllocatorFlags flags);
 
 			/**
 			 * Creates the transient heap pool of the private memory type, whose released heaps are destroyed once
@@ -180,6 +180,7 @@ namespace b3d
 			using MemoryAllocator = TGpuTlsfAllocator<MetalHeapBackend>;
 			using LinearPagePool = TGpuLinearPagePool<MetalHeapBackend>;
 			using ScratchAllocator = TGpuLinearAllocator<MetalHeapBackend>;
+			using ThreadSafeScratchAllocator = TGpuLinearAllocator<MetalHeapBackend, ThreadSafe>;
 
 			/** Returns the scratch page pool for @p memoryType, creating it on first use. */
 			LinearPagePool& GetOrCreateLinearPagePool(MetalMemoryType memoryType);

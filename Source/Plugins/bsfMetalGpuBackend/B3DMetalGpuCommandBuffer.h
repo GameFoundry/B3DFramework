@@ -347,9 +347,6 @@ namespace b3d
 			/** Labels pushed and not popped yet, re-pushed on the native command buffer if recording restarts. */
 			u32 mDebugGroupDepth = 0;
 
-			/** Tracks every resource used by the recorded commands: lifetime (bound/use counts) and render pass attachments. */
-			GpuResourceTracker mResourceTracker;
-
 			TShared<MetalGpuGraphicsPipelineState> mBoundGraphicsPipeline;
 			TShared<GpuComputePipelineState> mBoundComputePipeline;
 			GpuPushConstantPayload mPushConstants;

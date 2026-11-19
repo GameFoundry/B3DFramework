@@ -59,7 +59,7 @@ namespace b3d
 			GpuMemoryRequirements GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const override;
 			IGpuAllocator& GetPersistentAllocator(u32 memoryType) override;
 			void GetPersistentAllocators(TArray<IGpuAllocator*>& outAllocators) override;
-			TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker) override;
+			TUnique<IGpuAllocator> CreateScratchAllocator(u32 memoryType, IGpuCompletionTracker& completionTracker, GpuScratchAllocatorFlags flags) override;
 			IGpuTransientHeapPool* GetTransientHeapPool(u32 memoryType) override;
 			TShared<GpuQueryPool> CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation) override;
 			TShared<EventQuery> CreateEventQuery() override;
@@ -188,6 +188,7 @@ namespace b3d
 			using GpuMemoryAllocator = TGpuTlsfAllocator<D3D12HeapBackend>;
 			using LinearPagePool = TGpuLinearPagePool<D3D12HeapBackend>;
 			using ScratchAllocator = TGpuLinearAllocator<D3D12HeapBackend>;
+			using ThreadSafeScratchAllocator = TGpuLinearAllocator<D3D12HeapBackend, ThreadSafe>;
 
 			/** Returns how heaps of @p heapClass are created. */
 			D3D12HeapCreateInformation GetHeapCreateInformation(D3D12HeapClass heapClass) const;

@@ -60,26 +60,23 @@ To write pixel data to a texture subresource:
 TShared<render::Texture> texture = ...;
 PixelData pixelData = ...;
 
-// Operations run against the render thread's work context, obtained from the renderer
-GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
-
 // Write data to mip level 0, array layer 0
-render::TextureUtility::Write(gpuContext, texture, pixelData);
+render::TextureUtility::Write(texture, pixelData);
 
 // Write to specific mip level and array layer
-render::TextureUtility::Write(gpuContext, texture, pixelData, 2, 0); // mip 2, layer 0
+render::TextureUtility::Write(texture, pixelData, 2, 0); // mip 2, layer 0
 
-// Use staging buffer via a command buffer for non-mappable textures
+// Record the staging copy into a command buffer of your own
 TShared<GpuCommandBuffer> commandBuffer = ...;
-render::TextureUtility::Write(gpuContext, texture, pixelData, 0, 0, TextureWriteFlag::Normal, commandBuffer);
+render::TextureUtility::Write(texture, pixelData, 0, 0, TextureWriteFlag::Normal, commandBuffer);
 ~~~~~~~~~~~~~
 
 **TextureUtility::Write()** automatically chooses the optimal path:
 - For directly mappable textures (StoreOnCPUWithGPUAccess with LINEAR tiling): Uses **Map()** + **BulkPixelConversion**
-- For non-mappable textures: Uses staging buffer + **CopyBufferToTexture**
+- For non-mappable textures: Uses staging buffer + **CopyBufferToTexture**, recorded into the provided command buffer or, if none is provided, queued on the device's @b3d::GpuTransferQueue. A queued copy runs before the first submitted command buffer that uses the texture after the write, and at the latest at the end of the frame. See the [GPU buffers](../Low_Level_rendering/gpuBuffers) manual for how the transfer queue orders writes.
 
 The @b3d::render::TextureWriteFlag flags control behavior when writing to a texture that is in GPU use:
- - @b3d::render::TextureWriteFlag::Normal - Default. Expects the subresource is not in GPU use. Caller must provide a command buffer if it is, otherwise the write fails.
+ - @b3d::render::TextureWriteFlag::Normal - Default. The write runs after the GPU work submitted before it. If a recorded command buffer that isn't submitted yet uses the subresource, that command buffer sees the written contents instead of the ones it was recorded after, and a warning is logged. Provide an explicit command buffer, or use `Discard`, to avoid that.
  - @b3d::render::TextureWriteFlag::Discard - Internally allocates new memory for the subresource, leaving old memory for the GPU to finish with. Anything not written by the caller is undefined.
  - @b3d::render::TextureWriteFlag::NoOverwrite - Allows writing while the GPU is using the texture. The caller is responsible for not overlapping GPU regions and issuing appropriate barriers.
 
@@ -188,11 +185,10 @@ To clear all pixels of a texture subresource to a specific color:
 
 ~~~~~~~~~~~~~{.cpp}
 TShared<render::Texture> texture = ...;
-GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
 
 // Clear to black
-render::TextureUtility::Clear(gpuContext, texture, Color::kBlack);
+render::TextureUtility::Clear(texture, Color::kBlack);
 
 // Clear specific mip level and array layer
-render::TextureUtility::Clear(gpuContext, texture, Color::kBlue, 2, 0);
+render::TextureUtility::Clear(texture, Color::kBlue, 2, 0);
 ~~~~~~~~~~~~~

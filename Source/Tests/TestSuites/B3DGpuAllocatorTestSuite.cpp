@@ -72,6 +72,7 @@ GpuAllocatorTestSuite::GpuAllocatorTestSuite()
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_SharedPoolRespectsBound)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_SharedPoolDrainsOnlyAfterMarkerComplete)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_SharedPoolForceDrainReturnsPages)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestLinear_ThreadSafeConcurrentAllocateAndFreeAll)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestAllocatorIdentity_FreeRoutesByCarriedAllocator)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestAllocatorIdentity_DefraggedAllocationFreesThroughCarriedAllocator)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestSubmissionTimeline)
@@ -309,6 +310,7 @@ namespace
 	}
 
 	using LinearAllocator = TGpuLinearAllocator<MockHeapBackend>;
+	using ThreadSafeLinearAllocator = TGpuLinearAllocator<MockHeapBackend, ThreadSafe>;
 	using LinearPagePool = TGpuLinearPagePool<MockHeapBackend>;
 
 	/** Default linear allocator configuration. Tests that need a different page size or spare cap pass overrides. */
@@ -2173,6 +2175,108 @@ void GpuAllocatorTestSuite::TestLinear_SharedPoolForceDrainReturnsPages()
 	// only the force-drained retired page made it back to the pool.
 	B3D_TEST_ASSERT(pool.GetSparePageCount() == 1)
 	B3D_TEST_ASSERT(backend.DestroyCount() == 1)
+}
+
+void GpuAllocatorTestSuite::TestLinear_ThreadSafeConcurrentAllocateAndFreeAll()
+{
+	// Every marker is complete, so retired pages are reusable as soon as they are drained
+	MockHeapBackend backend;
+	MockGpuCompletionTracker tracker;
+	tracker.MarkAllFramesComplete();
+
+	ThreadSafeLinearAllocator allocator(&backend, &tracker, MakeDefaultLinearConfig(16 * 1024, 4));
+
+	constexpr u32 kWorkerCount = 4;
+	constexpr u32 kAllocationsPerWorker = 300;
+
+	// Concurrent allocations from one generation of pages don't overlap
+	{
+		Vector<Vector<MockAllocation>> workerAllocations(kWorkerCount);
+		auto fnWorker = [&](u32 workerIndex)
+		{
+			std::mt19937 rng(0xB3D11u + workerIndex);
+			std::uniform_int_distribution<u32> sizeDistribution(16, 1024);
+
+			for(u32 allocationIndex = 0; allocationIndex < kAllocationsPerWorker; allocationIndex++)
+			{
+				MockAllocation allocation;
+				if(allocator.TryAllocate(sizeDistribution(rng), 16, allocation))
+					workerAllocations[workerIndex].push_back(allocation);
+			}
+		};
+
+		Vector<std::thread> workers;
+		for(u32 workerIndex = 0; workerIndex < kWorkerCount; workerIndex++)
+			workers.emplace_back(fnWorker, workerIndex);
+
+		for(std::thread& worker : workers)
+			worker.join();
+
+		Vector<MockAllocation> allocations;
+		for(const Vector<MockAllocation>& perWorker : workerAllocations)
+			allocations.insert(allocations.end(), perWorker.begin(), perWorker.end());
+
+		B3D_TEST_ASSERT(allocations.size() == kWorkerCount * kAllocationsPerWorker)
+
+		std::sort(allocations.begin(), allocations.end(), [](const MockAllocation& left, const MockAllocation& right)
+		{
+			return left.Heap != right.Heap ? left.Heap < right.Heap : left.Offset < right.Offset;
+		});
+
+		for(u32 allocationIndex = 1; allocationIndex < (u32)allocations.size(); allocationIndex++)
+		{
+			const MockAllocation& previous = allocations[allocationIndex - 1];
+			const MockAllocation& current = allocations[allocationIndex];
+			if(previous.Heap == current.Heap)
+				B3D_TEST_ASSERT(previous.Offset + previous.Size <= current.Offset)
+		}
+	}
+
+	// Retiring and draining pages while other threads allocate keeps the page table consistent
+	{
+		std::atomic<bool> allocating = true;
+		std::atomic<u32> failedAllocationCount = 0;
+		auto fnAllocateWorker = [&](u32 workerIndex)
+		{
+			std::mt19937 rng(0xB3D22u + workerIndex);
+			std::uniform_int_distribution<u32> sizeDistribution(16, 4096);
+
+			for(u32 allocationIndex = 0; allocationIndex < kAllocationsPerWorker; allocationIndex++)
+			{
+				MockAllocation allocation;
+				if(!allocator.TryAllocate(sizeDistribution(rng), 16, allocation))
+					failedAllocationCount++;
+			}
+		};
+
+		auto fnRetireWorker = [&]()
+		{
+			while(allocating.load())
+			{
+				allocator.FreeAll();
+				allocator.ReclaimUnused();
+			}
+		};
+
+		std::thread retireWorker(fnRetireWorker);
+
+		Vector<std::thread> workers;
+		for(u32 workerIndex = 0; workerIndex < kWorkerCount; workerIndex++)
+			workers.emplace_back(fnAllocateWorker, workerIndex);
+
+		for(std::thread& worker : workers)
+			worker.join();
+
+		allocating = false;
+		retireWorker.join();
+		B3D_TEST_ASSERT(failedAllocationCount == 0)
+	}
+
+	// Once every page is retired and drained, the live pages are exactly the retained spares
+	allocator.FreeAll();
+	allocator.ReclaimUnused();
+	B3D_TEST_ASSERT(allocator.GetLivePageCount() == allocator.GetSparePageCount())
+	B3D_TEST_ASSERT(backend.LiveHeapCount() == allocator.GetSparePageCount())
 }
 
 void GpuAllocatorTestSuite::TestAllocatorIdentity_FreeRoutesByCarriedAllocator()

@@ -13,6 +13,7 @@
 #include "Utility/B3DConfigVariable.h"
 
 #include "B3DGpuSplitBarrier.h"
+#include "B3DGpuResourceTracker.h"
 
 namespace b3d
 {
@@ -99,67 +100,6 @@ namespace b3d
 
 		typedef Flags<GpuResourceUseFlag> GpuResourceUseFlags;
 		B3D_FLAGS_OPERATORS(GpuResourceUseFlag)
-
-		/** Image layout - determines how an image is accessed in GPU operations. */
-		enum class GpuImageLayout
-		{
-			/**
-			 * Undefined layout - initial state or don't care.
-			 * Transitioning from Undefined may discard image contents.
-			 */
-			Undefined,
-
-			/**
-			 * General purpose layout - supports all operations but may not be optimal.
-			 * Required for storage images (UAV) and some read-write operations.
-			 */
-			General,
-
-			/**
-			 * Optimal for color attachment writes (render targets).
-			 * Used during rendering to color attachments.
-			 */
-			ColorAttachment,
-
-			/**
-			 * Optimal for depth/stencil attachment writes.
-			 * Used during rendering to depth/stencil attachments.
-			 */
-			DepthStencilAttachment,
-
-			/**
-			 * Optimal for depth/stencil attachment reads (read-only depth).
-			 * Used when depth/stencil is bound but not written to, and potentially sampled.
-			 */
-			DepthStencilReadOnly,
-
-			/** Optimal when the depth aspect is read-only (sampleable) while the stencil aspect is written. */
-			DepthReadOnlyStencilAttachment,
-
-			/** Optimal when the depth aspect is written while the stencil aspect is read-only (sampleable). */
-			DepthAttachmentStencilReadOnly,
-
-			/**
-			 * Optimal for shader reads (sampling, texelFetch).
-			 * Most common layout for texture sampling.
-			 */
-			ShaderReadOnly,
-
-			/** Optimal for transfer source operations (copies, blits). */
-			TransferSource,
-
-			/** Optimal for transfer destination operations (copies, blits). */
-			TransferDestination,
-
-			/** Layout used while reading a multisampled image during a resolve operation. */
-			ResolveSource,
-
-			/** Layout used while writing a single-sampled image during a resolve operation. */
-			ResolveDestination,
-
-			/** Layout for presenting to swap chain. Only used for swap chain images. */
-			Present
-		};
 
 		/** Object describing a GpuCommandBufferPool. */
 		struct GpuCommandBufferPoolInformation
@@ -1126,6 +1066,12 @@ namespace b3d
 			 */
 			virtual void NotifyWillQueueForSubmit(GpuQueueId queueId, GpuQueueMask syncMask);
 
+			/** Returns the tracker of the resources the command buffer uses. */
+			GpuResourceTracker& GetResourceTracker() { return mResourceTracker; }
+
+			/** @copydoc GetResourceTracker() */
+			const GpuResourceTracker& GetResourceTracker() const { return mResourceTracker; }
+
 			/**
 			 * Performs internal cleanup of command buffer state without resetting the underlying API command buffer.
 			 * This is called by the owning pool during pool-level reset, which resets all command buffers together.
@@ -1162,6 +1108,7 @@ namespace b3d
 			String mName;
 			GpuCommandBufferState mState = GpuCommandBufferState::Ready;
 			GpuQueueMask mQueueSyncMask;
+			GpuResourceTracker mResourceTracker; /**< Tracks the resources the recorded commands use: their bound and use counts, render pass attachments and queued uploads. */
 			bool mIsDestroyed = false;
 
 			TInlineArray<RecordedSplitBarrier, 4> mSplitBarriers;

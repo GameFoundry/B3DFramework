@@ -71,8 +71,8 @@ vertexBufferCreateInformation.Vertex.ElementSize = vertexStride;
 
 TShared<GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
 
-// Write vertex data (the renderer's work context drives the render-thread upload)
-GpuBufferUtility::Write(render::GetRenderer()->GetGpuContext(), vertexBuffer, 0, vertexStride * numVertices, vertexData, GpuBufferWriteFlag::Discard);
+// Write vertex data
+GpuBufferUtility::Write(vertexBuffer, 0, vertexStride * numVertices, vertexData, GpuBufferWriteFlag::Discard);
 
 // Create index buffer
 u32 numIndices = 36;
@@ -85,7 +85,7 @@ indexBufferCreateInformation.Index.Type = IT_32BIT;
 TShared<GpuBuffer> indexBuffer = gpuDevice->CreateGpuBuffer(indexBufferCreateInformation);
 
 // Write index data
-GpuBufferUtility::Write(render::GetRenderer()->GetGpuContext(), indexBuffer, 0, numIndices * sizeof(u32), indexData, GpuBufferWriteFlag::Discard);
+GpuBufferUtility::Write(indexBuffer, 0, numIndices * sizeof(u32), indexData, GpuBufferWriteFlag::Discard);
 ~~~~~~~~~~~~~
 
 ## Creating textures and samplers

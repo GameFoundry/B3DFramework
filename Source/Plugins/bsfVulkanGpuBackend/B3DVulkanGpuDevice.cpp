@@ -658,6 +658,7 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	// Start the submit thread that all queue submission and present operations are routed through
 	IGpuSubmitThreadBackend& submitThreadBackend = *this;
 	mSubmitThread = B3DMakeUnique<GpuSubmitThread>(*this, submitThreadBackend);
+	CreateTransferQueue();
 }
 
 VulkanGpuDevice::~VulkanGpuDevice()
@@ -667,6 +668,7 @@ VulkanGpuDevice::~VulkanGpuDevice()
 	if (mSubmitThread != nullptr)
 	{
 		WaitUntilIdle();
+		DestroyTransferQueue();
 		mSubmitThread = nullptr;
 	}
 
@@ -1505,7 +1507,7 @@ TGpuLinearPagePool<VulkanHeapBackend>& VulkanGpuDevice::GetOrCreateLinearPagePoo
 	return *slot;
 }
 
-TUnique<IGpuAllocator> VulkanGpuDevice::CreateScratchAllocator(u32 encodedMemoryType, IGpuCompletionTracker& completionTracker)
+TUnique<IGpuAllocator> VulkanGpuDevice::CreateScratchAllocator(u32 encodedMemoryType, IGpuCompletionTracker& completionTracker, GpuScratchAllocatorFlags allocatorFlags)
 {
 	const VulkanMemoryType memoryType = VulkanMemoryType::Decode(encodedMemoryType);
 	const u32 memoryTypeIndex = memoryType.Index;
@@ -1522,6 +1524,9 @@ TUnique<IGpuAllocator> VulkanGpuDevice::CreateScratchAllocator(u32 encodedMemory
 	configuration.HeapCreateInfo.MemoryTypeBits = (1u << memoryTypeIndex);
 	configuration.HeapCreateInfo.PropertyFlags = flags;
 	configuration.HeapCreateInfo.MapPersistently = isHostVisible;
+
+	if(allocatorFlags.IsSet(GpuScratchAllocatorFlag::ThreadSafe))
+		return B3DMakeUnique<TGpuLinearAllocator<VulkanHeapBackend, ThreadSafe>>(mHeapBackend.get(), &completionTracker, configuration, &pool);
 
 	return B3DMakeUnique<TGpuLinearAllocator<VulkanHeapBackend>>(mHeapBackend.get(), &completionTracker, configuration, &pool);
 }

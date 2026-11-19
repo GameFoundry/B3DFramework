@@ -20,6 +20,16 @@ namespace b3d
 			mState = GpuCommandBufferState::Done;
 		}
 
+		void NullGpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> ranges)
+		{
+			GpuCommandBuffer::CopyBufferToBuffer(source, destination, ranges);
+
+			const u8* const sourceMemory = static_cast<const u8*>(source->GetMappedMemory());
+			u8* const destinationMemory = static_cast<u8*>(destination->GetMappedMemory());
+			for(const GpuBufferCopyRange& range : ranges)
+				memcpy(destinationMemory + range.DestinationOffset, sourceMemory + range.SourceOffset, range.Size);
+		}
+
 		void NullGpuCommandBuffer::CopyWindowToBuffer(const TShared<RenderWindow>& source, const TShared<GpuBuffer>& destination)
 		{
 			GpuCommandBuffer::CopyWindowToBuffer(source, destination);

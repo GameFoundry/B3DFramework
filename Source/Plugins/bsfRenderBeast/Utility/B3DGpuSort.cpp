@@ -420,7 +420,7 @@ void RunSortTest()
 	GpuBufferSuballocation uniformBuffer = CreateGpuSortUniformBuffer(gpuSortProps, bitOffset);
 
 	GpuSortBuffers sortBuffers = GpuSort::CreateSortBuffers(count);
-	GpuBufferUtility::Write(gpuContext, sortBuffers.Keys[0], 0, sortBuffers.Keys[0]->GetTotalSize(), inputKeys.data(), GpuBufferWriteFlag::Discard);
+	GpuBufferUtility::Write(sortBuffers.Keys[0], 0, sortBuffers.Keys[0]->GetTotalSize(), inputKeys.data(), GpuBufferWriteFlag::Discard);
 
 	TShared<GpuBuffer> helperBuffers[2];
 	helperBuffers[0] = gpuDevice->CreateGpuBuffer(GetHelperBufferInformation());

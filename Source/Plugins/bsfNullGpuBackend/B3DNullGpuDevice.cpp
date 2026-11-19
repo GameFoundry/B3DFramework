@@ -42,6 +42,7 @@ namespace b3d
 		}
 
 		NullGpuDevice::NullGpuDevice()
+			: mResourceManager(*this)
 		{
 			mVideoModeInfo = B3DMakeShared<VideoModeInfo>();
 
@@ -62,6 +63,13 @@ namespace b3d
 
 		NullGpuDevice::~NullGpuDevice()
 		{
+			if(mSubmitThread != nullptr)
+			{
+				WaitUntilIdle();
+				DestroyTransferQueue();
+				mSubmitThread = nullptr;
+			}
+
 			mVertexInputManager = nullptr;
 			DestroyTransientHeapPools();
 		}
@@ -81,8 +89,28 @@ namespace b3d
 			// Initialize capabilities with reasonable defaults for a null backend
 			InitializeCapabilities();
 
+			// Submissions go through the submit thread, like on every other device
+			IGpuSubmitThreadBackend& submitThreadBackend = *this;
+			mSubmitThread = B3DMakeUnique<GpuSubmitThread>(*this, submitThreadBackend);
+			CreateTransferQueue();
+
 			mIsInitialized = true;
 			return true;
+		}
+
+		void NullGpuDevice::WaitUntilIdle()
+		{
+			// The submit thread lives from the end of initialization to the start of destruction
+			if(mSubmitThread != nullptr)
+				GetSubmitThread().WaitUntilIdle();
+		}
+
+		void NullGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask,
+			TArrayView<const GpuTimelineFenceAndValue> signalFences)
+		{
+			commandBuffer->OnDidComplete();
+			commandBuffer->OnDidComplete.Clear();
+			commandBuffer->OnDestroyed.Clear();
 		}
 
 		void NullGpuDevice::InitializeCapabilities()

@@ -12,6 +12,7 @@
 #include "GpuBackend/B3DGpuProgram.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "GpuBackend/B3DGpuShaderBindingTable.h"
+#include "GpuBackend/B3DGpuTransferQueue.h"
 #include "GpuBackend/B3DGpuVertexInputManager.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "GpuBackend/Allocators/B3DGpuTransientHeapPool.h"
@@ -32,6 +33,18 @@ GpuDevice::~GpuDevice()
 	B3D_ASSERT(mVertexInputManager == nullptr && "The backend must destroy its vertex input manager before its resource manager.");
 	B3D_ASSERT(mBindlessHeaps == nullptr && "The backend must destroy the bindless heaps before its native heaps.");
 	B3D_ASSERT(mPendingUnpins.Empty() && "The backend must release the unpinned resources before its resource manager.");
+	B3D_ASSERT(mTransferQueue == nullptr && "The backend must destroy the transfer queue before its submit thread.");
+}
+
+void GpuDevice::CreateTransferQueue()
+{
+	B3D_ASSERT(mSubmitThread != nullptr && "The transfer queue submits its uploads through the submit thread.");
+	mTransferQueue = B3DMakeUnique<GpuTransferQueue>(*this);
+}
+
+void GpuDevice::DestroyTransferQueue()
+{
+	mTransferQueue = nullptr;
 }
 
 TShared<GpuProgramBytecode> GpuDevice::CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const
@@ -46,7 +59,7 @@ TShared<GpuProgramBytecode> GpuDevice::CompileGpuProgramBytecode(const GpuProgra
 	return bytecodeCompiler->CompileBytecode(createInformation);
 }
 
-TUnique<IGpuAllocator> GpuDevice::CreateScratchAllocator(u32 /*memoryType*/, IGpuCompletionTracker& /*completionTracker*/)
+TUnique<IGpuAllocator> GpuDevice::CreateScratchAllocator(u32 /*memoryType*/, IGpuCompletionTracker& /*completionTracker*/, GpuScratchAllocatorFlags /*flags*/)
 {
 	// Default: context-owned scratch allocation is unsupported. Backends that support it override this.
 	return nullptr;
@@ -71,9 +84,11 @@ void GpuDevice::EndFrame()
 	if(mBindlessHeaps != nullptr)
 		mBindlessHeaps->ApplyPendingChanges();
 
+	// Uploads nothing pulled in yet become part of this frame
+	mTransferQueue->SubmitQueuedUploads();
+
 	// Signal end-of-frame to the submit thread. This blocks until the previous frame's resources are safe to reuse.
-	if(mSubmitThread != nullptr)
-		mSubmitThread->QueueEndFrameAndWaitForPreviousFrame();
+	mSubmitThread->QueueEndFrameAndWaitForPreviousFrame();
 
 	for(IGpuTransientHeapPool* pool : mTransientHeapPools)
 		pool->ReclaimUnused();

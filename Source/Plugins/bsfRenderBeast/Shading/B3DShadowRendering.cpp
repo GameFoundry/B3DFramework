@@ -657,7 +657,6 @@ namespace b3d
 		ShadowRendering::ShadowRendering(u32 shadowMapSize)
 			: mShadowMapSize(shadowMapSize)
 		{
-			GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
 			const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 			TInlineArray<VertexElement, 8> vertexElements;
@@ -692,7 +691,7 @@ namespace b3d
 					0, 2, 3
 				};
 
-				GpuBufferUtility::Write(gpuContext, mPlaneIB, 0, sizeof(indices), indices);
+				GpuBufferUtility::Write(mPlaneIB, 0, sizeof(indices), indices);
 			}
 
 			// Create frustum index and vertex buffers
@@ -711,7 +710,7 @@ namespace b3d
 				indexBufferCreateInformation.Index.Count = 36;
 
 				mFrustumIB = gpuDevice->CreateGpuBuffer(indexBufferCreateInformation);
-				GpuBufferUtility::Write(gpuContext, mFrustumIB, 0, sizeof(AABox::kCubeIndices), AABox::kCubeIndices);
+				GpuBufferUtility::Write(mFrustumIB, 0, sizeof(AABox::kCubeIndices), AABox::kCubeIndices);
 			}
 
 			// Create the shadow per-object layouts
@@ -1854,8 +1853,7 @@ namespace b3d
 				{ -1.0f, 1.0f * flipY, far },
 			};
 
-			GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
-			GpuBufferUtility::Write(gpuContext, mPlaneVB, 0, sizeof(vertices), vertices, GpuBufferWriteFlag::Discard);
+			GpuBufferUtility::Write(mPlaneVB, 0, sizeof(vertices), vertices, GpuBufferWriteFlag::Discard);
 
 			// Draw the mesh
 			commandBuffer.SetVertexDescription(mPositionOnlyVertexDescription);
@@ -1869,8 +1867,7 @@ namespace b3d
 		void ShadowRendering::DrawFrustum(GpuCommandBuffer& commandBuffer, const std::array<Vector3, 8>& corners) const
 		{
 			// Update VB with new vertices
-			GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
-			GpuBufferUtility::Write(gpuContext, mFrustumVB, 0, sizeof(Vector3) * 8, corners.data(), GpuBufferWriteFlag::Discard);
+			GpuBufferUtility::Write(mFrustumVB, 0, sizeof(Vector3) * 8, corners.data(), GpuBufferWriteFlag::Discard);
 
 			// Draw the mesh
 			commandBuffer.SetVertexDescription(mPositionOnlyVertexDescription);

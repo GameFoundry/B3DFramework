@@ -209,8 +209,7 @@ GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 		tileUVData[i * 4 + 3] = Vector2(0.0f, 1.0f) * tileUVScale;
 	}
 
-	GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
-	GpuBufferUtility::Write(gpuContext, TileUVs, 0, TileUVs->GetTotalSize(), tileUVData);
+	GpuBufferUtility::Write(TileUVs, 0, TileUVs->GetTotalSize(), tileUVData);
 	B3DStackFree(tileUVData);
 
 	// Prepare UV coordinates for rendering particles
@@ -231,7 +230,7 @@ GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 		particleUVData[i * 4 + 3] = Vector2(0.0f, 1.0f) * particleUVScale;
 	}
 
-	GpuBufferUtility::Write(gpuContext, ParticleUVs, 0, ParticleUVs->GetTotalSize(), particleUVData);
+	GpuBufferUtility::Write(ParticleUVs, 0, ParticleUVs->GetTotalSize(), particleUVData);
 	B3DStackFree(particleUVData);
 
 	// Prepare indices for rendering tiles & particles
@@ -269,7 +268,7 @@ GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 		}
 	}
 
-	GpuBufferUtility::Write(gpuContext, SpriteIndices, 0, SpriteIndices->GetTotalSize(), indices);
+	GpuBufferUtility::Write(SpriteIndices, 0, SpriteIndices->GetTotalSize(), indices);
 	B3DStackFree(indices);
 }
 
@@ -546,7 +545,6 @@ TShared<GpuParameterSet> GpuParticleSimulation::PrepareSimulateParameters(const 
 static TShared<GpuBuffer> CreateGpuParticleVertexInputBuffer()
 {
 	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
-	GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
 
 	TShared<GpuBuffer> inputBuffer = gGpuParticleTileVertexUniformDefinition.CreateBuffer(GpuBufferMemory::Device);
 
@@ -563,7 +561,7 @@ static TShared<GpuBuffer> CreateGpuParticleVertexInputBuffer()
 	}
 
 	// gUVToNDC is the only member of the uniform buffer, at its start
-	GpuBufferUtility::Write(gpuContext, inputBuffer, 0, sizeof(uvToNdc), &uvToNdc);
+	GpuBufferUtility::Write(inputBuffer, 0, sizeof(uvToNdc), &uvToNdc);
 
 	return inputBuffer;
 }
@@ -1047,7 +1045,6 @@ struct GpuParticleCurveInject
 
 GpuParticleCurves::GpuParticleCurves()
 {
-	GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
 	const TShared<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	TextureCreateInformation textureCreateInformation;
@@ -1082,7 +1079,7 @@ GpuParticleCurves::GpuParticleCurves()
 	tileUVData[2] = Vector2(1.0f, 1.0f) * tileUVScale;
 	tileUVData[3] = Vector2(0.0f, 1.0f) * tileUVScale;
 
-	GpuBufferUtility::Write(gpuContext, mInjectUV, 0, mInjectUV->GetTotalSize(), tileUVData);
+	GpuBufferUtility::Write(mInjectUV, 0, mInjectUV->GetTotalSize(), tileUVData);
 	B3DStackFree(tileUVData);
 
 	// Prepare indices for injecting curves
@@ -1118,7 +1115,7 @@ GpuParticleCurves::GpuParticleCurves()
 		indices[5] = 3;
 	}
 
-	GpuBufferUtility::Write(gpuContext, mInjectIndices, 0, mInjectIndices->GetTotalSize(), indices);
+	GpuBufferUtility::Write(mInjectIndices, 0, mInjectIndices->GetTotalSize(), indices);
 	B3DStackFree(indices);
 }
 

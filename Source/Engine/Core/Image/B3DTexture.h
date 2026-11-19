@@ -788,9 +788,9 @@ namespace b3d
 		enum class TextureWriteFlag
 		{
 			/**
-			 * Default flag. Performs the write assuming the image subresource is not currently bound to a command buffer, or used by the GPU.
-			 * If the image subresource is in use by the GPU or bound to a command buffer, it's expected the caller will provide a command buffer
-			 * on which to queue the write operation on, to ensure previous uses are not disturbed. Otherwise write fails.
+			 * Default flag. The write runs after the GPU work submitted before it. A command buffer that uses the image subresource and is
+			 * recorded, but not submitted, before the write sees the written contents instead of the ones it was recorded after, unless the
+			 * write goes through an explicit command buffer.
 			 */
 			Normal = 0,
 
@@ -848,17 +848,23 @@ namespace b3d
 			 * - For directly mappable textures: Uses Map() + BulkPixelConversion
 			 * - For non-mappable textures: Uses staging buffer + CopyBufferToTexture
 			 *
-			 * @param gpuContext	Context whose transfer command buffer the staging copy is queued on, when no explicit command buffer is provided.
+			 * Without an explicit command buffer, the staging copy is queued on the device's GpuTransferQueue. It then runs before the first
+			 * command buffer submitted after this call that uses the texture, and at the latest at the end of the frame. Command buffers
+			 * submitted before this call don't see it. Writing a subresource that a recorded command buffer which isn't submitted yet uses,
+			 * without an explicit command buffer, logs a warning unless the write may discard the texture contents: that command buffer would
+			 * see the write instead of the contents it was recorded after.
+			 *
 			 * @param texture		Texture to write data to.
 			 * @param source		Pixel data to write. Must be compatible with texture format and dimensions.
 			 * @param mipLevel		Destination mipmap level.
 			 * @param arrayLayer	Destination array layer (or cubemap face or depth slice).
 			 * @param flags			Optional flags controlling write behavior.
-			 * @param commandBuffer	Command buffer for staging operations. If null, uses internal transfer buffer.
+			 * @param commandBuffer	Command buffer to record the staging copy on. If null, the copy is queued on the device's GpuTransferQueue.
 			 *
 			 * @note Render thread only.
 			 */
-			static void Write(GpuWorkContext& gpuContext, const TShared<Texture>& texture, const PixelData& source, u32 mipLevel = 0, u32 arrayLayer = 0, TextureWriteFlags flags = TextureWriteFlag::Normal, TShared<GpuCommandBuffer> commandBuffer = nullptr);
+			static void Write(const TShared<Texture>& texture, const PixelData& source, u32 mipLevel = 0, u32 arrayLayer = 0, TextureWriteFlags flags = TextureWriteFlag::Normal,
+				const TShared<GpuCommandBuffer>& commandBuffer = nullptr);
 
 			/**
 			 * Reads data from the texture subresource into the provided buffer.
@@ -904,18 +910,16 @@ namespace b3d
 			static TAsyncOp<TShared<PixelData>> ReadAsync(FrameGraph& graph, const TShared<Texture>& texture, u32 mipLevel = 0, u32 arrayLayer = 0);
 
 			/**
-			 * Sets all the pixels of the specified face and mip level to the provided value.
+			 * Sets all the pixels of the specified face and mip level to the provided value. See Write().
 			 *
-			 * @param	gpuContext		Context whose transfer command buffer the staging copy is queued on, when no explicit command buffer is provided.
 			 * @param	texture			Texture to write data to.
 			 * @param	value			Color to clear the pixels to.
 			 * @param	mipLevel		Mip level to clear.
 			 * @param	arrayLayer		Array layer (or cubemap face or depth slice) to clear.
 			 * @param	commandBuffer	Command buffer on which to encode the staging texture copy, in case the texture is not directly writeable.
-			 *							If not provided the operation will be queued on an internal command buffer that will be submitted before
-			 *							any regular command buffer submission.
+			 *							If not provided the copy is queued on the device's GpuTransferQueue.
 			 */
-			static void Clear(GpuWorkContext& gpuContext, const TShared<Texture>& texture, const Color& value, u32 mipLevel = 0, u32 arrayLayer = 0, const TShared<GpuCommandBuffer>& commandBuffer = nullptr);
+			static void Clear(const TShared<Texture>& texture, const Color& value, u32 mipLevel = 0, u32 arrayLayer = 0, const TShared<GpuCommandBuffer>& commandBuffer = nullptr);
 		};
 
 		/** @} */

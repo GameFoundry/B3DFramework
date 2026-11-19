@@ -842,6 +842,7 @@ namespace b3d::render
 	protected:
 		friend class b3d::GpuDevice;
 		friend class b3d::GpuBuffer;
+		friend class b3d::GpuTransferQueue;
 		friend struct GpuBufferUtility;
 
 		/**
@@ -901,9 +902,9 @@ namespace b3d::render
 	enum class GpuBufferWriteFlag
 	{
 		/**
-		 * Default flag. Performs the write assuming the buffer is not currently bound to a command buffer, or used by the GPU.
-		 * If the buffer is in use by the GPU or bound to a command buffer, it's expected the caller will provide a command buffer
-		 * on which to queue the write operation on, to ensure previous uses are not disturbed. Otherwise write fails.
+		 * Default flag. The write runs after the GPU work submitted before it. A command buffer that uses the buffer and is recorded, but
+		 * not submitted, before the write sees the written contents instead of the ones it was recorded after, unless the write goes
+		 * through an explicit command buffer.
 		 */
 		Normal = 0,
 
@@ -948,19 +949,24 @@ namespace b3d::render
 		 * GpuBufferMemory) are written directly, unless the GPU is using them.
 		 *
 		 * If a buffer is being used by the GPU, or is not directly CPU-writable, this method will internally create a staging buffer, write the data into it,
-		 * and then copy the staging buffer into the destination buffer using the provided command buffer. If no command buffer is provided, it will use
-		 * a transfer buffer which will be submitted automatically before the next regular command buffer submission.
+		 * and then copy the staging buffer into the destination buffer using the provided command buffer. If no command buffer is provided, the copy is
+		 * queued on the device's GpuTransferQueue. It then runs before the first command buffer submitted after this call that uses the buffer,
+		 * and at the latest at the end of the frame. Command buffers submitted before this call don't see it.
 		 *
-		 * @param	gpuContext		Context whose transfer command buffer the staging copy is queued on, when no explicit command buffer is provided.
+		 * Writing a buffer that a recorded command buffer which isn't submitted yet uses, without an explicit command buffer, logs a warning
+		 * unless the write may discard the buffer contents: that command buffer would see the write instead of the contents it was recorded
+		 * after.
+		 *
+		 * @param	buffer			Buffer to write to.
 		 * @param	offset			Offset in bytes into the destination buffer at which to copy the data to.
 		 * @param	length			Length of the area you want to copy, in bytes.
 		 * @param	source			Source buffer containing the data to write. Data is read from the start of the buffer (@p offset is only applied to the destination).
 		 * @param	writeFlags		Optional write flags that may you can use to control behavior of the write operation if the buffer is used by the GPU.
 		 * @param	commandBuffer	Command buffer on which to encode the staging buffer copy, in case the buffer is not directly writeable. If not provided
-		 *							the operation will be queued on a transfer command buffer that will be submitted just before next regular command
-		 *							buffer submission (or at the latest, at the end of the current frame).
+		 *							the copy is queued on the device's GpuTransferQueue.
 		 */
-		static void Write(GpuWorkContext& gpuContext, const TShared<GpuBuffer>& buffer, u32 offset, u32 length, const void* source, GpuBufferWriteFlags writeFlags = GpuBufferWriteFlag::Normal, TShared<GpuCommandBuffer> commandBuffer = nullptr);
+		static void Write(const TShared<GpuBuffer>& buffer, u32 offset, u32 length, const void* source, GpuBufferWriteFlags writeFlags = GpuBufferWriteFlag::Normal,
+			const TShared<GpuCommandBuffer>& commandBuffer = nullptr);
 
 		/**
 		 * Reads data from a buffer while accounting for the fact that the buffer might not be directly CPU-readable. Mapped buffers are read

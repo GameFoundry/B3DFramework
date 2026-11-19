@@ -4,6 +4,7 @@
 
 #include "B3DNullPrerequisites.h"
 #include "GpuBackend/B3DGpuBuffer.h"
+#include "B3DNullResource.h"
 
 namespace b3d
 {
@@ -26,6 +27,7 @@ namespace b3d
 			GpuQueueMask GetUseMask(GpuAccessFlags accessFlags) override { return GpuQueueMask::kNone; }
 			u32 GetBoundCount() const override { return 0; }
 			u32 GetUseCount() const override { return 0; }
+			IGpuResource* GetGpuResource() const override { return mBuffer; }
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			bool IsRangeBound(u32 offset, u32 size) const override { return false; }
@@ -36,11 +38,15 @@ namespace b3d
 			friend class NullGpuDevice;
 
 			void Initialize() override {}
-			void RecreateInternalBuffer() override {}
-			void SwapInternalBuffer(GpuBuffer& other) override { std::swap(mAllocation, static_cast<NullGpuBuffer&>(other).mAllocation); }
+			void RecreateInternalBuffer() override;
+			void SwapInternalBuffer(GpuBuffer& other) override;
 
 		private:
+			/** Creates a native resource for the buffer. */
+			NullBufferResource* CreateBufferResource();
+
 			GpuAllocation mAllocation; /**< Memory the buffer is placed at. Freed on destruction if owned. */
+			NullBufferResource* mBuffer = nullptr; /**< Native resource of the buffer. */
 		};
 
 		/** @} */

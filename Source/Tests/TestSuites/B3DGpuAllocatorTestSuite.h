@@ -192,6 +192,12 @@ namespace b3d
 		void TestLinear_SharedPoolForceDrainReturnsPages();
 
 		/**
+		 * Allocates from a thread-safe linear allocator on several threads. Verifies that allocations from one generation of pages don't
+		 * overlap, and that retiring and draining pages on another thread while allocating leaves only retained spare pages once drained.
+		 */
+		void TestLinear_ThreadSafeConcurrentAllocateAndFreeAll();
+
+		/**
 		 * An allocation carries its producing allocator as an IGpuAllocator* (stamped at TryAllocate).
 		 * A caller can free purely through that carried base handle — with no static knowledge of the
 		 * concrete strategy — and the call dispatches correctly: a TLSF free reclaims the slot, while a

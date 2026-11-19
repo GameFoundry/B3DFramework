@@ -76,8 +76,8 @@ namespace b3d::render
 
 		vertexRangeBuffer->SetName("Morph shape vertex ranges");
 		deltaBuffer->SetName("Morph shape deltas");
-		GpuBufferUtility::Write(context, vertexRangeBuffer, 0, (u32)(vertexRanges.size() * sizeof(u32)), vertexRanges.data());
-		GpuBufferUtility::Write(context, deltaBuffer, 0, (u32)deltas.size(), deltas.data());
+		GpuBufferUtility::Write(vertexRangeBuffer, 0, (u32)(vertexRanges.size() * sizeof(u32)), vertexRanges.data());
+		GpuBufferUtility::Write(deltaBuffer, 0, (u32)deltas.size(), deltas.data());
 
 		return B3DMakeSharedFromExisting(new(B3DAllocate<MorphShapeBuffers>()) MorphShapeBuffers(vertexRangeBuffer, deltaBuffer, shapeCount));
 	}

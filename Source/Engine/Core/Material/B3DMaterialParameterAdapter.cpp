@@ -950,11 +950,10 @@ void TMaterialParameterAdapter<IsRenderProxy>::Update(const MaterialType& materi
 		{
 			if(scratchMemory != nullptr && currentUniformBufferInfo != nullptr)
 			{
-				GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
 				const TShared<render::GpuBuffer>& buffer = currentUniformBufferInfo->Buffer;
 
 				// Note: Perhaps it would be better to have a re-useable pool of uniform buffers, rather than allocating a staging buffer to copy every frame
-				render::GpuBufferUtility::Write(gpuContext, buffer, currentUniformBufferInfo->SuballocationByteOffset, buffer->GetSuballocationSize(), scratchMemory);
+				render::GpuBufferUtility::Write(buffer, currentUniformBufferInfo->SuballocationByteOffset, buffer->GetSuballocationSize(), scratchMemory);
 
 				B3DStackFree(scratchMemory);
 				scratchMemory = nullptr;
