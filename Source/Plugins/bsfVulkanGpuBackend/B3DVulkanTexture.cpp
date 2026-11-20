@@ -32,6 +32,15 @@ namespace
 		return GpuTextureAspectFlag::Color;
 	}
 
+	/**
+	 * Returns true if images with @p usage stay in the general layout. Storage images are accessed in the general layout, and keeping
+	 * CPU-accessible images in it lets them be mapped without a transition.
+	 */
+	bool IsGeneralLayoutUsage(TextureUsageFlags usage)
+	{
+		return usage.IsSet(TextureUsageFlag::AllowUnorderedAccessOnTheGPU) || usage.IsSet(TextureUsageFlag::StoreOnCPUWithGPUAccess);
+	}
+
 	/** Returns the Vulkan image view type of a texture view of @p viewType. */
 	VkImageViewType GetImageViewType(TextureViewType viewType)
 	{
@@ -57,7 +66,7 @@ namespace
 }
 
 VulkanImage::VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& createInformation, VkImage image, VulkanAllocationResult allocation)
-	: TVulkanResource<IGpuImageResource>(owner, createInformation.CreateInfo.sharingMode == VK_SHARING_MODE_CONCURRENT, createInformation.DebugName, createInformation.FaceCount, createInformation.MipLevelCount, GetFullAspectFlags(createInformation.Usage, createInformation.Format)), mImage(image), mAllocation(allocation), mMappedMemory(allocation.MappedMemory), mUsage(createInformation.Usage), mOwnsImage(createInformation.OwnsImage), mIsShaderReadAllowed(createInformation.IsShaderReadAllowed), mDepthSliceCount(createInformation.DepthSliceCount), mTextureType(createInformation.Type)
+	: TVulkanResource<IGpuImageResource>(owner, createInformation.CreateInfo.sharingMode == VK_SHARING_MODE_CONCURRENT, createInformation.DebugName, createInformation.FaceCount, createInformation.MipLevelCount, GetFullAspectFlags(createInformation.Usage, createInformation.Format)), mImage(image), mAllocation(allocation), mMappedMemory(allocation.MappedMemory), mUsage(createInformation.Usage), mUsesGeneralLayout(IsGeneralLayoutUsage(createInformation.Usage)), mOwnsImage(createInformation.OwnsImage), mIsShaderReadAllowed(createInformation.IsShaderReadAllowed), mDepthSliceCount(createInformation.DepthSliceCount), mTextureType(createInformation.Type)
 {
 	mImageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	mImageViewCI.pNext = nullptr;
@@ -409,8 +418,7 @@ void VulkanTexture::BuildDescription(const VulkanGpuDevice& device, const Textur
 		outDescription.SupportsGPUWrites = true;
 	}
 
-	// Storage images are accessed in the general layout, and keeping CPU-accessible images in it lets them be mapped without a transition
-	outDescription.UsesGeneralLayout = usage.IsSet(TextureUsageFlag::AllowUnorderedAccessOnTheGPU) || usage.IsSet(TextureUsageFlag::StoreOnCPUWithGPUAccess);
+	outDescription.UsesGeneralLayout = IsGeneralLayoutUsage(usage);
 
 	VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL;
 	VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED;

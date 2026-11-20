@@ -140,11 +140,14 @@ namespace b3d
 			void DisableScissorTest() override;
 			void SetStencilReferenceValue(u32 value) override;
 			using GpuCommandBuffer::CopyBufferToBuffer;
-			void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> ranges) override;
-			void CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer) override;
-			void CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset) override;
+			using GpuCommandBuffer::CopyBufferToTexture;
+			using GpuCommandBuffer::CopyTextureToBuffer;
 			void CopyWindowToBuffer(const TShared<RenderWindow>& source, const TShared<GpuBuffer>& destination) override;
 			bool CopyTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureCopyInformation& copyInformation) override;
+			void CopyBufferToBuffer(IGpuBufferResource& source, IGpuBufferResource& destination, TArrayView<const GpuBufferCopyRange> ranges) override;
+			void CopyBufferToTexture(IGpuBufferResource& source, IGpuImageResource& destination, const GpuImageCopyInformation& information) override;
+			void CopyTextureToBuffer(IGpuImageResource& source, IGpuBufferResource& destination, const GpuImageCopyInformation& information) override;
+			void CopyTexture(IGpuImageResource& source, IGpuImageResource& destination, const GpuImageCopyInformation& information) override;
 			bool BlitTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureBlitInformation& blitInformation) override;
 			bool BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild> builds) override;
 
@@ -236,44 +239,6 @@ namespace b3d
 			void UpdateBuffer(VulkanBuffer* destination, u8* data, VkDeviceSize offset, VkDeviceSize length);
 
 			/**
-			 * Copies regions of the source buffer to the destination buffer. Caller must ensure every region is within valid
-			 * bounds of both buffers.
-			 *
-			 * @param	source				Source buffer to copy from.
-			 * @param	destination			Destination buffer to copy to.
-			 * @param	regions				Regions to copy.
-			 */
-			void CopyBufferToBuffer(VulkanBuffer* source, VulkanBuffer* destination, TArrayView<const VkBufferCopy> regions);
-
-			/**
-			 * Copies the contents of the source buffer to the destination image subresource. Caller must ensure the
-			 * provided extents are within valid bounds of the image and that the provided buffer is large enough.
-			 *
-			 * @param	source				Source buffer to copy from.
-			 * @param	destination			Destination image to copy to.
-			 * @param	region				Region of the image to copy to.
-			 * @param	subresourceRange	Subresource(s) of the image to copy to.
-			 * @param	layout				Current layout of the image subresources in the provided range.
-			 * @param	rowPitch			Determines how many pixels to advance when moving to a new row in the source buffer.
-			 * @param	sliceHeight			Determines how many pixels to advance when moving to a new slice in the source buffer.
-			 */
-			void CopyBufferToImage(VulkanBuffer* source, VulkanImage* destination, const VkExtent3D& region, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, u32 rowPitch, u32 sliceHeight);
-
-			/**
-			 * Copies the contents of the image subresource into the destination buffer. Caller must ensure the provided
-			 * extents are within valid bounds of the image and that the provided buffer is large enough.
-			 *
-			 * @param	source				Source image to copy from.
-			 * @param	destination			Destination buffer to copy to.
-			 * @param	region				Region of the image to copy from.
-			 * @param	subresourceRange	Subresource(s) of the image to copy from.
-			 * @param	layout				Current layout of the image subresources in the provided range.
-			 * @param	rowPitch			Determines how many pixels to advance when moving to a new row in the destination buffer.
-			 * @param	sliceHeight			Determines how many pixels to advance when moving to a new slice in the destination buffer.
-			 */
-			void CopyImageToBuffer(VulkanImage* source, VulkanBuffer* destination, const VkExtent3D& region, const GpuTextureSubresourceRange& subresourceRange, GpuImageLayout layout, u32 rowPitch, u32 sliceHeight);
-
-			/**
 			 * Copies one or multiple regions from one or multiple image sub-resources from the source image to the destination image.
 			 * Caller must ensure the region extents and sub-resources are valid for both source and destination images.
 			 *
@@ -328,6 +293,10 @@ namespace b3d
 			friend class VulkanTexture;
 
 			bool RecordBarriers(const GpuBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split) override;
+			bool RecordBarriers(const GpuResourceBarriers& barriers) override;
+
+			/** Records the barriers of proxies in @p barriers and of native resources in @p resourceBarriers in one batch. See RecordBarriers(). */
+			bool RecordBarrierBatch(const GpuBarriers& barriers, const GpuResourceBarriers& resourceBarriers, GpuBarrierPhase phase, GpuSplitBarrier* split);
 
 			/** Pipeline bind point, each with its own descriptor sets, bindless heap set and push constants. PipelineBindPointFlag has a bit for each. */
 			enum class BindPoint : u8

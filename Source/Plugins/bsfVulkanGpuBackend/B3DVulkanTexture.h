@@ -65,6 +65,9 @@ namespace b3d
 			/** Returns true if the image can be read from a shader. If false, it may only be used as a framebuffer attachment. */
 			bool IsShaderReadAllowed() const { return mIsShaderReadAllowed; }
 
+			/** Returns true if the image stays in the general layout for all shader and transfer accesses, see VulkanTexture::UsesGeneralLayout(). */
+			bool UsesGeneralLayout() const { return mUsesGeneralLayout; }
+
 			/**
 			 * Returns an image view that covers all faces and mip maps of the texture.
 			 *
@@ -176,6 +179,7 @@ namespace b3d
 			VulkanImageView mMainView;
 			VulkanImageView mFramebufferMainView;
 			TextureUsageFlags mUsage;
+			bool mUsesGeneralLayout = false;
 			void* mMappedMemory = nullptr;
 			bool mOwnsImage;
 			bool mIsShaderReadAllowed = true;

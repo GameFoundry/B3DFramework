@@ -122,11 +122,6 @@ namespace b3d
 			constexpr u32 kMetalBufferCopyAlignment = 4;
 			constexpr u32 kMetalTextureBufferCopyAlignment = 16;
 
-			bool IsBufferRangeValid(const GpuBuffer& buffer, u32 offset, u64 length)
-			{
-				return (u64)offset + length <= (u64)buffer.GetTotalSize();
-			}
-
 			struct MetalTextureTransferInformation
 			{
 				u32 Width = 0;
@@ -138,39 +133,32 @@ namespace b3d
 				MTLBlitOption Options = MTLBlitOptionNone;
 			};
 
-			bool GetTextureTransferInformation(const Texture& texture, const GpuBuffer& buffer, u32 bufferOffset, u32 mipLevel, u32 arrayLayer, const char* operation, MetalTextureTransferInformation& output)
+			/**
+			 * Describes a copy between @p buffer and the image subresource @p information describes, at information.BufferOffset of the
+			 * buffer. Logs the reason if Metal can't record the copy.
+			 */
+			bool TryGetTextureTransferInformation(const GpuImageCopyInformation& information, id<MTLBuffer> buffer, const char* operation, MetalTextureTransferInformation& output)
 			{
-				const TextureProperties& properties = texture.GetProperties();
-				const u32 faceCount = properties.Type == TEX_TYPE_3D ? 1u : properties.GetFaceCount();
-				if (mipLevel > properties.MipMapCount || arrayLayer >= faceCount)
-				{
-					B3D_LOG(Error, LogRenderBackend, "{0}: texture mip level or array layer is out of range.", operation);
-					return false;
-				}
-
-				if (properties.SampleCount > 1)
-				{
-					B3D_LOG(Error, LogRenderBackend, "{0}: buffer transfers do not support multisampled textures.", operation);
-					return false;
-				}
-
+				const u32 bufferOffset = information.BufferOffset;
 				if ((bufferOffset % kMetalTextureBufferCopyAlignment) != 0)
 				{
 					B3D_LOG(Error, LogRenderBackend, "{0}: buffer offset {1} must be 16-byte aligned on Apple GPUs.", operation, bufferOffset);
 					return false;
 				}
 
-				PixelUtility::GetSizeForMipLevel(properties.Width, properties.Height, properties.Depth, mipLevel, output.Width, output.Height, output.Depth);
+				output.Width = information.Width;
+				output.Height = information.Height;
+				output.Depth = information.Depth;
 
-				if (properties.Type == TEX_TYPE_1D)
+				if (information.Type == TEX_TYPE_1D)
 				{
 					output.Height = 1;
 					output.Depth = 1;
 				}
-				else if (properties.Type != TEX_TYPE_3D)
+				else if (information.Type != TEX_TYPE_3D)
 					output.Depth = 1;
 
-				if (properties.Format == PF_D32_S8X24)
+				if (information.Format == PF_D32_S8X24)
 				{
 					// Same as Vulkan, only the depth aspect is transferred, as tightly packed 32-bit floats
 					const u64 depthRowPitch = (u64)std::max(1u, output.Width) * sizeof(float);
@@ -184,8 +172,8 @@ namespace b3d
 				}
 				else
 				{
-					output.RowPitch = MetalUtility::GetTextureRowPitch(properties.Format, output.Width);
-					output.SlicePitch = MetalUtility::GetTextureSlicePitch(properties.Format, output.Width, output.Height);
+					output.RowPitch = MetalUtility::GetTextureRowPitch(information.Format, output.Width);
+					output.SlicePitch = MetalUtility::GetTextureSlicePitch(information.Format, output.Width, output.Height);
 				}
 
 				if (output.RowPitch == 0 || output.SlicePitch == 0)
@@ -195,15 +183,9 @@ namespace b3d
 				}
 
 				output.RequiredBufferSize = (u64)output.SlicePitch * output.Depth;
-				if (!IsBufferRangeValid(buffer, bufferOffset, output.RequiredBufferSize))
+				if ((u64)bufferOffset + output.RequiredBufferSize > (u64)[buffer length])
 				{
-					B3D_LOG(Error, LogRenderBackend, "{0}: buffer range [{1}, {2}) exceeds the buffer size ({3}).", operation, bufferOffset, (u64)bufferOffset + output.RequiredBufferSize, buffer.GetTotalSize());
-					return false;
-				}
-
-				if (properties.Format == PF_D32_S8X24 && (u64)buffer.GetTotalSize() - bufferOffset != output.RequiredBufferSize)
-				{
-					B3D_LOG(Error, LogRenderBackend, "{0}: combined depth/stencil transfers require an exactly-sized packed Depth32Float buffer. Interleaved PF_D32_S8X24 staging data is not a valid Metal depth-plane layout.", operation);
+					B3D_LOG(Error, LogRenderBackend, "{0}: buffer range [{1}, {2}) exceeds the buffer size ({3}).", operation, bufferOffset, (u64)bufferOffset + output.RequiredBufferSize, (u64)[buffer length]);
 					return false;
 				}
 
@@ -1548,19 +1530,16 @@ namespace b3d
 			return true;
 		}
 
-		void MetalGpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> ranges)
+		void MetalGpuCommandBuffer::CopyBufferToBuffer(IGpuBufferResource& source, IGpuBufferResource& destination, TArrayView<const GpuBufferCopyRange> ranges)
 		{
-			GpuCommandBuffer::CopyBufferToBuffer(source, destination, ranges);
 			EnsureValidThread();
 
-			if (!source || !destination || ranges.IsEmpty())
-				return;
+			MetalBuffer& sourceResource = static_cast<MetalBuffer&>(source);
+			MetalBuffer& destinationResource = static_cast<MetalBuffer&>(destination);
 
 			// Validated before switching encoders, so a failed copy does not split the current pass
-			auto metalSource = std::static_pointer_cast<MetalGpuBuffer>(source);
-			auto metalDestination = std::static_pointer_cast<MetalGpuBuffer>(destination);
-			id<MTLBuffer> sourceBuffer = metalSource ? metalSource->GetMetalBuffer() : nil;
-			id<MTLBuffer> destinationBuffer = metalDestination ? metalDestination->GetMetalBuffer() : nil;
+			id<MTLBuffer> sourceBuffer = sourceResource.GetMetalHandle();
+			id<MTLBuffer> destinationBuffer = destinationResource.GetMetalHandle();
 			if (sourceBuffer == nil || destinationBuffer == nil)
 			{
 				B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyBufferToBuffer: source or destination MTLBuffer is nil (deferred init not complete).");
@@ -1574,38 +1553,16 @@ namespace b3d
 					B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyBufferToBuffer requires 4-byte-aligned offsets and length on macOS.");
 					return;
 				}
-
-				if (!IsBufferRangeValid(*source, range.SourceOffset, range.Size) || !IsBufferRangeValid(*destination, range.DestinationOffset, range.Size))
-				{
-					B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyBufferToBuffer range exceeds a buffer's size.");
-					return;
-				}
-
-				if (sourceBuffer == destinationBuffer)
-				{
-					const u64 sourceEnd = (u64)range.SourceOffset + range.Size;
-					const u64 destinationEnd = (u64)range.DestinationOffset + range.Size;
-					if ((u64)range.SourceOffset < destinationEnd && (u64)range.DestinationOffset < sourceEnd)
-					{
-						B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyBufferToBuffer does not support overlapping ranges in one buffer.");
-						return;
-					}
-				}
 			}
 
 			id<MTL4ComputeCommandEncoder> encoder = OpenComputeEncoder();
 			if (encoder == nil)
 				return;
 
-			MetalBuffer* sourceResource = metalSource->GetMetalResource();
-			MetalBuffer* destinationResource = metalDestination->GetMetalResource();
 			for (const GpuBufferCopyRange& range : ranges)
 			{
-				if (sourceResource != nullptr)
-					mResourceTracker.TrackBufferUsage(sourceResource, GpuAccessFlag::Read, range.SourceOffset);
-
-				if (destinationResource != nullptr)
-					mResourceTracker.TrackBufferUsage(destinationResource, GpuAccessFlag::Write, range.DestinationOffset);
+				mResourceTracker.TrackBufferUsage(&sourceResource, GpuAccessFlag::Read, range.SourceOffset);
+				mResourceTracker.TrackBufferUsage(&destinationResource, GpuAccessFlag::Write, range.DestinationOffset);
 			}
 
 			if (mRecordingFailed)
@@ -1626,82 +1583,117 @@ namespace b3d
 			mEncoderHasWork = true;
 		}
 
-		void MetalGpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer)
+		void MetalGpuCommandBuffer::CopyBufferToTexture(IGpuBufferResource& source, IGpuImageResource& destination, const GpuImageCopyInformation& information)
 		{
-			GpuCommandBuffer::CopyBufferToTexture(source, destination, bufferOffset, mipLevel, arrayLayer);
 			EnsureValidThread();
 
-			if (!source || !destination)
-				return;
-
-			MetalTextureTransferInformation transferInformation;
-			if (!GetTextureTransferInformation(*destination, *source, bufferOffset, mipLevel, arrayLayer, "MetalGpuCommandBuffer::CopyBufferToTexture", transferInformation))
-				return;
-
-			auto metalSource = std::static_pointer_cast<MetalGpuBuffer>(source);
-			auto metalDestination = std::static_pointer_cast<MetalTexture>(destination);
-			id<MTLBuffer> sourceBuffer = metalSource ? metalSource->GetMetalBuffer() : nil;
-			id<MTLTexture> destinationTexture = metalDestination ? metalDestination->GetMetalTexture() : nil;
+			MetalBuffer& sourceResource = static_cast<MetalBuffer&>(source);
+			MetalImage& destinationResource = static_cast<MetalImage&>(destination);
+			id<MTLBuffer> sourceBuffer = sourceResource.GetMetalHandle();
+			id<MTLTexture> destinationTexture = destinationResource.GetMetalHandle();
 			if (sourceBuffer == nil || destinationTexture == nil)
 			{
 				B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyBufferToTexture: source buffer or destination texture is nil (deferred init not complete).");
 				return;
 			}
 
+			MetalTextureTransferInformation transferInformation;
+			if (!TryGetTextureTransferInformation(information, sourceBuffer, "MetalGpuCommandBuffer::CopyBufferToTexture", transferInformation))
+				return;
+
 			id<MTL4ComputeCommandEncoder> encoder = OpenComputeEncoder();
 			if (encoder == nil)
 				return;
 
-			MetalBuffer* sourceResource = metalSource->GetMetalResource();
-			MetalImage* destinationResource = metalDestination->GetMetalResource();
-			GpuTextureSubresourceRange destinationRange = destinationResource != nullptr ? destinationResource->GetRange() : GpuTextureSubresourceRange{};
-			destinationRange.BaseArrayLayer = arrayLayer;
+			GpuTextureSubresourceRange destinationRange = destinationResource.GetRange();
+			destinationRange.BaseArrayLayer = information.ArrayLayer;
 			destinationRange.ArrayLayerCount = 1;
-			destinationRange.BaseMipLevel = mipLevel;
+			destinationRange.BaseMipLevel = information.MipLevel;
 			destinationRange.MipLevelCount = 1;
-			if (destination->GetProperties().Format == PF_D32_S8X24)
+			if (information.Format == PF_D32_S8X24)
 				destinationRange.AspectMask = GpuTextureAspectFlag::Depth;
-			if (sourceResource != nullptr)
-				mResourceTracker.TrackBufferUsage(sourceResource, GpuAccessFlag::Read, bufferOffset);
 
-			if (destinationResource != nullptr)
-				mResourceTracker.TrackImageUsage(destinationResource, destinationRange, GpuAccessFlag::Write);
+			mResourceTracker.TrackBufferUsage(&sourceResource, GpuAccessFlag::Read, information.BufferOffset);
+			mResourceTracker.TrackImageUsage(&destinationResource, destinationRange, GpuAccessFlag::Write);
 
 			if (mRecordingFailed)
 				return;
 
 			[encoder copyFromBuffer:sourceBuffer
-				sourceOffset:bufferOffset
+				sourceOffset:information.BufferOffset
 				sourceBytesPerRow:transferInformation.RowPitch
 				sourceBytesPerImage:(transferInformation.Depth > 1 ? transferInformation.SlicePitch : 0)
 				sourceSize:MTLSizeMake(transferInformation.Width, transferInformation.Height, transferInformation.Depth)
 				toTexture:destinationTexture
-				destinationSlice:arrayLayer
-				destinationLevel:mipLevel
+				destinationSlice:information.ArrayLayer
+				destinationLevel:information.MipLevel
 				destinationOrigin:MTLOriginMake(0, 0, 0)
 				options:transferInformation.Options];
 
 			mEncoderHasWork = true;
 		}
 
-		void MetalGpuCommandBuffer::CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset)
+		void MetalGpuCommandBuffer::CopyTextureToBuffer(IGpuImageResource& source, IGpuBufferResource& destination, const GpuImageCopyInformation& information)
 		{
-			GpuCommandBuffer::CopyTextureToBuffer(source, destination, mipLevel, arrayLayer, bufferOffset);
 			EnsureValidThread();
-			if (!source || !destination)
-				return;
 
-			MetalTextureTransferInformation transferInformation;
-			if (!GetTextureTransferInformation(*source, *destination, bufferOffset, mipLevel, arrayLayer, "MetalGpuCommandBuffer::CopyTextureToBuffer", transferInformation))
-				return;
-
-			auto metalSource = std::static_pointer_cast<MetalTexture>(source);
-			auto metalDestination = std::static_pointer_cast<MetalGpuBuffer>(destination);
-			id<MTLTexture> sourceTexture = metalSource ? metalSource->GetMetalTexture() : nil;
-			id<MTLBuffer> destinationBuffer = metalDestination ? metalDestination->GetMetalBuffer() : nil;
+			MetalImage& sourceResource = static_cast<MetalImage&>(source);
+			MetalBuffer& destinationResource = static_cast<MetalBuffer&>(destination);
+			id<MTLTexture> sourceTexture = sourceResource.GetMetalHandle();
+			id<MTLBuffer> destinationBuffer = destinationResource.GetMetalHandle();
 			if (sourceTexture == nil || destinationBuffer == nil)
 			{
 				B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyTextureToBuffer: source texture or destination buffer is nil (deferred init not complete).");
+				return;
+			}
+
+			MetalTextureTransferInformation transferInformation;
+			if (!TryGetTextureTransferInformation(information, destinationBuffer, "MetalGpuCommandBuffer::CopyTextureToBuffer", transferInformation))
+				return;
+
+			id<MTL4ComputeCommandEncoder> encoder = OpenComputeEncoder();
+			if (encoder == nil)
+				return;
+
+			GpuTextureSubresourceRange sourceRange = sourceResource.GetRange();
+			sourceRange.BaseArrayLayer = information.ArrayLayer;
+			sourceRange.ArrayLayerCount = 1;
+			sourceRange.BaseMipLevel = information.MipLevel;
+			sourceRange.MipLevelCount = 1;
+			if (information.Format == PF_D32_S8X24)
+				sourceRange.AspectMask = GpuTextureAspectFlag::Depth;
+
+			mResourceTracker.TrackImageUsage(&sourceResource, sourceRange, GpuAccessFlag::Read);
+			mResourceTracker.TrackBufferUsage(&destinationResource, GpuAccessFlag::Write, information.BufferOffset);
+
+			if (mRecordingFailed)
+				return;
+
+			[encoder copyFromTexture:sourceTexture
+				sourceSlice:information.ArrayLayer
+				sourceLevel:information.MipLevel
+				sourceOrigin:MTLOriginMake(0, 0, 0)
+				sourceSize:MTLSizeMake(transferInformation.Width, transferInformation.Height, transferInformation.Depth)
+				toBuffer:destinationBuffer
+				destinationOffset:information.BufferOffset
+				destinationBytesPerRow:transferInformation.RowPitch
+				destinationBytesPerImage:(transferInformation.Depth > 1 ? transferInformation.SlicePitch : 0)
+				options:transferInformation.Options];
+
+			mEncoderHasWork = true;
+		}
+
+		void MetalGpuCommandBuffer::CopyTexture(IGpuImageResource& source, IGpuImageResource& destination, const GpuImageCopyInformation& information)
+		{
+			EnsureValidThread();
+
+			MetalImage& sourceResource = static_cast<MetalImage&>(source);
+			MetalImage& destinationResource = static_cast<MetalImage&>(destination);
+			id<MTLTexture> sourceTexture = sourceResource.GetMetalHandle();
+			id<MTLTexture> destinationTexture = destinationResource.GetMetalHandle();
+			if (sourceTexture == nil || destinationTexture == nil)
+			{
+				B3D_LOG(Error, LogRenderBackend, "MetalGpuCommandBuffer::CopyTexture: source or destination texture is nil (deferred init not complete).");
 				return;
 			}
 
@@ -1709,35 +1701,33 @@ namespace b3d
 			if (encoder == nil)
 				return;
 
-			MetalImage* sourceResource = metalSource->GetMetalResource();
-			MetalBuffer* destinationResource = metalDestination->GetMetalResource();
-			GpuTextureSubresourceRange sourceRange = sourceResource != nullptr ? sourceResource->GetRange() : GpuTextureSubresourceRange{};
-			sourceRange.BaseArrayLayer = arrayLayer;
-			sourceRange.ArrayLayerCount = 1;
-			sourceRange.BaseMipLevel = mipLevel;
+			const u32 layerCount = sourceResource.GetRange().ArrayLayerCount;
+			GpuTextureSubresourceRange sourceRange = sourceResource.GetRange();
+			sourceRange.BaseMipLevel = information.MipLevel;
 			sourceRange.MipLevelCount = 1;
-			if (source->GetProperties().Format == PF_D32_S8X24)
-				sourceRange.AspectMask = GpuTextureAspectFlag::Depth;
+			GpuTextureSubresourceRange destinationRange = destinationResource.GetRange();
+			destinationRange.BaseMipLevel = information.MipLevel;
+			destinationRange.MipLevelCount = 1;
 
-			if (sourceResource != nullptr)
-				mResourceTracker.TrackImageUsage(sourceResource, sourceRange, GpuAccessFlag::Read);
-
-			if (destinationResource != nullptr)
-				mResourceTracker.TrackBufferUsage(destinationResource, GpuAccessFlag::Write, bufferOffset);
+			mResourceTracker.TrackImageUsage(&sourceResource, sourceRange, GpuAccessFlag::Read);
+			mResourceTracker.TrackImageUsage(&destinationResource, destinationRange, GpuAccessFlag::Write);
 
 			if (mRecordingFailed)
 				return;
 
-			[encoder copyFromTexture:sourceTexture
-				sourceSlice:arrayLayer
-				sourceLevel:mipLevel
-				sourceOrigin:MTLOriginMake(0, 0, 0)
-				sourceSize:MTLSizeMake(transferInformation.Width, transferInformation.Height, transferInformation.Depth)
-				toBuffer:destinationBuffer
-				destinationOffset:bufferOffset
-				destinationBytesPerRow:transferInformation.RowPitch
-				destinationBytesPerImage:(transferInformation.Depth > 1 ? transferInformation.SlicePitch : 0)
-				options:transferInformation.Options];
+			const u32 depth = information.Type == TEX_TYPE_3D ? information.Depth : 1;
+			for (u32 layer = 0; layer < layerCount; layer++)
+			{
+				[encoder copyFromTexture:sourceTexture
+					sourceSlice:layer
+					sourceLevel:information.MipLevel
+					sourceOrigin:MTLOriginMake(0, 0, 0)
+					sourceSize:MTLSizeMake(information.Width, information.Height, depth)
+					toTexture:destinationTexture
+					destinationSlice:layer
+					destinationLevel:information.MipLevel
+					destinationOrigin:MTLOriginMake(0, 0, 0)];
+			}
 
 			mEncoderHasWork = true;
 		}
@@ -2223,6 +2213,16 @@ namespace b3d
 
 		bool MetalGpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split)
 		{
+			return RecordBarrierBatch(barriers, GpuResourceBarriers(), phase, split);
+		}
+
+		bool MetalGpuCommandBuffer::RecordBarriers(const GpuResourceBarriers& barriers)
+		{
+			return RecordBarrierBatch(GpuBarriers(), barriers, GpuBarrierPhase::Full, nullptr);
+		}
+
+		bool MetalGpuCommandBuffer::RecordBarrierBatch(const GpuBarriers& barriers, const GpuResourceBarriers& resourceBarriers, GpuBarrierPhase phase, GpuSplitBarrier* split)
+		{
 			// What the barriers of each case record:
 			//
 			// Case            | Stage barrier
@@ -2275,6 +2275,12 @@ namespace b3d
 				fnAddBarrier(barrier);
 			}
 
+			for (const GpuBufferResourceBarrier& barrier : resourceBarriers.BufferBarriers)
+			{
+				mResourceTracker.TrackBufferUsage(barrier.Object, barrier.Destination.Access | GpuAccessFlag::Read);
+				fnAddBarrier(barrier);
+			}
+
 			const auto fnAddImageBarrier = [&](MetalImage& image, const GpuTextureSubresourceRange& range, const GpuBarrier& barrier)
 			{
 				mResourceTracker.TrackImageUsage(&image, range, barrier.Destination.Access | GpuAccessFlag::Read);
@@ -2293,6 +2299,16 @@ namespace b3d
 					continue;
 
 				fnAddImageBarrier(*image, GpuBackendUtility::ClampRange(barrier.SubresourceRange, image->GetRange()), barrier);
+			}
+
+			for (const GpuImageResourceBarrier& barrier : resourceBarriers.ImageBarriers)
+			{
+				// Metal has no layouts, and the alias acquire that supersedes the image orders the work of the memory
+				if (barrier.Flags.IsSet(GpuBarrierFlag::AliasRelease))
+					continue;
+
+				MetalImage& image = static_cast<MetalImage&>(*barrier.Object);
+				fnAddImageBarrier(image, GpuBackendUtility::ClampRange(barrier.SubresourceRange, image.GetRange()), barrier);
 			}
 
 			for (const GpuRenderTargetBarrier& barrier : barriers.RenderTargetBarriers)

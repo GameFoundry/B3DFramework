@@ -403,6 +403,28 @@ namespace b3d
 			TShared<GpuAccelerationStructure> Object;
 		};
 
+		/** Native buffer equivalent of GpuBufferBarrier. */
+		struct GpuBufferResourceBarrier : GpuBarrier
+		{
+			GpuBufferResourceBarrier(IGpuBufferResource& object, const GpuAccessState& source, const GpuAccessState& destination, GpuBarrierFlags flags = GpuBarrierFlag::None)
+				: GpuBarrier(source, destination, flags), Object(&object)
+			{ }
+
+			IGpuBufferResource* Object;
+		};
+
+		/** Native image equivalent of GpuTextureBarrier. */
+		struct GpuImageResourceBarrier : GpuBarrier
+		{
+			GpuImageResourceBarrier(IGpuImageResource& object, const GpuAccessState& source, const GpuAccessState& destination,
+				const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources(), GpuBarrierFlags flags = GpuBarrierFlag::None)
+				: GpuBarrier(source, destination, flags), Object(&object), SubresourceRange(subresourceRange)
+			{ }
+
+			IGpuImageResource* Object;
+			GpuTextureSubresourceRange SubresourceRange; /**< Subresources (mips, array layers, aspects) the barrier applies to. */
+		};
+
 		/** Describes a range of bytes to copy from one buffer to another. */
 		struct GpuBufferCopyRange
 		{
@@ -476,6 +498,33 @@ namespace b3d
 			TArrayView<const GpuTextureBarrier> TextureBarriers;
 			TArrayView<const GpuRenderTargetBarrier> RenderTargetBarriers;
 			TArrayView<const GpuAccelerationStructureBarrier> AccelerationStructureBarriers;
+		};
+
+		/**
+		 * A list of native buffer and image barriers. Refers to the barriers without copying them, so they must remain valid until
+		 * GpuCommandBuffer::IssueBarriers() returns.
+		 */
+		struct GpuResourceBarriers
+		{
+			GpuResourceBarriers(TArrayView<const GpuBufferResourceBarrier> bufferBarriers = TArrayView<const GpuBufferResourceBarrier>(),
+				TArrayView<const GpuImageResourceBarrier> imageBarriers = TArrayView<const GpuImageResourceBarrier>())
+				: BufferBarriers(bufferBarriers), ImageBarriers(imageBarriers)
+			{ }
+
+			GpuResourceBarriers(TArrayView<const GpuImageResourceBarrier> imageBarriers)
+				: ImageBarriers(imageBarriers)
+			{ }
+
+			GpuResourceBarriers(const GpuBufferResourceBarrier& bufferBarrier)
+				: BufferBarriers(&bufferBarrier, 1)
+			{ }
+
+			GpuResourceBarriers(const GpuImageResourceBarrier& imageBarrier)
+				: ImageBarriers(&imageBarrier, 1)
+			{ }
+
+			TArrayView<const GpuBufferResourceBarrier> BufferBarriers;
+			TArrayView<const GpuImageResourceBarrier> ImageBarriers;
 		};
 
 		/** Determines which part of a barrier a command buffer records. */
@@ -784,7 +833,7 @@ namespace b3d
 			 * @param	destination			Destination buffer to copy to.
 			 * @param	ranges				Ranges to copy.
 			 */
-			virtual void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> ranges);
+			void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> ranges);
 
 			/**
 			 * Copies the contents of the source buffer to the destination buffer. Caller must ensure the provided offsets and length are within valid bounds of both buffers.
@@ -812,7 +861,7 @@ namespace b3d
 			 * @param	mipLevel		Destination mipmap level.
 			 * @param	arrayLayer		Destination texture face (array slice or cubemap face).
 			 */
-			virtual void CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer);
+			void CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer);
 
 			/**
 			 * Copies data from a texture subresource to a buffer. The buffer must have enough space to receive all pixel data in the same format as the texture,
@@ -824,7 +873,7 @@ namespace b3d
 			 * @param	arrayLayer		Source texture face (array slice or cubemap face).
 			 * @param	bufferOffset	Offset into the destination buffer, in bytes.
 			 */
-			virtual void CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset = 0);
+			void CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset = 0);
 
 			/**
 			 * Copies the back-buffer image a window's surface holds to the start of a buffer, laid out as IRenderWindowSurface::GetImageLayout()
@@ -997,6 +1046,30 @@ namespace b3d
 			/** Sets a pointer to itself. */
 			void SetShared(const TShared<GpuCommandBuffer>& value) { mSelf = value; }
 
+			/** Records @p barriers. Same as IssueBarriers(const GpuBarriers&), for native resources. */
+			void IssueBarriers(const GpuResourceBarriers& barriers);
+
+			/** Same as CopyBufferToBuffer(const TShared<GpuBuffer>&, ...), for native buffers. The caller validates the ranges. */
+			virtual void CopyBufferToBuffer(IGpuBufferResource& source, IGpuBufferResource& destination, TArrayView<const GpuBufferCopyRange> ranges) = 0;
+
+			/**
+			 * Same as CopyBufferToTexture(const TShared<GpuBuffer>&, ...), for native resources. @p information describes the subresource, and the
+			 * layout of its data in @p source.
+			 */
+			virtual void CopyBufferToTexture(IGpuBufferResource& source, IGpuImageResource& destination, const GpuImageCopyInformation& information) = 0;
+
+			/**
+			 * Same as CopyTextureToBuffer(const TShared<Texture>&, ...), for native resources. @p information describes the subresource, and the
+			 * layout of its data in @p destination.
+			 */
+			virtual void CopyTextureToBuffer(IGpuImageResource& source, IGpuBufferResource& destination, const GpuImageCopyInformation& information) = 0;
+
+			/**
+			 * Copies mip level information.MipLevel of every array layer of @p source into @p destination, an image of the same description.
+			 * information.ArrayLayer, information.BufferOffset and information.BufferPitch are ignored.
+			 */
+			virtual void CopyTexture(IGpuImageResource& source, IGpuImageResource& destination, const GpuImageCopyInformation& information) = 0;
+
 			/** @} */
 
 		protected:
@@ -1016,6 +1089,23 @@ namespace b3d
 			 * @return				True if the barriers were recorded. False if the command buffer cannot record them.
 			 */
 			virtual bool RecordBarriers(const GpuBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split);
+
+			/**
+			 * Records barriers of native resources. Only called outside of a render pass.
+			 *
+			 * @param	barriers	Barriers to record.
+			 * @return				True if the barriers were recorded. False if the command buffer cannot record them.
+			 */
+			virtual bool RecordBarriers(const GpuResourceBarriers& barriers) = 0;
+
+			/**
+			 * Checks a copy between @p buffer and one subresource of @p texture, with the data at @p bufferOffset of @p buffer laid out as
+			 * Texture::GetStagingBufferPitchForSubresource() returns, and describes it in @p outInformation. Logs the reason if the copy is
+			 * invalid.
+			 *
+			 * @return	True if the copy is valid.
+			 */
+			static bool TryGetBufferTextureCopyInformation(const GpuBuffer& buffer, const Texture& texture, u32 bufferOffset, u32 mipLevel, u32 arrayLayer, GpuImageCopyInformation& outInformation);
 
 			/**
 			 * Releases the split barriers recorded since the last reset, and forgets the state validated in development builds. Backends

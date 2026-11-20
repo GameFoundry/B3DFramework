@@ -256,37 +256,120 @@ void GpuCommandBuffer::BeginRenderPass(const RenderPassCreateInformation& create
 		createInformation.Target->TickUpdateCount();
 }
 
-void GpuCommandBuffer::CopyBufferToBuffer([[maybe_unused]] const TShared<GpuBuffer>& source, [[maybe_unused]] const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> /*ranges*/)
+void GpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> ranges)
 {
+	EnsureValidThread();
+
+	if(!B3D_ENSURE_LOG(source != nullptr && destination != nullptr, "The source and destination of a copy must not be null."))
+		return;
+
+	if(!B3D_ENSURE_LOG(!IsInRenderPass(), "Copies can only be recorded outside of a render pass."))
+		return;
+
+	for(const GpuBufferCopyRange& range : ranges)
+	{
+		const bool isInBounds = (u64)range.SourceOffset + range.Size <= source->GetTotalSize() && (u64)range.DestinationOffset + range.Size <= destination->GetTotalSize();
+		if(!B3D_ENSURE_LOG(isInBounds, "A buffer copy range exceeds the size of its buffer."))
+			return;
+
+		const bool overlaps = source == destination && (u64)range.SourceOffset < (u64)range.DestinationOffset + range.Size && (u64)range.DestinationOffset < (u64)range.SourceOffset + range.Size;
+		if(!B3D_ENSURE_LOG(!overlaps, "The ranges of a copy within one buffer must not overlap."))
+			return;
+	}
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
-	if(mBarrierValidator != nullptr && source != nullptr && destination != nullptr)
+	if(mBarrierValidator != nullptr)
 	{
 		mBarrierValidator->ValidateBufferAccess(*source, GpuStageFlag::Transfer, GpuAccessFlag::Read);
 		mBarrierValidator->ValidateBufferAccess(*destination, GpuStageFlag::Transfer, GpuAccessFlag::Write);
 	}
 #endif
+
+	IGpuResource* const sourceResource = source->GetGpuResource();
+	IGpuResource* const destinationResource = destination->GetGpuResource();
+	if(sourceResource == nullptr || destinationResource == nullptr || ranges.IsEmpty())
+		return;
+
+	CopyBufferToBuffer(static_cast<IGpuBufferResource&>(*sourceResource), static_cast<IGpuBufferResource&>(*destinationResource), ranges);
 }
 
-void GpuCommandBuffer::CopyBufferToTexture([[maybe_unused]] const TShared<GpuBuffer>& source, [[maybe_unused]] const TShared<Texture>& destination, u32 /*bufferOffset*/, [[maybe_unused]] u32 mipLevel, [[maybe_unused]] u32 arrayLayer)
+void GpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer)
 {
+	EnsureValidThread();
+
+	if(!B3D_ENSURE_LOG(source != nullptr && destination != nullptr, "The source and destination of a copy must not be null."))
+		return;
+
+	if(!B3D_ENSURE_LOG(!IsInRenderPass(), "Copies can only be recorded outside of a render pass."))
+		return;
+
+	GpuImageCopyInformation information;
+	if(!TryGetBufferTextureCopyInformation(*source, *destination, bufferOffset, mipLevel, arrayLayer, information))
+		return;
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
-	if(mBarrierValidator != nullptr && source != nullptr && destination != nullptr)
+	if(mBarrierValidator != nullptr)
 	{
 		mBarrierValidator->ValidateBufferAccess(*source, GpuStageFlag::Transfer, GpuAccessFlag::Read);
 		mBarrierValidator->ValidateTextureAccess(*destination, GpuTextureSubresourceRange(mipLevel, 1, arrayLayer, 1, kAllImageAspects), GpuImageLayout::Undefined, GpuStageFlag::Transfer, GpuAccessFlag::Write);
 	}
 #endif
+
+	IGpuResource* const sourceResource = source->GetGpuResource();
+	IGpuResource* const destinationResource = destination->GetGpuResource();
+	if(sourceResource == nullptr || destinationResource == nullptr)
+		return;
+
+	CopyBufferToTexture(static_cast<IGpuBufferResource&>(*sourceResource), static_cast<IGpuImageResource&>(*destinationResource), information);
 }
 
-void GpuCommandBuffer::CopyTextureToBuffer([[maybe_unused]] const TShared<Texture>& source, [[maybe_unused]] const TShared<GpuBuffer>& destination, [[maybe_unused]] u32 mipLevel, [[maybe_unused]] u32 arrayLayer, u32 /*bufferOffset*/)
+void GpuCommandBuffer::CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset)
 {
+	EnsureValidThread();
+
+	if(!B3D_ENSURE_LOG(source != nullptr && destination != nullptr, "The source and destination of a copy must not be null."))
+		return;
+
+	if(!B3D_ENSURE_LOG(!IsInRenderPass(), "Copies can only be recorded outside of a render pass."))
+		return;
+
+	GpuImageCopyInformation information;
+	if(!TryGetBufferTextureCopyInformation(*destination, *source, bufferOffset, mipLevel, arrayLayer, information))
+		return;
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
-	if(mBarrierValidator != nullptr && source != nullptr && destination != nullptr)
+	if(mBarrierValidator != nullptr)
 	{
 		mBarrierValidator->ValidateTextureAccess(*source, GpuTextureSubresourceRange(mipLevel, 1, arrayLayer, 1, kAllImageAspects), GpuImageLayout::Undefined, GpuStageFlag::Transfer, GpuAccessFlag::Read);
 		mBarrierValidator->ValidateBufferAccess(*destination, GpuStageFlag::Transfer, GpuAccessFlag::Write);
 	}
 #endif
+
+	IGpuResource* const sourceResource = source->GetGpuResource();
+	IGpuResource* const destinationResource = destination->GetGpuResource();
+	if(sourceResource == nullptr || destinationResource == nullptr)
+		return;
+
+	CopyTextureToBuffer(static_cast<IGpuImageResource&>(*sourceResource), static_cast<IGpuBufferResource&>(*destinationResource), information);
+}
+
+bool GpuCommandBuffer::TryGetBufferTextureCopyInformation(const GpuBuffer& buffer, const Texture& texture, u32 bufferOffset, u32 mipLevel, u32 arrayLayer, GpuImageCopyInformation& outInformation)
+{
+	const TextureProperties& properties = texture.GetProperties();
+	if(!B3D_ENSURE_LOG(mipLevel <= properties.MipMapCount && arrayLayer < properties.GetFaceCount(), "The mip level or array layer of a copy between a buffer and texture '{0}' is out of range.", texture.GetName()))
+		return false;
+
+	if(!B3D_ENSURE_LOG(properties.SampleCount <= 1, "Copies between buffers and textures don't support multisampled texture '{0}'.", texture.GetName()))
+		return false;
+
+	outInformation = TextureUtility::GetImageCopyInformation(texture, mipLevel, arrayLayer);
+	outInformation.BufferOffset = bufferOffset;
+
+	u32 rowPitch, slicePitch;
+	TextureUtility::GetPitchInBytes(outInformation.BufferPitch, outInformation.Format, rowPitch, slicePitch);
+
+	const u64 size = (u64)slicePitch * outInformation.Depth;
+	return B3D_ENSURE_LOG((u64)bufferOffset + size <= buffer.GetTotalSize(), "The data of a copy between a buffer and texture '{0}' exceeds the size of the buffer.", texture.GetName());
 }
 
 void GpuCommandBuffer::CopyWindowToBuffer([[maybe_unused]] const TShared<RenderWindow>& source, [[maybe_unused]] const TShared<GpuBuffer>& destination)
@@ -481,6 +564,17 @@ bool GpuCommandBuffer::RecordBarriers(const GpuBarriers& /*barriers*/, GpuBarrie
 	B3D_LOG(Error, LogRenderBackend, "Barriers are unsupported by this GPU backend.");
 	return false;
 }
+
+void GpuCommandBuffer::IssueBarriers(const GpuResourceBarriers& barriers)
+{
+	EnsureValidThread();
+
+	if(!B3D_ENSURE_LOG(!IsInRenderPass(), "Barriers can only be recorded outside of a render pass."))
+		return;
+
+	RecordBarriers(barriers);
+}
+
 
 void GpuCommandBuffer::ClearBarrierState([[maybe_unused]] bool wasSubmitted)
 {

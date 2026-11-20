@@ -297,6 +297,24 @@ namespace b3d
 	};
 
 	/**
+	 * Describes one subresource of an image, and the layout of its data in a buffer, for copies between native resources. See
+	 * render::TextureUtility::GetImageCopyInformation().
+	 */
+	struct GpuImageCopyInformation
+	{
+		u32 MipLevel = 0;
+		u32 ArrayLayer = 0;
+		u32 Width = 1; /**< Width of the mip level, in texels. */
+		u32 Height = 1; /**< Height of the mip level, in texels. */
+		u32 Depth = 1; /**< Depth of the mip level, in texels. */
+		PixelFormat Format = PF_UNKNOWN; /**< Format of the image's data. */
+		TextureType Type = TEX_TYPE_2D;
+		u32 SampleCount = 1;
+		u32 BufferOffset = 0; /**< Offset of the data in the buffer, in bytes. */
+		ImageSubresourcePitch BufferPitch; /**< Layout of the data in the buffer, see render::Texture::GetStagingBufferPitchForSubresource(). */
+	};
+
+	/**
 	 * RAII wrapper returned by Texture::Map operation. Contains PixelData with mapped memory buffer.
 	 * Automatically flushes on destruction for write operations. Move-only semantics.
 	 * Templated to support both main thread and render thread variants.
@@ -826,6 +844,26 @@ namespace b3d
 			 * @param arrayLayer	Array layer (or cubemap face or depth slice) of the subresource.
 			 */
 			static TShared<PixelData> CreateStagingPixelData(const TShared<Texture>& texture, u32 mipLevel, u32 arrayLayer);
+
+			/**
+			 * Describes one subresource of @p texture, laid out in a staging buffer as returned by
+			 * Texture::GetStagingBufferPitchForSubresource(), for copies between native resources (see GpuCommandBuffer::CopyBufferToTexture()).
+			 *
+			 * @param texture		Texture to describe.
+			 * @param mipLevel		Mip level of the subresource.
+			 * @param arrayLayer	Array layer (or cubemap face) of the subresource.
+			 */
+			static GpuImageCopyInformation GetImageCopyInformation(const Texture& texture, u32 mipLevel, u32 arrayLayer);
+
+			/**
+			 * Converts @p pitch, expressed in pixels as returned by Texture::GetStagingBufferPitchForSubresource(), to bytes.
+			 *
+			 * @param pitch				Pitch to convert.
+			 * @param format			Format of the data.
+			 * @param outRowPitch		Bytes from the start of one row (of blocks, for compressed formats) to the next.
+			 * @param outSlicePitch		Bytes from the start of one depth slice to the next.
+			 */
+			static void GetPitchInBytes(const ImageSubresourcePitch& pitch, PixelFormat format, u32& outRowPitch, u32& outSlicePitch);
 
 			/**
 			 * Writes pixel data to a texture subresource.

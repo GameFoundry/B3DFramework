@@ -614,22 +614,9 @@ namespace
 	 */
 	void ApplyRowAndSlicePitch(const ImageSubresourcePitch& pitch, PixelData& inOutPixelData)
 	{
-		const PixelFormat format = inOutPixelData.GetFormat();
-		const u32 blockSize = PixelUtility::GetBlockSize(format);
-
 		u32 rowPitchBytes;
 		u32 slicePitchBytes;
-		if(PixelUtility::IsCompressed(format))
-		{
-			const Vector2I blockDimension = PixelUtility::GetBlockDimensions(format);
-			rowPitchBytes = pitch.RowPitch / blockDimension.X * blockSize;
-			slicePitchBytes = rowPitchBytes * (pitch.SliceHeight / blockDimension.Y);
-		}
-		else
-		{
-			rowPitchBytes = pitch.RowPitch * blockSize;
-			slicePitchBytes = rowPitchBytes * pitch.SliceHeight;
-		}
+		TextureUtility::GetPitchInBytes(pitch, inOutPixelData.GetFormat(), rowPitchBytes, slicePitchBytes);
 
 		inOutPixelData.SetRowPitch(rowPitchBytes);
 		inOutPixelData.SetSlicePitch(slicePitchBytes);
@@ -680,6 +667,38 @@ TShared<PixelData> TextureUtility::CreateStagingPixelData(const TShared<Texture>
 	const TShared<PixelData> pixelData = B3DMakeShared<PixelData>(mipWidth, mipHeight, mipDepth, texture->GetSupportedFormat());
 	ApplyRowAndSlicePitch(texture->GetStagingBufferPitchForSubresource(arrayLayer, mipLevel), *pixelData);
 	return pixelData;
+}
+
+GpuImageCopyInformation TextureUtility::GetImageCopyInformation(const Texture& texture, u32 mipLevel, u32 arrayLayer)
+{
+	const TextureProperties& textureProperties = texture.GetProperties();
+
+	GpuImageCopyInformation information;
+	information.MipLevel = mipLevel;
+	information.ArrayLayer = arrayLayer;
+	PixelUtility::GetSizeForMipLevel(textureProperties.Width, textureProperties.Height, textureProperties.Depth, mipLevel, information.Width, information.Height, information.Depth);
+	information.Format = texture.GetSupportedFormat();
+	information.Type = textureProperties.Type;
+	information.SampleCount = textureProperties.SampleCount;
+	information.BufferPitch = texture.GetStagingBufferPitchForSubresource(arrayLayer, mipLevel);
+
+	return information;
+}
+
+void TextureUtility::GetPitchInBytes(const ImageSubresourcePitch& pitch, PixelFormat format, u32& outRowPitch, u32& outSlicePitch)
+{
+	const u32 blockSize = PixelUtility::GetBlockSize(format);
+	if(PixelUtility::IsCompressed(format))
+	{
+		const Vector2I blockDimension = PixelUtility::GetBlockDimensions(format);
+		outRowPitch = pitch.RowPitch / blockDimension.X * blockSize;
+		outSlicePitch = outRowPitch * (pitch.SliceHeight / blockDimension.Y);
+	}
+	else
+	{
+		outRowPitch = pitch.RowPitch * blockSize;
+		outSlicePitch = outRowPitch * pitch.SliceHeight;
+	}
 }
 
 void TextureUtility::Write(const TShared<Texture>& texture, const PixelData& source, u32 mipLevel, u32 arrayLayer, TextureWriteFlags flags, const TShared<GpuCommandBuffer>& commandBuffer)

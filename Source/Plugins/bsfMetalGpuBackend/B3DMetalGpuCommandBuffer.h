@@ -132,11 +132,14 @@ namespace b3d
 			void SetStencilReferenceValue(u32 value) override;
 			bool BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild> builds) override;
 			using GpuCommandBuffer::CopyBufferToBuffer;
-			void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> ranges) override;
-			void CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer) override;
-			void CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset) override;
+			using GpuCommandBuffer::CopyBufferToTexture;
+			using GpuCommandBuffer::CopyTextureToBuffer;
 			void CopyWindowToBuffer(const TShared<RenderWindow>& source, const TShared<GpuBuffer>& destination) override;
 			bool CopyTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureCopyInformation& copyInformation) override;
+			void CopyBufferToBuffer(IGpuBufferResource& source, IGpuBufferResource& destination, TArrayView<const GpuBufferCopyRange> ranges) override;
+			void CopyBufferToTexture(IGpuBufferResource& source, IGpuImageResource& destination, const GpuImageCopyInformation& information) override;
+			void CopyTextureToBuffer(IGpuImageResource& source, IGpuBufferResource& destination, const GpuImageCopyInformation& information) override;
+			void CopyTexture(IGpuImageResource& source, IGpuImageResource& destination, const GpuImageCopyInformation& information) override;
 			bool BlitTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureBlitInformation& blitInformation) override;
 			void WriteTimestamp(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) override;
 			void BeginQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool, GpuQueryFlags flags) override;
@@ -156,6 +159,10 @@ namespace b3d
 			friend class MetalGpuQueue;
 
 			bool RecordBarriers(const GpuBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split) override;
+			bool RecordBarriers(const GpuResourceBarriers& barriers) override;
+
+			/** Records the barriers of proxies in @p barriers and of native resources in @p resourceBarriers in one batch. See RecordBarriers(). */
+			bool RecordBarrierBatch(const GpuBarriers& barriers, const GpuResourceBarriers& resourceBarriers, GpuBarrierPhase phase, GpuSplitBarrier* split);
 
 			/** Number of buffer slots of the argument tables, the maximum Metal supports. */
 			static constexpr u32 kArgumentTableBufferCount = 31;

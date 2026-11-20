@@ -50,8 +50,16 @@ namespace b3d
 			void InsertLabel(const StringView& name) override {}
 			void End() override;
 
+			using GpuCommandBuffer::CopyBufferToBuffer;
+			using GpuCommandBuffer::CopyBufferToTexture;
+			using GpuCommandBuffer::CopyTextureToBuffer;
+			using GpuCommandBuffer::CopyTexture;
+
 			/** Copies between the CPU memory of the buffers, so data written through staging buffers reaches the destination. */
-			void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> ranges) override;
+			void CopyBufferToBuffer(IGpuBufferResource& source, IGpuBufferResource& destination, TArrayView<const GpuBufferCopyRange> ranges) override;
+			void CopyBufferToTexture(IGpuBufferResource& source, IGpuImageResource& destination, const GpuImageCopyInformation& information) override {}
+			void CopyTextureToBuffer(IGpuImageResource& source, IGpuBufferResource& destination, const GpuImageCopyInformation& information) override {}
+			void CopyTexture(IGpuImageResource& source, IGpuImageResource& destination, const GpuImageCopyInformation& information) override {}
 
 			/** Writes a black image, the contents of every null window. */
 			void CopyWindowToBuffer(const TShared<RenderWindow>& source, const TShared<GpuBuffer>& destination) override;
@@ -65,6 +73,9 @@ namespace b3d
 
 			/** Accepts every barrier, since nothing executes. */
 			bool RecordBarriers(const GpuBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split) override { return true; }
+
+			/** @copydoc RecordBarriers(const GpuBarriers&, GpuBarrierPhase, GpuSplitBarrier*) */
+			bool RecordBarriers(const GpuResourceBarriers& barriers) override { return true; }
 
 			/** Sets the command buffer state. Only accessible by friends (pool and queue). */
 			void SetState(GpuCommandBufferState state) { mState = state; }

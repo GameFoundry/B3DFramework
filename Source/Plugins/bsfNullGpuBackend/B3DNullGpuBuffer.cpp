@@ -50,14 +50,16 @@ namespace b3d
 
 		void NullGpuBuffer::SwapInternalBuffer(GpuBuffer& other)
 		{
+			// The CPU memory moves with the native resource that refers to it
 			NullGpuBuffer& otherBuffer = static_cast<NullGpuBuffer&>(other);
 			std::swap(mAllocation, otherBuffer.mAllocation);
 			std::swap(mBuffer, otherBuffer.mBuffer);
+			std::swap(mMappedMemory, otherBuffer.mMappedMemory);
 		}
 
 		NullBufferResource* NullGpuBuffer::CreateBufferResource()
 		{
-			return static_cast<NullGpuDevice&>(GetDevice()).GetResourceManager().Create<NullBufferResource>(GetName());
+			return static_cast<NullGpuDevice&>(GetDevice()).GetResourceManager().Create<NullBufferResource>(GetName(), static_cast<u8*>(mMappedMemory));
 		}
 	} // namespace render
 } // namespace b3d

@@ -5,8 +5,8 @@
 
 namespace b3d::render
 {
-	NullBufferResource::NullBufferResource(NullResourceManager* owner, const StringView& name)
-		: IGpuBufferResource(owner, name)
+	NullBufferResource::NullBufferResource(NullResourceManager* owner, const StringView& name, u8* memory)
+		: IGpuBufferResource(owner, name), mMemory(memory)
 	{}
 
 	NullImageResource::NullImageResource(NullResourceManager* owner, const StringView& name, u32 faceCount, u32 mipLevelCount, GpuTextureAspectFlags aspectMask)

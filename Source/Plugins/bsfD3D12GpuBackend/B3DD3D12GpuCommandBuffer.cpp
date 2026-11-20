@@ -63,6 +63,29 @@ namespace
 
 		return true;
 	}
+
+	/**
+	 * Returns the footprint of the subresource of @p image that @p information describes, laid out in a buffer as it describes.
+	 *
+	 * @param	device		Device that created @p image.
+	 * @param	image		Image whose subresource to describe.
+	 * @param	information	Subresource, and the layout of its data in the buffer.
+	 */
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT GetBufferFootprint(ID3D12Device& device, const D3D12Image& image, const GpuImageCopyInformation& information)
+	{
+		const D3D12_RESOURCE_DESC description = image.GetD3D12Resource()->GetDesc();
+		const u32 subresourceIndex = image.GetNativeSubresourceIndex(information.ArrayLayer, information.MipLevel);
+
+		D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
+		device.GetCopyableFootprints(&description, subresourceIndex, 1, information.BufferOffset, &footprint, nullptr, nullptr, nullptr);
+
+		// The buffer is laid out with the pitch the information describes, rather than the tightest pitch D3D12 allows
+		u32 rowPitch, slicePitch;
+		TextureUtility::GetPitchInBytes(information.BufferPitch, information.Format, rowPitch, slicePitch);
+		footprint.Footprint.RowPitch = rowPitch;
+
+		return footprint;
+	}
 }
 
 D3D12GpuCommandBufferPool::D3D12GpuCommandBufferPool(D3D12GpuDevice& device, const GpuCommandBufferPoolCreateInformation& createInformation) : GpuCommandBufferPool(device, createInformation)
@@ -1480,75 +1503,106 @@ Area2I D3D12GpuCommandBuffer::GetRenderPassArea() const
 /* 								COPY COMMANDS                     		*/
 /************************************************************************/
 
-void D3D12GpuCommandBuffer::CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> ranges)
+void D3D12GpuCommandBuffer::CopyBufferToBuffer(IGpuBufferResource& source, IGpuBufferResource& destination, TArrayView<const GpuBufferCopyRange> ranges)
 {
-	GpuCommandBuffer::CopyBufferToBuffer(source, destination, ranges);
 	EnsureValidThread();
 	B3D_ASSERT(mState == GpuCommandBufferState::Recording && "Command buffer must be in recording state");
 
-	if (!B3D_ENSURE(source != nullptr && destination != nullptr))
-		return;
-
-	D3D12GpuBuffer* d3d12Source = static_cast<D3D12GpuBuffer*>(source.get());
-	D3D12GpuBuffer* d3d12Destination = static_cast<D3D12GpuBuffer*>(destination.get());
-
-	ID3D12Resource* sourceResource = d3d12Source->GetD3D12Resource();
-	ID3D12Resource* destinationResource = d3d12Destination->GetD3D12Resource();
-	B3D_ASSERT(sourceResource != nullptr && destinationResource != nullptr && "Source and destination buffers must be valid");
-
+	D3D12Buffer& sourceBuffer = static_cast<D3D12Buffer&>(source);
+	D3D12Buffer& destinationBuffer = static_cast<D3D12Buffer&>(destination);
 	for(const GpuBufferCopyRange& range : ranges)
 	{
-		mResourceTracker.TrackBufferUsage(d3d12Source->GetD3D12Buffer(), GpuAccessFlag::Read, range.SourceOffset);
-		mResourceTracker.TrackBufferUsage(d3d12Destination->GetD3D12Buffer(), GpuAccessFlag::Write, range.DestinationOffset);
+		mResourceTracker.TrackBufferUsage(&sourceBuffer, GpuAccessFlag::Read, range.SourceOffset);
+		mResourceTracker.TrackBufferUsage(&destinationBuffer, GpuAccessFlag::Write, range.DestinationOffset);
 
-		mCommandList->CopyBufferRegion(destinationResource, range.DestinationOffset, sourceResource, range.SourceOffset, range.Size);
+		mCommandList->CopyBufferRegion(destinationBuffer.GetD3D12Resource(), range.DestinationOffset, sourceBuffer.GetD3D12Resource(), range.SourceOffset, range.Size);
 	}
 }
 
-void D3D12GpuCommandBuffer::CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer)
+void D3D12GpuCommandBuffer::CopyBufferToTexture(IGpuBufferResource& source, IGpuImageResource& destination, const GpuImageCopyInformation& information)
 {
-	GpuCommandBuffer::CopyBufferToTexture(source, destination, bufferOffset, mipLevel, arrayLayer);
 	EnsureValidThread();
 	B3D_ASSERT(mState == GpuCommandBufferState::Recording && "Command buffer must be in recording state");
 
-	if (!B3D_ENSURE(source != nullptr && destination != nullptr))
-		return;
+	D3D12Buffer& sourceBuffer = static_cast<D3D12Buffer&>(source);
+	D3D12Image& destinationImage = static_cast<D3D12Image&>(destination);
 
-	D3D12GpuBuffer* d3d12Source = static_cast<D3D12GpuBuffer*>(source.get());
-	D3D12Texture* d3d12Destination = static_cast<D3D12Texture*>(destination.get());
-	D3D12Image* destinationImage = d3d12Destination->GetD3D12Image();
-
-	// Track the transfer
-	const GpuTextureSubresourceRange subresourceRange(mipLevel, 1, arrayLayer, 1, destinationImage->GetRange().AspectMask);
-	mResourceTracker.TrackBufferUsage(d3d12Source->GetD3D12Buffer(), GpuAccessFlag::Read);
-	mResourceTracker.TrackImageUsage(destinationImage, subresourceRange, GpuAccessFlag::Write);
-
-	ID3D12Resource* textureResource = destinationImage->GetD3D12Resource();
-	const D3D12_RESOURCE_DESC textureDesc = textureResource->GetDesc();
-
-	// Compute the placed footprint for the requested subresource from the destination texture description.
-	const u32 subresourceIndex = mipLevel + arrayLayer * textureDesc.MipLevels;
-
-	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
-	GetD3D12GpuDevice().GetD3D12Device()->GetCopyableFootprints(&textureDesc, subresourceIndex, 1, bufferOffset, &footprint, nullptr, nullptr, nullptr);
-
-	// The staging buffer was laid out using the texture's staging pitch, which is what the copy must read with
-	footprint.Footprint.RowPitch = d3d12Destination->GetStagingRowPitchInBytes(mipLevel);
-
-	ID3D12Resource* sourceResource = d3d12Source->GetD3D12Resource();
-	B3D_ASSERT(sourceResource != nullptr && textureResource != nullptr && "Source buffer and destination texture must be valid");
+	const GpuTextureSubresourceRange subresourceRange(information.MipLevel, 1, information.ArrayLayer, 1, destinationImage.GetRange().AspectMask);
+	mResourceTracker.TrackBufferUsage(&sourceBuffer, GpuAccessFlag::Read);
+	mResourceTracker.TrackImageUsage(&destinationImage, subresourceRange, GpuAccessFlag::Write);
 
 	D3D12_TEXTURE_COPY_LOCATION sourceLocation = {};
-	sourceLocation.pResource = sourceResource;
+	sourceLocation.pResource = sourceBuffer.GetD3D12Resource();
 	sourceLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-	sourceLocation.PlacedFootprint = footprint;
+	sourceLocation.PlacedFootprint = GetBufferFootprint(*GetD3D12GpuDevice().GetD3D12Device(), destinationImage, information);
 
 	D3D12_TEXTURE_COPY_LOCATION destinationLocation = {};
-	destinationLocation.pResource = textureResource;
+	destinationLocation.pResource = destinationImage.GetD3D12Resource();
 	destinationLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-	destinationLocation.SubresourceIndex = subresourceIndex;
+	destinationLocation.SubresourceIndex = destinationImage.GetNativeSubresourceIndex(information.ArrayLayer, information.MipLevel);
 
 	mCommandList->CopyTextureRegion(&destinationLocation, 0, 0, 0, &sourceLocation, nullptr);
+}
+
+void D3D12GpuCommandBuffer::CopyTextureToBuffer(IGpuImageResource& source, IGpuBufferResource& destination, const GpuImageCopyInformation& information)
+{
+	EnsureValidThread();
+	B3D_ASSERT(mState == GpuCommandBufferState::Recording && "Command buffer must be in recording state");
+
+	D3D12Image& sourceImage = static_cast<D3D12Image&>(source);
+	D3D12Buffer& destinationBuffer = static_cast<D3D12Buffer&>(destination);
+
+	const GpuTextureSubresourceRange subresourceRange(information.MipLevel, 1, information.ArrayLayer, 1, sourceImage.GetRange().AspectMask);
+	mResourceTracker.TrackImageUsage(&sourceImage, subresourceRange, GpuAccessFlag::Read);
+	mResourceTracker.TrackBufferUsage(&destinationBuffer, GpuAccessFlag::Write);
+
+	D3D12_TEXTURE_COPY_LOCATION sourceLocation = {};
+	sourceLocation.pResource = sourceImage.GetD3D12Resource();
+	sourceLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+	sourceLocation.SubresourceIndex = sourceImage.GetNativeSubresourceIndex(information.ArrayLayer, information.MipLevel);
+
+	D3D12_TEXTURE_COPY_LOCATION destinationLocation = {};
+	destinationLocation.pResource = destinationBuffer.GetD3D12Resource();
+	destinationLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+	destinationLocation.PlacedFootprint = GetBufferFootprint(*GetD3D12GpuDevice().GetD3D12Device(), sourceImage, information);
+
+	mCommandList->CopyTextureRegion(&destinationLocation, 0, 0, 0, &sourceLocation, nullptr);
+}
+
+void D3D12GpuCommandBuffer::CopyTexture(IGpuImageResource& source, IGpuImageResource& destination, const GpuImageCopyInformation& information)
+{
+	EnsureValidThread();
+	B3D_ASSERT(mState == GpuCommandBufferState::Recording && "Command buffer must be in recording state");
+
+	D3D12Image& sourceImage = static_cast<D3D12Image&>(source);
+	D3D12Image& destinationImage = static_cast<D3D12Image&>(destination);
+
+	const GpuTextureSubresourceRange& fullRange = sourceImage.GetRange();
+	mResourceTracker.TrackImageUsage(&sourceImage, GpuTextureSubresourceRange(information.MipLevel, 1, 0, fullRange.ArrayLayerCount, fullRange.AspectMask), GpuAccessFlag::Read);
+	mResourceTracker.TrackImageUsage(&destinationImage, GpuTextureSubresourceRange(information.MipLevel, 1, 0, fullRange.ArrayLayerCount, destinationImage.GetRange().AspectMask), GpuAccessFlag::Write);
+
+	// Depth-stencil formats keep stencil in a second plane, whose subresource indices follow every mip level and layer of the first
+	const u32 planeCount = fullRange.AspectMask.IsSet(GpuTextureAspectFlag::Depth) && fullRange.AspectMask.IsSet(GpuTextureAspectFlag::Stencil) ? 2 : 1;
+	const u32 subresourcesPerPlane = fullRange.ArrayLayerCount * fullRange.MipLevelCount;
+	for(u32 plane = 0; plane < planeCount; plane++)
+	{
+		for(u32 layer = 0; layer < fullRange.ArrayLayerCount; layer++)
+		{
+			const u32 subresourceIndex = plane * subresourcesPerPlane + sourceImage.GetNativeSubresourceIndex(layer, information.MipLevel);
+
+			D3D12_TEXTURE_COPY_LOCATION sourceLocation = {};
+			sourceLocation.pResource = sourceImage.GetD3D12Resource();
+			sourceLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+			sourceLocation.SubresourceIndex = subresourceIndex;
+
+			D3D12_TEXTURE_COPY_LOCATION destinationLocation = {};
+			destinationLocation.pResource = destinationImage.GetD3D12Resource();
+			destinationLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+			destinationLocation.SubresourceIndex = subresourceIndex;
+
+			mCommandList->CopyTextureRegion(&destinationLocation, 0, 0, 0, &sourceLocation, nullptr);
+		}
+	}
 }
 
 bool D3D12GpuCommandBuffer::CopyTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureCopyInformation& copyInformation)
@@ -1753,38 +1807,6 @@ bool D3D12GpuCommandBuffer::BlitTexture(const TShared<Texture>& source, const TS
 	return true;
 }
 
-void D3D12GpuCommandBuffer::CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset)
-{
-	GpuCommandBuffer::CopyTextureToBuffer(source, destination, mipLevel, arrayLayer, bufferOffset);
-	EnsureValidThread();
-
-	if (!B3D_ENSURE(source != nullptr && destination != nullptr))
-		return;
-
-	D3D12Texture* d3d12Source = static_cast<D3D12Texture*>(source.get());
-	D3D12GpuBuffer* d3d12Destination = static_cast<D3D12GpuBuffer*>(destination.get());
-	D3D12Image* sourceImage = d3d12Source->GetD3D12Image();
-
-	const GpuTextureSubresourceRange subresourceRange(mipLevel, 1, arrayLayer, 1, sourceImage->GetRange().AspectMask);
-
-	mResourceTracker.TrackImageUsage(sourceImage, subresourceRange, GpuAccessFlag::Read);
-	mResourceTracker.TrackBufferUsage(d3d12Destination->GetD3D12Buffer(), GpuAccessFlag::Write);
-
-	ID3D12Resource* textureResource = sourceImage->GetD3D12Resource();
-	const D3D12_RESOURCE_DESC textureDesc = textureResource->GetDesc();
-
-	// Compute the placed footprint for the requested subresource from the source texture description.
-	const u32 subresourceIndex = mipLevel + arrayLayer * textureDesc.MipLevels;
-
-	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
-	GetD3D12GpuDevice().GetD3D12Device()->GetCopyableFootprints(&textureDesc, subresourceIndex, 1, bufferOffset, &footprint, nullptr, nullptr, nullptr);
-
-	// The staging buffer is laid out using the texture's staging pitch, which is what the copy must write with
-	footprint.Footprint.RowPitch = d3d12Source->GetStagingRowPitchInBytes(mipLevel);
-
-	CopyTextureToBuffer(textureResource, d3d12Destination->GetD3D12Resource(), footprint, subresourceIndex);
-}
-
 void D3D12GpuCommandBuffer::CopyWindowToBuffer(const TShared<RenderWindow>& source, const TShared<GpuBuffer>& destination)
 {
 	GpuCommandBuffer::CopyWindowToBuffer(source, destination);
@@ -1803,51 +1825,13 @@ void D3D12GpuCommandBuffer::CopyWindowToBuffer(const TShared<RenderWindow>& sour
 	if (!layout || sourceImage == nullptr || destinationBuffer == nullptr)
 		return;
 
-	const u32 rowPitchBytes = layout->Pitch.RowPitch * PixelUtility::GetBlockSize(layout->Format);
-	CopyImageToBuffer(sourceImage, destinationBuffer, layout->Width, layout->Height, rowPitchBytes);
-}
+	GpuImageCopyInformation information;
+	information.Width = layout->Width;
+	information.Height = layout->Height;
+	information.Format = layout->Format;
+	information.BufferPitch = layout->Pitch;
 
-void D3D12GpuCommandBuffer::CopyImageToBuffer(D3D12Image* source, D3D12Buffer* destination, u32 width, u32 height, u32 rowPitchBytes)
-{
-	EnsureValidThread();
-
-	if (!B3D_ENSURE(source != nullptr && destination != nullptr))
-		return;
-
-	// Track the transfer
-	const GpuTextureSubresourceRange subresourceRange(0, 1, 0, 1, source->GetRange().AspectMask);
-
-	mResourceTracker.TrackImageUsage(source, subresourceRange, GpuAccessFlag::Read);
-	mResourceTracker.TrackBufferUsage(destination, GpuAccessFlag::Write);
-
-	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
-	footprint.Offset = 0;
-	footprint.Footprint.Format = source->GetViewFormat();
-	footprint.Footprint.Width = width;
-	footprint.Footprint.Height = height;
-	footprint.Footprint.Depth = 1;
-	footprint.Footprint.RowPitch = rowPitchBytes;
-
-	CopyTextureToBuffer(source->GetD3D12Resource(), destination->GetD3D12Resource(), footprint, 0);
-}
-
-void D3D12GpuCommandBuffer::CopyTextureToBuffer(ID3D12Resource* source, ID3D12Resource* destination, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout, u32 subresourceIndex)
-{
-	EnsureValidThread();
-	B3D_ASSERT(mState == GpuCommandBufferState::Recording && "Command buffer must be in recording state");
-	B3D_ASSERT(source && destination && "Source texture and destination buffer must be valid");
-
-	D3D12_TEXTURE_COPY_LOCATION sourceLocation = {};
-	sourceLocation.pResource = source;
-	sourceLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-	sourceLocation.SubresourceIndex = subresourceIndex;
-
-	D3D12_TEXTURE_COPY_LOCATION destinationLocation = {};
-	destinationLocation.pResource = destination;
-	destinationLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-	destinationLocation.PlacedFootprint = layout;
-
-	mCommandList->CopyTextureRegion(&destinationLocation, 0, 0, 0, &sourceLocation, nullptr);
+	CopyTextureToBuffer(*sourceImage, *destinationBuffer, information);
 }
 
 D3D12Framebuffer* D3D12GpuCommandBuffer::AcquireWindowFramebuffer(RenderWindow& renderWindow)
@@ -1866,6 +1850,16 @@ D3D12Framebuffer* D3D12GpuCommandBuffer::AcquireWindowFramebuffer(RenderWindow& 
 }
 
 bool D3D12GpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split)
+{
+	return RecordBarrierBatch(barriers, GpuResourceBarriers(), phase, split);
+}
+
+bool D3D12GpuCommandBuffer::RecordBarriers(const GpuResourceBarriers& barriers)
+{
+	return RecordBarrierBatch(GpuBarriers(), barriers, GpuBarrierPhase::Full, nullptr);
+}
+
+bool D3D12GpuCommandBuffer::RecordBarrierBatch(const GpuBarriers& barriers, const GpuResourceBarriers& resourceBarriers, GpuBarrierPhase phase, GpuSplitBarrier* split)
 {
 	// What the barriers of each case record:
 	//
@@ -2079,6 +2073,9 @@ bool D3D12GpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarri
 		fnAddBufferBarrier(*buffer, barrier);
 	}
 
+	for(const GpuBufferResourceBarrier& barrier : resourceBarriers.BufferBarriers)
+		fnAddBufferBarrier(static_cast<D3D12Buffer&>(*barrier.Object), barrier);
+
 	for(const GpuAccelerationStructureBarrier& barrier : barriers.AccelerationStructureBarriers)
 	{
 		auto* const gpuAccelerationStructure = static_cast<D3D12GpuAccelerationStructure*>(barrier.Object.get());
@@ -2097,6 +2094,12 @@ bool D3D12GpuCommandBuffer::RecordBarriers(const GpuBarriers& barriers, GpuBarri
 			continue;
 
 		fnAddImageBarrier(*image, GpuBackendUtility::ClampRange(barrier.SubresourceRange, image->GetRange()), barrier);
+	}
+
+	for(const GpuImageResourceBarrier& barrier : resourceBarriers.ImageBarriers)
+	{
+		D3D12Image& image = static_cast<D3D12Image&>(*barrier.Object);
+		fnAddImageBarrier(image, GpuBackendUtility::ClampRange(barrier.SubresourceRange, image.GetRange()), barrier);
 	}
 
 	for(const GpuRenderTargetBarrier& barrier : barriers.RenderTargetBarriers)

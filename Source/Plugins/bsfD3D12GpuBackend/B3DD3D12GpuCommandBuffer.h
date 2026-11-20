@@ -109,11 +109,14 @@ namespace b3d
 			void DisableScissorTest() override;
 			void SetStencilReferenceValue(u32 value) override;
 			using GpuCommandBuffer::CopyBufferToBuffer;
-			void CopyBufferToBuffer(const TShared<GpuBuffer>& source, const TShared<GpuBuffer>& destination, TArrayView<const GpuBufferCopyRange> ranges) override;
-			void CopyBufferToTexture(const TShared<GpuBuffer>& source, const TShared<Texture>& destination, u32 bufferOffset, u32 mipLevel, u32 arrayLayer) override;
-			void CopyTextureToBuffer(const TShared<Texture>& source, const TShared<GpuBuffer>& destination, u32 mipLevel, u32 arrayLayer, u32 bufferOffset) override;
+			using GpuCommandBuffer::CopyBufferToTexture;
+			using GpuCommandBuffer::CopyTextureToBuffer;
 			void CopyWindowToBuffer(const TShared<RenderWindow>& source, const TShared<GpuBuffer>& destination) override;
 			bool CopyTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureCopyInformation& copyInformation) override;
+			void CopyBufferToBuffer(IGpuBufferResource& source, IGpuBufferResource& destination, TArrayView<const GpuBufferCopyRange> ranges) override;
+			void CopyBufferToTexture(IGpuBufferResource& source, IGpuImageResource& destination, const GpuImageCopyInformation& information) override;
+			void CopyTextureToBuffer(IGpuImageResource& source, IGpuBufferResource& destination, const GpuImageCopyInformation& information) override;
+			void CopyTexture(IGpuImageResource& source, IGpuImageResource& destination, const GpuImageCopyInformation& information) override;
 			bool BlitTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureBlitInformation& blitInformation) override;
 			void WriteTimestamp(GpuQueryId query, const TShared<GpuQueryPool>& queryPool) override;
 			void BeginQuery(GpuQueryId query, const TShared<GpuQueryPool>& queryPool, GpuQueryFlags flags) override;
@@ -174,38 +177,15 @@ namespace b3d
 			/** Releases the current recording and returns the command buffer to the Ready state. */
 			void Reset();
 
-			/************************************************************************/
-			/* 								COPY COMMANDS                     		*/
-			/************************************************************************/
-
-			/**
-			 * Copies the contents of the source texture to the destination buffer at the ID3D12Resource level.
-			 *
-			 * @param	source				Source texture to copy from.
-			 * @param	destination			Destination buffer to copy to.
-			 * @param	layout				Footprint layout describing the buffer data organization.
-			 * @param	subresourceIndex	Source texture subresource index.
-			 */
-			void CopyTextureToBuffer(ID3D12Resource* source, ID3D12Resource* destination, const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout, u32 subresourceIndex);
-
-			/**
-			 * Copies the top-level subresource of an image into a buffer, including the required resource tracking and
-			 * state transitions. Used for reading back images that have no owning texture (e.g. swap chain back buffers).
-			 *
-			 * @param	source			Image to copy from. Only subresource 0 (first face, top mip) is copied.
-			 * @param	destination		Buffer to copy into, at offset 0.
-			 * @param	width			Width of the image, in pixels.
-			 * @param	height			Height of the image, in pixels.
-			 * @param	rowPitchBytes	Byte pitch between rows in the buffer. Must be a multiple of
-			 *							D3D12_TEXTURE_DATA_PITCH_ALIGNMENT.
-			 */
-			void CopyImageToBuffer(D3D12Image* source, D3D12Buffer* destination, u32 width, u32 height, u32 rowPitchBytes);
-
 		private:
 			friend class D3D12GpuCommandBufferPool;
 			friend class D3D12GpuQueue;
 
 			bool RecordBarriers(const GpuBarriers& barriers, GpuBarrierPhase phase, GpuSplitBarrier* split) override;
+			bool RecordBarriers(const GpuResourceBarriers& barriers) override;
+
+			/** Records the barriers of proxies in @p barriers and of native resources in @p resourceBarriers in one batch. See RecordBarriers(). */
+			bool RecordBarrierBatch(const GpuBarriers& barriers, const GpuResourceBarriers& resourceBarriers, GpuBarrierPhase phase, GpuSplitBarrier* split);
 
 			/** Creates a command buffer wrapping @p commandList. */
 			D3D12GpuCommandBuffer(D3D12GpuDevice& device, D3D12GpuCommandBufferPool& pool, u32 id, ID3D12GraphicsCommandList7* commandList, ID3D12CommandAllocator* commandAllocator, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
