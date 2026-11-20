@@ -1711,7 +1711,7 @@ void GpuBackendTestSuite::TestCpuWrittenBufferRelocation()
 				words[wordIndex] = 0xA0000000 + wordIndex;
 
 			render::GpuBufferUtility::Write(buffer, 0, kWordCount * sizeof(u32), words.Data());
-			device->GetTransferQueue().SubmitQueuedTransfers();
+			device->GetTransferQueue().SubmitAllQueuedTransfers();
 			device->WaitUntilIdle();
 
 			GpuBindlessHeaps* const bindlessHeaps = device->GetBindlessHeaps();
@@ -1753,7 +1753,7 @@ void GpuBackendTestSuite::TestCpuWrittenBufferRelocation()
 					words.Data() + kRewrittenWordCount);
 
 				defragmenter.Run();
-				device->GetTransferQueue().SubmitQueuedTransfers();
+				device->GetTransferQueue().SubmitAllQueuedTransfers();
 
 				isMoved = buffer->GetGpuResource() != originalNativeResource;
 				if(isMoved)
@@ -1762,7 +1762,7 @@ void GpuBackendTestSuite::TestCpuWrittenBufferRelocation()
 						words[wordIndex] = 0xB0000000 + wordIndex;
 
 					render::GpuBufferUtility::Write(buffer, 0, kRewrittenWordCount * sizeof(u32), words.Data());
-					device->GetTransferQueue().SubmitQueuedTransfers();
+					device->GetTransferQueue().SubmitAllQueuedTransfers();
 				}
 
 				device->WaitUntilIdle();
@@ -1986,11 +1986,11 @@ void GpuBackendTestSuite::TestTransferQueue()
 			{
 				fnFillWords(words, 0xAA000000);
 				render::GpuBufferUtility::Write(bindlessBuffer, 0, kSize, words);
-				B3D_TEST_ASSERT(transferQueue.HasUntrackedTransfers())
+				B3D_TEST_ASSERT(transferQueue.HasBindlessTransfers())
 
 				context->SubmitCommandBuffer(pool->Create(render::GpuCommandBufferCreateInformation::Create("Unrelated")));
 				device->WaitUntilIdle();
-				B3D_TEST_ASSERT(!fnHasQueuedTransfers(*bindlessBuffer) && !transferQueue.HasUntrackedTransfers())
+				B3D_TEST_ASSERT(!fnHasQueuedTransfers(*bindlessBuffer) && !transferQueue.HasBindlessTransfers())
 				B3D_TEST_ASSERT(fnSubmitAndCompare(fnCreateReadback(bindlessBuffer, "Bindless write"), words))
 			}
 		}

@@ -234,7 +234,7 @@ namespace
 		const TShared<render::Mesh> mesh = render::Mesh::Create(meshData, meshInformation);
 
 		// The mesh's initial contents are written through the transfer queue
-		device.GetTransferQueue().SubmitQueuedTransfers();
+		device.GetTransferQueue().SubmitAllQueuedTransfers();
 		device.WaitUntilIdle();
 
 		return mesh;

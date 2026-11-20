@@ -20,7 +20,7 @@ namespace
 	constexpr u64 kEpochStagingBudget = 64ull * 1024 * 1024;
 
 	/** Records a copy from @p source into @p destination, taking the destination from its resting state and returning it there. */
-	void RecordBufferCopy(GpuCommandBuffer& commandBuffer, const TShared<render::GpuBuffer>& source, const TShared<render::GpuBuffer>& destination, u32 destinationOffset, u32 length)
+	void RecordBufferUpload(GpuCommandBuffer& commandBuffer, const TShared<render::GpuBuffer>& source, const TShared<render::GpuBuffer>& destination, u32 destinationOffset, u32 length)
 	{
 		const GpuAccessState restingState = GpuBackendUtility::GetRestingState(*destination, commandBuffer.GetQueueType());
 		const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
@@ -34,7 +34,7 @@ namespace
 	 * Records a copy from @p source into one subresource of @p destination, taking the subresource from its resting state and returning it
 	 * there. The copy overwrites the whole subresource, so its old contents are discarded.
 	 */
-	void RecordTextureCopy(GpuCommandBuffer& commandBuffer, const TShared<render::GpuBuffer>& source, const TShared<render::Texture>& destination, u32 mipLevel, u32 arrayLayer)
+	void RecordTextureUpload(GpuCommandBuffer& commandBuffer, const TShared<render::GpuBuffer>& source, const TShared<render::Texture>& destination, u32 mipLevel, u32 arrayLayer)
 	{
 		const GpuAccessState restingState = GpuBackendUtility::GetRestingState(*destination, commandBuffer.GetQueueType());
 		const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write, GpuImageLayout::TransferDestination);
@@ -161,12 +161,12 @@ void GpuStagingBuffer::Release()
 
 	if(mQueue != nullptr)
 	{
-		mQueue->ReleaseStagingBuffer(mEpoch);
+		mQueue->NotifyStagingBufferReleased(mEpoch);
 		mQueue = nullptr;
 	}
 }
 
-void GpuTransferQueue::QueuedRead::Complete(bool isExecuted)
+void GpuTransferQueue::AsyncRead::Complete(bool isExecuted)
 {
 	// Each read completes once, from whichever of its command buffer's completion and destruction comes first
 	if(Staging.GetBuffer() == nullptr)
@@ -199,12 +199,12 @@ void GpuTransferQueue::QueuedRead::Complete(bool isExecuted)
 	Staging = GpuStagingBuffer();
 }
 
-GpuTransferQueue::ReleasedProxies& GpuTransferQueue::ReleasedProxies::operator=(ReleasedProxies&& other) noexcept
+GpuTransferQueue::ProxiesToRelease& GpuTransferQueue::ProxiesToRelease::operator=(ProxiesToRelease&& other) noexcept
 {
 	if(this == &other)
 		return *this;
 
-	for(const TShared<QueuedRead>& read : Reads)
+	for(const TShared<AsyncRead>& read : Reads)
 		read->Complete(false);
 
 	Buffers = std::move(other.Buffers);
@@ -214,9 +214,9 @@ GpuTransferQueue::ReleasedProxies& GpuTransferQueue::ReleasedProxies::operator=(
 	return *this;
 }
 
-GpuTransferQueue::ReleasedProxies::~ReleasedProxies()
+GpuTransferQueue::ProxiesToRelease::~ProxiesToRelease()
 {
-	for(const TShared<QueuedRead>& read : Reads)
+	for(const TShared<AsyncRead>& read : Reads)
 		read->Complete(false);
 }
 
@@ -231,15 +231,15 @@ GpuTransferQueue::~GpuTransferQueue()
 	// The device is idle by now. The staging buffers, resources and reads are released before the allocators the staging buffers live in,
 	// and the reads release their staging buffers into the epochs, so those go last.
 	{
-		ReleasedProxies releasedProxies;
+		ProxiesToRelease proxiesToRelease;
 		{
 			Lock lock(mMutex);
-			while(!mQueuedTransfersByDestination.empty())
-				DropEntry(mQueuedTransfersByDestination.begin(), releasedProxies);
+			while(!mTransferListsByResource.empty())
+				DropTransferList(mTransferListsByResource.begin(), proxiesToRelease);
 		}
 	}
 
-	mRecordedDestinations = ReleasedProxies();
+	mSubmitThreadProxiesToRelease = ProxiesToRelease();
 	mEpochs.clear();
 
 	mStagingAllocators.clear();
@@ -271,7 +271,7 @@ GpuStagingBuffer GpuTransferQueue::CreateStagingBuffer(const GpuBufferCreateInfo
 
 		epoch = mCurrentEpoch.load(std::memory_order_relaxed);
 		StagingEpoch& stagingEpoch = GetEpoch(epoch);
-		stagingEpoch.OutstandingCount++;
+		stagingEpoch.UnreleasedBufferCount++;
 		stagingEpoch.StagingByteCount += createInformation.Staging.Size;
 		endEpoch = stagingEpoch.StagingByteCount >= kEpochStagingBudget;
 
@@ -289,7 +289,7 @@ GpuStagingBuffer GpuTransferQueue::CreateStagingBuffer(const GpuBufferCreateInfo
 
 	if(buffer == nullptr)
 	{
-		ReleaseStagingBuffer(epoch);
+		NotifyStagingBufferReleased(epoch);
 		return {};
 	}
 
@@ -317,7 +317,7 @@ void GpuTransferQueue::QueueUpload(GpuStagingBuffer&& source, const TShared<rend
 	upload.Length = length;
 	source.mQueue = nullptr;
 
-	ReleasedProxies releasedProxies;
+	ProxiesToRelease proxiesToRelease;
 	Lock lock(mMutex);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
@@ -329,13 +329,13 @@ void GpuTransferQueue::QueueUpload(GpuStagingBuffer&& source, const TShared<rend
 	}
 #endif
 
-	QueuedResourceTransfers& entry = GetOrAddEntry(*destinationResource, destination);
+	TransferList& transferList = FindOrAddTransferList(*destinationResource, destination);
 
 	const u32 destinationEnd = destinationOffset + length;
-	AddUpload(entry, std::move(upload), [destinationOffset, destinationEnd](const QueuedTransfer& queuedUpload)
+	AppendUpload(transferList, std::move(upload), [destinationOffset, destinationEnd](const QueuedTransfer& queuedUpload)
 	{
 		return queuedUpload.Offset >= destinationOffset && queuedUpload.Offset + queuedUpload.Length <= destinationEnd;
-	}, releasedProxies);
+	}, proxiesToRelease);
 }
 
 void GpuTransferQueue::QueueUpload(GpuStagingBuffer&& source, const TShared<render::Texture>& destination, u32 mipLevel, u32 arrayLayer)
@@ -356,7 +356,7 @@ void GpuTransferQueue::QueueUpload(GpuStagingBuffer&& source, const TShared<rend
 	upload.ArrayLayer = arrayLayer;
 	source.mQueue = nullptr;
 
-	ReleasedProxies releasedProxies;
+	ProxiesToRelease proxiesToRelease;
 	Lock lock(mMutex);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
@@ -368,33 +368,33 @@ void GpuTransferQueue::QueueUpload(GpuStagingBuffer&& source, const TShared<rend
 	}
 #endif
 
-	QueuedResourceTransfers& entry = GetOrAddEntry(*destinationResource, destination);
+	TransferList& transferList = FindOrAddTransferList(*destinationResource, destination);
 
 	// The copy overwrites the whole subresource
-	AddUpload(entry, std::move(upload), [mipLevel, arrayLayer](const QueuedTransfer& queuedUpload)
+	AppendUpload(transferList, std::move(upload), [mipLevel, arrayLayer](const QueuedTransfer& queuedUpload)
 	{
 		return queuedUpload.MipLevel == mipLevel && queuedUpload.ArrayLayer == arrayLayer;
-	}, releasedProxies);
+	}, proxiesToRelease);
 }
 
 template<class CoversFunction>
-void GpuTransferQueue::AddUpload(QueuedResourceTransfers& entry, QueuedTransfer&& upload, CoversFunction fnCovers, ReleasedProxies& releasedProxies)
+void GpuTransferQueue::AppendUpload(TransferList& transferList, QueuedTransfer&& upload, CoversFunction fnCovers, ProxiesToRelease& proxiesToRelease)
 {
 	// A read or a relocation queued in between needs the earlier uploads
-	for(u32 transferIndex = (u32)entry.Transfers.Size(); transferIndex-- > 0;)
+	for(u32 transferIndex = (u32)transferList.Transfers.Size(); transferIndex-- > 0;)
 	{
-		QueuedTransfer& queuedTransfer = entry.Transfers[transferIndex];
+		QueuedTransfer& queuedTransfer = transferList.Transfers[transferIndex];
 		if(queuedTransfer.Type != QueuedTransferType::Upload)
 			break;
 
 		if(!fnCovers(queuedTransfer))
 			continue;
 
-		DropTransfer(queuedTransfer, releasedProxies);
-		entry.Transfers.Erase(entry.Transfers.Begin() + transferIndex);
+		DropTransfer(queuedTransfer, proxiesToRelease);
+		transferList.Transfers.Erase(transferList.Transfers.Begin() + transferIndex);
 	}
 
-	entry.Transfers.Add(std::move(upload));
+	transferList.Transfers.Add(std::move(upload));
 }
 
 void GpuTransferQueue::RecordUpload(GpuStagingBuffer&& source, const TShared<render::GpuBuffer>& destination, u32 destinationOffset, u32 length, GpuCommandBuffer& commandBuffer)
@@ -402,10 +402,10 @@ void GpuTransferQueue::RecordUpload(GpuStagingBuffer&& source, const TShared<ren
 	if(!B3D_ENSURE(source.mQueue == this && destination != nullptr))
 		return;
 
-	RecordBufferCopy(commandBuffer, source.mBuffer, destination, destinationOffset, length);
+	RecordBufferUpload(commandBuffer, source.mBuffer, destination, destinationOffset, length);
 
 	Lock lock(mMutex);
-	AddRecordedBuffer(std::move(source.mBuffer), source.mEpoch);
+	RetainRecordedStagingBuffer(std::move(source.mBuffer), source.mEpoch);
 	source.mQueue = nullptr;
 }
 
@@ -414,16 +414,16 @@ void GpuTransferQueue::RecordUpload(GpuStagingBuffer&& source, const TShared<ren
 	if(!B3D_ENSURE(source.mQueue == this && destination != nullptr))
 		return;
 
-	RecordTextureCopy(commandBuffer, source.mBuffer, destination, mipLevel, arrayLayer);
+	RecordTextureUpload(commandBuffer, source.mBuffer, destination, mipLevel, arrayLayer);
 
 	Lock lock(mMutex);
-	AddRecordedBuffer(std::move(source.mBuffer), source.mEpoch);
+	RetainRecordedStagingBuffer(std::move(source.mBuffer), source.mEpoch);
 	source.mQueue = nullptr;
 }
 
 TAsyncOp<TShared<MemoryDataStream>> GpuTransferQueue::QueueRead(const TShared<render::GpuBuffer>& source, u32 offset, u32 length)
 {
-	const TShared<QueuedRead> read = B3DMakeShared<QueuedRead>();
+	const TShared<AsyncRead> read = B3DMakeShared<AsyncRead>();
 	read->Length = length;
 
 	if(!B3D_ENSURE(source != nullptr && length > 0 && offset + length <= source->GetTotalSize()))
@@ -440,13 +440,13 @@ TAsyncOp<TShared<MemoryDataStream>> GpuTransferQueue::QueueRead(const TShared<re
 	}
 
 	QueuedTransfer transfer;
-	transfer.Type = QueuedTransferType::Read;
+	transfer.Type = QueuedTransferType::CopyToStaging;
 	transfer.Staging = read->Staging.GetBuffer();
 	transfer.Offset = offset;
 	transfer.Length = length;
 	transfer.AsyncRead = read;
 
-	IGpuResource* const sourceResource = QueueReadTransfer(source, std::move(transfer));
+	IGpuResource* const sourceResource = AppendRead(source, std::move(transfer));
 	if(sourceResource == nullptr)
 	{
 		read->Complete(false);
@@ -459,7 +459,7 @@ TAsyncOp<TShared<MemoryDataStream>> GpuTransferQueue::QueueRead(const TShared<re
 
 TAsyncOp<TShared<PixelData>> GpuTransferQueue::QueueRead(const TShared<render::Texture>& source, u32 mipLevel, u32 arrayLayer)
 {
-	const TShared<QueuedRead> read = B3DMakeShared<QueuedRead>();
+	const TShared<AsyncRead> read = B3DMakeShared<AsyncRead>();
 	if(!B3D_ENSURE(source != nullptr))
 	{
 		read->TextureOperation.CompleteOperation(nullptr);
@@ -475,13 +475,13 @@ TAsyncOp<TShared<PixelData>> GpuTransferQueue::QueueRead(const TShared<render::T
 	}
 
 	QueuedTransfer transfer;
-	transfer.Type = QueuedTransferType::Read;
+	transfer.Type = QueuedTransferType::CopyToStaging;
 	transfer.Staging = read->Staging.GetBuffer();
 	transfer.MipLevel = mipLevel;
 	transfer.ArrayLayer = arrayLayer;
 	transfer.AsyncRead = read;
 
-	IGpuResource* const sourceResource = QueueReadTransfer(source, std::move(transfer));
+	IGpuResource* const sourceResource = AppendRead(source, std::move(transfer));
 	if(sourceResource == nullptr)
 	{
 		read->Complete(false);
@@ -498,12 +498,12 @@ void GpuTransferQueue::CopyToStagingAndWait(const TShared<render::GpuBuffer>& so
 		return;
 
 	QueuedTransfer transfer;
-	transfer.Type = QueuedTransferType::Read;
+	transfer.Type = QueuedTransferType::CopyToStaging;
 	transfer.Staging = destination.GetBuffer();
 	transfer.Offset = offset;
 	transfer.Length = length;
 
-	if(QueueReadTransfer(source, std::move(transfer)) != nullptr)
+	if(AppendRead(source, std::move(transfer)) != nullptr)
 		mDevice.GetSubmitThread().QueueReadSubmitAndWait(source);
 }
 
@@ -513,12 +513,12 @@ void GpuTransferQueue::CopyToStagingAndWait(const TShared<render::Texture>& sour
 		return;
 
 	QueuedTransfer transfer;
-	transfer.Type = QueuedTransferType::Read;
+	transfer.Type = QueuedTransferType::CopyToStaging;
 	transfer.Staging = destination.GetBuffer();
 	transfer.MipLevel = mipLevel;
 	transfer.ArrayLayer = arrayLayer;
 
-	if(QueueReadTransfer(source, std::move(transfer)) != nullptr)
+	if(AppendRead(source, std::move(transfer)) != nullptr)
 		mDevice.GetSubmitThread().QueueReadSubmitAndWait(source);
 }
 
@@ -528,9 +528,9 @@ void GpuTransferQueue::WaitUntilHostReadable(const TShared<render::GpuBuffer>& s
 		return;
 
 	QueuedTransfer transfer;
-	transfer.Type = QueuedTransferType::Read;
+	transfer.Type = QueuedTransferType::MakeHostReadable;
 
-	if(QueueReadTransfer(source, std::move(transfer)) != nullptr)
+	if(AppendRead(source, std::move(transfer)) != nullptr)
 		mDevice.GetSubmitThread().QueueReadSubmitAndWait(source);
 }
 
@@ -540,15 +540,15 @@ void GpuTransferQueue::WaitUntilHostReadable(const TShared<render::Texture>& sou
 		return;
 
 	QueuedTransfer transfer;
-	transfer.Type = QueuedTransferType::Read;
+	transfer.Type = QueuedTransferType::MakeHostReadable;
 	transfer.MipLevel = mipLevel;
 	transfer.ArrayLayer = arrayLayer;
 
-	if(QueueReadTransfer(source, std::move(transfer)) != nullptr)
+	if(AppendRead(source, std::move(transfer)) != nullptr)
 		mDevice.GetSubmitThread().QueueReadSubmitAndWait(source);
 }
 
-IGpuResource* GpuTransferQueue::QueueReadTransfer(const TShared<render::GpuBuffer>& buffer, QueuedTransfer&& transfer)
+IGpuResource* GpuTransferQueue::AppendRead(const TShared<render::GpuBuffer>& buffer, QueuedTransfer&& transfer)
 {
 	Lock lock(mMutex);
 
@@ -557,12 +557,12 @@ IGpuResource* GpuTransferQueue::QueueReadTransfer(const TShared<render::GpuBuffe
 		return nullptr;
 
 	transfer.Buffer = buffer;
-	GetOrAddEntry(*resource, buffer).Transfers.Add(std::move(transfer));
+	FindOrAddTransferList(*resource, buffer).Transfers.Add(std::move(transfer));
 
 	return resource;
 }
 
-IGpuResource* GpuTransferQueue::QueueReadTransfer(const TShared<render::Texture>& texture, QueuedTransfer&& transfer)
+IGpuResource* GpuTransferQueue::AppendRead(const TShared<render::Texture>& texture, QueuedTransfer&& transfer)
 {
 	Lock lock(mMutex);
 
@@ -571,74 +571,74 @@ IGpuResource* GpuTransferQueue::QueueReadTransfer(const TShared<render::Texture>
 		return nullptr;
 
 	transfer.Texture = texture;
-	GetOrAddEntry(*resource, texture).Transfers.Add(std::move(transfer));
+	FindOrAddTransferList(*resource, texture).Transfers.Add(std::move(transfer));
 
 	return resource;
 }
 
-void GpuTransferQueue::QueueRelocation(const TShared<render::GpuBuffer>& source, const TShared<render::GpuBuffer>& target)
+void GpuTransferQueue::QueueRelocation(const TShared<render::GpuBuffer>& resource, const TShared<render::GpuBuffer>& oldResourceHolder)
 {
-	if(!B3D_ENSURE(source != nullptr && target != nullptr))
+	if(!B3D_ENSURE(resource != nullptr && oldResourceHolder != nullptr))
 		return;
 
-	// The exchange and the move of the entry happen together, so a transfer queued concurrently goes either before the relocation, to the
-	// old native buffer, or after it, to the new one
+	// The exchange and the move of the transfer list happen together, so a transfer queued concurrently goes either before the relocation,
+	// to the old native buffer, or after it, to the new one
 	Lock lock(mMutex);
 
-	IGpuResource* const oldResource = source->GetGpuResource();
-	source->Relocate(*target);
+	IGpuResource* const oldResource = resource->GetGpuResource();
+	resource->Relocate(*oldResourceHolder);
 
-	IGpuResource* const newResource = source->GetGpuResource();
+	IGpuResource* const newResource = resource->GetGpuResource();
 	if(!B3D_ENSURE(newResource != nullptr))
 		return;
 
 	QueuedTransfer relocation;
 	relocation.Type = QueuedTransferType::Relocation;
-	relocation.Buffer = source;
-	relocation.RelocationSourceBuffer = target;
+	relocation.Buffer = resource;
+	relocation.RelocationSourceBuffer = oldResourceHolder;
 
-	MoveEntryForRelocation(oldResource, *newResource, source, target).Transfers.Add(std::move(relocation));
+	MoveTransferListForRelocation(oldResource, *newResource, resource, oldResourceHolder).Transfers.Add(std::move(relocation));
 }
 
-void GpuTransferQueue::QueueRelocation(const TShared<render::Texture>& source, const TShared<render::Texture>& target)
+void GpuTransferQueue::QueueRelocation(const TShared<render::Texture>& resource, const TShared<render::Texture>& oldResourceHolder)
 {
-	if(!B3D_ENSURE(source != nullptr && target != nullptr))
+	if(!B3D_ENSURE(resource != nullptr && oldResourceHolder != nullptr))
 		return;
 
 	// See QueueRelocation(const TShared<render::GpuBuffer>&, const TShared<render::GpuBuffer>&)
 	Lock lock(mMutex);
 
-	IGpuResource* const oldResource = source->GetGpuResource();
-	source->Relocate(*target);
+	IGpuResource* const oldResource = resource->GetGpuResource();
+	resource->Relocate(*oldResourceHolder);
 
-	IGpuResource* const newResource = source->GetGpuResource();
+	IGpuResource* const newResource = resource->GetGpuResource();
 	if(!B3D_ENSURE(newResource != nullptr))
 		return;
 
 	QueuedTransfer relocation;
 	relocation.Type = QueuedTransferType::Relocation;
-	relocation.Texture = source;
-	relocation.RelocationSourceTexture = target;
+	relocation.Texture = resource;
+	relocation.RelocationSourceTexture = oldResourceHolder;
 
-	MoveEntryForRelocation(oldResource, *newResource, source, target).Transfers.Add(std::move(relocation));
+	MoveTransferListForRelocation(oldResource, *newResource, resource, oldResourceHolder).Transfers.Add(std::move(relocation));
 }
 
 template<class ProxyType>
-GpuTransferQueue::QueuedResourceTransfers& GpuTransferQueue::MoveEntryForRelocation(IGpuResource* oldResource, IGpuResource& newResource,
+GpuTransferQueue::TransferList& GpuTransferQueue::MoveTransferListForRelocation(IGpuResource* oldResource, IGpuResource& newResource,
 	const TShared<ProxyType>& resource, const TShared<ProxyType>& oldResourceHolder)
 {
-	B3D_ASSERT(mQueuedTransfersByDestination.find(&newResource) == mQueuedTransfersByDestination.end());
+	B3D_ASSERT(mTransferListsByResource.find(&newResource) == mTransferListsByResource.end());
 
-	const auto iterOldEntry = mQueuedTransfersByDestination.find(oldResource);
-	if(iterOldEntry == mQueuedTransfersByDestination.end())
-		return GetOrAddEntry(newResource, resource);
+	const auto iterOldTransferList = mTransferListsByResource.find(oldResource);
+	if(iterOldTransferList == mTransferListsByResource.end())
+		return FindOrAddTransferList(newResource, resource);
 
-	QueuedResourceTransfers entry = std::move(iterOldEntry->second);
-	mQueuedTransfersByDestination.erase(iterOldEntry);
+	TransferList transferList = std::move(iterOldTransferList->second);
+	mTransferListsByResource.erase(iterOldTransferList);
 	oldResource->mHasQueuedTransfers.store(false, std::memory_order_relaxed);
 
 	// The transfers queued so far mean the old native resource, which the holder has now
-	for(QueuedTransfer& transfer : entry.Transfers)
+	for(QueuedTransfer& transfer : transferList.Transfers)
 	{
 		if constexpr(std::is_same_v<ProxyType, render::GpuBuffer>)
 		{
@@ -658,47 +658,47 @@ GpuTransferQueue::QueuedResourceTransfers& GpuTransferQueue::MoveEntryForRelocat
 		}
 	}
 
-	QueuedResourceTransfers& newEntry = AddEntry(newResource);
-	newEntry = std::move(entry);
+	TransferList& newTransferList = AddTransferList(newResource);
+	newTransferList = std::move(transferList);
 
-	return newEntry;
+	return newTransferList;
 }
 
-bool GpuTransferQueue::TryRecreateInternalBuffer(render::GpuBuffer& destination)
+bool GpuTransferQueue::TryRecreateNativeResource(render::GpuBuffer& resource)
 {
-	ReleasedProxies releasedProxies;
+	ProxiesToRelease proxiesToRelease;
 	Lock lock(mMutex);
 
-	if(!TryDropEntryForRecreate(destination.GetGpuResource(), releasedProxies))
+	if(!TryDropTransferListForRecreate(resource.GetGpuResource(), proxiesToRelease))
 		return false;
 
-	destination.RecreateInternalBuffer();
+	resource.RecreateInternalBuffer();
 	return true;
 }
 
-bool GpuTransferQueue::TryRecreateInternalTexture(render::Texture& destination)
+bool GpuTransferQueue::TryRecreateNativeResource(render::Texture& resource)
 {
-	ReleasedProxies releasedProxies;
+	ProxiesToRelease proxiesToRelease;
 	Lock lock(mMutex);
 
-	if(!TryDropEntryForRecreate(destination.GetGpuResource(), releasedProxies))
+	if(!TryDropTransferListForRecreate(resource.GetGpuResource(), proxiesToRelease))
 		return false;
 
-	destination.RecreateInternalTexture();
+	resource.RecreateInternalTexture();
 	return true;
 }
 
-bool GpuTransferQueue::TryDropEntryForRecreate(IGpuResource* resource, ReleasedProxies& releasedProxies)
+bool GpuTransferQueue::TryDropTransferListForRecreate(IGpuResource* resource, ProxiesToRelease& proxiesToRelease)
 {
 	if(resource == nullptr || !resource->HasQueuedTransfers())
 		return true;
 
-	const auto iterEntry = mQueuedTransfersByDestination.find(resource);
-	if(iterEntry == mQueuedTransfersByDestination.end())
+	const auto iterTransferList = mTransferListsByResource.find(resource);
+	if(iterTransferList == mTransferListsByResource.end())
 		return true;
 
 	// A read or a relocation needs the contents of the old native resource
-	for(const QueuedTransfer& transfer : iterEntry->second.Transfers)
+	for(const QueuedTransfer& transfer : iterTransferList->second.Transfers)
 	{
 		if(transfer.Type != QueuedTransferType::Upload)
 			return false;
@@ -712,7 +712,7 @@ bool GpuTransferQueue::TryDropEntryForRecreate(IGpuResource* resource, ReleasedP
 
 	// Any unsubmitted uploads are dropped if the resource is being recreated
 	resource->mHasQueuedTransfers.store(false, std::memory_order_relaxed);
-	DropEntry(iterEntry, releasedProxies);
+	DropTransferList(iterTransferList, proxiesToRelease);
 
 	return true;
 }
@@ -735,17 +735,17 @@ void GpuTransferQueue::SubmitQueuedTransfers(const render::Texture& destination)
 	mDevice.GetSubmitThread().QueueTransferSubmit(*destinationResource);
 }
 
-void GpuTransferQueue::SubmitQueuedTransfers()
+void GpuTransferQueue::SubmitAllQueuedTransfers()
 {
-	ReleasedProxies releasedProxies;
+	ProxiesToRelease proxiesToRelease;
 	bool hasQueuedTransfers;
 	{
 		Lock lock(mMutex);
-		hasQueuedTransfers = !mQueuedTransfersByDestination.empty();
+		hasQueuedTransfers = !mTransferListsByResource.empty();
 
 		// Recorded on the submit thread, released here so their destruction doesn't run there
-		releasedProxies = std::move(mRecordedDestinations);
-		mRecordedDestinations = ReleasedProxies();
+		proxiesToRelease = std::move(mSubmitThreadProxiesToRelease);
+		mSubmitThreadProxiesToRelease = ProxiesToRelease();
 	}
 
 	if(hasQueuedTransfers)
@@ -759,22 +759,22 @@ GpuTransferQueue::RecordedTransfers GpuTransferQueue::RecordQueuedTransfers(TArr
 	AssertIfNotSubmitThread();
 
 	RecordedTransfers recorded;
-	TArray<TShared<QueuedRead>> asyncReads;
+	TArray<TShared<AsyncRead>> asyncReads;
 	{
 		Lock lock(mMutex);
 
-		// Resources whose transfers were recorded earlier, or dropped, have no entry any more
+		// Resources whose transfers were recorded earlier, or dropped, have no transfer list any more
 		for(IGpuResource* resource : resources)
 		{
-			if(mQueuedTransfersByDestination.find(resource) != mQueuedTransfersByDestination.end())
-				RecordEntry(*resource, recorded, asyncReads);
+			if(mTransferListsByResource.find(resource) != mTransferListsByResource.end())
+				RecordTransferList(*resource, recorded, asyncReads);
 		}
 
-		RecordUntrackedEntries(recorded, asyncReads);
+		RecordBindlessTransferLists(recorded, asyncReads);
 		EndRecording(recorded);
 	}
 
-	CompleteReadsOnCompletion(recorded, std::move(asyncReads));
+	CompleteAsyncReadsAfterExecution(recorded, std::move(asyncReads));
 	return recorded;
 }
 
@@ -783,20 +783,20 @@ GpuTransferQueue::RecordedTransfers GpuTransferQueue::RecordQueuedTransfers(cons
 	AssertIfNotSubmitThread();
 
 	RecordedTransfers recorded;
-	TArray<TShared<QueuedRead>> asyncReads;
+	TArray<TShared<AsyncRead>> asyncReads;
 	{
-		// The native resource is looked up under the mutex, so a concurrent relocation can't move the entry away in between
+		// The native resource is looked up under the mutex, so a concurrent relocation can't move the transfer list away in between
 		Lock lock(mMutex);
 
 		IGpuResource* const gpuResource = resource.GetGpuResource();
-		if(gpuResource != nullptr && mQueuedTransfersByDestination.find(gpuResource) != mQueuedTransfersByDestination.end())
-			RecordEntry(*gpuResource, recorded, asyncReads);
+		if(gpuResource != nullptr && mTransferListsByResource.find(gpuResource) != mTransferListsByResource.end())
+			RecordTransferList(*gpuResource, recorded, asyncReads);
 
-		RecordUntrackedEntries(recorded, asyncReads);
+		RecordBindlessTransferLists(recorded, asyncReads);
 		EndRecording(recorded);
 	}
 
-	CompleteReadsOnCompletion(recorded, std::move(asyncReads));
+	CompleteAsyncReadsAfterExecution(recorded, std::move(asyncReads));
 	return recorded;
 }
 
@@ -805,20 +805,20 @@ GpuTransferQueue::RecordedTransfers GpuTransferQueue::RecordQueuedTransfers(cons
 	AssertIfNotSubmitThread();
 
 	RecordedTransfers recorded;
-	TArray<TShared<QueuedRead>> asyncReads;
+	TArray<TShared<AsyncRead>> asyncReads;
 	{
 		// See RecordQueuedTransfers(const render::GpuBuffer&)
 		Lock lock(mMutex);
 
 		IGpuResource* const gpuResource = resource.GetGpuResource();
-		if(gpuResource != nullptr && mQueuedTransfersByDestination.find(gpuResource) != mQueuedTransfersByDestination.end())
-			RecordEntry(*gpuResource, recorded, asyncReads);
+		if(gpuResource != nullptr && mTransferListsByResource.find(gpuResource) != mTransferListsByResource.end())
+			RecordTransferList(*gpuResource, recorded, asyncReads);
 
-		RecordUntrackedEntries(recorded, asyncReads);
+		RecordBindlessTransferLists(recorded, asyncReads);
 		EndRecording(recorded);
 	}
 
-	CompleteReadsOnCompletion(recorded, std::move(asyncReads));
+	CompleteAsyncReadsAfterExecution(recorded, std::move(asyncReads));
 	return recorded;
 }
 
@@ -827,34 +827,34 @@ GpuTransferQueue::RecordedTransfers GpuTransferQueue::RecordAllQueuedTransfers()
 	AssertIfNotSubmitThread();
 
 	RecordedTransfers recorded;
-	TArray<TShared<QueuedRead>> asyncReads;
+	TArray<TShared<AsyncRead>> asyncReads;
 	{
 		Lock lock(mMutex);
 
-		while(!mQueuedTransfersByDestination.empty())
-			RecordEntry(*mQueuedTransfersByDestination.begin()->first, recorded, asyncReads);
+		while(!mTransferListsByResource.empty())
+			RecordTransferList(*mTransferListsByResource.begin()->first, recorded, asyncReads);
 
 		EndRecording(recorded);
 	}
 
-	CompleteReadsOnCompletion(recorded, std::move(asyncReads));
+	CompleteAsyncReadsAfterExecution(recorded, std::move(asyncReads));
 	return recorded;
 }
 
-void GpuTransferQueue::RecordUntrackedEntries(RecordedTransfers& recorded, TArray<TShared<QueuedRead>>& asyncReads)
+void GpuTransferQueue::RecordBindlessTransferLists(RecordedTransfers& recorded, TArray<TShared<AsyncRead>>& asyncReads)
 {
-	if(mUntrackedDestinationCount.load(std::memory_order_relaxed) == 0)
+	if(mBindlessTransferListCount.load(std::memory_order_relaxed) == 0)
 		return;
 
-	TInlineArray<IGpuResource*, 8> untrackedResources;
-	for(const auto& [resource, entry] : mQueuedTransfersByDestination)
+	TInlineArray<IGpuResource*, 8> bindlessResources;
+	for(const auto& [resource, transferList] : mTransferListsByResource)
 	{
-		if(entry.IsUntracked)
-			untrackedResources.Add(resource);
+		if(transferList.IsBindless)
+			bindlessResources.Add(resource);
 	}
 
-	for(IGpuResource* resource : untrackedResources)
-		RecordEntry(*resource, recorded, asyncReads);
+	for(IGpuResource* resource : bindlessResources)
+		RecordTransferList(*resource, recorded, asyncReads);
 }
 
 void GpuTransferQueue::EndRecording(RecordedTransfers& recorded)
@@ -868,13 +868,13 @@ void GpuTransferQueue::EndRecording(RecordedTransfers& recorded)
 	}
 
 	// Cleared only now, so a writer that sees no queued transfers also sees the resource as used, and doesn't map it while the copy is pending
-	for(IGpuResource* resource : mRecordedResources)
+	for(IGpuResource* resource : mResourcesInRecording)
 		resource->mHasQueuedTransfers.store(false, std::memory_order_release);
 
-	mRecordedResources.Clear();
+	mResourcesInRecording.Clear();
 }
 
-void GpuTransferQueue::CompleteReadsOnCompletion(const RecordedTransfers& recorded, TArray<TShared<QueuedRead>>&& asyncReads)
+void GpuTransferQueue::CompleteAsyncReadsAfterExecution(const RecordedTransfers& recorded, TArray<TShared<AsyncRead>>&& asyncReads)
 {
 	if(asyncReads.Empty())
 		return;
@@ -883,7 +883,7 @@ void GpuTransferQueue::CompleteReadsOnCompletion(const RecordedTransfers& record
 
 	auto fnOnCommandBufferCompleted = [asyncReads]()
 	{
-		for(const TShared<QueuedRead>& read : asyncReads)
+		for(const TShared<AsyncRead>& read : asyncReads)
 			read->Complete(true);
 	};
 
@@ -893,7 +893,7 @@ void GpuTransferQueue::CompleteReadsOnCompletion(const RecordedTransfers& record
 		if(isSubmitted)
 			return;
 
-		for(const TShared<QueuedRead>& read : asyncReads)
+		for(const TShared<AsyncRead>& read : asyncReads)
 			read->Complete(false);
 	};
 
@@ -901,99 +901,99 @@ void GpuTransferQueue::CompleteReadsOnCompletion(const RecordedTransfers& record
 	recorded.CommandBuffer->OnDestroyed.Connect(fnOnCommandBufferDestroyed);
 }
 
-GpuTransferQueue::QueuedResourceTransfers& GpuTransferQueue::GetOrAddEntry(IGpuResource& resource, const TShared<render::GpuBuffer>& buffer)
+GpuTransferQueue::TransferList& GpuTransferQueue::FindOrAddTransferList(IGpuResource& resource, const TShared<render::GpuBuffer>& buffer)
 {
-	const auto iterEntry = mQueuedTransfersByDestination.find(&resource);
-	if(iterEntry != mQueuedTransfersByDestination.end())
-		return iterEntry->second;
+	const auto iterTransferList = mTransferListsByResource.find(&resource);
+	if(iterTransferList != mTransferListsByResource.end())
+		return iterTransferList->second;
 
-	QueuedResourceTransfers& entry = AddEntry(resource);
-	entry.Buffer = buffer;
-	entry.IsUntracked = buffer->GetInformation().Flags.IsSet(GpuBufferFlag::Bindless);
+	TransferList& transferList = AddTransferList(resource);
+	transferList.Buffer = buffer;
+	transferList.IsBindless = buffer->GetInformation().Flags.IsSet(GpuBufferFlag::Bindless);
 
-	if(entry.IsUntracked)
-		mUntrackedDestinationCount.fetch_add(1, std::memory_order_relaxed);
+	if(transferList.IsBindless)
+		mBindlessTransferListCount.fetch_add(1, std::memory_order_relaxed);
 
-	return entry;
+	return transferList;
 }
 
-GpuTransferQueue::QueuedResourceTransfers& GpuTransferQueue::GetOrAddEntry(IGpuResource& resource, const TShared<render::Texture>& texture)
+GpuTransferQueue::TransferList& GpuTransferQueue::FindOrAddTransferList(IGpuResource& resource, const TShared<render::Texture>& texture)
 {
-	const auto iterEntry = mQueuedTransfersByDestination.find(&resource);
-	if(iterEntry != mQueuedTransfersByDestination.end())
-		return iterEntry->second;
+	const auto iterTransferList = mTransferListsByResource.find(&resource);
+	if(iterTransferList != mTransferListsByResource.end())
+		return iterTransferList->second;
 
-	QueuedResourceTransfers& entry = AddEntry(resource);
-	entry.Texture = texture;
-	entry.IsUntracked = texture->GetProperties().Usage.IsSet(TextureUsageFlag::Bindless);
+	TransferList& transferList = AddTransferList(resource);
+	transferList.Texture = texture;
+	transferList.IsBindless = texture->GetProperties().Usage.IsSet(TextureUsageFlag::Bindless);
 
-	if(entry.IsUntracked)
-		mUntrackedDestinationCount.fetch_add(1, std::memory_order_relaxed);
+	if(transferList.IsBindless)
+		mBindlessTransferListCount.fetch_add(1, std::memory_order_relaxed);
 
-	return entry;
+	return transferList;
 }
 
-GpuTransferQueue::QueuedResourceTransfers& GpuTransferQueue::AddEntry(IGpuResource& resource)
+GpuTransferQueue::TransferList& GpuTransferQueue::AddTransferList(IGpuResource& resource)
 {
 	resource.mHasQueuedTransfers.store(true, std::memory_order_relaxed);
-	return mQueuedTransfersByDestination[&resource];
+	return mTransferListsByResource[&resource];
 }
 
-void GpuTransferQueue::DropTransfer(QueuedTransfer& transfer, ReleasedProxies& releasedProxies)
+void GpuTransferQueue::DropTransfer(QueuedTransfer& transfer, ProxiesToRelease& proxiesToRelease)
 {
 	// The staging buffer of a read is counted by the handle the reader holds
 	if(transfer.Type == QueuedTransferType::Upload)
-		GetEpoch(transfer.Epoch).OutstandingCount--;
+		GetEpoch(transfer.Epoch).UnreleasedBufferCount--;
 
-	AddIfNotNull(releasedProxies.Buffers, std::move(transfer.Staging));
-	AddIfNotNull(releasedProxies.Buffers, std::move(transfer.Buffer));
-	AddIfNotNull(releasedProxies.Textures, std::move(transfer.Texture));
-	AddIfNotNull(releasedProxies.Buffers, std::move(transfer.RelocationSourceBuffer));
-	AddIfNotNull(releasedProxies.Textures, std::move(transfer.RelocationSourceTexture));
+	AddIfNotNull(proxiesToRelease.Buffers, std::move(transfer.Staging));
+	AddIfNotNull(proxiesToRelease.Buffers, std::move(transfer.Buffer));
+	AddIfNotNull(proxiesToRelease.Textures, std::move(transfer.Texture));
+	AddIfNotNull(proxiesToRelease.Buffers, std::move(transfer.RelocationSourceBuffer));
+	AddIfNotNull(proxiesToRelease.Textures, std::move(transfer.RelocationSourceTexture));
 
 	if(transfer.AsyncRead != nullptr)
-		releasedProxies.Reads.Add(std::move(transfer.AsyncRead));
+		proxiesToRelease.Reads.Add(std::move(transfer.AsyncRead));
 }
 
-void GpuTransferQueue::DropEntry(UnorderedMap<IGpuResource*, QueuedResourceTransfers>::iterator iterEntry, ReleasedProxies& releasedProxies)
+void GpuTransferQueue::DropTransferList(UnorderedMap<IGpuResource*, TransferList>::iterator iterTransferList, ProxiesToRelease& proxiesToRelease)
 {
-	QueuedResourceTransfers& entry = iterEntry->second;
-	for(QueuedTransfer& transfer : entry.Transfers)
-		DropTransfer(transfer, releasedProxies);
+	TransferList& transferList = iterTransferList->second;
+	for(QueuedTransfer& transfer : transferList.Transfers)
+		DropTransfer(transfer, proxiesToRelease);
 
-	if(entry.IsUntracked)
-		mUntrackedDestinationCount.fetch_sub(1, std::memory_order_relaxed);
+	if(transferList.IsBindless)
+		mBindlessTransferListCount.fetch_sub(1, std::memory_order_relaxed);
 
-	AddIfNotNull(releasedProxies.Buffers, std::move(entry.Buffer));
-	AddIfNotNull(releasedProxies.Textures, std::move(entry.Texture));
+	AddIfNotNull(proxiesToRelease.Buffers, std::move(transferList.Buffer));
+	AddIfNotNull(proxiesToRelease.Textures, std::move(transferList.Texture));
 
-	mQueuedTransfersByDestination.erase(iterEntry);
+	mTransferListsByResource.erase(iterTransferList);
 }
 
-void GpuTransferQueue::RecordEntry(IGpuResource& resource, RecordedTransfers& recorded, TArray<TShared<QueuedRead>>& asyncReads)
+void GpuTransferQueue::RecordTransferList(IGpuResource& resource, RecordedTransfers& recorded, TArray<TShared<AsyncRead>>& asyncReads)
 {
-	const auto iterEntry = mQueuedTransfersByDestination.find(&resource);
-	B3D_ASSERT(iterEntry != mQueuedTransfersByDestination.end());
+	const auto iterTransferList = mTransferListsByResource.find(&resource);
+	B3D_ASSERT(iterTransferList != mTransferListsByResource.end());
 
-	QueuedResourceTransfers& entry = iterEntry->second;
+	TransferList& transferList = iterTransferList->second;
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	// Every native resource change that goes through Write() or a relocation drops, keeps or moves the transfers queued to the old resource
 	// first
-	const IGpuResource* const currentResource = entry.Buffer != nullptr ? entry.Buffer->GetGpuResource() : entry.Texture->GetGpuResource();
+	const IGpuResource* const currentResource = transferList.Buffer != nullptr ? transferList.Buffer->GetGpuResource() : transferList.Texture->GetGpuResource();
 	if(currentResource != &resource)
 	{
 		B3D_LOG(Warning, LogRenderBackend, "The native resource of '{0}' changed while transfers to it were queued. The transfers are dropped.",
-			entry.Buffer != nullptr ? entry.Buffer->GetName() : entry.Texture->GetName());
+			transferList.Buffer != nullptr ? transferList.Buffer->GetName() : transferList.Texture->GetName());
 
 		// The old native resource may be destroyed by now, so it isn't accessed. Its proxies are released on the render thread.
-		DropEntry(iterEntry, mRecordedDestinations);
+		DropTransferList(iterTransferList, mSubmitThreadProxiesToRelease);
 		return;
 	}
 #endif
 
 	// The flag stays set until the command buffer is queued for submission, see EndRecording()
-	mRecordedResources.Add(&resource);
+	mResourcesInRecording.Add(&resource);
 
 	if(recorded.CommandBuffer == nullptr)
 	{
@@ -1002,39 +1002,37 @@ void GpuTransferQueue::RecordEntry(IGpuResource& resource, RecordedTransfers& re
 	}
 
 	GpuCommandBuffer& commandBuffer = *recorded.CommandBuffer;
-	for(QueuedTransfer& transfer : entry.Transfers)
+	for(QueuedTransfer& transfer : transferList.Transfers)
 	{
 		switch(transfer.Type)
 		{
 		case QueuedTransferType::Upload:
 			if(transfer.Buffer != nullptr)
-				RecordBufferCopy(commandBuffer, transfer.Staging, transfer.Buffer, transfer.Offset, transfer.Length);
+				RecordBufferUpload(commandBuffer, transfer.Staging, transfer.Buffer, transfer.Offset, transfer.Length);
 			else
-				RecordTextureCopy(commandBuffer, transfer.Staging, transfer.Texture, transfer.MipLevel, transfer.ArrayLayer);
+				RecordTextureUpload(commandBuffer, transfer.Staging, transfer.Texture, transfer.MipLevel, transfer.ArrayLayer);
 
-			AddRecordedBuffer(std::move(transfer.Staging), transfer.Epoch);
+			RetainRecordedStagingBuffer(std::move(transfer.Staging), transfer.Epoch);
 			break;
-		case QueuedTransferType::Read:
+		case QueuedTransferType::CopyToStaging:
 			if(transfer.Buffer != nullptr)
-			{
-				if(transfer.Staging != nullptr)
-					GpuBackendUtility::CopyToStagingBuffer(commandBuffer, transfer.Buffer, transfer.Offset, transfer.Length, transfer.Staging);
-				else
-					RecordBufferHostRead(commandBuffer, transfer.Buffer);
-			}
+				GpuBackendUtility::CopyToStagingBuffer(commandBuffer, transfer.Buffer, transfer.Offset, transfer.Length, transfer.Staging);
 			else
-			{
-				if(transfer.Staging != nullptr)
-					GpuBackendUtility::CopyToStagingBuffer(commandBuffer, transfer.Texture, transfer.MipLevel, transfer.ArrayLayer, transfer.Staging);
-				else
-					RecordTextureHostRead(commandBuffer, transfer.Texture, transfer.MipLevel, transfer.ArrayLayer);
-			}
+				GpuBackendUtility::CopyToStagingBuffer(commandBuffer, transfer.Texture, transfer.MipLevel, transfer.ArrayLayer, transfer.Staging);
 
 			recorded.HasReads = true;
 
 			if(transfer.AsyncRead != nullptr)
 				asyncReads.Add(std::move(transfer.AsyncRead));
 
+			break;
+		case QueuedTransferType::MakeHostReadable:
+			if(transfer.Buffer != nullptr)
+				RecordBufferHostRead(commandBuffer, transfer.Buffer);
+			else
+				RecordTextureHostRead(commandBuffer, transfer.Texture, transfer.MipLevel, transfer.ArrayLayer);
+
+			recorded.HasReads = true;
 			break;
 		case QueuedTransferType::Relocation:
 			if(transfer.Buffer != nullptr)
@@ -1045,35 +1043,35 @@ void GpuTransferQueue::RecordEntry(IGpuResource& resource, RecordedTransfers& re
 			break;
 		}
 
-		AddIfNotNull(mRecordedDestinations.Buffers, std::move(transfer.Staging));
-		AddIfNotNull(mRecordedDestinations.Buffers, std::move(transfer.Buffer));
-		AddIfNotNull(mRecordedDestinations.Textures, std::move(transfer.Texture));
-		AddIfNotNull(mRecordedDestinations.Buffers, std::move(transfer.RelocationSourceBuffer));
-		AddIfNotNull(mRecordedDestinations.Textures, std::move(transfer.RelocationSourceTexture));
+		AddIfNotNull(mSubmitThreadProxiesToRelease.Buffers, std::move(transfer.Staging));
+		AddIfNotNull(mSubmitThreadProxiesToRelease.Buffers, std::move(transfer.Buffer));
+		AddIfNotNull(mSubmitThreadProxiesToRelease.Textures, std::move(transfer.Texture));
+		AddIfNotNull(mSubmitThreadProxiesToRelease.Buffers, std::move(transfer.RelocationSourceBuffer));
+		AddIfNotNull(mSubmitThreadProxiesToRelease.Textures, std::move(transfer.RelocationSourceTexture));
 	}
 
-	if(entry.IsUntracked)
-		mUntrackedDestinationCount.fetch_sub(1, std::memory_order_relaxed);
+	if(transferList.IsBindless)
+		mBindlessTransferListCount.fetch_sub(1, std::memory_order_relaxed);
 
-	AddIfNotNull(mRecordedDestinations.Buffers, std::move(entry.Buffer));
-	AddIfNotNull(mRecordedDestinations.Textures, std::move(entry.Texture));
-	mQueuedTransfersByDestination.erase(iterEntry);
+	AddIfNotNull(mSubmitThreadProxiesToRelease.Buffers, std::move(transferList.Buffer));
+	AddIfNotNull(mSubmitThreadProxiesToRelease.Textures, std::move(transferList.Texture));
+	mTransferListsByResource.erase(iterTransferList);
 }
 
-void GpuTransferQueue::AddRecordedBuffer(TShared<render::GpuBuffer> source, u64 epoch)
+void GpuTransferQueue::RetainRecordedStagingBuffer(TShared<render::GpuBuffer> source, u64 epoch)
 {
-	GetEpoch(epoch).RecordedBuffers.Add(std::move(source));
+	GetEpoch(epoch).RecordedUploadBuffers.Add(std::move(source));
 }
 
-void GpuTransferQueue::ReleaseStagingBuffer(u64 epoch)
+void GpuTransferQueue::NotifyStagingBufferReleased(u64 epoch)
 {
 	Lock lock(mMutex);
-	GetEpoch(epoch).OutstandingCount--;
+	GetEpoch(epoch).UnreleasedBufferCount--;
 }
 
 void GpuTransferQueue::EndEpoch()
 {
-	ReleasedProxies releasedProxies;
+	ProxiesToRelease proxiesToRelease;
 	Lock lock(mMutex);
 
 	// Retire the pages the ending epoch allocated from, before the next epoch starts
@@ -1086,7 +1084,7 @@ void GpuTransferQueue::EndEpoch()
 	mEpochs.emplace_back();
 	mCurrentEpoch.fetch_add(1, std::memory_order_acq_rel);
 
-	UpdateEpochs(releasedProxies);
+	ReleaseCompleteEpochs(proxiesToRelease);
 
 	for(const auto& [memoryType, allocator] : mStagingAllocators)
 	{
@@ -1095,25 +1093,25 @@ void GpuTransferQueue::EndEpoch()
 	}
 }
 
-void GpuTransferQueue::UpdateEpochs(ReleasedProxies& releasedProxies)
+void GpuTransferQueue::ReleaseCompleteEpochs(ProxiesToRelease& proxiesToRelease)
 {
 	// A recorded staging buffer is unbound once the command buffers that copy from it complete, or are reset or destroyed unsubmitted
 	for(StagingEpoch& epoch : mEpochs)
 	{
-		for(u32 bufferIndex = (u32)epoch.RecordedBuffers.Size(); bufferIndex-- > 0;)
+		for(u32 bufferIndex = (u32)epoch.RecordedUploadBuffers.Size(); bufferIndex-- > 0;)
 		{
-			if(epoch.RecordedBuffers[bufferIndex]->GetBoundCount() > 0)
+			if(epoch.RecordedUploadBuffers[bufferIndex]->GetBoundCount() > 0)
 				continue;
 
-			releasedProxies.Buffers.Add(std::move(epoch.RecordedBuffers[bufferIndex]));
-			epoch.RecordedBuffers.Erase(epoch.RecordedBuffers.Begin() + bufferIndex);
-			epoch.OutstandingCount--;
+			proxiesToRelease.Buffers.Add(std::move(epoch.RecordedUploadBuffers[bufferIndex]));
+			epoch.RecordedUploadBuffers.Erase(epoch.RecordedUploadBuffers.Begin() + bufferIndex);
+			epoch.UnreleasedBufferCount--;
 		}
 	}
 
 	// The last epoch is the current one, which hasn't ended
 	u64 firstIncompleteEpoch = mFirstIncompleteEpoch.load(std::memory_order_relaxed);
-	while(mEpochs.size() > 1 && mEpochs.front().OutstandingCount == 0)
+	while(mEpochs.size() > 1 && mEpochs.front().UnreleasedBufferCount == 0)
 	{
 		mEpochs.pop_front();
 		firstIncompleteEpoch++;

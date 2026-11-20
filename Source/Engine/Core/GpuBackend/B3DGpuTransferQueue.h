@@ -122,24 +122,25 @@ namespace b3d
 		TAsyncOp<TShared<PixelData>> QueueRead(const TShared<render::Texture>& source, u32 mipLevel, u32 arrayLayer);
 
 		/**
-		 * Gives @p source the native resource of @p target, a buffer of the same description created at the memory @p source moves to, and
-		 * queues a copy of the old contents into it, after the transfers queued to the old native resource. @p target keeps the old native
-		 * resource until the copy has executed. No recorded command buffer may use the old native resource. Render thread only.
+		 * Moves @p resource to new memory. @p oldResourceHolder is a buffer of the same description created at the new memory. The two
+		 * exchange native resources, so @p resource gets the new memory and @p oldResourceHolder holds the old one until the queued copy of
+		 * the old contents into the new memory has executed. The copy runs after the transfers queued to the old native resource. No recorded
+		 * command buffer may use the old native resource. Render thread only.
 		 */
-		void QueueRelocation(const TShared<render::GpuBuffer>& source, const TShared<render::GpuBuffer>& target);
+		void QueueRelocation(const TShared<render::GpuBuffer>& resource, const TShared<render::GpuBuffer>& oldResourceHolder);
 
 		/** Texture equivalent of QueueRelocation(const TShared<render::GpuBuffer>&, const TShared<render::GpuBuffer>&). Copies every subresource. */
-		void QueueRelocation(const TShared<render::Texture>& source, const TShared<render::Texture>& target);
+		void QueueRelocation(const TShared<render::Texture>& resource, const TShared<render::Texture>& oldResourceHolder);
 
 		/**
-		 * Gives @p destination a new native buffer and drops the uploads queued to the old one. Refuses, and returns false, if a read or a
+		 * Gives @p resource a new native buffer and drops the uploads queued to the old one. Refuses, and returns false, if a read or a
 		 * relocation is queued to the old one, or if uploads are queued to it and a recorded command buffer that isn't submitted yet uses it.
 		 * Returns true if the buffer was recreated. Thread safe.
 		 */
-		bool TryRecreateInternalBuffer(render::GpuBuffer& destination);
+		bool TryRecreateNativeResource(render::GpuBuffer& resource);
 
-		/** Texture equivalent of TryRecreateInternalBuffer(). Thread safe. */
-		bool TryRecreateInternalTexture(render::Texture& destination);
+		/** Texture equivalent of TryRecreateNativeResource(render::GpuBuffer&). Thread safe. */
+		bool TryRecreateNativeResource(render::Texture& resource);
 
 		/** Submits the transfers queued to the current native resource of @p destination, without waiting for them. Thread safe. */
 		void SubmitQueuedTransfers(const render::GpuBuffer& destination);
@@ -148,7 +149,7 @@ namespace b3d
 		void SubmitQueuedTransfers(const render::Texture& destination);
 
 		/** Submits every queued transfer, without waiting for them, and starts a new staging epoch. Called by GpuDevice::EndFrame(). */
-		void SubmitQueuedTransfers();
+		void SubmitAllQueuedTransfers();
 
 		/** @name Internal
 		 *  @{
@@ -196,7 +197,7 @@ namespace b3d
 		RecordedTransfers RecordAllQueuedTransfers();
 
 		/** Returns true while transfers to bindless resources are queued. Thread safe. */
-		bool HasUntrackedTransfers() const { return mUntrackedDestinationCount.load(std::memory_order_relaxed) > 0; }
+		bool HasBindlessTransfers() const { return mBindlessTransferListCount.load(std::memory_order_relaxed) > 0; }
 
 		/** @} */
 
@@ -223,12 +224,13 @@ namespace b3d
 		enum class QueuedTransferType
 		{
 			Upload, /**< Copies a staging buffer into the resource. */
-			Read, /**< Copies the resource into a staging buffer, or only makes it readable by the CPU if there is no staging buffer. */
+			CopyToStaging, /**< Copies the resource into a staging buffer. */
+			MakeHostReadable, /**< Makes the GPU's writes to the resource visible to the CPU, which reads it through a mapping. */
 			Relocation /**< Copies the old native resource of a moved resource into its new one. */
 		};
 
 		/** Result state of a read queued by QueueRead(). */
-		struct QueuedRead
+		struct AsyncRead
 		{
 			GpuStagingBuffer Staging; /**< Staging buffer the read copies into. */
 			TAsyncOp<TShared<MemoryDataStream>> BufferOperation; /**< Operation of a buffer read. */
@@ -245,13 +247,13 @@ namespace b3d
 		{
 			QueuedTransferType Type = QueuedTransferType::Upload;
 
-			/** Upload: copy source. Read: copy destination, or null to only make the resource readable by the CPU. Unused by relocations. */
+			/** Upload: copy source. CopyToStaging: copy destination. Unused by the other types. */
 			TShared<render::GpuBuffer> Staging;
 			u64 Epoch = 0; /**< Staging epoch of an upload's staging buffer. */
 
 			/**
-			 * Resource the transfer accesses, if it is a buffer: the destination of an upload or a relocation, or the source of a read. Holds the
-			 * native resource the transfer was queued to.
+			 * Resource the transfer accesses, if it is a buffer: the destination of an upload or a relocation, or the resource a read reads.
+			 * Holds the native resource the transfer was queued to.
 			 */
 			TShared<render::GpuBuffer> Buffer;
 			TShared<render::Texture> Texture; /**< Texture equivalent of Buffer. */
@@ -263,19 +265,20 @@ namespace b3d
 			u32 MipLevel = 0; /**< Mip level of a texture. */
 			u32 ArrayLayer = 0; /**< Array layer of a texture. */
 
-			TShared<QueuedRead> AsyncRead; /**< Read queued by QueueRead(). Null for other transfers. */
+			// Qualified, because a member named like the type would change the meaning of an unqualified AsyncRead in this struct
+			TShared<GpuTransferQueue::AsyncRead> AsyncRead; /**< Read queued by QueueRead(). Null for other transfers. */
 		};
 
 		/** Transfers queued to one native resource, in queue order. */
-		struct QueuedResourceTransfers
+		struct TransferList
 		{
 			/**
-			 * Resource whose current native resource the entry is for, if it is a buffer. Transfers queued before the resource was relocated
+			 * Resource whose current native resource the list is for, if it is a buffer. Transfers queued before the resource was relocated
 			 * hold the old native resource's holder instead.
 			 */
 			TShared<render::GpuBuffer> Buffer;
 			TShared<render::Texture> Texture; /**< Texture equivalent of Buffer. */
-			bool IsUntracked = false; /**< True if command buffers don't track the resource, see HasUntrackedTransfers(). */
+			bool IsBindless = false; /**< True if command buffers don't track the resource, see HasBindlessTransfers(). */
 			TInlineArray<QueuedTransfer, 1> Transfers;
 		};
 
@@ -285,101 +288,101 @@ namespace b3d
 		 */
 		struct StagingEpoch
 		{
-			u32 OutstandingCount = 0; /**< Staging buffers that are neither released nor known to be executed. */
+			u32 UnreleasedBufferCount = 0; /**< Staging buffers that are neither released nor known to be executed. */
 			u64 StagingByteCount = 0; /**< Bytes of staging buffers created in the epoch. */
 
 			/** Upload staging buffers whose copies are recorded. Each is released once no command buffer references it any more. */
-			TArray<TShared<render::GpuBuffer>> RecordedBuffers;
+			TArray<TShared<render::GpuBuffer>> RecordedUploadBuffers;
 		};
 
 		/** Objects to release outside of the mutex. */
-		struct ReleasedProxies
+		struct ProxiesToRelease
 		{
 			TArray<TShared<render::GpuBuffer>> Buffers;
 			TArray<TShared<render::Texture>> Textures;
-			TArray<TShared<QueuedRead>> Reads; /**< Queued reads dropped before they were recorded, completed with null on release. */
+			TArray<TShared<AsyncRead>> Reads; /**< Queued reads dropped before they were recorded, completed with null on release. */
 
-			ReleasedProxies() = default;
-			ReleasedProxies(ReleasedProxies&& other) noexcept = default;
-			ReleasedProxies& operator=(ReleasedProxies&& other) noexcept;
-			~ReleasedProxies();
+			ProxiesToRelease() = default;
+			ProxiesToRelease(ProxiesToRelease&& other) noexcept = default;
+			ProxiesToRelease& operator=(ProxiesToRelease&& other) noexcept;
+			~ProxiesToRelease();
 		};
 
 		/** Creates a staging buffer described by @p createInformation in the current epoch. Thread safe. */
 		GpuStagingBuffer CreateStagingBuffer(const GpuBufferCreateInformation& createInformation);
 
-		/** Returns the entry of transfers queued to @p buffer, whose native resource is @p resource, adding one if there is none. Caller holds the mutex. */
-		QueuedResourceTransfers& GetOrAddEntry(IGpuResource& resource, const TShared<render::GpuBuffer>& buffer);
+		/** Returns the transfer list of @p buffer, whose native resource is @p resource, adding one if there is none. Caller holds the mutex. */
+		TransferList& FindOrAddTransferList(IGpuResource& resource, const TShared<render::GpuBuffer>& buffer);
 
-		/** Returns the entry of transfers queued to @p texture, whose native resource is @p resource, adding one if there is none. Caller holds the mutex. */
-		QueuedResourceTransfers& GetOrAddEntry(IGpuResource& resource, const TShared<render::Texture>& texture);
+		/** Returns the transfer list of @p texture, whose native resource is @p resource, adding one if there is none. Caller holds the mutex. */
+		TransferList& FindOrAddTransferList(IGpuResource& resource, const TShared<render::Texture>& texture);
 
-		/** Adds an entry of transfers queued to @p resource, marking the resource. Caller holds the mutex. */
-		QueuedResourceTransfers& AddEntry(IGpuResource& resource);
+		/** Adds an empty transfer list for @p resource, marking the resource. Caller holds the mutex. */
+		TransferList& AddTransferList(IGpuResource& resource);
 
 		/**
-		 * Adds @p upload to @p entry, replacing the queued uploads it fully covers that come after the last transfer that isn't an upload.
-		 * @p fnCovers(const QueuedTransfer&) tells if the new upload covers a queued one. Caller holds the mutex.
+		 * Appends @p upload to @p transferList, dropping the queued uploads it fully covers that come after the last transfer that isn't an
+		 * upload. @p fnCovers(const QueuedTransfer&) tells if the new upload covers a queued one. Caller holds the mutex.
 		 */
 		template<class CoversFunction>
-		void AddUpload(QueuedResourceTransfers& entry, QueuedTransfer&& upload, CoversFunction fnCovers, ReleasedProxies& releasedProxies);
+		void AppendUpload(TransferList& transferList, QueuedTransfer&& upload, CoversFunction fnCovers, ProxiesToRelease& proxiesToRelease);
 
-		/** Adds @p transfer, a read of @p buffer, to the entry of its current native resource and returns that resource. Thread safe. */
-		IGpuResource* QueueReadTransfer(const TShared<render::GpuBuffer>& buffer, QueuedTransfer&& transfer);
+		/** Appends @p transfer, a read of @p buffer, to the transfer list of its current native resource and returns that resource. Thread safe. */
+		IGpuResource* AppendRead(const TShared<render::GpuBuffer>& buffer, QueuedTransfer&& transfer);
 
-		/** Texture equivalent of QueueReadTransfer(const TShared<render::GpuBuffer>&, QueuedTransfer&&). Thread safe. */
-		IGpuResource* QueueReadTransfer(const TShared<render::Texture>& texture, QueuedTransfer&& transfer);
+		/** Texture equivalent of AppendRead(const TShared<render::GpuBuffer>&, QueuedTransfer&&). Thread safe. */
+		IGpuResource* AppendRead(const TShared<render::Texture>& texture, QueuedTransfer&& transfer);
 
 		/**
-		 * Moves the entry of @p oldResource, if any, to @p newResource, the new native resource of @p resource after a relocation, and points
-		 * the transfers that meant the old native resource at @p oldResourceHolder. Returns the entry of @p newResource, adding one if needed.
-		 * Caller holds the mutex.
+		 * Moves the transfer list of @p oldResource, if any, to @p newResource, the new native resource of @p resource after a relocation, and
+		 * points the transfers that meant the old native resource at @p oldResourceHolder. Returns the transfer list of @p newResource, adding
+		 * one if needed. Caller holds the mutex.
 		 */
 		template<class ProxyType>
-		QueuedResourceTransfers& MoveEntryForRelocation(IGpuResource* oldResource, IGpuResource& newResource, const TShared<ProxyType>& resource,
+		TransferList& MoveTransferListForRelocation(IGpuResource* oldResource, IGpuResource& newResource, const TShared<ProxyType>& resource,
 			const TShared<ProxyType>& oldResourceHolder);
 
 		/** Releases the resources of @p transfer, which will never be recorded. Caller holds the mutex. */
-		void DropTransfer(QueuedTransfer& transfer, ReleasedProxies& releasedProxies);
+		void DropTransfer(QueuedTransfer& transfer, ProxiesToRelease& proxiesToRelease);
 
 		/**
-		 * Drops every transfer of the entry at @p iterEntry, and the entry. Doesn't access the native resource, which may already be destroyed
-		 * if its proxy changed native resources. Caller holds the mutex.
+		 * Drops every transfer of the transfer list at @p iterTransferList, and the list. Doesn't access the native resource, which may already
+		 * be destroyed if its proxy changed native resources. Caller holds the mutex.
 		 */
-		void DropEntry(UnorderedMap<IGpuResource*, QueuedResourceTransfers>::iterator iterEntry, ReleasedProxies& releasedProxies);
+		void DropTransferList(UnorderedMap<IGpuResource*, TransferList>::iterator iterTransferList, ProxiesToRelease& proxiesToRelease);
 
-		/** Shared part of TryRecreateInternalBuffer() and TryRecreateInternalTexture(). Caller holds the mutex. */
-		bool TryDropEntryForRecreate(IGpuResource* resource, ReleasedProxies& releasedProxies);
+		/** Shared part of both TryRecreateNativeResource() overloads. Caller holds the mutex. */
+		bool TryDropTransferListForRecreate(IGpuResource* resource, ProxiesToRelease& proxiesToRelease);
 
 		/**
-		 * Records the transfers of the entry of @p resource into @p recorded, creating its command buffer if null, and forgets them. Adds the
-		 * reads queued by QueueRead() to @p asyncReads. Caller holds the mutex.
+		 * Records the transfer list of @p resource into @p recorded, creating its command buffer if null, and forgets it. Adds the reads queued
+		 * by QueueRead() to @p asyncReads. Caller holds the mutex.
 		 */
-		void RecordEntry(IGpuResource& resource, RecordedTransfers& recorded, TArray<TShared<QueuedRead>>& asyncReads);
+		void RecordTransferList(IGpuResource& resource, RecordedTransfers& recorded, TArray<TShared<AsyncRead>>& asyncReads);
 
-		/** Records the entries of bindless resources, as RecordEntry() does. Caller holds the mutex. */
-		void RecordUntrackedEntries(RecordedTransfers& recorded, TArray<TShared<QueuedRead>>& asyncReads);
+		/** Records the transfer lists of bindless resources, as RecordTransferList() does. Caller holds the mutex. */
+		void RecordBindlessTransferLists(RecordedTransfers& recorded, TArray<TShared<AsyncRead>>& asyncReads);
 
 		/**
 		 * Ends the command buffer of @p recorded, if any, and queues it for submission. Then clears the queued transfers flag of the resources
-		 * whose entries it recorded. Caller holds the mutex.
+		 * whose transfer lists it recorded. Caller holds the mutex.
 		 */
 		void EndRecording(RecordedTransfers& recorded);
 
 		/** Makes the command buffer of @p recorded complete @p asyncReads, if there are any. */
-		static void CompleteReadsOnCompletion(const RecordedTransfers& recorded, TArray<TShared<QueuedRead>>&& asyncReads);
+		static void CompleteAsyncReadsAfterExecution(const RecordedTransfers& recorded, TArray<TShared<AsyncRead>>&& asyncReads);
 
 		/** Moves @p source into the recorded staging buffers of its epoch. Caller holds the mutex. */
-		void AddRecordedBuffer(TShared<render::GpuBuffer> source, u64 epoch);
+		void RetainRecordedStagingBuffer(TShared<render::GpuBuffer> source, u64 epoch);
 
-		/** Counts a staging buffer of @p epoch as released. Thread safe. */
-		void ReleaseStagingBuffer(u64 epoch);
+		/** Records that a staging buffer of @p epoch was released, so the epoch no longer waits for it. Thread safe. */
+		void NotifyStagingBufferReleased(u64 epoch);
 
 		/** Ends the current staging epoch and reuses the staging memory of complete epochs. Thread safe. */
 		void EndEpoch();
 
 		/** Releases recorded staging buffers no command buffer references, and forgets complete epochs. Caller holds the mutex. */
-		void UpdateEpochs(ReleasedProxies& releasedProxies);
+		void ReleaseCompleteEpochs(ProxiesToRelease& proxiesToRelease);
 
 		/** Returns the epoch @p epoch, which must not be complete. Caller holds the mutex. */
 		StagingEpoch& GetEpoch(u64 epoch);
@@ -388,8 +391,8 @@ namespace b3d
 		EpochTracker mEpochTracker;
 		mutable Mutex mMutex;
 
-		UnorderedMap<IGpuResource*, QueuedResourceTransfers> mQueuedTransfersByDestination;
-		std::atomic<u32> mUntrackedDestinationCount = 0; /**< Number of entries with QueuedResourceTransfers::IsUntracked. */
+		UnorderedMap<IGpuResource*, TransferList> mTransferListsByResource;
+		std::atomic<u32> mBindlessTransferListCount = 0; /**< Number of transfer lists with TransferList::IsBindless. */
 
 		/** Thread-safe staging allocators per memory type. Null for memory types the backend has no scratch allocator for. */
 		UnorderedMap<u32, TUnique<IGpuAllocator>> mStagingAllocators;
@@ -399,11 +402,11 @@ namespace b3d
 		std::atomic<u64> mFirstIncompleteEpoch = 0;
 		std::atomic<u64> mCurrentEpoch = 0;
 
-		/** Resources of transfers the submit thread recorded, released on the next SubmitQueuedTransfers() rather than on the submit thread. */
-		ReleasedProxies mRecordedDestinations;
+		/** Resources of transfers the submit thread recorded, released on the next SubmitAllQueuedTransfers() rather than on the submit thread. */
+		ProxiesToRelease mSubmitThreadProxiesToRelease;
 
-		/** Native resources whose entries the submit thread is recording, see EndRecording(). */
-		TArray<IGpuResource*> mRecordedResources;
+		/** Native resources whose transfer lists the submit thread is recording, see EndRecording(). */
+		TArray<IGpuResource*> mResourcesInRecording;
 	};
 
 	/** @} */

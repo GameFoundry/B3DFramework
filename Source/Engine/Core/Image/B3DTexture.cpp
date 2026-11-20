@@ -744,7 +744,7 @@ void TextureUtility::Write(const TShared<Texture>& texture, const PixelData& sou
 			|| (!isBound && !supportsGPUWrites) // Image not bound and not being used, nor are there any pending GPU writes
 			|| noOverwrite; // If no-overwrite flag is set, user guarantees he won't touch the memory the GPU is using
 
-		if(shouldMapDirectly && (!recreateImage || transferQueue.TryRecreateInternalTexture(*texture)))
+		if(shouldMapDirectly && (!recreateImage || transferQueue.TryRecreateNativeResource(*texture)))
 		{
 			GpuTextureMappedScope scope = texture->Map(mipLevel, arrayLayer, mapOptions);
 			PixelUtility::BulkPixelConversion(source, scope.GetPixelData());
@@ -761,7 +761,7 @@ void TextureUtility::Write(const TShared<Texture>& texture, const PixelData& sou
 	// that the command buffer would see. With an explicit command buffer, the caller orders the copy.
 	const bool isBoundWithoutUse = subresourceBoundCount > subresourceUseCount;
 	if(isBoundWithoutUse && commandBuffer == nullptr && !hasQueuedTransfers && canDiscardContents)
-		transferQueue.TryRecreateInternalTexture(*texture);
+		transferQueue.TryRecreateNativeResource(*texture);
 
 	// Create staging buffer
 	const u32 mipWidth = Math::Max(1u, textureProperties.Width >> mipLevel);

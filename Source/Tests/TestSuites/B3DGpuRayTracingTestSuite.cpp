@@ -1396,7 +1396,7 @@ void GpuRayTracingTestSuite::TestRayTracingGeometry()
 		B3D_TEST_ASSERT(layouts[1].Tangent.Stride == 0 && layouts[1].Tangent.BufferIndex != layouts[1].Position.BufferIndex)
 
 		// The mesh's initial contents are written through the transfer queue
-		device->GetTransferQueue().SubmitQueuedTransfers();
+		device->GetTransferQueue().SubmitAllQueuedTransfers();
 		device->WaitUntilIdle();
 
 		// Instance ids index a table with the layouts of each instance's geometries, from the id on
@@ -1606,7 +1606,7 @@ void GpuRayTracingTestSuite::TestRayTracingGeometry()
 		// A write to the mesh rebuilds its bottom level structure, and the top level structure with it
 		mesh->WriteData(*meshData, false);
 		B3D_TEST_ASSERT(!geometry->IsBuilt())
-		device->GetTransferQueue().SubmitQueuedUploads();
+		device->GetTransferQueue().SubmitAllQueuedTransfers();
 		device->WaitUntilIdle();
 		fnTrace("Rewritten", { ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 0),
 			ExpectedGeometryHit(Vector3(2.25f, 0.25f, 5.0f), interpolatedNormal, 0.625f, 0.625f, 3, 0), miss,
@@ -1644,7 +1644,7 @@ void GpuRayTracingTestSuite::TestRayTracingGeometry()
 		// Every geometry reads its defaults from the same buffer
 		B3D_TEST_ASSERT(positionLayout.Normal.BufferIndex == layouts[1].Tangent.BufferIndex)
 
-		device->GetTransferQueue().SubmitQueuedUploads();
+		device->GetTransferQueue().SubmitAllQueuedTransfers();
 		device->WaitUntilIdle();
 
 		{

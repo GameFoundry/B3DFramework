@@ -998,7 +998,7 @@ void GpuBindlessTestSuite::TestRelocation()
 		{
 			defragmenter.Run();
 			heaps.ApplyPendingChanges();
-			device->GetTransferQueue().SubmitQueuedTransfers();
+			device->GetTransferQueue().SubmitAllQueuedTransfers();
 			device->WaitUntilIdle();
 			heaps.ProcessAllReleases();
 			device->ReleaseUnpinnedResources(true);

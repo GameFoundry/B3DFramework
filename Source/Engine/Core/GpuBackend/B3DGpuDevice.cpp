@@ -85,7 +85,7 @@ void GpuDevice::EndFrame()
 		mBindlessHeaps->ApplyPendingChanges();
 
 	// Uploads nothing pulled in yet become part of this frame
-	mTransferQueue->SubmitQueuedTransfers();
+	mTransferQueue->SubmitAllQueuedTransfers();
 
 	// Signal end-of-frame to the submit thread. This blocks until the previous frame's resources are safe to reuse.
 	mSubmitThread->QueueEndFrameAndWaitForPreviousFrame();

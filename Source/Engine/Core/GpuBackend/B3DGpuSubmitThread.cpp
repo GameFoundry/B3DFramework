@@ -92,7 +92,7 @@ void GpuSubmitThread::QueueSubmit(const TShared<GpuCommandBuffer>& commandBuffer
 		GpuTransferQueue& transferQueue = mGpuDevice.GetTransferQueue();
 		const TArrayView<IGpuResource* const> transferDestinations = commandBuffer->GetResourceTracker().GetResourcesWithQueuedTransfers();
 
-		if(!transferDestinations.IsEmpty() || transferQueue.HasUntrackedTransfers())
+		if(!transferDestinations.IsEmpty() || transferQueue.HasBindlessTransfers())
 		{
 			const GpuQueue* uploadQueue = SubmitTransfers(transferQueue.RecordQueuedTransfers(transferDestinations));
 			if(uploadQueue != nullptr)

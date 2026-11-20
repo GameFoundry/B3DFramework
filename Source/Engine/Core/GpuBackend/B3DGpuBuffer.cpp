@@ -526,7 +526,7 @@ namespace b3d::render
 				|| (!isBound && !supportsGPUWrites) // Buffer not bound and not being used, nor are there any pending GPU writes
 				|| flags.IsSet(GpuBufferWriteFlag::NoOverwrite); // If no-overwrite flag is set, user guarantees he won't touch the memory the GPU is using
 
-			if(shouldMapDirectly && (!recreateInternalBuffer || transferQueue.TryRecreateInternalBuffer(*buffer)))
+			if(shouldMapDirectly && (!recreateInternalBuffer || transferQueue.TryRecreateNativeResource(*buffer)))
 			{
 				GpuBufferMappedScope mapping = buffer->Map(offset, length, mapOptions);
 				memcpy(mapping.GetMappedMemory(), source, length);
@@ -542,7 +542,7 @@ namespace b3d::render
 		// buffer. With uploads already queued that command buffer also expects those, so the buffer isn't recreated. QueueUpload() warns
 		// about writes that the command buffer would see. With an explicit command buffer, the caller orders the copy.
 		const bool isBoundWithoutUse = boundCount > useCount;
-		if(isBoundWithoutUse && commandBuffer == nullptr && !hasQueuedTransfers && canDiscardBuffer && transferQueue.TryRecreateInternalBuffer(*buffer))
+		if(isBoundWithoutUse && commandBuffer == nullptr && !hasQueuedTransfers && canDiscardBuffer && transferQueue.TryRecreateNativeResource(*buffer))
 		{
 			// The recreated backing resource is fresh - nothing on the GPU references it - so CPU-mappable
 			// buffers can be written directly. This is both cheaper than a staging round-trip and required on
