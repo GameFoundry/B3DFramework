@@ -1958,6 +1958,38 @@ void GpuBackendTestSuite::TestTransferQueue()
 			B3D_TEST_ASSERT(fnSubmitAndCompare(fnCreateReadback(buffer, "Replaced write"), words))
 		}
 
+		// A submitted command buffer takes the writes queued before it. A write queued after the submission, while the submit thread lags and
+		// hasn't recorded them yet, doesn't join or replace them.
+		{
+			u32 firstWords[kWordCount];
+			u32 secondWords[kWordCount];
+			fnFillWords(firstWords, 0xB4000000);
+			fnFillWords(secondWords, 0xB5000000);
+
+			SignalEvent submitThreadRelease;
+			device->GetSubmitThread().QueueWaitForEvent(submitThreadRelease);
+
+			render::GpuBufferUtility::Write(buffer, 0, kSize, firstWords);
+			const Readback firstReadback = fnCreateReadback(buffer, "Reads the first write");
+			context->SubmitCommandBuffer(firstReadback.Commands);
+
+			render::GpuBufferUtility::Write(buffer, 0, kSize, secondWords);
+			const Readback secondReadback = fnCreateReadback(buffer, "Reads the second write");
+			context->SubmitCommandBuffer(secondReadback.Commands);
+
+			submitThreadRelease.Signal();
+			device->WaitUntilIdle();
+
+			const auto fnReadbackMatches = [](const Readback& readback, const u32* expectedWords)
+			{
+				const render::GpuBufferMappedScope mapping = readback.Buffer->Map(GpuMapOption::Read);
+				return mapping.IsValid() && memcmp(mapping.GetMappedMemory(), expectedWords, kSize) == 0;
+			};
+
+			B3D_TEST_ASSERT(fnReadbackMatches(firstReadback, firstWords))
+			B3D_TEST_ASSERT(fnReadbackMatches(secondReadback, secondWords))
+		}
+
 		// A write nothing pulls in runs at the end of the frame, and Read() sees writes queued before it
 		{
 			fnFillWords(words, 0xA8000000);

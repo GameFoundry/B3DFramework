@@ -15,13 +15,14 @@ namespace b3d::render
 
 	/**
 	 * Native resource of a NullGpuBuffer. It gives the buffer an identity that use tracking and the transfer queue key on, like the native
-	 * resources of other backends, and refers to the CPU memory of the buffer, which copies between native resources read and write.
+	 * resources of other backends, and owns the CPU memory of the buffer, which copies between native resources read and write.
 	 */
 	class NullBufferResource : public IGpuBufferResource
 	{
 	public:
-		/** @p memory is the CPU memory of the buffer, owned by the buffer. */
-		NullBufferResource(NullResourceManager* owner, const StringView& name, u8* memory);
+		/** Allocates @p size bytes of CPU memory for the buffer. */
+		NullBufferResource(NullResourceManager* owner, const StringView& name, u32 size);
+		~NullBufferResource() override;
 
 		/** Returns the CPU memory of the buffer. */
 		u8* GetMemory() const { return mMemory; }

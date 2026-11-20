@@ -5,7 +5,6 @@
 #include "B3DPrerequisites.h"
 #include "GpuBackend/B3DGpuQueue.h"
 #include "GpuBackend/B3DGpuTimelineFence.h"
-#include "GpuBackend/B3DGpuTransferQueue.h"
 #include "Threading/B3DSignalEvent.h"
 #include "Threading/B3DSingleConsumerQueue.h"
 
@@ -132,20 +131,8 @@ namespace b3d::render
 		 */
 		void QueueSubmit(const TShared<GpuCommandBuffer>& commandBuffer, GpuQueue& queue, GpuQueueMask syncMask, TInlineArray<GpuTimelineFenceAndValue, 2> signalFences, bool blocking = false);
 
-		/** Queues a submission of the transfers queued to @p destination, and to bindless destinations. See GpuTransferQueue. */
-		void QueueTransferSubmit(IGpuResource& destination);
-
-		/** Queues a submission of every queued transfer. See GpuTransferQueue. */
-		void QueueAllTransfersSubmit();
-
-		/**
-		 * Submits the transfers queued to the current native resource of @p source, and to bindless resources, then blocks until every read
-		 * the transfer queue submitted so far has executed. See GpuTransferQueue.
-		 */
-		void QueueReadSubmitAndWait(const TShared<GpuBuffer>& source);
-
-		/** @copydoc QueueReadSubmitAndWait(const TShared<GpuBuffer>&) */
-		void QueueReadSubmitAndWait(const TShared<Texture>& source);
+		/** Queues a submission of the transfer batches up to and including @p lastBatch that aren't submitted yet. See GpuTransferQueue. */
+		void QueueTransferSubmit(u64 lastBatch);
 
 		/**
 		 * Queues an operation that acquires a swap chain image. Acquired images can be written to and eventually presented to the screen.
@@ -162,6 +149,12 @@ namespace b3d::render
 		 * @param	syncMask		Mask that controls which other queues does the the present depend on (if any).
 		 */
 		void QueuePresent(GpuQueue& queue, GpuSwapChain& swapChain, GpuQueueMask syncMask);
+
+		/**
+		 * Queues a command that blocks the submit thread until @p event is signaled, so the commands queued after it wait. Does nothing if
+		 * commands run on the calling thread (render.EnableSubmitThread is false).
+		 */
+		void QueueWaitForEvent(SignalEvent& event);
 
 		/**
 		 * Notifies the submit thread that last command buffer for this frame had been submitted, and waits until the previous frame's command buffers
@@ -233,13 +226,20 @@ namespace b3d::render
 		void RemoveFenceSignals(const GpuQueue& queue, u64 lastFenceValue);
 
 		/**
-		 * Submits the command buffer of @p recorded, recorded by GpuTransferQueue, on the first graphics queue, waiting for all earlier
-		 * work on every queue. Returns the queue, or null if nothing was recorded. Submit thread only.
+		 * Submits @p commandBuffer on @p queue, and keeps the fence signals of the submission for WaitUntilFence(). Submit thread only.
+		 *
+		 * @param	queue			Queue to submit the command buffer on.
+		 * @param	commandBuffer	Command buffer to submit.
+		 * @param	syncMask		Queues whose earlier work the submission waits for.
+		 * @param	signalFences	Timeline-fence + value pairs to signal when the submission completes.
 		 */
-		GpuQueue* SubmitTransfers(const GpuTransferQueue::RecordedTransfers& recorded);
+		void Submit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences);
 
-		/** Submits @p recorded as SubmitTransfers() does, then blocks until every read submitted so far has executed. Submit thread only. */
-		void SubmitTransfersAndWaitForReads(const GpuTransferQueue::RecordedTransfers& recorded);
+		/**
+		 * Records the transfer batches up to and including @p lastBatch that aren't recorded yet, and submits them on the first graphics queue,
+		 * waiting for all earlier work on every queue. The submission signals the transfer queue's batch fence. Submit thread only.
+		 */
+		void SubmitTakenTransfers(u64 lastBatch);
 
 		GpuDevice& mGpuDevice;
 		IGpuSubmitThreadBackend& mBackend;
@@ -257,9 +257,6 @@ namespace b3d::render
 
 		/** Index of the frame marker that holds the frame fence values. Submit thread only. */
 		u32 mFrameFenceMarkerIndex = 0;
-
-		/** Fence value of the first graphics queue after the last submission of transfers that recorded a read. Submit thread only. */
-		u64 mLastReadFenceValue = 0;
 
 		/**
 		 * Fence signals of the submissions on each queue (indexed by GpuQueueId), in submission order, until the

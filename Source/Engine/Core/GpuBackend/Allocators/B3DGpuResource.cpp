@@ -140,6 +140,17 @@ namespace b3d
 			DestroyImmediately();
 	}
 
+	void IGpuResource::NotifyTransfersQueued()
+	{
+		mQueuedTransfersCount.fetch_add(1, std::memory_order_relaxed);
+	}
+
+	void IGpuResource::NotifyTransfersDequeued()
+	{
+		[[maybe_unused]] const u32 previousCount = mQueuedTransfersCount.fetch_sub(1, std::memory_order_release);
+		B3D_ASSERT(previousCount > 0);
+	}
+
 	void IGpuResource::Destroy()
 	{
 		B3D_ASSERT(mOwner != nullptr && "Destroy() called on an IGpuResource that has no owning GpuResourceManager.");

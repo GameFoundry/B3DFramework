@@ -50,7 +50,8 @@ namespace b3d
 		/**
 		 * Writes buffers and textures through GpuTransferQueue. Verifies that queued writes run before command buffers recorded after them, in
 		 * order, that a covering write replaces an earlier one, that a discarding write leaves earlier command buffers reading the old contents,
-		 * that EndFrame() and Read() run outstanding writes, that writes to bindless buffers run before any submitted command buffer, and that
+		 * that a write queued after a submission doesn't reach the command buffer submitted before it while the submit thread lags, that
+		 * EndFrame() and Read() run outstanding writes, that writes to bindless buffers run before any submitted command buffer, and that
 		 * staging memory isn't reused before the copies from it are done.
 		 */
 		void TestTransferQueue();

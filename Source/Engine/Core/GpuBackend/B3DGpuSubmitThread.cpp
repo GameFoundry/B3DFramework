@@ -84,29 +84,27 @@ GpuSubmitThread::~GpuSubmitThread()
 
 void GpuSubmitThread::QueueSubmit(const TShared<GpuCommandBuffer>& commandBuffer, GpuQueue& queue, GpuQueueMask syncMask, TInlineArray<GpuTimelineFenceAndValue, 2> signalFences, bool blocking)
 {
-	auto fnCommand = [this, commandBuffer, &queue, syncMask, signalFences = std::move(signalFences)]() mutable
+	// The transfers queued to the resources the command buffer uses, and to bindless resources it may use, are taken now, on the calling
+	// thread, so a transfer queued after this call can't join them. They are submitted before the command buffer.
+	GpuTransferQueue& transferQueue = mGpuDevice.GetTransferQueue();
+	const TArrayView<IGpuResource* const> transferResources = commandBuffer->GetResourceTracker().GetResourcesWithQueuedTransfers();
+
+	u64 transferBatch = 0;
+	if(!transferResources.IsEmpty() || transferQueue.HasBindlessTransfers())
+		transferBatch = transferQueue.TakeQueuedTransfers(transferResources);
+
+	auto fnCommand = [this, commandBuffer, &queue, syncMask, transferBatch, signalFences = std::move(signalFences)]() mutable
 	{
 		syncMask |= commandBuffer->GetQueueSyncMask();
 
-		// Uploads queued to the resources the command buffer uses, and to bindless resources it may use, run first
-		GpuTransferQueue& transferQueue = mGpuDevice.GetTransferQueue();
-		const TArrayView<IGpuResource* const> transferDestinations = commandBuffer->GetResourceTracker().GetResourcesWithQueuedTransfers();
-
-		if(!transferDestinations.IsEmpty() || transferQueue.HasBindlessTransfers())
+		// The batch is submitted now, or was by an earlier command, on the first graphics queue
+		if(transferBatch != 0)
 		{
-			const GpuQueue* uploadQueue = SubmitTransfers(transferQueue.RecordQueuedTransfers(transferDestinations));
-			if(uploadQueue != nullptr)
-				syncMask |= GpuQueueMask(uploadQueue->GetId());
+			SubmitTakenTransfers(transferBatch);
+			syncMask |= GpuQueueMask(mGpuDevice.GetQueue(GQT_GRAPHICS, 0)->GetId());
 		}
 
-		mBackend.ExecuteSubmit(queue, commandBuffer, syncMask, signalFences);
-
-		if (signalFences.Empty())
-			return;
-
-		const u64 queueFenceValue = mBackend.GetLastSubmittedFenceValue(queue);
-		for (const GpuTimelineFenceAndValue& signalFence : signalFences)
-			mFenceSignals[queue.GetId().Id].push_back(FenceSignal{ signalFence.Fence, signalFence.Value, queueFenceValue });
+		Submit(queue, commandBuffer, syncMask, signalFences);
 	};
 
 	commandBuffer->NotifyWillQueueForSubmit(queue.GetId(), syncMask | commandBuffer->GetQueueSyncMask());
@@ -116,70 +114,36 @@ void GpuSubmitThread::QueueSubmit(const TShared<GpuCommandBuffer>& commandBuffer
 		WaitUntilIdle();
 }
 
-void GpuSubmitThread::QueueTransferSubmit(IGpuResource& destination)
+void GpuSubmitThread::QueueTransferSubmit(u64 lastBatch)
 {
-	auto fnCommand = [this, destination = &destination]()
+	auto fnCommand = [this, lastBatch]()
 	{
-		SubmitTransfers(mGpuDevice.GetTransferQueue().RecordQueuedTransfers(TArrayView<IGpuResource* const>(&destination, 1)));
+		SubmitTakenTransfers(lastBatch);
 	};
 
-	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "Upload submit");
+	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "Transfer submit");
 }
 
-void GpuSubmitThread::QueueAllTransfersSubmit()
+void GpuSubmitThread::Submit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
-	auto fnCommand = [this]()
-	{
-		SubmitTransfers(mGpuDevice.GetTransferQueue().RecordAllQueuedTransfers());
-	};
+	mBackend.ExecuteSubmit(queue, commandBuffer, syncMask, signalFences);
 
-	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "Upload submit");
+	if (signalFences.IsEmpty())
+		return;
+
+	const u64 queueFenceValue = mBackend.GetLastSubmittedFenceValue(queue);
+	for (const GpuTimelineFenceAndValue& signalFence : signalFences)
+		mFenceSignals[queue.GetId().Id].push_back(FenceSignal{ signalFence.Fence, signalFence.Value, queueFenceValue });
 }
 
-void GpuSubmitThread::QueueReadSubmitAndWait(const TShared<GpuBuffer>& source)
+void GpuSubmitThread::SubmitTakenTransfers(u64 lastBatch)
 {
-	auto fnCommand = [this, &source]()
-	{
-		SubmitTransfersAndWaitForReads(mGpuDevice.GetTransferQueue().RecordQueuedTransfers(*source));
-	};
-
-	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "Read submit", true);
-}
-
-void GpuSubmitThread::QueueReadSubmitAndWait(const TShared<Texture>& source)
-{
-	auto fnCommand = [this, &source]()
-	{
-		SubmitTransfersAndWaitForReads(mGpuDevice.GetTransferQueue().RecordQueuedTransfers(*source));
-	};
-
-	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "Read submit", true);
-}
-
-GpuQueue* GpuSubmitThread::SubmitTransfers(const GpuTransferQueue::RecordedTransfers& recorded)
-{
+	// Batches that other threads took, and whose commands run later, are recorded here too, so batches execute in the order they were taken
+	const GpuTransferQueue::RecordedTransfers recorded = mGpuDevice.GetTransferQueue().RecordTakenTransfers(lastBatch);
 	if(recorded.CommandBuffer == nullptr)
-		return nullptr;
+		return;
 
-	GpuQueue& uploadQueue = *mGpuDevice.GetQueue(GQT_GRAPHICS, 0);
-
-	mBackend.ExecuteSubmit(uploadQueue, recorded.CommandBuffer, GpuQueueMask::kAll, {});
-
-	if(recorded.HasReads)
-		mLastReadFenceValue = mBackend.GetLastSubmittedFenceValue(uploadQueue);
-
-	return &uploadQueue;
-}
-
-void GpuSubmitThread::SubmitTransfersAndWaitForReads(const GpuTransferQueue::RecordedTransfers& recorded)
-{
-	SubmitTransfers(recorded);
-
-	// The read the caller waits for was recorded either now or by an earlier submission, both of which set the value. A blocking read
-	// therefore waits only for the transfers up to the last read, rather than for the whole queue.
-	GpuQueue& uploadQueue = *mGpuDevice.GetQueue(GQT_GRAPHICS, 0);
-	mBackend.RefreshCompletionState(uploadQueue, true, mLastReadFenceValue);
-	RemoveFenceSignals(uploadQueue, mLastReadFenceValue);
+	Submit(*mGpuDevice.GetQueue(GQT_GRAPHICS, 0), recorded.CommandBuffer, GpuQueueMask::kAll, TArrayView<const GpuTimelineFenceAndValue>(&recorded.SignalFence, 1));
 }
 
 TArrayView<const u64> GpuSubmitThread::ConsumeFrameFence(const GpuQueue& queue)
@@ -357,6 +321,20 @@ void GpuSubmitThread::RemoveFenceSignals(const GpuQueue& queue, u64 lastFenceVal
 u32 GpuSubmitThread::GetThreadId() const
 {
 	return mCommandQueue.GetThreadId();
+}
+
+void GpuSubmitThread::QueueWaitForEvent(SignalEvent& event)
+{
+	// Run inline, the wait would block the thread that is meant to signal the event
+	if (!gRenderEnableSubmitThread)
+		return;
+
+	auto fnCommand = [&event]()
+	{
+		RunBlockingCallAsYieldable([&event] { event.Wait(); });
+	};
+
+	mCommandQueue.PostCommand(std::move(fnCommand), "Wait for event");
 }
 
 namespace b3d::render

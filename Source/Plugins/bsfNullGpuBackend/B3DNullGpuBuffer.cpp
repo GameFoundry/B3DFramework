@@ -21,9 +21,9 @@ namespace b3d
 			else
 				mAllocation = allocation;
 
-			// Allocate a dummy buffer for persistently mapped memory
-			mMappedMemory = B3DAllocate(mTotalSize);
+			// The native resource owns the persistently mapped memory, so the memory stays while the native resource is pinned or bound
 			mBuffer = CreateBufferResource();
+			mMappedMemory = mBuffer->GetMemory();
 		}
 
 		NullGpuBuffer::~NullGpuBuffer()
@@ -33,24 +33,20 @@ namespace b3d
 			if(mAllocation.IsOwned())
 				mAllocation.Allocator->Free(mAllocation);
 
-			if (mMappedMemory)
-			{
-				B3DFree(mMappedMemory);
-				mMappedMemory = nullptr;
-			}
+			mMappedMemory = nullptr;
 		}
 
 		void NullGpuBuffer::RecreateInternalBuffer()
 		{
-			// The CPU memory stays, since nothing reads the old contents on the null device
 			NullBufferResource* const newBuffer = CreateBufferResource();
 			mBuffer->Destroy();
 			mBuffer = newBuffer;
+			mMappedMemory = mBuffer->GetMemory();
 		}
 
 		void NullGpuBuffer::SwapInternalBuffer(GpuBuffer& other)
 		{
-			// The CPU memory moves with the native resource that refers to it
+			// The CPU memory moves with the native resource that owns it
 			NullGpuBuffer& otherBuffer = static_cast<NullGpuBuffer&>(other);
 			std::swap(mAllocation, otherBuffer.mAllocation);
 			std::swap(mBuffer, otherBuffer.mBuffer);
@@ -59,7 +55,7 @@ namespace b3d
 
 		NullBufferResource* NullGpuBuffer::CreateBufferResource()
 		{
-			return static_cast<NullGpuDevice&>(GetDevice()).GetResourceManager().Create<NullBufferResource>(GetName(), static_cast<u8*>(mMappedMemory));
+			return static_cast<NullGpuDevice&>(GetDevice()).GetResourceManager().Create<NullBufferResource>(GetName(), mTotalSize);
 		}
 	} // namespace render
 } // namespace b3d

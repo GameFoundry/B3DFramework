@@ -303,8 +303,10 @@ void VulkanBarrierTestSuite::TestRenderPassAttachmentTransitions()
 
 			const TShared<render::RenderTexture> target = render::RenderTexture::Create(targetInformation);
 			const RenderSurfaceMask surfaces = depth ? RT_DEPTH | RT_STENCIL : RT_COLOR0;
+			// Sized for the staging layout of the format, although Vulkan copies only the depth aspect of a depth-stencil format into it, with
+			// 4 bytes per texel
 			const ImageSubresourcePitch pitch = texture->GetStagingBufferPitchForSubresource(0, 0);
-			const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(pitch.RowPitch * pitch.SliceHeight * sizeof(u32)));
+			const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(pitch.RowPitch * pitch.SliceHeight * PixelUtility::GetBlockSize(format)));
 
 			// Returns the state of the attachment in a render pass with @p readOnlyMask
 			const GpuStageFlags attachmentStages = depth ? GpuStageFlag::EarlyFragmentTests | GpuStageFlag::LateFragmentTests : GpuStageFlags(GpuStageFlag::ColorAttachment);

@@ -348,6 +348,19 @@ namespace b3d
 		void NotifyUnpinned();
 
 		/**
+		 * Notifies the resource that transfers to it were queued on GpuTransferQueue. HasQueuedTransfers() returns true until each call is
+		 * followed by a NotifyTransfersDequeued().
+		 */
+		void NotifyTransfersQueued();
+
+		/**
+		 * Notifies the resource that transfers announced by NotifyTransfersQueued() left the queue, either recorded into a command buffer or
+		 * dropped. A thread that then sees HasQueuedTransfers() return false also sees what the caller did before this call, such as marking
+		 * the resource used.
+		 */
+		void NotifyTransfersDequeued();
+
+		/**
 		 * Checks if the resource is currently in use by the GPU.
 		 *
 		 * @note Resource usage is only checked at certain points of the program. This means the resource could be
@@ -405,8 +418,8 @@ namespace b3d
 		/** Returns queues on which the resource currently has in-flight accesses matching @p useFlags. */
 		GpuQueueMask GetUseInfo(GpuAccessFlags useFlags) const;
 
-		/** Returns true while transfers to the resource are queued on GpuTransferQueue. Thread safe. */
-		bool HasQueuedTransfers() const { return mHasQueuedTransfers.load(std::memory_order_acquire); }
+		/** Returns true while transfers to the resource are queued on GpuTransferQueue, see NotifyTransfersQueued(). Thread safe. */
+		bool HasQueuedTransfers() const { return mQueuedTransfersCount.load(std::memory_order_acquire) > 0; }
 
 		/**
 		 * Queues the resource for destruction. If the resource is currently bound to a command buffer or pinned, the actual
@@ -476,13 +489,13 @@ namespace b3d
 		u8 mWriteUses[kMaximumGpuQueueCount] = {};
 
 	private:
-		friend class GpuTransferQueue;
-
 		/** Deletes the resource. Caller must ensure resource is not being used on the GPU or bound to a command buffer. */
 		void DestroyImmediately();
 
 		bool mDestroyRequested = false;
-		std::atomic<bool> mHasQueuedTransfers = false; /**< See HasQueuedTransfers(). Set and cleared by GpuTransferQueue. */
+
+		/** Number of NotifyTransfersQueued() calls not matched by a NotifyTransfersDequeued() yet. See HasQueuedTransfers(). */
+		std::atomic<u32> mQueuedTransfersCount = 0;
 	};
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
