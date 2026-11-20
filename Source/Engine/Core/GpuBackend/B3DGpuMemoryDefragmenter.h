@@ -32,10 +32,11 @@ namespace b3d
 	 * into a texture or buffer created at the reserved memory, and exchanges their native resources (see render::Texture::Relocate()
 	 * and render::GpuBuffer::Relocate()). Moved resources keep their proxies and bindless indices. Enabled by gpu.Defragmentation.
 	 *
-	 * Only moves resources at rest that are not render targets, depth-stencil targets or frame graph resources, that no recorded but
-	 * unsubmitted command buffer references, and that have no uploads queued on GpuTransferQueue. Other textures move, except those the CPU accesses (TextureUsageFlag::StoreOnCPUWithGPUAccess).
-	 * Buffers move only in GpuBufferMemory::Device memory, including those the device maps. The GPU copies a moved buffer's contents after
-	 * the move, so CPU writes through render::GpuBuffer::Map() made before the copy executes are lost. GpuBufferUtility::Write() stages its
+	 * Only moves resources at rest that are not render targets, depth-stencil targets or frame graph resources, and that no recorded but
+	 * unsubmitted command buffer references. Other textures move, except those the CPU accesses (TextureUsageFlag::StoreOnCPUWithGPUAccess).
+	 * Buffers move only in GpuBufferMemory::Device memory, including those the device maps. The copies are queued on GpuTransferQueue, after
+	 * the transfers queued to the moved resources, and run at the latest at the end of the frame. CPU writes through
+	 * render::GpuBuffer::Map() made before a copy executes are lost. GpuBufferUtility::Write() and TextureUtility::Write() stage their
 	 * writes behind the copy.
 	 */
 	class B3D_EXPORT GpuMemoryDefragmenter
@@ -44,11 +45,11 @@ namespace b3d
 		explicit GpuMemoryDefragmenter(GpuDevice& device);
 
 		/**
-		 * Plans and records moves within the per-frame budget, if gpu.Defragmentation is enabled. Records the copies into
-		 * @p gpuContext's transfer command buffer, which must be submitted next, waiting for all earlier work on every queue, and
-		 * before pending bindless changes are applied. Called by the renderer at the end of each frame. Render thread only.
+		 * Plans and queues moves within the per-frame budget, if gpu.Defragmentation is enabled. Must run before the device applies the
+		 * frame's pending bindless changes, so the next frame's work sees the moved resources. Called by the renderer at the end of each
+		 * frame. Render thread only.
 		 */
-		void Run(GpuWorkContext& gpuContext);
+		void Run();
 
 		/** Returns the counters of the moves made so far. */
 		const GpuDefragmentationStatistics& GetStatistics() const { return mStatistics; }

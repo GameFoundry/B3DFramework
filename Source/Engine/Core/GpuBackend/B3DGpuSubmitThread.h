@@ -5,6 +5,7 @@
 #include "B3DPrerequisites.h"
 #include "GpuBackend/B3DGpuQueue.h"
 #include "GpuBackend/B3DGpuTimelineFence.h"
+#include "GpuBackend/B3DGpuTransferQueue.h"
 #include "Threading/B3DSignalEvent.h"
 #include "Threading/B3DSingleConsumerQueue.h"
 
@@ -17,8 +18,10 @@ namespace b3d
 
 namespace b3d::render
 {
+	class GpuBuffer;
 	class GpuCommandBuffer;
 	class GpuCommandBufferPool;
+	class Texture;
 
 	/** @addtogroup GpuBackend
 	 *  @{
@@ -129,11 +132,20 @@ namespace b3d::render
 		 */
 		void QueueSubmit(const TShared<GpuCommandBuffer>& commandBuffer, GpuQueue& queue, GpuQueueMask syncMask, TInlineArray<GpuTimelineFenceAndValue, 2> signalFences, bool blocking = false);
 
-		/** Queues a submission of the uploads queued to @p destination, and to bindless destinations. See GpuTransferQueue. */
-		void QueueUploadSubmit(IGpuResource& destination);
+		/** Queues a submission of the transfers queued to @p destination, and to bindless destinations. See GpuTransferQueue. */
+		void QueueTransferSubmit(IGpuResource& destination);
 
-		/** Queues a submission of every queued upload. See GpuTransferQueue. */
-		void QueueAllUploadsSubmit();
+		/** Queues a submission of every queued transfer. See GpuTransferQueue. */
+		void QueueAllTransfersSubmit();
+
+		/**
+		 * Submits the transfers queued to the current native resource of @p source, and to bindless resources, then blocks until every read
+		 * the transfer queue submitted so far has executed. See GpuTransferQueue.
+		 */
+		void QueueReadSubmitAndWait(const TShared<GpuBuffer>& source);
+
+		/** @copydoc QueueReadSubmitAndWait(const TShared<GpuBuffer>&) */
+		void QueueReadSubmitAndWait(const TShared<Texture>& source);
 
 		/**
 		 * Queues an operation that acquires a swap chain image. Acquired images can be written to and eventually presented to the screen.
@@ -221,10 +233,13 @@ namespace b3d::render
 		void RemoveFenceSignals(const GpuQueue& queue, u64 lastFenceValue);
 
 		/**
-		 * Ends and submits @p commandBuffer, recorded by GpuTransferQueue, on the first graphics queue, waiting for all earlier work on every
-		 * queue. Returns the queue, or null if @p commandBuffer is null. Submit thread only.
+		 * Submits the command buffer of @p recorded, recorded by GpuTransferQueue, on the first graphics queue, waiting for all earlier
+		 * work on every queue. Returns the queue, or null if nothing was recorded. Submit thread only.
 		 */
-		GpuQueue* SubmitUploads(const TShared<GpuCommandBuffer>& commandBuffer);
+		GpuQueue* SubmitTransfers(const GpuTransferQueue::RecordedTransfers& recorded);
+
+		/** Submits @p recorded as SubmitTransfers() does, then blocks until every read submitted so far has executed. Submit thread only. */
+		void SubmitTransfersAndWaitForReads(const GpuTransferQueue::RecordedTransfers& recorded);
 
 		GpuDevice& mGpuDevice;
 		IGpuSubmitThreadBackend& mBackend;
@@ -242,6 +257,9 @@ namespace b3d::render
 
 		/** Index of the frame marker that holds the frame fence values. Submit thread only. */
 		u32 mFrameFenceMarkerIndex = 0;
+
+		/** Fence value of the first graphics queue after the last submission of transfers that recorded a read. Submit thread only. */
+		u64 mLastReadFenceValue = 0;
 
 		/**
 		 * Fence signals of the submissions on each queue (indexed by GpuQueueId), in submission order, until the

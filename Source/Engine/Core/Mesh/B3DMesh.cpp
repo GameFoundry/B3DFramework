@@ -62,9 +62,6 @@ TAsyncOp<void> Mesh::ReadData(const TShared<MeshData>& data)
 
 	auto fnReadMeshData = [&](const TShared<render::Mesh>& mesh, const TShared<MeshData>& meshData, TAsyncOp<void>& asyncOp)
 	{
-		GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
-		gpuContext.SubmitTransferCommandBuffers();
-
 		mesh->ReadData(*meshData);
 		meshData->UnlockInternal();
 		asyncOp.CompleteOperation();
@@ -480,8 +477,6 @@ void Mesh::ReadData(MeshData& meshData, const TShared<GpuCommandBuffer>& command
 {
 	ASSERT_IF_NOT_RENDER_THREAD;
 
-	GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
-
 	const GpuBufferInformation& indexBufferInformation = mIndexBuffer->GetInformation();
 	B3D_ENSURE(indexBufferInformation.Type == GpuBufferType::Index);
 
@@ -516,7 +511,7 @@ void Mesh::ReadData(MeshData& meshData, const TShared<GpuCommandBuffer>& command
 			return;
 		}
 
-		GpuBufferUtility::Read(gpuContext, mIndexBuffer, 0, indicesSize, indices);
+		GpuBufferUtility::Read(mIndexBuffer, 0, indicesSize, indices);
 	}
 
 	if(mVertexData)
@@ -556,7 +551,7 @@ void Mesh::ReadData(MeshData& meshData, const TShared<GpuCommandBuffer>& command
 			}
 
 			u8* destination = meshData.GetStreamData(streamIndex);
-			GpuBufferUtility::Read(gpuContext, vertexBuffer, 0, bufferSize, destination);
+			GpuBufferUtility::Read(vertexBuffer, 0, bufferSize, destination);
 
 			streamIndex++;
 		}

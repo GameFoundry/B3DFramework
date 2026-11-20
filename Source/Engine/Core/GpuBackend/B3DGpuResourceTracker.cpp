@@ -25,21 +25,21 @@ void GpuResourceTracker::TrackBufferUsage(IGpuBufferResource* buffer, GpuAccessF
 
 	GpuResourceUseHandle& useHandle = GetOrCreateBufferTrackingState(buffer).UseHandle;
 	useHandle.Flags |= access;
-	TrackQueuedUploads(buffer, useHandle);
+	TrackQueuedTransfers(buffer, useHandle);
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	TrackBufferSuballocation(buffer, dynamicOffset);
 #endif
 }
 
-void GpuResourceTracker::TrackQueuedUploads(IGpuResource* resource, GpuResourceUseHandle& useHandle)
+void GpuResourceTracker::TrackQueuedTransfers(IGpuResource* resource, GpuResourceUseHandle& useHandle)
 {
 	// Checked on every use, so a command buffer that used the resource before an upload was queued and uses it again after pulls it in
-	if(useHandle.HasQueuedUploads || !resource->HasQueuedUploads())
+	if(useHandle.HasQueuedTransfers || !resource->HasQueuedTransfers())
 		return;
 
-	useHandle.HasQueuedUploads = true;
-	mResourcesWithQueuedUploads.Add(resource);
+	useHandle.HasQueuedTransfers = true;
+	mResourcesWithQueuedTransfers.Add(resource);
 }
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
@@ -121,7 +121,7 @@ void GpuResourceTracker::TrackImageUsage(IGpuImageResource* image, const GpuText
 	GpuResourceUseHandle& useHandle = insertResult.first->second;
 	B3D_ASSERT(!useHandle.Used);
 	useHandle.Flags |= access;
-	TrackQueuedUploads(image, useHandle);
+	TrackQueuedTransfers(image, useHandle);
 
 	// Register any sub-resources
 	const GpuTextureSubresourceRange range = GpuBackendUtility::ClampRange(subresourceRange, image->GetRange());
@@ -327,7 +327,7 @@ void GpuResourceTracker::Clear()
 	mImages.clear();
 	mBuffers.clear();
 	mSwapChains.clear();
-	mResourcesWithQueuedUploads.Clear();
+	mResourcesWithQueuedTransfers.Clear();
 	mRenderPassAttachments.Clear();
 	mIsInRenderPass = false;
 }

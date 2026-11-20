@@ -933,18 +933,6 @@ namespace b3d::render
 	struct B3D_EXPORT GpuBufferUtility
 	{
 		/**
-		 * Creates a staging buffer that can be used for as copy source or destination for the provided buffer. Staging
-		 * buffers are single-use, so they are allocated from the performing context's scratch allocator — the memory
-		 * is reclaimed in bulk once the GPU work that used it completes, and must not be retained past that point.
-		 *
-		 * @param	gpuContext	Context whose scratch allocator backs the staging buffer.
-		 * @param	buffer		Buffer to create the the staging buffer for. The staging buffer will have enough size to fit the contents of this buffer.
-		 * @param	readable	True if the buffer needs to be CPU-readable, false if the buffer needs to be CPU-writeable.
-		 * @return				Newly created buffer.
-		 */
-		static TShared<GpuBuffer> CreateStaging(GpuWorkContext& gpuContext, const TShared<GpuBuffer>& buffer, bool readable);
-
-		/**
 		 * Writes data into a buffer while accounting for the fact that the buffer might not be directly CPU-writable. Mapped buffers (see
 		 * GpuBufferMemory) are written directly, unless the GPU is using them.
 		 *
@@ -973,39 +961,35 @@ namespace b3d::render
 		 * directly, except those in the memory of a discrete GPU (GpuBufferMemory::Device and GpuBufferMemory::Mapped with Resizable BAR),
 		 * which the CPU reads slowly and uncached, over PCI Express.
 		 *
-		 * If a buffer is being used by the GPU, or is not directly CPU-readable, this method will internally create a staging buffer, copy the source
-		 * buffer into the staging buffer using the provided GPU queue, and then read the data from the staging buffer. If no GPU queue is provided,
-		 * it will use the default graphics queue.
+		 * If the buffer isn't directly CPU-readable, the GPU copies it into a staging buffer the CPU reads. Either way the read sees the uploads
+		 * queued to the buffer (see GpuTransferQueue), and the GPU work submitted before this call.
 		 *
-		 * Note if the buffer is currently used on the GPU, this method will block until the GPU is done executing, stalling the pipeline.
+		 * This method blocks until the GPU has executed the read, and the work submitted before it that writes the buffer.
 		 *
-		 * @param	gpuContext		Context whose transfer command buffer is used to perform and flush the staging copy.
 		 * @param	buffer			Buffer to read from.
 		 * @param	offset			Offset in bytes from which to copy the data.
 		 * @param	length			Length of the area you want to copy, in bytes.
 		 * @param	destination		Destination buffer large enough to store the read data. Data is written from the start of the buffer (@p offset is only applied to the source).
-		 * @param	gpuQueue		GPU queue on which to perform the read. If not specified the default transfer queue will be used.
 		 */
-		static void Read(GpuWorkContext& gpuContext, const TShared<GpuBuffer>& buffer, u32 offset, u32 length, void* destination, const TShared<GpuQueue>& gpuQueue = nullptr);
+		static void Read(const TShared<GpuBuffer>& buffer, u32 offset, u32 length, void* destination);
 
 		/**
 		 * Performs a non-blocking read operation. The GPU will execute the read when the command buffer reaches the execution point
 		 * and the asynchronous operation will be signaled with the return value.
 		 *
-		 * @param	gpuContext		Context whose scratch allocator backs the internal staging buffer.
 		 * @param	buffer			Buffer to read from.
 		 * @param	offset			Offset in bytes from which to read the data.
 		 * @param	length			Length of the area you want to read, in bytes.
 		 * @param	commandBuffer	Command buffer to queue the operation on.
 		 * @return					Operation that will be signaled when the data is ready to be read.
 		 */
-		static TAsyncOp<TShared<MemoryDataStream>> ReadAsync(GpuWorkContext& gpuContext, const TShared<GpuBuffer>& buffer, u32 offset, u32 length, GpuCommandBuffer& commandBuffer);
+		static TAsyncOp<TShared<MemoryDataStream>> ReadAsync(const TShared<GpuBuffer>& buffer, u32 offset, u32 length, GpuCommandBuffer& commandBuffer);
 
 		/**
 		 * Performs a non-blocking read operation inside @p graph. The GPU will execute the read when the command buffer reaches 
 		 * the execution point and the asynchronous operation will be signaled with the return value.
 		 *
-		 * @param	graph			Graph to add the copy pass to. Its work context backs the internal staging buffer.
+		 * @param	graph			Graph to add the copy pass to.
 		 * @param	buffer			Buffer to read from. Must be a resource of @p graph.
 		 * @param	offset			Offset in bytes from which to read the data.
 		 * @param	length			Length of the area you want to read, in bytes.

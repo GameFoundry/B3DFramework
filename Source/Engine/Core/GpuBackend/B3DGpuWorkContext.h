@@ -19,7 +19,6 @@ namespace b3d
 	{
 		class GpuBuffer;
 		class GpuCommandBuffer;
-		class GpuCommandBufferPoolRing;
 	}
 
 	/** @addtogroup GpuBackend
@@ -172,17 +171,8 @@ namespace b3d
 		}
 
 		/**
-		 * Returns a command buffer for transfer (copy/upload) operations, lazily creating the context's
-		 * transfer pool ring and the active command buffer if needed. The returned buffer is submitted by
-		 * SubmitTransferCommandBuffers(), or recycled at the next AdvanceFrame().
-		 */
-		const TShared<render::GpuCommandBuffer>& GetTransferCommandBuffer();
-
-		/**
-		 * Submits a command buffer through this context. Any pending transfer command buffer owned by this
-		 * context is flushed first (non-blocking), so transfers recorded against this context are visible to
-		 * the submitted work, then the command buffer is submitted to the queue resolved from its queue type
-		 * and @p queueIndex.
+		 * Submits a command buffer through this context, to the queue resolved from its queue type and
+		 * @p queueIndex.
 		 *
 		 * @param	information	Command buffer + sync mask + signal fences to submit.
 		 * @param	queueIndex	Index of the queue (of the command buffer's type) to submit on.
@@ -196,19 +186,8 @@ namespace b3d
 		void SubmitCommandBuffer(const TShared<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask = GpuQueueMask::kAll, u32 queueIndex = 0);
 
 		/**
-		 * Ends and submits the active transfer command buffer (if any) to the transfer queue. After this a
-		 * fresh buffer is created on the next GetTransferCommandBuffer() call. SubmitCommandBuffer() flushes
-		 * pending transfers automatically; call this directly when transfers must execute without follow-up
-		 * work (e.g. before reading back a resource the transfers write).
-		 *
-		 * @param	wait	If true, blocks until the transfer queue finishes executing the submitted work.
-		 */
-		void SubmitTransferCommandBuffers(bool wait = false);
-
-		/**
-		 * Advances to the next frame at the frame boundary: recycles the transfer pool ring (clearing the
-		 * active transfer command buffer), reclaims scratch memory the GPU has finished with - retiring
-		 * each scratch allocator's open page and draining everything whose completion marker has signaled
+		 * Advances to the next frame at the frame boundary: reclaims scratch memory the GPU has finished with -
+		 * retiring each scratch allocator's open page and draining everything whose completion marker has signaled
 		 * (non-blocking; drains only what is already complete) - and releases the transient resources that
 		 * went unused for gGpuTransientIdleFrames frames. Call once per frame after the prior frame's
 		 * work is known safe to reuse, and before the frame index advances so retired pages are stamped with
@@ -217,9 +196,8 @@ namespace b3d
 		void AdvanceFrame();
 
 		/**
-		 * Blocking teardown of all outstanding GPU work owned by this context: flushes any pending
-		 * transfer command buffer, blocks (yieldably) until the GPU drains this context's outstanding
-		 * submissions on every queue, ensures the completion callbacks of the finished work have run (releasing any
+		 * Blocking teardown of all outstanding GPU work owned by this context: blocks (yieldably) until the
+		 * GPU drains this context's outstanding submissions on every queue, ensures the completion callbacks of the finished work have run (releasing any
 		 * scratch buffers they hold), then retires and force-drains all scratch memory back to the
 		 * device's shared page pool. Called automatically by the destructor for contexts that own their
 		 * fence tracker. Must run on the owning thread.
@@ -266,10 +244,6 @@ namespace b3d
 
 		/** Allocator for transient resources, created on first use. Destroyed together with the context-local objects. */
 		TUnique<GpuTransientResourceAllocator> mTransientResourceAllocator;
-
-		// Transfer command-buffers
-		TUnique<render::GpuCommandBufferPoolRing> mTransferPoolRing;
-		TShared<render::GpuCommandBuffer> mTransferCommandBuffer;
 	};
 
 	/** @} */

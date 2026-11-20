@@ -123,7 +123,7 @@ namespace b3d
 			virtual ~RenderTexture() = default;
 
 			void Initialize() override;
-			TAsyncOp<TShared<PixelData>> ReadAsync(GpuWorkContext& gpuContext, GpuCommandBuffer& commandBuffer, u32 colorSurfaceIndex = 0, u32 mipLevel = 0, u32 arrayLayer = 0) override;
+			TAsyncOp<TShared<PixelData>> ReadAsync(GpuCommandBuffer& commandBuffer, u32 colorSurfaceIndex = 0, u32 mipLevel = 0, u32 arrayLayer = 0) override;
 
 			/** @copydoc TextureManager::CreateRenderTexture(const RenderTextureCreateInformation&, u32) */
 			static TShared<RenderTexture> Create(const RenderTextureCreateInformation& createInformation);

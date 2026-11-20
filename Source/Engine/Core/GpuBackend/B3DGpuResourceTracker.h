@@ -26,8 +26,8 @@ namespace b3d
 			/** Access flags indicating how the resource is being accessed. None keeps the resource alive without registering a read or write access. */
 			GpuAccessFlags Flags;
 
-			/** True once the resource is in GpuResourceTracker::GetResourcesWithQueuedUploads(). */
-			bool HasQueuedUploads = false;
+			/** True once the resource is in GpuResourceTracker::GetResourcesWithQueuedTransfers(). */
+			bool HasQueuedTransfers = false;
 		};
 
 		/** Contains information about a single GPU buffer resource bound/used on a command buffer. */
@@ -146,8 +146,8 @@ namespace b3d
 			/** Returns all tracked images and their use handles. */
 			const TDenseMap<IGpuImageResource*, GpuResourceUseHandle>& GetImages() const { return mImages; }
 
-			/** Returns the tracked buffers and images that had uploads queued on GpuTransferQueue when the command buffer tracked them. */
-			TArrayView<IGpuResource* const> GetResourcesWithQueuedUploads() const { return mResourcesWithQueuedUploads; }
+			/** Returns the tracked buffers and images that had transfers queued on GpuTransferQueue when the command buffer tracked them. */
+			TArrayView<IGpuResource* const> GetResourcesWithQueuedTransfers() const { return mResourcesWithQueuedTransfers; }
 
 			/** @} */
 
@@ -155,8 +155,8 @@ namespace b3d
 			/** Creates a new tracking state for the buffer (if this is the first time the buffer has been used on the command buffer), or returns existing tracking state. */
 			GpuBufferTrackingState& GetOrCreateBufferTrackingState(IGpuBufferResource* buffer);
 
-			/** Adds @p resource to GetResourcesWithQueuedUploads() if it has queued uploads and isn't there yet. */
-			void TrackQueuedUploads(IGpuResource* resource, GpuResourceUseHandle& useHandle);
+			/** Adds @p resource to GetResourcesWithQueuedTransfers() if it has queued transfers and isn't there yet. */
+			void TrackQueuedTransfers(IGpuResource* resource, GpuResourceUseHandle& useHandle);
 
 			/** Maps images to their use handles. */
 			TDenseMap<IGpuImageResource*, GpuResourceUseHandle> mImages;
@@ -170,8 +170,8 @@ namespace b3d
 			/** Maps swap chains to their use handles. */
 			TDenseMap<IGpuSwapChainResource*, GpuResourceUseHandle> mSwapChains;
 
-			/** See GetResourcesWithQueuedUploads(). */
-			TInlineArray<IGpuResource*, 4> mResourcesWithQueuedUploads;
+			/** See GetResourcesWithQueuedTransfers(). */
+			TInlineArray<IGpuResource*, 4> mResourcesWithQueuedTransfers;
 
 			/** Attachments of the active render pass. */
 			TInlineArray<GpuRenderPassAttachmentUsage, B3D_MAXIMUM_RENDER_TARGET_COUNT + 2> mRenderPassAttachments;

@@ -927,7 +927,7 @@ namespace
 		const TShared<render::GpuCommandBuffer> readbackCommandBuffer = pool->Create(readbackInfo);
 
 		const u32 readSize = destination->GetConsecutiveSize();
-		TAsyncOp<TShared<PixelData>> readOp = render::TextureUtility::ReadAsync(gpuContext, outputTexture, *readbackCommandBuffer);
+		TAsyncOp<TShared<PixelData>> readOp = render::TextureUtility::ReadAsync(outputTexture, *readbackCommandBuffer);
 
 		readbackCommandBuffer->OnDidComplete.Connect(
 			[op, readOp, outputTexture, inputTexture, destination, readSize]() mutable

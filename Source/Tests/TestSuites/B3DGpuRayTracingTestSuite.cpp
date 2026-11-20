@@ -1396,7 +1396,7 @@ void GpuRayTracingTestSuite::TestRayTracingGeometry()
 		B3D_TEST_ASSERT(layouts[1].Tangent.Stride == 0 && layouts[1].Tangent.BufferIndex != layouts[1].Position.BufferIndex)
 
 		// The mesh's initial contents are written through the transfer queue
-		device->GetTransferQueue().SubmitQueuedUploads();
+		device->GetTransferQueue().SubmitQueuedTransfers();
 		device->WaitUntilIdle();
 
 		// Instance ids index a table with the layouts of each instance's geometries, from the id on

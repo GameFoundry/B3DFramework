@@ -51,7 +51,7 @@ void RenderTarget::SetPriority(i32 priority)
 	mRenderTargetProperties.Priority = priority;
 }
 
-TAsyncOp<TShared<PixelData>> RenderTarget::ReadAsync(GpuWorkContext& gpuContext, GpuCommandBuffer& commandBuffer, u32 colorSurfaceIndex, u32 mipLevel, u32 arrayLayer)
+TAsyncOp<TShared<PixelData>> RenderTarget::ReadAsync(GpuCommandBuffer& commandBuffer, u32 colorSurfaceIndex, u32 mipLevel, u32 arrayLayer)
 {
 	TAsyncOp<TShared<PixelData>> asyncOp;
 	asyncOp.CompleteOperation(nullptr);

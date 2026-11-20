@@ -1002,6 +1002,7 @@ namespace b3d
 		protected:
 			friend class GpuCommandBufferPool;
 			friend class GpuSubmitThread;
+			friend class b3d::GpuTransferQueue;
 
 			GpuCommandBuffer(GpuDevice& gpuDevice, const GpuCommandBufferPool& pool, GpuQueueType queueType, const GpuCommandBufferCreateInformation& createInformation);
 
@@ -1108,7 +1109,7 @@ namespace b3d
 			String mName;
 			GpuCommandBufferState mState = GpuCommandBufferState::Ready;
 			GpuQueueMask mQueueSyncMask;
-			GpuResourceTracker mResourceTracker; /**< Tracks the resources the recorded commands use: their bound and use counts, render pass attachments and queued uploads. */
+			GpuResourceTracker mResourceTracker; /**< Tracks the resources the recorded commands use: their bound and use counts, render pass attachments and queued transfers. */
 			bool mIsDestroyed = false;
 
 			TInlineArray<RecordedSplitBarrier, 4> mSplitBarriers;

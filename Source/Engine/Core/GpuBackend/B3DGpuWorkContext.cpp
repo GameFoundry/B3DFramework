@@ -3,7 +3,6 @@
 #include "B3DGpuWorkContext.h"
 #include "B3DGpuDevice.h"
 #include "B3DGpuCommandBuffer.h"
-#include "B3DGpuCommandBufferPoolRing.h"
 #include "B3DGpuParameterSetPool.h"
 #include "B3DGpuTransientResourceAllocator.h"
 #include "B3DGpuDeviceCapabilities.h"
@@ -13,8 +12,9 @@ using namespace b3d;
 
 namespace
 {
-	constexpr GpuQueueType kTransferQueueType = GQT_GRAPHICS;
-	constexpr u32 kTransferQueueIndex = 0;
+	/** Queue whose idle wait makes the completion callbacks of finished work run, see WaitAndReclaim(). */
+	constexpr GpuQueueType kCompletionQueueType = GQT_GRAPHICS;
+	constexpr u32 kCompletionQueueIndex = 0;
 
 	TUnique<GpuParameterSetPool> CreateParameterSetPool(GpuDevice& device, bool isWorkerContext)
 	{
@@ -138,53 +138,10 @@ GpuWorkContext::~GpuWorkContext()
 	// (declared after mLocalObjects) are still alive, so any parameter sets the locals hold free cleanly.
 	mLocalObjects.clear();
 	mTransientResourceAllocator = nullptr;
-
-	if (!mTransferPoolRing)
-		return;
-
-	if (mTransferCommandBuffer != nullptr)
-	{
-		mTransferCommandBuffer->End();
-		mTransferCommandBuffer = nullptr;
-	}
-
-	mTransferPoolRing->Destroy();
-	mTransferPoolRing = nullptr;
-}
-
-const TShared<render::GpuCommandBuffer>& GpuWorkContext::GetTransferCommandBuffer()
-{
-	if (!mTransferPoolRing)
-	{
-		render::GpuCommandBufferPoolCreateInformation poolCreateInformation;
-		poolCreateInformation.Thread = B3D_CURRENT_THREAD_ID;
-		poolCreateInformation.Type = kTransferQueueType;
-		poolCreateInformation.UsePoolReset = true;
-
-		mTransferPoolRing = B3DMakeUnique<render::GpuCommandBufferPoolRing>(mDevice, poolCreateInformation);
-	}
-
-	if (mTransferCommandBuffer == nullptr)
-	{
-		render::GpuCommandBufferCreateInformation commandBufferCreateInformation;
-		commandBufferCreateInformation.Name = "Transfer";
-
-		mTransferCommandBuffer = mTransferPoolRing->GetCurrentPool().FindOrCreate(commandBufferCreateInformation);
-	}
-
-	return mTransferCommandBuffer;
 }
 
 void GpuWorkContext::SubmitCommandBuffer(const GpuSubmissionInformation& information, u32 queueIndex)
 {
-	// NOTE: Transfer and work are submitted to the same queue (graphics 0), so same-queue submission
-	//		 order preserves the transfer-before-work dependency with no explicit semaphore. If the work
-	//		 command buffer ever targets a different queue, the caller must add an explicit sync mask for
-	//		 the transfer queue - same-queue ordering no longer guarantees transfer visibility.
-
-	// Flush this context's pending transfers first (non-blocking) so they are visible to the work below.
-	SubmitTransferCommandBuffers(false);
-
 	if (!B3D_ENSURE(information.CommandBuffer))
 		return;
 
@@ -221,44 +178,8 @@ void GpuWorkContext::SubmitCommandBuffer(const TShared<render::GpuCommandBuffer>
 	SubmitCommandBuffer(information, queueIndex);
 }
 
-void GpuWorkContext::SubmitTransferCommandBuffers(bool wait)
-{
-	TShared<render::GpuCommandBuffer> commandBufferToSubmit = mTransferCommandBuffer;
-	mTransferCommandBuffer = nullptr;
-
-	if (commandBufferToSubmit == nullptr && !wait)
-		return;
-
-	TShared<GpuQueue> queue = mDevice.GetQueue(kTransferQueueType, kTransferQueueIndex);
-	if (queue == nullptr)
-		return;
-
-	if (commandBufferToSubmit != nullptr)
-	{
-		commandBufferToSubmit->End();
-
-		GpuSubmissionInformation submissionInfo;
-		submissionInfo.CommandBuffer = commandBufferToSubmit;
-		submissionInfo.SyncMask = GpuQueueMask::kAll;
-
-		// See SubmitCommandBuffer() - fence-tracked contexts tag every submission with their fence.
-		if (mOwnedTracker != nullptr)
-			submissionInfo.SignalFences.Add(mOwnedTracker->NotifyWillSubmit(queue->GetId()));
-
-		queue->SubmitCommandBuffer(submissionInfo);
-	}
-
-	if (wait)
-		queue->WaitUntilIdle();
-}
-
 void GpuWorkContext::AdvanceFrame()
 {
-	if (mTransferPoolRing)
-		mTransferPoolRing->AdvanceFrame();
-
-	mTransferCommandBuffer = nullptr;
-
 	// Reclaim scratch memory at the frame boundary: retire each linear allocator's open page, then
 	// drain any pages whose completion marker has signaled. No-op for backends with no scratch
 	// allocators (the map stays empty).
@@ -278,10 +199,6 @@ void GpuWorkContext::AdvanceFrame()
 
 void GpuWorkContext::WaitAndReclaim()
 {
-	// Flush pending transfers so everything this context recorded is actually submitted (and, for
-	// fence-tracked contexts, tagged with the fence value waited on below).
-	SubmitTransferCommandBuffers(false);
-
 	const bool hasSubmittedWork = mOwnedTracker != nullptr && mOwnedTracker->GetLastSubmittedMarker() != 0;
 
 	// Drain the GPU before tearing anything down, so destroying the context-local objects below releases
@@ -300,7 +217,7 @@ void GpuWorkContext::WaitAndReclaim()
 		// have released them by the time the pages are drained below.
 		// TODO: This waits on the whole queue, serializing concurrent contexts at teardown. Replace it with
 		//		 a targeted completion-refresh + pump of this context's pools once contexts run concurrently.
-		const TShared<GpuQueue> queue = mDevice.GetQueue(kTransferQueueType, kTransferQueueIndex);
+		const TShared<GpuQueue> queue = mDevice.GetQueue(kCompletionQueueType, kCompletionQueueIndex);
 		if (queue != nullptr)
 			queue->WaitUntilIdle();
 	}

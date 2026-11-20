@@ -200,11 +200,10 @@ render::GpuBufferSuballocation suballocation = ...;
 ~~~~~~~~~~~~~
 
 # GpuBufferUtility
-@b3d::render::GpuBufferUtility provides high-level render-thread operations that handle staging buffers internally. This is the preferred way to write to GPU-only buffers from the render thread, as it transparently creates staging buffers and copy commands when needed. The read operations take the @b3d::GpuWorkContext they run against as their first argument; on the render thread obtain it from @b3d::render::Renderer::GetGpuContext.
+@b3d::render::GpuBufferUtility provides high-level operations that handle staging buffers internally. This is the preferred way to write to and read from GPU-only buffers, as it transparently creates staging buffers and copy commands when needed.
  - @b3d::render::GpuBufferUtility::Write - Writes data into a buffer. If the buffer is not CPU-writable or is currently used by the GPU, it internally creates a staging buffer and copies it into the buffer, through the provided command buffer or, if none is provided, through the device's transfer queue (see below).
- - @b3d::render::GpuBufferUtility::Read - Reads data from a buffer, staging through the work context if needed. Blocks if the buffer is in GPU use. Writes queued on the transfer queue run first.
- - @b3d::render::GpuBufferUtility::ReadAsync - Non-blocking read via a command buffer. Returns a @b3d::TAsyncOp that is signaled when the data is ready.
- - @b3d::render::GpuBufferUtility::CreateStaging - Creates a staging buffer matching the size of a given buffer. The staging buffer is allocated from the work context's scratch allocator, so it is single-use and must not be retained once the GPU work that used it completes.
+ - @b3d::render::GpuBufferUtility::Read - Reads data from a buffer through the transfer queue, staging the copy if the buffer isn't directly readable. Blocks until the GPU has executed the read. Writes queued on the transfer queue run first.
+ - @b3d::render::GpuBufferUtility::ReadAsync - Non-blocking read via a command buffer or a frame graph. Returns a @b3d::TAsyncOp that is signaled when the data is ready.
 
 ~~~~~~~~~~~~~{.cpp}
 TShared<render::GpuBuffer> gpuOnlyBuffer = ...; // In GpuBufferMemory::Device memory, which may not be mapped
@@ -212,15 +211,12 @@ TShared<render::GpuBuffer> gpuOnlyBuffer = ...; // In GpuBufferMemory::Device me
 // GpuBufferUtility handles staging internally
 GpuBufferUtility::Write(gpuOnlyBuffer, 0, dataSize, sourceData);
 
-// Reads run against the render thread's work context, obtained from the renderer
-GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
-
-// Read with blocking
+// Read with blocking. It sees the write above.
 Vector<u8> readBack(dataSize);
-GpuBufferUtility::Read(gpuContext, gpuOnlyBuffer, 0, dataSize, readBack.data());
+GpuBufferUtility::Read(gpuOnlyBuffer, 0, dataSize, readBack.data());
 
 // Non-blocking read via command buffer
-TAsyncOp<TShared<MemoryDataStream>> asyncRead = GpuBufferUtility::ReadAsync(gpuContext, gpuOnlyBuffer, 0, dataSize, commandBuffer);
+TAsyncOp<TShared<MemoryDataStream>> asyncRead = GpuBufferUtility::ReadAsync(gpuOnlyBuffer, 0, dataSize, commandBuffer);
 // ... later, when the command buffer completes, the async op is signaled
 ~~~~~~~~~~~~~
 
@@ -230,22 +226,28 @@ The @b3d::render::GpuBufferWriteFlag flags control behavior when writing to a bu
  - @b3d::render::GpuBufferWriteFlag::NoOverwrite - Allows writing while the GPU is using the buffer. The caller is responsible for not writing to regions the GPU is operating on.
 
 ## Transfer queue
-Writes that need a copy and have no command buffer go through the device's @b3d::GpuTransferQueue (@b3d::GpuDevice::GetTransferQueue). The queue can be used from any thread. A queued write runs before the first submitted command buffer that uses the resource after the write, and at the latest at the end of the frame, in @b3d::GpuDevice::EndFrame. Writes to the same buffer run in the order they were made, and a write that covers an earlier queued write replaces it. Command buffers don't track resources they access through the bindless heap, so writes to bindless resources run before the next submitted command buffer.
+Writes that need a copy and have no command buffer go through the device's @b3d::GpuTransferQueue (@b3d::GpuDevice::GetTransferQueue), and so do blocking reads. The queue can be used from any thread. A queued write runs before the first submitted command buffer that uses the resource after the write, and at the latest at the end of the frame, in @b3d::GpuDevice::EndFrame. Transfers to the same buffer run in the order they were made, and a write that covers an earlier queued write replaces it, unless a read was queued in between. Command buffers don't track resources they access through the bindless heap, so writes to bindless resources run before the next submitted command buffer.
 
 A command buffer that uses the buffer and is recorded, but not submitted, before the write pulls the write in when it is submitted, so it sees the new contents instead of the ones it was recorded after. To keep the old contents for it, discard them (@b3d::render::GpuBufferWriteFlag::Discard), which gives the buffer new memory, or write through an explicit command buffer. Otherwise the write logs a warning.
 
-To run queued writes right away, for example before mapping a buffer they write, call @b3d::GpuTransferQueue::SubmitQueuedUploads.
+To run queued writes right away, for example before mapping a buffer they write, call @b3d::GpuTransferQueue::SubmitQueuedTransfers.
 
-The queue can also be used directly. @b3d::GpuTransferQueue::CreateStagingBuffer returns a @b3d::GpuStagingBuffer you fill on the CPU, from any thread. Hand it to @b3d::GpuTransferQueue::QueueUpload to queue a copy into a buffer or texture subresource, or to @b3d::GpuTransferQueue::RecordUpload to record the copy into a command buffer. The staging memory is reclaimed in bulk once the copies from it are done.
+The queue can also be used directly. @b3d::GpuTransferQueue::CreateStagingWriteBuffer returns a @b3d::GpuStagingBuffer you fill on the CPU, from any thread. Hand it to @b3d::GpuTransferQueue::QueueUpload to queue a copy into a buffer or texture subresource, or to @b3d::GpuTransferQueue::RecordUpload to record the copy into a command buffer. The staging memory is reclaimed in bulk once the copies from it are done.
 
 ~~~~~~~~~~~~~{.cpp}
 GpuTransferQueue& transferQueue = gpuDevice->GetTransferQueue();
 
-GpuStagingBuffer staging = transferQueue.CreateStagingBuffer(dataSize);
+GpuStagingBuffer staging = transferQueue.CreateStagingWriteBuffer(dataSize);
 if(render::GpuBufferMappedScope mappedScope = staging.GetBuffer()->Map(GpuMapOption::Write))
 	memcpy(mappedScope.GetMappedMemory(), sourceData, dataSize);
 
 transferQueue.QueueUpload(std::move(staging), gpuOnlyBuffer, 0, dataSize);
+~~~~~~~~~~~~~
+
+@b3d::GpuTransferQueue::QueueRead reads a buffer or a texture subresource without a command buffer. The read runs after the transfers queued to the resource, and is submitted right away. The returned @b3d::TAsyncOp completes on the submit thread once the GPU has executed the copy.
+
+~~~~~~~~~~~~~{.cpp}
+TAsyncOp<TShared<MemoryDataStream>> read = transferQueue.QueueRead(gpuOnlyBuffer, 0, dataSize);
 ~~~~~~~~~~~~~
 
 # Binding
@@ -333,12 +335,12 @@ Allocators key their deferred-free queue on a monotonic completion marker expose
 
 A pass works in three steps:
  - Every persistent allocator plans moves with @b3d::IGpuAllocator::PlanDefragmentation. The TLSF allocator walks heaps from the highest index down, and allocations in each heap from the highest offset down. It reserves a destination for each movable allocation, either at a lower offset in the same heap or in a lower-index heap, with the alignment of the original allocation. Allocations larger than what remains of the byte budget are skipped.
- - For every move the defragmenter creates a texture or buffer at the destination, and records copies of the contents into the work context's transfer command buffer, bracketed by barriers from and back to the resting state.
- - Each moved texture or buffer exchanges its native resource with the one at the destination (@b3d::render::Texture::Relocate, @b3d::render::GpuBuffer::Relocate). The allocation owner moves to the destination, and the old native resource is destroyed once the GPU is done with it, which frees the source.
+ - For every move the defragmenter creates a texture or buffer at the destination, and hands both to @b3d::GpuTransferQueue::QueueRelocation.
+ - The moved texture or buffer exchanges its native resource with the one at the destination (@b3d::render::Texture::Relocate, @b3d::render::GpuBuffer::Relocate), and the transfer queue queues a copy of the old contents into the new native resource, after the transfers already queued to the resource. Transfers queued later run after the copy. The allocation owner moves to the destination, and the old native resource is destroyed once the copy has executed, which frees the source.
 
-The texture or buffer objects stay the same, so references to them stay valid, and programs bound afterwards use the new native resource. Bindless resources keep their indices: their slots are updated to the new native resource at the end of the frame, after the copies.
+The texture or buffer objects stay the same, so references to them stay valid, and programs bound afterwards use the new native resource. The copies run at the latest at the end of the frame. Bindless resources keep their indices: their slots are updated to the new native resource at the end of the frame, for the next frame's work.
 
-Only resources at rest in GPU-only memory move. Render targets, depth-stencil targets, multisampled textures, CPU-visible resources, staging buffers, frame graph resources and resources with a fixed location never move. A move is cancelled, by freeing its destination, if a command buffer that was not submitted yet references the resource, or a write queued on the transfer queue targets it, since their commands would run after the copy.
+Only resources at rest in GPU-only memory move. Render targets, depth-stencil targets, multisampled textures, CPU-visible resources, staging buffers, frame graph resources and resources with a fixed location never move. A move is cancelled, by freeing its destination, if a command buffer that was not submitted yet references the resource, since its commands would run after the copy.
 
 ~~~~~~~~~~~~~{.cpp}
 const GpuDefragmentationStatistics& statistics = device->GetMemoryDefragmenter().GetStatistics();

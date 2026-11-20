@@ -2,10 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GpuBackend/B3DGpuMemoryDefragmenter.h"
 #include "GpuBackend/B3DGpuDevice.h"
-#include "GpuBackend/B3DGpuBackendUtility.h"
 #include "GpuBackend/B3DGpuBuffer.h"
-#include "GpuBackend/B3DGpuCommandBuffer.h"
-#include "GpuBackend/B3DGpuWorkContext.h"
+#include "GpuBackend/B3DGpuTransferQueue.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "Image/B3DTexture.h"
 #include "CoreObject/B3DRenderThread.h"
@@ -75,7 +73,7 @@ GpuMemoryDefragmenter::GpuMemoryDefragmenter(GpuDevice& device)
 	: mDevice(device)
 { }
 
-void GpuMemoryDefragmenter::Run(GpuWorkContext& gpuContext)
+void GpuMemoryDefragmenter::Run()
 {
 	ASSERT_IF_NOT_RENDER_THREAD
 
@@ -122,8 +120,7 @@ void GpuMemoryDefragmenter::Run(GpuWorkContext& gpuContext)
 	mFirstAllocatorIndex = (mFirstAllocatorIndex + 1) % allocatorCount;
 
 	// Create a target at the destination of each move. Moves whose native resource is referenced by a command buffer that was not
-	// submitted yet are cancelled: the copy would be ordered before that command buffer, so writes it records would be lost. Moves of
-	// resources with uploads queued on the transfer queue are cancelled too: the uploads target the old native resource.
+	// submitted yet are cancelled: the copy would be ordered before that command buffer, so writes it records would be lost.
 	TArray<Relocation> relocations;
 	for(GpuAllocationMove& move : moves)
 	{
@@ -131,7 +128,7 @@ void GpuMemoryDefragmenter::Run(GpuWorkContext& gpuContext)
 		relocation.Size = move.Source.Size;
 
 		const IGpuResource* const resource = GetGpuResource(move.Owner);
-		if(!resource->IsBound() && !resource->HasQueuedUploads())
+		if(!resource->IsBound())
 		{
 			if(render::Texture* texture = move.Owner.GetTexture())
 			{
@@ -165,73 +162,15 @@ void GpuMemoryDefragmenter::Run(GpuWorkContext& gpuContext)
 	if(relocations.Empty())
 		return;
 
-	// The targets take the owners' resting state once the copies complete
-	const TShared<GpuCommandBuffer>& commandBuffer = gpuContext.GetTransferCommandBuffer();
-	const GpuQueueType queueType = commandBuffer->GetQueueType();
-
-	TArray<GpuBufferBarrier> bufferBarriersBefore;
-	TArray<GpuTextureBarrier> textureBarriersBefore;
-	TArray<GpuBufferBarrier> bufferBarriersAfter;
-	TArray<GpuTextureBarrier> textureBarriersAfter;
+	// The transfer queue copies each owner's contents into its new native resource after the transfers queued to it, and the targets keep the
+	// old native resources until then
+	GpuTransferQueue& transferQueue = mDevice.GetTransferQueue();
 	for(const Relocation& relocation : relocations)
 	{
 		if(relocation.SourceTexture != nullptr)
-		{
-			const GpuAccessState restingState = GpuBackendUtility::GetRestingState(*relocation.SourceTexture, queueType);
-			const GpuAccessState transferRead(GpuStageFlag::Transfer, GpuAccessFlag::Read, GpuImageLayout::TransferSource);
-			const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write, GpuImageLayout::TransferDestination);
-
-			// The copy overwrites every subresource of the target
-			GpuAccessState discardedState = GpuBackendUtility::GetRestingState(*relocation.TargetTexture, queueType);
-			discardedState.Layout = GpuImageLayout::Undefined;
-
-			textureBarriersBefore.Add(GpuTextureBarrier(relocation.SourceTexture, restingState, transferRead));
-			textureBarriersBefore.Add(GpuTextureBarrier(relocation.TargetTexture, discardedState, transferWrite));
-			textureBarriersAfter.Add(GpuTextureBarrier(relocation.TargetTexture, transferWrite, restingState));
-		}
+			transferQueue.QueueRelocation(relocation.SourceTexture, relocation.TargetTexture);
 		else
-		{
-			const GpuAccessState restingState = GpuBackendUtility::GetRestingState(*relocation.SourceBuffer, queueType);
-			const GpuAccessState transferRead(GpuStageFlag::Transfer, GpuAccessFlag::Read);
-			const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
-
-			bufferBarriersBefore.Add(GpuBufferBarrier(relocation.SourceBuffer, restingState, transferRead));
-			bufferBarriersBefore.Add(GpuBufferBarrier(relocation.TargetBuffer, GpuBackendUtility::GetRestingState(*relocation.TargetBuffer, queueType), transferWrite));
-			bufferBarriersAfter.Add(GpuBufferBarrier(relocation.TargetBuffer, transferWrite, restingState));
-		}
-	}
-
-	// Everything is recorded before the native resources are exchanged, so each command refers to the native resource it means
-	commandBuffer->IssueBarriers(GpuBarriers(bufferBarriersBefore, textureBarriersBefore));
-
-	for(const Relocation& relocation : relocations)
-	{
-		if(relocation.SourceTexture != nullptr)
-		{
-			const TextureProperties& properties = relocation.SourceTexture->GetProperties();
-
-			TextureCopyInformation copyInformation;
-			copyInformation.FaceCount = properties.GetFaceCount();
-			for(u32 mipLevel = 0; mipLevel <= properties.MipMapCount; mipLevel++)
-			{
-				copyInformation.SourceMip = mipLevel;
-				copyInformation.DestinationMip = mipLevel;
-				commandBuffer->CopyTexture(relocation.SourceTexture, relocation.TargetTexture, copyInformation);
-			}
-		}
-		else
-			commandBuffer->CopyBufferToBuffer(relocation.SourceBuffer, relocation.TargetBuffer, 0, 0, relocation.SourceBuffer->GetTotalSize());
-	}
-
-	commandBuffer->IssueBarriers(GpuBarriers(bufferBarriersAfter, textureBarriersAfter));
-
-	// The targets now hold the old native resources, released once the transfer command buffer and earlier work complete
-	for(const Relocation& relocation : relocations)
-	{
-		if(relocation.SourceTexture != nullptr)
-			relocation.SourceTexture->Relocate(*relocation.TargetTexture);
-		else
-			relocation.SourceBuffer->Relocate(*relocation.TargetBuffer);
+			transferQueue.QueueRelocation(relocation.SourceBuffer, relocation.TargetBuffer);
 
 		mStatistics.LastPassMoveCount++;
 		mStatistics.LastPassMovedByteCount += relocation.Size;

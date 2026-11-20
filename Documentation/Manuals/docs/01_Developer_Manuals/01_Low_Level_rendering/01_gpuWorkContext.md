@@ -4,14 +4,13 @@ title: GPU Work Context
 
 A @b3d::GpuWorkContext owns the GPU work state needed to submit work to the GPU from a single thread or fiber. It is backed by a @b3d::GpuDevice, and a single device can have multiple contexts active at once — typically one per thread that submits GPU work.
 
-Submitting GPU work needs more than just a command buffer: you need somewhere to record transfer/upload commands, scratch memory to stage data through, a pool to allocate parameter sets from, and a way to tell when the GPU has finished so that memory can be reclaimed. **GpuWorkContext** bundles all of this for one owner. Because each thread or fiber drives its own context, none of this state is shared between threads, and the submission path needs no locking.
+Submitting GPU work needs more than just a command buffer: you need scratch memory for short-lived buffers, a pool to allocate parameter sets from, and a way to tell when the GPU has finished so that memory can be reclaimed. **GpuWorkContext** bundles all of this for one owner. Because each thread or fiber drives its own context, none of this state is shared between threads, and the submission path needs no locking.
 
 > A context is **not** thread safe. A single thread or fiber must own and drive a given context — never share one between threads.
 
 # What it provides
 A context exposes everything a thread needs to submit a unit of GPU work:
  - @b3d::GpuWorkContext::SubmitCommandBuffer - Submits a recorded command buffer to the GPU.
- - @b3d::GpuWorkContext::GetTransferCommandBuffer - Returns a command buffer for transfer (copy/upload) operations.
  - @b3d::GpuWorkContext::CreateScratchGpuBuffer - Allocates a short-lived, single-use buffer (compute scratch, staging) from the context's scratch allocator. See the [GPU buffers](../Low_Level_rendering/gpuBuffers) manual.
  - @b3d::GpuWorkContext::GetParameterSetPool - Returns the pool that parameter sets allocated through this context are drawn from.
  - @b3d::GpuWorkContext::GetCompletionTracker - Returns the completion tracker the context uses to know when its GPU work has finished, so the memory it used can be reclaimed.
@@ -28,7 +27,7 @@ GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
 gpuContext.SubmitCommandBuffer(commandBuffer);
 ~~~~~~~~~~~~~
 
-You do not manage this context's lifetime. The renderer recycles its transfer command buffers and reclaims its scratch memory at each frame boundary, inside @b3d::render::Renderer::EndGpuFrame. It also borrows the renderer's frame completion tracker, so its memory reclamation is keyed on the frame index (see the [GPU buffers](../Low_Level_rendering/gpuBuffers) manual for how frame completion is tracked).
+You do not manage this context's lifetime. The renderer reclaims its scratch memory at each frame boundary, inside @b3d::render::Renderer::EndGpuFrame. It also borrows the renderer's frame completion tracker, so its memory reclamation is keyed on the frame index (see the [GPU buffers](../Low_Level_rendering/gpuBuffers) manual for how frame completion is tracked).
 
 ## A custom worker context
 For one-off GPU work driven by a single thread or fiber — for example importing an asset off the render thread — create your own context with @b3d::GpuWorkContext::Create. A worker context owns its own completion tracker (a timeline fence), so it tracks and waits for its own GPU work independently of the renderer's frame loop:
@@ -39,33 +38,25 @@ TShared<GpuDevice> device = ...;
 // Create a context for this thread's work
 TShared<GpuWorkContext> gpuContext = GpuWorkContext::Create(*device);
 
-// Submit command buffers and read back results through the context
-TShared<render::GpuBuffer> buffer = ...;
-Vector<u8> contents(contentsSize);
-render::GpuBufferUtility::Read(*gpuContext, buffer, 0, contentsSize, contents.data());
+// Record and submit command buffers through the context
+gpuContext->SubmitCommandBuffer(commandBuffer);
 
-// When the context goes out of scope its destructor submits any pending work, blocks until the
-// GPU finishes it, and reclaims the memory the context allocated.
+// When the context goes out of scope its destructor blocks until the GPU finishes the work
+// submitted through it, and reclaims the memory the context allocated.
 ~~~~~~~~~~~~~
 
-When a worker context is destroyed it settles its own GPU work: it submits any pending transfers, blocks (yieldably) until the GPU drains its last submission, then reclaims the scratch memory it allocated. This makes a worker context a self-contained scope — create it, record and submit work, and let it go out of scope to flush and wait. You can also drive this explicitly with @b3d::GpuWorkContext::WaitAndReclaim.
+When a worker context is destroyed it settles its own GPU work: it blocks (yieldably) until the GPU drains its last submission, then reclaims the scratch memory it allocated. This makes a worker context a self-contained scope — create it, record and submit work, and let it go out of scope to wait. You can also drive this explicitly with @b3d::GpuWorkContext::WaitAndReclaim.
 
 # Submitting work
-Commands recorded on a command buffer only execute once the buffer is submitted. Submit through the context that owns the work with @b3d::GpuWorkContext::SubmitCommandBuffer. Submitting first flushes any pending transfer commands recorded on the context, so uploads are visible to the work that follows:
+Commands recorded on a command buffer only execute once the buffer is submitted. Submit through the context that owns the work with @b3d::GpuWorkContext::SubmitCommandBuffer. Uploads queued on the device's @b3d::GpuTransferQueue to the resources the command buffer uses run before it:
 
 ~~~~~~~~~~~~~{.cpp}
 GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
-
-// Any transfers recorded on the context are flushed before this command buffer runs
 gpuContext.SubmitCommandBuffer(commandBuffer);
 ~~~~~~~~~~~~~
 
 See the [command buffers](../Low_Level_rendering/commandBuffers) manual for how to record a command buffer.
 
-# Transfers and uploads
-Copy work of your own can be recorded into a dedicated transfer command buffer, obtained with @b3d::GpuWorkContext::GetTransferCommandBuffer. Recorded transfers are submitted automatically before the next command buffer you submit through the context. To force them to execute on their own — for example before reading back a resource the transfers write — call @b3d::GpuWorkContext::SubmitTransferCommandBuffers.
-
-Uploads through @b3d::render::GpuBufferUtility::Write, @b3d::render::TextureUtility::Write and @b3d::render::TextureUtility::Clear don't need a context. They go through the device's @b3d::GpuTransferQueue, which any thread can use (see the [GPU buffers](../Low_Level_rendering/gpuBuffers) manual). The read utilities still take a context as their first argument.
 
 # Lifetime rules
 A few rules follow from a context being single-owner state:

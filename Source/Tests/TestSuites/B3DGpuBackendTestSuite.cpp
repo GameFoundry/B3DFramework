@@ -1538,7 +1538,7 @@ void GpuBackendTestSuite::TestCpuWrittenBufferReadback()
 		static constexpr u32 kFirstReadWord = 8;
 		static constexpr u32 kReadWordCount = 32;
 		u32 readWords[kReadWordCount] = {};
-		render::GpuBufferUtility::Read(*context, buffer, kFirstReadWord * sizeof(u32), sizeof(readWords), readWords);
+		render::GpuBufferUtility::Read(buffer, kFirstReadWord * sizeof(u32), sizeof(readWords), readWords);
 
 		for(u32 wordIndex = 0; wordIndex < kReadWordCount; wordIndex++)
 		{
@@ -1630,7 +1630,7 @@ void GpuBackendTestSuite::TestBufferMemory()
 			static constexpr u32 kFirstReadWord = 8;
 			static constexpr u32 kReadWordCount = 32;
 			u32 readWords[kReadWordCount] = {};
-			render::GpuBufferUtility::Read(*context, buffer, kFirstReadWord * sizeof(u32), sizeof(readWords), readWords);
+			render::GpuBufferUtility::Read(buffer, kFirstReadWord * sizeof(u32), sizeof(readWords), readWords);
 			B3D_TEST_ASSERT_MSG(memcmp(readWords, writtenWords + kFirstReadWord, sizeof(readWords)) == 0, StringUtility::Format("Read of case {0}.", caseIndex))
 			device->WaitUntilIdle();
 
@@ -1710,9 +1710,8 @@ void GpuBackendTestSuite::TestCpuWrittenBufferRelocation()
 			for(u32 wordIndex = 0; wordIndex < kWordCount; wordIndex++)
 				words[wordIndex] = 0xA0000000 + wordIndex;
 
-			const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 			render::GpuBufferUtility::Write(buffer, 0, kWordCount * sizeof(u32), words.Data());
-			device->GetTransferQueue().SubmitQueuedUploads();
+			device->GetTransferQueue().SubmitQueuedTransfers();
 			device->WaitUntilIdle();
 
 			GpuBindlessHeaps* const bindlessHeaps = device->GetBindlessHeaps();
@@ -1735,18 +1734,26 @@ void GpuBackendTestSuite::TestCpuWrittenBufferRelocation()
 			const IGpuResource* const originalNativeResource = buffer->GetGpuResource();
 
 			// Run passes until the tested buffer moves. Each pass moves the resources highest in memory first, which may be ones other tests left
-			// behind. The move's copy is submitted like at the end of a frame, and right after, while the GPU may still be copying the contents,
-			// the CPU rewrites the first half of the buffer through GpuBufferUtility, which queues the write on the transfer queue, behind the
-			// copy. Buffers in mapped memory never move.
+			// behind. The move's copy is queued on the transfer queue and submitted like at the end of a frame, and right after, while the GPU
+			// may still be copying the contents, the CPU rewrites the first half of the buffer through GpuBufferUtility, which queues the write
+			// on the transfer queue, behind the copy. Buffers in mapped memory never move.
 			GpuMemoryDefragmenter& defragmenter = device->GetMemoryDefragmenter();
 			const bool wasEnabled = gGpuDefragmentation.Get();
 			gGpuDefragmentation.Set(true);
 
+			// Before each pass the CPU also rewrites the second half of the buffer, which stays queued on the transfer queue while the pass runs.
+			// The move then copies the old native buffer after that write.
+			for(u32 wordIndex = kRewrittenWordCount; wordIndex < kWordCount; wordIndex++)
+				words[wordIndex] = 0xC0000000 + wordIndex;
+
 			bool isMoved = false;
 			for(u32 passIndex = 0; passIndex < 256 && !isMoved; passIndex++)
 			{
-				defragmenter.Run(*context);
-				context->SubmitTransferCommandBuffers();
+				render::GpuBufferUtility::Write(buffer, kRewrittenWordCount * sizeof(u32), (kWordCount - kRewrittenWordCount) * sizeof(u32),
+					words.Data() + kRewrittenWordCount);
+
+				defragmenter.Run();
+				device->GetTransferQueue().SubmitQueuedTransfers();
 
 				isMoved = buffer->GetGpuResource() != originalNativeResource;
 				if(isMoved)
@@ -1755,10 +1762,10 @@ void GpuBackendTestSuite::TestCpuWrittenBufferRelocation()
 						words[wordIndex] = 0xB0000000 + wordIndex;
 
 					render::GpuBufferUtility::Write(buffer, 0, kRewrittenWordCount * sizeof(u32), words.Data());
-					device->GetTransferQueue().SubmitQueuedUploads();
+					device->GetTransferQueue().SubmitQueuedTransfers();
 				}
 
-				context->SubmitTransferCommandBuffers(true);
+				device->WaitUntilIdle();
 				fnReleaseMovedResources();
 
 				if(defragmenter.GetStatistics().LastPassMoveCount == 0)
@@ -1770,9 +1777,9 @@ void GpuBackendTestSuite::TestCpuWrittenBufferRelocation()
 			const bool isMovable = memory == GpuBufferMemory::Device;
 			B3D_TEST_ASSERT_MSG(isMoved == isMovable, StringUtility::Format("Memory {0}: moved {1}, expected {2}.", (u32)memory, isMoved, isMovable))
 
-			// The rewritten half holds the CPU's writes, and the rest the copied contents
+			// Each half holds the CPU's last write to it, the second half through the copy
 			TArray<u32> readWords(kWordCount);
-			render::GpuBufferUtility::Read(*context, buffer, 0, kWordCount * sizeof(u32), readWords.Data());
+			render::GpuBufferUtility::Read(buffer, 0, kWordCount * sizeof(u32), readWords.Data());
 
 			u32 firstDifferentWordIndex = kWordCount;
 			for(u32 wordIndex = 0; wordIndex < kWordCount && firstDifferentWordIndex == kWordCount; wordIndex++)
@@ -1819,9 +1826,9 @@ void GpuBackendTestSuite::TestTransferQueue()
 				words[wordIndex] = firstValue + wordIndex;
 		};
 
-		const auto fnHasQueuedUploads = [](const render::GpuBuffer& buffer)
+		const auto fnHasQueuedTransfers = [](const render::GpuBuffer& buffer)
 		{
-			return buffer.GetGpuResource()->HasQueuedUploads();
+			return buffer.GetGpuResource()->HasQueuedTransfers();
 		};
 
 		// Records a copy of @p buffer into a new readback buffer, at rest before and after
@@ -1866,7 +1873,7 @@ void GpuBackendTestSuite::TestTransferQueue()
 		// Queues an upload of @p firstValue onwards into @p buffer through a staging buffer of its own
 		const auto fnQueueStagingUpload = [&](const TShared<render::GpuBuffer>& buffer, u32 firstValue)
 		{
-			GpuStagingBuffer staging = transferQueue.CreateStagingBuffer(kSize);
+			GpuStagingBuffer staging = transferQueue.CreateStagingWriteBuffer(kSize);
 			{
 				const render::GpuBufferMappedScope mapping = staging.GetBuffer()->Map(GpuMapOption::Write);
 				fnFillWords((u32*)mapping.GetMappedMemory(), firstValue);
@@ -1887,10 +1894,10 @@ void GpuBackendTestSuite::TestTransferQueue()
 		{
 			fnFillWords(words, 0xA0000000);
 			render::GpuBufferUtility::Write(buffer, 0, kSize, words);
-			B3D_TEST_ASSERT(fnHasQueuedUploads(*buffer))
+			B3D_TEST_ASSERT(fnHasQueuedTransfers(*buffer))
 
 			B3D_TEST_ASSERT(fnSubmitAndCompare(fnCreateReadback(buffer, "Queued write"), words))
-			B3D_TEST_ASSERT(!fnHasQueuedUploads(*buffer))
+			B3D_TEST_ASSERT(!fnHasQueuedTransfers(*buffer))
 		}
 
 		// A discarding write to a buffer a recorded command buffer uses gives the buffer a new native buffer, so each command buffer reads the
@@ -1906,7 +1913,7 @@ void GpuBackendTestSuite::TestTransferQueue()
 			u32 firstWords[kWordCount];
 			fnFillWords(firstWords, 0xA1000000 + ((u32)memory << 16));
 			render::GpuBufferUtility::Write(recreatedBuffer, 0, kSize, firstWords);
-			transferQueue.SubmitQueuedUploads(*recreatedBuffer);
+			transferQueue.SubmitQueuedTransfers(*recreatedBuffer);
 			device->WaitUntilIdle();
 
 			const Readback firstReadback = fnCreateReadback(recreatedBuffer, "Read before discard");
@@ -1958,14 +1965,14 @@ void GpuBackendTestSuite::TestTransferQueue()
 
 			device->EndFrame();
 			device->WaitUntilIdle();
-			B3D_TEST_ASSERT(!fnHasQueuedUploads(*buffer))
+			B3D_TEST_ASSERT(!fnHasQueuedTransfers(*buffer))
 			B3D_TEST_ASSERT(fnSubmitAndCompare(fnCreateReadback(buffer, "End of frame write"), words))
 
 			fnFillWords(words, 0xA9000000);
 			render::GpuBufferUtility::Write(buffer, 0, kSize, words);
 
 			u32 readWords[kWordCount] = {};
-			render::GpuBufferUtility::Read(*context, buffer, 0, kSize, readWords);
+			render::GpuBufferUtility::Read(buffer, 0, kSize, readWords);
 			B3D_TEST_ASSERT(memcmp(readWords, words, kSize) == 0)
 			device->WaitUntilIdle();
 		}
@@ -1979,11 +1986,11 @@ void GpuBackendTestSuite::TestTransferQueue()
 			{
 				fnFillWords(words, 0xAA000000);
 				render::GpuBufferUtility::Write(bindlessBuffer, 0, kSize, words);
-				B3D_TEST_ASSERT(transferQueue.HasUntrackedUploads())
+				B3D_TEST_ASSERT(transferQueue.HasUntrackedTransfers())
 
 				context->SubmitCommandBuffer(pool->Create(render::GpuCommandBufferCreateInformation::Create("Unrelated")));
 				device->WaitUntilIdle();
-				B3D_TEST_ASSERT(!fnHasQueuedUploads(*bindlessBuffer) && !transferQueue.HasUntrackedUploads())
+				B3D_TEST_ASSERT(!fnHasQueuedTransfers(*bindlessBuffer) && !transferQueue.HasUntrackedTransfers())
 				B3D_TEST_ASSERT(fnSubmitAndCompare(fnCreateReadback(bindlessBuffer, "Bindless write"), words))
 			}
 		}
@@ -1991,7 +1998,7 @@ void GpuBackendTestSuite::TestTransferQueue()
 		// Uploads through other staging buffers over later frames don't reuse the memory of a staging buffer created before them and
 		// queued after them
 		{
-			GpuStagingBuffer heldStaging = transferQueue.CreateStagingBuffer(kSize);
+			GpuStagingBuffer heldStaging = transferQueue.CreateStagingWriteBuffer(kSize);
 			B3D_TEST_ASSERT(heldStaging.GetBuffer() != nullptr)
 			device->EndFrame();
 
@@ -2018,7 +2025,7 @@ void GpuBackendTestSuite::TestTransferQueue()
 
 			fnFillWords(words, 0xAC000000);
 			render::GpuBufferUtility::Write(buffer, 0, kSize, words, GpuBufferWriteFlag::Normal, lateCommands);
-			B3D_TEST_ASSERT(!fnHasQueuedUploads(*buffer))
+			B3D_TEST_ASSERT(!fnHasQueuedTransfers(*buffer))
 
 			for(u32 frameIndex = 0; frameIndex < 4; frameIndex++)
 			{
@@ -2030,7 +2037,57 @@ void GpuBackendTestSuite::TestTransferQueue()
 			B3D_TEST_ASSERT(fnSubmitAndCompare(fnRecordReadback(buffer, lateCommands), words))
 		}
 
-		// A texture write queued on the transfer queue is visible to Read()
+		// Read() of a buffer the CPU maps makes the uploads queued to it visible before mapping it
+		{
+			const TShared<render::GpuBuffer> cachedBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(sizeof(u32), kWordCount,
+				GpuBufferFlag::None, GpuBufferMemory::MappedCached));
+			B3D_TEST_ASSERT(cachedBuffer != nullptr)
+			if(cachedBuffer != nullptr)
+			{
+				fnQueueStagingUpload(cachedBuffer, 0xB1000000);
+				B3D_TEST_ASSERT(fnHasQueuedTransfers(*cachedBuffer))
+
+				fnFillWords(words, 0xB1000000);
+				u32 readWords[kWordCount] = {};
+				render::GpuBufferUtility::Read(cachedBuffer, 0, kSize, readWords);
+				B3D_TEST_ASSERT(memcmp(readWords, words, kSize) == 0)
+				B3D_TEST_ASSERT(!fnHasQueuedTransfers(*cachedBuffer))
+				device->WaitUntilIdle();
+			}
+		}
+
+		// Reads see the uploads queued before them, whichever submission records them. The second buffer's read is queued first, and a
+		// command buffer that uses the first buffer may record that buffer's read before the blocking reads below.
+		{
+			u32 firstWords[kWordCount];
+			u32 secondWords[kWordCount];
+			fnFillWords(firstWords, 0xB2000000);
+			fnFillWords(secondWords, 0xB3000000);
+			render::GpuBufferUtility::Write(buffer, 0, kSize, firstWords);
+			render::GpuBufferUtility::Write(scratchBuffer, 0, kSize, secondWords);
+
+			const TAsyncOp<TShared<MemoryDataStream>> secondRead = transferQueue.QueueRead(scratchBuffer, 0, kSize);
+			const TAsyncOp<TShared<MemoryDataStream>> firstRead = transferQueue.QueueRead(buffer, 0, kSize);
+			context->SubmitCommandBuffer(fnCreateReadback(buffer, "Uses the first buffer").Commands);
+
+			u32 readWords[kWordCount] = {};
+			render::GpuBufferUtility::Read(scratchBuffer, 0, kSize, readWords);
+			B3D_TEST_ASSERT(memcmp(readWords, secondWords, kSize) == 0)
+
+			render::GpuBufferUtility::Read(buffer, 0, kSize, readWords);
+			B3D_TEST_ASSERT(memcmp(readWords, firstWords, kSize) == 0)
+
+			device->WaitUntilIdle();
+			firstRead.BlockUntilComplete();
+			secondRead.BlockUntilComplete();
+
+			const TShared<MemoryDataStream> firstData = firstRead.GetReturnValue();
+			const TShared<MemoryDataStream> secondData = secondRead.GetReturnValue();
+			B3D_TEST_ASSERT(firstData != nullptr && memcmp(firstData->Data(), firstWords, kSize) == 0)
+			B3D_TEST_ASSERT(secondData != nullptr && memcmp(secondData->Data(), secondWords, kSize) == 0)
+		}
+
+		// A texture write queued on the transfer queue is visible to Read() and QueueRead()
 		{
 			static constexpr u32 kTextureSize = 4;
 			const TShared<render::Texture> texture = device->CreateTexture(TextureCreateInformation::Create2D(PF_R32U, kTextureSize, kTextureSize));
@@ -2047,19 +2104,40 @@ void GpuBackendTestSuite::TestTransferQueue()
 				}
 
 				render::TextureUtility::Write(texture, *written);
-				B3D_TEST_ASSERT(texture->GetGpuResource()->HasQueuedUploads())
+				B3D_TEST_ASSERT(texture->GetGpuResource()->HasQueuedTransfers())
 
-				render::TextureUtility::Read(*context, texture, *read);
+				render::TextureUtility::Read(texture, *read);
 
-				bool matches = true;
+				const auto fnMatchesWritten = [&written](const PixelData& pixelData)
+				{
+					bool matches = true;
+					for(u32 row = 0; row < kTextureSize; row++)
+					{
+						const u8* const writtenRow = written->GetData() + row * written->GetRowPitch();
+						const u8* const readRow = pixelData.GetData() + row * pixelData.GetRowPitch();
+						matches &= memcmp(writtenRow, readRow, kTextureSize * sizeof(u32)) == 0;
+					}
+
+					return matches;
+				};
+
+				B3D_TEST_ASSERT(fnMatchesWritten(*read))
+
+				// The read queued after a second write sees that write
 				for(u32 row = 0; row < kTextureSize; row++)
 				{
-					const u8* const writtenRow = written->GetData() + row * written->GetRowPitch();
-					const u8* const readRow = read->GetData() + row * read->GetRowPitch();
-					matches &= memcmp(writtenRow, readRow, kTextureSize * sizeof(u32)) == 0;
+					u32* const rowElements = reinterpret_cast<u32*>(written->GetData() + row * written->GetRowPitch());
+					for(u32 column = 0; column < kTextureSize; column++)
+						rowElements[column] = 0xAE000000 + row * kTextureSize + column;
 				}
 
-				B3D_TEST_ASSERT(matches)
+				render::TextureUtility::Write(texture, *written);
+				const TAsyncOp<TShared<PixelData>> textureRead = transferQueue.QueueRead(texture, 0, 0);
+				device->WaitUntilIdle();
+				textureRead.BlockUntilComplete();
+
+				const TShared<PixelData> queuedRead = textureRead.GetReturnValue();
+				B3D_TEST_ASSERT(queuedRead != nullptr && fnMatchesWritten(*queuedRead))
 				device->WaitUntilIdle();
 			}
 		}
@@ -3381,7 +3459,6 @@ void GpuBackendTestSuite::TestTransientResourceAllocator()
 			// The renderer's context releases the transient resources of the renderer's start-up frame graphs as its frames advance,
 			// which they do not in this test
 			GpuWorkContext& rendererContext = render::GetRenderer()->GetGpuContext();
-			rendererContext.SubmitTransferCommandBuffers();
 			rendererContext.AdvanceFrame();
 
 			for(u32 frameIndex = 0; frameIndex <= gGpuTransientIdleFrames; frameIndex++)

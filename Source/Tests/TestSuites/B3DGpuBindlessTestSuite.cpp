@@ -5,6 +5,7 @@
 #include "Utility/B3DUnitTestGpuPipelines.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "GpuBackend/B3DGpuBarriers.h"
+#include "GpuBackend/B3DGpuTransferQueue.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
 #include "GpuBackend/B3DGpuBackend.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
@@ -995,9 +996,9 @@ void GpuBindlessTestSuite::TestRelocation()
 		bool isMoved[kMovedCount] = {};
 		for(u32 passIndex = 0; passIndex < 256; passIndex++)
 		{
-			defragmenter.Run(*context);
-			context->SubmitTransferCommandBuffers(true);
+			defragmenter.Run();
 			heaps.ApplyPendingChanges();
+			device->GetTransferQueue().SubmitQueuedTransfers();
 			device->WaitUntilIdle();
 			heaps.ProcessAllReleases();
 			device->ReleaseUnpinnedResources(true);

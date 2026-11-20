@@ -234,7 +234,7 @@ namespace
 		const TShared<render::Mesh> mesh = render::Mesh::Create(meshData, meshInformation);
 
 		// The mesh's initial contents are written through the transfer queue
-		device.GetTransferQueue().SubmitQueuedUploads();
+		device.GetTransferQueue().SubmitQueuedTransfers();
 		device.WaitUntilIdle();
 
 		return mesh;
@@ -374,21 +374,21 @@ namespace
 	}
 
 	/** Reads the positions of the test mesh's vertices from @p buffer, a buffer of deformed positions. */
-	Vector<Vector3> ReadPositions(GpuWorkContext& context, const TShared<render::GpuBuffer>& buffer)
+	Vector<Vector3> ReadPositions(const TShared<render::GpuBuffer>& buffer)
 	{
 		Vector<Vector3> positions(kVertexCount);
-		GpuBufferUtility::Read(context, buffer, 0, kVertexCount * sizeof(Vector3), positions.data());
+		GpuBufferUtility::Read(buffer, 0, kVertexCount * sizeof(Vector3), positions.data());
 
 		return positions;
 	}
 
 	/** Reads the deformed vertices @p vertexData binds as POSITION0, NORMAL0 and TANGENT0. */
-	Vector<DeformedVertex> ReadDeformedVertices(GpuWorkContext& context, const VertexData& vertexData)
+	Vector<DeformedVertex> ReadDeformedVertices(const VertexData& vertexData)
 	{
-		const Vector<Vector3> positions = ReadPositions(context, FindStreamBuffer(vertexData, VES_POSITION, 0));
+		const Vector<Vector3> positions = ReadPositions(FindStreamBuffer(vertexData, VES_POSITION, 0));
 
 		Vector<u8> normalsTangents(kVertexCount * 8);
-		GpuBufferUtility::Read(context, FindStreamBuffer(vertexData, VES_NORMAL, 0), 0, (u32)normalsTangents.size(), normalsTangents.data());
+		GpuBufferUtility::Read(FindStreamBuffer(vertexData, VES_NORMAL, 0), 0, (u32)normalsTangents.size(), normalsTangents.data());
 
 		Vector<DeformedVertex> vertices(kVertexCount);
 		for(u32 vertexIndex = 0; vertexIndex < kVertexCount; vertexIndex++)
@@ -563,7 +563,7 @@ void SkinCacheTestSuite::TestBindPose()
 
 		// Identity transforms give the mesh's positions exactly, since every vertex's weights add up to exactly 1
 		const Vector<Matrix4> bindPose(kBoneCount, Matrix4::kIdentity);
-		const String mismatch = FindMismatch(DeformOnCpu(*meshData, bindPose), ReadDeformedVertices(*context, *entry->GetVertexData()), 0.0f);
+		const String mismatch = FindMismatch(DeformOnCpu(*meshData, bindPose), ReadDeformedVertices(*entry->GetVertexData()), 0.0f);
 		B3D_TEST_ASSERT_MSG(mismatch.empty(), mismatch)
 
 		// The bind pose has no previous positions, and no ray tracing geometry
@@ -608,7 +608,7 @@ void SkinCacheTestSuite::TestSkinning()
 			if(entry->GetVertexData() == nullptr)
 				return;
 
-			const String mismatch = FindMismatch(DeformOnCpu(*meshData, pose), ReadDeformedVertices(*context, *entry->GetVertexData()), kPositionTolerance);
+			const String mismatch = FindMismatch(DeformOnCpu(*meshData, pose), ReadDeformedVertices(*entry->GetVertexData()), kPositionTolerance);
 			B3D_TEST_ASSERT_MSG(mismatch.empty(), StringUtility::Format("Pose {0}: {1}", amount, mismatch))
 		}
 	}, "SkinCacheTestSuite::TestSkinning", true);
@@ -645,7 +645,7 @@ void SkinCacheTestSuite::TestMorph()
 				return;
 
 			const Vector<DeformedVertex> expected = DeformOnCpu(*meshData, TArrayView<const Matrix4>(), mesh->GetMorphShapes().get(), weights);
-			const String mismatch = FindMismatch(expected, ReadDeformedVertices(*context, *entry->GetVertexData()), kPositionTolerance);
+			const String mismatch = FindMismatch(expected, ReadDeformedVertices(*entry->GetVertexData()), kPositionTolerance);
 			B3D_TEST_ASSERT_MSG(mismatch.empty(), StringUtility::Format("Weights ({0}, {1}): {2}", weights[0], weights[1], mismatch))
 		}
 
@@ -698,7 +698,7 @@ void SkinCacheTestSuite::TestMorphAndSkinning()
 				if(entry.GetVertexData() == nullptr)
 					return;
 
-				const String mismatch = FindMismatch(expected, ReadDeformedVertices(*context, *entry.GetVertexData()), kPositionTolerance);
+				const String mismatch = FindMismatch(expected, ReadDeformedVertices(*entry.GetVertexData()), kPositionTolerance);
 				B3D_TEST_ASSERT_MSG(mismatch.empty(), StringUtility::Format("Pose {0}, {1}: {2}", poseIndex, name, mismatch))
 			};
 
@@ -772,10 +772,10 @@ void SkinCacheTestSuite::TestPreviousPositions()
 			B3D_TEST_ASSERT_MSG(fnIsExpectedBuffer(boundCurrent, currentBuffer), StringUtility::Format("{0}: POSITION0 is bound to another buffer.", step))
 			B3D_TEST_ASSERT_MSG(fnIsExpectedBuffer(boundPrevious, previousBuffer), StringUtility::Format("{0}: POSITION1 is bound to another buffer.", step))
 
-			const String currentMismatch = FindMismatch(DeformOnCpu(*meshData, currentPose), ReadDeformedVertices(*context, *vertexData), kPositionTolerance);
+			const String currentMismatch = FindMismatch(DeformOnCpu(*meshData, currentPose), ReadDeformedVertices(*vertexData), kPositionTolerance);
 			B3D_TEST_ASSERT_MSG(currentMismatch.empty(), StringUtility::Format("{0}, current vertices: {1}", step, currentMismatch))
 
-			const String previousMismatch = FindPositionMismatch(DeformOnCpu(*meshData, previousPose), ReadPositions(*context, boundPrevious));
+			const String previousMismatch = FindPositionMismatch(DeformOnCpu(*meshData, previousPose), ReadPositions(boundPrevious));
 			B3D_TEST_ASSERT_MSG(previousMismatch.empty(), StringUtility::Format("{0}, previous positions: {1}", step, previousMismatch))
 
 			return std::make_pair(boundCurrent, boundPrevious);
@@ -798,7 +798,7 @@ void SkinCacheTestSuite::TestPreviousPositions()
 		vertexDescription = entry->GetVertexData()->VertexDescription;
 		previousVertexData = entry->GetVertexData();
 
-		const String firstMismatch = FindMismatch(DeformOnCpu(*meshData, firstPose), ReadDeformedVertices(*context, *entry->GetVertexData()), kPositionTolerance);
+		const String firstMismatch = FindMismatch(DeformOnCpu(*meshData, firstPose), ReadDeformedVertices(*entry->GetVertexData()), kPositionTolerance);
 		B3D_TEST_ASSERT_MSG(firstMismatch.empty(), StringUtility::Format("First pose: {0}", firstMismatch))
 
 		// The second deformation writes a second buffer, which becomes the current one
@@ -1096,11 +1096,11 @@ void SkinCacheTestSuite::TestFrameGraph()
 		const Vector<DeformedVertex> expectedVertices = DeformOnCpu(*meshData, secondPose);
 		for(const TShared<SkinCacheEntry>& deformedEntry : { entry, swappingEntry })
 		{
-			const String mismatch = FindMismatch(expectedVertices, ReadDeformedVertices(*context, *deformedEntry->GetVertexData()), kPositionTolerance);
+			const String mismatch = FindMismatch(expectedVertices, ReadDeformedVertices(*deformedEntry->GetVertexData()), kPositionTolerance);
 			B3D_TEST_ASSERT_MSG(mismatch.empty(), mismatch)
 		}
 
-		const String previousMismatch = FindPositionMismatch(DeformOnCpu(*meshData, firstPose), ReadPositions(*context,
+		const String previousMismatch = FindPositionMismatch(DeformOnCpu(*meshData, firstPose), ReadPositions(
 			FindStreamBuffer(*swappingEntry->GetVertexData(), VES_POSITION, 1)));
 		B3D_TEST_ASSERT_MSG(previousMismatch.empty(), StringUtility::Format("Previous positions: {0}", previousMismatch))
 	}, "SkinCacheTestSuite::TestFrameGraph", true);

@@ -63,19 +63,16 @@ void Renderer::EndFrame()
 {
 	GpuWorkContext& gpuContext = GetGpuContext(); // Also ensures we are on the render thread.
 
-	// Record this frame's defragmentation copies into the context's transfer command buffer, then flush all pending transfers so
-	// they execute within the frame being ended. The device applies pending bindless changes, including those of moved resources,
-	// after the transfers.
-	mDevice->GetMemoryDefragmenter().Run(gpuContext);
-	gpuContext.SubmitTransferCommandBuffers();
+	// Queue this frame's defragmentation copies. The device applies pending bindless changes, including those of moved resources, and
+	// submits the queued transfers in EndFrame() below, so the copies execute within the frame being ended.
+	mDevice->GetMemoryDefragmenter().Run();
 
 	// Device frame-boundary work - signals end-of-frame to the submission thread and blocks until the
 	// previous frame's resources are safe to reuse.
 	mDevice->EndFrame();
 
-	// Advance the context across the frame boundary: recycles its transfer pools and reclaims
-	// scratch memory (retire each scratch allocator's active page, drain everything whose frame
-	// is complete). Important this is done after the backend wait above, and before the frame tracker
+	// Advance the context across the frame boundary: reclaims scratch memory (retire each scratch
+	// allocator's active page, drain everything whose frame is complete). Important this is done after the backend wait above, and before the frame tracker
 	// increments so the retired pages are stamped with the frame that used them.
 	gpuContext.AdvanceFrame();
 
@@ -84,8 +81,8 @@ void Renderer::EndFrame()
 
 void Renderer::InitializeOnRenderThread()
 {
-	// Borrows the renderer's frame completion tracker; all thread-affine state (transfer pools, scratch
-	// allocators, parameter set pool) binds lazily on first use, here on the render thread.
+	// Borrows the renderer's frame completion tracker; all thread-affine state (scratch allocators,
+	// parameter set pool) binds lazily on first use, here on the render thread.
 	mGpuContext = GpuWorkContext::Create(*mDevice, mFrameCompletionTracker);
 }
 

@@ -405,8 +405,8 @@ namespace b3d
 		/** Returns queues on which the resource currently has in-flight accesses matching @p useFlags. */
 		GpuQueueMask GetUseInfo(GpuAccessFlags useFlags) const;
 
-		/** Returns true while uploads to the resource are queued on GpuTransferQueue. Thread safe. */
-		bool HasQueuedUploads() const { return mHasQueuedUploads.load(std::memory_order_relaxed); }
+		/** Returns true while transfers to the resource are queued on GpuTransferQueue. Thread safe. */
+		bool HasQueuedTransfers() const { return mHasQueuedTransfers.load(std::memory_order_acquire); }
 
 		/**
 		 * Queues the resource for destruction. If the resource is currently bound to a command buffer or pinned, the actual
@@ -482,7 +482,7 @@ namespace b3d
 		void DestroyImmediately();
 
 		bool mDestroyRequested = false;
-		std::atomic<bool> mHasQueuedUploads = false; /**< See HasQueuedUploads(). Set and cleared by GpuTransferQueue. */
+		std::atomic<bool> mHasQueuedTransfers = false; /**< See HasQueuedTransfers(). Set and cleared by GpuTransferQueue. */
 	};
 
 #if B3D_BUILD_TYPE_DEVELOPMENT

@@ -88,13 +88,11 @@ To read pixel data from a texture subresource:
 TShared<render::Texture> texture = ...;
 PixelData destination = texture->GetProperties().AllocBuffer(0, 0);
 
-GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
-
-// Blocking read - waits for GPU to finish if texture is in use
-render::TextureUtility::Read(gpuContext, texture, destination);
+// Blocking read through the device's transfer queue. It sees the writes queued before it, and waits for the GPU to execute it.
+render::TextureUtility::Read(texture, destination);
 
 // Read from specific mip level and array layer
-render::TextureUtility::Read(gpuContext, texture, destination, 2, 0); // mip 2, layer 0
+render::TextureUtility::Read(texture, destination, 2, 0); // mip 2, layer 0
 ~~~~~~~~~~~~~
 
 For non-blocking reads that integrate with your rendering pipeline:
@@ -104,7 +102,7 @@ TShared<render::Texture> texture = ...;
 TShared<GpuCommandBuffer> commandBuffer = ...;
 
 // Queue async read operation
-TAsyncOp<TShared<PixelData>> asyncOp = render::TextureUtility::ReadAsync(gpuContext, texture, *commandBuffer, 0, 0);
+TAsyncOp<TShared<PixelData>> asyncOp = render::TextureUtility::ReadAsync(texture, *commandBuffer, 0, 0);
 
 // ... submit command buffer and continue other work ...
 
@@ -147,20 +145,23 @@ These are called automatically when using **GpuTextureMappedScope** — Flush on
 
 ## Staging buffers
 
-@b3d::render::TextureUtility::CreateStagingBuffer creates a @b3d::render::GpuBuffer (not a staging texture) sized to hold the pixel data for a given mip level. The staging buffer is allocated from the work context's transient allocator, so it is single-use and must not be retained once the GPU work that used it completes. This is used internally by **TextureUtility::Write** and **TextureUtility::Read**, but can also be used directly for explicit buffer-to-texture or texture-to-buffer copies:
+@b3d::render::TextureUtility::CreateStagingPixelData returns a @b3d::PixelData without a buffer, laid out as a staging buffer holding one texture subresource: in the texture's supported format, with the pitch @b3d::render::Texture::GetStagingBufferPitchForSubresource returns. Its size is the size of that staging buffer. Create the staging buffer itself (a @b3d::render::GpuBuffer, not a staging texture) through the device's transfer queue, with @b3d::GpuTransferQueue::CreateStagingWriteBuffer for uploads or @b3d::GpuTransferQueue::CreateStagingReadBuffer for reads. Staging buffers are single-use: their memory is reclaimed in bulk once the copies are done. This is what **TextureUtility::Write** and **TextureUtility::Read** do internally, and it can also be used directly for explicit buffer-to-texture copies:
 
 ~~~~~~~~~~~~~{.cpp}
 TShared<render::Texture> texture = ...;
-GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
+GpuTransferQueue& transferQueue = texture->GetDevice().GetTransferQueue();
 
-// Create a CPU-writable staging buffer for mip level 0
-TShared<render::GpuBuffer> stagingBuffer = render::TextureUtility::CreateStagingBuffer(gpuContext, texture, 0, false);
+// Create a CPU-writable staging buffer for mip level 0, layer 0
+TShared<PixelData> layout = render::TextureUtility::CreateStagingPixelData(texture, 0, 0);
+GpuStagingBuffer staging = transferQueue.CreateStagingWriteBuffer(layout->GetSize());
 
-// Write data into the staging buffer, then copy to texture
-render::GpuBufferMappedScope scope = stagingBuffer->Map(GpuMapOption::Write);
-memcpy(scope.GetMappedMemory(), pixelData, stagingBuffer->GetTotalSize());
-scope.Unmap();
-commandBuffer->CopyBufferToTexture(stagingBuffer, texture, 0, 0, 0);
+// Write data into the staging buffer, then copy it into the texture, either on the transfer queue or in a command buffer
+{
+	render::GpuBufferMappedScope scope = staging.GetBuffer()->Map(GpuMapOption::Write);
+	memcpy(scope.GetMappedMemory(), pixelData, layout->GetSize());
+}
+
+transferQueue.QueueUpload(std::move(staging), texture, 0, 0);
 ~~~~~~~~~~~~~
 
 ## Buffer-texture copies

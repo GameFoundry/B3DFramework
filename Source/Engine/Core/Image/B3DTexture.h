@@ -818,28 +818,14 @@ namespace b3d
 		struct B3D_EXPORT TextureUtility
 		{
 			/**
-			 * Creates a staging buffer sized appropriately for texture data transfer. Staging buffers are single-use, so
-			 * they are allocated from the performing context's scratch allocator — the memory is reclaimed in bulk once
-			 * the GPU work that used it completes, and must not be retained past that point.
+			 * Returns pixel data without a buffer, laid out as a staging buffer holding one subresource of @p texture: in the texture's supported
+			 * format, with the pitch returned by Texture::GetStagingBufferPitchForSubresource(). Its size is the size of that staging buffer.
 			 *
-			 * @param gpuContext	Context whose scratch allocator backs the staging buffer.
-			 * @param texture		Texture for which to create the staging buffer.
-			 * @param mipLevel		Mip level of the texture subresource.
-			 * @param readable		True if the buffer needs to be CPU-readable (for readback), false if CPU-writeable (for upload).
-			 * @return				Newly created staging buffer sized for the specified texture subresource.
+			 * @param texture		Texture whose subresource the staging buffer holds.
+			 * @param mipLevel		Mip level of the subresource.
+			 * @param arrayLayer	Array layer (or cubemap face or depth slice) of the subresource.
 			 */
-			static TShared<GpuBuffer> CreateStagingBuffer(GpuWorkContext& gpuContext, const TShared<Texture>& texture, u32 mipLevel, bool readable);
-
-			/**
-			 * Creates a staging buffer with the specified size. See the other overload regarding staging buffer lifetime.
-			 *
-			 * @param gpuContext	Context whose scratch allocator backs the staging buffer.
-			 * @param texture		Texture for which to create the staging buffer.
-			 * @param pixelData		Pixel data structure with initialized row/depth pitch, used to determine buffer size.
-			 * @param readable		True if the buffer needs to be CPU-readable (for readback), false if CPU-writeable (for upload).
-			 * @return				Newly created staging buffer.
-			 */
-			static TShared<GpuBuffer> CreateStagingBuffer(GpuWorkContext& gpuContext, const TShared<Texture>& texture, const PixelData& pixelData, bool readable);
+			static TShared<PixelData> CreateStagingPixelData(const TShared<Texture>& texture, u32 mipLevel, u32 arrayLayer);
 
 			/**
 			 * Writes pixel data to a texture subresource.
@@ -872,35 +858,34 @@ namespace b3d
 			 * This method automatically chooses the optimal path:
 			 *  - For directly mappable textures: Uses Map() + BulkPixelConversion
 			 *  - For non-mappable textures: Uses staging buffer + CopyTextureToBuffer
-			 *  - If the texture is currently being used by the GPU, this method will block until the GPU is done executing.
 			 *
-			 * @param	gpuContext		Context whose transfer command buffer is used to perform and flush the staging copy.
+			 * Either way the read sees the uploads queued to the texture (see GpuTransferQueue), and the GPU work submitted before this call. This
+			 * method blocks until the GPU has executed the read, and the work submitted before it that writes the texture.
+			 *
 			 * @param	texture			Texture to read the data from.
 			 * @param	destination		Previously allocated buffer to read data into.
 			 * @param	mipLevel		Mipmap level to read from.
 			 * @param	arrayLayer		Array layer (or cubemap face or depth slice) to read from.
-			 * @param	gpuQueue		GPU queue on which to perform the read. If not specified the default transfer queue will be used.
 			 */
-			static void Read(GpuWorkContext& gpuContext, const TShared<Texture>& texture, PixelData& destination, u32 mipLevel = 0, u32 arrayLayer = 0, const TShared<GpuQueue>& gpuQueue = nullptr);
+			static void Read(const TShared<Texture>& texture, PixelData& destination, u32 mipLevel = 0, u32 arrayLayer = 0);
 
 			/**
 			 * Performs a non-blocking read operation. The GPU will execute the read when the command buffer reaches the execution point
 			 * and the asynchronous operation will be signaled with the return value.
 			 *
-			 * @param	gpuContext		Context whose scratch allocator backs the internal staging buffer.
 			 * @param	texture			Texture to read the data from.
 			 * @param	commandBuffer	Command buffer to queue the operation on.
 			 * @param	mipLevel		Mipmap level to read from.
 			 * @param	arrayLayer		Texture array layer (or cubemap face or depth slice) to read from.
 			 * @return					Operation that will be signaled when the data is ready to be read.
 			 */
-			static TAsyncOp<TShared<PixelData>> ReadAsync(GpuWorkContext& gpuContext, const TShared<Texture>& texture, GpuCommandBuffer& commandBuffer, u32 mipLevel = 0, u32 arrayLayer = 0);
+			static TAsyncOp<TShared<PixelData>> ReadAsync(const TShared<Texture>& texture, GpuCommandBuffer& commandBuffer, u32 mipLevel = 0, u32 arrayLayer = 0);
 
 			/**
 			 * Performs a non-blocking read operation inside @p graph. The GPU will execute the read when the command buffer 
 			 * reaches the execution point and the asynchronous operation will be signaled with the return value.
 			 *
-			 * @param	graph			Graph to add the copy pass to. Its work context backs the internal staging buffer.
+			 * @param	graph			Graph to add the copy pass to.
 			 * @param	texture			Texture to read the data from. Must be a resource of @p graph.
 			 * @param	mipLevel		Mipmap level to read from.
 			 * @param	arrayLayer		Texture array layer (or cubemap face or depth slice) to read from.

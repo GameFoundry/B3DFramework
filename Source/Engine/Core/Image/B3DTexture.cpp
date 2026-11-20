@@ -274,10 +274,7 @@ TAsyncOp<void> Texture::ReadData(const TShared<PixelData>& data, u32 face, u32 m
 
 	auto fnReadData = [](const TShared<render::Texture>& texture, u32 face, u32 mipLevel, const TShared<PixelData>& pixelData, TAsyncOp<void>& asyncOp)
 	{
-		GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
-		gpuContext.SubmitTransferCommandBuffers();
-
-		render::TextureUtility::Read(gpuContext, texture, *pixelData, mipLevel, face);
+		render::TextureUtility::Read(texture, *pixelData, mipLevel, face);
 		pixelData->UnlockInternal();
 		asyncOp.CompleteOperation();
 	};
@@ -294,11 +291,8 @@ TAsyncOp<TShared<PixelData>> Texture::ReadData(u32 face, u32 mipLevel)
 
 	auto fnReadDataAsync = [texture = B3DGetRenderProxy(this), face, mipLevel, op]() mutable
 	{
-		GpuWorkContext& gpuContext = render::GetRenderer()->GetGpuContext();
-		gpuContext.SubmitTransferCommandBuffers();
-
 		TShared<PixelData> output = texture->GetProperties().AllocBuffer(face, mipLevel);
-		render::TextureUtility::Read(gpuContext, texture, *output, mipLevel, face);
+		render::TextureUtility::Read(texture, *output, mipLevel, face);
 
 		op.CompleteOperation(output);
 	};
@@ -481,7 +475,7 @@ void Texture::SetAllocation(const GpuAllocation& allocation, GpuObjectCreateFlag
 		return;
 
 	// Transient textures, the only ones placed this way while initialized, are written through command buffers
-	B3D_ASSERT((GetGpuResource() == nullptr || !GetGpuResource()->HasQueuedUploads()) && "Cannot move a texture with uploads queued on GpuTransferQueue.");
+	B3D_ASSERT((GetGpuResource() == nullptr || !GetGpuResource()->HasQueuedTransfers()) && "Cannot move a texture with transfers queued on GpuTransferQueue.");
 
 	mRequestedAllocation = allocation;
 	mIsAliased = flags.IsSet(GpuObjectCreateFlag::Aliased);
@@ -641,42 +635,34 @@ namespace
 		inOutPixelData.SetSlicePitch(slicePitchBytes);
 	}
 
-	/** Returns pixel data without a buffer, laid out as a staging buffer holding the subresource of @p texture. */
-	TShared<PixelData> CreateReadbackPixelData(const TShared<Texture>& texture, u32 mipLevel, u32 arrayLayer)
-	{
-		const TextureProperties& textureProperties = texture->GetProperties();
-		const u32 mipWidth = Math::Max(1u, textureProperties.Width >> mipLevel);
-		const u32 mipHeight = Math::Max(1u, textureProperties.Height >> mipLevel);
-		const u32 mipDepth = Math::Max(1u, textureProperties.Depth >> mipLevel);
-
-		const TShared<PixelData> pixelData = B3DMakeShared<PixelData>(mipWidth, mipHeight, mipDepth, texture->GetSupportedFormat());
-		ApplyRowAndSlicePitch(texture->GetStagingBufferPitchForSubresource(arrayLayer, mipLevel), *pixelData);
-		return pixelData;
-	}
-
 	/**
 	 * Completes @p operation with a copy of @p stagingBuffer's contents once @p commandBuffer completes, or with null if the command buffer
-	 * is destroyed without being submitted.
+	 * is destroyed without being submitted. Releases the staging buffer after either.
 	 */
-	void CompleteReadOnCompletion(GpuCommandBuffer& commandBuffer, const TShared<GpuBuffer>& stagingBuffer, const TShared<PixelData>& pixelData, TAsyncOp<TShared<PixelData>> operation)
+	void CompleteReadOnCompletion(GpuCommandBuffer& commandBuffer, const TShared<GpuStagingBuffer>& stagingBuffer, const TShared<PixelData>& pixelData, TAsyncOp<TShared<PixelData>> operation)
 	{
 		auto fnOnCommandBufferCompleted = [stagingBuffer, operation, pixelData]() mutable
 		{
-			GpuBufferMappedScope mapping = stagingBuffer->Map(GpuMapOption::Read);
+			{
+				GpuBufferMappedScope mapping = stagingBuffer->GetBuffer()->Map(GpuMapOption::Read);
 
-			pixelData->AllocateInternalBuffer();
-			memcpy(pixelData->GetData(), mapping.GetMappedMemory(), pixelData->GetSize());
+				pixelData->AllocateInternalBuffer();
+				memcpy(pixelData->GetData(), mapping.GetMappedMemory(), pixelData->GetSize());
 
-			operation.CompleteOperation(pixelData);
+				operation.CompleteOperation(pixelData);
+			}
+
+			*stagingBuffer = GpuStagingBuffer();
 		};
 
-		auto fnOnCommandBufferDestroyed = [operation](bool isSubmitted) mutable
+		auto fnOnCommandBufferDestroyed = [stagingBuffer, operation](bool isSubmitted) mutable
 		{
 			// In this case the completion callback will trigger.
 			if(isSubmitted)
 				return;
 
 			operation.CompleteOperation(nullptr);
+			*stagingBuffer = GpuStagingBuffer();
 		};
 
 		commandBuffer.OnDidComplete.Connect(fnOnCommandBufferCompleted);
@@ -684,27 +670,16 @@ namespace
 	}
 }
 
-TShared<GpuBuffer> TextureUtility::CreateStagingBuffer(GpuWorkContext& gpuContext, const TShared<Texture>& texture, u32 mipLevel, bool readable)
+TShared<PixelData> TextureUtility::CreateStagingPixelData(const TShared<Texture>& texture, u32 mipLevel, u32 arrayLayer)
 {
-	B3D_ASSERT(texture != nullptr);
+	const TextureProperties& textureProperties = texture->GetProperties();
+	const u32 mipWidth = Math::Max(1u, textureProperties.Width >> mipLevel);
+	const u32 mipHeight = Math::Max(1u, textureProperties.Height >> mipLevel);
+	const u32 mipDepth = Math::Max(1u, textureProperties.Depth >> mipLevel);
 
-	const TextureProperties& properties = texture->GetProperties();
-
-	u32 mipWidth, mipHeight, mipDepth;
-	PixelUtility::GetSizeForMipLevel(properties.Width, properties.Height, properties.Depth, mipLevel, mipWidth, mipHeight, mipDepth);
-
-	PixelData pixelData(mipWidth, mipHeight, mipDepth, texture->GetProperties().Format);
-	ApplyRowAndSlicePitch(texture->GetStagingBufferPitchForSubresource(0, mipLevel), pixelData);
-	return CreateStagingBuffer(gpuContext, texture, pixelData, readable);
-}
-
-TShared<GpuBuffer> TextureUtility::CreateStagingBuffer(GpuWorkContext& gpuContext, const TShared<Texture>& texture, const PixelData& pixelData, bool readable)
-{
-	GpuBufferCreateInformation createInformation;
-	createInformation.Type = readable ? GpuBufferType::StagingRead : GpuBufferType::StagingWrite;
-	createInformation.Staging.Size = pixelData.GetSize();
-
-	return gpuContext.CreateScratchGpuBuffer(createInformation);
+	const TShared<PixelData> pixelData = B3DMakeShared<PixelData>(mipWidth, mipHeight, mipDepth, texture->GetSupportedFormat());
+	ApplyRowAndSlicePitch(texture->GetStagingBufferPitchForSubresource(arrayLayer, mipLevel), *pixelData);
+	return pixelData;
 }
 
 void TextureUtility::Write(const TShared<Texture>& texture, const PixelData& source, u32 mipLevel, u32 arrayLayer, TextureWriteFlags flags, const TShared<GpuCommandBuffer>& commandBuffer)
@@ -741,19 +716,19 @@ void TextureUtility::Write(const TShared<Texture>& texture, const PixelData& sou
 
 	GpuTransferQueue& transferQueue = texture->GetDevice().GetTransferQueue();
 
+	// Uploads queued earlier would overwrite a direct write once they run. Read before the counts, see GpuBufferUtility::Write().
+	const IGpuResource* const gpuResource = texture->GetGpuResource();
+	const bool hasQueuedTransfers = gpuResource != nullptr && gpuResource->HasQueuedTransfers();
+
 	// Check is the GPU currently reading or writing from the image
 	const GpuQueueMask subresourceUseMask = texture->GetUseMask(mipLevel, arrayLayer, GpuAccessFlag::Read | GpuAccessFlag::Write);
 	const u32 subresourceIndex = textureProperties.MapToSubresourceIndex(arrayLayer, mipLevel);
 	const u32 subresourceUseCount = texture->GetUseCount(subresourceIndex);
 	const u32 subresourceBoundCount = texture->GetBoundCount(subresourceIndex);
 
-	// Uploads queued earlier would overwrite a direct write once they run
-	const IGpuResource* const gpuResource = texture->GetGpuResource();
-	const bool hasQueuedUploads = gpuResource != nullptr && gpuResource->HasQueuedUploads();
-
 	// Try direct mapping if texture supports it
 	void* mappedMemory = texture->GetMappedMemory();
-	if(mappedMemory != nullptr && !hasQueuedUploads)
+	if(mappedMemory != nullptr && !hasQueuedTransfers)
 	{
 		const bool isBound = subresourceBoundCount > 0;
 
@@ -782,12 +757,11 @@ void TextureUtility::Write(const TShared<Texture>& texture, const PixelData& sou
 
 	// A command buffer recorded but not submitted yet that uses the image pulls in the queued upload when it is submitted, so it would see
 	// this write instead of the contents it was recorded after. Recreating the internal image leaves the old one to that command buffer.
-	// With an explicit command buffer, the caller orders the copy.
+	// With uploads already queued that command buffer also expects those, so the image isn't recreated. QueueUpload() warns about writes
+	// that the command buffer would see. With an explicit command buffer, the caller orders the copy.
 	const bool isBoundWithoutUse = subresourceBoundCount > subresourceUseCount;
-	if(isBoundWithoutUse && commandBuffer == nullptr && !(canDiscardContents && transferQueue.TryRecreateInternalTexture(*texture)))
-	{
-		B3D_LOG(Warning, LogRenderBackend, "Writing to an image '{0}' that a recorded command buffer which isn't submitted yet uses, without providing an explicit command buffer. The write is queued on the transfer queue and runs before that command buffer, so the command buffer sees it instead of the contents it was recorded after.", texture->GetName());
-	}
+	if(isBoundWithoutUse && commandBuffer == nullptr && !hasQueuedTransfers && canDiscardContents)
+		transferQueue.TryRecreateInternalTexture(*texture);
 
 	// Create staging buffer
 	const u32 mipWidth = Math::Max(1u, textureProperties.Width >> mipLevel);
@@ -797,7 +771,7 @@ void TextureUtility::Write(const TShared<Texture>& texture, const PixelData& sou
 	PixelData lockedArea(mipWidth, mipHeight, mipDepth, textureProperties.Format);
 	ApplyRowAndSlicePitch(texture->GetStagingBufferPitchForSubresource(arrayLayer, mipLevel), lockedArea);
 
-	GpuStagingBuffer stagingBuffer = transferQueue.CreateStagingBuffer(lockedArea.GetSize());
+	GpuStagingBuffer stagingBuffer = transferQueue.CreateStagingWriteBuffer(lockedArea.GetSize());
 	if(!B3D_ENSURE(stagingBuffer.GetBuffer() != nullptr))
 		return;
 
@@ -823,7 +797,7 @@ void TextureUtility::Write(const TShared<Texture>& texture, const PixelData& sou
 		commandBuffer->AddQueueSyncMask(subresourceUseMask);
 }
 
-void TextureUtility::Read(GpuWorkContext& gpuContext, const TShared<Texture>& texture, PixelData& destination, u32 mipLevel, u32 arrayLayer, const TShared<GpuQueue>& gpuQueue)
+void TextureUtility::Read(const TShared<Texture>& texture, PixelData& destination, u32 mipLevel, u32 arrayLayer)
 {
 	B3D_ASSERT(texture != nullptr);
 
@@ -847,11 +821,11 @@ void TextureUtility::Read(GpuWorkContext& gpuContext, const TShared<Texture>& te
 
 	const bool supportsGPUWrites = textureProperties.Usage.IsSetAny(TextureUsageFlag::AllowUnorderedAccessOnTheGPU);
 
-	// Uploads queued to the texture are submitted ahead of the copy below, on the same queue
+	GpuTransferQueue& transferQueue = texture->GetDevice().GetTransferQueue();
+
+	// The transfer queue runs the uploads queued to the texture before the read
 	const IGpuResource* const gpuResource = texture->GetGpuResource();
-	const bool hasQueuedUploads = gpuResource != nullptr && gpuResource->HasQueuedUploads();
-	if(hasQueuedUploads)
-		texture->GetDevice().GetTransferQueue().SubmitQueuedUploads(*texture);
+	const bool hasQueuedTransfers = gpuResource != nullptr && gpuResource->HasQueuedTransfers();
 
 	// Check is the GPU currently writing to the texture
 	const GpuQueueMask subresourceWriteUseMask = texture->GetUseMask(mipLevel, arrayLayer, GpuAccessFlag::Write);
@@ -863,29 +837,11 @@ void TextureUtility::Read(GpuWorkContext& gpuContext, const TShared<Texture>& te
 		// Note: Even if GPU isn't currently using the buffer, but the buffer supports GPU writes, we consider it as
 		// being used because the write could have completed yet still not visible, so we need to wait for any
 		// GPU operations to complete.
-		const bool isUsedOnGPU = !subresourceWriteUseMask.IsEmpty() || supportsGPUWrites || hasQueuedUploads;
+		const bool isUsedOnGPU = !subresourceWriteUseMask.IsEmpty() || supportsGPUWrites || hasQueuedTransfers;
 
-		// If used on the GPU, we need to wait until all write operations complete before mapping it
+		// If used on the GPU, wait until all write operations complete and are visible to the CPU before mapping it
 		if(isUsedOnGPU)
-		{
-			TShared<GpuCommandBuffer> commandBuffer = gpuContext.GetTransferCommandBuffer();
-
-			// Make any writes visible before mapping
-			if(supportsGPUWrites || hasQueuedUploads)
-			{
-				// The barrier keeps the subresource's resting layout. The subresource needs no barrier back to rest, because the host reads it
-				// after the command buffer completes, and any later GPU access is submitted after that.
-				const GpuAccessState restingState = GpuBackendUtility::GetRestingState(*texture, commandBuffer->GetQueueType());
-				const GpuTextureSubresourceRange range(mipLevel, 1, arrayLayer, 1, GpuBackendUtility::GetFormatAspects(textureProperties.Format));
-
-				const GpuAccessState hostRead(GpuStageFlag::Host, GpuAccessFlag::Read, restingState.Layout);
-				commandBuffer->IssueBarriers(GpuTextureBarrier(texture, restingState, hostRead, range));
-			}
-
-			// Submit the command buffer and wait until it finishes
-			commandBuffer->AddQueueSyncMask(subresourceWriteUseMask);
-			gpuContext.SubmitTransferCommandBuffers(true);
-		}
+			transferQueue.WaitUntilHostReadable(texture, mipLevel, arrayLayer);
 
 		GpuTextureMappedScope mappedScope = texture->Map(mipLevel, arrayLayer, GpuMapOption::Read);
 		PixelUtility::BulkPixelConversion(mappedScope.GetPixelData(), destination);
@@ -896,47 +852,35 @@ void TextureUtility::Read(GpuWorkContext& gpuContext, const TShared<Texture>& te
 	// Can't use direct mapping, so use a staging buffer
 
 	// Allocate a staging buffer
-	PixelData pixelData(mipWidth, mipHeight, mipDepth, texture->GetSupportedFormat());
-	ApplyRowAndSlicePitch(texture->GetStagingBufferPitchForSubresource(arrayLayer, mipLevel), pixelData);
-	TShared<GpuBuffer> stagingBuffer = CreateStagingBuffer(gpuContext, texture, pixelData, true);
+	const TShared<PixelData> pixelData = CreateStagingPixelData(texture, mipLevel, arrayLayer);
+	const GpuStagingBuffer stagingBuffer = transferQueue.CreateStagingReadBuffer(pixelData->GetSize());
+	if(!B3D_ENSURE(stagingBuffer.GetBuffer() != nullptr))
+		return;
 
-	// Similar to above, if image supports GPU writes or is currently being written to, we need to wait on any
-	// potential writes to complete
-	GpuQueueMask syncMask;
-	if(supportsGPUWrites || !subresourceWriteUseMask.IsEmpty())
-	{
-		// Ensure flush will wait for all queues currently writing to the image (if any) to finish
-		syncMask = subresourceWriteUseMask;
-	}
+	transferQueue.CopyToStagingAndWait(texture, mipLevel, arrayLayer, stagingBuffer);
 
-	TShared<GpuCommandBuffer> commandBuffer = gpuContext.GetTransferCommandBuffer();
-
-	// Queue copy command
-	GpuBackendUtility::CopyToStagingBuffer(*commandBuffer, texture, mipLevel, arrayLayer, stagingBuffer);
-
-	// Submit the command buffer and wait until it finishes
-	commandBuffer->AddQueueSyncMask(syncMask);
-	gpuContext.SubmitTransferCommandBuffers(true);
-
-	{
-		GpuBufferMappedScope mapping = stagingBuffer->Map(GpuMapOption::Read);
-		pixelData.SetExternalBuffer((u8*)mapping.GetMappedMemory());
-		PixelUtility::BulkPixelConversion(pixelData, destination);
-	}
+	GpuBufferMappedScope mapping = stagingBuffer.GetBuffer()->Map(GpuMapOption::Read);
+	pixelData->SetExternalBuffer((u8*)mapping.GetMappedMemory());
+	PixelUtility::BulkPixelConversion(*pixelData, destination);
 }
 
-TAsyncOp<TShared<PixelData>> TextureUtility::ReadAsync(GpuWorkContext& gpuContext, const TShared<Texture>& texture, GpuCommandBuffer& commandBuffer, u32 mipLevel, u32 arrayLayer)
+TAsyncOp<TShared<PixelData>> TextureUtility::ReadAsync(const TShared<Texture>& texture, GpuCommandBuffer& commandBuffer, u32 mipLevel, u32 arrayLayer)
 {
 	if(texture == nullptr)
 		return {};
 
-	const TShared<PixelData> pixelData = CreateReadbackPixelData(texture, mipLevel, arrayLayer);
+	TAsyncOp<TShared<PixelData>> op;
+	const TShared<PixelData> pixelData = CreateStagingPixelData(texture, mipLevel, arrayLayer);
 
 	// TODO - Staging buffer might not be necessary if he texture is directly mappable
-	TShared<GpuBuffer> stagingBuffer = CreateStagingBuffer(gpuContext, texture, *pixelData, true);
-	GpuBackendUtility::CopyToStagingBuffer(commandBuffer, texture, mipLevel, arrayLayer, stagingBuffer);
+	const TShared<GpuStagingBuffer> stagingBuffer = B3DMakeShared<GpuStagingBuffer>(texture->GetDevice().GetTransferQueue().CreateStagingReadBuffer(pixelData->GetSize()));
+	if(!B3D_ENSURE(stagingBuffer->GetBuffer() != nullptr))
+	{
+		op.CompleteOperation(nullptr);
+		return op;
+	}
 
-	TAsyncOp<TShared<PixelData>> op;
+	GpuBackendUtility::CopyToStagingBuffer(commandBuffer, texture, mipLevel, arrayLayer, stagingBuffer->GetBuffer());
 	CompleteReadOnCompletion(commandBuffer, stagingBuffer, pixelData, op);
 
 	return op;
@@ -947,19 +891,26 @@ TAsyncOp<TShared<PixelData>> TextureUtility::ReadAsync(FrameGraph& graph, const 
 	if(texture == nullptr)
 		return {};
 
-	const TShared<PixelData> pixelData = CreateReadbackPixelData(texture, mipLevel, arrayLayer);
-	const TShared<GpuBuffer> stagingBuffer = CreateStagingBuffer(graph.GetWorkContext(), texture, *pixelData, true);
-	graph.ImportBuffer(stagingBuffer);
+	TAsyncOp<TShared<PixelData>> op;
+	const TShared<PixelData> pixelData = CreateStagingPixelData(texture, mipLevel, arrayLayer);
+
+	const TShared<GpuStagingBuffer> stagingBuffer = B3DMakeShared<GpuStagingBuffer>(texture->GetDevice().GetTransferQueue().CreateStagingReadBuffer(pixelData->GetSize()));
+	if(!B3D_ENSURE(stagingBuffer->GetBuffer() != nullptr))
+	{
+		op.CompleteOperation(nullptr);
+		return op;
+	}
+
+	graph.ImportBuffer(stagingBuffer->GetBuffer());
 
 	FrameGraphCopyPass pass;
 	pass.AddSource(texture, TextureSurface(mipLevel, 1, arrayLayer, 1));
-	pass.AddDestination(stagingBuffer);
+	pass.AddDestination(stagingBuffer->GetBuffer());
 
-	TAsyncOp<TShared<PixelData>> op;
 	graph.AddCopyPass("Readback", std::move(pass), [texture, mipLevel, arrayLayer, stagingBuffer, pixelData, op](FrameGraphPassContext& passContext)
 	{
 		GpuCommandBuffer& commandBuffer = passContext.GetCommandBuffer();
-		commandBuffer.CopyTextureToBuffer(texture, stagingBuffer, mipLevel, arrayLayer, 0);
+		commandBuffer.CopyTextureToBuffer(texture, stagingBuffer->GetBuffer(), mipLevel, arrayLayer, 0);
 		CompleteReadOnCompletion(commandBuffer, stagingBuffer, pixelData, op);
 	});
 

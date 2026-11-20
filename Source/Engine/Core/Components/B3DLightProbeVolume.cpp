@@ -614,8 +614,7 @@ void LightProbeVolume::GetProbeCoefficients(Vector<LightProbeCoefficientInfo>& o
 	LightProbeSHCoefficients* coefficients = B3DStackAllocate<LightProbeSHCoefficients>(activeProbeCount);
 
 	TShared<PixelData> coeffData = mCoefficients->GetProperties().AllocBuffer(0, 0);
-	GpuWorkContext& gpuContext = GetRenderer()->GetGpuContext();
-	TextureUtility::Read(gpuContext, mCoefficients, *coeffData);
+	TextureUtility::Read(mCoefficients, *coeffData);
 
 	u32 probesPerRow = coeffData->GetWidth() / 9;
 	u32 probeIndex = 0;

@@ -149,8 +149,8 @@ namespace b3d::render
 		 * Only the last update of each suballocation is copied.
 		 *
 		 * @param commandBuffer	Command buffer to record the copies on, outside of a render pass. It must execute before any command
-		 *						buffer that reads the updated data. If null, uses the transfer command buffer, which is submitted
-		 *						before any other command buffer.
+		 *						buffer that reads the updated data. If null, the copies are recorded into a command buffer of the
+		 *						pools' own and submitted at once, before any command buffer submitted after this call.
 		 */
 		void Flush(const TShared<GpuCommandBuffer>& commandBuffer = nullptr);
 
@@ -300,6 +300,7 @@ namespace b3d::render
 		TransientGpuBufferPool mGpuParticlesStagingPool;
 		Vector<PendingCopy> mPendingCopies;
 		UnorderedMap<CopyDestination, u32, CopyDestinationHash> mPendingCopyIndices; /**< Index in mPendingCopies of the copy to each destination. */
+		TShared<GpuCommandBufferPool> mCommandBufferPool; /**< Pool of the command buffers Flush() records into without a command buffer. Created on first use. */
 		GpuDevice* mDevice = nullptr;
 		bool mInitialized = false;
 	};

@@ -11,6 +11,8 @@
 #include "Renderer/B3DRenderer.h"
 #include "Shading/B3DGpuParticleSimulation.h"
 #include "GpuBackend/B3DGpuBackendUtility.h"
+#include "GpuBackend/B3DGpuCommandBuffer.h"
+#include "GpuBackend/B3DGpuWorkContext.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -330,7 +332,17 @@ void UniformBufferPools::Flush(const TShared<GpuCommandBuffer>& commandBuffer)
 
 	FrameAllocatorScope frameScope;
 
-	const TShared<GpuCommandBuffer>& actualCommandBuffer = commandBuffer ? commandBuffer : GetRenderer()->GetGpuContext().GetTransferCommandBuffer();
+	// Without a command buffer the copies are submitted at once, so they run before every command buffer submitted later
+	TShared<GpuCommandBuffer> ownCommandBuffer;
+	if (commandBuffer == nullptr)
+	{
+		if (mCommandBufferPool == nullptr)
+			mCommandBufferPool = mDevice->CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread(GQT_GRAPHICS));
+
+		ownCommandBuffer = mCommandBufferPool->FindOrCreate(GpuCommandBufferCreateInformation::Create("Uniform buffer copies"));
+	}
+
+	const TShared<GpuCommandBuffer>& actualCommandBuffer = commandBuffer ? commandBuffer : ownCommandBuffer;
 
 	// Take the destination buffers from their resting state for the copies
 	const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
@@ -362,6 +374,12 @@ void UniformBufferPools::Flush(const TShared<GpuCommandBuffer>& commandBuffer)
 
 	mPendingCopies.clear();
 	mPendingCopyIndices.clear();
+
+	if (ownCommandBuffer != nullptr)
+	{
+		ownCommandBuffer->End();
+		GetRenderer()->GetGpuContext().SubmitCommandBuffer(ownCommandBuffer);
+	}
 }
 
 void UniformBufferPools::AdvanceFrame()
@@ -385,6 +403,7 @@ void UniformBufferPools::Destroy()
 	// Copies that were never flushed have nothing left to update
 	mPendingCopies.clear();
 	mPendingCopyIndices.clear();
+	mCommandBufferPool = nullptr;
 
 	// Destroy staging pools
 	mPerObjectStagingPool.Destroy();

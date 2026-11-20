@@ -563,7 +563,7 @@ void RunSortTest()
 	// Compare with GPU count
 	const u32 helperBufferLength = helperBuffers[0]->GetInformation().SimpleStorage.Count;
 	Vector<u32> bufferCounts(helperBufferLength);
-	GpuBufferUtility::Read(gpuContext, helperBuffers[0], 0, helperBufferLength * sizeof(u32), bufferCounts.data());
+	GpuBufferUtility::Read(helperBuffers[0], 0, helperBufferLength * sizeof(u32), bufferCounts.data());
 
 	for(u32 i = 0; i < (u32)counts.size(); i++)
 		B3D_ASSERT(bufferCounts[i] == counts[i]);
@@ -667,7 +667,7 @@ void RunSortTest()
 	
 	// Compare with GPU offsets
 	Vector<u32> bufferOffsets(helperBufferLength);
-	GpuBufferUtility::Read(gpuContext, helperBuffers[1], 0, helperBufferLength * sizeof(u32), bufferOffsets.data());
+	GpuBufferUtility::Read(helperBuffers[1], 0, helperBufferLength * sizeof(u32), bufferOffsets.data());
 
 	for(u32 i = 0; i < (u32)offsets.size(); i++)
 		B3D_ASSERT(bufferOffsets[i] == offsets[i]);
@@ -907,7 +907,7 @@ void RunSortTest()
 
 	// Compare with GPU keys
 	Vector<u32> bufferSortedKeys(count);
-	GpuBufferUtility::Read(gpuContext, sortBuffers.Keys[1], 0, count * sizeof(u32), bufferSortedKeys.data());
+	GpuBufferUtility::Read(sortBuffers.Keys[1], 0, count * sizeof(u32), bufferSortedKeys.data());
 
 	for(u32 i = 0; i < count; i++)
 		B3D_ASSERT(bufferSortedKeys[i] == sortedKeys[i]);
