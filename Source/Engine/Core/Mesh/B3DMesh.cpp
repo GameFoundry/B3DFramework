@@ -483,7 +483,7 @@ void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool pe
 
 	// The bottom level structure holds the old triangles until it is built again
 	if(mRayTracingGeometry != nullptr)
-		mRayTracingGeometry->MarkNotBuilt();
+		mRayTracingGeometry->MarkOutOfDate();
 
 	if(performUpdateBounds)
 		UpdateBounds(meshData);

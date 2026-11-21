@@ -9,6 +9,8 @@
 #include "GpuBackend/B3DSubMesh.h"
 #include "GpuBackend/B3DVertexData.h"
 #include "RayTracing/B3DRayTracingManager.h"
+#include "RayTracing/B3DRayTracingScene.h"
+#include "Utility/B3DBitwise.h"
 
 namespace b3d::render
 {
@@ -117,23 +119,74 @@ namespace b3d::render
 
 	void RayTracingGeometry::Build(FrameGraph& graph)
 	{
-		graph.ImportAccelerationStructure(mAccelerationStructure);
+		RayTracingGeometry* geometry = this;
+		AddBuildPass(graph, "Build ray tracing geometry", TArrayView<RayTracingGeometry* const>(&geometry, 1), FrameGraphAccelerationStructurePass());
+	}
 
-		const TShared<GpuBuffer> scratch = graph.CreateBuffer("Ray tracing geometry scratch",
-			GpuBufferCreateInformation::CreateStructuredStorage(4, Math::DivideAndRoundUp(mBuildScratchSize, 4u), GpuBufferFlag::GpuWrite));
+	void RayTracingGeometry::AddBuildPass(FrameGraph& graph, const StringView& name, TArrayView<RayTracingGeometry* const> geometries, FrameGraphAccelerationStructurePass&& pass)
+	{
+		if(geometries.IsEmpty())
+			return;
 
-		const GpuAccelerationStructureBuild build(mInputs, mAccelerationStructure, scratch);
-
-		FrameGraphAccelerationStructurePass pass;
-		pass.AddBuild(build);
-		pass.Export(mAccelerationStructure);
-
-		graph.AddAccelerationStructurePass("Build ray tracing geometry", std::move(pass), [build](FrameGraphPassContext& passContext)
+		FrameAllocatorScope frameScope;
+		const u32 scratchOffsetAlignment = graph.GetWorkContext().GetDevice().GetCapabilities().RayTracing.ScratchOffsetAlignment;
+		FrameVector<u32> scratchOffsets;
+		u32 scratchSize = 0;
+		for(const RayTracingGeometry* geometry : geometries)
 		{
-			passContext.GetCommandBuffer().BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(&build, 1));
-		});
+			const u32 scratchOffset = Bitwise::AlignUp(scratchSize, scratchOffsetAlignment);
+			scratchOffsets.push_back(scratchOffset);
+			scratchSize = scratchOffset + geometry->mBuildScratchSize;
+		}
 
-		MarkBuilt();
+		const TShared<GpuBuffer> scratch = graph.CreateBuffer("Ray tracing geometry scratch", GpuBufferCreateInformation::CreateStructuredStorage(4, std::max(1u, Math::DivideAndRoundUp(scratchSize, 4u)),
+			GpuBufferFlag::GpuWrite));
+
+		Vector<GpuAccelerationStructureBuild> builds;
+		builds.reserve((size_t)geometries.Size());
+		for(u32 geometryIndex = 0; geometryIndex < (u32)geometries.Size(); geometryIndex++)
+		{
+			RayTracingGeometry& geometry = *geometries[geometryIndex];
+			graph.ImportAccelerationStructure(geometry.mAccelerationStructure);
+
+			builds.push_back(GpuAccelerationStructureBuild(geometry.mInputs, geometry.mAccelerationStructure, scratch, scratchOffsets[geometryIndex]));
+			pass.AddBuild(builds.back());
+			pass.Export(geometry.mAccelerationStructure);
+
+			// Scenes with instances of the geometry rebuild their top level structure over the new contents
+			geometry.mIsBuilt = true;
+			geometry.mVersion++;
+			for(RayTracingScene* scene : geometry.mScenes)
+				scene->NotifyGeometryChanged(geometry);
+		}
+
+		graph.AddAccelerationStructurePass(name, std::move(pass), [builds = std::move(builds)](FrameGraphPassContext& passContext)
+		{
+			passContext.GetCommandBuffer().BuildAccelerationStructures(builds);
+		});
+	}
+
+	void RayTracingGeometry::MarkOutOfDate()
+	{
+		if(!mIsBuilt)
+			return;
+
+		mIsBuilt = false;
+
+		for(RayTracingScene* scene : mScenes)
+			scene->NotifyGeometryChanged(*this);
+	}
+
+	void RayTracingGeometry::NotifyAddedToScene(RayTracingScene& scene)
+	{
+		mScenes.Add(&scene);
+	}
+
+	void RayTracingGeometry::NotifyRemovedFromScene(RayTracingScene& scene)
+	{
+		const auto sceneIterator = std::find(mScenes.begin(), mScenes.end(), &scene);
+		if(sceneIterator != mScenes.end())
+			mScenes.SwapAndErase(sceneIterator);
 	}
 
 	TShared<RayTracingGeometry> RayTracingGeometry::Create(GpuDevice& device, const VertexData& vertexData, const TShared<GpuBuffer>& indexBuffer, TArrayView<const SubMesh> subMeshes, RayTracingGeometryFlags flags)

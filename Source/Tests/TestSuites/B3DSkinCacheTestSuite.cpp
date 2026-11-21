@@ -1229,7 +1229,7 @@ void SkinCacheTestSuite::TestRayTracingGeometry()
 		if(geometry == nullptr)
 			return;
 
-		B3D_TEST_ASSERT(geometry->IsBuilt() && geometry->GetContentsVersion() == 1 && geometry->GetGeometryLayouts().Size() == 1)
+		B3D_TEST_ASSERT(geometry->IsBuilt() && geometry->GetVersion() == 1 && geometry->GetGeometryLayouts().Size() == 1)
 		B3D_TEST_ASSERT(entry->GetMemorySize() > geometry->GetAccelerationStructure()->GetSize())
 		if(geometry->GetGeometryLayouts().Size() != 1)
 			return;
@@ -1269,7 +1269,7 @@ void SkinCacheTestSuite::TestRayTracingGeometry()
 		if(rayBuffer == nullptr || layoutBuffer == nullptr || hitBuffer == nullptr || readback == nullptr)
 			return;
 
-		// A copy of the layouts must be taken again whenever the geometry's contents version changed, as the position buffers swap
+		// A copy of the layouts must be taken again whenever the geometry's version changed, as the position buffers swap
 		u32 copiedLayoutVersion = 0;
 
 		// Optionally poses the entry with @p pose, then updates the cache, builds the scene and traces the rays in one graph, which must
@@ -1306,7 +1306,7 @@ void SkinCacheTestSuite::TestRayTracingGeometry()
 					return;
 
 				std::memcpy(rayMapping.GetMappedMemory(), rayOrigins, sizeof(rayOrigins));
-				if(geometry->GetContentsVersion() != copiedLayoutVersion)
+				if(geometry->GetVersion() != copiedLayoutVersion)
 				{
 					const render::GpuBufferMappedScope layoutMapping = layoutBuffer->Map(GpuMapOption::Write);
 					B3D_TEST_ASSERT(layoutMapping.IsValid())
@@ -1314,7 +1314,7 @@ void SkinCacheTestSuite::TestRayTracingGeometry()
 						return;
 
 					std::memcpy(layoutMapping.GetMappedMemory(), geometry->GetGeometryLayouts().data(), sizeof(RayTracingGeometryLayout));
-					copiedLayoutVersion = geometry->GetContentsVersion();
+					copiedLayoutVersion = geometry->GetVersion();
 				}
 
 				graph.ImportBuffer(hitBuffer);
@@ -1392,23 +1392,23 @@ void SkinCacheTestSuite::TestRayTracingGeometry()
 
 		// Nothing changed, so nothing is built
 		fnTrace("Unchanged", Vector<Matrix4>(), 0);
-		B3D_TEST_ASSERT(geometry->GetContentsVersion() == 1)
+		B3D_TEST_ASSERT(geometry->GetVersion() == 1)
 
-		// A new pose deforms into the other position buffer, which the geometry is built from and its layout points at. The geometry's new
-		// contents version rebuilds the top level structure.
+		// A new pose deforms into the other position buffer, which the geometry is built from and its layout points at. The build of the
+		// geometry rebuilds the top level structure of the scene.
 		fnTrace("Second pose", CreatePose(1.0f), 3);
 		fnCheckLayout("Second pose");
 		const u32 secondPositionIndex = geometry->GetGeometryLayouts()[0].Position.BufferIndex;
-		B3D_TEST_ASSERT(geometry->GetContentsVersion() == 2 && secondPositionIndex != firstPositionIndex)
+		B3D_TEST_ASSERT(geometry->GetVersion() == 2 && secondPositionIndex != firstPositionIndex)
 
 		// The next pose swaps the buffers back
 		fnTrace("Third pose", CreatePose(-0.5f), 3);
 		fnCheckLayout("Third pose");
-		B3D_TEST_ASSERT(geometry->GetContentsVersion() == 3 && geometry->GetGeometryLayouts()[0].Position.BufferIndex == firstPositionIndex)
+		B3D_TEST_ASSERT(geometry->GetVersion() == 3 && geometry->GetGeometryLayouts()[0].Position.BufferIndex == firstPositionIndex)
 
 		// The same pose again changes nothing
 		fnTrace("Same pose", CreatePose(-0.5f), 0);
-		B3D_TEST_ASSERT(geometry->GetContentsVersion() == 3)
+		B3D_TEST_ASSERT(geometry->GetVersion() == 3)
 	}, "SkinCacheTestSuite::TestRayTracingGeometry", true);
 }
 

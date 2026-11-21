@@ -72,7 +72,7 @@ namespace b3d
 		/**
 		 * Deforms an entry with ray tracing geometry and previous positions through several poses, with a ray tracing scene that has an
 		 * instance of the entry's geometry. Each update adds a pass that builds the geometry after the deformation, and the scene rebuilds
-		 * its top level structure because the geometry's contents version changed, and only then. Inline rays hit the deformed surface,
+		 * its top level structure because the geometry was built, and only then. Inline rays hit the deformed surface,
 		 * and read the deformed positions and normals and the mesh's texture coordinates through the geometry's layouts, also after the
 		 * position buffers swapped. On devices without acceleration structures the entry has no geometry and builds nothing.
 		 */

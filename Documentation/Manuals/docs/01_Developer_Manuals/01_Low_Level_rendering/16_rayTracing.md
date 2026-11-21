@@ -349,6 +349,9 @@ The geometry has one geometry per triangle list sub-mesh:
  - @b3d::render::RayTracingGeometry::GetGeometryLayouts returns a @b3d::render::RayTracingGeometryLayout per geometry, in geometry index order. It tells shaders where the geometry's indices are, and where its positions, normals, tangents and first texture coordinates are, as bindless buffer indices with offsets and strides.
  - Writing new data to the mesh marks the geometry as not built (@b3d::render::RayTracingGeometry::IsBuilt).
  - @b3d::render::RayTracingGeometry::Build adds a pass to a frame graph that builds the structure, and exports it.
+ - @b3d::render::RayTracingGeometry::AddBuildPass does the same for several geometries in one pass, each at its own offset of one scratch buffer. The caller can declare more work of the pass first, such as exports of the vertex buffers the builds read.
+
+The geometry of an animated mesh comes from the skin cache instead: an entry created with **SkinCacheEntryFlag::RayTracingGeometry** owns a geometry of its deformed vertices (@b3d::render::SkinCacheEntry::GetRayTracingGeometry), and the cache rebuilds it after each deformation. Such geometry is created with @b3d::render::RayTracingGeometryFlag::Dynamic, which prefers fast builds.
 
 The geometry is built opaque. Instances that need any hit programs or **AnyHit** callbacks, such as alpha tested ones, must set **GpuRayTracingInstanceFlag::ForceNonOpaque**.
 
@@ -360,7 +363,7 @@ The geometry is built opaque. Instances that need any hit programs or **AnyHit**
  - @b3d::render::RayTracingScene::Build adds the passes that bring the structures up to date, as described below.
  - @b3d::render::RayTracingScene::GetAccelerationStructure returns the top level structure.
 
-**Build()** adds up to two passes to the graph. The first builds the bottom level structures of the geometries that aren't built, all in one pass. The second rebuilds the top level structure if anything changed since the last build, and exports it. In a frame where nothing changed it adds no passes.
+**Build()** adds up to two passes to the graph. The first builds the bottom level structures of the geometries that aren't built, all in one pass. The second rebuilds the top level structure if anything changed since the last build, and exports it. A build of a geometry of the scene counts as a change, so geometry the skin cache built is picked up when the cache updates before **Build()**, in the same graph or an earlier one. In a frame where nothing changed it adds no passes.
 
 ~~~~~~~~~~~~~{.cpp}
 // Once

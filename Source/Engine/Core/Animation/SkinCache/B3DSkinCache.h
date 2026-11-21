@@ -135,9 +135,10 @@ namespace b3d::render
 
 		/**
 		 * True if the entry builds ray tracing geometry: it has SkinCacheEntryFlag::RayTracingGeometry, the device has acceleration
-		 * structures and the mesh supports ray tracing. Becomes false if the geometry can't be created.
+		 * structures and the mesh supports ray tracing. Becomes false if the geometry can't be created. Known before mRayTracingGeometry
+		 * exists, since the geometry is created over the vertex buffers, and their flags depend on it.
 		 */
-		bool mHasRayTracingGeometry = false;
+		bool mSupportsRayTracingGeometry = false;
 		u32 mBoneCount = 0; /**< Number of bones of the mesh's skeleton. Zero for a mesh without one, which isn't skinned. */
 		u32 mMorphShapeCount = 0; /**< Number of morph shapes of the mesh, in all of its channels. */
 
@@ -186,7 +187,7 @@ namespace b3d::render
 		 */
 		TShared<VertexData> mVertexDataWithoutMotion[2];
 
-		/** Structure of the deformed vertices, created on the first deformation if mHasRayTracingGeometry is true. */
+		/** Structure of the deformed vertices, created on the first deformation if mSupportsRayTracingGeometry is true. */
 		TShared<RayTracingGeometry> mRayTracingGeometry;
 
 		/**

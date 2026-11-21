@@ -1588,6 +1588,24 @@ void GpuRayTracingTestSuite::TestRayTracingGeometry()
 		fnTrace("Removed", { miss, miss, miss, ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 2) }, 1);
 		B3D_TEST_ASSERT(scene.AddInstance(RayTracingGeometryInstance(geometry, Matrix4::kIdentity, 0)) == firstSlot)
 
+		// Builds the other scene alone, and checks the number of passes its build adds
+		const auto fnBuildOtherScene = [&](const char* name, RayTracingScene& otherScene, u32 buildPassCount)
+		{
+			FrameGraph graph(*context, "Other ray tracing scene graph");
+			otherScene.Build(graph);
+			graph.Compile();
+			graph.Execute();
+			device->WaitUntilIdle();
+
+			B3D_TEST_ASSERT_MSG(graph.GetStatistics().PassCount == buildPassCount, StringUtility::Format("{0}: {1} passes, expected {2}.", name,
+				graph.GetStatistics().PassCount, buildPassCount))
+		};
+
+		// A second scene with the built geometry builds only its top level structure
+		RayTracingScene otherScene(*device, "Other test scene");
+		otherScene.AddInstance(RayTracingGeometryInstance(geometry, Matrix4::kIdentity, 0));
+		fnBuildOtherScene("Other scene", otherScene, 1);
+
 		// A write to the mesh rebuilds its bottom level structure, and the top level structure with it
 		mesh->WriteData(*meshData, false);
 		B3D_TEST_ASSERT(!geometry->IsBuilt())
@@ -1596,6 +1614,10 @@ void GpuRayTracingTestSuite::TestRayTracingGeometry()
 		fnTrace("Rewritten", { ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 0),
 			ExpectedGeometryHit(Vector3(2.25f, 0.25f, 5.0f), interpolatedNormal, 0.625f, 0.625f, 3, 0), miss,
 			ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 2) }, 2);
+
+		// The first scene built the geometry both scenes wait for, so the second one only rebuilds its top level structure over it, once
+		fnBuildOtherScene("Other scene after the rewrite", otherScene, 1);
+		fnBuildOtherScene("Other scene unchanged", otherScene, 0);
 
 		// More instances than the top level structure has room for replace it with a larger one
 		for(u32 instanceIndex = 0; instanceIndex < 20; instanceIndex++)

@@ -7,7 +7,6 @@
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DGpuWorkContext.h"
 #include "RayTracing/B3DRayTracingGeometry.h"
-#include "Utility/B3DBitwise.h"
 
 namespace b3d::render
 {
@@ -15,17 +14,17 @@ namespace b3d::render
 	{
 		/** Smallest number of instances a top level structure is sized for. */
 		constexpr u32 kMinimumCapacity = 16;
-
-		/** Returns a structured buffer of @p size bytes that acceleration structure builds can use as scratch memory, created by @p graph. */
-		TShared<GpuBuffer> CreateScratchBuffer(FrameGraph& graph, const char* name, u32 size)
-		{
-			return graph.CreateBuffer(name, GpuBufferCreateInformation::CreateStructuredStorage(4, std::max(1u, Math::DivideAndRoundUp(size, 4u)), GpuBufferFlag::GpuWrite));
-		}
 	} // namespace
 
 	RayTracingScene::RayTracingScene(GpuDevice& device, const StringView& name)
-		: mDevice(device), mName(name)
+		: mDevice(device), mName(name), mInstanceSize(device.GetCapabilities().RayTracing.InstanceSize)
 	{ }
+
+	RayTracingScene::~RayTracingScene()
+	{
+		for(RayTracingGeometry* geometry : mGeometries)
+			geometry->NotifyRemovedFromScene(*this);
+	}
 
 	u32 RayTracingScene::AddInstance(const RayTracingGeometryInstance& instance)
 	{
@@ -42,6 +41,7 @@ namespace b3d::render
 		slot.Instance = instance;
 		slot.IsUsed = true;
 		slot.NextFreeSlot = ~0u;
+		PackInstance(slotIndex);
 
 		mInstanceCount++;
 		mIsDirty = true;
@@ -53,7 +53,9 @@ namespace b3d::render
 		if(!B3D_ENSURE_LOG(slot < (u32)mSlots.size() && mSlots[slot].IsUsed, "Ray tracing scene '{0}' has no instance in slot {1}.", mName, slot))
 			return;
 
+		UnpackInstance(slot);
 		mSlots[slot].Instance = instance;
+		PackInstance(slot);
 		mIsDirty = true;
 	}
 
@@ -62,7 +64,11 @@ namespace b3d::render
 		if(!B3D_ENSURE_LOG(slot < (u32)mSlots.size() && mSlots[slot].IsUsed, "Ray tracing scene '{0}' has no instance in slot {1}.", mName, slot))
 			return;
 
-		mSlots[slot].Instance.Transform = transform;
+		Slot& usedSlot = mSlots[slot];
+		usedSlot.Instance.Transform = transform;
+		if(usedSlot.PackedIndex != ~0u && !TryWriteInstance(usedSlot.Instance, &mPackedInstances[(size_t)usedSlot.PackedIndex * mInstanceSize]))
+			UnpackInstance(slot);
+
 		mIsDirty = true;
 	}
 
@@ -70,6 +76,8 @@ namespace b3d::render
 	{
 		if(!B3D_ENSURE_LOG(slot < (u32)mSlots.size() && mSlots[slot].IsUsed, "Ray tracing scene '{0}' has no instance in slot {1}.", mName, slot))
 			return;
+
+		UnpackInstance(slot);
 
 		// The free slot drops its geometry, which may be the last reference to it
 		Slot& freeSlot = mSlots[slot];
@@ -85,92 +93,31 @@ namespace b3d::render
 	void RayTracingScene::Build(FrameGraph& graph)
 	{
 		const GpuRayTracingCapabilities& rayTracing = mDevice.GetCapabilities().RayTracing;
-		FrameAllocatorScope frameScope;
 
-		// The bottom level structures of the geometries that aren't built go in one pass, each at its own offset of one scratch buffer.
-		// Marking a geometry built right away keeps instances that share it from adding it twice. A geometry built here or elsewhere since
-		// the last top level build has a new contents version, which the top level structure must see.
-		FrameVector<RayTracingGeometry*> pendingGeometries;
-		for(const Slot& slot : mSlots)
+		// The geometries that still aren't built go in one pass. Sorting drops the ones the list holds more than once. Their build marks
+		// the scene dirty, as it does every scene with instances of them.
+		if(!mPendingGeometries.empty())
 		{
-			RayTracingGeometry* geometry = slot.Instance.Geometry.get();
-			if(!slot.IsUsed || geometry == nullptr)
-				continue;
-
-			if(!geometry->IsBuilt())
+			FrameAllocatorScope frameScope;
+			FrameVector<RayTracingGeometry*> geometries;
+			for(RayTracingGeometry* geometry : mPendingGeometries)
 			{
-				pendingGeometries.push_back(geometry);
-				geometry->MarkBuilt();
+				if(!geometry->IsBuilt())
+					geometries.push_back(geometry);
 			}
 
-			if(geometry->GetContentsVersion() != slot.BuiltContentsVersion)
-				mIsDirty = true;
-		}
+			mPendingGeometries.clear();
+			std::sort(geometries.begin(), geometries.end());
+			geometries.erase(std::unique(geometries.begin(), geometries.end()), geometries.end());
 
-		if(!pendingGeometries.empty())
-		{
-			FrameVector<u32> scratchOffsets;
-			u32 scratchSize = 0;
-			for(RayTracingGeometry* geometry : pendingGeometries)
-			{
-				const u32 scratchOffset = Bitwise::AlignUp(scratchSize, rayTracing.ScratchOffsetAlignment);
-				scratchOffsets.push_back(scratchOffset);
-				scratchSize = scratchOffset + geometry->GetBuildScratchSize();
-			}
-
-			const TShared<GpuBuffer> scratch = CreateScratchBuffer(graph, "Ray tracing geometry scratch", scratchSize);
-
-			FrameGraphAccelerationStructurePass pass;
-			Vector<GpuAccelerationStructureBuild> builds;
-			builds.reserve(pendingGeometries.size());
-			for(u32 geometryIndex = 0; geometryIndex < (u32)pendingGeometries.size(); geometryIndex++)
-			{
-				const RayTracingGeometry& geometry = *pendingGeometries[geometryIndex];
-				const TShared<GpuAccelerationStructure>& bottomLevel = geometry.GetAccelerationStructure();
-				graph.ImportAccelerationStructure(bottomLevel);
-
-				builds.push_back(GpuAccelerationStructureBuild(geometry.GetBuildInputs(), bottomLevel, scratch, scratchOffsets[geometryIndex]));
-				pass.AddBuild(builds.back());
-				pass.Export(bottomLevel);
-			}
-
-			graph.AddAccelerationStructurePass("Build ray tracing geometries", std::move(pass), [builds = std::move(builds)](FrameGraphPassContext& passContext)
-			{
-				passContext.GetCommandBuffer().BuildAccelerationStructures(builds);
-			});
+			RayTracingGeometry::AddBuildPass(graph, "Build ray tracing geometries", geometries, FrameGraphAccelerationStructurePass());
 		}
 
 		if(!mIsDirty && mAccelerationStructure != nullptr)
 			return;
 
-		// Instances are packed densely, so the instance index rays report changes as instances come and go, and the instance id doesn't
-		FrameVector<GpuRayTracingInstance> instances;
-		instances.reserve(mInstanceCount);
-		mBottomLevels.clear();
-		for(Slot& slot : mSlots)
-		{
-			const RayTracingGeometryInstance& geometryInstance = slot.Instance;
-			if(!slot.IsUsed || geometryInstance.Geometry == nullptr)
-				continue;
-
-			slot.BuiltContentsVersion = geometryInstance.Geometry->GetContentsVersion();
-			const TShared<GpuAccelerationStructure>& bottomLevel = geometryInstance.Geometry->GetAccelerationStructure();
-
-			GpuRayTracingInstance instance(bottomLevel.get(), geometryInstance.Transform, geometryInstance.InstanceId);
-			instance.HitGroupIndexOffset = geometryInstance.HitGroupIndexOffset;
-			instance.Mask = geometryInstance.Mask;
-			instance.Flags = geometryInstance.Flags;
-			instances.push_back(instance);
-
-			mBottomLevels.push_back(bottomLevel);
-		}
-
-		// Instances that share a geometry share its bottom level structure, which the build needs only once
-		std::sort(mBottomLevels.begin(), mBottomLevels.end());
-		mBottomLevels.erase(std::unique(mBottomLevels.begin(), mBottomLevels.end()), mBottomLevels.end());
-
 		// The instance buffer has room for the capacity, so the size query of a larger structure can use it
-		const u32 instanceCount = (u32)instances.size();
+		const u32 instanceCount = (u32)mPackedInstanceSlots.Size();
 		const bool needsAccelerationStructure = mAccelerationStructure == nullptr || instanceCount > mCapacity;
 		const u32 capacity = needsAccelerationStructure ? std::max(std::max(instanceCount, mCapacity * 2), kMinimumCapacity) : mCapacity;
 
@@ -186,8 +133,7 @@ namespace b3d::render
 			if(!B3D_ENSURE_LOG(mapping.IsValid(), "Ray tracing scene '{0}' couldn't map its instance buffer.", mName))
 				return;
 
-			if(!mDevice.WriteRayTracingInstances(instances, mapping.GetMappedMemory()))
-				return;
+			std::memcpy(mapping.GetMappedMemory(), mPackedInstances.data(), mPackedInstances.size());
 		}
 
 		if(needsAccelerationStructure)
@@ -207,12 +153,21 @@ namespace b3d::render
 			mBuildScratchSize = sizes.BuildScratchSize;
 		}
 
+		// The build reads its list of bottom level structures when the graph executes, after instances may have come and gone, so it
+		// reads a copy, taken only when the list changed
+		if(mBottomLevelsChanged)
+		{
+			mBuiltBottomLevels = mBottomLevels;
+			mBottomLevelsChanged = false;
+		}
+
 		graph.ImportAccelerationStructure(mAccelerationStructure);
 
 		// A build with fewer instances than the capacity needs no more scratch memory than one with the capacity
-		GpuAccelerationStructureBuild build(GpuAccelerationStructureInputs(instanceBuffer, instanceCount), mAccelerationStructure,
-			CreateScratchBuffer(graph, "Ray tracing scene scratch", mBuildScratchSize));
-		build.BottomLevels = mBottomLevels;
+		const TShared<GpuBuffer> scratch = graph.CreateBuffer("Ray tracing scene scratch", GpuBufferCreateInformation::CreateStructuredStorage(4,
+			std::max(1u, Math::DivideAndRoundUp(mBuildScratchSize, 4u)), GpuBufferFlag::GpuWrite));
+		GpuAccelerationStructureBuild build(GpuAccelerationStructureInputs(instanceBuffer, instanceCount), mAccelerationStructure, scratch);
+		build.BottomLevels = mBuiltBottomLevels;
 
 		FrameGraphAccelerationStructurePass pass;
 		pass.AddBuild(build);
@@ -224,5 +179,92 @@ namespace b3d::render
 		});
 
 		mIsDirty = false;
+	}
+
+	void RayTracingScene::NotifyGeometryChanged(RayTracingGeometry& geometry)
+	{
+		if(!geometry.IsBuilt())
+			mPendingGeometries.push_back(&geometry);
+
+		mIsDirty = true;
+	}
+
+	void RayTracingScene::PackInstance(u32 slotIndex)
+	{
+		Slot& slot = mSlots[slotIndex];
+		RayTracingGeometry* geometry = slot.Instance.Geometry.get();
+		if(geometry == nullptr)
+			return;
+
+		const u32 packedIndex = (u32)mPackedInstanceSlots.Size();
+		mPackedInstances.resize((size_t)(packedIndex + 1) * mInstanceSize);
+		if(!TryWriteInstance(slot.Instance, &mPackedInstances[(size_t)packedIndex * mInstanceSize]))
+		{
+			mPackedInstances.resize((size_t)packedIndex * mInstanceSize);
+			return;
+		}
+
+		slot.PackedIndex = packedIndex;
+		mPackedInstanceSlots.Add(slotIndex);
+
+		// The first instance of a geometry makes the scene listen to it, and queues its build if it isn't built
+		GeometryReference& reference = mGeometryReferences[geometry];
+		if(reference.InstanceCount++ > 0)
+			return;
+
+		reference.Index = (u32)mGeometries.Size();
+		mGeometries.Add(geometry);
+		mBottomLevels.Add(geometry->GetAccelerationStructure());
+		mBottomLevelsChanged = true;
+
+		geometry->NotifyAddedToScene(*this);
+		if(!geometry->IsBuilt())
+			mPendingGeometries.push_back(geometry);
+	}
+
+	void RayTracingScene::UnpackInstance(u32 slotIndex)
+	{
+		Slot& slot = mSlots[slotIndex];
+		const u32 packedIndex = slot.PackedIndex;
+		if(packedIndex == ~0u)
+			return;
+
+		// The last packed instance takes the place of the removed one. Instances are of the device's size, so their data is moved by hand.
+		const u32 lastPackedIndex = (u32)mPackedInstanceSlots.Size() - 1;
+		if(packedIndex != lastPackedIndex)
+			std::memcpy(&mPackedInstances[(size_t)packedIndex * mInstanceSize], &mPackedInstances[(size_t)lastPackedIndex * mInstanceSize], mInstanceSize);
+
+		mPackedInstances.resize((size_t)lastPackedIndex * mInstanceSize);
+		if(mPackedInstanceSlots.SwapAndErase(mPackedInstanceSlots.begin() + packedIndex))
+			mSlots[mPackedInstanceSlots[packedIndex]].PackedIndex = packedIndex;
+
+		slot.PackedIndex = ~0u;
+
+		// The last instance of a geometry removes it from the scene, and the last geometry takes its place
+		RayTracingGeometry* geometry = slot.Instance.Geometry.get();
+		const auto referenceIterator = mGeometryReferences.find(geometry);
+		if(--referenceIterator->second.InstanceCount > 0)
+			return;
+
+		const u32 geometryIndex = referenceIterator->second.Index;
+		mGeometryReferences.erase(referenceIterator);
+		mBottomLevels.SwapAndErase(mBottomLevels.begin() + geometryIndex);
+		if(mGeometries.SwapAndErase(mGeometries.begin() + geometryIndex))
+			mGeometryReferences[mGeometries[geometryIndex]].Index = geometryIndex;
+
+		mBottomLevelsChanged = true;
+
+		geometry->NotifyRemovedFromScene(*this);
+		mPendingGeometries.erase(std::remove(mPendingGeometries.begin(), mPendingGeometries.end(), geometry), mPendingGeometries.end());
+	}
+
+	bool RayTracingScene::TryWriteInstance(const RayTracingGeometryInstance& instance, u8* destination) const
+	{
+		GpuRayTracingInstance deviceInstance(instance.Geometry->GetAccelerationStructure().get(), instance.Transform, instance.InstanceId);
+		deviceInstance.HitGroupIndexOffset = instance.HitGroupIndexOffset;
+		deviceInstance.Mask = instance.Mask;
+		deviceInstance.Flags = instance.Flags;
+
+		return mDevice.WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance>(&deviceInstance, 1), destination);
 	}
 } // namespace b3d::render

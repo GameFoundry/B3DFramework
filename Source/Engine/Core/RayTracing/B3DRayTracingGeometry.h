@@ -8,6 +8,8 @@
 namespace b3d::render
 {
 	class FrameGraph;
+	class FrameGraphAccelerationStructurePass;
+	class RayTracingScene;
 
 	/** @addtogroup Renderer
 	 *  @{
@@ -96,15 +98,28 @@ namespace b3d::render
 		RayTracingGeometry(const RayTracingGeometry&) = delete;
 		RayTracingGeometry& operator=(const RayTracingGeometry&) = delete;
 
-		/** Returns true if the structure holds the current contents of its buffers. MarkNotBuilt() makes it false. */
+		/** Returns true if the structure holds the current contents of its buffers. MarkOutOfDate() makes it false. */
 		bool IsBuilt() const { return mIsBuilt; }
 
 		/**
 		 * Adds a pass to @p graph that builds the structure from its buffers, and exports it, so later passes and later work can trace
-		 * rays against it without declaring it. RayTracingScene::Build() builds the structures of its instances itself, in one pass. The
-		 * geometry must stay alive until the graph executes.
+		 * rays against it without declaring it. RayTracingScene::Build() builds the structures of its instances that aren't built itself,
+		 * in one pass. The geometry must stay alive until the graph executes.
 		 */
 		void Build(FrameGraph& graph);
+
+		/**
+		 * Adds @p pass to @p graph, with a build of the structure of each of @p geometries, each at its own offset of one scratch buffer.
+		 * The pass exports the structures, and the geometries count as built and get a new GetVersion(). Does nothing if @p geometries is
+		 * empty. The geometries must stay alive until the graph executes.
+		 *
+		 * @param	graph		Graph to add the pass to.
+		 * @param	name		Name of the pass, for debugging purposes.
+		 * @param	geometries	Geometries to build. Each must appear once.
+		 * @param	pass		Pass to add the builds to. May already declare other work of the pass, such as exports of the vertex buffers
+		 *						the builds read.
+		 */
+		static void AddBuildPass(FrameGraph& graph, const StringView& name, TArrayView<RayTracingGeometry* const> geometries, FrameGraphAccelerationStructurePass&& pass);
 
 		/** Returns the bottom level acceleration structure. */
 		const TShared<GpuAccelerationStructure>& GetAccelerationStructure() const { return mAccelerationStructure; }
@@ -117,7 +132,7 @@ namespace b3d::render
 
 		/**
 		 * Returns where the triangles and vertex attributes of each geometry live, in geometry index order. A copy taken at another
-		 * GetContentsVersion() may be out of date.
+		 * GetVersion() may be out of date.
 		 */
 		TArrayView<const RayTracingGeometryLayout> GetGeometryLayouts() const { return mLayouts; }
 
@@ -133,7 +148,7 @@ namespace b3d::render
 		 * Returns a number that increases every time a build of the structure is added to a frame graph. A copy of the geometry's layouts,
 		 * or a top level structure built over it, taken at another version may be out of date.
 		 */
-		u32 GetContentsVersion() const { return mContentsVersion; }
+		u32 GetVersion() const { return mVersion; }
 
 		/**
 		 * Returns true if vertices with @p vertexDescription and indices of @p indexType are in the formats above: positions of kPositionType,
@@ -153,21 +168,17 @@ namespace b3d::render
 		 * @{
 		 */
 
-		/** Marks the structure as out of date, so the next build rebuilds it. Needed after the contents of its buffers change. */
-		void MarkNotBuilt() { mIsBuilt = false; }
+		/**
+		 * Marks the structure as out of date, so the next build rebuilds it. Needed after the contents of its buffers change. Ray tracing
+		 * scenes with instances of the geometry build it in their next RayTracingScene::Build().
+		 */
+		void MarkOutOfDate();
 
-		/** Marks the structure as up to date, and increases its contents version. Called when a build of it is added to a frame graph. */
-		void MarkBuilt()
-		{
-			mIsBuilt = true;
-			mContentsVersion++;
-		}
+		/** Called by @p scene when it gets its first instance of the geometry. The scene then learns when the geometry needs a build and when it was built. */
+		void NotifyAddedToScene(RayTracingScene& scene);
 
-		/** Returns the contents the structure is built from. The geometries they reference live as long as this object. */
-		const GpuAccelerationStructureInputs& GetBuildInputs() const { return mInputs; }
-
-		/** Returns the scratch memory a build of the structure needs, in bytes. */
-		u32 GetBuildScratchSize() const { return mBuildScratchSize; }
+		/** Called by @p scene when it loses its last instance of the geometry, or is destroyed. */
+		void NotifyRemovedFromScene(RayTracingScene& scene);
 
 		/** @} */
 
@@ -192,7 +203,10 @@ namespace b3d::render
 		Vector<RayTracingGeometryLayout> mLayouts;
 		TShared<GpuBuffer> mDefaultAttributes;
 		bool mIsBuilt = false;
-		u32 mContentsVersion = 0;
+		u32 mVersion = 0;
+
+		/** Scenes with instances of the geometry, which learn when it needs a build and when it was built. Usually one. */
+		TInlineArray<RayTracingScene*, 1> mScenes;
 	};
 
 	/** @} */

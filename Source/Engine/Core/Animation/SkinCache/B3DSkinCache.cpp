@@ -189,7 +189,7 @@ namespace b3d::render
 		const VertexElement* normal = meshDescription.FindElement(VES_NORMAL);
 
 		mVertexCount = meshVertexData->VertexCount;
-		mHasRayTracingGeometry = mFlags.IsSet(SkinCacheEntryFlag::RayTracingGeometry) && mCache.mDevice.GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES) && mMesh->SupportsRayTracing();
+		mSupportsRayTracingGeometry = mFlags.IsSet(SkinCacheEntryFlag::RayTracingGeometry) && mCache.mDevice.GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES) && mMesh->SupportsRayTracing();
 		mMorphShapeCount = mMesh->GetMorphShapeBuffers() != nullptr ? mMesh->GetMorphShapeBuffers()->GetShapeCount() : 0;
 		mPositionStreamIndex = position->GetStreamIndex();
 		mPositionOffset = position->GetOffset();
@@ -418,7 +418,7 @@ namespace b3d::render
 			// Ray tracing builds the structure from the positions, and hit shaders read every buffer through the bindless heap
 			GpuBufferFlags normalTangentFlags = GpuBufferFlag::GpuWrite;
 			GpuBufferFlags positionFlags = GpuBufferFlag::GpuWrite;
-			if(entry->mHasRayTracingGeometry)
+			if(entry->mSupportsRayTracingGeometry)
 			{
 				positionFlags |= GpuBufferFlag::AccelerationStructureInput;
 				if(hasBindlessHeaps)
@@ -502,7 +502,8 @@ namespace b3d::render
 		FrameGraphComputePass pass;
 		Vector<SkinCacheDeformationDispatch> dispatches;
 		dispatches.reserve(entriesToDeform.size());
-		FrameVector<SkinCacheEntry*> entriesToBuild;
+		FrameVector<RayTracingGeometry*> geometriesToBuild;
+		FrameGraphAccelerationStructurePass geometryPass;
 		for(u32 entryIndex = 0; entryIndex < (u32)entriesToDeform.size(); entryIndex++)
 		{
 			SkinCacheEntry& entry = *entriesToDeform[entryIndex];
@@ -550,7 +551,7 @@ namespace b3d::render
 			dispatches.push_back(SkinCacheDeformationDispatch(material, set, entry.mVertexCount));
 
 			// The positions of an entry with ray tracing geometry are exported after the build that reads them
-			if(!entry.mHasRayTracingGeometry)
+			if(!entry.mSupportsRayTracingGeometry)
 				pass.Export(positionBuffer);
 
 			pass.Export(entry.mNormalTangentBuffer);
@@ -572,7 +573,7 @@ namespace b3d::render
 
 			// The structure is built from the position buffer just written. An entry that keeps previous positions writes the other
 			// buffer each time, so its geometry is pointed at it.
-			if(entry.mHasRayTracingGeometry)
+			if(entry.mSupportsRayTracingGeometry)
 			{
 				const VertexData& vertexData = *entry.mVertexDataWithoutMotion[targetIndex];
 				if(entry.mRayTracingGeometry == nullptr)
@@ -584,12 +585,15 @@ namespace b3d::render
 					entry.mRayTracingGeometry->SetVertexData(vertexData);
 
 				if(entry.mRayTracingGeometry != nullptr)
-					entriesToBuild.push_back(&entry);
+				{
+					geometriesToBuild.push_back(entry.mRayTracingGeometry.get());
+					geometryPass.Export(positionBuffer);
+				}
 				else
 				{
 					// The positions are then exported by the deformation pass, as for an entry without the flag
 					B3D_LOG(Warning, LogRenderer, "Skin cache '{0}' couldn't create the ray tracing geometry of entry '{1}'. The entry won't be ray traced.", mName, entry.mName);
-					entry.mHasRayTracingGeometry = false;
+					entry.mSupportsRayTracingGeometry = false;
 					pass.Export(positionBuffer);
 				}
 			}
@@ -609,47 +613,8 @@ namespace b3d::render
 			SkinCacheDeformationMaterial::Execute(passContext, dispatches);
 		});
 
-		if(entriesToBuild.empty())
-			return true;
-
-		// The structures of all entries are built in one pass, after the deformation that wrote their positions, each with its own range
-		// of one scratch buffer
-		const u32 scratchOffsetAlignment = mDevice.GetCapabilities().RayTracing.ScratchOffsetAlignment;
-		FrameVector<u32> scratchOffsets;
-		u32 scratchSize = 0;
-		for(const SkinCacheEntry* entry : entriesToBuild)
-		{
-			const u32 scratchOffset = Bitwise::AlignUp(scratchSize, scratchOffsetAlignment);
-			scratchOffsets.push_back(scratchOffset);
-			scratchSize = scratchOffset + entry->mRayTracingGeometry->GetBuildScratchSize();
-		}
-
-		const TShared<GpuBuffer> scratch = graph.CreateBuffer("Skin cache geometry scratch", GpuBufferCreateInformation::CreateStructuredStorage(4, std::max(1u, Math::DivideAndRoundUp(scratchSize, 4u)),
-			GpuBufferFlag::GpuWrite));
-
-		FrameGraphAccelerationStructurePass geometryPass;
-		Vector<GpuAccelerationStructureBuild> builds;
-		builds.reserve(entriesToBuild.size());
-		for(u32 entryIndex = 0; entryIndex < (u32)entriesToBuild.size(); entryIndex++)
-		{
-			SkinCacheEntry& entry = *entriesToBuild[entryIndex];
-			RayTracingGeometry& geometry = *entry.mRayTracingGeometry;
-			const TShared<GpuAccelerationStructure>& bottomLevel = geometry.GetAccelerationStructure();
-			graph.ImportAccelerationStructure(bottomLevel);
-
-			builds.push_back(GpuAccelerationStructureBuild(geometry.GetBuildInputs(), bottomLevel, scratch, scratchOffsets[entryIndex]));
-			geometryPass.AddBuild(builds.back());
-			geometryPass.Export(bottomLevel);
-			geometryPass.Export(entry.mPositionBuffers[entry.mCurrentPositionBufferIndex]);
-
-			// A ray tracing scene sees the new contents version, and doesn't build the structure itself
-			geometry.MarkBuilt();
-		}
-
-		graph.AddAccelerationStructurePass("Skin cache geometry", std::move(geometryPass), [builds = std::move(builds)](FrameGraphPassContext& passContext)
-		{
-			passContext.GetCommandBuffer().BuildAccelerationStructures(builds);
-		});
+		// The structures of all entries are built in one pass, after the deformation that wrote their positions, which the pass exports
+		RayTracingGeometry::AddBuildPass(graph, "Skin cache geometry", geometriesToBuild, std::move(geometryPass));
 
 		return true;
 	}

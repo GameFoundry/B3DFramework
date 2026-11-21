@@ -62,6 +62,7 @@ namespace b3d::render
 		 * @param	name	Name of the top level structure, for debugging purposes.
 		 */
 		RayTracingScene(GpuDevice& device, const StringView& name);
+		~RayTracingScene();
 
 		RayTracingScene(const RayTracingScene&) = delete;
 		RayTracingScene& operator=(const RayTracingScene&) = delete;
@@ -83,8 +84,8 @@ namespace b3d::render
 
 		/**
 		 * Adds passes to @p graph that build the bottom level structures of the instances' geometries that aren't built, in one pass,
-		 * and, if anything changed since the last build, the top level structure, in a second pass that exports it. A geometry whose
-		 * contents version changed since the last build counts as a change, so a geometry built by others is picked up if they add its
+		 * and, if anything changed since the last build, the top level structure, in a second pass that exports it. A build of a geometry
+		 * of the scene counts as a change, so a geometry built by others (RayTracingGeometry::AddBuildPass()) is picked up if they add its
 		 * build to @p graph or an earlier graph before this call. Later passes and later work can then trace rays against
 		 * GetAccelerationStructure() without declaring it. The scene and the geometries of its instances must stay alive until the graph
 		 * executes, and the scene must not be built again before then.
@@ -97,30 +98,85 @@ namespace b3d::render
 		 */
 		const TShared<GpuAccelerationStructure>& GetAccelerationStructure() const { return mAccelerationStructure; }
 
+		/**
+		 * @name Internal
+		 * @{
+		 */
+
+		/**
+		 * Called by @p geometry, a geometry of the scene's instances, when it becomes out of date or a build of it is added to a frame graph.
+		 * The next Build() builds the geometry if it isn't built, and rebuilds the top level structure.
+		 */
+		void NotifyGeometryChanged(RayTracingGeometry& geometry);
+
+		/** @} */
+
 	private:
+
 		/** Instance in a slot, or a free slot. */
 		struct Slot
 		{
 			RayTracingGeometryInstance Instance;
 			bool IsUsed = false;
 			u32 NextFreeSlot = ~0u; /**< Next slot of the free list, if the slot is free. */
-			u32 BuiltContentsVersion = 0; /**< Contents version of the instance's geometry that the last top level build saw. */
+			u32 PackedIndex = ~0u; /**< Position of the instance in mPackedInstances, or ~0u if the top level structure leaves it out. */
 		};
+
+		/** Geometry that instances of the scene place in it. */
+		struct GeometryReference
+		{
+			u32 InstanceCount = 0; /**< Number of instances of the geometry in the scene. */
+			u32 Index = 0; /**< Position of the geometry in mGeometries and mBottomLevels. */
+		};
+
+		/**
+		 * Appends the instance in @p slotIndex to mPackedInstances, which the top level structure is built from, and adds its geometry to
+		 * the geometries of the scene. Does nothing if the instance has no geometry or the device can't write it.
+		 */
+		void PackInstance(u32 slotIndex);
+
+		/**
+		 * Removes the instance in @p slotIndex from mPackedInstances, and its geometry from the geometries of the scene if no other packed
+		 * instance has it. Does nothing if the instance isn't packed.
+		 */
+		void UnpackInstance(u32 slotIndex);
+
+		/** Writes @p instance into @p destination in the device's format. Returns false, with the reason logged, if the device can't. */
+		bool TryWriteInstance(const RayTracingGeometryInstance& instance, u8* destination) const;
 
 		GpuDevice& mDevice;
 		String mName;
+		u32 mInstanceSize = 0; /**< Size of an instance in the device's format, in bytes. */
 
 		Vector<Slot> mSlots;
 		u32 mFirstFreeSlot = ~0u;
 		u32 mInstanceCount = 0;
 		bool mIsDirty = true;
 
+		/**
+		 * Instances of the top level structure in the device's format, packed densely, so the instance index rays report changes as
+		 * instances come and go, and the instance id doesn't.
+		 */
+		Vector<u8> mPackedInstances;
+		TArray<u32> mPackedInstanceSlots; /**< Slot of each packed instance, in the order of mPackedInstances. */
+
+		UnorderedMap<RayTracingGeometry*, GeometryReference> mGeometryReferences;
+		TArray<RayTracingGeometry*> mGeometries; /**< Geometries the instances of mPackedInstances place in the scene, each once. */
+		TArray<TShared<GpuAccelerationStructure>> mBottomLevels; /**< Bottom level structures of mGeometries, in the same order. */
+		bool mBottomLevelsChanged = false; /**< True if mBottomLevels changed since the last top level build. */
+
+		/**
+		 * Geometries of the scene that need a build, as they became so. May hold a geometry more than once, or one that was built
+		 * elsewhere since.
+		 */
+		Vector<RayTracingGeometry*> mPendingGeometries;
+
 		TShared<GpuAccelerationStructure> mAccelerationStructure;
 		u32 mCapacity = 0; /**< Number of instances the top level structure is sized for. */
 		u32 mBuildScratchSize = 0; /**< Scratch memory a build of the top level structure with mCapacity instances needs, in bytes. */
 
 		/** Bottom level structures of the last top level build. Its execute function reads them, so they live in the scene. */
-		Vector<TShared<GpuAccelerationStructure>> mBottomLevels;
+		TArray<TShared<GpuAccelerationStructure>> mBuiltBottomLevels;
 	};
 
 	/** @} */

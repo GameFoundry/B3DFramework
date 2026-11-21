@@ -60,8 +60,8 @@ namespace b3d
 		 * Builds the ray tracing geometry of a mesh with two triangle list sub-meshes and a line list, in a RayTracingScene, and reads the
 		 * triangles rays hit through RayTracingGeometryAccess.bslinc, inline and from closest hit programs: indices, interpolated positions,
 		 * normals and texture coordinates. Then moves, removes and adds instances, writes the mesh, and outgrows the top level structure,
-		 * and checks the passes each build adds. Checks that meshes without MeshFlag::SupportsRayTracing, or on devices without
-		 * RSC_ACCELERATION_STRUCTURES and RSC_RAY_QUERY, have no geometry.
+		 * and checks the passes each build adds, also of a second scene that shares the geometry. Checks that meshes without
+		 * MeshFlag::SupportsRayTracing, or on devices without RSC_ACCELERATION_STRUCTURES and RSC_RAY_QUERY, have no geometry.
 		 */
 		void TestRayTracingGeometry();
 	};
