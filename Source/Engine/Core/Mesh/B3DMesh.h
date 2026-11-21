@@ -54,6 +54,12 @@ namespace b3d
 		/** Optional set of morph shapes that can be used for per-vertex animation of the mesh. */
 		TShared<MorphShapes> MorphShapes;
 
+		/**
+		 * Vertex deltas of the morph shapes in MorphShapes. Written to the GPU when the mesh is initialized, after which the mesh keeps no
+		 * copy, unless it has MeshFlag::KeepCPUCopy.
+		 */
+		TShared<MorphShapeDeltas> MorphShapeDeltas;
+
 		static const MeshCreateInformation kDefault;
 	};
 
@@ -112,6 +118,12 @@ namespace b3d
 		 */
 		TShared<MeshData> GetCachedData() const { return mCPUData; }
 
+		/**
+		 * Returns the vertex deltas of the mesh's morph shapes, cached in system memory. Null unless the mesh was created with
+		 * MeshFlag::KeepCPUCopy and deltas. Caller should not modify the returned data.
+		 */
+		TShared<MorphShapeDeltas> GetCachedMorphShapeDeltas() const { return mMorphShapeDeltas; }
+
 		/** Gets the skeleton required for animation of this mesh, if any is available. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Skeleton))
 		TShared<Skeleton> GetSkeleton() const { return mSkeleton; }
@@ -145,6 +157,7 @@ namespace b3d
 		void UpdateCpuBuffer(u32 subresourceIndex, const MeshData& data);
 
 		mutable TShared<MeshData> mCPUData;
+		mutable TShared<MorphShapeDeltas> mMorphShapeDeltas;
 
 		TShared<VertexDescription> mVertexDescription;
 		MeshFlags mFlags = MeshFlag::Static | MeshFlag::SupportsRayTracing;
@@ -284,7 +297,10 @@ namespace b3d
 			/** Returns an object containing all shapes used for morph animation, if any are available. */
 			TShared<MorphShapes> GetMorphShapes() const { return mMorphShapes; }
 
-			/** Returns the morph shape buffers of the mesh. Null if the mesh has no morph shapes, or if the buffers couldn't be created. */
+			/**
+			 * Returns the morph shape buffers of the mesh, created from its MorphShapeDeltas when it is initialized. Null if the mesh has no
+			 * morph shapes or deltas, or if the buffers couldn't be created.
+			 */
 			const TShared<MorphShapeBuffers>& GetMorphShapeBuffers() const;
 
 			/**
@@ -384,6 +400,7 @@ namespace b3d
 			MeshFlags mFlags;
 			IndexType mIndexType;
 			TShared<MeshData> mTempInitialMeshData;
+			TShared<MorphShapeDeltas> mTempInitialMorphShapeDeltas;
 			TShared<Skeleton> mSkeleton; // Immutable
 			TShared<MorphShapes> mMorphShapes; // Immutable
 			TShared<MorphShapeBuffers> mMorphShapeBuffers;

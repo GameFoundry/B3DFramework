@@ -24,12 +24,12 @@ using namespace b3d;
 const MeshCreateInformation MeshCreateInformation::kDefault = MeshCreateInformation();
 
 Mesh::Mesh(const MeshCreateInformation& meshCreateInformation)
-	: MeshBase(meshCreateInformation.VertexCount, meshCreateInformation.IndexCount, meshCreateInformation.SubMeshes), mVertexDescription(meshCreateInformation.VertexDescription), mFlags(meshCreateInformation.Flags), mIndexType(meshCreateInformation.IndexType), mSkeleton(meshCreateInformation.Skeleton), mMorphShapes(meshCreateInformation.MorphShapes)
+	: MeshBase(meshCreateInformation.VertexCount, meshCreateInformation.IndexCount, meshCreateInformation.SubMeshes), mMorphShapeDeltas(meshCreateInformation.MorphShapeDeltas), mVertexDescription(meshCreateInformation.VertexDescription), mFlags(meshCreateInformation.Flags), mIndexType(meshCreateInformation.IndexType), mSkeleton(meshCreateInformation.Skeleton), mMorphShapes(meshCreateInformation.MorphShapes)
 {
 }
 
 Mesh::Mesh(const TShared<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation)
-	: MeshBase(initialMeshData->GetVertexCount(), initialMeshData->GetIndexCount(), meshCreateInformation.SubMeshes), mCPUData(initialMeshData), mVertexDescription(initialMeshData->GetVertexDescription()), mFlags(meshCreateInformation.Flags), mIndexType(initialMeshData->GetIndexType()), mSkeleton(meshCreateInformation.Skeleton), mMorphShapes(meshCreateInformation.MorphShapes)
+	: MeshBase(initialMeshData->GetVertexCount(), initialMeshData->GetIndexCount(), meshCreateInformation.SubMeshes), mCPUData(initialMeshData), mMorphShapeDeltas(meshCreateInformation.MorphShapeDeltas), mVertexDescription(initialMeshData->GetVertexDescription()), mFlags(meshCreateInformation.Flags), mIndexType(initialMeshData->GetIndexType()), mSkeleton(meshCreateInformation.Skeleton), mMorphShapes(meshCreateInformation.MorphShapes)
 {}
 
 Mesh::Mesh()
@@ -108,6 +108,7 @@ TShared<render::RenderProxy> Mesh::CreateRenderProxy() const
 	meshCreateInformation.IndexType = mIndexType;
 	meshCreateInformation.Skeleton = mSkeleton;
 	meshCreateInformation.MorphShapes = mMorphShapes;
+	meshCreateInformation.MorphShapeDeltas = mMorphShapeDeltas;
 
 	render::Mesh* renderProxy = new(B3DAllocate<render::Mesh>()) render::Mesh(mCPUData, meshCreateInformation);
 
@@ -115,7 +116,10 @@ TShared<render::RenderProxy> Mesh::CreateRenderProxy() const
 	renderProxyShared->SetShared(renderProxyShared);
 
 	if(!mFlags.IsSet(MeshFlag::KeepCPUCopy))
+	{
 		mCPUData = nullptr;
+		mMorphShapeDeltas = nullptr;
+	}
 
 	return renderProxyShared;
 }
@@ -251,7 +255,7 @@ TShared<Mesh> Mesh::CreateEmptyShared()
 namespace b3d { namespace render
 {
 Mesh::Mesh(const TShared<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation)
-	: MeshBase(meshCreateInformation.VertexCount, meshCreateInformation.IndexCount, meshCreateInformation.SubMeshes), mVertexData(nullptr), mIndexBuffer(nullptr), mVertexDescription(meshCreateInformation.VertexDescription), mFlags(meshCreateInformation.Flags), mIndexType(meshCreateInformation.IndexType), mTempInitialMeshData(initialMeshData), mSkeleton(meshCreateInformation.Skeleton), mMorphShapes(meshCreateInformation.MorphShapes)
+	: MeshBase(meshCreateInformation.VertexCount, meshCreateInformation.IndexCount, meshCreateInformation.SubMeshes), mVertexData(nullptr), mIndexBuffer(nullptr), mVertexDescription(meshCreateInformation.VertexDescription), mFlags(meshCreateInformation.Flags), mIndexType(meshCreateInformation.IndexType), mTempInitialMeshData(initialMeshData), mTempInitialMorphShapeDeltas(meshCreateInformation.MorphShapeDeltas), mSkeleton(meshCreateInformation.Skeleton), mMorphShapes(meshCreateInformation.MorphShapes)
 
 {}
 
@@ -264,6 +268,7 @@ Mesh::~Mesh()
 	mIndexBuffer = nullptr;
 	mVertexDescription = nullptr;
 	mTempInitialMeshData = nullptr;
+	mTempInitialMorphShapeDeltas = nullptr;
 }
 
 void Mesh::Initialize()
@@ -335,9 +340,20 @@ void Mesh::Initialize()
 		mTempInitialMeshData = nullptr;
 	}
 
-	// Written through the renderer's context, as the vertex data is
-	if(mMorphShapes != nullptr)
-		mMorphShapeBuffers = MorphShapeBuffers::Create(GetRenderer()->GetGpuContext(), *mMorphShapes);
+	// Uploaded like the vertex data. Deltas that don't match the mesh would make the deformation shader read out of bounds.
+	if(mMorphShapes != nullptr && mTempInitialMorphShapeDeltas != nullptr)
+	{
+		const MorphShapeDeltas& deltas = *mTempInitialMorphShapeDeltas;
+		if(deltas.GetVertexCount() == mProperties.VertexCount && deltas.GetShapeCount() == mMorphShapes->GetShapeCount())
+			mMorphShapeBuffers = MorphShapeBuffers::Create(*gpuDevice, deltas);
+		else
+		{
+			B3D_LOG(Error, LogMesh, "The morph shape deltas of a mesh with {0} vertices and {1} morph shapes have {2} vertices and {3} shapes. The "
+				"mesh's morph shapes won't animate.", mProperties.VertexCount, mMorphShapes->GetShapeCount(), deltas.GetVertexCount(), deltas.GetShapeCount());
+		}
+
+		mTempInitialMorphShapeDeltas = nullptr;
+	}
 
 	MeshBase::Initialize();
 }

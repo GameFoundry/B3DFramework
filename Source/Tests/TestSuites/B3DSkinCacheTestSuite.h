@@ -36,6 +36,13 @@ namespace b3d
 		void TestMorph();
 
 		/**
+		 * Builds morph shape deltas from per-shape vertex lists and compares their vertex ranges and sorted deltas with the CPU reference.
+		 * Creates a mesh with the deltas: it has morph shape buffers once initialized, and keeps no copy of the deltas unless it has
+		 * MeshFlag::KeepCPUCopy. Saves the mesh and loads it again: the loaded mesh's entry deforms like TestMorph() expects.
+		 */
+		void TestMorphShapeDeltas();
+
+		/**
 		 * Deforms entries of a mesh with a skeleton and morph shapes, of one with only a skeleton and of one with only morph shapes in one
 		 * update, each with its own shader variation, and compares them with the CPU reference.
 		 */

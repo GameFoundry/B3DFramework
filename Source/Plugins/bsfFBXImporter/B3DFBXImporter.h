@@ -17,6 +17,7 @@ namespace b3d
 
 	struct AnimationSplitInfo;
 	class MorphShapes;
+	class MorphShapeDeltas;
 
 	/** Importer implementation that handles FBX/OBJ/DAE/3DS file import by using the FBX SDK. */
 	class FBXImporter : public SpecificImporter
@@ -45,7 +46,7 @@ namespace b3d
 		/**
 		 * Reads the FBX file and outputs mesh data from the read file. Sub-mesh information will be output in @p subMeshes.
 		 */
-		TShared<RendererMeshData> ImportMeshData(const Path& filePath, TShared<const ImportOptions> importOptions, Vector<SubMesh>& subMeshes, Vector<FBXAnimationClipData>& animationClips, TShared<Skeleton>& skeleton, TShared<MorphShapes>& morphShapes);
+		TShared<RendererMeshData> ImportMeshData(const Path& filePath, TShared<const ImportOptions> importOptions, Vector<SubMesh>& subMeshes, Vector<FBXAnimationClipData>& animationClips, TShared<Skeleton>& skeleton, TShared<MorphShapes>& morphShapes, TShared<MorphShapeDeltas>& morphShapeDeltas);
 
 		/**
 		 * Loads the data from the file at the provided path into the provided FBX scene. Returns false if the file
@@ -134,8 +135,11 @@ namespace b3d
 		 */
 		TShared<Skeleton> CreateSkeleton(const FBXImportScene& scene, bool sharedRoot);
 
-		/** Parses the scene and generates morph shapes for the imported meshes using the imported raw data. */
-		TShared<MorphShapes> CreateMorphShapes(const FBXImportScene& scene);
+		/**
+		 * Parses the scene and generates morph shapes for the imported meshes using the imported raw data, and the vertex deltas of those
+		 * shapes in @p morphShapeDeltas. Both are null if the meshes have no morph shapes.
+		 */
+		TShared<MorphShapes> CreateMorphShapes(const FBXImportScene& scene, TShared<MorphShapeDeltas>& morphShapeDeltas);
 
 		/**	Creates an internal representation of an FBX node from an FbxNode object. */
 		FBXImportNode* CreateImportNode(FBXImportScene& scene, FbxNode* fbxNode, FBXImportNode* parent);

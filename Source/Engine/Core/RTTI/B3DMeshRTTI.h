@@ -8,6 +8,7 @@
 #include "Mesh/B3DMesh.h"
 #include "Animation/B3DSkeleton.h"
 #include "Animation/B3DMorphShapes.h"
+#include "Animation/SkinCache/B3DMorphShapeBuffers.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "RTTI/B3DFlagsRTTI.h"
 
@@ -21,6 +22,7 @@ namespace b3d
 	class MeshRTTI : public TRTTIType<Mesh, MeshBase, MeshRTTI>
 	{
 		TShared<MeshData> mMeshData;
+		TShared<MorphShapeDeltas> mMorphShapeDeltas;
 
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(mVertexDescription, 0)
@@ -29,6 +31,7 @@ namespace b3d
 			B3D_RTTI_GENERATED_MEMBER(mMeshData, 3)
 			B3D_RTTI_MEMBER(mSkeleton, 4)
 			B3D_RTTI_MEMBER(mMorphShapes, 5)
+			B3D_RTTI_GENERATED_MEMBER(mMorphShapeDeltas, 6)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -39,7 +42,13 @@ namespace b3d
 				mMeshData = object.AllocBuffer();
 
 				object.ReadData(mMeshData);
-				GetRenderThread().PostCommand([] {}, "MeshRTTI::GetMeshData", true, object.GetName());
+
+				// Waits for the read of the mesh data, and reads the morph shape deltas back from the GPU, as the mesh keeps no copy
+				GetRenderThread().PostCommand([this, renderProxy = B3DGetRenderProxy(&object)]
+				{
+					const TShared<render::MorphShapeBuffers>& morphShapeBuffers = renderProxy->GetMorphShapeBuffers();
+					mMorphShapeDeltas = morphShapeBuffers != nullptr ? morphShapeBuffers->ReadDeltas() : nullptr;
+				}, "MeshRTTI::GetMeshData", true, object.GetName());
 			}
 		}
 
@@ -48,6 +57,7 @@ namespace b3d
 			if(operationType.IsSet(RTTIOperationType::WriteBit) && !operationType.IsSet(RTTIOperationType::PreExistingObjectBit))
 			{
 				object.mCPUData = mMeshData;
+				object.mMorphShapeDeltas = mMorphShapeDeltas;
 				object.Initialize();
 			}
 		}

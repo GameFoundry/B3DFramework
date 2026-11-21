@@ -101,7 +101,8 @@ TShared<Resource> FBXImporter::Import(const Path& filePath, TShared<const Import
 	MeshCreateInformation meshCreateInformation;
 
 	Vector<FBXAnimationClipData> dummy;
-	TShared<RendererMeshData> rendererMeshData = ImportMeshData(filePath, importOptions, meshCreateInformation.SubMeshes, dummy, meshCreateInformation.Skeleton, meshCreateInformation.MorphShapes);
+	TShared<RendererMeshData> rendererMeshData = ImportMeshData(filePath, importOptions, meshCreateInformation.SubMeshes, dummy, meshCreateInformation.Skeleton, meshCreateInformation.MorphShapes,
+		meshCreateInformation.MorphShapeDeltas);
 
 	const MeshImportOptions* meshImportOptions = static_cast<const MeshImportOptions*>(importOptions.get());
 
@@ -125,7 +126,7 @@ Vector<SubResourceRaw> FBXImporter::ImportAll(const Path& filePath, TShared<cons
 	MeshCreateInformation desc;
 
 	Vector<FBXAnimationClipData> animationClips;
-	TShared<RendererMeshData> rendererMeshData = ImportMeshData(filePath, importOptions, desc.SubMeshes, animationClips, desc.Skeleton, desc.MorphShapes);
+	TShared<RendererMeshData> rendererMeshData = ImportMeshData(filePath, importOptions, desc.SubMeshes, animationClips, desc.Skeleton, desc.MorphShapes, desc.MorphShapeDeltas);
 
 	const MeshImportOptions* meshImportOptions = static_cast<const MeshImportOptions*>(importOptions.get());
 
@@ -185,7 +186,7 @@ Vector<SubResourceRaw> FBXImporter::ImportAll(const Path& filePath, TShared<cons
 	return output;
 }
 
-TShared<RendererMeshData> FBXImporter::ImportMeshData(const Path& filePath, TShared<const ImportOptions> importOptions, Vector<SubMesh>& subMeshes, Vector<FBXAnimationClipData>& animation, TShared<Skeleton>& skeleton, TShared<MorphShapes>& morphShapes)
+TShared<RendererMeshData> FBXImporter::ImportMeshData(const Path& filePath, TShared<const ImportOptions> importOptions, Vector<SubMesh>& subMeshes, Vector<FBXAnimationClipData>& animation, TShared<Skeleton>& skeleton, TShared<MorphShapes>& morphShapes, TShared<MorphShapeDeltas>& morphShapeDeltas)
 {
 	FbxScene* fbxScene = nullptr;
 
@@ -224,7 +225,7 @@ TShared<RendererMeshData> FBXImporter::ImportMeshData(const Path& filePath, TSha
 	TShared<RendererMeshData> rendererMeshData = GenerateMeshData(importedScene, fbxImportOptions, subMeshes);
 
 	skeleton = CreateSkeleton(importedScene, subMeshes.size() > 1);
-	morphShapes = CreateMorphShapes(importedScene);
+	morphShapes = CreateMorphShapes(importedScene, morphShapeDeltas);
 
 	// Import animation clips
 	if(!importedScene.Clips.empty())
@@ -342,8 +343,10 @@ TShared<Skeleton> FBXImporter::CreateSkeleton(const FBXImportScene& scene, bool 
 	return nullptr;
 }
 
-TShared<MorphShapes> FBXImporter::CreateMorphShapes(const FBXImportScene& scene)
+TShared<MorphShapes> FBXImporter::CreateMorphShapes(const FBXImportScene& scene, TShared<MorphShapeDeltas>& morphShapeDeltas)
 {
+	morphShapeDeltas = nullptr;
+
 	// Combine morph shapes from all sub-meshes, and transform them
 	struct RawMorphShape
 	{
@@ -418,31 +421,33 @@ TShared<MorphShapes> FBXImporter::CreateMorphShapes(const FBXImportScene& scene)
 	}
 
 	// Create morph shape object from combined shape data
-	TShared<MorphShapes> morphShapes;
 	Vector<TShared<MorphChannel>> allChannels;
+	Vector<Vector<MorphVertex>> allShapeVertices;
 	for(auto& channel : allRawMorphShapes)
 	{
 		Vector<TShared<MorphShape>> channelShapes;
 		for(auto& entry : channel.second)
 		{
-			RawMorphShape& shape = entry.second;
-			shape.Vertices.shrink_to_fit();
-
-			TShared<MorphShape> morphShape = MorphShape::Create(shape.Name, shape.Weight, shape.Vertices);
-			channelShapes.push_back(morphShape);
+			const RawMorphShape& shape = entry.second;
+			channelShapes.push_back(MorphShape::Create(shape.Name, shape.Weight));
 		}
 
-		if(channelShapes.size() > 0)
-		{
-			TShared<MorphChannel> morphChannel = MorphChannel::Create(channel.first, channelShapes);
-			allChannels.push_back(morphChannel);
-		}
+		if(channelShapes.empty())
+			continue;
+
+		// The channel sorts its shapes, and the deltas number the shapes in the channel's order
+		TShared<MorphChannel> morphChannel = MorphChannel::Create(channel.first, channelShapes);
+		for(const TShared<MorphShape>& shape : morphChannel->GetShapes())
+			allShapeVertices.push_back(std::move(channel.second[shape->GetName()].Vertices));
+
+		allChannels.push_back(morphChannel);
 	}
 
-	if(!allChannels.empty())
-		return MorphShapes::Create(allChannels, totalNumVertices);
+	if(allChannels.empty())
+		return nullptr;
 
-	return morphShapes;
+	morphShapeDeltas = MorphShapeDeltas::Create(totalNumVertices, allShapeVertices);
+	return MorphShapes::Create(allChannels, totalNumVertices);
 }
 
 bool FBXImporter::StartUpSdk(FbxScene*& scene)

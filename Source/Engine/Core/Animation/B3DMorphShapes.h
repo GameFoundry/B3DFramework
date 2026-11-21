@@ -13,7 +13,10 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** A single vertex used for morph target animation. Contains a difference between base and target shape. */
+	/**
+	 * A single vertex moved by a morph shape: the difference between the base mesh and the shape, and the index of the vertex in the mesh.
+	 * Input of MorphShapeDeltas::Create().
+	 */
 	struct B3D_EXPORT MorphVertex
 	{
 		MorphVertex() = default;
@@ -28,19 +31,13 @@ namespace b3d
 	};
 
 	/**
-	 * @native
-	 * A set of vertices representing a single shape in a morph target animation. Vertices are represented as a difference
-	 * between base and target shape.
-	 * @endnative
-	 * @script
-	 * Name and weight of a single shape in a morph target animation. Each shape internally represents a set of vertices
-	 * that describe the morph shape.
-	 * @endscript
+	 * Name and weight of a single shape in a morph target animation. The vertices the shape moves are part of the mesh's
+	 * MorphShapeDeltas.
 	 */
 	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) MorphShape : public IReflectable, public IScriptExportable
 	{
 	public:
-		MorphShape(const String& name, float weight, const Vector<MorphVertex>& vertices);
+		MorphShape(const String& name, float weight);
 
 		/** Returns the name of the shape. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Name))
@@ -50,24 +47,19 @@ namespace b3d
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Weight))
 		float GetWeight() const { return mWeight; }
 
-		/** Returns a reference to all of the shape's vertices. Contains only vertices that differ from the base. */
-		const Vector<MorphVertex>& GetVertices() const { return mVertices; }
-
 		/**
-		 * Creates a new morph shape from the provided set of vertices.
+		 * Creates a new morph shape.
 		 *
-		 * @param[in]	name		Name of the frame. Must be unique within a morph channel.
-		 * @param[in]	weight		Weight in range [0, 1]. Determines how are sequential shapes animated between within a
-		 *							morph channel. e.g. if there is a shape A with weight 0.3 and shape B with weight 0.8
-		 *							then shape A will be displayed first and then be blended towards shape B as time passes.
-		 * @param[in]	vertices	Vertices of the base mesh modified by the shape.
+		 * @param	name		Name of the frame. Must be unique within a morph channel.
+		 * @param	weight		Weight in range [0, 1]. Determines how are sequential shapes animated between within a
+		 *						morph channel. e.g. if there is a shape A with weight 0.3 and shape B with weight 0.8
+		 *						then shape A will be displayed first and then be blended towards shape B as time passes.
 		 */
-		static TShared<MorphShape> Create(const String& name, float weight, const Vector<MorphVertex>& vertices);
+		static TShared<MorphShape> Create(const String& name, float weight);
 
 	private:
 		String mName;
 		float mWeight;
-		Vector<MorphVertex> mVertices;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -176,6 +168,67 @@ namespace b3d
 		 * @note	For serialization use only.
 		 */
 		static TShared<MorphShapes> CreateEmpty();
+	};
+
+	/**
+	 * The vertex deltas of all morph shapes of a mesh, in the layout the GPU reads them in: the index of each vertex's first delta, then the
+	 * deltas sorted by vertex. Shapes are numbered in the order of MorphShapes: its channels, then the shapes within a channel. A mesh hands
+	 * them to the GPU when it is initialized (see MeshCreateInformation::MorphShapeDeltas).
+	 */
+	class B3D_EXPORT MorphShapeDeltas : public IReflectable
+	{
+	public:
+		/** Size of a delta, in bytes: a position delta and a normal delta of three floats each, then the index of the shape as a u32. */
+		static constexpr u32 kDeltaSize = 28;
+
+		/** Returns the number of vertices of the mesh. */
+		u32 GetVertexCount() const { return mVertexRanges.empty() ? 0 : (u32)mVertexRanges.size() - 1; }
+
+		/** Returns the number of deltas, of all shapes. */
+		u32 GetDeltaCount() const { return (u32)mDeltas.size() / kDeltaSize; }
+
+		/** Returns the number of shapes. */
+		u32 GetShapeCount() const { return mShapeCount; }
+
+		/**
+		 * Returns the index of each vertex's first delta in GetDeltas(), with one more value at the end: the number of deltas. A vertex's
+		 * deltas are [ranges[v], ranges[v + 1]).
+		 */
+		TArrayView<const u32> GetVertexRanges() const { return mVertexRanges; }
+
+		/** @copydoc GetVertexRanges() const */
+		TArrayView<u32> GetVertexRanges() { return mVertexRanges; }
+
+		/** Returns the deltas, sorted by vertex, and by shape within a vertex. kDeltaSize bytes each. */
+		TArrayView<const u8> GetDeltas() const { return mDeltas; }
+
+		/** @copydoc GetDeltas() const */
+		TArrayView<u8> GetDeltas() { return mDeltas; }
+
+		/**
+		 * Creates the deltas of a mesh with @p vertexCount vertices from the vertices each shape moves: one list per shape in
+		 * @p shapeVertices, in the order of the mesh's MorphShapes. A vertex a shape moves outside the mesh is skipped, with an error.
+		 */
+		static TShared<MorphShapeDeltas> Create(u32 vertexCount, TArrayView<const Vector<MorphVertex>> shapeVertices);
+
+		/** Creates zeroed deltas of the given counts, for the caller to fill in. */
+		static TShared<MorphShapeDeltas> Create(u32 vertexCount, u32 deltaCount, u32 shapeCount);
+
+	private:
+		MorphShapeDeltas() = default;
+		MorphShapeDeltas(u32 vertexCount, u32 deltaCount, u32 shapeCount);
+
+		Vector<u32> mVertexRanges;
+		Vector<u8> mDeltas;
+		u32 mShapeCount = 0;
+
+		/************************************************************************/
+		/* 								SERIALIZATION                      		*/
+		/************************************************************************/
+	public:
+		friend class MorphShapeDeltasRTTI;
+		static RTTIType* GetRttiStatic();
+		RTTIType* GetRtti() const override;
 	};
 
 	/** @} */

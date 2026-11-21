@@ -6,6 +6,7 @@
 #include "Reflection/B3DRTTIType.h"
 #include "RTTI/B3DStringRTTI.h"
 #include "Animation/B3DMorphShapes.h"
+#include "RTTI/B3DStdRTTI.h"
 
 namespace b3d
 {
@@ -20,7 +21,6 @@ namespace b3d
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(mName, 0)
 			B3D_RTTI_MEMBER(mWeight, 1)
-			B3D_RTTI_MEMBER_CONTAINER(mVertices, 2)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -93,7 +93,32 @@ namespace b3d
 		}
 	};
 
-	B3D_ALLOW_MEMCPY_SERIALIZATION(MorphVertex, TID_MorphVertex);
+	class B3D_EXPORT MorphShapeDeltasRTTI : public TRTTIType<MorphShapeDeltas, IReflectable, MorphShapeDeltasRTTI>
+	{
+	private:
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(mVertexRanges, 0)
+			B3D_RTTI_MEMBER(mDeltas, 1)
+			B3D_RTTI_MEMBER(mShapeCount, 2)
+		B3D_RTTI_END_MEMBERS
+
+	public:
+		const String& GetRttiName() override
+		{
+			static String name = "MorphShapeDeltas";
+			return name;
+		}
+
+		u32 GetRttiId() const override
+		{
+			return TID_MorphShapeDeltas;
+		}
+
+		TShared<IReflectable> NewRttiObject() override
+		{
+			return B3DMakeSharedFromExisting(new(B3DAllocate<MorphShapeDeltas>()) MorphShapeDeltas());
+		}
+	};
 
 	/** @} */
 	/** @endcond */

@@ -422,6 +422,7 @@ namespace b3d
 	class Skeleton;
 	class MorphShapes;
 	class MorphShape;
+	class MorphShapeDeltas;
 	class MorphChannel;
 	class CoreObjectManager;
 	struct CollisionData;
@@ -833,6 +834,7 @@ namespace b3d
 		TID_ShaderCreateInformationRenderProxy = 1297,
 		TID_ShaderRegistryMetaData = 1298,
 		TID_ShaderEntryPoint = 1299,
+		TID_MorphShapeDeltas = 1300,
 
 		// Moved from Engine layer
 		TID_Camera = 30000,

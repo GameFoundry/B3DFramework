@@ -27,17 +27,10 @@ namespace
 	/** Largest difference between an evaluated morph shape weight and the expected one. */
 	constexpr float kWeightTolerance = 1e-5f;
 
-	/** Returns a morph channel named @p name with shapes at frame weights 0.5 and 1.0, which move vertex @p firstVertexIndex and the one after it. */
-	TShared<MorphChannel> CreateMorphChannel(const String& name, u32 firstVertexIndex)
+	/** Returns a morph channel named @p name with shapes at frame weights 0.5 and 1.0. */
+	TShared<MorphChannel> CreateMorphChannel(const String& name)
 	{
-		Vector<TShared<MorphShape>> shapes;
-		for(u32 shapeIndex = 0; shapeIndex < 2; shapeIndex++)
-		{
-			const Vector<MorphVertex> vertices = { MorphVertex(Vector3(1.0f, 0.0f, 0.0f), Vector3::kZero, firstVertexIndex + shapeIndex) };
-			shapes.push_back(MorphShape::Create(name + ToString(shapeIndex), shapeIndex == 0 ? 0.5f : 1.0f, vertices));
-		}
-
-		return MorphChannel::Create(name, shapes);
+		return MorphChannel::Create(name, { MorphShape::Create(name + "0", 0.5f), MorphShape::Create(name + "1", 1.0f) });
 	}
 
 	/** Returns a curve that runs linearly from @p startValue at time 0 to @p endValue at time 1. */
@@ -99,7 +92,14 @@ void AnimationTestSuite::TestMorphShapeWeights()
 
 	MeshCreateInformation meshInformation;
 	meshInformation.SubMeshes = { SubMesh(0, 6, DOT_TRIANGLE_LIST) };
-	meshInformation.MorphShapes = MorphShapes::Create({ CreateMorphChannel("First", 0), CreateMorphChannel("Second", 2) }, kMorphVertexCount);
+	meshInformation.MorphShapes = MorphShapes::Create({ CreateMorphChannel("First"), CreateMorphChannel("Second") }, kMorphVertexCount);
+
+	// Each shape moves the vertex of its own index by one unit
+	Vector<Vector<MorphVertex>> shapeVertices;
+	for(u32 shapeIndex = 0; shapeIndex < kMorphVertexCount; shapeIndex++)
+		shapeVertices.push_back({ MorphVertex(Vector3(1.0f, 0.0f, 0.0f), Vector3::kZero, shapeIndex) });
+
+	meshInformation.MorphShapeDeltas = MorphShapeDeltas::Create(kMorphVertexCount, shapeVertices);
 	const HMesh mesh = Mesh::Create(meshData->GetData(), meshInformation);
 
 	// The frame curves of the two channels run in opposite directions, so at most times the channels are at different positions
