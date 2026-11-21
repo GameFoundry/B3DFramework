@@ -49,8 +49,8 @@ namespace b3d::render
 
 	/**
 	 * Top level acceleration structure of a set of geometry instances. Build() adds frame graph passes that build what changed: the
-	 * bottom level structures of geometries that aren't built, and the top level structure if any instance or geometry changed. In a
-	 * frame where nothing changed it adds no passes and allocates nothing.
+	 * bottom level structures of geometries that aren't built, and the top level structure if any instance changed or any geometry was
+	 * built, here or elsewhere. In a frame where nothing changed it adds no passes and allocates nothing.
 	 *
 	 * @note	Render thread.
 	 */
@@ -83,9 +83,11 @@ namespace b3d::render
 
 		/**
 		 * Adds passes to @p graph that build the bottom level structures of the instances' geometries that aren't built, in one pass,
-		 * and, if anything changed since the last build, the top level structure, in a second pass that exports it. Later passes and later
-		 * work can then trace rays against GetAccelerationStructure() without declaring it. The scene and the geometries of its instances
-		 * must stay alive until the graph executes, and the scene must not be built again before then.
+		 * and, if anything changed since the last build, the top level structure, in a second pass that exports it. A geometry whose
+		 * contents version changed since the last build counts as a change, so a geometry built by others is picked up if they add its
+		 * build to @p graph or an earlier graph before this call. Later passes and later work can then trace rays against
+		 * GetAccelerationStructure() without declaring it. The scene and the geometries of its instances must stay alive until the graph
+		 * executes, and the scene must not be built again before then.
 		 */
 		void Build(FrameGraph& graph);
 
@@ -102,6 +104,7 @@ namespace b3d::render
 			RayTracingGeometryInstance Instance;
 			bool IsUsed = false;
 			u32 NextFreeSlot = ~0u; /**< Next slot of the free list, if the slot is free. */
+			u32 BuiltContentsVersion = 0; /**< Contents version of the instance's geometry that the last top level build saw. */
 		};
 
 		GpuDevice& mDevice;

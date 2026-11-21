@@ -8,6 +8,7 @@
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DGpuParameterSet.h"
 #include "GpuBackend/B3DGpuPipelineParameterLayout.h"
 #include "GpuBackend/B3DGpuWorkContext.h"
@@ -188,6 +189,7 @@ namespace b3d::render
 		const VertexElement* normal = meshDescription.FindElement(VES_NORMAL);
 
 		mVertexCount = meshVertexData->VertexCount;
+		mHasRayTracingGeometry = mFlags.IsSet(SkinCacheEntryFlag::RayTracingGeometry) && mCache.mDevice.GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES) && mMesh->SupportsRayTracing();
 		mMorphShapeCount = mMesh->GetMorphShapeBuffers() != nullptr ? mMesh->GetMorphShapeBuffers()->GetShapeCount() : 0;
 		mPositionStreamIndex = position->GetStreamIndex();
 		mPositionOffset = position->GetOffset();
@@ -328,6 +330,9 @@ namespace b3d::render
 				memorySize += buffer->GetTotalSize();
 		}
 
+		if(mRayTracingGeometry != nullptr)
+			memorySize += mRayTracingGeometry->GetAccelerationStructure()->GetSize();
+
 		return memorySize;
 	}
 
@@ -398,6 +403,7 @@ namespace b3d::render
 			return false;
 
 		GpuWorkContext& context = graph.GetWorkContext();
+		const bool hasBindlessHeaps = mDevice.GetBindlessHeaps() != nullptr;
 
 		// Each deformation writes the position buffer that doesn't hold the current positions, if the entry keeps the previous ones.
 		// Buffers are created on first use. Entries whose buffers can't be created stay queued for the next update.
@@ -409,16 +415,29 @@ namespace b3d::render
 			const bool keepsPreviousPositions = entry->mFlags.IsSet(SkinCacheEntryFlag::PreviousPositions);
 			const u32 targetIndex = keepsPreviousPositions && entry->mHasDeformedVertices ? 1 - entry->mCurrentPositionBufferIndex : 0;
 
+			// Ray tracing builds the structure from the positions, and hit shaders read every buffer through the bindless heap
+			GpuBufferFlags normalTangentFlags = GpuBufferFlag::GpuWrite;
+			GpuBufferFlags positionFlags = GpuBufferFlag::GpuWrite;
+			if(entry->mHasRayTracingGeometry)
+			{
+				positionFlags |= GpuBufferFlag::AccelerationStructureInput;
+				if(hasBindlessHeaps)
+				{
+					normalTangentFlags |= GpuBufferFlag::Bindless;
+					positionFlags |= GpuBufferFlag::Bindless;
+				}
+			}
+
 			if(entry->mNormalTangentBuffer == nullptr)
 			{
-				entry->mNormalTangentBuffer = mDevice.CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(kNormalTangentSize, entry->mVertexCount, GpuBufferFlag::GpuWrite));
+				entry->mNormalTangentBuffer = mDevice.CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(kNormalTangentSize, entry->mVertexCount, normalTangentFlags));
 				if(entry->mNormalTangentBuffer != nullptr)
 					entry->mNormalTangentBuffer->SetName(entry->mName + " normals and tangents");
 			}
 
 			if(entry->mPositionBuffers[targetIndex] == nullptr)
 			{
-				entry->mPositionBuffers[targetIndex] = mDevice.CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(kPositionSize, entry->mVertexCount, GpuBufferFlag::GpuWrite));
+				entry->mPositionBuffers[targetIndex] = mDevice.CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(kPositionSize, entry->mVertexCount, positionFlags));
 				if(entry->mPositionBuffers[targetIndex] != nullptr)
 					entry->mPositionBuffers[targetIndex]->SetName(entry->mName + " positions");
 			}
@@ -483,6 +502,7 @@ namespace b3d::render
 		FrameGraphComputePass pass;
 		Vector<SkinCacheDeformationDispatch> dispatches;
 		dispatches.reserve(entriesToDeform.size());
+		FrameVector<SkinCacheEntry*> entriesToBuild;
 		for(u32 entryIndex = 0; entryIndex < (u32)entriesToDeform.size(); entryIndex++)
 		{
 			SkinCacheEntry& entry = *entriesToDeform[entryIndex];
@@ -529,7 +549,10 @@ namespace b3d::render
 				entry.mMesh->GetMorphShapeBuffers(), poseBuffer, positionBuffer, entry.mNormalTangentBuffer, parameterBuffer);
 			dispatches.push_back(SkinCacheDeformationDispatch(material, set, entry.mVertexCount));
 
-			pass.Export(positionBuffer);
+			// The positions of an entry with ray tracing geometry are exported after the build that reads them
+			if(!entry.mHasRayTracingGeometry)
+				pass.Export(positionBuffer);
+
 			pass.Export(entry.mNormalTangentBuffer);
 
 			// The vertices move if the entry keeps the positions they had before. The vertex data without motion is created too, for the
@@ -546,6 +569,30 @@ namespace b3d::render
 
 			if(hasMotion)
 				AddToList(mEntriesMovedByLastUpdate, entry, &SkinCacheEntry::mEntriesMovedByLastUpdateIndex);
+
+			// The structure is built from the position buffer just written. An entry that keeps previous positions writes the other
+			// buffer each time, so its geometry is pointed at it.
+			if(entry.mHasRayTracingGeometry)
+			{
+				const VertexData& vertexData = *entry.mVertexDataWithoutMotion[targetIndex];
+				if(entry.mRayTracingGeometry == nullptr)
+				{
+					entry.mRayTracingGeometry = RayTracingGeometry::Create(mDevice, vertexData, entry.mMesh->GetIndexBuffer(), entry.mMesh->GetProperties().SubMeshes,
+						RayTracingGeometryFlag::Dynamic);
+				}
+				else if(keepsPreviousPositions)
+					entry.mRayTracingGeometry->SetVertexData(vertexData);
+
+				if(entry.mRayTracingGeometry != nullptr)
+					entriesToBuild.push_back(&entry);
+				else
+				{
+					// The positions are then exported by the deformation pass, as for an entry without the flag
+					B3D_LOG(Warning, LogRenderer, "Skin cache '{0}' couldn't create the ray tracing geometry of entry '{1}'. The entry won't be ray traced.", mName, entry.mName);
+					entry.mHasRayTracingGeometry = false;
+					pass.Export(positionBuffer);
+				}
+			}
 		}
 
 		if(dispatches.empty())
@@ -560,6 +607,48 @@ namespace b3d::render
 		graph.AddComputePass("Skin cache deformation", std::move(pass), [dispatches = std::move(dispatches)](FrameGraphPassContext& passContext)
 		{
 			SkinCacheDeformationMaterial::Execute(passContext, dispatches);
+		});
+
+		if(entriesToBuild.empty())
+			return true;
+
+		// The structures of all entries are built in one pass, after the deformation that wrote their positions, each with its own range
+		// of one scratch buffer
+		const u32 scratchOffsetAlignment = mDevice.GetCapabilities().RayTracing.ScratchOffsetAlignment;
+		FrameVector<u32> scratchOffsets;
+		u32 scratchSize = 0;
+		for(const SkinCacheEntry* entry : entriesToBuild)
+		{
+			const u32 scratchOffset = Bitwise::AlignUp(scratchSize, scratchOffsetAlignment);
+			scratchOffsets.push_back(scratchOffset);
+			scratchSize = scratchOffset + entry->mRayTracingGeometry->GetBuildScratchSize();
+		}
+
+		const TShared<GpuBuffer> scratch = graph.CreateBuffer("Skin cache geometry scratch", GpuBufferCreateInformation::CreateStructuredStorage(4, std::max(1u, Math::DivideAndRoundUp(scratchSize, 4u)),
+			GpuBufferFlag::GpuWrite));
+
+		FrameGraphAccelerationStructurePass geometryPass;
+		Vector<GpuAccelerationStructureBuild> builds;
+		builds.reserve(entriesToBuild.size());
+		for(u32 entryIndex = 0; entryIndex < (u32)entriesToBuild.size(); entryIndex++)
+		{
+			SkinCacheEntry& entry = *entriesToBuild[entryIndex];
+			RayTracingGeometry& geometry = *entry.mRayTracingGeometry;
+			const TShared<GpuAccelerationStructure>& bottomLevel = geometry.GetAccelerationStructure();
+			graph.ImportAccelerationStructure(bottomLevel);
+
+			builds.push_back(GpuAccelerationStructureBuild(geometry.GetBuildInputs(), bottomLevel, scratch, scratchOffsets[entryIndex]));
+			geometryPass.AddBuild(builds.back());
+			geometryPass.Export(bottomLevel);
+			geometryPass.Export(entry.mPositionBuffers[entry.mCurrentPositionBufferIndex]);
+
+			// A ray tracing scene sees the new contents version, and doesn't build the structure itself
+			geometry.MarkBuilt();
+		}
+
+		graph.AddAccelerationStructurePass("Skin cache geometry", std::move(geometryPass), [builds = std::move(builds)](FrameGraphPassContext& passContext)
+		{
+			passContext.GetCommandBuffer().BuildAccelerationStructures(builds);
 		});
 
 		return true;

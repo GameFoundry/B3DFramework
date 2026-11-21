@@ -10,6 +10,10 @@
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuDeviceCapabilities.h"
+#include "GpuBackend/B3DGpuParameterSet.h"
+#include "GpuBackend/B3DGpuParameterSetPool.h"
+#include "GpuBackend/B3DGpuPipelineParameterLayout.h"
 #include "GpuBackend/B3DGpuTransferQueue.h"
 #include "GpuBackend/B3DGpuPipelineState.h"
 #include "GpuBackend/B3DGpuVertexInputManager.h"
@@ -26,6 +30,8 @@
 #include "Math/B3DVector4.h"
 #include "Mesh/B3DMesh.h"
 #include "Mesh/B3DMeshData.h"
+#include "RayTracing/B3DRayTracingGeometry.h"
+#include "RayTracing/B3DRayTracingScene.h"
 #include "Renderer/B3DRenderer.h"
 #include "Renderer/B3DRendererMeshData.h"
 #include "Renderer/B3DRendererUtility.h"
@@ -503,8 +509,11 @@ namespace
 		return target;
 	}
 
-	/** Updates @p cache in a graph of its own, executes it and waits for the GPU. Returns true if the update added a pass. */
-	bool UpdateAndExecute(TestSuite& suite, SkinCache& cache, GpuWorkContext& context, GpuDevice& device)
+	/**
+	 * Updates @p cache in a graph of its own, executes it and waits for the GPU. Returns true if the update added passes, which must then be
+	 * @p passCount passes.
+	 */
+	bool UpdateAndExecute(TestSuite& suite, SkinCache& cache, GpuWorkContext& context, GpuDevice& device, u32 passCount = 1)
 	{
 		bool hasPasses = false;
 		{
@@ -512,7 +521,7 @@ namespace
 			hasPasses = cache.Update(graph);
 
 			graph.Compile();
-			B3D_TEST_ASSERT_EXTERNAL_MSG(suite, graph.GetStatistics().PassCount == (hasPasses ? 1u : 0u) && graph.GetStatistics().CulledPassCount == 0,
+			B3D_TEST_ASSERT_EXTERNAL_MSG(suite, graph.GetStatistics().PassCount == (hasPasses ? passCount : 0u) && graph.GetStatistics().CulledPassCount == 0,
 				StringUtility::Format("The skin cache update added {0} passes, of which {1} were culled.", graph.GetStatistics().PassCount, graph.GetStatistics().CulledPassCount))
 
 			graph.Execute();
@@ -522,6 +531,59 @@ namespace
 		device.EndFrame();
 
 		return hasPasses;
+	}
+
+	/** What a ray along +Z is expected to read from the test mesh. */
+	struct ExpectedRayHit
+	{
+		ExpectedRayHit() = default;
+
+		bool IsHit = false;
+		Vector3 Position; /**< Position of the hit, in the space of the mesh. */
+		Vector3 Normal; /**< Normal at the hit, interpolated from the 8-bit normals of the triangle's vertices, not normalized. */
+	};
+
+	/**
+	 * Returns the closest hit of a ray from @p origin along +Z with the triangles of @p meshData, whose vertices are at the positions of
+	 * @p vertices, as the RayTracingGeometryInline test shader reads it.
+	 */
+	ExpectedRayHit TraceOnCpu(const MeshData& meshData, const Vector<DeformedVertex>& vertices, const Vector3& origin)
+	{
+		const Vector3 direction(0.0f, 0.0f, 1.0f);
+		const u32* const indices = meshData.GetIndices32();
+
+		ExpectedRayHit closestHit;
+		float closestDistance = std::numeric_limits<float>::max();
+		for(u32 triangleIndex = 0; triangleIndex < kIndexCount / 3; triangleIndex++)
+		{
+			const DeformedVertex& first = vertices[indices[triangleIndex * 3]];
+			const DeformedVertex& second = vertices[indices[triangleIndex * 3 + 1]];
+			const DeformedVertex& third = vertices[indices[triangleIndex * 3 + 2]];
+
+			// The intersection of Moller and Trumbore, with the barycentric weights of the second and third vertex, as rays report them
+			const Vector3 firstEdge = second.Position - first.Position;
+			const Vector3 secondEdge = third.Position - first.Position;
+			const Vector3 directionCrossSecondEdge = direction.Cross(secondEdge);
+			const float determinant = firstEdge.Dot(directionCrossSecondEdge);
+			if(std::abs(determinant) < 1e-8f)
+				continue;
+
+			const Vector3 fromFirst = origin - first.Position;
+			const float secondWeight = fromFirst.Dot(directionCrossSecondEdge) / determinant;
+			const Vector3 fromFirstCrossFirstEdge = fromFirst.Cross(firstEdge);
+			const float thirdWeight = direction.Dot(fromFirstCrossFirstEdge) / determinant;
+			const float distance = secondEdge.Dot(fromFirstCrossFirstEdge) / determinant;
+			if(secondWeight < 0.0f || thirdWeight < 0.0f || secondWeight + thirdWeight > 1.0f || distance <= 0.0f || distance >= closestDistance)
+				continue;
+
+			const float firstWeight = 1.0f - secondWeight - thirdWeight;
+			closestDistance = distance;
+			closestHit.IsHit = true;
+			closestHit.Position = first.Position * firstWeight + second.Position * secondWeight + third.Position * thirdWeight;
+			closestHit.Normal = first.Normal * firstWeight + second.Normal * secondWeight + third.Normal * thirdWeight;
+		}
+
+		return closestHit;
 	}
 } // namespace
 
@@ -536,6 +598,7 @@ SkinCacheTestSuite::SkinCacheTestSuite()
 	B3D_ADD_TEST(SkinCacheTestSuite::TestPreviousPositions)
 	B3D_ADD_TEST(SkinCacheTestSuite::TestChangeDetection)
 	B3D_ADD_TEST(SkinCacheTestSuite::TestVertexLayout)
+	B3D_ADD_TEST(SkinCacheTestSuite::TestRayTracingGeometry)
 	B3D_ADD_TEST(SkinCacheTestSuite::TestFrameGraph)
 }
 
@@ -1120,6 +1183,233 @@ void SkinCacheTestSuite::TestVertexLayout()
 			deformedPixel.W >= 240.0f, pixelMessage)
 		B3D_TEST_ASSERT_MSG(bindPosePixel == Vector4(0.0f, 0.0f, 0.0f, 0.0f), pixelMessage)
 	}, "SkinCacheTestSuite::TestVertexLayout", true);
+}
+
+void SkinCacheTestSuite::TestRayTracingGeometry()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	const GpuDeviceCapabilities& capabilities = device->GetCapabilities();
+	const bool hasAccelerationStructures = capabilities.HasCapability(RSC_ACCELERATION_STRUCTURES);
+
+	// Shaders are resources, which are created outside of the render thread. The rays read the deformed vertices through the bindless heap.
+	const bool tracesRays = hasAccelerationStructures && capabilities.HasCapability(RSC_RAY_QUERY) && device->GetBindlessHeaps() != nullptr;
+	const TShared<GpuComputePipelineState> inlinePipeline = tracesRays ? CreateTestRayTracingGeometryInlinePipeline(*device) : nullptr;
+	B3D_TEST_ASSERT(!tracesRays || inlinePipeline != nullptr)
+
+	GetRenderThread().PostCommand([this, &device, hasAccelerationStructures, &inlinePipeline]()
+	{
+		const TShared<MeshData> meshData = CreateTestMeshData();
+		const TShared<render::Mesh> mesh = CreateTestMesh(*device, meshData, true, false);
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		B3D_TEST_ASSERT(mesh->SupportsRayTracing() == hasAccelerationStructures)
+
+		SkinCache cache(*device, "Test skin cache");
+		const TShared<SkinCacheEntry> entry = cache.CreateEntry(SkinCacheEntryCreateInformation(mesh, SkinCacheEntryFlag::PreviousPositions | SkinCacheEntryFlag::RayTracingGeometry,
+			"Ray traced"));
+		B3D_TEST_ASSERT(entry != nullptr && entry->GetRayTracingGeometry() == nullptr)
+		if(entry == nullptr)
+			return;
+
+		// Without acceleration structures the flag has no effect: the update only deforms the vertices
+		entry->SetPose(CreatePose(0.5f));
+		if(!hasAccelerationStructures)
+		{
+			B3D_TEST_ASSERT(UpdateAndExecute(*this, cache, *context, *device) && entry->GetRayTracingGeometry() == nullptr)
+			return;
+		}
+
+		// The first update creates the geometry, and builds it in a pass after the deformation
+		B3D_TEST_ASSERT(UpdateAndExecute(*this, cache, *context, *device, 2))
+		const TShared<RayTracingGeometry> geometry = entry->GetRayTracingGeometry();
+		B3D_TEST_ASSERT(geometry != nullptr)
+		if(geometry == nullptr)
+			return;
+
+		B3D_TEST_ASSERT(geometry->IsBuilt() && geometry->GetContentsVersion() == 1 && geometry->GetGeometryLayouts().Size() == 1)
+		B3D_TEST_ASSERT(entry->GetMemorySize() > geometry->GetAccelerationStructure()->GetSize())
+		if(geometry->GetGeometryLayouts().Size() != 1)
+			return;
+
+		// The layout reads the deformed positions and normals from the entry's buffers, and texture coordinates from the mesh's
+		const auto fnCheckLayout = [this, &entry, &geometry, &mesh](const char* name)
+		{
+			const RayTracingGeometryLayout& layout = geometry->GetGeometryLayouts()[0];
+			const VertexData& vertexData = *entry->GetVertexData();
+			const TShared<render::GpuBuffer> positionBuffer = FindStreamBuffer(vertexData, VES_POSITION, 0);
+			const TShared<render::GpuBuffer> normalBuffer = FindStreamBuffer(vertexData, VES_NORMAL, 0);
+			const TShared<render::GpuBuffer> uvBuffer = mesh->GetVertexData()->GetBuffer(0);
+			B3D_TEST_ASSERT_MSG(layout.Position.BufferIndex == positionBuffer->GetBindlessIndex() && layout.Position.Stride == 12 && layout.Position.Offset == 0, name)
+			B3D_TEST_ASSERT_MSG(layout.Normal.BufferIndex == normalBuffer->GetBindlessIndex() && layout.Normal.Stride == 8 && layout.Normal.Offset == 0, name)
+			B3D_TEST_ASSERT_MSG(layout.Tangent.BufferIndex == normalBuffer->GetBindlessIndex() && layout.Tangent.Offset == 4, name)
+			B3D_TEST_ASSERT_MSG(layout.Uv.BufferIndex == uvBuffer->GetBindlessIndex() && layout.Uv.Stride == mesh->GetVertexDescription()->GetVertexStride(0), name)
+			B3D_TEST_ASSERT_MSG(layout.IndexBufferIndex == mesh->GetIndexBuffer()->GetBindlessIndex() && layout.FirstIndex == 0, name)
+			B3D_TEST_ASSERT_MSG(positionBuffer->GetInformation().Flags.IsSet(GpuBufferFlag::AccelerationStructureInput), name)
+		};
+
+		fnCheckLayout("First pose");
+		const u32 firstPositionIndex = geometry->GetGeometryLayouts()[0].Position.BufferIndex;
+
+		RayTracingScene scene(*device, "Test scene");
+		scene.AddInstance(RayTracingGeometryInstance(geometry, Matrix4::kIdentity, 0));
+
+		// Rays through the middle of three rings of the reference pose, which the deformed surface is expected to cover, and one that misses
+		static constexpr u32 kRayCount = 4;
+		const TShared<render::GpuBuffer> rayBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(Vector4), kRayCount,
+			GpuBufferFlag::None, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> layoutBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(RayTracingGeometryLayout), 1,
+			GpuBufferFlag::None, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> hitBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(GeometryHit), kRayCount,
+			GpuBufferFlag::GpuWrite));
+		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kRayCount * sizeof(GeometryHit)));
+		B3D_TEST_ASSERT(rayBuffer != nullptr && layoutBuffer != nullptr && hitBuffer != nullptr && readback != nullptr)
+		if(rayBuffer == nullptr || layoutBuffer == nullptr || hitBuffer == nullptr || readback == nullptr)
+			return;
+
+		// A copy of the layouts must be taken again whenever the geometry's contents version changed, as the position buffers swap
+		u32 copiedLayoutVersion = 0;
+
+		// Optionally poses the entry with @p pose, then updates the cache, builds the scene and traces the rays in one graph, which must
+		// have @p buildPassCount passes besides the trace. Compares what each ray read with the closest hit of the deformed vertices.
+		const auto fnTrace = [&](const char* name, const Vector<Matrix4>& pose, u32 buildPassCount)
+		{
+			if(!pose.empty())
+				entry->SetPose(pose);
+
+			const Vector<DeformedVertex> referenceVertices = DeformOnCpu(*meshData, pose.empty() ? CreatePose(0.5f) : pose);
+			Vector4 rayOrigins[kRayCount];
+			for(u32 rayIndex = 0; rayIndex < 3; rayIndex++)
+			{
+				const u32 ringIndex = 2 + rayIndex * 3;
+				Vector3 center = Vector3::kZero;
+				for(u32 ringVertexIndex = 0; ringVertexIndex < kRingVertexCount; ringVertexIndex++)
+					center += referenceVertices[ringIndex * kRingVertexCount + ringVertexIndex].Position / (float)kRingVertexCount;
+
+				rayOrigins[rayIndex] = Vector4(center.X, center.Y + 0.02f, center.Z - 5.0f, 0.0f);
+			}
+
+			rayOrigins[3] = Vector4(10.0f, 0.5f, -5.0f, 0.0f);
+
+			FrameGraph graph(*context, "Skin cache ray tracing test");
+			cache.Update(graph);
+			scene.Build(graph);
+
+			u32 tracePassCount = 0;
+			if(inlinePipeline != nullptr)
+			{
+				const render::GpuBufferMappedScope rayMapping = rayBuffer->Map(GpuMapOption::Write);
+				B3D_TEST_ASSERT(rayMapping.IsValid())
+				if(!rayMapping.IsValid())
+					return;
+
+				std::memcpy(rayMapping.GetMappedMemory(), rayOrigins, sizeof(rayOrigins));
+				if(geometry->GetContentsVersion() != copiedLayoutVersion)
+				{
+					const render::GpuBufferMappedScope layoutMapping = layoutBuffer->Map(GpuMapOption::Write);
+					B3D_TEST_ASSERT(layoutMapping.IsValid())
+					if(!layoutMapping.IsValid())
+						return;
+
+					std::memcpy(layoutMapping.GetMappedMemory(), geometry->GetGeometryLayouts().data(), sizeof(RayTracingGeometryLayout));
+					copiedLayoutVersion = geometry->GetContentsVersion();
+				}
+
+				graph.ImportBuffer(hitBuffer);
+				graph.ImportBuffer(readback);
+
+				const TShared<render::GpuParameterSet> parameterSet = context->GetParameterSetPool().Create(inlinePipeline->GetParameterLayout()->GetSet(0), 0);
+				B3D_TEST_ASSERT(parameterSet->SetAccelerationStructure("Scene", scene.GetAccelerationStructure()))
+				parameterSet->SetStorageBuffer("RayOrigins", rayBuffer);
+				parameterSet->SetStorageBuffer("Layouts", layoutBuffer);
+				parameterSet->SetStorageBuffer("Hits", hitBuffer);
+
+				FrameGraphComputePass pass;
+				pass.AddParameterSet(parameterSet);
+				graph.AddComputePass("Trace inline", std::move(pass), [parameterSet, &inlinePipeline](FrameGraphPassContext& passContext)
+				{
+					render::GpuCommandBuffer& commands = passContext.GetCommandBuffer();
+					commands.SetGpuComputePipelineState(inlinePipeline);
+					commands.SetGpuParameterSet(parameterSet);
+					commands.DispatchCompute(kRayCount);
+				});
+
+				FrameGraphCopyPass copyPass;
+				copyPass.AddSource(hitBuffer);
+				copyPass.AddDestination(readback);
+				graph.AddCopyPass("Read hits", std::move(copyPass), [source = hitBuffer, destination = readback](FrameGraphPassContext& passContext)
+				{
+					passContext.GetCommandBuffer().CopyBufferToBuffer(source, destination, 0, 0, kRayCount * sizeof(GeometryHit));
+				});
+
+				tracePassCount = 2;
+			}
+
+			graph.Compile();
+			B3D_TEST_ASSERT_MSG(graph.GetStatistics().PassCount == buildPassCount + tracePassCount && graph.GetStatistics().CulledPassCount == 0,
+				StringUtility::Format("{0}: {1} passes, of which {2} were culled, expected {3}.", name, graph.GetStatistics().PassCount, graph.GetStatistics().CulledPassCount,
+				buildPassCount + tracePassCount))
+
+			graph.Execute();
+			device->WaitUntilIdle();
+			device->EndFrame();
+
+			if(inlinePipeline == nullptr)
+				return;
+
+			// The expected hits are those of the vertices the entry holds, whose deformation the other tests check
+			const Vector<DeformedVertex> deformedVertices = ReadDeformedVertices(*entry->GetVertexData());
+			const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			const GeometryHit* hits = static_cast<const GeometryHit*>(mapping.GetMappedMemory());
+			for(u32 rayIndex = 0; rayIndex < kRayCount; rayIndex++)
+			{
+				const ExpectedRayHit expected = TraceOnCpu(*meshData, deformedVertices, Vector3(rayOrigins[rayIndex].X, rayOrigins[rayIndex].Y, rayOrigins[rayIndex].Z));
+				B3D_TEST_ASSERT_MSG(expected.IsHit == (rayIndex < 3), StringUtility::Format("{0}, ray {1}: the reference ray doesn't hit as the test expects.", name, rayIndex))
+
+				const GeometryHit& actual = hits[rayIndex];
+				const String message = StringUtility::Format("{0}, ray {1}: hit {2}, position ({3}, {4}, {5}), expected ({6}, {7}, {8}); normal ({9}, {10}, {11}), expected "
+					"({12}, {13}, {14}); uv ({15}, {16}).", name, rayIndex, actual.IsHit, actual.Position.X, actual.Position.Y, actual.Position.Z, expected.Position.X,
+					expected.Position.Y, expected.Position.Z, actual.Normal.X, actual.Normal.Y, actual.Normal.Z, expected.Normal.X, expected.Normal.Y, expected.Normal.Z,
+					actual.U, actual.V);
+
+				B3D_TEST_ASSERT_MSG((actual.IsHit != 0.0f) == expected.IsHit, message)
+				if(!expected.IsHit)
+					continue;
+
+				B3D_TEST_ASSERT_MSG(IsWithin(actual.Position, expected.Position, 1e-4f) && IsWithin(actual.Normal, expected.Normal, 1e-3f), message)
+				B3D_TEST_ASSERT_MSG(std::abs(actual.U - kUv.X) < 1e-5f && std::abs(actual.V - kUv.Y) < 1e-5f && actual.InstanceId == 0, message)
+			}
+		};
+
+		// The first top level build sees the geometry the cache built
+		fnTrace("First pose", Vector<Matrix4>(), 1);
+
+		// Nothing changed, so nothing is built
+		fnTrace("Unchanged", Vector<Matrix4>(), 0);
+		B3D_TEST_ASSERT(geometry->GetContentsVersion() == 1)
+
+		// A new pose deforms into the other position buffer, which the geometry is built from and its layout points at. The geometry's new
+		// contents version rebuilds the top level structure.
+		fnTrace("Second pose", CreatePose(1.0f), 3);
+		fnCheckLayout("Second pose");
+		const u32 secondPositionIndex = geometry->GetGeometryLayouts()[0].Position.BufferIndex;
+		B3D_TEST_ASSERT(geometry->GetContentsVersion() == 2 && secondPositionIndex != firstPositionIndex)
+
+		// The next pose swaps the buffers back
+		fnTrace("Third pose", CreatePose(-0.5f), 3);
+		fnCheckLayout("Third pose");
+		B3D_TEST_ASSERT(geometry->GetContentsVersion() == 3 && geometry->GetGeometryLayouts()[0].Position.BufferIndex == firstPositionIndex)
+
+		// The same pose again changes nothing
+		fnTrace("Same pose", CreatePose(-0.5f), 0);
+		B3D_TEST_ASSERT(geometry->GetContentsVersion() == 3)
+	}, "SkinCacheTestSuite::TestRayTracingGeometry", true);
 }
 
 void SkinCacheTestSuite::TestFrameGraph()

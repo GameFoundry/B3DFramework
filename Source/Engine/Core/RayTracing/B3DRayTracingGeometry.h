@@ -50,6 +50,21 @@ namespace b3d::render
 
 	static_assert(sizeof(RayTracingGeometryLayout) == 56, "RayTracingGeometryLayout must match the layout of its shader structure.");
 
+	/** Flags that control how a RayTracingGeometry is built. */
+	enum class RayTracingGeometryFlag : u8
+	{
+		None = 0,
+
+		/**
+		 * The vertices of the geometry move. The structure is built for fast builds rather than fast ray tracing, and SetVertexData() may
+		 * replace its vertex buffers. The indices and the number of vertices must not change.
+		 */
+		Dynamic = 1 << 0
+	};
+
+	using RayTracingGeometryFlags = Flags<RayTracingGeometryFlag, u8>;
+	B3D_FLAGS_OPERATORS_EXT(RayTracingGeometryFlag, u8)
+
 	/**
 	 * Bottom level acceleration structure of the sub-meshes of a vertex and index buffer, with one geometry per triangle list sub-mesh. Built
 	 * from those buffers in place, so the only new memory is the structure.
@@ -100,8 +115,25 @@ namespace b3d::render
 		 */
 		TArrayView<const u32> GetSubMeshGeometryIndices() const { return mSubMeshGeometryIndices; }
 
-		/** Returns where the triangles and vertex attributes of each geometry live, in geometry index order. */
+		/**
+		 * Returns where the triangles and vertex attributes of each geometry live, in geometry index order. A copy taken at another
+		 * GetContentsVersion() may be out of date.
+		 */
 		TArrayView<const RayTracingGeometryLayout> GetGeometryLayouts() const { return mLayouts; }
+
+		/**
+		 * Replaces the vertex buffers the geometry is built from and that its layouts point at. The next build reads the new buffers, and
+		 * GetGeometryLayouts() returns the new layouts right away. Only for a geometry created with RayTracingGeometryFlag::Dynamic.
+		 *
+		 * @param	vertexData	Vertices with the same description and the same number of vertices as the ones the geometry was created with.
+		 */
+		void SetVertexData(const VertexData& vertexData);
+
+		/**
+		 * Returns a number that increases every time a build of the structure is added to a frame graph. A copy of the geometry's layouts,
+		 * or a top level structure built over it, taken at another version may be out of date.
+		 */
+		u32 GetContentsVersion() const { return mContentsVersion; }
 
 		/**
 		 * Returns true if vertices with @p vertexDescription and indices of @p indexType are in the formats above: positions of kPositionType,
@@ -114,7 +146,7 @@ namespace b3d::render
 		 * indices in @p indexBuffer. Returns null if no sub-mesh is a triangle list with triangles, or if the vertices or indices aren't in the
 		 * formats above (IsSupportedFormat()), which also logs a warning.
 		 */
-		static TShared<RayTracingGeometry> Create(GpuDevice& device, const VertexData& vertexData, const TShared<GpuBuffer>& indexBuffer, TArrayView<const SubMesh> subMeshes);
+		static TShared<RayTracingGeometry> Create(GpuDevice& device, const VertexData& vertexData, const TShared<GpuBuffer>& indexBuffer, TArrayView<const SubMesh> subMeshes, RayTracingGeometryFlags flags = RayTracingGeometryFlag::None);
 
 		/**
 		 * @name Internal
@@ -124,8 +156,12 @@ namespace b3d::render
 		/** Marks the structure as out of date, so the next build rebuilds it. Needed after the contents of its buffers change. */
 		void MarkNotBuilt() { mIsBuilt = false; }
 
-		/** Marks the structure as up to date. Called when a build of it is added to a frame graph. */
-		void MarkBuilt() { mIsBuilt = true; }
+		/** Marks the structure as up to date, and increases its contents version. Called when a build of it is added to a frame graph. */
+		void MarkBuilt()
+		{
+			mIsBuilt = true;
+			mContentsVersion++;
+		}
 
 		/** Returns the contents the structure is built from. The geometries they reference live as long as this object. */
 		const GpuAccelerationStructureInputs& GetBuildInputs() const { return mInputs; }
@@ -138,6 +174,16 @@ namespace b3d::render
 	private:
 		RayTracingGeometry() = default;
 
+		/**
+		 * Returns where the attributes of @p vertexData live, without the index buffer and first index. Attributes the vertices lack point at
+		 * @p defaultAttributes if it isn't null, and have a stride of 0 otherwise.
+		 */
+		static RayTracingGeometryLayout GetVertexLayout(const VertexData& vertexData, const TShared<GpuBuffer>& defaultAttributes);
+
+		RayTracingGeometryFlags mFlags;
+		TShared<VertexDescription> mVertexDescription;
+		u32 mVertexCount = 0;
+
 		Vector<GpuRayTracingGeometry> mGeometries;
 		GpuAccelerationStructureInputs mInputs;
 		u32 mBuildScratchSize = 0;
@@ -146,6 +192,7 @@ namespace b3d::render
 		Vector<RayTracingGeometryLayout> mLayouts;
 		TShared<GpuBuffer> mDefaultAttributes;
 		bool mIsBuilt = false;
+		u32 mContentsVersion = 0;
 	};
 
 	/** @} */

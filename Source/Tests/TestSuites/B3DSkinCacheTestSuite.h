@@ -70,6 +70,15 @@ namespace b3d
 		void TestVertexLayout();
 
 		/**
+		 * Deforms an entry with ray tracing geometry and previous positions through several poses, with a ray tracing scene that has an
+		 * instance of the entry's geometry. Each update adds a pass that builds the geometry after the deformation, and the scene rebuilds
+		 * its top level structure because the geometry's contents version changed, and only then. Inline rays hit the deformed surface,
+		 * and read the deformed positions and normals and the mesh's texture coordinates through the geometry's layouts, also after the
+		 * position buffers swapped. On devices without acceleration structures the entry has no geometry and builds nothing.
+		 */
+		void TestRayTracingGeometry();
+
+		/**
 		 * Deforms two entries, one of them with previous positions, in one graph: one pass, not culled, and no validation errors. A later
 		 * graph draws the exported buffers at rest without declaring them, and a third deforms them again after that draw.
 		 */

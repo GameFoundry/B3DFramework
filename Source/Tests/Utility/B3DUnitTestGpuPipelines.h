@@ -4,6 +4,7 @@
 
 #include "B3DPrerequisites.h"
 #include "GpuBackend/B3DGpuProgram.h"
+#include "Math/B3DVector3.h"
 
 namespace b3d
 {
@@ -95,6 +96,21 @@ namespace b3d
 	 * backend.
 	 */
 	TShared<GpuComputePipelineState> CreateTestRayTracingGeometryInlinePipeline(GpuDevice& device);
+
+	/** What the pipelines of the RayTracingGeometryInline and RayTracingGeometryPipeline test shaders write for a ray into Hits. */
+	struct GeometryHit
+	{
+		Vector3 Position;
+		float IsHit;
+		Vector3 Normal;
+		float U;
+		float V;
+		float Padding[3];
+		u32 Indices[3];
+		u32 InstanceId;
+	};
+
+	static_assert(sizeof(GeometryHit) == 64, "GeometryHit must match the layout of the shaders' structure.");
 
 	/**
 	 * Creates the programs of the ray tracing test shader @p name from Data/Shaders/Tests, by entry point name. RayTracingPipeline has:

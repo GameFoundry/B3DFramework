@@ -1209,21 +1209,6 @@ void GpuRayTracingTestSuite::TestFrameGraph()
 
 namespace
 {
-	/** What the RayTracingGeometryInline and RayTracingGeometryPipeline test shaders read from the triangle a ray hits. */
-	struct GeometryHit
-	{
-		Vector3 Position;
-		float IsHit;
-		Vector3 Normal;
-		float U;
-		float V;
-		float Padding[3];
-		u32 Indices[3];
-		u32 InstanceId;
-	};
-
-	static_assert(sizeof(GeometryHit) == 64, "GeometryHit must match the layout of the shaders' structure.");
-
 	/** What a ray of TestRayTracingGeometry() is expected to read. */
 	struct ExpectedGeometryHit
 	{

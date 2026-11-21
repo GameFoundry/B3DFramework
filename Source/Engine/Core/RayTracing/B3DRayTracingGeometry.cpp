@@ -53,6 +53,68 @@ namespace b3d::render
 			IsOptionalElementOfType(vertexDescription, VES_TEXCOORD, kUvType);
 	}
 
+	RayTracingGeometryLayout RayTracingGeometry::GetVertexLayout(const VertexData& vertexData, const TShared<GpuBuffer>& defaultAttributes)
+	{
+		const VertexDescription& description = *vertexData.VertexDescription;
+
+		RayTracingGeometryLayout layout;
+		layout.Position = GetVertexStream(vertexData, description.FindElement(VES_POSITION));
+		layout.Normal = GetVertexStream(vertexData, description.FindElement(VES_NORMAL));
+		layout.Tangent = GetVertexStream(vertexData, description.FindElement(VES_TANGENT));
+		layout.Uv = GetVertexStream(vertexData, description.FindElement(VES_TEXCOORD));
+
+		if(defaultAttributes == nullptr)
+			return layout;
+
+		const u32 defaultAttributesBufferIndex = defaultAttributes->GetBindlessIndex();
+		if(layout.Normal.Stride == 0)
+		{
+			layout.Normal.BufferIndex = defaultAttributesBufferIndex;
+			layout.Normal.Offset = offsetof(RayTracingDefaultAttributes, Normal);
+		}
+
+		if(layout.Tangent.Stride == 0)
+		{
+			layout.Tangent.BufferIndex = defaultAttributesBufferIndex;
+			layout.Tangent.Offset = offsetof(RayTracingDefaultAttributes, Tangent);
+		}
+
+		if(layout.Uv.Stride == 0)
+		{
+			layout.Uv.BufferIndex = defaultAttributesBufferIndex;
+			layout.Uv.Offset = offsetof(RayTracingDefaultAttributes, Uv);
+		}
+
+		return layout;
+	}
+
+	void RayTracingGeometry::SetVertexData(const VertexData& vertexData)
+	{
+		if(!B3D_ENSURE_LOG(mFlags.IsSet(RayTracingGeometryFlag::Dynamic), "Only dynamic ray tracing geometry can replace its vertex buffers."))
+			return;
+
+		const bool isSameDescription = vertexData.VertexDescription == mVertexDescription || (vertexData.VertexDescription != nullptr && *vertexData.VertexDescription == *mVertexDescription);
+		if(!B3D_ENSURE_LOG(isSameDescription && vertexData.VertexCount == mVertexCount, "Ray tracing geometry needs vertices with the description and the number of vertices it was created with."))
+			return;
+
+		const TShared<GpuBuffer> positionBuffer = vertexData.GetBuffer(mVertexDescription->FindElement(VES_POSITION)->GetStreamIndex());
+		if(!B3D_ENSURE_LOG(positionBuffer != nullptr, "Ray tracing geometry needs vertices with a buffer bound to the stream of their positions."))
+			return;
+
+		// The geometries keep their vertex offsets and strides, as the description is the same, and the layouts their index ranges
+		for(GpuRayTracingGeometry& geometry : mGeometries)
+			geometry.VertexBuffer = positionBuffer;
+
+		const RayTracingGeometryLayout vertexLayout = GetVertexLayout(vertexData, mDefaultAttributes);
+		for(RayTracingGeometryLayout& layout : mLayouts)
+		{
+			layout.Position = vertexLayout.Position;
+			layout.Normal = vertexLayout.Normal;
+			layout.Tangent = vertexLayout.Tangent;
+			layout.Uv = vertexLayout.Uv;
+		}
+	}
+
 	void RayTracingGeometry::Build(FrameGraph& graph)
 	{
 		graph.ImportAccelerationStructure(mAccelerationStructure);
@@ -71,11 +133,10 @@ namespace b3d::render
 			passContext.GetCommandBuffer().BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(&build, 1));
 		});
 
-		mIsBuilt = true;
+		MarkBuilt();
 	}
 
-	TShared<RayTracingGeometry> RayTracingGeometry::Create(GpuDevice& device, const VertexData& vertexData, const TShared<GpuBuffer>& indexBuffer,
-		TArrayView<const SubMesh> subMeshes)
+	TShared<RayTracingGeometry> RayTracingGeometry::Create(GpuDevice& device, const VertexData& vertexData, const TShared<GpuBuffer>& indexBuffer, TArrayView<const SubMesh> subMeshes, RayTracingGeometryFlags flags)
 	{
 		if(indexBuffer == nullptr)
 			return nullptr;
@@ -88,53 +149,31 @@ namespace b3d::render
 		}
 
 		const VertexElement* position = description.FindElement(VES_POSITION);
-
-		RayTracingGeometryLayout meshLayout;
-		meshLayout.IndexBufferIndex = indexBuffer->GetBindlessIndex();
-		meshLayout.Position = GetVertexStream(vertexData, position);
-		meshLayout.Normal = GetVertexStream(vertexData, description.FindElement(VES_NORMAL));
-		meshLayout.Tangent = GetVertexStream(vertexData, description.FindElement(VES_TANGENT));
-		meshLayout.Uv = GetVertexStream(vertexData, description.FindElement(VES_TEXCOORD));
-
 		const TShared<GpuBuffer> positionBuffer = vertexData.GetBuffer(position->GetStreamIndex());
 		if(positionBuffer == nullptr)
 			return nullptr;
 
 		// Attributes the vertices lack point at one value every vertex shares, so shaders read them without checking
+		RayTracingGeometryLayout meshLayout = GetVertexLayout(vertexData, nullptr);
 		TShared<GpuBuffer> defaultAttributes;
 		if(meshLayout.Normal.Stride == 0 || meshLayout.Tangent.Stride == 0 || meshLayout.Uv.Stride == 0)
 		{
 			defaultAttributes = RayTracingManager::Instance().GetDefaultAttributes(device);
 			if(defaultAttributes == nullptr && device.GetBindlessHeaps() != nullptr)
 				return nullptr;
+
+			meshLayout = GetVertexLayout(vertexData, defaultAttributes);
 		}
 
-		if(defaultAttributes != nullptr)
-		{
-			const u32 bufferIndex = defaultAttributes->GetBindlessIndex();
-			if(meshLayout.Normal.Stride == 0)
-			{
-				meshLayout.Normal.BufferIndex = bufferIndex;
-				meshLayout.Normal.Offset = offsetof(RayTracingDefaultAttributes, Normal);
-			}
-
-			if(meshLayout.Tangent.Stride == 0)
-			{
-				meshLayout.Tangent.BufferIndex = bufferIndex;
-				meshLayout.Tangent.Offset = offsetof(RayTracingDefaultAttributes, Tangent);
-			}
-
-			if(meshLayout.Uv.Stride == 0)
-			{
-				meshLayout.Uv.BufferIndex = bufferIndex;
-				meshLayout.Uv.Offset = offsetof(RayTracingDefaultAttributes, Uv);
-			}
-		}
+		meshLayout.IndexBufferIndex = indexBuffer->GetBindlessIndex();
 
 		const u32 indexSize = b3d::GpuBuffer::GetIndexSize(kIndexType);
 		const u32 vertexStride = description.GetVertexStride(position->GetStreamIndex());
 
 		const TShared<RayTracingGeometry> geometry = B3DMakeSharedFromExisting<RayTracingGeometry>(new(B3DAllocate<RayTracingGeometry>()) RayTracingGeometry());
+		geometry->mFlags = flags;
+		geometry->mVertexDescription = vertexData.VertexDescription;
+		geometry->mVertexCount = vertexData.VertexCount;
 		geometry->mDefaultAttributes = defaultAttributes;
 		for(const SubMesh& subMesh : subMeshes)
 		{
@@ -161,8 +200,9 @@ namespace b3d::render
 		if(geometry->mGeometries.empty())
 			return nullptr;
 
-		geometry->mInputs = GpuAccelerationStructureInputs(geometry->mGeometries,
-			GpuAccelerationStructureBuildFlag::PreferFastTrace);
+		// Moving vertices are built often, so they trade ray tracing speed for build speed
+		const GpuAccelerationStructureBuildFlags buildFlags = flags.IsSet(RayTracingGeometryFlag::Dynamic) ? GpuAccelerationStructureBuildFlag::PreferFastBuild : GpuAccelerationStructureBuildFlag::PreferFastTrace;
+		geometry->mInputs = GpuAccelerationStructureInputs(geometry->mGeometries, buildFlags);
 
 		GpuAccelerationStructureSizes sizes;
 		if(!device.GetAccelerationStructureSizes(geometry->mInputs, sizes))

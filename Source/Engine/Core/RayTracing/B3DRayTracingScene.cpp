@@ -88,16 +88,23 @@ namespace b3d::render
 		FrameAllocatorScope frameScope;
 
 		// The bottom level structures of the geometries that aren't built go in one pass, each at its own offset of one scratch buffer.
-		// Marking a geometry built right away keeps instances that share it from adding it twice.
+		// Marking a geometry built right away keeps instances that share it from adding it twice. A geometry built here or elsewhere since
+		// the last top level build has a new contents version, which the top level structure must see.
 		FrameVector<RayTracingGeometry*> pendingGeometries;
 		for(const Slot& slot : mSlots)
 		{
 			RayTracingGeometry* geometry = slot.Instance.Geometry.get();
-			if(!slot.IsUsed || geometry == nullptr || geometry->IsBuilt())
+			if(!slot.IsUsed || geometry == nullptr)
 				continue;
 
-			pendingGeometries.push_back(geometry);
-			geometry->MarkBuilt();
+			if(!geometry->IsBuilt())
+			{
+				pendingGeometries.push_back(geometry);
+				geometry->MarkBuilt();
+			}
+
+			if(geometry->GetContentsVersion() != slot.BuiltContentsVersion)
+				mIsDirty = true;
 		}
 
 		if(!pendingGeometries.empty())
@@ -131,9 +138,6 @@ namespace b3d::render
 			{
 				passContext.GetCommandBuffer().BuildAccelerationStructures(builds);
 			});
-
-			// The top level structure must see the new contents of the bottom levels
-			mIsDirty = true;
 		}
 
 		if(!mIsDirty && mAccelerationStructure != nullptr)
@@ -143,12 +147,13 @@ namespace b3d::render
 		FrameVector<GpuRayTracingInstance> instances;
 		instances.reserve(mInstanceCount);
 		mBottomLevels.clear();
-		for(const Slot& slot : mSlots)
+		for(Slot& slot : mSlots)
 		{
 			const RayTracingGeometryInstance& geometryInstance = slot.Instance;
 			if(!slot.IsUsed || geometryInstance.Geometry == nullptr)
 				continue;
 
+			slot.BuiltContentsVersion = geometryInstance.Geometry->GetContentsVersion();
 			const TShared<GpuAccelerationStructure>& bottomLevel = geometryInstance.Geometry->GetAccelerationStructure();
 
 			GpuRayTracingInstance instance(bottomLevel.get(), geometryInstance.Transform, geometryInstance.InstanceId);
