@@ -115,6 +115,8 @@ namespace b3d::render
 			layout.Tangent = vertexLayout.Tangent;
 			layout.Uv = vertexLayout.Uv;
 		}
+
+		MarkOutOfDate();
 	}
 
 	void RayTracingGeometry::Build(FrameGraph& graph)

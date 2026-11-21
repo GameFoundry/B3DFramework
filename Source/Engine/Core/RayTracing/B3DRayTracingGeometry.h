@@ -108,19 +108,6 @@ namespace b3d::render
 		 */
 		void Build(FrameGraph& graph);
 
-		/**
-		 * Adds @p pass to @p graph, with a build of the structure of each of @p geometries, each at its own offset of one scratch buffer.
-		 * The pass exports the structures, and the geometries count as built and get a new GetVersion(). Does nothing if @p geometries is
-		 * empty. The geometries must stay alive until the graph executes.
-		 *
-		 * @param	graph		Graph to add the pass to.
-		 * @param	name		Name of the pass, for debugging purposes.
-		 * @param	geometries	Geometries to build. Each must appear once.
-		 * @param	pass		Pass to add the builds to. May already declare other work of the pass, such as exports of the vertex buffers
-		 *						the builds read.
-		 */
-		static void AddBuildPass(FrameGraph& graph, const StringView& name, TArrayView<RayTracingGeometry* const> geometries, FrameGraphAccelerationStructurePass&& pass);
-
 		/** Returns the bottom level acceleration structure. */
 		const TShared<GpuAccelerationStructure>& GetAccelerationStructure() const { return mAccelerationStructure; }
 
@@ -137,8 +124,9 @@ namespace b3d::render
 		TArrayView<const RayTracingGeometryLayout> GetGeometryLayouts() const { return mLayouts; }
 
 		/**
-		 * Replaces the vertex buffers the geometry is built from and that its layouts point at. The next build reads the new buffers, and
-		 * GetGeometryLayouts() returns the new layouts right away. Only for a geometry created with RayTracingGeometryFlag::Dynamic.
+		 * Replaces the vertex buffers the geometry is built from and that its layouts point at, and marks the structure as out of date
+		 * (MarkOutOfDate()). The next build reads the new buffers, and GetGeometryLayouts() returns the new layouts right away. Only for a
+		 * geometry created with RayTracingGeometryFlag::Dynamic.
 		 *
 		 * @param	vertexData	Vertices with the same description and the same number of vertices as the ones the geometry was created with.
 		 */
@@ -162,6 +150,19 @@ namespace b3d::render
 		 * formats above (IsSupportedFormat()), which also logs a warning.
 		 */
 		static TShared<RayTracingGeometry> Create(GpuDevice& device, const VertexData& vertexData, const TShared<GpuBuffer>& indexBuffer, TArrayView<const SubMesh> subMeshes, RayTracingGeometryFlags flags = RayTracingGeometryFlag::None);
+
+		/**
+		 * Adds @p pass to @p graph, with a build of the structure of each of @p geometries, each at its own offset of one scratch buffer.
+		 * The pass exports the structures, and the geometries count as built and get a new GetVersion(). Does nothing if @p geometries is
+		 * empty. The geometries must stay alive until the graph executes.
+		 *
+		 * @param	graph		Graph to add the pass to.
+		 * @param	name		Name of the pass, for debugging purposes.
+		 * @param	geometries	Geometries to build. Each must appear once.
+		 * @param	pass		Pass to add the builds to. May already declare other work of the pass, such as exports of the vertex buffers
+		 *						the builds read.
+		 */
+		static void AddBuildPass(FrameGraph& graph, const StringView& name, TArrayView<RayTracingGeometry* const> geometries, FrameGraphAccelerationStructurePass&& pass);
 
 		/**
 		 * @name Internal
