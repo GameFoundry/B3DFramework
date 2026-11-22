@@ -48,6 +48,7 @@ GpuRayTracingTestSuite::GpuRayTracingTestSuite()
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestRayTracingPipelineCreation)
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestRayTracingPipelineRecords)
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestFrameGraph)
+	B3D_ADD_TEST(GpuRayTracingTestSuite::TestAccelerationStructureRefits)
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestRayTracingGeometry)
 }
 
@@ -1205,6 +1206,231 @@ void GpuRayTracingTestSuite::TestFrameGraph()
 			fnAddTopLevelBuild(graph, "Resting build", restingTopLevel, fnCreateScratch(graph), false, FrameGraphPassFlag::None);
 		}
 	}, "GpuRayTracingTestSuite::TestFrameGraph", true);
+}
+
+void GpuRayTracingTestSuite::TestAccelerationStructureRefits()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	const GpuDeviceCapabilities& capabilities = device->GetCapabilities();
+	if(!capabilities.HasCapability(RSC_ACCELERATION_STRUCTURES) || !capabilities.HasCapability(RSC_RAY_QUERY))
+		return;
+
+	// Shaders are resources, which are created outside of the render thread
+	const TShared<GpuComputePipelineState> pipeline = CreateTestInlineRayTracingPipeline(*device);
+	B3D_TEST_ASSERT(pipeline != nullptr)
+	if(pipeline == nullptr)
+		return;
+
+	GetRenderThread().PostCommand([this, &device, &pipeline]()
+	{
+		const GpuRayTracingCapabilities& rayTracing = device->GetCapabilities().RayTracing;
+		const GpuBufferFlags inputFlags = GpuBufferFlag::AccelerationStructureInput;
+		const GpuAccelerationStructureBuildFlags refitFlags = GpuAccelerationStructureBuildFlag::PreferFastBuild | GpuAccelerationStructureBuildFlag::AllowRefit;
+
+		// One triangle, in two vertex buffers, which refits move along Z
+		const TShared<render::GpuBuffer> vertices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(12, 3, inputFlags, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> otherVertices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(12, 3, inputFlags, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> instances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(rayTracing.InstanceSize, 1, inputFlags, GpuBufferMemory::Mapped));
+		B3D_TEST_ASSERT(vertices != nullptr && otherVertices != nullptr && instances != nullptr)
+		if(vertices == nullptr || otherVertices == nullptr || instances == nullptr)
+			return;
+
+		// Writes the triangle at @p depth into @p buffer. The GPU must not be reading the buffer.
+		const auto fnWriteTriangle = [this](const TShared<render::GpuBuffer>& buffer, float depth)
+		{
+			const float vertexData[] = { 0.0f, 0.0f, depth, 1.0f, 0.0f, depth, 0.0f, 1.0f, depth };
+
+			const render::GpuBufferMappedScope mapping = buffer->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(mapping.IsValid())
+				std::memcpy(mapping.GetMappedMemory(), vertexData, sizeof(vertexData));
+		};
+
+		const GpuRayTracingGeometry geometry(vertices, 12, 3);
+		const GpuRayTracingGeometry otherGeometry(otherVertices, 12, 3);
+		const GpuAccelerationStructureInputs bottomLevelInputs(TArrayView<const GpuRayTracingGeometry>(&geometry, 1), refitFlags);
+		const GpuAccelerationStructureInputs otherBottomLevelInputs(TArrayView<const GpuRayTracingGeometry>(&otherGeometry, 1), refitFlags);
+		const GpuAccelerationStructureInputs topLevelInputs(instances, 1, refitFlags);
+
+		// Only structures that allow refits can need scratch memory for them. Some devices need none even then.
+		GpuAccelerationStructureSizes bottomLevelSizes;
+		GpuAccelerationStructureSizes topLevelSizes;
+		GpuAccelerationStructureSizes fixedSizes;
+		B3D_TEST_ASSERT(device->GetAccelerationStructureSizes(bottomLevelInputs, bottomLevelSizes) && device->GetAccelerationStructureSizes(topLevelInputs, topLevelSizes))
+		B3D_TEST_ASSERT(device->GetAccelerationStructureSizes(GpuAccelerationStructureInputs(TArrayView<const GpuRayTracingGeometry>(&geometry, 1)), fixedSizes))
+		B3D_TEST_ASSERT(fixedSizes.RefitScratchSize == 0)
+
+		const TShared<GpuAccelerationStructure> bottomLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::BottomLevel, bottomLevelSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "Refitted bottom level"));
+		const TShared<GpuAccelerationStructure> topLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::TopLevel, topLevelSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "Refitted top level"));
+		B3D_TEST_ASSERT(bottomLevel != nullptr && topLevel != nullptr)
+		if(bottomLevel == nullptr || topLevel == nullptr)
+			return;
+
+		// Writes the single instance of the top level structure, moved by @p offset along Z. The GPU must not be reading the instance buffer.
+		const auto fnWriteInstance = [this, &device, &instances, &bottomLevel](float offset)
+		{
+			const render::GpuBufferMappedScope mapping = instances->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			const GpuRayTracingInstance instance(bottomLevel.get(), Matrix4::Translation(Vector3(0.0f, 0.0f, offset)), 3);
+			B3D_TEST_ASSERT(device->WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance>(&instance, 1), mapping.GetMappedMemory()))
+		};
+
+		const TestRay ray(Vector3(0.25f, 0.25f, 0.0f), Vector3(0.0f, 0.0f, 1.0f));
+		const TShared<render::GpuBuffer> rayBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(TestRay), 1, GpuBufferFlag::None, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> hitBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(TestHit), 1, GpuBufferFlag::GpuWrite));
+		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(sizeof(TestHit)));
+		B3D_TEST_ASSERT(rayBuffer != nullptr && hitBuffer != nullptr && readback != nullptr)
+		if(rayBuffer == nullptr || hitBuffer == nullptr || readback == nullptr)
+			return;
+
+		{
+			const render::GpuBufferMappedScope mapping = rayBuffer->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			std::memcpy(mapping.GetMappedMemory(), &ray, sizeof(ray));
+		}
+
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		const TShared<GpuAccelerationStructure> bottomLevels[] = { bottomLevel };
+
+		// Builds or refits in place the bottom level structure from @p inputs, if not null, then the top level structure, and traces the ray
+		// against it. Checks that the ray hit the triangle at @p distance.
+		const auto fnBuildAndTrace = [&](const char* name, const GpuAccelerationStructureInputs* inputs, bool isRefit, float distance)
+		{
+			FrameGraph graph(*context, "Refit graph");
+			graph.ImportAccelerationStructure(bottomLevel);
+			graph.ImportAccelerationStructure(topLevel);
+			graph.ImportBuffer(hitBuffer);
+			graph.ImportBuffer(readback);
+
+			const u32 scratchSize = std::max(std::max(bottomLevelSizes.BuildScratchSize, bottomLevelSizes.RefitScratchSize), std::max(topLevelSizes.BuildScratchSize, topLevelSizes.RefitScratchSize));
+			const TShared<render::GpuBuffer> scratch = graph.CreateBuffer("Refit scratch", GpuBufferCreateInformation::CreateStructuredStorage(4, AlignUp(scratchSize, 4) / 4, GpuBufferFlag::GpuWrite));
+
+			if(inputs != nullptr)
+			{
+				GpuAccelerationStructureBuild build(*inputs, bottomLevel, scratch);
+				if(isRefit)
+					build.Source = bottomLevel;
+
+				FrameGraphAccelerationStructurePass pass;
+				pass.AddBuild(build);
+				graph.AddAccelerationStructurePass("Bottom level", std::move(pass), [build](FrameGraphPassContext& passContext)
+				{
+					B3D_ENSURE(passContext.GetCommandBuffer().BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(&build, 1)));
+				});
+			}
+
+			GpuAccelerationStructureBuild topLevelBuild(topLevelInputs, topLevel, scratch);
+			topLevelBuild.BottomLevels = TArrayView<const TShared<GpuAccelerationStructure>>(bottomLevels, 1);
+			if(isRefit)
+				topLevelBuild.Source = topLevel;
+
+			FrameGraphAccelerationStructurePass topLevelPass;
+			topLevelPass.AddBuild(topLevelBuild);
+			graph.AddAccelerationStructurePass("Top level", std::move(topLevelPass), [topLevelBuild](FrameGraphPassContext& passContext)
+			{
+				B3D_ENSURE(passContext.GetCommandBuffer().BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(&topLevelBuild, 1)));
+			});
+
+			const TShared<render::GpuParameterSet> parameterSet = context->GetParameterSetPool().Create(pipeline->GetParameterLayout()->GetSet(0), 0);
+			B3D_TEST_ASSERT(parameterSet->SetAccelerationStructure("Scene", topLevel))
+			parameterSet->SetStorageBuffer("Rays", rayBuffer);
+			parameterSet->SetStorageBuffer("Hits", hitBuffer);
+
+			FrameGraphComputePass tracePass;
+			tracePass.AddParameterSet(parameterSet);
+			graph.AddComputePass("Trace", std::move(tracePass), [&pipeline, parameterSet](FrameGraphPassContext& passContext)
+			{
+				render::GpuCommandBuffer& commands = passContext.GetCommandBuffer();
+				commands.SetGpuComputePipelineState(pipeline);
+				commands.SetGpuParameterSet(parameterSet);
+				commands.DispatchCompute(1);
+			});
+
+			FrameGraphCopyPass copyPass;
+			copyPass.AddSource(hitBuffer);
+			copyPass.AddDestination(readback);
+			graph.AddCopyPass("Read hit", std::move(copyPass), [source = hitBuffer, destination = readback](FrameGraphPassContext& passContext)
+			{
+				passContext.GetCommandBuffer().CopyBufferToBuffer(source, destination, 0, 0, sizeof(TestHit));
+			});
+
+			graph.Compile();
+			graph.Execute();
+			device->WaitUntilIdle();
+
+			TestHit hit;
+			{
+				const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
+				B3D_TEST_ASSERT(mapping.IsValid())
+				if(!mapping.IsValid())
+					return;
+
+				std::memcpy(&hit, mapping.GetMappedMemory(), sizeof(hit));
+			}
+
+			B3D_TEST_ASSERT_MSG(hit.IsHit != 0.0f && std::abs(hit.Distance - distance) < 1e-4f && hit.InstanceId == 3, StringUtility::Format("{0}: hit {1}, distance {2}, instance id {3}, expected distance {4}.", name, hit.IsHit, hit.Distance, hit.InstanceId, distance))
+			device->EndFrame();
+		};
+
+		fnWriteTriangle(vertices, 5.0f);
+		fnWriteTriangle(otherVertices, 9.0f);
+		fnWriteInstance(0.0f);
+		fnBuildAndTrace("Build", &bottomLevelInputs, false, 5.0f);
+
+		// Moved vertices refit the bottom level structure in place, and the top level structure is refitted over it
+		fnWriteTriangle(vertices, 7.0f);
+		fnBuildAndTrace("Moved vertices", &bottomLevelInputs, true, 7.0f);
+
+		// A moved instance refits only the top level structure
+		fnWriteInstance(1.0f);
+		fnBuildAndTrace("Moved instance", nullptr, true, 8.0f);
+
+		// A refit may read its vertices from another buffer than the build before it
+		fnBuildAndTrace("Other vertex buffer", &otherBottomLevelInputs, true, 10.0f);
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		// A refit is checked against its own inputs only, not against the build of its source
+		const TShared<render::GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
+		const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Rejected refits"));
+		const TShared<render::GpuBuffer> scratch = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(4, AlignUp(bottomLevelSizes.BuildScratchSize, 4) / 4, GpuBufferFlag::GpuWrite));
+		B3D_TEST_ASSERT(scratch != nullptr)
+		if(scratch == nullptr)
+			return;
+
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("Build 0 refits acceleration structure 'Refitted bottom level' from inputs without GpuAccelerationStructureBuildFlag::AllowRefit.");
+
+			GpuAccelerationStructureBuild build(GpuAccelerationStructureInputs(TArrayView<const GpuRayTracingGeometry>(&geometry, 1), GpuAccelerationStructureBuildFlag::PreferFastBuild), bottomLevel, scratch);
+			build.Source = bottomLevel;
+			B3D_TEST_ASSERT(!commands->BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(&build, 1)))
+		}
+
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("Build 0 refits acceleration structure 'Refitted top level' from inputs of another level.");
+
+			GpuAccelerationStructureBuild build(bottomLevelInputs, bottomLevel, scratch);
+			build.Source = topLevel;
+			B3D_TEST_ASSERT(!commands->BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(&build, 1)))
+		}
+
+		context->SubmitCommandBuffer(commands);
+		device->WaitUntilIdle();
+#endif
+	}, "GpuRayTracingTestSuite::TestAccelerationStructureRefits", true);
 }
 
 namespace

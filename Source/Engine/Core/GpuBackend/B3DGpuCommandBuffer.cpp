@@ -857,15 +857,31 @@ bool GpuCommandBuffer::BlitTexture(const TShared<Texture>& source, const TShared
 #if B3D_BUILD_TYPE_DEVELOPMENT
 namespace
 {
+	/** Returns the scratch memory @p build needs, out of @p sizes, the sizes its inputs need. */
+	u32 GetScratchSize(const GpuAccelerationStructureBuild& build, const GpuAccelerationStructureSizes& sizes)
+	{
+		return build.Source != nullptr ? sizes.RefitScratchSize : sizes.BuildScratchSize;
+	}
+
 	/**
-	 * Checks the destination and scratch memory of @p build on @p device, and logs the reason if they are invalid. @p sizes are what the
-	 * build's inputs need.
+	 * Checks the destination, source and scratch memory of @p build on @p device, and logs the reason if they are invalid. @p sizes are
+	 * what the build's inputs need.
 	 */
 	bool ValidateAccelerationStructureBuild(const GpuDevice& device, const GpuAccelerationStructureBuild& build, u32 buildIndex, const GpuAccelerationStructureSizes& sizes)
 	{
 		const GpuAccelerationStructure& destination = *build.Destination;
 		if(!B3D_ENSURE_LOG(destination.GetType() == build.Inputs.Type, "Build {0} builds acceleration structure '{1}' from inputs of another level.", buildIndex, destination.GetName()))
 			return false;
+
+		// The source isn't checked against the inputs of its last build, which only the caller knows
+		if(build.Source != nullptr)
+		{
+			if(!B3D_ENSURE_LOG(build.Source->GetType() == build.Inputs.Type, "Build {0} refits acceleration structure '{1}' from inputs of another level.", buildIndex, build.Source->GetName()))
+				return false;
+
+			if(!B3D_ENSURE_LOG(build.Inputs.Flags.IsSet(GpuAccelerationStructureBuildFlag::AllowRefit), "Build {0} refits acceleration structure '{1}' from inputs without GpuAccelerationStructureBuildFlag::AllowRefit.", buildIndex, build.Source->GetName()))
+				return false;
+		}
 
 		if(!B3D_ENSURE_LOG(destination.GetSize() >= sizes.AccelerationStructureSize, "Build {0} needs {1} bytes, but acceleration structure '{2}' has {3}.", buildIndex,
 			sizes.AccelerationStructureSize, destination.GetName(), destination.GetSize()))
@@ -887,8 +903,9 @@ namespace
 		if(!B3D_ENSURE_LOG(build.ScratchOffset % scratchAlignment == 0, "The scratch offset {0} of build {1} must be a multiple of {2}.", build.ScratchOffset, buildIndex, scratchAlignment))
 			return false;
 
-		if(!B3D_ENSURE_LOG((u64)build.ScratchOffset + sizes.BuildScratchSize <= scratchBuffer.GetTotalSize(), "Build {0} needs {1} bytes of scratch memory past offset {2}, more than buffer '{3}' has.",
-			buildIndex, sizes.BuildScratchSize, build.ScratchOffset, scratchBuffer.GetName()))
+		const u32 scratchSize = GetScratchSize(build, sizes);
+		if(!B3D_ENSURE_LOG((u64)build.ScratchOffset + scratchSize <= scratchBuffer.GetTotalSize(), "Build {0} needs {1} bytes of scratch memory past offset {2}, more than buffer '{3}' has.",
+			buildIndex, scratchSize, build.ScratchOffset, scratchBuffer.GetName()))
 		{
 			return false;
 		}
@@ -928,10 +945,15 @@ namespace
 				if(!B3D_ENSURE_LOG(other.Destination != build.Destination, "Builds {0} and {1} build the same acceleration structure.", otherIndex, buildIndex))
 					return false;
 
+				// Builds of one call may run at the same time, so a refit cannot read a structure built next to it
+				const bool readsOtherDestination = (build.Source != nullptr && build.Source == other.Destination) || (other.Source != nullptr && other.Source == build.Destination);
+				if(!B3D_ENSURE_LOG(!readsOtherDestination, "Builds {0} and {1} build an acceleration structure and refit from it. Record them in separate calls.", otherIndex, buildIndex))
+					return false;
+
 				if(other.ScratchBuffer == build.ScratchBuffer)
 				{
-					const bool overlaps = build.ScratchOffset < other.ScratchOffset + buildSizes[otherIndex].BuildScratchSize &&
-						other.ScratchOffset < build.ScratchOffset + buildSizes[buildIndex].BuildScratchSize;
+					const bool overlaps = build.ScratchOffset < other.ScratchOffset + GetScratchSize(other, buildSizes[otherIndex]) &&
+						other.ScratchOffset < build.ScratchOffset + GetScratchSize(build, buildSizes[buildIndex]);
 					if(!B3D_ENSURE_LOG(!overlaps, "Builds {0} and {1} use overlapping scratch memory of buffer '{2}'.", otherIndex, buildIndex, build.ScratchBuffer->GetName()))
 						return false;
 				}

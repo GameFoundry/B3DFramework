@@ -58,8 +58,9 @@ namespace b3d::render
 		None = 0,
 
 		/**
-		 * The vertices of the geometry move. The structure is built for fast builds rather than fast ray tracing, and SetVertexData() may
-		 * replace its vertex buffers. The indices and the number of vertices must not change.
+		 * The vertices of the geometry move. The structure is built for fast builds rather than fast ray tracing, it can be refitted to
+		 * moved vertices (Refit()), and SetVertexData() may replace its vertex buffers. The indices and the number of vertices must not
+		 * change.
 		 */
 		Dynamic = 1 << 0
 	};
@@ -108,6 +109,14 @@ namespace b3d::render
 		 */
 		void Build(FrameGraph& graph);
 
+		/**
+		 * Adds a pass to @p graph that refits the structure to the current positions of its vertices, and exports it. A refit is several
+		 * times faster than a build, but keeps the tree of the last build, so rays slow down as the vertices move away from where they were
+		 * then. Only for a geometry created with RayTracingGeometryFlag::Dynamic that was built at least once; others are built instead,
+		 * with an error logged. The geometry must stay alive until the graph executes.
+		 */
+		void Refit(FrameGraph& graph);
+
 		/** Returns the bottom level acceleration structure. */
 		const TShared<GpuAccelerationStructure>& GetAccelerationStructure() const { return mAccelerationStructure; }
 
@@ -152,17 +161,18 @@ namespace b3d::render
 		static TShared<RayTracingGeometry> Create(GpuDevice& device, const VertexData& vertexData, const TShared<GpuBuffer>& indexBuffer, TArrayView<const SubMesh> subMeshes, RayTracingGeometryFlags flags = RayTracingGeometryFlag::None);
 
 		/**
-		 * Adds @p pass to @p graph, with a build of the structure of each of @p geometries, each at its own offset of one scratch buffer.
-		 * The pass exports the structures, and the geometries count as built and get a new GetVersion(). Does nothing if @p geometries is
-		 * empty. The geometries must stay alive until the graph executes.
+		 * Adds @p pass to @p graph, with a build of the structure of each of @p builds and a refit of each of @p refits (see Refit()), each
+		 * at its own offset of one scratch buffer. The pass exports the structures, and the geometries count as built and get a new
+		 * GetVersion(). Does nothing if both lists are empty. The geometries must stay alive until the graph executes.
 		 *
 		 * @param	graph		Graph to add the pass to.
 		 * @param	name		Name of the pass, for debugging purposes.
-		 * @param	geometries	Geometries to build. Each must appear once.
+		 * @param	builds		Geometries to build.
+		 * @param	refits		Geometries to refit. A geometry may appear once, in one of the two lists.
 		 * @param	pass		Pass to add the builds to. May already declare other work of the pass, such as exports of the vertex buffers
 		 *						the builds read.
 		 */
-		static void AddBuildPass(FrameGraph& graph, const StringView& name, TArrayView<RayTracingGeometry* const> geometries, FrameGraphAccelerationStructurePass&& pass);
+		static void AddBuildPass(FrameGraph& graph, const StringView& name, TArrayView<RayTracingGeometry* const> builds, TArrayView<RayTracingGeometry* const> refits, FrameGraphAccelerationStructurePass&& pass);
 
 		/**
 		 * @name Internal
@@ -199,6 +209,7 @@ namespace b3d::render
 		Vector<GpuRayTracingGeometry> mGeometries;
 		GpuAccelerationStructureInputs mInputs;
 		u32 mBuildScratchSize = 0;
+		u32 mRefitScratchSize = 0; /**< Scratch memory a refit needs, in bytes. Zero for a geometry that isn't dynamic. */
 		TShared<GpuAccelerationStructure> mAccelerationStructure;
 		Vector<u32> mSubMeshGeometryIndices;
 		Vector<RayTracingGeometryLayout> mLayouts;

@@ -22,6 +22,18 @@
 #include "ThirdParty/CityHash/city.h"
 #include "Utility/B3DBitwise.h"
 
+namespace b3d
+{
+	TConfigVariable<u32> gSkinCacheGeometryRebuildInterval("render.SkinCacheGeometryRebuildInterval",
+		"Number of refits after which the ray tracing geometry of a skin cache entry is rebuilt, which restores the ray tracing speed refits lose as the pose moves away from the one of the last build. 0 never rebuilds.", 60);
+
+	TConfigVariable<u32> gSkinCacheGeometryRebuildTrianglesPerFrame("render.SkinCacheGeometryRebuildTrianglesPerFrame",
+		"Triangles the periodic rebuilds of skin cache ray tracing geometry may cover in one frame. Entries over the budget refit, and are rebuilt in a later frame. The oldest request is granted even if it alone is over the budget.", 200000);
+
+	TConfigVariable<bool> gSkinCacheAsyncGeometry("render.SkinCacheAsyncGeometry",
+		"If enabled, the pass that builds and refits the ray tracing geometry of skin cache entries prefers the async compute queue.", false);
+} // namespace b3d
+
 namespace b3d::render
 {
 	namespace
@@ -503,7 +515,8 @@ namespace b3d::render
 		Vector<SkinCacheDeformationDispatch> dispatches;
 		dispatches.reserve(entriesToDeform.size());
 		FrameVector<RayTracingGeometry*> geometriesToBuild;
-		FrameGraphAccelerationStructurePass geometryPass;
+		FrameVector<SkinCacheEntry*> entriesToRefit;
+		FrameGraphAccelerationStructurePass geometryPass(gSkinCacheAsyncGeometry ? FrameGraphPassFlag::AsyncCompute : FrameGraphPassFlag::None);
 		for(u32 entryIndex = 0; entryIndex < (u32)entriesToDeform.size(); entryIndex++)
 		{
 			SkinCacheEntry& entry = *entriesToDeform[entryIndex];
@@ -575,20 +588,34 @@ namespace b3d::render
 			// buffer each time, so its geometry is pointed at it.
 			if(entry.mSupportsRayTracingGeometry)
 			{
+				// A new geometry is built. The others refit, unless the rebuild budget below grants their periodic rebuild.
 				const VertexData& vertexData = *entry.mVertexDataWithoutMotion[targetIndex];
 				if(entry.mRayTracingGeometry == nullptr)
 				{
-					entry.mRayTracingGeometry = RayTracingGeometry::Create(mDevice, vertexData, entry.mMesh->GetIndexBuffer(), entry.mMesh->GetProperties().SubMeshes,
-						RayTracingGeometryFlag::Dynamic);
+					const TArrayView<const SubMesh> subMeshes = entry.mMesh->GetProperties().SubMeshes;
+					entry.mRayTracingGeometry = RayTracingGeometry::Create(mDevice, vertexData, entry.mMesh->GetIndexBuffer(), subMeshes, RayTracingGeometryFlag::Dynamic);
+					if(entry.mRayTracingGeometry != nullptr)
+					{
+						geometriesToBuild.push_back(entry.mRayTracingGeometry.get());
+
+						entry.mTriangleCount = 0;
+						for(const SubMesh& subMesh : subMeshes)
+						{
+							if(subMesh.DrawOp == DOT_TRIANGLE_LIST)
+								entry.mTriangleCount += subMesh.IndexCount / 3;
+						}
+					}
 				}
-				else if(keepsPreviousPositions)
-					entry.mRayTracingGeometry->SetVertexData(vertexData);
+				else
+				{
+					if(keepsPreviousPositions)
+						entry.mRayTracingGeometry->SetVertexData(vertexData);
+
+					entriesToRefit.push_back(&entry);
+				}
 
 				if(entry.mRayTracingGeometry != nullptr)
-				{
-					geometriesToBuild.push_back(entry.mRayTracingGeometry.get());
 					geometryPass.Export(positionBuffer);
-				}
 				else
 				{
 					// The positions are then exported by the deformation pass, as for an entry without the flag
@@ -613,8 +640,50 @@ namespace b3d::render
 			SkinCacheDeformationMaterial::Execute(passContext, dispatches);
 		});
 
-		// The structures of all entries are built in one pass, after the deformation that wrote their positions, which the pass exports
-		RayTracingGeometry::AddBuildPass(graph, "Skin cache geometry", geometriesToBuild, std::move(geometryPass));
+		// Entries that refitted often enough ask for a rebuild. The oldest requests are granted, up to the budget. The oldest one is granted
+		// even if it alone is over the budget, so every request is granted eventually.
+		const u32 rebuildInterval = gSkinCacheGeometryRebuildInterval;
+		FrameVector<SkinCacheEntry*> rebuildRequests;
+		FrameVector<RayTracingGeometry*> geometriesToRefit;
+		for(SkinCacheEntry* entry : entriesToRefit)
+		{
+			if(rebuildInterval > 0 && entry->mRefitsSinceRebuild >= rebuildInterval)
+			{
+				if(entry->mRebuildRequest == 0)
+					entry->mRebuildRequest = ++mRebuildRequestCount;
+
+				rebuildRequests.push_back(entry);
+			}
+			else
+			{
+				geometriesToRefit.push_back(entry->mRayTracingGeometry.get());
+				entry->mRefitsSinceRebuild++;
+			}
+		}
+
+		std::sort(rebuildRequests.begin(), rebuildRequests.end(), [](const SkinCacheEntry* left, const SkinCacheEntry* right) { return left->mRebuildRequest < right->mRebuildRequest; });
+
+		const u32 rebuildBudget = gSkinCacheGeometryRebuildTrianglesPerFrame;
+		u32 rebuiltTriangleCount = 0;
+		for(SkinCacheEntry* entry : rebuildRequests)
+		{
+			const bool isGranted = rebuiltTriangleCount == 0 || rebuiltTriangleCount + entry->mTriangleCount <= rebuildBudget;
+			if(isGranted)
+			{
+				geometriesToBuild.push_back(entry->mRayTracingGeometry.get());
+				rebuiltTriangleCount += entry->mTriangleCount;
+				entry->mRefitsSinceRebuild = 0;
+				entry->mRebuildRequest = 0;
+			}
+			else
+			{
+				geometriesToRefit.push_back(entry->mRayTracingGeometry.get());
+				entry->mRefitsSinceRebuild++;
+			}
+		}
+
+		// The structures of all entries are built and refitted in one pass, after the deformation that wrote their positions, which the pass exports
+		RayTracingGeometry::AddBuildPass(graph, "Skin cache geometry", geometriesToBuild, geometriesToRefit, std::move(geometryPass));
 
 		return true;
 	}

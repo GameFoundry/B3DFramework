@@ -412,14 +412,16 @@ bool D3D12GpuDevice::GetAccelerationStructureSizes(const GpuAccelerationStructur
 
 	// Buffer sizes are 32-bit
 	static constexpr UINT64 kMaximumSize = std::numeric_limits<u32>::max();
-	if(prebuildInformation.ResultDataMaxSizeInBytes > kMaximumSize || prebuildInformation.ScratchDataSizeInBytes > kMaximumSize)
+	if(prebuildInformation.ResultDataMaxSizeInBytes > kMaximumSize || prebuildInformation.ScratchDataSizeInBytes > kMaximumSize || prebuildInformation.UpdateScratchDataSizeInBytes > kMaximumSize)
 	{
-		B3D_LOG(Error, LogRenderBackend, "An acceleration structure needs {0} bytes and its build {1} bytes of scratch memory. Neither can exceed 4 GiB.",
-			(u64)prebuildInformation.ResultDataMaxSizeInBytes, (u64)prebuildInformation.ScratchDataSizeInBytes);
+		B3D_LOG(Error, LogRenderBackend, "An acceleration structure needs {0} bytes, its build {1} bytes of scratch memory and its refit {2}. None can exceed 4 GiB.",
+			(u64)prebuildInformation.ResultDataMaxSizeInBytes, (u64)prebuildInformation.ScratchDataSizeInBytes, (u64)prebuildInformation.UpdateScratchDataSizeInBytes);
 		return false;
 	}
 
-	outSizes = GpuAccelerationStructureSizes((u32)prebuildInformation.ResultDataMaxSizeInBytes, (u32)prebuildInformation.ScratchDataSizeInBytes);
+	// Without the flag the size of a refit is meaningless, as refits aren't allowed
+	const u32 refitScratchSize = inputs.Flags.IsSet(GpuAccelerationStructureBuildFlag::AllowRefit) ? (u32)prebuildInformation.UpdateScratchDataSizeInBytes : 0;
+	outSizes = GpuAccelerationStructureSizes((u32)prebuildInformation.ResultDataMaxSizeInBytes, (u32)prebuildInformation.ScratchDataSizeInBytes, refitScratchSize);
 	return true;
 }
 

@@ -293,17 +293,19 @@ namespace b3d
 
 			/**
 			 * Declares what @p build reads and writes. The pass's execute function records the build. The destination and the scratch
-			 * buffer are written, so they must be resources of the graph, and the destination's previous contents are discarded. The
-			 * bottom level structures and the vertex, index and instance buffers are only read, so they are declared if they are resources
-			 * of the graph, and read at rest otherwise.
+			 * buffer are written, so they must be resources of the graph. The destination's previous contents are discarded, unless the
+			 * build refits it in place, which reads it too. The bottom level structures, the source of a refit into another structure,
+			 * and the vertex, index and instance buffers are only read, so they are declared if they are resources of the graph, and read
+			 * at rest otherwise.
 			 */
 			void AddBuild(const GpuAccelerationStructureBuild& build);
 
 		private:
 			friend class FrameGraph;
 
-			Vector<TShared<GpuAccelerationStructure>> mDestinations;
-			Vector<TShared<GpuAccelerationStructure>> mBottomLevels;
+			Vector<TShared<GpuAccelerationStructure>> mDestinations; /**< Structures the builds write, discarding their contents. */
+			Vector<TShared<GpuAccelerationStructure>> mRefittedStructures; /**< Structures the builds refit in place, so they read and write them. */
+			Vector<TShared<GpuAccelerationStructure>> mReadStructures; /**< Bottom level structures, and sources of refits into other structures. */
 			Vector<TShared<GpuBuffer>> mScratchBuffers;
 			Vector<TShared<GpuBuffer>> mInputBuffers; /**< Vertex, index and instance buffers. */
 		};

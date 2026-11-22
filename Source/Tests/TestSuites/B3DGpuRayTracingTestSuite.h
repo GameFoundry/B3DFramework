@@ -57,6 +57,15 @@ namespace b3d
 		void TestFrameGraph();
 
 		/**
+		 * Refits a bottom and a top level structure built with GpuAccelerationStructureBuildFlag::AllowRefit in place, in frame graphs, and
+		 * traces a ray against the result: after the vertices moved, after the instance moved, and with the vertices in another buffer than
+		 * the one the structure was built from. Checks that only structures that allow refits need refit scratch memory, and in development
+		 * builds that refits from inputs without the flag, or from a structure of another level, are rejected. Runs only with
+		 * RSC_ACCELERATION_STRUCTURES and RSC_RAY_QUERY.
+		 */
+		void TestAccelerationStructureRefits();
+
+		/**
 		 * Builds the ray tracing geometry of a mesh with two triangle list sub-meshes and a line list, in a RayTracingScene, and reads the
 		 * triangles rays hit through RayTracingGeometryAccess.bslinc, inline and from closest hit programs: indices, interpolated positions,
 		 * normals and texture coordinates. Then moves, removes and adds instances, writes the mesh, and outgrows the top level structure,

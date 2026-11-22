@@ -1494,9 +1494,13 @@ namespace b3d
 				const GpuAccelerationStructureBuild& build = builds[buildIndex];
 				MetalAccelerationStructure* const destination = static_cast<MetalGpuAccelerationStructure&>(*build.Destination).GetMetalResource();
 				MetalBuffer* const scratch = static_cast<MetalGpuBuffer&>(*build.ScratchBuffer).GetMetalResource();
+				MetalAccelerationStructure* const source = build.Source != nullptr ? static_cast<MetalGpuAccelerationStructure&>(*build.Source).GetMetalResource() : nullptr;
 
-				mResourceTracker.TrackResourceUsage(destination, GpuAccessFlag::Write);
+				mResourceTracker.TrackResourceUsage(destination, source == destination ? GpuAccessFlag::Read | GpuAccessFlag::Write : GpuAccessFlags(GpuAccessFlag::Write));
 				mResourceTracker.TrackBufferUsage(scratch, GpuAccessFlag::Read | GpuAccessFlag::Write);
+
+				if (source != nullptr && source != destination)
+					mResourceTracker.TrackResourceUsage(source, GpuAccessFlag::Read);
 
 				for (const TShared<GpuAccelerationStructure>& bottomLevel : build.BottomLevels)
 				{
@@ -1519,11 +1523,19 @@ namespace b3d
 					return false;
 
 				// Builds of one call must use separate scratch ranges, so each range is only as large as its build needs
-				const NSUInteger scratchSize = [device accelerationStructureSizesWithDescriptor:descriptors[buildIndex]].buildScratchBufferSize;
+				const MTLAccelerationStructureSizes sizes = [device accelerationStructureSizesWithDescriptor:descriptors[buildIndex]];
+				const NSUInteger scratchSize = source != nullptr ? sizes.refitScratchBufferSize : sizes.buildScratchBufferSize;
 				const MTLGPUAddress scratchAddress = scratch->GetMetalHandle().gpuAddress + build.ScratchOffset;
 				B3D_ASSERT(scratchAddress % scratchAlignment == 0 && "The scratch address of an acceleration structure build is not aligned.");
 
-				[encoder buildAccelerationStructure:destination->GetMetalHandle() descriptor:descriptors[buildIndex] scratchBuffer:MTL4BufferRangeMake(scratchAddress, scratchSize)];
+				if (source != nullptr)
+				{
+					// A nil destination refits the source in place. Both options refit everything a refit can change, as a full refit does.
+					id<MTLAccelerationStructure> refitDestination = source != destination ? destination->GetMetalHandle() : nil;
+					[encoder refitAccelerationStructure:source->GetMetalHandle() descriptor:descriptors[buildIndex] destination:refitDestination scratchBuffer:MTL4BufferRangeMake(scratchAddress, scratchSize) options:MTLAccelerationStructureRefitOptionVertexData | MTLAccelerationStructureRefitOptionPerPrimitiveData];
+				}
+				else
+					[encoder buildAccelerationStructure:destination->GetMetalHandle() descriptor:descriptors[buildIndex] scratchBuffer:MTL4BufferRangeMake(scratchAddress, scratchSize)];
 			}
 
 			mEncoderHasWork = true;

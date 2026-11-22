@@ -4,6 +4,11 @@
 
 #include "B3DPrerequisites.h"
 
+namespace b3d
+{
+	class SkinCacheTestSuite;
+} // namespace b3d
+
 namespace b3d::render
 {
 	class FrameGraph;
@@ -106,6 +111,7 @@ namespace b3d::render
 
 	private:
 		friend class SkinCache;
+		friend class b3d::SkinCacheTestSuite;
 
 		/**
 		 * Creates an entry in the bind pose and adds it to @p cache. The mesh of @p createInformation must have a skeleton or morph shapes,
@@ -190,6 +196,15 @@ namespace b3d::render
 		/** Structure of the deformed vertices, created on the first deformation if mSupportsRayTracingGeometry is true. */
 		TShared<RayTracingGeometry> mRayTracingGeometry;
 
+		u32 mTriangleCount = 0; /**< Triangles of mRayTracingGeometry, which a rebuild of it counts against the cache's rebuild budget. */
+		u32 mRefitsSinceRebuild = 0; /**< Number of refits of mRayTracingGeometry since it was last built. */
+
+		/**
+		 * Order in which the entry asked for a periodic rebuild of mRayTracingGeometry, from SkinCache::mRebuildRequestCount, or zero if it
+		 * hasn't asked. Older requests are granted first.
+		 */
+		u64 mRebuildRequest = 0;
+
 		/**
 		 * Creates vertex data that binds the mesh's streams, the position buffer @p positionBufferIndex as POSITION and, if the entry
 		 * keeps previous positions, the position buffer @p previousPositionBufferIndex as POSITION1. All of the entry's vertex data
@@ -232,6 +247,10 @@ namespace b3d::render
 		 * later passes and later work draw the vertices and trace rays against the geometries without declaring them. Call once per frame.
 		 * The entries must stay alive until the graph executes.
 		 *
+		 * A geometry is built on its first deformation, and refitted on the ones after. After render.SkinCacheGeometryRebuildInterval
+		 * refits its entry asks for a rebuild, which restores the ray tracing speed refits lose. Each update grants the oldest requests,
+		 * up to render.SkinCacheGeometryRebuildTrianglesPerFrame triangles; the other entries refit and ask again in the next update.
+		 *
 		 * @return	True if any pass was added.
 		 */
 		bool Update(FrameGraph& graph);
@@ -269,6 +288,8 @@ namespace b3d::render
 		Vector<SkinCacheEntry*> mEntriesMovedByLastUpdate;
 
 		/** @} */
+
+		u64 mRebuildRequestCount = 0; /**< Number of periodic rebuilds entries asked for, which orders their requests. */
 	};
 
 	/** @} */

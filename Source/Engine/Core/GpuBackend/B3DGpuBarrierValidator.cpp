@@ -200,7 +200,13 @@ namespace b3d::render
 
 		for(const GpuAccelerationStructureBuild& build : builds)
 		{
-			ValidateAccelerationStructureAccess(*build.Destination, GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Write);
+			// A refit in place reads the structure it writes
+			const GpuAccessFlags destinationAccess = build.Source == build.Destination ? GpuAccessFlag::Read | GpuAccessFlag::Write : GpuAccessFlags(GpuAccessFlag::Write);
+			ValidateAccelerationStructureAccess(*build.Destination, GpuStageFlag::AccelerationStructureBuild, destinationAccess);
+
+			if(build.Source != nullptr && build.Source != build.Destination)
+				ValidateAccelerationStructureAccess(*build.Source, GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Read);
+
 			ValidateBufferAccess(*build.ScratchBuffer, GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Read | GpuAccessFlag::Write);
 
 			for(const TShared<GpuAccelerationStructure>& bottomLevel : build.BottomLevels)

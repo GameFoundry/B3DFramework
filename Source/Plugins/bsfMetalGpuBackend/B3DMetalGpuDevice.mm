@@ -353,14 +353,16 @@ namespace b3d
 
 			// Buffer sizes are 32-bit
 			static constexpr NSUInteger kMaximumSize = std::numeric_limits<u32>::max();
-			if (sizes.accelerationStructureSize > kMaximumSize || sizes.buildScratchBufferSize > kMaximumSize)
+			if (sizes.accelerationStructureSize > kMaximumSize || sizes.buildScratchBufferSize > kMaximumSize || sizes.refitScratchBufferSize > kMaximumSize)
 			{
-				B3D_LOG(Error, LogRenderBackend, "An acceleration structure needs {0} bytes and its build {1} bytes of scratch memory. Neither can exceed 4 GiB.",
-					(u64)sizes.accelerationStructureSize, (u64)sizes.buildScratchBufferSize);
+				B3D_LOG(Error, LogRenderBackend, "An acceleration structure needs {0} bytes, its build {1} bytes of scratch memory and its refit {2}. None can exceed 4 GiB.",
+					(u64)sizes.accelerationStructureSize, (u64)sizes.buildScratchBufferSize, (u64)sizes.refitScratchBufferSize);
 				return false;
 			}
 
-			outSizes = GpuAccelerationStructureSizes((u32)sizes.accelerationStructureSize, (u32)sizes.buildScratchBufferSize);
+			// Without the flag the size of a refit is meaningless, as refits aren't allowed
+			const u32 refitScratchSize = inputs.Flags.IsSet(GpuAccelerationStructureBuildFlag::AllowRefit) ? (u32)sizes.refitScratchBufferSize : 0;
+			outSizes = GpuAccelerationStructureSizes((u32)sizes.accelerationStructureSize, (u32)sizes.buildScratchBufferSize, refitScratchSize);
 			return true;
 		}
 

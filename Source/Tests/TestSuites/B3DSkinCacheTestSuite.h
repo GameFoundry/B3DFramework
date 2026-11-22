@@ -79,6 +79,14 @@ namespace b3d
 		void TestRayTracingGeometry();
 
 		/**
+		 * Deforms two entries with ray tracing geometry, one of them with previous positions, through several poses, with a rebuild interval
+		 * of two refits and a rebuild budget of one triangle. Checks that the geometries are built on the first deformation and refitted on
+		 * the ones after, that both ask for a rebuild after two refits, that only the older request is granted and the other entry refits
+		 * until the next update grants it, and that inline rays hit the deformed surfaces of both after every build and refit.
+		 */
+		void TestGeometryRefits();
+
+		/**
 		 * Deforms two entries, one of them with previous positions, in one graph: one pass, not culled, and no validation errors. A later
 		 * graph draws the exported buffers at rest without declaring them, and a third deforms them again after that draw.
 		 */

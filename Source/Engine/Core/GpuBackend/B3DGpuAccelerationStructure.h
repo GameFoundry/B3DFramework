@@ -70,12 +70,18 @@ namespace b3d
 	struct GpuAccelerationStructureSizes
 	{
 		GpuAccelerationStructureSizes() = default;
-		GpuAccelerationStructureSizes(u32 accelerationStructureSize, u32 buildScratchSize)
-			: AccelerationStructureSize(accelerationStructureSize), BuildScratchSize(buildScratchSize)
+		GpuAccelerationStructureSizes(u32 accelerationStructureSize, u32 buildScratchSize, u32 refitScratchSize = 0)
+			: AccelerationStructureSize(accelerationStructureSize), BuildScratchSize(buildScratchSize), RefitScratchSize(refitScratchSize)
 		{ }
 
 		u32 AccelerationStructureSize = 0; /**< Size of the acceleration structure's memory, in bytes. */
 		u32 BuildScratchSize = 0; /**< Size of the scratch memory a build needs, in bytes. */
+
+		/**
+		 * Size of the scratch memory a refit needs, in bytes (see GpuAccelerationStructureBuild::Source). Zero without
+		 * GpuAccelerationStructureBuildFlag::AllowRefit, and on devices whose refits need no scratch memory.
+		 */
+		u32 RefitScratchSize = 0;
 	};
 
 	/** Flags that control how rays interact with the geometry of a bottom level acceleration structure. */
@@ -100,7 +106,14 @@ namespace b3d
 		None = 0,
 		PreferFastTrace = 1 << 0, /**< Prefers faster ray tracing over a faster build. Cannot be combined with PreferFastBuild. */
 		PreferFastBuild = 1 << 1, /**< Prefers a faster build over faster ray tracing. Cannot be combined with PreferFastTrace. */
-		MinimizeMemory = 1 << 2 /**< Prefers a smaller acceleration structure and scratch memory, at the cost of build time and ray tracing speed. */
+		MinimizeMemory = 1 << 2, /**< Prefers a smaller acceleration structure and scratch memory, at the cost of build time and ray tracing speed. */
+
+		/**
+		 * The structure can be refitted: a build with GpuAccelerationStructureBuild::Source refits it to moved vertices or instances instead
+		 * of building it again. A refit is several times faster than a build, but rays slow down as the contents move away from those of the
+		 * last full build. Costs memory and ray tracing speed.
+		 */
+		AllowRefit = 1 << 3
 	};
 
 	using GpuAccelerationStructureBuildFlags = Flags<GpuAccelerationStructureBuildFlag, u8>;
@@ -209,8 +222,20 @@ namespace b3d
 		/** Contents to build the structure from. Its type must match the type of the destination. */
 		GpuAccelerationStructureInputs Inputs;
 
-		/** Structure to build. Its previous contents are discarded. It must be at least as large as the size query reports. */
+		/**
+		 * Structure to build. Its previous contents are discarded, unless it is also the source of a refit. It must be at least as large
+		 * as the size query reports.
+		 */
 		TShared<render::GpuAccelerationStructure> Destination;
+
+		/**
+		 * Structure to refit from, which makes the build a refit: the destination becomes the source refitted to the inputs. Null for a
+		 * full build. The source must have been built with GpuAccelerationStructureBuildFlag::AllowRefit, from inputs that differ from these
+		 * only in vertex positions and vertex buffers, for a bottom level structure, or in instance transforms, for a top level one. The
+		 * flags must be the same. It may be the destination, which refits the structure in place. A refit needs
+		 * GpuAccelerationStructureSizes::RefitScratchSize bytes of scratch memory instead of BuildScratchSize.
+		 */
+		TShared<render::GpuAccelerationStructure> Source;
 
 		/**
 		 * Memory the build uses while it runs. A structured storage buffer stored on the GPU that allows unordered access. Builds recorded
@@ -220,7 +245,7 @@ namespace b3d
 
 		/**
 		 * Offset of the build's scratch memory in the scratch buffer, in bytes. A multiple of GpuRayTracingCapabilities::ScratchOffsetAlignment,
-		 * followed by at least GpuAccelerationStructureSizes::BuildScratchSize bytes.
+		 * followed by at least GpuAccelerationStructureSizes::BuildScratchSize bytes, or RefitScratchSize bytes for a refit.
 		 */
 		u32 ScratchOffset = 0;
 

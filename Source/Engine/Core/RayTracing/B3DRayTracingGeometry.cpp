@@ -122,37 +122,60 @@ namespace b3d::render
 	void RayTracingGeometry::Build(FrameGraph& graph)
 	{
 		RayTracingGeometry* geometry = this;
-		AddBuildPass(graph, "Build ray tracing geometry", TArrayView<RayTracingGeometry* const>(&geometry, 1), FrameGraphAccelerationStructurePass());
+		AddBuildPass(graph, "Build ray tracing geometry", TArrayView<RayTracingGeometry* const>(&geometry, 1), TArrayView<RayTracingGeometry* const>(), FrameGraphAccelerationStructurePass());
 	}
 
-	void RayTracingGeometry::AddBuildPass(FrameGraph& graph, const StringView& name, TArrayView<RayTracingGeometry* const> geometries, FrameGraphAccelerationStructurePass&& pass)
+	void RayTracingGeometry::Refit(FrameGraph& graph)
 	{
-		if(geometries.IsEmpty())
+		RayTracingGeometry* geometry = this;
+		AddBuildPass(graph, "Refit ray tracing geometry", TArrayView<RayTracingGeometry* const>(), TArrayView<RayTracingGeometry* const>(&geometry, 1), FrameGraphAccelerationStructurePass());
+	}
+
+	void RayTracingGeometry::AddBuildPass(FrameGraph& graph, const StringView& name, TArrayView<RayTracingGeometry* const> builds, TArrayView<RayTracingGeometry* const> refits, FrameGraphAccelerationStructurePass&& pass)
+	{
+		if(builds.IsEmpty() && refits.IsEmpty())
 			return;
 
+		// A refit needs the tree of an earlier build of a dynamic structure. Geometries without one are built instead.
 		FrameAllocatorScope frameScope;
+		FrameVector<std::pair<RayTracingGeometry*, bool>> geometries;
+		geometries.reserve((size_t)(builds.Size() + refits.Size()));
+		for(RayTracingGeometry* geometry : builds)
+			geometries.push_back(std::make_pair(geometry, false));
+
+		for(RayTracingGeometry* geometry : refits)
+		{
+			const bool canRefit = geometry->mFlags.IsSet(RayTracingGeometryFlag::Dynamic) && geometry->mVersion > 0;
+			B3D_ENSURE_LOG(canRefit, "Only dynamic ray tracing geometry that was built can be refitted. The geometry is built instead.");
+			geometries.push_back(std::make_pair(geometry, canRefit));
+		}
+
 		const u32 scratchOffsetAlignment = graph.GetWorkContext().GetDevice().GetCapabilities().RayTracing.ScratchOffsetAlignment;
 		FrameVector<u32> scratchOffsets;
 		u32 scratchSize = 0;
-		for(const RayTracingGeometry* geometry : geometries)
+		for(const auto& [geometry, isRefit] : geometries)
 		{
 			const u32 scratchOffset = Bitwise::AlignUp(scratchSize, scratchOffsetAlignment);
 			scratchOffsets.push_back(scratchOffset);
-			scratchSize = scratchOffset + geometry->mBuildScratchSize;
+			scratchSize = scratchOffset + (isRefit ? geometry->mRefitScratchSize : geometry->mBuildScratchSize);
 		}
 
-		const TShared<GpuBuffer> scratch = graph.CreateBuffer("Ray tracing geometry scratch", GpuBufferCreateInformation::CreateStructuredStorage(4, std::max(1u, Math::DivideAndRoundUp(scratchSize, 4u)),
-			GpuBufferFlag::GpuWrite));
+		const TShared<GpuBuffer> scratch = graph.CreateBuffer("Ray tracing geometry scratch", GpuBufferCreateInformation::CreateStructuredStorage(4, std::max(1u, Math::DivideAndRoundUp(scratchSize, 4u)), GpuBufferFlag::GpuWrite));
 
-		Vector<GpuAccelerationStructureBuild> builds;
-		builds.reserve((size_t)geometries.Size());
-		for(u32 geometryIndex = 0; geometryIndex < (u32)geometries.Size(); geometryIndex++)
+		Vector<GpuAccelerationStructureBuild> gpuBuilds;
+		gpuBuilds.reserve(geometries.size());
+		for(u32 geometryIndex = 0; geometryIndex < (u32)geometries.size(); geometryIndex++)
 		{
-			RayTracingGeometry& geometry = *geometries[geometryIndex];
+			RayTracingGeometry& geometry = *geometries[geometryIndex].first;
 			graph.ImportAccelerationStructure(geometry.mAccelerationStructure);
 
-			builds.push_back(GpuAccelerationStructureBuild(geometry.mInputs, geometry.mAccelerationStructure, scratch, scratchOffsets[geometryIndex]));
-			pass.AddBuild(builds.back());
+			// A refit is done in place
+			GpuAccelerationStructureBuild build(geometry.mInputs, geometry.mAccelerationStructure, scratch, scratchOffsets[geometryIndex]);
+			if(geometries[geometryIndex].second)
+				build.Source = geometry.mAccelerationStructure;
+
+			gpuBuilds.push_back(build);
+			pass.AddBuild(build);
 			pass.Export(geometry.mAccelerationStructure);
 
 			// Scenes with instances of the geometry rebuild their top level structure over the new contents
@@ -162,9 +185,9 @@ namespace b3d::render
 				scene->NotifyGeometryChanged(geometry);
 		}
 
-		graph.AddAccelerationStructurePass(name, std::move(pass), [builds = std::move(builds)](FrameGraphPassContext& passContext)
+		graph.AddAccelerationStructurePass(name, std::move(pass), [gpuBuilds = std::move(gpuBuilds)](FrameGraphPassContext& passContext)
 		{
-			passContext.GetCommandBuffer().BuildAccelerationStructures(builds);
+			passContext.GetCommandBuffer().BuildAccelerationStructures(gpuBuilds);
 		});
 	}
 
@@ -255,8 +278,8 @@ namespace b3d::render
 		if(geometry->mGeometries.empty())
 			return nullptr;
 
-		// Moving vertices are built often, so they trade ray tracing speed for build speed
-		const GpuAccelerationStructureBuildFlags buildFlags = flags.IsSet(RayTracingGeometryFlag::Dynamic) ? GpuAccelerationStructureBuildFlag::PreferFastBuild : GpuAccelerationStructureBuildFlag::PreferFastTrace;
+		// Moving vertices are built and refitted often, so they trade ray tracing speed for build speed
+		const GpuAccelerationStructureBuildFlags buildFlags = flags.IsSet(RayTracingGeometryFlag::Dynamic) ? GpuAccelerationStructureBuildFlag::PreferFastBuild | GpuAccelerationStructureBuildFlag::AllowRefit : GpuAccelerationStructureBuildFlags(GpuAccelerationStructureBuildFlag::PreferFastTrace);
 		geometry->mInputs = GpuAccelerationStructureInputs(geometry->mGeometries, buildFlags);
 
 		GpuAccelerationStructureSizes sizes;
@@ -264,6 +287,7 @@ namespace b3d::render
 			return nullptr;
 
 		geometry->mBuildScratchSize = sizes.BuildScratchSize;
+		geometry->mRefitScratchSize = sizes.RefitScratchSize;
 		geometry->mAccelerationStructure = device.CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(GpuAccelerationStructureType::BottomLevel,
 			sizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "Mesh geometry"));
 

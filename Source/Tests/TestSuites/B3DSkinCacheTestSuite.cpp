@@ -41,6 +41,7 @@
 #include "Animation/SkinCache/B3DMorphShapeBuffers.h"
 #include "Animation/SkinCache/B3DSkinCache.h"
 #include "Threading/B3DAsyncOp.h"
+#include "Utility/B3DConfigVariable.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -599,6 +600,7 @@ SkinCacheTestSuite::SkinCacheTestSuite()
 	B3D_ADD_TEST(SkinCacheTestSuite::TestChangeDetection)
 	B3D_ADD_TEST(SkinCacheTestSuite::TestVertexLayout)
 	B3D_ADD_TEST(SkinCacheTestSuite::TestRayTracingGeometry)
+	B3D_ADD_TEST(SkinCacheTestSuite::TestGeometryRefits)
 	B3D_ADD_TEST(SkinCacheTestSuite::TestFrameGraph)
 }
 
@@ -1410,6 +1412,209 @@ void SkinCacheTestSuite::TestRayTracingGeometry()
 		fnTrace("Same pose", CreatePose(-0.5f), 0);
 		B3D_TEST_ASSERT(geometry->GetVersion() == 3)
 	}, "SkinCacheTestSuite::TestRayTracingGeometry", true);
+}
+
+void SkinCacheTestSuite::TestGeometryRefits()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	const GpuDeviceCapabilities& capabilities = device->GetCapabilities();
+	if(!capabilities.HasCapability(RSC_ACCELERATION_STRUCTURES))
+		return;
+
+	// Shaders are resources, which are created outside of the render thread. The rays read the deformed vertices through the bindless heap.
+	const bool tracesRays = capabilities.HasCapability(RSC_RAY_QUERY) && device->GetBindlessHeaps() != nullptr;
+	const TShared<GpuComputePipelineState> inlinePipeline = tracesRays ? CreateTestRayTracingGeometryInlinePipeline(*device) : nullptr;
+	B3D_TEST_ASSERT(!tracesRays || inlinePipeline != nullptr)
+
+	// A rebuild interval of two refits, and a budget that grants only the oldest request in each update
+	ConfigVariableManager& configVariables = ConfigVariableManager::Instance();
+	ConfigVariable* const intervalVariable = configVariables.FindVariable("render.SkinCacheGeometryRebuildInterval");
+	ConfigVariable* const budgetVariable = configVariables.FindVariable("render.SkinCacheGeometryRebuildTrianglesPerFrame");
+	B3D_TEST_ASSERT(intervalVariable != nullptr && budgetVariable != nullptr && std::strcmp(intervalVariable->GetTypeName(), "u32") == 0 && std::strcmp(budgetVariable->GetTypeName(), "u32") == 0)
+	if(intervalVariable == nullptr || budgetVariable == nullptr)
+		return;
+
+	TConfigVariable<u32>& rebuildInterval = *static_cast<TConfigVariable<u32>*>(intervalVariable);
+	TConfigVariable<u32>& rebuildBudget = *static_cast<TConfigVariable<u32>*>(budgetVariable);
+	const u32 previousInterval = rebuildInterval;
+	const u32 previousBudget = rebuildBudget;
+	rebuildInterval.Set(2);
+	rebuildBudget.Set(1);
+
+	GetRenderThread().PostCommand([this, &device, &inlinePipeline]()
+	{
+		const TShared<MeshData> meshData = CreateTestMeshData();
+		const TShared<render::Mesh> mesh = CreateTestMesh(*device, meshData, true, false);
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+
+		// Entries are queued for the update in the order they are posed, so the first entry asks for its rebuild first
+		SkinCache cache(*device, "Test skin cache");
+		const TShared<SkinCacheEntry> entries[] = { cache.CreateEntry(SkinCacheEntryCreateInformation(mesh, SkinCacheEntryFlag::PreviousPositions | SkinCacheEntryFlag::RayTracingGeometry, "With previous positions")),
+			cache.CreateEntry(SkinCacheEntryCreateInformation(mesh, SkinCacheEntryFlag::RayTracingGeometry, "Without previous positions")) };
+
+		B3D_TEST_ASSERT(entries[0] != nullptr && entries[1] != nullptr)
+		if(entries[0] == nullptr || entries[1] == nullptr)
+			return;
+
+		// The instances of the two geometries lie apart along X, with instance ids that index the layouts of their geometries
+		static constexpr u32 kEntryCount = 2;
+		static constexpr u32 kRaysPerEntry = 3;
+		static constexpr u32 kRayCount = kEntryCount * kRaysPerEntry;
+		const Vector3 instanceOffsets[kEntryCount] = { Vector3(-3.0f, 0.0f, 0.0f), Vector3(3.0f, 0.0f, 0.0f) };
+		RayTracingScene scene(*device, "Test scene");
+
+		const TShared<render::GpuBuffer> rayBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(Vector4), kRayCount, GpuBufferFlag::None, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> layoutBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(RayTracingGeometryLayout), kEntryCount, GpuBufferFlag::None, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> hitBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(GeometryHit), kRayCount, GpuBufferFlag::GpuWrite));
+		const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kRayCount * sizeof(GeometryHit)));
+		B3D_TEST_ASSERT(rayBuffer != nullptr && layoutBuffer != nullptr && hitBuffer != nullptr && readback != nullptr)
+		if(rayBuffer == nullptr || layoutBuffer == nullptr || hitBuffer == nullptr || readback == nullptr)
+			return;
+
+		// Poses both entries with @p amounts (see CreatePose()), updates the cache, builds the scene and traces three rays at each
+		// instance in one graph. Then checks the refits each entry did since its last build, whether it waits for a rebuild, and that each
+		// ray read the closest hit of the deformed vertices its entry holds.
+		const auto fnUpdateAndTrace = [&](const char* name, const float (&amounts)[kEntryCount], const u32 (&expectedRefits)[kEntryCount], const bool (&expectedRequests)[kEntryCount])
+		{
+			Vector4 rayOrigins[kRayCount];
+			for(u32 entryIndex = 0; entryIndex < kEntryCount; entryIndex++)
+			{
+				const Vector<Matrix4> pose = CreatePose(amounts[entryIndex]);
+				entries[entryIndex]->SetPose(pose);
+
+				// Rays through the middle of three rings of the pose, which the deformed surface is expected to cover
+				const Vector<DeformedVertex> referenceVertices = DeformOnCpu(*meshData, pose);
+				for(u32 rayIndex = 0; rayIndex < kRaysPerEntry; rayIndex++)
+				{
+					const u32 ringIndex = 2 + rayIndex * 3;
+					Vector3 center = Vector3::kZero;
+					for(u32 ringVertexIndex = 0; ringVertexIndex < kRingVertexCount; ringVertexIndex++)
+						center += referenceVertices[ringIndex * kRingVertexCount + ringVertexIndex].Position / (float)kRingVertexCount;
+
+					const Vector3 origin = center + instanceOffsets[entryIndex] + Vector3(0.0f, 0.02f, -5.0f);
+					rayOrigins[entryIndex * kRaysPerEntry + rayIndex] = Vector4(origin.X, origin.Y, origin.Z, 0.0f);
+				}
+			}
+
+			FrameGraph graph(*context, "Skin cache refit test");
+			cache.Update(graph);
+			scene.Build(graph);
+
+			u32 tracePassCount = 0;
+			if(inlinePipeline != nullptr)
+			{
+				const render::GpuBufferMappedScope rayMapping = rayBuffer->Map(GpuMapOption::Write);
+				const render::GpuBufferMappedScope layoutMapping = layoutBuffer->Map(GpuMapOption::Write);
+				B3D_TEST_ASSERT(rayMapping.IsValid() && layoutMapping.IsValid())
+				if(!rayMapping.IsValid() || !layoutMapping.IsValid())
+					return;
+
+				// The layout of the entry with previous positions changes whenever its position buffers swap
+				std::memcpy(rayMapping.GetMappedMemory(), rayOrigins, sizeof(rayOrigins));
+				RayTracingGeometryLayout* const layouts = static_cast<RayTracingGeometryLayout*>(layoutMapping.GetMappedMemory());
+				for(u32 entryIndex = 0; entryIndex < kEntryCount; entryIndex++)
+					layouts[entryIndex] = entries[entryIndex]->GetRayTracingGeometry()->GetGeometryLayouts()[0];
+
+				graph.ImportBuffer(hitBuffer);
+				graph.ImportBuffer(readback);
+
+				const TShared<render::GpuParameterSet> parameterSet = context->GetParameterSetPool().Create(inlinePipeline->GetParameterLayout()->GetSet(0), 0);
+				B3D_TEST_ASSERT(parameterSet->SetAccelerationStructure("Scene", scene.GetAccelerationStructure()))
+				parameterSet->SetStorageBuffer("RayOrigins", rayBuffer);
+				parameterSet->SetStorageBuffer("Layouts", layoutBuffer);
+				parameterSet->SetStorageBuffer("Hits", hitBuffer);
+
+				FrameGraphComputePass pass;
+				pass.AddParameterSet(parameterSet);
+				graph.AddComputePass("Trace inline", std::move(pass), [parameterSet, &inlinePipeline](FrameGraphPassContext& passContext)
+				{
+					render::GpuCommandBuffer& commands = passContext.GetCommandBuffer();
+					commands.SetGpuComputePipelineState(inlinePipeline);
+					commands.SetGpuParameterSet(parameterSet);
+					commands.DispatchCompute(kRayCount);
+				});
+
+				FrameGraphCopyPass copyPass;
+				copyPass.AddSource(hitBuffer);
+				copyPass.AddDestination(readback);
+				graph.AddCopyPass("Read hits", std::move(copyPass), [source = hitBuffer, destination = readback](FrameGraphPassContext& passContext)
+				{
+					passContext.GetCommandBuffer().CopyBufferToBuffer(source, destination, 0, 0, kRayCount * sizeof(GeometryHit));
+				});
+
+				tracePassCount = 2;
+			}
+
+			// The deformation, the pass that builds and refits the geometries, and the top level build their changes cause
+			graph.Compile();
+			B3D_TEST_ASSERT_MSG(graph.GetStatistics().PassCount == 3 + tracePassCount && graph.GetStatistics().CulledPassCount == 0, StringUtility::Format("{0}: {1} passes, of which {2} were culled, expected {3}.", name, graph.GetStatistics().PassCount, graph.GetStatistics().CulledPassCount, 3 + tracePassCount))
+
+			graph.Execute();
+			device->WaitUntilIdle();
+			device->EndFrame();
+
+			for(u32 entryIndex = 0; entryIndex < kEntryCount; entryIndex++)
+			{
+				const SkinCacheEntry& entry = *entries[entryIndex];
+				B3D_TEST_ASSERT_MSG(entry.mRefitsSinceRebuild == expectedRefits[entryIndex] && (entry.mRebuildRequest != 0) == expectedRequests[entryIndex], StringUtility::Format("{0}, entry {1}: {2} refits since the last build, expected {3}; rebuild request {4}.", name, entryIndex, entry.mRefitsSinceRebuild, expectedRefits[entryIndex], entry.mRebuildRequest))
+			}
+
+			if(inlinePipeline == nullptr)
+				return;
+
+			const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			// The expected hits are those of the vertices each entry holds, whose deformation the other tests check, in the space of the mesh
+			const GeometryHit* hits = static_cast<const GeometryHit*>(mapping.GetMappedMemory());
+			for(u32 entryIndex = 0; entryIndex < kEntryCount; entryIndex++)
+			{
+				const Vector<DeformedVertex> deformedVertices = ReadDeformedVertices(*entries[entryIndex]->GetVertexData());
+				for(u32 rayIndex = entryIndex * kRaysPerEntry; rayIndex < (entryIndex + 1) * kRaysPerEntry; rayIndex++)
+				{
+					const Vector3 origin = Vector3(rayOrigins[rayIndex].X, rayOrigins[rayIndex].Y, rayOrigins[rayIndex].Z) - instanceOffsets[entryIndex];
+					const ExpectedRayHit expected = TraceOnCpu(*meshData, deformedVertices, origin);
+					B3D_TEST_ASSERT_MSG(expected.IsHit, StringUtility::Format("{0}, ray {1}: the reference ray doesn't hit as the test expects.", name, rayIndex))
+
+					const GeometryHit& actual = hits[rayIndex];
+					const String message = StringUtility::Format("{0}, ray {1}: hit {2}, instance {3}, position ({4}, {5}, {6}), expected ({7}, {8}, {9}).", name, rayIndex, actual.IsHit, actual.InstanceId, actual.Position.X, actual.Position.Y, actual.Position.Z, expected.Position.X, expected.Position.Y, expected.Position.Z);
+					B3D_TEST_ASSERT_MSG(actual.IsHit != 0.0f && actual.InstanceId == entryIndex && IsWithin(actual.Position, expected.Position, 1e-4f), message)
+				}
+			}
+		};
+
+		// The first update creates and builds both geometries, which the scene then references
+		entries[0]->SetPose(CreatePose(0.5f));
+		entries[1]->SetPose(CreatePose(1.0f));
+		B3D_TEST_ASSERT(UpdateAndExecute(*this, cache, *context, *device, 2))
+		B3D_TEST_ASSERT(entries[0]->GetRayTracingGeometry() != nullptr && entries[1]->GetRayTracingGeometry() != nullptr)
+		if(entries[0]->GetRayTracingGeometry() == nullptr || entries[1]->GetRayTracingGeometry() == nullptr)
+			return;
+
+		B3D_TEST_ASSERT(entries[0]->mTriangleCount > 1 && entries[0]->mRefitsSinceRebuild == 0 && entries[1]->mRefitsSinceRebuild == 0)
+		for(u32 entryIndex = 0; entryIndex < kEntryCount; entryIndex++)
+			scene.AddInstance(RayTracingGeometryInstance(entries[entryIndex]->GetRayTracingGeometry(), Matrix4::Translation(instanceOffsets[entryIndex]), entryIndex));
+
+		// The next two updates refit both geometries
+		fnUpdateAndTrace("First refit", { 1.0f, -0.5f }, { 1, 1 }, { false, false });
+		fnUpdateAndTrace("Second refit", { -0.5f, 0.5f }, { 2, 2 }, { false, false });
+
+		// Both entries ask for a rebuild. The budget grants the older request, and the other entry refits once more and keeps its request.
+		fnUpdateAndTrace("First rebuild", { 0.5f, 1.0f }, { 0, 3 }, { false, true });
+
+		// The next update grants the waiting request, while the rebuilt entry refits
+		fnUpdateAndTrace("Second rebuild", { 1.0f, -0.5f }, { 1, 0 }, { false, false });
+		B3D_TEST_ASSERT(entries[0]->GetRayTracingGeometry()->GetVersion() == 5 && entries[1]->GetRayTracingGeometry()->GetVersion() == 5)
+	}, "SkinCacheTestSuite::TestGeometryRefits", true);
+
+	rebuildInterval.Set(previousInterval);
+	rebuildBudget.Set(previousBudget);
 }
 
 void SkinCacheTestSuite::TestFrameGraph()

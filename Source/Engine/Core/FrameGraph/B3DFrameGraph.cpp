@@ -215,7 +215,15 @@ namespace b3d::render
 	void FrameGraphAccelerationStructurePass::AddBuild(const GpuAccelerationStructureBuild& build)
 	{
 		if(build.Destination != nullptr)
-			mDestinations.push_back(build.Destination);
+		{
+			if(build.Source == build.Destination)
+				mRefittedStructures.push_back(build.Destination);
+			else
+				mDestinations.push_back(build.Destination);
+		}
+
+		if(build.Source != nullptr && build.Source != build.Destination)
+			mReadStructures.push_back(build.Source);
 
 		if(build.ScratchBuffer != nullptr)
 			mScratchBuffers.push_back(build.ScratchBuffer);
@@ -223,7 +231,7 @@ namespace b3d::render
 		for(const TShared<GpuAccelerationStructure>& bottomLevel : build.BottomLevels)
 		{
 			if(bottomLevel != nullptr)
-				mBottomLevels.push_back(bottomLevel);
+				mReadStructures.push_back(bottomLevel);
 		}
 
 		const GpuAccelerationStructureInputs& inputs = build.Inputs;
@@ -635,6 +643,14 @@ namespace b3d::render
 				DeclareAccess(output, resourceIndex, GpuTextureSubresourceRange(), GpuAccessState(GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Write), true);
 		}
 
+		// A refit in place reads the structure and keeps what it doesn't change
+		for(const TShared<GpuAccelerationStructure>& refittedStructure : pass.mRefittedStructures)
+		{
+			const u32 resourceIndex = fnFindResource(*refittedStructure, true);
+			if(resourceIndex != ~0u)
+				DeclareAccess(output, resourceIndex, GpuTextureSubresourceRange(), GpuAccessState(GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Read | GpuAccessFlag::Write));
+		}
+
 		for(const TShared<GpuBuffer>& scratchBuffer : pass.mScratchBuffers)
 		{
 			const u32 resourceIndex = fnFindResource(*scratchBuffer, true);
@@ -642,9 +658,9 @@ namespace b3d::render
 				DeclareAccess(output, resourceIndex, GpuTextureSubresourceRange(), GpuAccessState(GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Read | GpuAccessFlag::Write));
 		}
 
-		for(const TShared<GpuAccelerationStructure>& bottomLevel : pass.mBottomLevels)
+		for(const TShared<GpuAccelerationStructure>& readStructure : pass.mReadStructures)
 		{
-			const u32 resourceIndex = fnFindResource(*bottomLevel, false);
+			const u32 resourceIndex = fnFindResource(*readStructure, false);
 			if(resourceIndex != ~0u)
 				DeclareAccess(output, resourceIndex, GpuTextureSubresourceRange(), GpuAccessState(GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Read));
 		}

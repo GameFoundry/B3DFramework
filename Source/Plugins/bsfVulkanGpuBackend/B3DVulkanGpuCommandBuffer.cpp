@@ -953,6 +953,15 @@ bool VulkanGpuCommandBuffer::BuildAccelerationStructures(TArrayView<const GpuAcc
 		buildInformation.dstAccelerationStructure = destination->GetVulkanHandle();
 		buildInformation.scratchData.deviceAddress = scratch->GetDeviceAddress() + build.ScratchOffset;
 
+		// A refit writes the refitted source into the destination, which may be the source itself
+		VulkanAccelerationStructure* source = nullptr;
+		if(build.Source != nullptr)
+		{
+			source = static_cast<VulkanGpuAccelerationStructure&>(*build.Source).GetVulkanResource();
+			buildInformation.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR;
+			buildInformation.srcAccelerationStructure = source->GetVulkanHandle();
+		}
+
 		// The offset is aligned by core validation, and the buffer's memory by its alignment, as long as drivers align the memory blocks
 		B3D_ASSERT(buildInformation.scratchData.deviceAddress % scratchAlignment == 0 && "The scratch address of an acceleration structure build is not aligned.");
 
@@ -967,8 +976,11 @@ bool VulkanGpuCommandBuffer::BuildAccelerationStructures(TArrayView<const GpuAcc
 
 		buildRanges[buildIndex] = ranges;
 
-		mResourceTracker.TrackResourceUsage(destination, GpuAccessFlag::Write);
+		mResourceTracker.TrackResourceUsage(destination, source == destination ? GpuAccessFlag::Read | GpuAccessFlag::Write : GpuAccessFlags(GpuAccessFlag::Write));
 		mResourceTracker.TrackBufferUsage(scratch, GpuAccessFlag::Read | GpuAccessFlag::Write);
+
+		if(source != nullptr && source != destination)
+			mResourceTracker.TrackResourceUsage(source, GpuAccessFlag::Read);
 
 		for(const TShared<GpuAccelerationStructure>& bottomLevel : build.BottomLevels)
 			mResourceTracker.TrackResourceUsage(static_cast<VulkanGpuAccelerationStructure&>(*bottomLevel).GetVulkanResource(), GpuAccessFlag::Read);

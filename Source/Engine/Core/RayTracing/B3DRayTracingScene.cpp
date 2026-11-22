@@ -110,7 +110,7 @@ namespace b3d::render
 			std::sort(geometries.begin(), geometries.end());
 			geometries.erase(std::unique(geometries.begin(), geometries.end()), geometries.end());
 
-			RayTracingGeometry::AddBuildPass(graph, "Build ray tracing geometries", geometries, FrameGraphAccelerationStructurePass());
+			RayTracingGeometry::AddBuildPass(graph, "Build ray tracing geometries", geometries, TArrayView<RayTracingGeometry* const>(), FrameGraphAccelerationStructurePass());
 		}
 
 		if(!mIsDirty && mAccelerationStructure != nullptr)

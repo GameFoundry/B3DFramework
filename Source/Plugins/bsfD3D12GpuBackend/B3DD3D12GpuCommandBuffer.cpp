@@ -682,11 +682,26 @@ bool D3D12GpuCommandBuffer::BuildAccelerationStructures(TArrayView<const GpuAcce
 		buildDescription.ScratchAccelerationStructureData = scratch->GetGPUVirtualAddress() + build.ScratchOffset;
 		buildDescription.SourceAccelerationStructureData = 0;
 
+		// A refit writes the refitted source into the destination, which may be the source itself
+		D3D12AccelerationStructure* source = nullptr;
+		if(build.Source != nullptr)
+		{
+			source = static_cast<D3D12GpuAccelerationStructure&>(*build.Source).GetD3D12Resource();
+			if(source == nullptr)
+				continue;
+
+			buildDescription.Inputs.Flags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PERFORM_UPDATE;
+			buildDescription.SourceAccelerationStructureData = source->GetGPUVirtualAddress();
+		}
+
 		// Scratch-capable buffers are aligned by D3D12GpuDevice::GetMemoryRequirements()
 		B3D_ASSERT(buildDescription.ScratchAccelerationStructureData % GetD3D12GpuDevice().GetCapabilities().RayTracing.ScratchOffsetAlignment == 0);
 
-		mResourceTracker.TrackResourceUsage(destination, GpuAccessFlag::Write);
+		mResourceTracker.TrackResourceUsage(destination, source == destination ? GpuAccessFlag::Read | GpuAccessFlag::Write : GpuAccessFlags(GpuAccessFlag::Write));
 		mResourceTracker.TrackBufferUsage(scratch, GpuAccessFlag::Read | GpuAccessFlag::Write);
+
+		if(source != nullptr && source != destination)
+			mResourceTracker.TrackResourceUsage(source, GpuAccessFlag::Read);
 
 		for(const TShared<GpuAccelerationStructure>& bottomLevel : build.BottomLevels)
 		{

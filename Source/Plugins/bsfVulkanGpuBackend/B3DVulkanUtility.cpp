@@ -1072,6 +1072,9 @@ bool VulkanUtility::GetAccelerationStructureBuildInformation(const GpuAccelerati
 	if(inputs.Flags.IsSet(GpuAccelerationStructureBuildFlag::MinimizeMemory))
 		buildFlags |= VK_BUILD_ACCELERATION_STRUCTURE_LOW_MEMORY_BIT_KHR;
 
+	if(inputs.Flags.IsSet(GpuAccelerationStructureBuildFlag::AllowRefit))
+		buildFlags |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR;
+
 	outInformation.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR;
 	outInformation.pNext = nullptr;
 	outInformation.flags = buildFlags;

@@ -529,6 +529,9 @@ namespace b3d
 			if (inputs.Flags.IsSet(GpuAccelerationStructureBuildFlag::MinimizeMemory))
 				usage |= MTLAccelerationStructureUsageMinimizeMemory;
 
+			if (inputs.Flags.IsSet(GpuAccelerationStructureBuildFlag::AllowRefit))
+				usage |= MTLAccelerationStructureUsageRefit;
+
 			if (inputs.Type == GpuAccelerationStructureType::TopLevel)
 			{
 				// Indirect instances name their bottom level structure by resource ID, so no list of structures is needed
