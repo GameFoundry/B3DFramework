@@ -25,10 +25,10 @@
 namespace b3d
 {
 	TConfigVariable<u32> gSkinCacheGeometryRebuildInterval("render.SkinCacheGeometryRebuildInterval",
-		"Number of refits after which the ray tracing geometry of a skin cache entry is rebuilt, which restores the ray tracing speed refits lose as the pose moves away from the one of the last build. 0 never rebuilds.", 60);
+		"Number of refits after which the ray tracing geometry of a skin cache entry is rebuilt, which restores the ray tracing speed refits lose as the pose moves away from the one of the last build. 0 never rebuilds, which suits animations that return near their poses: the loss follows the distance from the pose of the last build, not the number of refits.", 0);
 
 	TConfigVariable<u32> gSkinCacheGeometryRebuildTrianglesPerFrame("render.SkinCacheGeometryRebuildTrianglesPerFrame",
-		"Triangles the periodic rebuilds of skin cache ray tracing geometry may cover in one frame. Entries over the budget refit, and are rebuilt in a later frame. The oldest request is granted even if it alone is over the budget.", 200000);
+		"Triangles the periodic rebuilds of skin cache ray tracing geometry may cover in one frame. Entries over the budget refit, and are rebuilt in a later frame. The oldest request is granted even if it alone is over the budget.", 100000);
 
 	TConfigVariable<bool> gSkinCacheAsyncGeometry("render.SkinCacheAsyncGeometry",
 		"If enabled, the pass that builds and refits the ray tracing geometry of skin cache entries prefers the async compute queue.", false);
