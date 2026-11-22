@@ -80,7 +80,7 @@ namespace b3d
 	 * specific time of an animation.  All values are stored in the same order as the bones in the skeleton they were
 	 * created by.
 	 */
-	struct LocalSkeletonPose
+	struct B3D_EXPORT LocalSkeletonPose
 	{
 		LocalSkeletonPose() = default;
 		LocalSkeletonPose(u32 numBones, bool individualOverride = false);
