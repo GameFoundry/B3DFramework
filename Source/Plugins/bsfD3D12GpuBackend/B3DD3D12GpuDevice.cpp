@@ -722,11 +722,11 @@ void D3D12GpuDevice::WaitUntilIdle()
 
 }
 
-void D3D12GpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+void D3D12GpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
 	const TShared<D3D12GpuCommandBuffer> d3d12CommandBuffer = std::static_pointer_cast<D3D12GpuCommandBuffer>(commandBuffer);
 	const D3D12GpuCommandBufferSubmitInformation submitInformation = d3d12CommandBuffer->PrepareForSubmitOnSubmitThread(queue.GetType());
-	static_cast<D3D12GpuQueue&>(queue).ExecuteSubmitOnSubmitThread(submitInformation, syncMask, signalFences);
+	static_cast<D3D12GpuQueue&>(queue).ExecuteSubmitOnSubmitThread(submitInformation, waits, signalFences);
 }
 
 void D3D12GpuDevice::RefreshCompletionState(GpuQueue& queue, bool forceWait, u64 lastFenceValue)
@@ -737,6 +737,11 @@ void D3D12GpuDevice::RefreshCompletionState(GpuQueue& queue, bool forceWait, u64
 u64 D3D12GpuDevice::GetLastSubmittedFenceValue(const GpuQueue& queue) const
 {
 	return static_cast<const D3D12GpuQueue&>(queue).GetLastSignaledFenceValue();
+}
+
+u64 D3D12GpuDevice::GetNextSubmitFenceValue(const GpuQueue& queue) const
+{
+	return static_cast<const D3D12GpuQueue&>(queue).GetNextFenceValue();
 }
 
 void D3D12GpuDevice::ExecuteWaitUntilIdle()

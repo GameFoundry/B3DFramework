@@ -40,13 +40,14 @@ namespace b3d
 			 * Submits a command buffer on the queue using information prepared by the command buffer.
 			 *
 			 * @param	submitInformation	Vulkan-specific per-CB submit info (transitions, semaphores).
-			 * @param	syncMask			Inter-queue sync mask.
+			 * @param	waits				Value of each other queue's progress timeline to wait for, 0 for no wait. See
+			 *								IGpuSubmitThreadBackend::ExecuteSubmit().
 			 * @param	signalFences		Explicit list of GpuTimelineFence + value pairs to signal when the command buffer
 			 *								finishes executing.
 			 *
 			 * @note	Submit thread only.
 			 */
-			void ExecuteSubmitOnSubmitThread(const VulkanGpuCommandBufferSubmitInformation& submitInformation, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences);
+			void ExecuteSubmitOnSubmitThread(const VulkanGpuCommandBufferSubmitInformation& submitInformation, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences);
 
 			/** Returns the internal handle to the Vulkan queue object. */
 			VkQueue GetVulkanHandle() const { return mQueue; }
@@ -89,6 +90,9 @@ namespace b3d
 			 */
 			u64 GetLastSubmittedProgressValue() const { return mLastSubmittedProgressValue; }
 
+			/** Returns the progress timeline value the next submission on the queue signals. Submit thread only. */
+			u64 GetNextProgressValue() const { return mNextProgressValue; }
+
 		protected:
 			/**
 			 * Scratch storage backing a single VkSubmitInfo (or VkPresentInfoKHR). Its data must stay untouched until the
@@ -122,14 +126,14 @@ namespace b3d
 				TInlineArray<TShared<GpuTimelineFence>, 2> RetainedFences; /**< Keeps fences the submission signals alive until the signal has executed. */
 			};
 
-			/** Appends timeline waits covering the last submission of every source queue selected by @p syncMask. Submit thread only. */
-			void AppendSyncMaskWaits(GpuQueueMask syncMask, SubmitWorkBuffer& outWorkBuffer) const;
+			/** Appends a wait on every other queue's progress timeline for its non-zero value in @p waits. Submit thread only. */
+			void AppendQueueWaits(const GpuQueueFenceValues& waits, SubmitWorkBuffer& outWorkBuffer) const;
 
 			/**
 			 * Appends the waits of the frame fence if this is the queue's first submission since the frame boundary. Skips
-			 * other queues in @p syncMask, whose latest value AppendSyncMaskWaits() already waits on. Submit thread only.
+			 * other queues whose value in @p waits is at least as high, as AppendQueueWaits() already waits on them. Submit thread only.
 			 */
-			void AppendFrameFenceWaits(GpuQueueMask syncMask, SubmitWorkBuffer& outWorkBuffer);
+			void AppendFrameFenceWaits(const GpuQueueFenceValues& waits, SubmitWorkBuffer& outWorkBuffer);
 
 			/** Marks the semaphores as in use by this queue and stores them in @p outRecord for release on retirement. Submit thread only. */
 			void RetainSemaphores(SubmissionRecord& outRecord, TArrayView<VulkanSemaphore* const> semaphores);

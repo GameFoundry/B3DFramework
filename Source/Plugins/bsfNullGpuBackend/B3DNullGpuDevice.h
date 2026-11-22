@@ -106,9 +106,10 @@ namespace b3d
 			 * @{
 			 */
 
-			void ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences) override;
+			void ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences) override;
 			void RefreshCompletionState(GpuQueue& queue, bool forceWait, u64 lastFenceValue = ~0ull) override {}
 			u64 GetLastSubmittedFenceValue(const GpuQueue& queue) const override { return 0; }
+			u64 GetNextSubmitFenceValue(const GpuQueue& queue) const override { return 0; }
 			void ExecuteWaitUntilIdle() override {}
 			void ExecuteWaitUntilIdle(GpuQueue& queue) override {}
 

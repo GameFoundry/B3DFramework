@@ -2077,8 +2077,9 @@ namespace b3d::render
 			runStart = runEnd;
 		}
 
-		// The submission that acquires a split barrier from another queue waits on that queue itself, as the backends require, even where
-		// an earlier submission of its queue already orders it after the release
+		// The submission that acquires a split barrier from another queue lists that queue in its own sync mask, even where an earlier
+		// submission of its queue already orders it after the release, because development builds validate the mask. The submit thread
+		// leaves out the wait if an earlier one already covers it, which is all the backends need.
 		for(const BarrierBatch& batch : mBarrierBatches)
 		{
 			if(batch.ReleaseQueueType == batch.AcquireQueueType)

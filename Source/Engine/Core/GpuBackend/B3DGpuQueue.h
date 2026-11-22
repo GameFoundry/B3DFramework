@@ -123,6 +123,47 @@ namespace b3d
 		static const GpuQueueMask kAll;
 	};
 
+	/**
+	 * Value of each queue's own fence, indexed by GpuQueueId::Id. A value names a submission on its queue together with all work submitted to
+	 * the queue before it, and 0 names no work. See render::IGpuSubmitThreadBackend::GetLastSubmittedFenceValue().
+	 */
+	using GpuQueueFenceValues = Array<u64, kMaximumGpuQueueCount>;
+
+	/**
+	 * Work of every queue that the next submission on each queue is already ordered after, as queue fence values (see GpuQueueFenceValues).
+	 * Lets a submitter leave out waits that earlier waits already satisfy. GpuSubmissionTimeline answers the same question for planned
+	 * submissions.
+	 *
+	 * Assumes fence values increase in submission order on each queue, and that a wait on a queue's fence value orders the waiting
+	 * submission, and every later submission on its queue, after the waited-for work and everything that work is ordered after. Submissions
+	 * the coverage isn't told about only make it miss orderings, so they never cause a missing wait.
+	 */
+	class B3D_EXPORT GpuQueueCoverage
+	{
+	public:
+		/** Creates coverage in which no submission is ordered after any work. */
+		GpuQueueCoverage() = default;
+
+		/** Creates coverage in which every later submission, on every queue, is ordered after the work of every queue up to its value in @p fenceValues. */
+		explicit GpuQueueCoverage(const GpuQueueFenceValues& fenceValues);
+
+		/**
+		 * Returns the waits of @p waits that the next submission on @p queue is not already ordered after. Waits on @p queue itself are always
+		 * left out, since its submissions execute in order.
+		 */
+		GpuQueueFenceValues GetUncoveredWaits(GpuQueueId queue, const GpuQueueFenceValues& waits) const;
+
+		/**
+		 * Records a submission on @p queue that is ordered after the work of every other queue up to its value in @p waits, whether the submission
+		 * waits for it or is already ordered after it, and that signals the queue's fence with @p fenceValue.
+		 */
+		void AddSubmission(GpuQueueId queue, const GpuQueueFenceValues& waits, u64 fenceValue);
+
+	private:
+		/** Work of each queue (inner index) that the latest submission on each queue (outer index) is ordered after. Indexed by GpuQueueId::Id. */
+		Array<GpuQueueFenceValues, kMaximumGpuQueueCount> mCovered = {};
+	};
+
 	/** Command buffer to submit and any timeline fences to signal. */
 	struct GpuSubmissionInformation
 	{

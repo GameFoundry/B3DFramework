@@ -40,6 +40,9 @@ namespace b3d
 			/** Returns the highest event value whose submission has been committed on this queue. */
 			u64 GetLastCommittedEventValue() const { return mLastCommittedEventValue.load(std::memory_order_acquire); }
 
+			/** Returns the event value the next submission on this queue signals, see SignalSubmission(). Submit thread only. */
+			u64 GetNextSubmissionEventValue() const { return mLastReservedEventValue + 1; }
+
 			/**
 			 * Commits @p commandBuffers, in order. Metal does not order their execution, the barriers they encode do. Execution
 			 * errors are reported once the GPU finishes them.
@@ -47,10 +50,10 @@ namespace b3d
 			void Commit(const id<MTL4CommandBuffer>* commandBuffers, u32 count);
 
 			/**
-			 * Makes work committed afterwards wait for the last committed submission of every queue in @p waitMask, other than
-			 * this one.
+			 * Makes work committed afterwards wait until each other queue's event reaches its value in @p waits. Zero values and the
+			 * entry of this queue are ignored.
 			 */
-			void WaitForQueues(GpuQueueMask waitMask);
+			void WaitForQueues(const GpuQueueFenceValues& waits);
 
 			/** Makes work committed afterwards wait until @p event reaches @p value. */
 			void WaitForEvent(id<MTLSharedEvent> event, u64 value);
@@ -77,8 +80,8 @@ namespace b3d
 			u64 SignalSubmission(Function<void()> onCompleted, const TShared<WaitGroup>& ownerCompletion = nullptr);
 
 			/**
-			 * Records a submission that failed before its work was committed. It signals no event value, and retires together
-			 * with the previously committed submission.
+			 * Records a submission that failed before its work was committed. It still signals the event value a successful
+			 * submission would, once all work committed before has finished, so work waiting on that value doesn't wait forever.
 			 */
 			void NotifySubmissionFailed(const TShared<WaitGroup>& ownerCompletion);
 
@@ -116,7 +119,7 @@ namespace b3d
 			/** Submission on this queue that has not been retired yet. */
 			struct SubmissionRecord
 			{
-				u64 EventValue = 0; /**< Signaled event value, or the last committed value for a failed submission. */
+				u64 EventValue = 0; /**< Signaled event value. */
 				TShared<WaitGroup> OwnerCompletion; /**< Signaled after the owner-side cleanup runs. */
 			};
 

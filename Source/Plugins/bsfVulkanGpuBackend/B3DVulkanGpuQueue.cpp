@@ -88,38 +88,24 @@ void VulkanGpuQueue::WaitUntilIdle()
 	mGpuDevice.GetSubmitThread().WaitUntilIdle(*this);
 }
 
-void VulkanGpuQueue::AppendSyncMaskWaits(GpuQueueMask syncMask, SubmitWorkBuffer& outWorkBuffer) const
+void VulkanGpuQueue::AppendQueueWaits(const GpuQueueFenceValues& waits, SubmitWorkBuffer& outWorkBuffer) const
 {
 	AssertIfNotSubmitThread();
 
-	syncMask &= ~GpuQueueMask(GetId());
-	if(syncMask.IsEmpty())
-		return;
-
-	VulkanGpuDevice& device = GetDevice();
-	for(u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
+	GetDevice().DoForEachQueue([this, &waits, &outWorkBuffer](GpuQueue& queue)
 	{
-		const GpuQueueType queueType = (GpuQueueType)queueTypeIndex;
-		const u32 queueCount = device.GetQueueCount(queueType);
-		for(u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
-		{
-			const GpuQueueId sourceQueueId(queueType, queueIndex);
-			if(!syncMask.IsSet(sourceQueueId))
-				continue;
+		const GpuQueueId queueId = queue.GetId();
+		const u64 waitValue = waits[queueId.Id];
+		if(waitValue == 0 || queueId.Id == GetId().Id)
+			return;
 
-			const TShared<VulkanGpuQueue> sourceQueue = std::static_pointer_cast<VulkanGpuQueue>(device.GetQueue(queueType, queueIndex));
-			if(!B3D_ENSURE(sourceQueue != nullptr))
-				continue;
-
-			// Deliberately also waits on values that have already signaled: ordering against finished queues is still
-			// required so their barriers are issued before this submission.
-			if(sourceQueue->mLastSubmittedProgressValue != 0)
-				outWorkBuffer.AddWait(sourceQueue->mProgressTimeline, sourceQueue->mLastSubmittedProgressValue);
-		}
-	}
+		// Deliberately also waits on values that have already signaled: ordering against finished queues is still
+		// required so their barriers are issued before this submission.
+		outWorkBuffer.AddWait(static_cast<VulkanGpuQueue&>(queue).mProgressTimeline, waitValue);
+	});
 }
 
-void VulkanGpuQueue::AppendFrameFenceWaits(GpuQueueMask syncMask, SubmitWorkBuffer& outWorkBuffer)
+void VulkanGpuQueue::AppendFrameFenceWaits(const GpuQueueFenceValues& waits, SubmitWorkBuffer& outWorkBuffer)
 {
 	AssertIfNotSubmitThread();
 
@@ -130,14 +116,14 @@ void VulkanGpuQueue::AppendFrameFenceWaits(GpuQueueMask syncMask, SubmitWorkBuff
 
 	// A timeline wait at ALL_COMMANDS is a full execution and memory dependency on every command submitted before the
 	// signal. Waiting on this queue's own timeline replaces a pipeline barrier, which AppendSyncMaskWaits() never adds.
-	device.DoForEachQueue([this, syncMask, waitValues, &outWorkBuffer](GpuQueue& queue)
+	device.DoForEachQueue([this, &waits, waitValues, &outWorkBuffer](GpuQueue& queue)
 	{
 		const GpuQueueId queueId = queue.GetId();
 		const u64 waitValue = waitValues[queueId.Id];
 		if(waitValue == 0)
 			return;
 
-		if(queueId.Id != GetId().Id && syncMask.IsSet(queueId))
+		if(queueId.Id != GetId().Id && waits[queueId.Id] >= waitValue)
 			return;
 
 		outWorkBuffer.AddWait(static_cast<VulkanGpuQueue&>(queue).mProgressTimeline, waitValue);
@@ -185,15 +171,12 @@ VkSubmitInfo VulkanGpuQueue::BuildVkSubmitInfo(SubmitWorkBuffer& outWorkBuffer) 
 	return submitInfo;
 }
 
-void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const VulkanGpuCommandBufferSubmitInformation& submitInformation, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const VulkanGpuCommandBufferSubmitInformation& submitInformation, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
 	AssertIfNotSubmitThread();
 
 	if (!B3D_ENSURE(submitInformation.PrimaryCommandBuffer))
 		return;
-
-	// Submissions on one queue execute in order
-	syncMask &= ~GpuQueueMask(GetId());
 
 	SubmissionRecord record;
 	RetainSemaphores(record, submitInformation.WaitSemaphores);
@@ -210,8 +193,8 @@ void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const VulkanGpuCommandBufferSub
 	for(VulkanSemaphore* semaphore : submitInformation.WaitSemaphores)
 		waitWorkBuffer.AddWait(semaphore->GetHandle());
 
-	AppendSyncMaskWaits(syncMask, waitWorkBuffer);
-	AppendFrameFenceWaits(syncMask, waitWorkBuffer);
+	AppendQueueWaits(waits, waitWorkBuffer);
+	AppendFrameFenceWaits(waits, waitWorkBuffer);
 
 	for(VulkanSemaphore* semaphore : submitInformation.SignalSemaphores)
 	{
@@ -307,7 +290,15 @@ VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageI
 	bridgeSubmitInformation.WaitSemaphores.Append(waitSemaphores.begin(), waitSemaphores.end());
 	bridgeSubmitInformation.SignalSemaphores.Add(presentSemaphore);
 
-	ExecuteSubmitOnSubmitThread(bridgeSubmitInformation, syncMask, {});
+	// The bridge waits on the latest work of every other queue in the sync mask
+	GpuQueueFenceValues waits = {};
+	GetDevice().DoForEachQueue([this, syncMask, &waits](GpuQueue& queue)
+	{
+		if(queue.GetId().Id != GetId().Id && syncMask.IsSet(queue.GetId()))
+			waits[queue.GetId().Id] = static_cast<VulkanGpuQueue&>(queue).mLastSubmittedProgressValue;
+	});
+
+	ExecuteSubmitOnSubmitThread(bridgeSubmitInformation, waits, {});
 
 	SubmitWorkBuffer& workBuffer = mSubmitWorkBuffers[0];
 	workBuffer.Clear();

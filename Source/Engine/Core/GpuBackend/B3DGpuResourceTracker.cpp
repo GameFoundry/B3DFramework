@@ -127,7 +127,7 @@ void GpuResourceTracker::TrackImageUsage(IGpuImageResource* image, const GpuText
 	const GpuTextureSubresourceRange range = GpuBackendUtility::ClampRange(subresourceRange, image->GetRange());
 	if(image->IsFullRange(range))
 	{
-		TrackResourceUsage(image->GetFullRangeSubresource(), access);
+		TrackImageSubresourceUsage(image, image->GetFullRangeSubresource(), access);
 		return;
 	}
 
@@ -144,10 +144,22 @@ void GpuResourceTracker::TrackImageUsage(IGpuImageResource* image, const GpuText
 				const u32 layer = range.BaseArrayLayer + layerIndex;
 				const u32 mipLevel = range.BaseMipLevel + levelIndex;
 
-				TrackResourceUsage(image->GetSubresource(layer, mipLevel, aspect), access);
+				TrackImageSubresourceUsage(image, image->GetSubresource(layer, mipLevel, aspect), access);
 			}
 		}
 	}
+}
+
+void GpuResourceTracker::TrackImageSubresourceUsage(IGpuImageResource* image, GpuImageSubresource* subresource, GpuAccessFlags access)
+{
+	auto insertResult = mImageSubresources.insert(std::make_pair(subresource, ImageSubresourceUseHandle()));
+	if(insertResult.second) // New element
+		subresource->NotifyBound();
+
+	ImageSubresourceUseHandle& useHandle = insertResult.first->second;
+	B3D_ASSERT(!useHandle.Used);
+	useHandle.Flags |= access;
+	useHandle.Image = image;
 }
 
 void GpuResourceTracker::TrackResourceUsage(IGpuResource* resource, GpuAccessFlags access)
@@ -208,6 +220,7 @@ void GpuResourceTracker::NotifyUsed(GpuQueueId queueId)
 	};
 
 	fnNotifyUsed(mResources);
+	fnNotifyUsed(mImageSubresources);
 	fnNotifyUsed(mImages);
 
 	for(auto& entry : mBuffers)
@@ -238,6 +251,55 @@ void GpuResourceTracker::NotifyUsed(GpuQueueId queueId)
 	}
 }
 
+GpuQueueFenceValues GpuResourceTracker::NotifySubmitted(GpuQueueId queueId, u64 fenceValue)
+{
+	GpuQueueFenceValues waits = {};
+	auto fnAddWaits = [&waits](const IGpuResource& resource, GpuAccessFlags access)
+	{
+		const GpuQueueFenceValues resourceWaits = resource.GetRequiredWaits(access);
+		for(u32 queueIndex = 0; queueIndex < kMaximumGpuQueueCount; queueIndex++)
+			waits[queueIndex] = std::max(waits[queueIndex], resourceWaits[queueIndex]);
+	};
+
+	// Only the submitting queue's values change, so notifying before all waits are collected doesn't affect them. An individual
+	// subresource holds partial accesses to it, the full-range subresource whole-image accesses, and the image accesses to any part of
+	// it. A partial access waits for the first two, a whole-image access for the image.
+	for(auto& entry : mImageSubresources)
+	{
+		const GpuAccessFlags access = entry.second.Flags;
+		if(access == GpuAccessFlag::None)
+			continue;
+
+		GpuImageSubresource& subresource = *entry.first;
+		IGpuImageResource& image = *entry.second.Image;
+		GpuImageSubresource& fullRangeSubresource = *image.GetFullRangeSubresource();
+
+		if(&subresource == &fullRangeSubresource)
+			fnAddWaits(image, access);
+		else
+		{
+			fnAddWaits(subresource, access);
+			fnAddWaits(fullRangeSubresource, access);
+		}
+
+		subresource.NotifySubmitted(queueId, access, fenceValue);
+		image.NotifySubmitted(queueId, access, fenceValue);
+	}
+
+	for(auto& entry : mBuffers)
+	{
+		const GpuAccessFlags access = entry.second.UseHandle.Flags;
+		if(access == GpuAccessFlag::None)
+			continue;
+
+		fnAddWaits(*entry.first, access);
+		entry.first->NotifySubmitted(queueId, access, fenceValue);
+	}
+
+	waits[queueId.Id] = 0;
+	return waits;
+}
+
 void GpuResourceTracker::NotifyDone(GpuQueueId queueId)
 {
 	auto fnNotifyDone = [queueId](auto& resources)
@@ -257,7 +319,9 @@ void GpuResourceTracker::NotifyDone(GpuQueueId queueId)
 		}
 	};
 
+	// Subresources before their images, since an image the GPU is done with may be destroyed along with its subresources
 	fnNotifyDone(mResources);
+	fnNotifyDone(mImageSubresources);
 	fnNotifyDone(mImages);
 
 	for(auto& entry : mBuffers)
@@ -301,7 +365,9 @@ void GpuResourceTracker::NotifyUnbound()
 		}
 	};
 
+	// Subresources before their images, since an unbound image may be destroyed along with its subresources
 	fnNotifyUnbound(mResources);
+	fnNotifyUnbound(mImageSubresources);
 	fnNotifyUnbound(mImages);
 
 	for(auto& entry : mBuffers)
@@ -325,6 +391,7 @@ void GpuResourceTracker::Clear()
 {
 	mResources.clear();
 	mImages.clear();
+	mImageSubresources.clear();
 	mBuffers.clear();
 	mSwapChains.clear();
 	mResourcesWithQueuedTransfers.Clear();

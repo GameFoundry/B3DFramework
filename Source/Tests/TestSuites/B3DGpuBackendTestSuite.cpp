@@ -111,6 +111,7 @@ GpuBackendTestSuite::GpuBackendTestSuite()
 	B3D_ADD_TEST(GpuBackendTestSuite::TestBufferMemory)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestCpuWrittenBufferRelocation)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestTransferQueue)
+	B3D_ADD_TEST(GpuBackendTestSuite::TestCrossQueueTransfers)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestTransientResourceAllocator)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestTransientResourceExecution)
 	B3D_ADD_TEST(GpuBackendTestSuite::TestTransientResourcePlacement)
@@ -2176,6 +2177,227 @@ void GpuBackendTestSuite::TestTransferQueue()
 	}, "GpuBackendTestSuite::TestTransferQueue", true);
 }
 
+void GpuBackendTestSuite::TestCrossQueueTransfers()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	if(device->GetQueueCount(GQT_COMPUTE) == 0)
+		return;
+
+	GetRenderThread().PostCommand([this, &device]()
+	{
+		// Large enough that a copy on one queue still runs when a submission on another queue that doesn't wait for it starts
+		static constexpr u32 kWordCount = 1024 * 1024;
+		static constexpr u32 kSize = kWordCount * sizeof(u32);
+
+		GpuTransferQueue& transferQueue = device->GetTransferQueue();
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		const TShared<render::GpuCommandBufferPool> computePool = GpuBarrierTestUtility::CreateCommandBufferPool(*device, GQT_COMPUTE);
+		const GpuAccessState transferRead(GpuStageFlag::Transfer, GpuAccessFlag::Read);
+		const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
+
+		const auto fnCreateBuffer = [&device]()
+		{
+			return device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u32), kWordCount, GpuBufferFlag::GpuWrite,
+				GpuBufferMemory::Device));
+		};
+
+		const auto fnCreateWords = [](u32 firstValue)
+		{
+			TArray<u32> words(kWordCount);
+			for(u32 wordIndex = 0; wordIndex < kWordCount; wordIndex++)
+				words[wordIndex] = firstValue + wordIndex;
+
+			return words;
+		};
+
+		// Waits for all work, then returns true if @p buffer holds @p expectedWords
+		const auto fnHoldsWords = [&device](const TShared<render::GpuBuffer>& buffer, const TArray<u32>& expectedWords)
+		{
+			device->WaitUntilIdle();
+
+			TArray<u32> readWords(kWordCount);
+			render::GpuBufferUtility::Read(buffer, 0, kSize, readWords.Data());
+			return memcmp(readWords.Data(), expectedWords.Data(), kSize) == 0;
+		};
+
+		// Submits a copy of @p source to @p destination on the compute queue. The submission waits for no queue itself, so only the waits for
+		// earlier accesses to what it copies order it after earlier work.
+		const auto fnSubmitComputeCopy = [&](const TShared<render::GpuBuffer>& source, const TShared<render::GpuBuffer>& destination, const char* name)
+		{
+			const TShared<render::GpuCommandBuffer> commands = computePool->Create(render::GpuCommandBufferCreateInformation::Create(name));
+			const GpuAccessState sourceRestingState = GpuBackendUtility::GetRestingState(*source, GQT_COMPUTE);
+			const GpuAccessState destinationRestingState = GpuBackendUtility::GetRestingState(*destination, GQT_COMPUTE);
+
+			const GpuBufferBarrier copyBarriers[] = { GpuBufferBarrier(source, sourceRestingState, transferRead),
+				GpuBufferBarrier(destination, destinationRestingState, transferWrite) };
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(copyBarriers, 2)));
+			commands->CopyBufferToBuffer(source, destination, 0, 0, kSize);
+
+			const GpuBufferBarrier restBarriers[] = { GpuBufferBarrier(source, transferRead, sourceRestingState),
+				GpuBufferBarrier(destination, transferWrite, destinationRestingState) };
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(restBarriers, 2)));
+
+			context->SubmitCommandBuffer(commands, GpuQueueMask::kNone);
+		};
+
+		// Writes @p words to @p buffer and submits the copy on the graphics queue
+		const auto fnSubmitUpload = [&](const TShared<render::GpuBuffer>& buffer, const TArray<u32>& words)
+		{
+			render::GpuBufferUtility::Write(buffer, 0, kSize, words.Data());
+			transferQueue.SubmitQueuedTransfers(*buffer);
+		};
+
+		const TShared<render::GpuBuffer> source = fnCreateBuffer();
+		const TShared<render::GpuBuffer> buffer = fnCreateBuffer();
+		const TShared<render::GpuBuffer> copy = fnCreateBuffer();
+		B3D_TEST_ASSERT(source != nullptr && buffer != nullptr && copy != nullptr)
+		if(source == nullptr || buffer == nullptr || copy == nullptr)
+			return;
+
+		const TArray<u32> sourceWords = fnCreateWords(0xC0000000);
+		fnSubmitUpload(source, sourceWords);
+		device->WaitUntilIdle();
+
+		// An upload runs after an earlier compute write of what it writes
+		const TArray<u32> firstWords = fnCreateWords(0xC1000000);
+		{
+			// The submit thread holds every submission of a case until all of them are queued, so the GPU receives them back to back
+			SignalEvent submitThreadRelease;
+			device->GetSubmitThread().QueueWaitForEvent(submitThreadRelease);
+			fnSubmitComputeCopy(source, buffer, "Compute write");
+			fnSubmitUpload(buffer, firstWords);
+			submitThreadRelease.Signal();
+
+			B3D_TEST_ASSERT(fnHoldsWords(buffer, firstWords))
+		}
+
+		// An upload runs after an earlier compute read of what it writes
+		{
+			SignalEvent submitThreadRelease;
+			device->GetSubmitThread().QueueWaitForEvent(submitThreadRelease);
+			fnSubmitComputeCopy(buffer, copy, "Compute read");
+
+			const TArray<u32> secondWords = fnCreateWords(0xC2000000);
+			fnSubmitUpload(buffer, secondWords);
+			submitThreadRelease.Signal();
+
+			B3D_TEST_ASSERT(fnHoldsWords(copy, firstWords))
+			B3D_TEST_ASSERT(fnHoldsWords(buffer, secondWords))
+		}
+
+		// A compute read runs after an upload an earlier graphics submission took
+		{
+			SignalEvent submitThreadRelease;
+			device->GetSubmitThread().QueueWaitForEvent(submitThreadRelease);
+
+			const TArray<u32> thirdWords = fnCreateWords(0xC3000000);
+			fnSubmitUpload(buffer, thirdWords);
+			fnSubmitComputeCopy(buffer, copy, "Compute read after upload");
+			submitThreadRelease.Signal();
+
+			B3D_TEST_ASSERT(fnHoldsWords(copy, thirdWords))
+		}
+
+		// An upload to one mip level runs while compute reads another, and an upload to the mip level compute reads runs after the read
+		{
+			static constexpr u32 kTextureSize = 64;
+
+			TextureCreateInformation textureInformation = TextureCreateInformation::Create2D(PF_R32U, kTextureSize, kTextureSize);
+			textureInformation.MipMapCount = 1;
+
+			const TShared<render::Texture> texture = device->CreateTexture(textureInformation);
+			B3D_TEST_ASSERT(texture != nullptr)
+			if(texture == nullptr)
+				return;
+
+			// Returns pixel data of @p mipLevel with @p firstValue in its first pixel, incrementing along rows
+			const auto fnCreateMipData = [](u32 mipLevel, u32 firstValue)
+			{
+				const u32 mipSize = kTextureSize >> mipLevel;
+				const TShared<PixelData> pixelData = PixelData::Create(mipSize, mipSize, 1, PF_R32U);
+				for(u32 row = 0; row < mipSize; row++)
+				{
+					u32* const rowElements = reinterpret_cast<u32*>(pixelData->GetData() + row * pixelData->GetRowPitch());
+					for(u32 column = 0; column < mipSize; column++)
+						rowElements[column] = firstValue + row * mipSize + column;
+				}
+
+				return pixelData;
+			};
+
+			// Waits for all work, then returns true if @p mipLevel of the texture holds @p expected
+			const auto fnMipHolds = [&](u32 mipLevel, const PixelData& expected)
+			{
+				device->WaitUntilIdle();
+
+				const TShared<PixelData> read = PixelData::Create(expected.GetWidth(), expected.GetHeight(), 1, PF_R32U);
+				render::TextureUtility::Read(texture, *read, mipLevel);
+
+				bool matches = true;
+				for(u32 row = 0; row < expected.GetHeight(); row++)
+					matches &= memcmp(expected.GetData() + row * expected.GetRowPitch(), read->GetData() + row * read->GetRowPitch(), expected.GetWidth() * sizeof(u32)) == 0;
+
+				return matches;
+			};
+
+			const TShared<PixelData> firstMip0 = fnCreateMipData(0, 0xD0000000);
+			render::TextureUtility::Write(texture, *firstMip0, 0);
+			render::TextureUtility::Write(texture, *fnCreateMipData(1, 0xD1000000), 1);
+			transferQueue.SubmitQueuedTransfers(*texture);
+			device->WaitUntilIdle();
+
+			const ImageSubresourcePitch pitch = texture->GetStagingBufferPitchForSubresource(0, 0);
+			const TShared<render::GpuBuffer> readback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(pitch.RowPitch * pitch.SliceHeight * sizeof(u32)));
+
+			SignalEvent submitThreadRelease;
+			device->GetSubmitThread().QueueWaitForEvent(submitThreadRelease);
+
+			const TShared<render::GpuCommandBuffer> commands = computePool->Create(render::GpuCommandBufferCreateInformation::Create("Compute mip read"));
+			const GpuTextureSubresourceRange mip0(0, 1, 0, 1, GpuTextureAspectFlag::Color);
+			const GpuAccessState textureRestingState = GpuBackendUtility::GetRestingState(*texture, GQT_COMPUTE);
+			const GpuAccessState textureTransferRead(GpuStageFlag::Transfer, GpuAccessFlag::Read, GpuImageLayout::TransferSource);
+
+			commands->IssueBarriers(GpuTextureBarrier(texture, textureRestingState, textureTransferRead, mip0));
+			commands->IssueBarriers(GpuBufferBarrier(readback, GpuAccessState(), transferWrite));
+			commands->CopyTextureToBuffer(texture, readback, 0, 0);
+			commands->IssueBarriers(GpuTextureBarrier(texture, textureTransferRead, textureRestingState, mip0));
+			commands->IssueBarriers(GpuBarrierTestUtility::CreateReadbackBarrier(readback));
+			context->SubmitCommandBuffer(commands, GpuQueueMask::kNone);
+
+			const TShared<PixelData> secondMip0 = fnCreateMipData(0, 0xD2000000);
+			const TShared<PixelData> secondMip1 = fnCreateMipData(1, 0xD3000000);
+			render::TextureUtility::Write(texture, *secondMip1, 1);
+			render::TextureUtility::Write(texture, *secondMip0, 0);
+			transferQueue.SubmitQueuedTransfers(*texture);
+			submitThreadRelease.Signal();
+			device->WaitUntilIdle();
+
+			bool readbackMatches = false;
+			{
+				const render::GpuBufferMappedScope mapping = readback->Map(GpuMapOption::Read);
+				if(mapping.IsValid())
+				{
+					readbackMatches = true;
+					const u8* const readbackData = static_cast<const u8*>(mapping.GetMappedMemory());
+					for(u32 row = 0; row < kTextureSize; row++)
+					{
+						readbackMatches &= memcmp(readbackData + row * pitch.RowPitch * sizeof(u32), firstMip0->GetData() + row * firstMip0->GetRowPitch(),
+							kTextureSize * sizeof(u32)) == 0;
+					}
+				}
+			}
+
+			B3D_TEST_ASSERT(readbackMatches)
+			B3D_TEST_ASSERT(fnMipHolds(0, *secondMip0))
+			B3D_TEST_ASSERT(fnMipHolds(1, *secondMip1))
+		}
+	}, "GpuBackendTestSuite::TestCrossQueueTransfers", true);
+}
+
 void GpuBackendTestSuite::TestFramebufferAttachmentUsage()
 {
 	TrackedTestImage colorImage(4, 2, GpuTextureAspectFlag::Color);
@@ -2277,6 +2499,65 @@ void GpuBackendTestSuite::TestResourceUseTracking()
 	B3D_TEST_ASSERT(attachmentImage.GetBoundCount() == 0)
 	B3D_TEST_ASSERT(tracker.FindBufferTrackingState(&buffer) == nullptr)
 	B3D_TEST_ASSERT(tracker.FindImageUseHandle(&image) == nullptr)
+
+	// A submission records what it accesses, and waits for the earlier accesses on other queues that it must follow
+	{
+		const GpuQueueId graphics(GQT_GRAPHICS, 0);
+		const GpuQueueId compute(GQT_COMPUTE, 0);
+
+		TrackedTestBuffer submittedBuffer;
+		TrackedTestImage submittedImage(1, 2, GpuTextureAspectFlag::Color);
+		const GpuTextureSubresourceRange mip0(0, 1, 0, 1, GpuTextureAspectFlag::Color);
+		const GpuTextureSubresourceRange mip1(1, 1, 0, 1, GpuTextureAspectFlag::Color);
+
+		// Submits a command buffer that accesses the buffer and returns its wait on @p otherQueue
+		const auto fnSubmitBuffer = [this, &submittedBuffer](GpuQueueId queue, u64 fenceValue, GpuAccessFlags access, GpuQueueId otherQueue)
+		{
+			GpuResourceTracker submissionTracker;
+			submissionTracker.TrackBufferUsage(&submittedBuffer, access);
+			const GpuQueueFenceValues waits = submissionTracker.NotifySubmitted(queue, fenceValue);
+			B3D_TEST_ASSERT(waits[queue.Id] == 0)
+
+			submissionTracker.NotifyUnbound();
+			return waits[otherQueue.Id];
+		};
+
+		// Same as fnSubmitBuffer, for an access to @p range of the image
+		const auto fnSubmitImage = [this, &submittedImage](GpuQueueId queue, u64 fenceValue, const GpuTextureSubresourceRange& range, GpuAccessFlags access, GpuQueueId otherQueue)
+		{
+			GpuResourceTracker submissionTracker;
+			submissionTracker.TrackImageUsage(&submittedImage, range, access);
+			const GpuQueueFenceValues waits = submissionTracker.NotifySubmitted(queue, fenceValue);
+			B3D_TEST_ASSERT(waits[queue.Id] == 0)
+
+			submissionTracker.NotifyUnbound();
+			return waits[otherQueue.Id];
+		};
+
+		// A read follows other queues' writes, a write their reads too, and reads never wait for each other
+		B3D_TEST_ASSERT(fnSubmitBuffer(compute, 3, GpuAccessFlag::Write, graphics) == 0)
+		B3D_TEST_ASSERT(fnSubmitBuffer(graphics, 5, GpuAccessFlag::Read, compute) == 3)
+		B3D_TEST_ASSERT(fnSubmitBuffer(compute, 4, GpuAccessFlag::Read, graphics) == 0)
+		B3D_TEST_ASSERT(fnSubmitBuffer(graphics, 6, GpuAccessFlag::Write, compute) == 4)
+		B3D_TEST_ASSERT(submittedBuffer.GetRequiredWaits(GpuAccessFlag::Read)[graphics.Id] == 6)
+		B3D_TEST_ASSERT(submittedBuffer.GetRequiredWaits(GpuAccessFlag::Write)[compute.Id] == 4)
+
+		// Accesses to different subresources don't wait for each other, a partial access waits for whole-image accesses, and a whole-image
+		// access with accesses to any part
+		B3D_TEST_ASSERT(fnSubmitImage(compute, 7, mip1, GpuAccessFlag::Write, graphics) == 0)
+		B3D_TEST_ASSERT(fnSubmitImage(graphics, 8, mip0, GpuAccessFlag::Read, compute) == 0)
+		B3D_TEST_ASSERT(fnSubmitImage(graphics, 9, submittedImage.GetRange(), GpuAccessFlag::Read, compute) == 7)
+		B3D_TEST_ASSERT(fnSubmitImage(compute, 10, mip0, GpuAccessFlag::Read, graphics) == 0)
+		B3D_TEST_ASSERT(fnSubmitImage(compute, 11, submittedImage.GetRange(), GpuAccessFlag::Write, graphics) == 9)
+		B3D_TEST_ASSERT(fnSubmitImage(graphics, 12, mip1, GpuAccessFlag::Read, compute) == 11)
+
+		// The subresource holds partial accesses, the full-range subresource whole-image accesses, and the image accesses to any part
+		B3D_TEST_ASSERT(submittedImage.GetSubresource(0, 1, GpuTextureAspectFlag::Color)->GetRequiredWaits(GpuAccessFlag::Read)[compute.Id] == 7)
+		B3D_TEST_ASSERT(submittedImage.GetFullRangeSubresource()->GetRequiredWaits(GpuAccessFlag::Read)[compute.Id] == 11)
+		B3D_TEST_ASSERT(submittedImage.GetFullRangeSubresource()->GetRequiredWaits(GpuAccessFlag::Write)[graphics.Id] == 9)
+		B3D_TEST_ASSERT(submittedImage.GetRequiredWaits(GpuAccessFlag::Write)[graphics.Id] == 12)
+		B3D_TEST_ASSERT(submittedImage.GetRequiredWaits(GpuAccessFlag::Read)[compute.Id] == 11)
+	}
 }
 
 void GpuBackendTestSuite::TestBarriers()

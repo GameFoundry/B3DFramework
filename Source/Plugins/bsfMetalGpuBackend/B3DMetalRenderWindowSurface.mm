@@ -117,7 +117,16 @@ namespace b3d::render
 
 		// The queue already waits for the drawable since the submission that rendered to it
 		auto& metalQueue = static_cast<MetalGpuQueue&>(queue);
-		metalQueue.WaitForQueues(syncMask);
+
+		// Waits on the latest committed work of every other queue in the sync mask
+		GpuQueueFenceValues waits = {};
+		queue.GetGpuDevice().DoForEachQueue([syncMask, &waits](GpuQueue& otherQueue)
+		{
+			if (syncMask.IsSet(otherQueue.GetId()))
+				waits[otherQueue.GetId().Id] = static_cast<MetalGpuQueue&>(otherQueue).GetLastCommittedEventValue();
+		});
+
+		metalQueue.WaitForQueues(waits);
 		metalQueue.SignalDrawable(claimedDrawable.Drawable);
 
 		const bool useTimedPresent = claimedDrawable.VSync && claimedDrawable.VSyncInterval > 1;

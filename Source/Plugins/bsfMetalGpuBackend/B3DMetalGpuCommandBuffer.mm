@@ -2251,8 +2251,9 @@ namespace b3d
 			// never blocked by the release, and the release records nothing. A fence could not wait from the encoder the
 			// release is in, nor cover work in the encoders before it.
 			//
-			// Halves on queues of different types are ordered by the queue wait of the acquire's submission on the release's
-			// submission event, which also makes the writes visible, so neither half records a barrier.
+			// Halves on queues of different types are ordered by a queue wait of the acquire's submission, or of an earlier
+			// submission on its queue, on the release's submission event, which also makes the writes visible, so neither half
+			// records a barrier.
 			enum class BarrierCase { Full, SplitRelease, SplitAcquire, TransferRelease, TransferAcquire };
 
 			if (mRecordingFailed)
@@ -2365,7 +2366,7 @@ namespace b3d
 			return true;
 		}
 
-		void MetalGpuCommandBuffer::ExecuteSubmitOnSubmitThread(MetalGpuQueue& submitQueue, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+		void MetalGpuCommandBuffer::ExecuteSubmitOnSubmitThread(MetalGpuQueue& submitQueue, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 		{
 			// The owner thread already released its recording state (NotifyWillQueueForSubmit()), so only the native encoding state and
 			// mUsedQueryPools may be touched here. mQueueSyncMask is already folded into @p syncMask.
@@ -2403,18 +2404,18 @@ namespace b3d
 			GpuSubmitThread& submitThread = mGpuDevice.GetSubmitThread();
 
 			// Queue waits apply to all work committed after them, so they precede the commit. Frame fence values are committed
-			// event values, so waiting on them cannot deadlock, and queues in the sync mask are already waited on at a later value.
-			submitQueue.WaitForQueues(syncMask);
+			// event values, so waiting on them cannot deadlock, and queues already waited on at a value at least as high are covered.
+			submitQueue.WaitForQueues(waits);
 
 			const TArrayView<const u64> frameFenceValues = submitThread.ConsumeFrameFence(submitQueue);
 			if (!frameFenceValues.IsEmpty())
 			{
 				const GpuQueueId submitQueueId = submitQueue.GetId();
-				mGpuDevice.DoForEachQueue([&submitQueue, submitQueueId, syncMask, frameFenceValues](GpuQueue& queue)
+				mGpuDevice.DoForEachQueue([&submitQueue, submitQueueId, &waits, frameFenceValues](GpuQueue& queue)
 				{
 					const GpuQueueId queueId = queue.GetId();
 					const u64 waitValue = frameFenceValues[queueId.Id];
-					if (waitValue == 0 || (queueId.Id != submitQueueId.Id && syncMask.IsSet(queueId)))
+					if (waitValue == 0 || (queueId.Id != submitQueueId.Id && waits[queueId.Id] >= waitValue))
 						return;
 
 					submitQueue.WaitForEvent(static_cast<MetalGpuQueue&>(queue).GetSharedEvent(), waitValue);

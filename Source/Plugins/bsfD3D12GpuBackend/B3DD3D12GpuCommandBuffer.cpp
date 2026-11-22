@@ -1896,7 +1896,8 @@ bool D3D12GpuCommandBuffer::RecordBarrierBatch(const GpuBarriers& barriers, cons
 	// The halves of a split barrier on queues of one type are identical, except that the release ends in the split and the acquire starts
 	// from it. The pair may cross ExecuteCommandLists() boundaries, where it only transitions layouts.
 	//
-	// Halves on queues of different types are ordered by the queue wait of the acquire's submission, and the ExecuteCommandLists() boundary
+	// Halves on queues of different types are ordered by a queue wait of the acquire's submission, or of an earlier submission on its queue,
+	// and the ExecuteCommandLists() boundary
 	// between them flushes every cache. They record no global barriers, only layout transitions through a handoff layout that both queue
 	// types can transition. Source layouts are native to the release queue type, destination layouts to the acquire queue type.
 	enum class BarrierCase { Full, SplitRelease, SplitAcquire, TransferRelease, TransferAcquire };

@@ -51,6 +51,15 @@ namespace b3d
 		OnNotifyUsed(queueId, useFlags);
 	}
 
+	void IGpuResource::NotifySubmitted(GpuQueueId queueId, GpuAccessFlags access, u64 fenceValue)
+	{
+		if(access.IsSet(GpuAccessFlag::Read))
+			mLastReadFenceValues[queueId.Id] = fenceValue;
+
+		if(access.IsSet(GpuAccessFlag::Write))
+			mLastWriteFenceValues[queueId.Id] = fenceValue;
+	}
+
 	void IGpuResource::NotifyDone(GpuQueueId queueId, GpuAccessFlags useFlags)
 	{
 		bool destroyImmediately;
@@ -149,6 +158,19 @@ namespace b3d
 	{
 		[[maybe_unused]] const u32 previousCount = mQueuedTransfersCount.fetch_sub(1, std::memory_order_release);
 		B3D_ASSERT(previousCount > 0);
+	}
+
+	GpuQueueFenceValues IGpuResource::GetRequiredWaits(GpuAccessFlags access) const
+	{
+		// A read waits for the writes, a write for the reads too
+		GpuQueueFenceValues waits = mLastWriteFenceValues;
+		if(access.IsSet(GpuAccessFlag::Write))
+		{
+			for(u32 queueIndex = 0; queueIndex < kMaximumGpuQueueCount; queueIndex++)
+				waits[queueIndex] = std::max(waits[queueIndex], mLastReadFenceValues[queueIndex]);
+		}
+
+		return waits;
 	}
 
 	void IGpuResource::Destroy()

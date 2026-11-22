@@ -105,7 +105,7 @@ namespace b3d
 				GetSubmitThread().WaitUntilIdle();
 		}
 
-		void NullGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask,
+		void NullGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& waits,
 			TArrayView<const GpuTimelineFenceAndValue> signalFences)
 		{
 			commandBuffer->OnDidComplete();

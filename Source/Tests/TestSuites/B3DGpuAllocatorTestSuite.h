@@ -218,6 +218,12 @@ namespace b3d
 		void TestSubmissionTimeline();
 
 		/**
+		 * A queue coverage drops waits on the submission's own queue and waits earlier waits satisfy. Waiting on a queue's latest submission
+		 * carries that submission's coverage along, transitively, while waiting on an older submission covers only that submission.
+		 */
+		void TestQueueCoverage();
+
+		/**
 		 * Memory released on a queue is reused by a later allocation on the same queue, whose acquire orders it after the
 		 * released accesses. Memory released by a later submission on the queue is not reused by an earlier one.
 		 */

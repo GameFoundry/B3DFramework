@@ -325,6 +325,12 @@ namespace b3d
 		void NotifyUsed(GpuQueueId queueId, GpuAccessFlags useFlags);
 
 		/**
+		 * Notifies the resource that a submission on @p queueId that signals @p fenceValue accesses it as @p access. Must follow a
+		 * NotifyUsed(). Submit thread only.
+		 */
+		void NotifySubmitted(GpuQueueId queueId, GpuAccessFlags access, u64 fenceValue);
+
+		/**
 		 * Notifies the resource that it is no longer being used on the GPU. Must follow a NotifyUsed().
 		 *
 		 * @param	queueId		ID of the queue the resource was being used in.
@@ -422,6 +428,13 @@ namespace b3d
 		bool HasQueuedTransfers() const { return mQueuedTransfersCount.load(std::memory_order_acquire) > 0; }
 
 		/**
+		 * Returns the waits, per queue, that a submission accessing the resource as @p access needs: the fence value of the latest
+		 * submission that wrote the resource, and for a write also of the latest that read it. 0 for queues with no such submission.
+		 * Submit thread only.
+		 */
+		GpuQueueFenceValues GetRequiredWaits(GpuAccessFlags access) const;
+
+		/**
 		 * Queues the resource for destruction. If the resource is currently bound to a command buffer or pinned, the actual
 		 * free is deferred until the bound and pin counts drop to zero; otherwise the manager frees it immediately. Only valid for
 		 * resources constructed with a non-null manager.
@@ -496,6 +509,12 @@ namespace b3d
 
 		/** Number of NotifyTransfersQueued() calls not matched by a NotifyTransfersDequeued() yet. See HasQueuedTransfers(). */
 		std::atomic<u32> mQueuedTransfersCount = 0;
+
+		/** Fence value of the latest submission on each queue that read the resource, see NotifySubmitted(). Submit thread only. */
+		GpuQueueFenceValues mLastReadFenceValues = {};
+
+		/** Same as mLastReadFenceValues, for submissions that wrote the resource. Submit thread only. */
+		GpuQueueFenceValues mLastWriteFenceValues = {};
 	};
 
 #if B3D_BUILD_TYPE_DEVELOPMENT

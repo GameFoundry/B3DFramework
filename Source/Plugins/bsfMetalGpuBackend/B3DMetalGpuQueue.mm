@@ -49,22 +49,13 @@ namespace b3d
 			[mCommandQueue commit:commandBuffers count:count options:options];
 		}
 
-		void MetalGpuQueue::WaitForQueues(GpuQueueMask waitMask)
+		void MetalGpuQueue::WaitForQueues(const GpuQueueFenceValues& waits)
 		{
-			waitMask &= ~GpuQueueMask(GetId());
-			if (waitMask.IsEmpty())
-				return;
-
-			mGpuDevice.DoForEachQueue([this, waitMask](GpuQueue& queue)
+			mGpuDevice.DoForEachQueue([this, &waits](GpuQueue& queue)
 			{
-				if (!waitMask.IsSet(queue.GetId()))
-					return;
-
-				// Not the reserved value, which may belong to a submission that isn't committed yet and would never signal
-				auto& waitQueue = static_cast<MetalGpuQueue&>(queue);
-				const u64 waitValue = waitQueue.GetLastCommittedEventValue();
-				if (waitValue != 0)
-					[mCommandQueue waitForEvent:waitQueue.GetSharedEvent() value:waitValue];
+				const u64 waitValue = waits[queue.GetId().Id];
+				if (waitValue != 0 && &queue != this)
+					[mCommandQueue waitForEvent:static_cast<MetalGpuQueue&>(queue).GetSharedEvent() value:waitValue];
 			});
 		}
 
@@ -140,8 +131,12 @@ namespace b3d
 
 		void MetalGpuQueue::NotifySubmissionFailed(const TShared<WaitGroup>& ownerCompletion)
 		{
+			const u64 signalValue = ++mLastReservedEventValue;
+			[mCommandQueue signalEvent:mSharedEvent value:signalValue];
+			mLastCommittedEventValue.store(signalValue, std::memory_order_release);
+
 			Lock lock(mSubmissionMutex);
-			mActiveSubmissions.push_back({ GetLastCommittedEventValue(), ownerCompletion });
+			mActiveSubmissions.push_back({ signalValue, ownerCompletion });
 		}
 
 		void MetalGpuQueue::SubmitCommandBuffer(const GpuSubmissionInformation& information)

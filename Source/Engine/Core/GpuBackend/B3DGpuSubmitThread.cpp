@@ -89,19 +89,24 @@ void GpuSubmitThread::QueueSubmit(const TShared<GpuCommandBuffer>& commandBuffer
 	GpuTransferQueue& transferQueue = mGpuDevice.GetTransferQueue();
 	const TArrayView<IGpuResource* const> transferResources = commandBuffer->GetResourceTracker().GetResourcesWithQueuedTransfers();
 
+	const bool takesBindlessTransfers = transferQueue.HasBindlessTransfers();
 	u64 transferBatch = 0;
-	if(!transferResources.IsEmpty() || transferQueue.HasBindlessTransfers())
+	if(!transferResources.IsEmpty() || takesBindlessTransfers)
 		transferBatch = transferQueue.TakeQueuedTransfers(transferResources);
 
-	auto fnCommand = [this, commandBuffer, &queue, syncMask, transferBatch, signalFences = std::move(signalFences)]() mutable
+	auto fnCommand = [this, commandBuffer, &queue, syncMask, transferBatch, takesBindlessTransfers, signalFences = std::move(signalFences)]() mutable
 	{
-		syncMask |= commandBuffer->GetQueueSyncMask();
-
-		// The batch is submitted now, or was by an earlier command, on the first graphics queue
+		// The batch is submitted now, or was by an earlier command, on the first graphics queue. Submit() makes the command buffer wait for
+		// the transfers to the resources it tracks.
 		if(transferBatch != 0)
 		{
 			SubmitTakenTransfers(transferBatch);
-			syncMask |= GpuQueueMask(mGpuDevice.GetQueue(GQT_GRAPHICS, 0)->GetId());
+
+			// The command buffer doesn't track what it reads through the bindless heap, so it waits for the transfers of bindless resources
+			// through the latest work of the first graphics queue instead
+			// TODO - Remove once bindless resources only get initial uploads, on their own path
+			if(takesBindlessTransfers)
+				syncMask |= GpuQueueMask(mGpuDevice.GetQueue(GQT_GRAPHICS, 0)->GetId());
 		}
 
 		Submit(queue, commandBuffer, syncMask, signalFences);
@@ -126,14 +131,33 @@ void GpuSubmitThread::QueueTransferSubmit(u64 lastBatch)
 
 void GpuSubmitThread::Submit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
-	mBackend.ExecuteSubmit(queue, commandBuffer, syncMask, signalFences);
+	const GpuQueueId queueId = queue.GetId();
 
-	if (signalFences.IsEmpty())
-		return;
+	// A queue in a sync mask is waited on up to its latest work
+	syncMask |= commandBuffer->GetQueueSyncMask();
 
-	const u64 queueFenceValue = mBackend.GetLastSubmittedFenceValue(queue);
+	GpuQueueFenceValues waits = {};
+	mGpuDevice.DoForEachQueue([this, syncMask, &waits](GpuQueue& otherQueue)
+	{
+		if(syncMask.IsSet(otherQueue.GetId()))
+			waits[otherQueue.GetId().Id] = mBackend.GetLastSubmittedFenceValue(otherQueue);
+	});
+
+	// Recorded before the submission, because the command buffer may complete, and release what it tracks, as soon as it is submitted
+	const u64 fenceValue = mBackend.GetNextSubmitFenceValue(queue);
+	const GpuQueueFenceValues resourceWaits = commandBuffer->GetResourceTracker().NotifySubmitted(queueId, fenceValue);
+	for(u32 queueIndex = 0; queueIndex < kMaximumGpuQueueCount; queueIndex++)
+		waits[queueIndex] = std::max(waits[queueIndex], resourceWaits[queueIndex]);
+
+	waits[queueId.Id] = 0;
+
+	mBackend.ExecuteSubmit(queue, commandBuffer, mQueueCoverage.GetUncoveredWaits(queueId, waits), signalFences);
+	B3D_ASSERT(mBackend.GetLastSubmittedFenceValue(queue) == fenceValue);
+
+	mQueueCoverage.AddSubmission(queueId, waits, fenceValue);
+
 	for (const GpuTimelineFenceAndValue& signalFence : signalFences)
-		mFenceSignals[queue.GetId().Id].push_back(FenceSignal{ signalFence.Fence, signalFence.Value, queueFenceValue });
+		mFenceSignals[queueId.Id].push_back(FenceSignal{ signalFence.Fence, signalFence.Value, fenceValue });
 }
 
 void GpuSubmitThread::SubmitTakenTransfers(u64 lastBatch)
@@ -143,7 +167,7 @@ void GpuSubmitThread::SubmitTakenTransfers(u64 lastBatch)
 	if(recorded.CommandBuffer == nullptr)
 		return;
 
-	Submit(*mGpuDevice.GetQueue(GQT_GRAPHICS, 0), recorded.CommandBuffer, GpuQueueMask::kAll, TArrayView<const GpuTimelineFenceAndValue>(&recorded.SignalFence, 1));
+	Submit(*mGpuDevice.GetQueue(GQT_GRAPHICS, 0), recorded.CommandBuffer, GpuQueueMask::kNone, TArrayView<const GpuTimelineFenceAndValue>(&recorded.SignalFence, 1));
 }
 
 TArrayView<const u64> GpuSubmitThread::ConsumeFrameFence(const GpuQueue& queue)
@@ -218,6 +242,7 @@ void GpuSubmitThread::QueueEndFrameAndWaitForPreviousFrame()
 		// Order the next frame's first submission on every queue after all of this frame's work
 		mFrameFencePendingQueues = GpuQueueMask::kAll;
 		mFrameFenceMarkerIndex = markerIndex;
+		mQueueCoverage = GpuQueueCoverage(currentMarker.LastFenceValues);
 
 		// Wait for all command buffers from the previous frame, up to the fence value captured at that frame's boundary.
 		// Checking the full range ensures every command buffer pool and its resources are safe to reuse.

@@ -740,7 +740,6 @@ void TextureUtility::Write(const TShared<Texture>& texture, const PixelData& sou
 	const bool hasQueuedTransfers = gpuResource != nullptr && gpuResource->HasQueuedTransfers();
 
 	// Check is the GPU currently reading or writing from the image
-	const GpuQueueMask subresourceUseMask = texture->GetUseMask(mipLevel, arrayLayer, GpuAccessFlag::Read | GpuAccessFlag::Write);
 	const u32 subresourceIndex = textureProperties.MapToSubresourceIndex(arrayLayer, mipLevel);
 	const u32 subresourceUseCount = texture->GetUseCount(subresourceIndex);
 	const u32 subresourceBoundCount = texture->GetBoundCount(subresourceIndex);
@@ -801,7 +800,7 @@ void TextureUtility::Write(const TShared<Texture>& texture, const PixelData& sou
 		PixelUtility::BulkPixelConversion(source, lockedArea);
 	}
 
-	// Uploads queued on the transfer queue wait for all earlier work on every queue
+	// The submission of the copy waits for the earlier uses of the subresource on other queues, as it tracks the subresource as written
 	if(commandBuffer == nullptr)
 	{
 		transferQueue.QueueUpload(std::move(stagingBuffer), texture, mipLevel, arrayLayer);
@@ -809,11 +808,6 @@ void TextureUtility::Write(const TShared<Texture>& texture, const PixelData& sou
 	}
 
 	transferQueue.RecordUpload(std::move(stagingBuffer), texture, mipLevel, arrayLayer, *commandBuffer);
-
-	// If the image is used in any way on the GPU, we need to wait for that use to finish before we issue our copy -
-	// unless the user promised via no-overwrite not to touch any region the GPU is using.
-	if(!subresourceUseMask.IsEmpty() && !noOverwrite)
-		commandBuffer->AddQueueSyncMask(subresourceUseMask);
 }
 
 void TextureUtility::Read(const TShared<Texture>& texture, PixelData& destination, u32 mipLevel, u32 arrayLayer)

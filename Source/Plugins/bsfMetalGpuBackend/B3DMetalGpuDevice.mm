@@ -705,11 +705,11 @@ namespace b3d
 			GetSubmitThread().WaitUntilIdle();
 		}
 
-		void MetalGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+		void MetalGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 		{
 			MetalGpuQueue& metalQueue = static_cast<MetalGpuQueue&>(queue);
 			MetalGpuCommandBuffer& metalCommandBuffer = static_cast<MetalGpuCommandBuffer&>(*commandBuffer);
-			metalCommandBuffer.ExecuteSubmitOnSubmitThread(metalQueue, syncMask, signalFences);
+			metalCommandBuffer.ExecuteSubmitOnSubmitThread(metalQueue, waits, signalFences);
 		}
 
 		void MetalGpuDevice::RefreshCompletionState(GpuQueue& queue, bool forceWait, u64 lastFenceValue)
@@ -720,6 +720,11 @@ namespace b3d
 		u64 MetalGpuDevice::GetLastSubmittedFenceValue(const GpuQueue& queue) const
 		{
 			return static_cast<const MetalGpuQueue&>(queue).GetLastCommittedEventValue();
+		}
+
+		u64 MetalGpuDevice::GetNextSubmitFenceValue(const GpuQueue& queue) const
+		{
+			return static_cast<const MetalGpuQueue&>(queue).GetNextSubmissionEventValue();
 		}
 
 		void MetalGpuDevice::ExecuteWaitUntilIdle()

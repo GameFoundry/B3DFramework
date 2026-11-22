@@ -50,10 +50,13 @@ namespace b3d::render
 		 *
 		 * @param	queue			Queue to submit the command buffer on.
 		 * @param	commandBuffer	Command buffer to submit.
-		 * @param	syncMask		Inter-queue synchronization mask.
+		 * @param	waits			Value of each other queue's own fence (see GetLastSubmittedFenceValue()) that the submission waits for on
+		 *							the GPU before it starts, even if the value has already been reached. 0 for no wait. The entry of
+		 *							@p queue is always 0. The submission also waits on the frame fence (see GpuSubmitThread::ConsumeFrameFence()),
+		 *							and may leave out its frame fence wait on another queue whose value in @p waits is at least as high.
 		 * @param	signalFences	Timeline-fence + value pairs to signal when the submit completes.
 		 */
-		virtual void ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences) = 0;
+		virtual void ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences) = 0;
 
 		/**
 		 * Checks if any of the active command buffers finished executing on the provided queue and updates their
@@ -69,10 +72,16 @@ namespace b3d::render
 		/**
 		 * Returns the value the queue's own fence is signalled with by its most recent submission, or 0 if nothing has
 		 * been submitted yet. Values increase with submission order. A GPU wait on the value must order the waiting
-		 * submission after all work submitted on the queue up to that point, with all of that work's writes available
-		 * and visible.
+		 * submission, and every later submission on the waiting queue, after all work submitted on the queue up to that
+		 * point, with all of that work's writes available and visible.
 		 */
 		virtual u64 GetLastSubmittedFenceValue(const GpuQueue& queue) const = 0;
+
+		/**
+		 * Returns the value the next ExecuteSubmit() on @p queue signals the queue's own fence with, once all of its work is done. The
+		 * submission signals it even if it fails.
+		 */
+		virtual u64 GetNextSubmitFenceValue(const GpuQueue& queue) const = 0;
 
 		/** Blocks until all work on the device finishes executing on the GPU, using the backend's native wait. */
 		virtual void ExecuteWaitUntilIdle() = 0;
@@ -98,7 +107,7 @@ namespace b3d::render
 			 * next frame's first submission on every queue waits on all of them (see ConsumeFrameFence()), and frame
 			 * pacing waits until every queue reaches its value before the frame's resources are reused.
 			 */
-			Array<u64, kMaximumGpuQueueCount> LastFenceValues = {};
+			GpuQueueFenceValues LastFenceValues = {};
 
 			/** Event signalled when this frame has been completely processed by the submit thread. */
 			SignalEvent CompletionEvent;
@@ -226,18 +235,21 @@ namespace b3d::render
 		void RemoveFenceSignals(const GpuQueue& queue, u64 lastFenceValue);
 
 		/**
-		 * Submits @p commandBuffer on @p queue, and keeps the fence signals of the submission for WaitUntilFence(). Submit thread only.
+		 * Submits @p commandBuffer on @p queue, and keeps the fence signals of the submission for WaitUntilFence(). The submission waits for the
+		 * latest work of the queues in @p syncMask and in the command buffer's own sync mask, and for the earlier submissions on other queues that
+		 * wrote a buffer or image subresource the command buffer uses, or read one it writes. Waits that earlier waits already satisfy are left
+		 * out. Submit thread only.
 		 *
 		 * @param	queue			Queue to submit the command buffer on.
 		 * @param	commandBuffer	Command buffer to submit.
-		 * @param	syncMask		Queues whose earlier work the submission waits for.
+		 * @param	syncMask		Queues whose latest work the submission waits for, in addition to the command buffer's own sync mask.
 		 * @param	signalFences	Timeline-fence + value pairs to signal when the submission completes.
 		 */
 		void Submit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences);
 
 		/**
-		 * Records the transfer batches up to and including @p lastBatch that aren't recorded yet, and submits them on the first graphics queue,
-		 * waiting for all earlier work on every queue. The submission signals the transfer queue's batch fence. Submit thread only.
+		 * Records the transfer batches up to and including @p lastBatch that aren't recorded yet, and submits them on the first graphics queue.
+		 * The submission signals the transfer queue's batch fence. Submit thread only.
 		 */
 		void SubmitTakenTransfers(u64 lastBatch);
 
@@ -254,6 +266,9 @@ namespace b3d::render
 
 		/** Queues whose next command buffer submission must wait on the frame fence. Submit thread only. */
 		GpuQueueMask mFrameFencePendingQueues;
+
+		/** Work each queue's next submission is already ordered after. Reset at every frame boundary. Submit thread only. */
+		GpuQueueCoverage mQueueCoverage;
 
 		/** Index of the frame marker that holds the frame fence values. Submit thread only. */
 		u32 mFrameFenceMarkerIndex = 0;

@@ -57,6 +57,13 @@ namespace b3d
 		void TestTransferQueue();
 
 		/**
+		 * Uploads through GpuTransferQueue to buffers and texture mip levels that the compute queue accesses, with no queue waits of their own.
+		 * Verifies that an upload runs after an earlier compute write or read of what it writes, and that a compute read runs after an upload
+		 * an earlier graphics submission took.
+		 */
+		void TestCrossQueueTransfers();
+
+		/**
 		 * Verifies the transient resource cache across scopes and frames, cache eviction by idle frames and by cache size, the release of
 		 * idle heaps, concurrent scopes of two contexts sharing a heap, the persistent memory fallback, that transient buffers get no CPU
 		 * access, and the validation of transient resource use.
@@ -80,7 +87,9 @@ namespace b3d
 
 		/**
 		 * Verifies the tracker binds every used resource and subresource once and accumulates their access, lets shaders read read-only
-		 * attachments of the render pass in the attachment's layout, and unbinds everything when cleared.
+		 * attachments of the render pass in the attachment's layout, and unbinds everything when cleared. Also verifies that a submission
+		 * records what it accesses, and waits for other queues' earlier writes to what it reads and earlier accesses to what it writes: per
+		 * subresource for partial image accesses, and for any part of the image for whole-image accesses.
 		 */
 		void TestResourceUseTracking();
 

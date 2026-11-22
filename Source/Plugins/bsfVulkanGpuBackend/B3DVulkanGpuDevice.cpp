@@ -989,13 +989,13 @@ void VulkanGpuDevice::WaitUntilIdle()
 	GetSubmitThread().WaitUntilIdle();
 }
 
-void VulkanGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+void VulkanGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
 	VulkanGpuQueue& vulkanQueue = static_cast<VulkanGpuQueue&>(queue);
 	VulkanGpuCommandBuffer& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(*commandBuffer);
 
 	const VulkanGpuCommandBufferSubmitInformation submitInformation = vulkanCommandBuffer.PrepareForSubmitOnSubmitThread(vulkanQueue.GetType());
-	vulkanQueue.ExecuteSubmitOnSubmitThread(submitInformation, syncMask, signalFences);
+	vulkanQueue.ExecuteSubmitOnSubmitThread(submitInformation, waits, signalFences);
 }
 
 void VulkanGpuDevice::RefreshCompletionState(GpuQueue& queue, bool forceWait, u64 lastFenceValue)
@@ -1006,6 +1006,11 @@ void VulkanGpuDevice::RefreshCompletionState(GpuQueue& queue, bool forceWait, u6
 u64 VulkanGpuDevice::GetLastSubmittedFenceValue(const GpuQueue& queue) const
 {
 	return static_cast<const VulkanGpuQueue&>(queue).GetLastSubmittedProgressValue();
+}
+
+u64 VulkanGpuDevice::GetNextSubmitFenceValue(const GpuQueue& queue) const
+{
+	return static_cast<const VulkanGpuQueue&>(queue).GetNextProgressValue();
 }
 
 void VulkanGpuDevice::ExecuteWaitUntilIdle()

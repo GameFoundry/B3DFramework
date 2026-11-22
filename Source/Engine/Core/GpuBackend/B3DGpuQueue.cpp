@@ -10,6 +10,51 @@ using namespace b3d;
 const GpuQueueMask GpuQueueMask::kNone = GpuQueueMask(0);
 const GpuQueueMask GpuQueueMask::kAll = GpuQueueMask(~0u);
 
+GpuQueueCoverage::GpuQueueCoverage(const GpuQueueFenceValues& fenceValues)
+{
+	for(GpuQueueFenceValues& covered : mCovered)
+		covered = fenceValues;
+}
+
+GpuQueueFenceValues GpuQueueCoverage::GetUncoveredWaits(GpuQueueId queue, const GpuQueueFenceValues& waits) const
+{
+	const GpuQueueFenceValues& covered = mCovered[queue.Id];
+
+	GpuQueueFenceValues uncoveredWaits = {};
+	for(u32 queueId = 0; queueId < kMaximumGpuQueueCount; queueId++)
+	{
+		if(queueId != queue.Id && waits[queueId] > covered[queueId])
+			uncoveredWaits[queueId] = waits[queueId];
+	}
+
+	return uncoveredWaits;
+}
+
+void GpuQueueCoverage::AddSubmission(GpuQueueId queue, const GpuQueueFenceValues& waits, u64 fenceValue)
+{
+	GpuQueueFenceValues& covered = mCovered[queue.Id];
+
+	for(u32 waitQueueId = 0; waitQueueId < kMaximumGpuQueueCount; waitQueueId++)
+	{
+		const u64 waitValue = waits[waitQueueId];
+		if(waitQueueId == queue.Id || waitValue == 0)
+			continue;
+
+		covered[waitQueueId] = std::max(covered[waitQueueId], waitValue);
+
+		// The waited-for submission is the queue's latest known one or a later one, so it is ordered after everything the queue's latest
+		// known submission is. An older submission's orderings aren't known, so only the wait itself counts.
+		const GpuQueueFenceValues& waitQueueCovered = mCovered[waitQueueId];
+		if(waitValue < waitQueueCovered[waitQueueId])
+			continue;
+
+		for(u32 queueId = 0; queueId < kMaximumGpuQueueCount; queueId++)
+			covered[queueId] = std::max(covered[queueId], waitQueueCovered[queueId]);
+	}
+
+	covered[queue.Id] = fenceValue;
+}
+
 GpuQueue::GpuQueue(GpuDevice& gpuDevice, GpuQueueType type, u32 index)
 	:mGpuDevice(gpuDevice), mType(type), mIndex(index)
 {

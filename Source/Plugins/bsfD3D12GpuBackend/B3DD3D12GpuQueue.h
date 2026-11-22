@@ -39,14 +39,14 @@ namespace b3d
 			D3D12GpuDevice& GetDevice() const { return static_cast<D3D12GpuDevice&>(mGpuDevice); }
 
 			/**
-			 * Executes a previously recorded command buffer on the queue, waiting for work on other queues per
-			 * @p syncMask and signaling the provided timeline fences when execution completes. Any queue transitions
-			 * the submission carries are submitted to their own queues first, followed by this queue's transition
-			 * command buffer, and only then the recorded command buffer itself.
+			 * Executes a previously recorded command buffer on the queue, waiting for each other queue's submit fence to reach its value in
+			 * @p waits (0 for no wait) and signaling the provided timeline fences when execution completes. Any queue transitions the
+			 * submission carries are submitted to their own queues first, followed by this queue's transition command buffer, and only then
+			 * the recorded command buffer itself.
 			 *
 			 * @note	Submit thread only.
 			 */
-			void ExecuteSubmitOnSubmitThread(const D3D12GpuCommandBufferSubmitInformation& submitInformation, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences);
+			void ExecuteSubmitOnSubmitThread(const D3D12GpuCommandBufferSubmitInformation& submitInformation, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences);
 
 			/**
 			 * Checks if any of the active command buffers finished executing on the queue and updates their states
@@ -61,14 +61,6 @@ namespace b3d
 			void RefreshCompletionState(bool forceWait, u64 lastFenceValue = ~0ull);
 
 			/**
-			 * Checks if anything is currently executing on this queue.
-			 *
-			 * @note	This status is only updated after RefreshCompletionState has been called.
-			 * @note	Submit thread only.
-			 */
-			bool IsExecuting() const;
-
-			/**
 			 * Returns the fence that is signaled after every submit on this queue. Used together with
 			 * GetLastSignaledFenceValue() for cross-queue synchronization.
 			 *
@@ -78,6 +70,9 @@ namespace b3d
 
 			/** Returns the value the submit fence was last signaled with. @note Submit thread only. */
 			u64 GetLastSignaledFenceValue() const { return mLastSignaledFenceValue; }
+
+			/** Returns the value the next submission on the queue signals the queue submit fence with. Submit thread only. */
+			u64 GetNextFenceValue() const { return mNextFenceValue; }
 
 			/**
 			 * Submits command lists to the queue.
@@ -150,7 +145,6 @@ namespace b3d
 
 			mutable Mutex mMutex;
 			List<QueueSubmissionInformation> mActiveSubmissions;
-			TShared<D3D12GpuCommandBuffer> mLastSubmittedCommandBuffer;
 		};
 
 		/** @} */

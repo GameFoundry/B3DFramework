@@ -2048,8 +2048,8 @@ bool VulkanGpuCommandBuffer::RecordBarrierBatch(const GpuBarriers& barriers, con
 {
 	VulkanGpuDevice& device = GetVulkanGpuDevice();
 
-	// Halves on different queues are ordered by the queue wait of the acquire's submission, which also makes the source writes available
-	// and visible. They only record queue family ownership transfers and layout transitions.
+	// Halves on different queues are ordered by a queue wait of the acquire's submission, or of an earlier submission on its queue, which
+	// also makes the source writes available and visible. They only record queue family ownership transfers and layout transitions.
 	const bool transfersQueue = split != nullptr && split->IsQueueTransfer();
 	const u32 releaseQueueFamily = transfersQueue ? device.GetQueueFamily(*split->GetReleaseQueueType()) : VK_QUEUE_FAMILY_IGNORED;
 	const u32 acquireQueueFamily = transfersQueue ? device.GetQueueFamily(*split->GetAcquireQueueType()) : VK_QUEUE_FAMILY_IGNORED;

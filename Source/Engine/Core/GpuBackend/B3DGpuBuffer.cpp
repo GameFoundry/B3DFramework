@@ -505,7 +505,6 @@ namespace b3d::render
 		const bool hasQueuedTransfers = gpuResource != nullptr && gpuResource->HasQueuedTransfers();
 
 		// Check is the GPU currently reading or writing from the buffer
-		const GpuQueueMask useMask = buffer->GetUseMask(GpuAccessFlag::Read | GpuAccessFlag::Write);
 		const u32 useCount = buffer->GetUseCount();
 		const u32 boundCount = buffer->GetBoundCount();
 
@@ -566,7 +565,7 @@ namespace b3d::render
 			memcpy(mapping.GetMappedMemory(), source, length);
 		}
 
-		// Uploads queued on the transfer queue wait for all earlier work on every queue
+		// The submission of the copy waits for the earlier uses of the buffer on other queues, as it tracks the buffer as written
 		if(commandBuffer == nullptr)
 		{
 			transferQueue.QueueUpload(std::move(stagingBuffer), buffer, offset, length);
@@ -574,11 +573,6 @@ namespace b3d::render
 		}
 
 		transferQueue.RecordUpload(std::move(stagingBuffer), buffer, offset, length, *commandBuffer);
-
-		// If the buffer is used in any way on the GPU, we need to wait for that use to finish before we issue our
-		// copy - unless the user promised via no-overwrite not to touch any region the GPU is using.
-		if(!useMask.IsEmpty() && !mapOptions.IsSet(GpuMapOption::NoOverwrite))
-			commandBuffer->AddQueueSyncMask(useMask);
 	}
 
 	void GpuBufferUtility::Read(const TShared<GpuBuffer>& buffer, u32 offset, u32 length, void* destination)

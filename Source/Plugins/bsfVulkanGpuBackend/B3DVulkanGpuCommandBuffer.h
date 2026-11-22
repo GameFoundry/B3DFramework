@@ -92,8 +92,8 @@ namespace b3d
 
 		/**
 		 * Vulkan split barrier. Halves on one queue are connected by an event. The release sets it with the whole dependency, so the layout
-		 * transitions start in the release, and the acquire waits for it. Halves on different queues are ordered by the queue wait of the
-		 * acquire's submission. Their release records the queue family ownership release or the layout transitions, and their acquire
+		 * transitions start in the release, and the acquire waits for it. Halves on different queues are ordered by a queue wait of the
+		 * acquire's submission, or of an earlier submission on its queue. Their release records the queue family ownership release or the layout transitions, and their acquire
 		 * records the ownership acquire.
 		 */
 		class VulkanSplitBarrier final : public GpuSplitBarrier

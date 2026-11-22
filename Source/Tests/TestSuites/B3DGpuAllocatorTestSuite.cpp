@@ -76,6 +76,7 @@ GpuAllocatorTestSuite::GpuAllocatorTestSuite()
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestAllocatorIdentity_FreeRoutesByCarriedAllocator)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestAllocatorIdentity_DefraggedAllocationFreesThroughCarriedAllocator)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestSubmissionTimeline)
+	B3D_ADD_TEST(GpuAllocatorTestSuite::TestQueueCoverage)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestAliasing_SameQueueReuse)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestAliasing_CrossQueueEligibility)
 	B3D_ADD_TEST(GpuAllocatorTestSuite::TestAliasing_InheritedTags)
@@ -2446,6 +2447,66 @@ void GpuAllocatorTestSuite::TestSubmissionTimeline()
 	B3D_TEST_ASSERT(timeline.IsOrderedBefore(g4, t1))
 	B3D_TEST_ASSERT(timeline.IsOrderedBefore(waitsOnCompute, t1))
 	B3D_TEST_ASSERT(!timeline.IsOrderedBefore(t1, g4))
+}
+
+void GpuAllocatorTestSuite::TestQueueCoverage()
+{
+	const GpuQueueId graphics(GQT_GRAPHICS, 0);
+	const GpuQueueId compute(GQT_COMPUTE, 0);
+	const GpuQueueId transfer(GQT_TRANSFER, 0);
+
+	auto fnWaits = [](GpuQueueId queue, u64 value)
+	{
+		GpuQueueFenceValues waits = {};
+		waits[queue.Id] = value;
+		return waits;
+	};
+
+	GpuQueueCoverage coverage;
+
+	// Waits on the submission's own queue are always left out, other waits are kept until covered
+	B3D_TEST_ASSERT(coverage.GetUncoveredWaits(graphics, fnWaits(graphics, 5))[graphics.Id] == 0)
+	B3D_TEST_ASSERT(coverage.GetUncoveredWaits(graphics, fnWaits(compute, 3))[compute.Id] == 3)
+
+	// Compute C1..C7, where C7 waits on transfer T2. Graphics G1 waits on C3, an older compute submission: it covers compute up to C3 only.
+	coverage.AddSubmission(transfer, {}, 2);
+	coverage.AddSubmission(compute, {}, 3);
+	coverage.AddSubmission(compute, fnWaits(transfer, 2), 7);
+	coverage.AddSubmission(graphics, fnWaits(compute, 3), 1);
+	B3D_TEST_ASSERT(coverage.GetUncoveredWaits(graphics, fnWaits(compute, 3))[compute.Id] == 0)
+	B3D_TEST_ASSERT(coverage.GetUncoveredWaits(graphics, fnWaits(compute, 4))[compute.Id] == 4)
+	B3D_TEST_ASSERT(coverage.GetUncoveredWaits(graphics, fnWaits(transfer, 2))[transfer.Id] == 2)
+
+	// Graphics G2 waits on C7, compute's latest: it also covers what C7 waited on
+	coverage.AddSubmission(graphics, fnWaits(compute, 7), 2);
+	B3D_TEST_ASSERT(coverage.GetUncoveredWaits(graphics, fnWaits(compute, 7))[compute.Id] == 0)
+	B3D_TEST_ASSERT(coverage.GetUncoveredWaits(graphics, fnWaits(transfer, 2))[transfer.Id] == 0)
+
+	// Waiting on a value above the queue's latest known one, from a submission the coverage wasn't told about, also covers what the latest
+	// known one did
+	GpuQueueCoverage untracked;
+	untracked.AddSubmission(transfer, {}, 4);
+	untracked.AddSubmission(compute, fnWaits(transfer, 4), 1);
+	untracked.AddSubmission(graphics, fnWaits(compute, 2), 1);
+	B3D_TEST_ASSERT(untracked.GetUncoveredWaits(graphics, fnWaits(transfer, 4))[transfer.Id] == 0)
+
+	// Coverage carries through chains of waits: transfer waits on graphics, which waited on compute
+	coverage.AddSubmission(transfer, fnWaits(graphics, 2), 3);
+	B3D_TEST_ASSERT(coverage.GetUncoveredWaits(transfer, fnWaits(compute, 7))[compute.Id] == 0)
+	B3D_TEST_ASSERT(coverage.GetUncoveredWaits(transfer, fnWaits(compute, 8))[compute.Id] == 8)
+
+	// The waits of a submission are recorded even when they were already covered, and they don't lower anything
+	coverage.AddSubmission(transfer, fnWaits(compute, 3), 4);
+	B3D_TEST_ASSERT(coverage.GetUncoveredWaits(transfer, fnWaits(compute, 7))[compute.Id] == 0)
+
+	// The reset constructor covers everything up to its values on every queue, and nothing above
+	GpuQueueFenceValues frameValues = {};
+	frameValues[graphics.Id] = 20;
+	frameValues[compute.Id] = 12;
+	const GpuQueueCoverage reset(frameValues);
+	B3D_TEST_ASSERT(reset.GetUncoveredWaits(graphics, fnWaits(compute, 12))[compute.Id] == 0)
+	B3D_TEST_ASSERT(reset.GetUncoveredWaits(graphics, fnWaits(compute, 13))[compute.Id] == 13)
+	B3D_TEST_ASSERT(reset.GetUncoveredWaits(transfer, fnWaits(graphics, 20))[graphics.Id] == 0)
 }
 
 namespace

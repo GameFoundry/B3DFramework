@@ -65,7 +65,8 @@ namespace b3d
 	 * A transfer writes and reads the native resource its resource had when the transfer was queued, even if the resource gets a new one
 	 * later. Submitting a command buffer takes the transfers it needs into a numbered batch at once, on the submitting thread, so a transfer
 	 * queued after the submission never joins them. Batches are recorded and submitted in the order they were taken, on the submit thread,
-	 * on the first graphics queue, and wait for all earlier work on every queue.
+	 * on the first graphics queue. A batch waits for the earlier work on other queues that accessed what it transfers, and for all earlier
+	 * work on every queue if it transfers to a bindless resource.
 	 */
 	class B3D_EXPORT GpuTransferQueue
 	{

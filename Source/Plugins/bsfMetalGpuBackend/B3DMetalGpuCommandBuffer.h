@@ -76,12 +76,12 @@ namespace b3d
 			void NotifyParentPoolReset();
 
 			/**
-			 * Commits the recorded commands to @p submitQueue. Waits for the other queues in @p syncMask are issued before
-			 * the recorded work, and the queue's own event and @p signalFences are signaled after it.
+			 * Commits the recorded commands to @p submitQueue. Waits for each other queue's event to reach its value in @p waits
+			 * are issued before the recorded work, and the queue's own event and @p signalFences are signaled after it.
 			 *
 			 * @note	Submit thread only. The owner thread must have called NotifyWillQueueForSubmit() first.
 			 */
-			void ExecuteSubmitOnSubmitThread(MetalGpuQueue& submitQueue, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences = {});
+			void ExecuteSubmitOnSubmitThread(MetalGpuQueue& submitQueue, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences = {});
 
 			/**
 			 * Makes the queue signal @p event with @p value once the GPU finishes executing the command buffer. Metal 4

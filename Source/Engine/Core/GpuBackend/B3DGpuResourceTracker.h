@@ -121,6 +121,15 @@ namespace b3d
 			/** Notifies all tracked resources that the command buffer has submitted to a GPU queue. */
 			void NotifyUsed(GpuQueueId queueId);
 
+			/**
+			 * Notifies all tracked buffers and images that the command buffer is submitted on @p queueId in a submission that signals
+			 * @p fenceValue (see IGpuResource::NotifySubmitted()), and returns the waits the submission needs on other queues: the fence
+			 * values of the latest earlier submissions that wrote what the command buffer accesses, or read what it writes (see
+			 * IGpuResource::GetRequiredWaits()). Images are considered per subresource. Must follow NotifyUsed(). Submit thread only, before
+			 * the command buffer is submitted.
+			 */
+			GpuQueueFenceValues NotifySubmitted(GpuQueueId queueId, u64 fenceValue);
+
 			/** Notifies all tracked resources that the command buffer has finished executing on a GPU queue. */
 			void NotifyDone(GpuQueueId queueId);
 
@@ -152,14 +161,26 @@ namespace b3d
 			/** @} */
 
 		private:
+			/** Use handle of an image subresource tracked by TrackImageUsage(), together with the image that owns it. */
+			struct ImageSubresourceUseHandle : GpuResourceUseHandle
+			{
+				IGpuImageResource* Image = nullptr;
+			};
+
 			/** Creates a new tracking state for the buffer (if this is the first time the buffer has been used on the command buffer), or returns existing tracking state. */
 			GpuBufferTrackingState& GetOrCreateBufferTrackingState(IGpuBufferResource* buffer);
 
 			/** Adds @p resource to GetResourcesWithQueuedTransfers() if it has queued transfers and isn't there yet. */
 			void TrackQueuedTransfers(IGpuResource* resource, GpuResourceUseHandle& useHandle);
 
+			/** Tracks a subresource of @p image that TrackImageUsage() tracks. */
+			void TrackImageSubresourceUsage(IGpuImageResource* image, GpuImageSubresource* subresource, GpuAccessFlags access);
+
 			/** Maps images to their use handles. */
 			TDenseMap<IGpuImageResource*, GpuResourceUseHandle> mImages;
+
+			/** Maps the image subresources TrackImageUsage() tracks to their use handles. */
+			TDenseMap<GpuImageSubresource*, ImageSubresourceUseHandle> mImageSubresources;
 
 			/** Maps buffers to their tracking state. */
 			TDenseMap<IGpuBufferResource*, GpuBufferTrackingState> mBuffers;

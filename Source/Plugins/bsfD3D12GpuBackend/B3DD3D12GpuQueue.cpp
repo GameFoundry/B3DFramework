@@ -15,34 +15,19 @@ using namespace b3d::render;
 namespace
 {
 	/**
-	 * Makes @p queue wait on the GPU until all outstanding work on the queues in @p syncMask completes. Any entry
-	 * for @p queue itself is ignored, as same-queue submissions already execute in order.
+	 * Makes @p queue wait on the GPU until each other queue's submit fence reaches its value in @p waits. Zero values and the entry for
+	 * @p queue itself are ignored, as same-queue submissions already execute in order.
 	 */
-	void WaitForQueuesInMask(D3D12GpuQueue& queue, GpuQueueMask syncMask)
+	void WaitForQueues(D3D12GpuQueue& queue, const GpuQueueFenceValues& waits)
 	{
-		syncMask &= ~GpuQueueMask(queue.GetId());
-		if (syncMask.IsEmpty())
-			return;
-
-		D3D12GpuDevice& device = queue.GetDevice();
-		for (u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
+		queue.GetDevice().DoForEachQueue([&queue, &waits](GpuQueue& otherQueue)
 		{
-			const GpuQueueType queueType = (GpuQueueType)queueTypeIndex;
-			const u32 queueCount = device.GetQueueCount(queueType);
-
-			for (u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
-			{
-				if (!syncMask.IsSet(GpuQueueId(queueType, queueIndex)))
-					continue;
-
-				const TShared<D3D12GpuQueue> otherQueue = std::static_pointer_cast<D3D12GpuQueue>(device.GetQueue(queueType, queueIndex));
-				if (otherQueue == nullptr || otherQueue.get() == &queue || !otherQueue->IsExecuting())
-					continue;
-
-				queue.Wait(otherQueue->GetSubmitFence(), otherQueue->GetLastSignaledFenceValue());
-			}
-		}
+			const u64 waitValue = waits[otherQueue.GetId().Id];
+			if (waitValue != 0 && &otherQueue != &queue)
+				queue.Wait(static_cast<D3D12GpuQueue&>(otherQueue).GetSubmitFence(), waitValue);
+		});
 	}
+
 }
 
 D3D12GpuQueue::D3D12GpuQueue(D3D12GpuDevice& device, GpuQueueType type, u32 index, ID3D12CommandQueue* d3d12Queue) : GpuQueue(device, type, index)
@@ -105,17 +90,7 @@ void D3D12GpuQueue::SubmitCommandBuffer(const GpuSubmissionInformation& informat
 	mGpuDevice.GetSubmitThread().QueueSubmit(information.CommandBuffer, *this, information.SyncMask, information.SignalFences);
 }
 
-bool D3D12GpuQueue::IsExecuting() const
-{
-	AssertIfNotSubmitThread();
-
-	if (mLastSubmittedCommandBuffer == nullptr)
-		return false;
-
-	return mLastSubmittedCommandBuffer->IsSubmitted() || mLastSubmittedCommandBuffer->IsDone();
-}
-
-void D3D12GpuQueue::ExecuteSubmitOnSubmitThread(const D3D12GpuCommandBufferSubmitInformation& submitInformation, GpuQueueMask syncMask, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+void D3D12GpuQueue::ExecuteSubmitOnSubmitThread(const D3D12GpuCommandBufferSubmitInformation& submitInformation, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
 	AssertIfNotSubmitThread();
 
@@ -124,6 +99,7 @@ void D3D12GpuQueue::ExecuteSubmitOnSubmitThread(const D3D12GpuCommandBufferSubmi
 		return;
 
 	D3D12GpuDevice& device = GetDevice();
+	GpuQueueFenceValues queueWaits = waits;
 
 	if (submitInformation.GraphicsTransitionCommandBuffer != nullptr)
 	{
@@ -132,25 +108,24 @@ void D3D12GpuQueue::ExecuteSubmitOnSubmitThread(const D3D12GpuCommandBufferSubmi
 		{
 			D3D12GpuCommandBufferSubmitInformation transitionSubmitInformation;
 			transitionSubmitInformation.PrimaryCommandBuffer = submitInformation.GraphicsTransitionCommandBuffer;
-			graphicsQueue->ExecuteSubmitOnSubmitThread(transitionSubmitInformation, GpuQueueMask::kNone, {});
+			graphicsQueue->ExecuteSubmitOnSubmitThread(transitionSubmitInformation, {}, {});
 
-			syncMask |= graphicsQueue->GetId();
+			queueWaits[graphicsQueue->GetId().Id] = graphicsQueue->GetLastSignaledFenceValue();
 		}
 	}
 
-	WaitForQueuesInMask(*this, syncMask);
+	WaitForQueues(*this, queueWaits);
 
 	// The queue's own earlier work needs no frame fence wait, because an ExecuteCommandLists() boundary is already a full
-	// synchronization point. Other queues in the sync mask were already waited on at their latest value, which covers the
-	// frame boundary.
+	// synchronization point. Other queues already waited on at a value at least as high are covered too.
 	const TArrayView<const u64> frameFenceValues = device.GetSubmitThread().ConsumeFrameFence(*this);
 	if (!frameFenceValues.IsEmpty())
 	{
-		device.DoForEachQueue([this, syncMask, frameFenceValues](GpuQueue& queue)
+		device.DoForEachQueue([this, &queueWaits, frameFenceValues](GpuQueue& queue)
 		{
 			const GpuQueueId queueId = queue.GetId();
 			const u64 waitValue = frameFenceValues[queueId.Id];
-			if (waitValue == 0 || queueId.Id == GetId().Id || syncMask.IsSet(queueId))
+			if (waitValue == 0 || queueId.Id == GetId().Id || queueWaits[queueId.Id] >= waitValue)
 				return;
 
 			Wait(static_cast<D3D12GpuQueue&>(queue).GetSubmitFence(), waitValue);
@@ -195,8 +170,6 @@ void D3D12GpuQueue::ExecuteSubmitOnSubmitThread(const D3D12GpuCommandBufferSubmi
 		Lock lock(mMutex);
 		mActiveSubmissions.push_back(QueueSubmissionInformation(commandBuffer, submitInformation.TransitionCommandBuffer, mLastSignaledFenceValue));
 	}
-
-	mLastSubmittedCommandBuffer = commandBuffer;
 }
 
 void D3D12GpuQueue::RefreshCompletionState(bool forceWait, u64 lastFenceValue)
@@ -254,9 +227,6 @@ void D3D12GpuQueue::RefreshCompletionState(bool forceWait, u64 lastFenceValue)
 
 			const TShared<D3D12GpuCommandBuffer> commandBuffer = submissionIterator->CommandBuffer;
 			fnPostCompletion(commandBuffer, "CommandBufferCompleteCallback");
-
-			if (mLastSubmittedCommandBuffer == commandBuffer)
-				mLastSubmittedCommandBuffer = nullptr;
 
 			const TShared<D3D12GpuCommandBuffer> transitionCommandBuffer = submissionIterator->TransitionCommandBuffer;
 			if (transitionCommandBuffer != nullptr)
@@ -344,8 +314,16 @@ HRESULT D3D12GpuQueue::Present(D3D12SwapChain* swapChain, GpuQueueMask syncMask)
 	if (!swapChain)
 		return E_INVALIDARG;
 
-	// DXGI presents on this queue's command queue, so waiting here ensures the rendered image is finished on other queues first.
-	WaitForQueuesInMask(*this, syncMask);
+	// DXGI presents on this queue's command queue, so waiting here on the latest work of the other queues in the sync mask ensures the
+	// rendered image is finished on them first
+	GpuQueueFenceValues waits = {};
+	GetDevice().DoForEachQueue([syncMask, &waits](GpuQueue& queue)
+	{
+		if (syncMask.IsSet(queue.GetId()))
+			waits[queue.GetId().Id] = static_cast<D3D12GpuQueue&>(queue).GetLastSignaledFenceValue();
+	});
+
+	WaitForQueues(*this, waits);
 
 	// The DXGI present uses the swap chain's own vsync interval.
 	HRESULT hr = swapChain->PresentDXGI();

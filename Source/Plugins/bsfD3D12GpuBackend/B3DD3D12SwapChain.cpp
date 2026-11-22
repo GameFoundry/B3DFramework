@@ -327,7 +327,15 @@ void D3D12SwapChain::Present(u32 imageIndex, GpuQueue& queue, GpuQueueMask syncM
 			barriers.Record(*submitInformation.PrimaryCommandBuffer->GetD3D12Handle());
 			submitInformation.PrimaryCommandBuffer->End();
 
-			d3d12Queue.ExecuteSubmitOnSubmitThread(submitInformation, syncMask, {});
+			// The transition waits on the latest work of every other queue in the sync mask
+			GpuQueueFenceValues waits = {};
+			mDevice.DoForEachQueue([&d3d12Queue, syncMask, &waits](GpuQueue& otherQueue)
+			{
+				if (&otherQueue != &d3d12Queue && syncMask.IsSet(otherQueue.GetId()))
+					waits[otherQueue.GetId().Id] = static_cast<D3D12GpuQueue&>(otherQueue).GetLastSignaledFenceValue();
+			});
+
+			d3d12Queue.ExecuteSubmitOnSubmitThread(submitInformation, waits, {});
 
 			image->SetNativeLayout(range, (u32)D3D12_BARRIER_LAYOUT_PRESENT);
 		}

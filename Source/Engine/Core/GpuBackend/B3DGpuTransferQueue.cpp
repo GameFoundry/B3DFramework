@@ -795,7 +795,14 @@ GpuTransferQueue::RecordedTransfers GpuTransferQueue::RecordTakenTransfers(u64 l
 				}
 
 				if(information.IsBindless)
+				{
 					mBindlessTransferListCount.fetch_sub(1, std::memory_order_relaxed);
+
+					// Command buffers don't track what they access through the bindless heap, so the resource's submission stamps can't
+					// tell which queues still use it. Waits for the latest work of every queue instead.
+					// TODO - Remove once bindless resources only get initial uploads, on their own path
+					recorded.CommandBuffer->AddQueueSyncMask(GpuQueueMask::kAll);
+				}
 
 				recordedResources.Add(information.Resource);
 			}
@@ -814,7 +821,7 @@ GpuTransferQueue::RecordedTransfers GpuTransferQueue::RecordTakenTransfers(u64 l
 		// QueueUpload(), which also holds it, never sees this command buffer as recorded but not submitted. A write queued now lands in a
 		// later command buffer, so this one never sees it.
 		recorded.CommandBuffer->End();
-		recorded.CommandBuffer->NotifyWillQueueForSubmit(mDevice.GetQueue(GQT_GRAPHICS, 0)->GetId(), GpuQueueMask::kAll);
+		recorded.CommandBuffer->NotifyWillQueueForSubmit(mDevice.GetQueue(GQT_GRAPHICS, 0)->GetId(), recorded.CommandBuffer->GetQueueSyncMask());
 
 		// Dequeue the transfers only now, so a writer that sees no queued transfers also sees the resource as used, and doesn't map it while
 		// the copy is pending. The command buffer keeps the resources alive from now on.
