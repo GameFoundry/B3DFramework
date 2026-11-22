@@ -155,6 +155,24 @@ commandBuffer->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(&scr
 
 Most code builds structures in a [frame graph](../Renderer/frameGraph) instead, which plans these barriers itself. See the frame graph section below.
 
+## Refits
+A structure built with @b3d::GpuAccelerationStructureBuildFlag::AllowRefit can be refitted instead of built again: a build with @b3d::GpuAccelerationStructureBuild::Source refits the source to new vertex positions, for a bottom level structure, or to new instance transforms, for a top level one. A refit is several times cheaper than a build, but the structure keeps the shape it was built with, so rays get slower as the geometry moves away from it. Rebuild such structures now and then.
+
+ - The size query reports the scratch memory of a refit in @b3d::GpuAccelerationStructureSizes::RefitScratchSize. It is zero without **AllowRefit**, and on devices whose refits need no scratch memory. A refit uses that much scratch memory instead of **BuildScratchSize**.
+ - The source must have been built with **AllowRefit**, from inputs with the same flags, the same number of geometries or instances, and geometries with the same vertex and index counts, index type and flags. Only the vertex positions, the vertex buffers they are read from, and the instances may differ. Development builds check only that the inputs have **AllowRefit** and are of the source's level; the rest is up to the caller.
+ - The source may be the destination, which refits the structure in place.
+ - A structure and a refit from it can't be recorded in the same call.
+ - **AllowRefit** costs some memory and ray tracing speed, so set it only on structures that are refitted.
+
+~~~~~~~~~~~~~{.cpp}
+// The vertices moved: refit the structure in place
+GpuAccelerationStructureBuild refit(bottomLevelInputs, bottomLevel, scratchBuffer);
+refit.Source = bottomLevel;
+commandBuffer->BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(&refit, 1));
+~~~~~~~~~~~~~
+
+A refit in place reads and writes the destination, so its barrier comes from, and goes back to, the read and write access of **AccelerationStructureBuild**. A separate source is read in the same stage.
+
 # Binding a structure to a program
 Programs declare a top level structure as a `RaytracingAccelerationStructure` parameter. Bind it to a parameter set with @b3d::render::GpuParameterSet::SetAccelerationStructure, as you would bind a texture. Only top level structures can be bound.
 
@@ -288,7 +306,7 @@ In a [frame graph](../Renderer/frameGraph), builds go in a @b3d::render::FrameGr
  3. Declare each build with @b3d::render::FrameGraphAccelerationStructurePass::AddBuild, and record it in the pass function.
  4. Export the built structures from the pass with @b3d::render::FrameGraphPass::Export.
 
-**AddBuild()** declares what the build accesses. The destination is written and its contents are discarded, the scratch buffer is read and written, and the bottom level structures and the vertex, index and instance buffers are read. The destination and the scratch buffer must be resources of the graph. The objects it only reads are declared if they are resources of the graph, and read at rest otherwise.
+**AddBuild()** declares what the build accesses. The destination is written and its contents are discarded, the scratch buffer is read and written, and the bottom level structures and the vertex, index and instance buffers are read. The destination of a refit in place is read and written and keeps its contents, and the separate source of a refit is read. The destination and the scratch buffer must be resources of the graph. The objects it only reads are declared if they are resources of the graph, and read at rest otherwise.
 
 ~~~~~~~~~~~~~{.cpp}
 graph.ImportAccelerationStructure(topLevel);
@@ -349,9 +367,11 @@ The geometry has one geometry per triangle list sub-mesh:
  - @b3d::render::RayTracingGeometry::GetGeometryLayouts returns a @b3d::render::RayTracingGeometryLayout per geometry, in geometry index order. It tells shaders where the geometry's indices are, and where its positions, normals, tangents and first texture coordinates are, as bindless buffer indices with offsets and strides.
  - Writing new data to the mesh marks the geometry as not built (@b3d::render::RayTracingGeometry::IsBuilt).
  - @b3d::render::RayTracingGeometry::Build adds a pass to a frame graph that builds the structure, and exports it.
- - @b3d::render::RayTracingGeometry::AddBuildPass does the same for several geometries in one pass, each at its own offset of one scratch buffer. The caller can declare more work of the pass first, such as exports of the vertex buffers the builds read.
+ - @b3d::render::RayTracingGeometry::Refit adds a pass that refits the structure in place to the current positions of its vertices, which is cheaper than a build. Only geometry created with @b3d::render::RayTracingGeometryFlag::Dynamic that was built before can be refitted; other geometry is built instead, with an error.
+ - @b3d::render::RayTracingGeometry::AddBuildPass builds and refits several geometries in one pass, each at its own offset of one scratch buffer. The caller can declare more work of the pass first, such as exports of the vertex buffers the builds read.
+ - @b3d::render::RayTracingGeometry::SetVertexData points a dynamic geometry at other vertex buffers of the same layout, for the next build or refit. Its layouts change right away.
 
-The geometry of an animated mesh comes from the skin cache instead: an entry created with **SkinCacheEntryFlag::RayTracingGeometry** owns a geometry of its deformed vertices (@b3d::render::SkinCacheEntry::GetRayTracingGeometry), and the cache rebuilds it after each deformation. Such geometry is created with @b3d::render::RayTracingGeometryFlag::Dynamic, which prefers fast builds.
+The geometry of an animated mesh comes from the skin cache instead: an entry created with **SkinCacheEntryFlag::RayTracingGeometry** owns a geometry of its deformed vertices (@b3d::render::SkinCacheEntry::GetRayTracingGeometry). Such geometry is created with @b3d::render::RayTracingGeometryFlag::Dynamic, which prefers fast builds and allows refits. The cache builds it on the entry's first deformation and refits it after each one after that. Refits make rays slower as the pose moves away from the one of the last build, so after `render.SkinCacheGeometryRebuildInterval` refits (0 never) the entry asks for a rebuild. Each update of the cache grants the oldest requests, up to `render.SkinCacheGeometryRebuildTrianglesPerFrame` triangles, and the other entries refit and wait for a later update. With `render.SkinCacheAsyncGeometry` the pass that builds and refits the geometry prefers the async compute queue.
 
 The geometry is built opaque. Instances that need any hit programs or **AnyHit** callbacks, such as alpha tested ones, must set **GpuRayTracingInstanceFlag::ForceNonOpaque**.
 
