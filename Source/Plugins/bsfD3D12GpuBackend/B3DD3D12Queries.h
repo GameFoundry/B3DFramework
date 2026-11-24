@@ -44,6 +44,18 @@ namespace b3d
 			/** Returns the readback buffer used for query results. */
 			ID3D12Resource* GetReadbackBuffer() const { return mReadbackBuffer.Get(); }
 
+			/**
+			 * Returns true if the GPU writes the pool's results into a query heap, from which they are resolved into the readback buffer.
+			 * Some queries have no heap: the GPU writes their results straight into the readback buffer, at GetResultAddress().
+			 */
+			bool HasQueryHeap() const
+			{
+				return mQueryType != GpuQueryType::AccelerationStructureCompactedSize && mQueryType != GpuQueryType::AccelerationStructureSerializedSize;
+			}
+
+			/** Returns the GPU address of the result of query @p queryId in the readback buffer. */
+			D3D12_GPU_VIRTUAL_ADDRESS GetResultAddress(u32 queryId) const { return mReadbackBuffer->GetGPUVirtualAddress() + (u64)queryId * mResultStride; }
+
 			/** Returns the number of allocated queries. */
 			u32 GetAllocatedQueryCount() const { return mNextQueryId; }
 
@@ -73,6 +85,7 @@ namespace b3d
 			GpuPipelineStatisticsQueryBits mPipelineStatisticsBits;
 
 			u32 mNextQueryId = 0;
+			u32 mResultStride = sizeof(u64); /**< Distance between the results of consecutive queries in the readback buffer, in bytes. */
 
 			/**
 			 * Set to true once the command buffer that resolved this pool's queries completes on the GPU. Written from

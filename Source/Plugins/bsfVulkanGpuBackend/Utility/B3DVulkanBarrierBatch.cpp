@@ -24,10 +24,10 @@ void VulkanBarrierBatch::AddBufferBarrier(VkBuffer buffer, const GpuBarrierScope
 
 	if(sourceQueueFamily != destinationQueueFamily)
 		AddBufferBarrier(buffer, sourceStages, sourceAccess, destinationStages, destinationAccess, sourceQueueFamily, destinationQueueFamily, offset, size);
-	else if(barrier.SourceAccess.IsSet(GpuAccessFlag::Write))
+	// An execution-only barrier would be valid for write-after-read, but a write before those reads may have been made visible to the reads
+	// only, and this write must see it too. So a write after reads gets a memory barrier carrying the destination access.
+	else if(barrier.SourceAccess.IsSet(GpuAccessFlag::Write) || (barrier.SourceAccess.IsSet(GpuAccessFlag::Read) && barrier.DestinationAccess.IsSet(GpuAccessFlag::Write)))
 		AddMemoryBarrier(sourceStages, sourceAccess, destinationStages, destinationAccess);
-	else if(barrier.SourceAccess.IsSet(GpuAccessFlag::Read) && barrier.DestinationAccess.IsSet(GpuAccessFlag::Write))
-		AddExecutionBarrier(sourceStages, destinationStages);
 }
 
 void VulkanBarrierBatch::AddBufferBarrier(VkBuffer buffer, VkPipelineStageFlags sourceStages, VkAccessFlags sourceAccess, VkPipelineStageFlags destinationStages, VkAccessFlags destinationAccess, u32 sourceQueueFamily, u32 destinationQueueFamily, VkDeviceSize offset, VkDeviceSize size)
@@ -79,12 +79,14 @@ void VulkanBarrierBatch::AddImageBarrier(VkImage image, const VkImageSubresource
 		});
 	}
 
+	// Without a layout transition or a queue transfer, a global memory barrier is enough. A write after reads gets one too, for the same
+	// reason as with buffers.
 	if(!needsImageBarrier)
 	{
-		if(barrier.SourceAccess.IsSet(GpuAccessFlag::Write))
+		if(barrier.SourceAccess.IsSet(GpuAccessFlag::Write) || (barrier.SourceAccess.IsSet(GpuAccessFlag::Read) && barrier.DestinationAccess.IsSet(GpuAccessFlag::Write)))
 			AddMemoryBarrier(barrier);
-		else if(barrier.SourceAccess.IsSet(GpuAccessFlag::Read) && barrier.DestinationAccess.IsSet(GpuAccessFlag::Write))
-			AddExecutionBarrier(barrier);
+
+		return;
 	}
 
 	VkPipelineStageFlags sourceStages, destinationStages;

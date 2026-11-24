@@ -203,6 +203,18 @@ namespace b3d
 		 * ResourceDescriptorHeap. Otherwise parameter sets bind them.
 		 */
 		bool SupportsBindlessAccelerationStructures = false;
+
+		/**
+		 * True if bottom level acceleration structures can be serialized and deserialized. See
+		 * render::GpuCommandBuffer::SerializeAccelerationStructure().
+		 */
+		bool SupportsSerialization = false;
+
+		/** Size in bytes of the header at the start of serialized acceleration structure data. Zero without SupportsSerialization. */
+		u32 SerializedHeaderSize = 0;
+
+		/** Alignment in bytes of the offset of serialized acceleration structure data in a buffer. Zero without SupportsSerialization. */
+		u32 SerializedDataAlignment = 0;
 	};
 
 	/** Types of GPU vendors. */

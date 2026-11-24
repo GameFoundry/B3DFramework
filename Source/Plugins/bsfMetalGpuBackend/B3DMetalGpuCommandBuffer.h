@@ -131,6 +131,8 @@ namespace b3d
 			void DisableScissorTest() override;
 			void SetStencilReferenceValue(u32 value) override;
 			bool BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild> builds) override;
+			bool CopyAccelerationStructures(TArrayView<const GpuAccelerationStructureCopy> copies) override;
+			bool WriteAccelerationStructureQueries(TArrayView<const TShared<GpuAccelerationStructure>> structures, TArrayView<const GpuQueryId> queries, const TShared<GpuQueryPool>& queryPool) override;
 			using GpuCommandBuffer::CopyBufferToBuffer;
 			using GpuCommandBuffer::CopyBufferToTexture;
 			using GpuCommandBuffer::CopyTextureToBuffer;

@@ -86,7 +86,6 @@ void D3D12GpuQueue::SubmitCommandBuffer(const GpuSubmissionInformation& informat
 	if (commandBuffer.IsRecording())
 		commandBuffer.End();
 
-	commandBuffer.SetIsSubmitted();
 	mGpuDevice.GetSubmitThread().QueueSubmit(information.CommandBuffer, *this, information.SyncMask, information.SignalFences);
 }
 

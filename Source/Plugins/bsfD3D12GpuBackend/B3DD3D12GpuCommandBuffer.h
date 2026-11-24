@@ -99,6 +99,10 @@ namespace b3d
 			void DispatchCompute(u32 groupCountX, u32 groupCountY, u32 groupCountZ) override;
 			bool DispatchRays(const TShared<GpuShaderBindingTable>& table, u32 rayGenerationRecordIndex, u32 width, u32 height, u32 depth) override;
 			bool BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild> builds) override;
+			bool CopyAccelerationStructures(TArrayView<const GpuAccelerationStructureCopy> copies) override;
+			bool WriteAccelerationStructureQueries(TArrayView<const TShared<GpuAccelerationStructure>> structures, TArrayView<const GpuQueryId> queries, const TShared<GpuQueryPool>& queryPool) override;
+			bool SerializeAccelerationStructure(const TShared<GpuAccelerationStructure>& source, const TShared<GpuBuffer>& destination, u32 destinationOffset = 0) override;
+			bool DeserializeAccelerationStructure(const TShared<GpuBuffer>& source, u32 sourceOffset, const TShared<GpuAccelerationStructure>& destination) override;
 			void BeginRenderPass(const RenderPassCreateInformation& createInformation) override;
 			void EndRenderPass() override;
 			bool IsInRenderPass() const override { return mState == GpuCommandBufferState::RecordingRenderPass; }

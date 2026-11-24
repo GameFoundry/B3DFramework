@@ -25,7 +25,7 @@ namespace b3d
 	void IGpuResource::NotifyBound()
 	{
 		Lock lock(mMutex);
-		B3D_ASSERT(!mDestroyRequested);
+		B3D_ASSERT((!mDestroyRequested || mPinCount > 0) && "Binding a destroyed resource that no pin keeps alive.");
 		mBountCount++;
 	}
 

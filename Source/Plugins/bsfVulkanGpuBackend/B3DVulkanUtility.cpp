@@ -715,6 +715,10 @@ VkQueryType VulkanUtility::GetQueryType(GpuQueryType queryType)
 		return VK_QUERY_TYPE_OCCLUSION;
 	case GpuQueryType::PipelineStatistics:
 		return VK_QUERY_TYPE_PIPELINE_STATISTICS;
+	case GpuQueryType::AccelerationStructureCompactedSize:
+		return VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_KHR;
+	case GpuQueryType::AccelerationStructureSerializedSize:
+		return VK_QUERY_TYPE_ACCELERATION_STRUCTURE_SERIALIZATION_SIZE_KHR;
 	}
 }
 
@@ -919,6 +923,15 @@ void VulkanUtility::GetPipelineStageAndAccessMask(const VulkanGpuDevice& device,
 		if(isRead) outAccessMask |= VK_ACCESS_SHADER_READ_BIT;
 	}
 
+	// Without VK_KHR_ray_tracing_maintenance1, copies and property queries run in the build stage. They access structures as
+	// acceleration structures, and the memory of serialized structures as transfers.
+	if(accessStage.IsSet(GpuStageFlag::AccelerationStructureCopy))
+	{
+		outStages |= VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;
+		if(isRead) outAccessMask |= VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR | VK_ACCESS_TRANSFER_READ_BIT;
+		if(isWrite) outAccessMask |= VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR | VK_ACCESS_TRANSFER_WRITE_BIT;
+	}
+
 	if(accessStage.IsSet(GpuStageFlag::EarlyFragmentTests))
 	{
 		outStages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
@@ -1074,6 +1087,9 @@ bool VulkanUtility::GetAccelerationStructureBuildInformation(const GpuAccelerati
 
 	if(inputs.Flags.IsSet(GpuAccelerationStructureBuildFlag::AllowRefit))
 		buildFlags |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR;
+
+	if(inputs.Flags.IsSet(GpuAccelerationStructureBuildFlag::AllowCompaction))
+		buildFlags |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_COMPACTION_BIT_KHR;
 
 	outInformation.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR;
 	outInformation.pNext = nullptr;

@@ -40,6 +40,21 @@ namespace b3d
 				else
 					B3D_LOG(Warning, LogRenderBackend, "Timestamp query pool created on a device without RSC_TIMER_QUERIES; results will remain zero.");
 			}
+			else if (createInformation.Type == GpuQueryType::AccelerationStructureCompactedSize)
+			{
+				if (createInformation.PoolSize > 0 && gpuDevice.GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES))
+				{
+					MetalHeapAllocator& heapAllocator = gpuDevice.GetHeapAllocator();
+					const u64 size = (u64)createInformation.PoolSize * sizeof(u64);
+					const GpuAllocation requestedAllocation = GpuAllocation::CreatePending(heapAllocator.GetGpuMemoryAllocator(MetalMemoryType::Shared));
+
+					mAccelerationStructureResultBuffer = heapAllocator.AllocateBuffer(size, MetalMemoryType::Shared, requestedAllocation, mAccelerationStructureResultAllocation);
+					if (mAccelerationStructureResultBuffer != nil)
+						std::memset([mAccelerationStructureResultBuffer contents], 0, (size_t)size);
+				}
+
+				mSupported = mAccelerationStructureResultBuffer != nil;
+			}
 			else
 				B3D_LOG(Warning, LogRenderBackend, "Pipeline-statistics query pools are unsupported by the Metal backend.");
 		}
@@ -52,6 +67,15 @@ namespace b3d
 
 			if (mFirstCounterHeapSlot != RangeAllocator::kInvalidIndex)
 				mGpuDevice.FreeCounterHeapSlots(mCounterHeap, mFirstCounterHeapSlot, mPoolSize);
+
+			if (mAccelerationStructureResultBuffer != nil)
+				mGpuDevice.GetHeapAllocator().Free(mAccelerationStructureResultBuffer, mAccelerationStructureResultAllocation);
+		}
+
+		MTL4BufferRange MetalGpuQueryPool::GetAccelerationStructureResultRange(GpuQueryId queryId) const
+		{
+			B3D_ASSERT(mAccelerationStructureResultBuffer != nil && queryId.Id < mPoolSize);
+			return MTL4BufferRangeMake(mAccelerationStructureResultBuffer.gpuAddress + (u64)queryId.Id * sizeof(u64), sizeof(u64));
 		}
 
 		NSRange MetalGpuQueryPool::GetVisibilityResultRange() const
@@ -240,6 +264,11 @@ namespace b3d
 				else
 					B3D_LOG(Warning, LogRenderBackend, "Failed to resolve the Metal timestamp counter heap.");
 			}
+			else if (mQueryType == GpuQueryType::AccelerationStructureCompactedSize && mAccelerationStructureResultBuffer != nil)
+			{
+				// Slots are zeroed before use, so a size written as a 32-bit integer reads back the same as a 64-bit one
+				memcpy(mResolvedResults.data(), [mAccelerationStructureResultBuffer contents], (size_t)mNextQueryId * sizeof(u64));
+			}
 
 			mResultsCached = true;
 			return true;
@@ -261,6 +290,10 @@ namespace b3d
 			B3D_ENSURE(mPendingSubmissions == 0 && mInFlightSubmissions.empty() && mRecordedCommandBuffers <= 1);
 			if (mFirstCounterHeapSlot != RangeAllocator::kInvalidIndex && mNextQueryId > 0)
 				[mCounterHeap invalidateCounterRange:NSMakeRange(mFirstCounterHeapSlot, mNextQueryId)];
+
+			// No submission that writes the slots is in flight, so the CPU can clear them
+			if (mAccelerationStructureResultBuffer != nil && mNextQueryId > 0)
+				std::memset([mAccelerationStructureResultBuffer contents], 0, (size_t)mNextQueryId * sizeof(u64));
 
 			mNextQueryId = 0;
 			mResultsCached = false;

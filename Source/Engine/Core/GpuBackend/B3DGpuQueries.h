@@ -17,7 +17,19 @@ namespace b3d
 		{
 			Timestamp,
 			Occlusion,
-			PipelineStatistics
+			PipelineStatistics,
+
+			/**
+			 * Size in bytes of an acceleration structure after compaction. Requires a device that supports acceleration structures. See
+			 * GpuCommandBuffer::WriteAccelerationStructureQueries().
+			 */
+			AccelerationStructureCompactedSize,
+
+			/**
+			 * Size in bytes of the serialized data of an acceleration structure, header included. Requires
+			 * GpuRayTracingCapabilities::SupportsSerialization. See GpuCommandBuffer::WriteAccelerationStructureQueries().
+			 */
+			AccelerationStructureSerializedSize
 		};
 
 		/** Flags that may be used to control individual queries. */

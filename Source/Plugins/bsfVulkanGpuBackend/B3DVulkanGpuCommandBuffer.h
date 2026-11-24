@@ -150,6 +150,10 @@ namespace b3d
 			void CopyTexture(IGpuImageResource& source, IGpuImageResource& destination, const GpuImageCopyInformation& information) override;
 			bool BlitTexture(const TShared<Texture>& source, const TShared<Texture>& destination, const TextureBlitInformation& blitInformation) override;
 			bool BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild> builds) override;
+			bool CopyAccelerationStructures(TArrayView<const GpuAccelerationStructureCopy> copies) override;
+			bool WriteAccelerationStructureQueries(TArrayView<const TShared<GpuAccelerationStructure>> structures, TArrayView<const GpuQueryId> queries, const TShared<GpuQueryPool>& queryPool) override;
+			bool SerializeAccelerationStructure(const TShared<GpuAccelerationStructure>& source, const TShared<GpuBuffer>& destination, u32 destinationOffset = 0) override;
+			bool DeserializeAccelerationStructure(const TShared<GpuBuffer>& source, u32 sourceOffset, const TShared<GpuAccelerationStructure>& destination) override;
 
 			/** @copydoc GpuCommandBuffer::DispatchRays */
 			bool DispatchRays(const TShared<GpuShaderBindingTable>& table, u32 rayGenerationRecordIndex, u32 width, u32 height, u32 depth = 1) override;

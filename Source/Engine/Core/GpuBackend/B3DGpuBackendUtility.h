@@ -187,7 +187,7 @@ namespace b3d
 		 * Returns the resting state of a buffer on queues of @p queueType. A resource outside of the work that declares its state is at
 		 * rest: it may be read in the resting state without a barrier, and whoever writes it brings it back to
 		 * rest. Buffers rest readable as vertex, index and indirect arguments, from every shader stage including ray tracing programs, and
-		 * as acceleration structure build inputs. Readback buffers
+		 * as acceleration structure build inputs and deserialization sources. Readback buffers
 		 * (GpuBufferType::StagingRead) rest readable by the host, so a barrier that returns one to rest makes the GPU's writes visible
 		 * to the host. Upload buffers (GpuBufferType::StagingWrite) rest readable by copies, the only GPU work that reads them.
 		 */
@@ -223,8 +223,9 @@ namespace b3d
 		static render::GpuAccessState GetWindowColorRestingState(GpuQueueType queueType);
 
 		/**
-		 * Returns the only stages that can access an acceleration structure: rays traced against it in any shader stage, and builds
-		 * (GpuStageFlag::AllShaderAccelerationStructure and GpuStageFlag::AccelerationStructureBuild).
+		 * Returns the only stages that can access an acceleration structure: rays traced against it in any shader stage, builds, and
+		 * copies and size queries (GpuStageFlag::AllShaderAccelerationStructure, GpuStageFlag::AccelerationStructureBuild and
+		 * GpuStageFlag::AccelerationStructureCopy).
 		 */
 		static render::GpuStageFlags GetAccelerationStructureStageFlags();
 

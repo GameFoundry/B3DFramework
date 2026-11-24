@@ -270,8 +270,8 @@ GpuStageFlags GpuBackendUtility::GetQueueStageFlags(GpuQueueType queueType)
 	case GQT_COMPUTE:
 		return GpuStageFlag::ComputeShaderUniform | GpuStageFlag::ComputeShaderNonUniform | GpuStageFlag::ComputeShaderAccelerationStructure |
 			GpuStageFlag::RayTracingShaderUniform | GpuStageFlag::RayTracingShaderNonUniform | GpuStageFlag::RayTracingShaderAccelerationStructure |
-			GpuStageFlag::AccelerationStructureBuild | GpuStageFlag::AccelerationStructureBuildInput | GpuStageFlag::DrawIndirect | GpuStageFlag::Transfer |
-			GpuStageFlag::Host;
+			GpuStageFlag::AccelerationStructureBuild | GpuStageFlag::AccelerationStructureBuildInput | GpuStageFlag::AccelerationStructureCopy |
+			GpuStageFlag::DrawIndirect | GpuStageFlag::Transfer | GpuStageFlag::Host;
 	case GQT_TRANSFER:
 		return GpuStageFlag::Transfer | GpuStageFlag::Host;
 	default:
@@ -334,6 +334,7 @@ const char* GpuBackendUtility::GetAccessStageName(GpuStageFlag flag)
 	case GpuStageFlag::RayTracingShaderUniform: return "RayTracingShaderUniform";
 	case GpuStageFlag::AccelerationStructureBuild: return "AccelerationStructureBuild";
 	case GpuStageFlag::AccelerationStructureBuildInput: return "AccelerationStructureBuildInput";
+	case GpuStageFlag::AccelerationStructureCopy: return "AccelerationStructureCopy";
 	case GpuStageFlag::VertexShaderAccelerationStructure: return "VertexShaderAccelerationStructure";
 	case GpuStageFlag::FragmentShaderAccelerationStructure: return "FragmentShaderAccelerationStructure";
 	case GpuStageFlag::ComputeShaderAccelerationStructure: return "ComputeShaderAccelerationStructure";
@@ -557,15 +558,17 @@ GpuAccessState GpuBackendUtility::GetRestingState(const render::GpuBuffer& buffe
 	if(buffer.GetInformation().Type == GpuBufferType::StagingWrite)
 		return GpuAccessState(GetQueueStageFlags(queueType) & GpuStageFlag::Transfer, GpuAccessFlag::Read);
 
-	// Acceleration structure builds read ordinary buffers as their geometry and instance inputs
+	// Acceleration structure builds read ordinary buffers as their geometry and instance inputs, and deserializations read serialized
+	// acceleration structures from them
 	const GpuStageFlags stages = GpuStageFlag::DrawIndirect | GpuStageFlag::VertexInputAttributes | GpuStageFlag::VertexInputIndices | GpuStageFlag::AllShader |
-		GpuStageFlag::AccelerationStructureBuildInput;
+		GpuStageFlag::AccelerationStructureBuildInput | GpuStageFlag::AccelerationStructureCopy;
 	return GpuAccessState(stages & GetQueueStageFlags(queueType), GpuAccessFlag::Read);
 }
 
 GpuAccessState GpuBackendUtility::GetRestingState(const render::GpuAccelerationStructure& /*accelerationStructure*/, GpuQueueType queueType)
 {
-	// Shaders trace rays against acceleration structures, and builds read the bottom level structures of their instances
+	// Shaders trace rays against acceleration structures, builds read the bottom level structures of their instances, and copies and
+	// queries read their sources
 	return GpuAccessState(GetAccelerationStructureStageFlags() & GetQueueStageFlags(queueType), GpuAccessFlag::Read);
 }
 
@@ -611,7 +614,7 @@ GpuAccessState GpuBackendUtility::GetWindowColorRestingState(GpuQueueType queueT
 
 GpuStageFlags GpuBackendUtility::GetAccelerationStructureStageFlags()
 {
-	return GpuStageFlag::AllShaderAccelerationStructure | GpuStageFlag::AccelerationStructureBuild;
+	return GpuStageFlag::AllShaderAccelerationStructure | GpuStageFlag::AccelerationStructureBuild | GpuStageFlag::AccelerationStructureCopy;
 }
 
 GpuImageLayout GpuBackendUtility::GetRenderPassAttachmentLayout(RenderSurfaceMaskBits surface, RenderSurfaceMask readOnlyMask)

@@ -79,7 +79,6 @@ void VulkanGpuQueue::SubmitCommandBuffer(const GpuSubmissionInformation& informa
 	if (vulkanCommandBuffer.IsRecording())
 		vulkanCommandBuffer.End();
 
-	vulkanCommandBuffer.SetIsSubmitted();
 	mGpuDevice.GetSubmitThread().QueueSubmit(information.CommandBuffer, *this, information.SyncMask, information.SignalFences);
 }
 

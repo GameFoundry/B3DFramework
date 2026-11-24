@@ -34,7 +34,7 @@ namespace b3d::render
 			if(otherStages == GpuStageFlag::None)
 				return nullptr;
 
-			return "An acceleration structure can only be accessed by rays traced against it and by acceleration structure builds.";
+			return "An acceleration structure can only be accessed by rays traced against it, and by acceleration structure builds, copies and queries.";
 		}
 	} // namespace
 
@@ -223,6 +223,39 @@ namespace b3d::render
 			if(build.Inputs.InstanceBuffer != nullptr)
 				ValidateBufferAccess(*build.Inputs.InstanceBuffer, GpuStageFlag::AccelerationStructureBuildInput, GpuAccessFlag::Read);
 		}
+
+		mOperation = 0;
+	}
+
+	void GpuBarrierValidator::ValidateAccelerationStructureCopies(TArrayView<const GpuAccelerationStructureCopy> copies)
+	{
+		mOperation = ++mOperationCount;
+
+		for(const GpuAccelerationStructureCopy& copy : copies)
+		{
+			ValidateAccelerationStructureAccess(*copy.Source, GpuStageFlag::AccelerationStructureCopy, GpuAccessFlag::Read);
+			ValidateAccelerationStructureAccess(*copy.Destination, GpuStageFlag::AccelerationStructureCopy, GpuAccessFlag::Write);
+		}
+
+		mOperation = 0;
+	}
+
+	void GpuBarrierValidator::ValidateAccelerationStructureQueries(TArrayView<const TShared<GpuAccelerationStructure>> structures)
+	{
+		mOperation = ++mOperationCount;
+
+		for(const TShared<GpuAccelerationStructure>& structure : structures)
+			ValidateAccelerationStructureAccess(*structure, GpuStageFlag::AccelerationStructureCopy, GpuAccessFlag::Read);
+
+		mOperation = 0;
+	}
+
+	void GpuBarrierValidator::ValidateAccelerationStructureSerialization(const GpuAccelerationStructure& structure, const GpuBuffer& buffer, bool isSerialization)
+	{
+		mOperation = ++mOperationCount;
+
+		ValidateAccelerationStructureAccess(structure, GpuStageFlag::AccelerationStructureCopy, isSerialization ? GpuAccessFlag::Read : GpuAccessFlag::Write);
+		ValidateBufferAccess(buffer, GpuStageFlag::AccelerationStructureCopy, isSerialization ? GpuAccessFlag::Write : GpuAccessFlag::Read);
 
 		mOperation = 0;
 	}

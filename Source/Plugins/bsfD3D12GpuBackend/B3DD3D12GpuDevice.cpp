@@ -123,7 +123,7 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter) : mAdapter(adapter)
 	ComPtr<ID3D12InfoQueue> infoQueue;
 	if(SUCCEEDED(mDevice.As(&infoQueue)))
 	{
-		D3D12_MESSAGE_ID deniedMessages[5] = { D3D12_MESSAGE_ID_DEGENERATE_SPLIT_BARRIER };
+		D3D12_MESSAGE_ID deniedMessages[6] = { D3D12_MESSAGE_ID_DEGENERATE_SPLIT_BARRIER };
 		UINT deniedMessageCount = 1;
 
 		// Acceleration structure builds name buffers by address, and transient buffers that alias share addresses, so the debug layer reports
@@ -132,6 +132,10 @@ D3D12GpuDevice::D3D12GpuDevice(IDXGIAdapter4* adapter) : mAdapter(adapter)
 
 		// Command buffers that only issue barriers, like ones that return resources to rest, are a hint some drivers optimize, not an error
 		deniedMessages[deniedMessageCount++] = D3D12_MESSAGE_ID_NON_OPTIMAL_BARRIER_ONLY_EXECUTE_COMMAND_LISTS;
+
+		// Serialized acceleration structures from another driver are rejected through GetSerializedAccelerationStructureInformation(), which
+		// is an expected outcome, not a misuse
+		deniedMessages[deniedMessageCount++] = D3D12_MESSAGE_ID_CHECK_DRIVER_MATCHING_IDENTIFIER_DRIVER_REPORTED_ISSUE;
 
 		// Poisoned surfaces are cleared to values other than the ones they were created with, which the debug layer reports as slow
 		if(gGpuPoisonUnloadedAttachments)
@@ -425,6 +429,31 @@ bool D3D12GpuDevice::GetAccelerationStructureSizes(const GpuAccelerationStructur
 	return true;
 }
 
+bool D3D12GpuDevice::GetSerializedAccelerationStructureInformation(TArrayView<const u8> data, GpuSerializedAccelerationStructureInformation& outInformation) const
+{
+	if(!GpuDevice::GetSerializedAccelerationStructureInformation(data, outInformation))
+		return false;
+
+	D3D12_SERIALIZED_RAYTRACING_ACCELERATION_STRUCTURE_HEADER nativeHeader;
+	std::memcpy(&nativeHeader, data.data(), sizeof(nativeHeader));
+
+	if(!B3D_ENSURE_LOG(data.size() >= nativeHeader.SerializedSizeInBytesIncludingHeader, "Serialized acceleration structure data has {0} bytes, fewer than the {1} bytes its header reports.",
+		data.size(), nativeHeader.SerializedSizeInBytesIncludingHeader))
+		return false;
+
+	const D3D12_DRIVER_MATCHING_IDENTIFIER_STATUS status = mEnhancedDevice->CheckDriverMatchingIdentifier(D3D12_SERIALIZED_DATA_RAYTRACING_ACCELERATION_STRUCTURE, &nativeHeader.DriverMatchingIdentifier);
+	if(status != D3D12_DRIVER_MATCHING_IDENTIFIER_COMPATIBLE_WITH_DEVICE)
+		return false;
+
+	if(nativeHeader.SerializedSizeInBytesIncludingHeader > std::numeric_limits<u32>::max() || nativeHeader.DeserializedSizeInBytes > std::numeric_limits<u32>::max())
+		return false;
+
+	outInformation.SerializedSize = (u32)nativeHeader.SerializedSizeInBytesIncludingHeader;
+	outInformation.AccelerationStructureSize = (u32)nativeHeader.DeserializedSizeInBytes;
+
+	return true;
+}
+
 bool D3D12GpuDevice::WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance> instances, void* destination) const
 {
 	if(!GpuDevice::WriteRayTracingInstances(instances, destination))
@@ -533,6 +562,13 @@ GpuMemoryRequirements D3D12GpuDevice::GetMemoryRequirements(const GpuBufferCreat
 	if(isScratchCapable && mCapabilities.HasCapability(RSC_ACCELERATION_STRUCTURES))
 		viewAlignment = std::max(viewAlignment, (u64)mCapabilities.RayTracing.ScratchOffsetAlignment);
 
+	// Serializations write, and deserializations read, serialized acceleration structures at aligned addresses
+	// TODO - Every buffer that can hold serialized data pays for this alignment, though few ever do. If the overhead proves too large, align only
+	// buffers created with a separate flag for serialization data.
+	const bool isSerializationCapable = isScratchCapable || (createInformation.Type == GpuBufferType::StructuredStorage && createInformation.Flags.IsSet(GpuBufferFlag::AccelerationStructureInput));
+	if(isSerializationCapable && mCapabilities.HasCapability(RSC_ACCELERATION_STRUCTURES))
+		viewAlignment = std::max(viewAlignment, (u64)mCapabilities.RayTracing.SerializedDataAlignment);
+
 	output.MemoryType = (u32)GetBufferHeapClass(createInformation.Type, createInformation.Memory, createInformation.Flags);
 	output.Size = allocationInfo.SizeInBytes;
 	output.Alignment = std::max(allocationInfo.Alignment, viewAlignment);
@@ -594,6 +630,13 @@ IGpuTransientHeapPool* D3D12GpuDevice::GetTransientHeapPool(u32 memoryType)
 
 TShared<GpuQueryPool> D3D12GpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)
 {
+	const bool isAccelerationStructureQuery = createInformation.Type == GpuQueryType::AccelerationStructureCompactedSize || createInformation.Type == GpuQueryType::AccelerationStructureSerializedSize;
+	if(isAccelerationStructureQuery && !mCapabilities.HasCapability(RSC_ACCELERATION_STRUCTURES))
+	{
+		B3D_LOG(Error, LogRenderBackend, "Cannot create a pool of acceleration structure queries, the GPU device doesn't support acceleration structures.");
+		return nullptr;
+	}
+
 	return B3DMakeShared<D3D12GpuQueryPool>(*this, createInformation);
 }
 
@@ -1283,6 +1326,12 @@ void D3D12GpuDevice::InitializeCapabilities()
 
 		// An acceleration structure view is an ordinary descriptor in the shader-visible heap
 		rayTracing.SupportsBindlessAccelerationStructures = mSupportsBindlessResources;
+
+		// Serialized data starts with a D3D12_SERIALIZED_RAYTRACING_ACCELERATION_STRUCTURE_HEADER, and copies to and from memory use
+		// the alignment of acceleration structures
+		rayTracing.SupportsSerialization = true;
+		rayTracing.SerializedHeaderSize = sizeof(D3D12_SERIALIZED_RAYTRACING_ACCELERATION_STRUCTURE_HEADER);
+		rayTracing.SerializedDataAlignment = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT;
 
 		mCapabilities.SetCapability(RSC_ACCELERATION_STRUCTURES);
 		mCapabilities.SetCapability(RSC_RAY_QUERY);

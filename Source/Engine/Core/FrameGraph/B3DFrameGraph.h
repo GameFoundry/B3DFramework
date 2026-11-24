@@ -14,6 +14,7 @@ namespace b3d
 {
 	class GpuWorkContext;
 	struct GpuAccelerationStructureBuild;
+	struct GpuAccelerationStructureCopy;
 
 	/**
 	 * If enabled, passes created with render::FrameGraphPassFlag::AsyncCompute run on the async compute queue. If disabled, every pass
@@ -280,8 +281,10 @@ namespace b3d
 		};
 
 		/**
-		 * Describes a pass of a FrameGraph that builds acceleration structures with GpuCommandBuffer::BuildAccelerationStructures(). Ray
-		 * tracing dispatches and inline tracing use FrameGraphComputePass instead.
+		 * Describes a pass of a FrameGraph that builds acceleration structures with GpuCommandBuffer::BuildAccelerationStructures(), or
+		 * copies, queries, serializes and deserializes them. Ray tracing dispatches and inline tracing use FrameGraphComputePass instead.
+		 * The operations of one pass run without barriers between them, so an operation that reads the result of another goes in a later
+		 * pass.
 		 */
 		class B3D_EXPORT FrameGraphAccelerationStructurePass : public FrameGraphPass
 		{
@@ -300,6 +303,34 @@ namespace b3d
 			 */
 			void AddBuild(const GpuAccelerationStructureBuild& build);
 
+			/**
+			 * Declares what @p copy reads and writes (see GpuCommandBuffer::CopyAccelerationStructures()). The pass's execute function
+			 * records the copy. The destination is written, discarding its previous contents, so it must be a resource of the graph. The
+			 * source is only read, so it is declared if it is a resource of the graph, and read at rest otherwise.
+			 */
+			void AddCopy(const GpuAccelerationStructureCopy& copy);
+
+			/**
+			 * Declares that the pass reads @p structure to write a query of its size (see
+			 * GpuCommandBuffer::WriteAccelerationStructureQueries()). The structure is declared if it is a resource of the graph, and read
+			 * at rest otherwise. A pass with queries is never culled, since the graph can't see who reads their results.
+			 */
+			void AddQuery(const TShared<GpuAccelerationStructure>& structure);
+
+			/**
+			 * Declares that the pass serializes @p source into @p destination (see GpuCommandBuffer::SerializeAccelerationStructure()).
+			 * The buffer is written, so it must be a resource of the graph. The structure is declared if it is a resource of the graph,
+			 * and read at rest otherwise.
+			 */
+			void AddSerialization(const TShared<GpuAccelerationStructure>& source, const TShared<GpuBuffer>& destination);
+
+			/**
+			 * Declares that the pass deserializes @p destination from @p source (see GpuCommandBuffer::DeserializeAccelerationStructure()).
+			 * The structure is written, discarding its previous contents, so it must be a resource of the graph. The buffer is declared
+			 * if it is a resource of the graph, and read at rest otherwise.
+			 */
+			void AddDeserialization(const TShared<GpuBuffer>& source, const TShared<GpuAccelerationStructure>& destination);
+
 		private:
 			friend class FrameGraph;
 
@@ -308,6 +339,11 @@ namespace b3d
 			Vector<TShared<GpuAccelerationStructure>> mReadStructures; /**< Bottom level structures, and sources of refits into other structures. */
 			Vector<TShared<GpuBuffer>> mScratchBuffers;
 			Vector<TShared<GpuBuffer>> mInputBuffers; /**< Vertex, index and instance buffers. */
+			Vector<TShared<GpuAccelerationStructure>> mCopyStageWrites; /**< Structures that copies and deserializations write, discarding their contents. */
+			Vector<TShared<GpuAccelerationStructure>> mCopyStageReads; /**< Structures that copies, queries and serializations read. */
+			Vector<TShared<GpuBuffer>> mSerializationBuffers; /**< Buffers that serializations write. */
+			Vector<TShared<GpuBuffer>> mDeserializationBuffers; /**< Buffers that deserializations read. */
+			bool mHasQueries = false; /**< True if the pass writes queries, which keeps it from being culled. */
 		};
 
 		/** Pass and barrier counts of a compiled FrameGraph. */
@@ -358,7 +394,7 @@ namespace b3d
 		 *  - Resting: every other resource. Passes may read them without a declaration, but never write them.
 		 *
 		 * A pass reads whatever the pass declared before it wrote. Passes whose writes nothing observes are culled, along with their
-		 * transients. Barriers are split whenever other passes run between the accesses they order.
+		 * transients, except for acceleration structure passes that write queries. Barriers are split whenever other passes run between the accesses they order.
 		 *
 		 * Passes run on the graphics queue, unless a compute, copy or acceleration structure pass prefers the async compute queue
 		 * (FrameGraphPassFlag::AsyncCompute).
@@ -618,6 +654,8 @@ namespace b3d
 				Vector<SubresourceAccess> Accesses; /**< Sorted by resource and subresource, one entry per subresource. */
 				TInlineArray<u32, 2> ExportedResourceIndices; /**< Indices into mResources of the resources exported after the pass. */
 				RenderPassAttachments Attachments; /**< Only valid for raster passes. */
+
+				bool HasSideEffects = false; /**< True if the pass has effects that the graph can't see, such as queries, so it is never culled. */
 
 				// Compile results
 				bool IsCulled = false;

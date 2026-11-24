@@ -108,6 +108,8 @@ namespace b3d
 		void NullGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& waits,
 			TArrayView<const GpuTimelineFenceAndValue> signalFences)
 		{
+			// Executes instantly
+			static_cast<NullGpuCommandBuffer&>(*commandBuffer).SetState(GpuCommandBufferState::Done);
 			commandBuffer->OnDidComplete();
 			commandBuffer->OnDidComplete.Clear();
 			commandBuffer->OnDestroyed.Clear();

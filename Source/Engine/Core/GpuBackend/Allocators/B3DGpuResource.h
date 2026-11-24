@@ -346,7 +346,7 @@ namespace b3d
 
 		/**
 		 * Keeps the resource alive while something other than a command buffer references it, such as a bindless heap
-		 * descriptor. A pin doesn't count as a binding. Must eventually be followed by a NotifyUnpinned().
+		 * descriptor, or a transfer queue. A pin doesn't count as a binding. Must eventually be followed by a NotifyUnpinned().
 		 */
 		void NotifyPinned();
 

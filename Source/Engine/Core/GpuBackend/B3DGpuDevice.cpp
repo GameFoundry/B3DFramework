@@ -558,6 +558,18 @@ bool GpuDevice::GetAccelerationStructureSizes(const GpuAccelerationStructureInpu
 	return true;
 }
 
+bool GpuDevice::GetSerializedAccelerationStructureInformation(TArrayView<const u8> data, GpuSerializedAccelerationStructureInformation& outInformation) const
+{
+	outInformation = GpuSerializedAccelerationStructureInformation();
+
+	const GpuRayTracingCapabilities& rayTracing = GetCapabilities().RayTracing;
+	if(!B3D_ENSURE_LOG(rayTracing.SupportsSerialization, "Cannot read serialized acceleration structure data, the GPU device doesn't support serialization."))
+		return false;
+
+	return B3D_ENSURE_LOG(data.size() >= rayTracing.SerializedHeaderSize, "Serialized acceleration structure data has {0} bytes, fewer than the {1} bytes of its header.",
+		data.size(), rayTracing.SerializedHeaderSize);
+}
+
 bool GpuDevice::WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance> instances, void* destination) const
 {
 	if(!B3D_ENSURE_LOG(GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES), "Cannot write ray tracing instances, the GPU device doesn't support acceleration structures."))
@@ -607,7 +619,7 @@ render::GpuStageFlags GpuDevice::GetSupportedStageFlags() const
 		stages &= ~GpuStageFlags(GpuStageFlag::VertexShaderAccelerationStructure | GpuStageFlag::FragmentShaderAccelerationStructure | GpuStageFlag::ComputeShaderAccelerationStructure);
 
 	if(!capabilities.HasCapability(RSC_ACCELERATION_STRUCTURES))
-		stages &= ~GpuStageFlags(GpuStageFlag::AccelerationStructureBuild | GpuStageFlag::AccelerationStructureBuildInput);
+		stages &= ~GpuStageFlags(GpuStageFlag::AccelerationStructureBuild | GpuStageFlag::AccelerationStructureBuildInput | GpuStageFlag::AccelerationStructureCopy);
 
 	return stages;
 }

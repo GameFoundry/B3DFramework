@@ -248,6 +248,41 @@ namespace b3d::render
 		}
 	}
 
+	void FrameGraphAccelerationStructurePass::AddCopy(const GpuAccelerationStructureCopy& copy)
+	{
+		if(copy.Destination != nullptr)
+			mCopyStageWrites.push_back(copy.Destination);
+
+		if(copy.Source != nullptr)
+			mCopyStageReads.push_back(copy.Source);
+	}
+
+	void FrameGraphAccelerationStructurePass::AddQuery(const TShared<GpuAccelerationStructure>& structure)
+	{
+		if(structure != nullptr)
+			mCopyStageReads.push_back(structure);
+
+		mHasQueries = true;
+	}
+
+	void FrameGraphAccelerationStructurePass::AddSerialization(const TShared<GpuAccelerationStructure>& source, const TShared<GpuBuffer>& destination)
+	{
+		if(source != nullptr)
+			mCopyStageReads.push_back(source);
+
+		if(destination != nullptr)
+			mSerializationBuffers.push_back(destination);
+	}
+
+	void FrameGraphAccelerationStructurePass::AddDeserialization(const TShared<GpuBuffer>& source, const TShared<GpuAccelerationStructure>& destination)
+	{
+		if(source != nullptr)
+			mDeserializationBuffers.push_back(source);
+
+		if(destination != nullptr)
+			mCopyStageWrites.push_back(destination);
+	}
+
 	GpuBarriers FrameGraph::BarrierList::GetBarriers() const
 	{
 		return GpuBarriers(TArrayView<const GpuBufferBarrier>(BufferBarriers.data(), (u32)BufferBarriers.size()),
@@ -616,6 +651,7 @@ namespace b3d::render
 	void FrameGraph::AddAccelerationStructurePass(const StringView& name, FrameGraphAccelerationStructurePass&& pass, Function<void(FrameGraphPassContext&)> execute)
 	{
 		Pass& output = AddPass(name, PassType::AccelerationStructure, pass, std::move(execute));
+		output.HasSideEffects = pass.mHasQueries;
 
 		// Finds the graph resource of an object the pass accesses. Objects outside of the graph are at rest, which only allows reads.
 		const auto fnFindResource = [this, &output](const auto& object, bool isWritten)
@@ -623,12 +659,12 @@ namespace b3d::render
 			const u32 resourceIndex = object.GetFrameGraphResourceIndex();
 			if(resourceIndex == ~0u)
 			{
-				B3D_ENSURE_LOG(!isWritten, "Pass '{0}' writes '{1}' in a build, but it is not a resource of the graph. Import it first.", output.Name, object.GetName());
+				B3D_ENSURE_LOG(!isWritten, "Pass '{0}' writes '{1}', but it is not a resource of the graph. Import it first.", output.Name, object.GetName());
 				return ~0u;
 			}
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
-			if(!B3D_ENSURE_LOG(object.GetFrameGraphId() == mId, "Pass '{0}' builds with '{1}', which is a resource of another frame graph.", output.Name, object.GetName()))
+			if(!B3D_ENSURE_LOG(object.GetFrameGraphId() == mId, "Pass '{0}' accesses '{1}', which is a resource of another frame graph.", output.Name, object.GetName()))
 				return ~0u;
 #endif
 
@@ -670,6 +706,35 @@ namespace b3d::render
 			const u32 resourceIndex = fnFindResource(*inputBuffer, false);
 			if(resourceIndex != ~0u)
 				DeclareAccess(output, resourceIndex, GpuTextureSubresourceRange(), GpuAccessState(GpuStageFlag::AccelerationStructureBuildInput, GpuAccessFlag::Read));
+		}
+
+		// A copy or deserialization overwrites the whole destination without reading it
+		for(const TShared<GpuAccelerationStructure>& writtenStructure : pass.mCopyStageWrites)
+		{
+			const u32 resourceIndex = fnFindResource(*writtenStructure, true);
+			if(resourceIndex != ~0u)
+				DeclareAccess(output, resourceIndex, GpuTextureSubresourceRange(), GpuAccessState(GpuStageFlag::AccelerationStructureCopy, GpuAccessFlag::Write), true);
+		}
+
+		for(const TShared<GpuAccelerationStructure>& readStructure : pass.mCopyStageReads)
+		{
+			const u32 resourceIndex = fnFindResource(*readStructure, false);
+			if(resourceIndex != ~0u)
+				DeclareAccess(output, resourceIndex, GpuTextureSubresourceRange(), GpuAccessState(GpuStageFlag::AccelerationStructureCopy, GpuAccessFlag::Read));
+		}
+
+		for(const TShared<GpuBuffer>& serializationBuffer : pass.mSerializationBuffers)
+		{
+			const u32 resourceIndex = fnFindResource(*serializationBuffer, true);
+			if(resourceIndex != ~0u)
+				DeclareAccess(output, resourceIndex, GpuTextureSubresourceRange(), GpuAccessState(GpuStageFlag::AccelerationStructureCopy, GpuAccessFlag::Write));
+		}
+
+		for(const TShared<GpuBuffer>& deserializationBuffer : pass.mDeserializationBuffers)
+		{
+			const u32 resourceIndex = fnFindResource(*deserializationBuffer, false);
+			if(resourceIndex != ~0u)
+				DeclareAccess(output, resourceIndex, GpuTextureSubresourceRange(), GpuAccessState(GpuStageFlag::AccelerationStructureCopy, GpuAccessFlag::Read));
 		}
 	}
 
@@ -821,8 +886,9 @@ namespace b3d::render
 
 	void FrameGraph::CullPasses(const CompileContext& context)
 	{
-		// Walking backwards, a pass survives if it writes contents that a later surviving pass or the end of the graph observes.
-		// The contents of imported and extracted resources are observed after the graph ends, and exported contents after their pass.
+		// Walking backwards, a pass survives if it writes contents that a later surviving pass or the end of the graph observes, or if it
+		// has side effects. The contents of imported and extracted resources are observed after the graph ends, and exported contents after
+		// their pass.
 		FrameVector<bool> isObserved(context.SubresourceCount, false);
 		for(const Resource& resource : mResources)
 		{
@@ -839,7 +905,7 @@ namespace b3d::render
 				std::fill(isObserved.begin() + resource.FirstSubresourceIndex, isObserved.begin() + resource.FirstSubresourceIndex + resource.SubresourceCount, true);
 			}
 
-			bool isAlive = false;
+			bool isAlive = pass.HasSideEffects;
 			RenderSurfaceMask writtenSurfaces = RT_NONE;
 			RenderSurfaceMask observedSurfaces = RT_NONE;
 			for(const SubresourceAccess& access : pass.Accesses)

@@ -30,6 +30,7 @@
 #include "GpuBackend/B3DGpuPipelineParameterLayout.h"
 #include "GpuBackend/B3DGpuPipelineState.h"
 #include "GpuBackend/B3DGpuProgram.h"
+#include "GpuBackend/B3DGpuQueries.h"
 #include "GpuBackend/B3DGpuShaderBindingTable.h"
 #include "GpuBackend/B3DGpuWorkContext.h"
 #include "Material/B3DShaderReflection.h"
@@ -49,6 +50,7 @@ GpuRayTracingTestSuite::GpuRayTracingTestSuite()
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestRayTracingPipelineRecords)
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestFrameGraph)
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestAccelerationStructureRefits)
+	B3D_ADD_TEST(GpuRayTracingTestSuite::TestAccelerationStructureCopies)
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestRayTracingGeometry)
 }
 
@@ -201,7 +203,7 @@ void GpuRayTracingTestSuite::TestAccelerationStructureCreation()
 			validator.ValidateBufferAccess(*inputVertices, GpuStageFlag::RayTracingShaderAccelerationStructure, GpuAccessFlag::Read);
 		}
 
-		const String stageError = "An acceleration structure can only be accessed by rays traced against it and by acceleration structure builds.";
+		const String stageError = "An acceleration structure can only be accessed by rays traced against it, and by acceleration structure builds, copies and queries.";
 		{
 			LoggingScope logs(*this);
 			logs.ExpectError(stageError + " Acceleration structure: 'TopLevel'.");
@@ -998,7 +1000,7 @@ void GpuRayTracingTestSuite::TestFrameGraph()
 		return;
 
 	LoggingScope logs(*this);
-	logs.ExpectError("Pass 'Resting build' writes 'Resting top level' in a build, but it is not a resource of the graph. Import it first.");
+	logs.ExpectError("Pass 'Resting build' writes 'Resting top level', but it is not a resource of the graph. Import it first.");
 
 	GetRenderThread().PostCommand([this, &device, &pipeline]()
 	{
@@ -1431,6 +1433,583 @@ void GpuRayTracingTestSuite::TestAccelerationStructureRefits()
 		device->WaitUntilIdle();
 #endif
 	}, "GpuRayTracingTestSuite::TestAccelerationStructureRefits", true);
+}
+
+void GpuRayTracingTestSuite::TestAccelerationStructureCopies()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	const GpuDeviceCapabilities& capabilities = device->GetCapabilities();
+	if(!capabilities.HasCapability(RSC_ACCELERATION_STRUCTURES) || !capabilities.HasCapability(RSC_RAY_QUERY))
+		return;
+
+	// Shaders are resources, which are created outside of the render thread
+	const TShared<GpuComputePipelineState> pipeline = CreateTestInlineRayTracingPipeline(*device);
+	B3D_TEST_ASSERT(pipeline != nullptr)
+	if(pipeline == nullptr)
+		return;
+
+	GetRenderThread().PostCommand([this, &device, &pipeline]()
+	{
+		const GpuRayTracingCapabilities& rayTracing = device->GetCapabilities().RayTracing;
+		const GpuBufferFlags inputFlags = GpuBufferFlag::AccelerationStructureInput;
+		const GpuAccelerationStructureBuildFlags compactableFlags = GpuAccelerationStructureBuildFlag::PreferFastTrace | GpuAccelerationStructureBuildFlag::AllowCompaction;
+
+		// One triangle at depth 5, which every copy must keep
+		const TShared<render::GpuBuffer> vertices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(12, 3, inputFlags, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> instances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(rayTracing.InstanceSize, 1, inputFlags, GpuBufferMemory::Mapped));
+		B3D_TEST_ASSERT(vertices != nullptr && instances != nullptr)
+		if(vertices == nullptr || instances == nullptr)
+			return;
+
+		{
+			const float vertexData[] = { 0.0f, 0.0f, 5.0f, 1.0f, 0.0f, 5.0f, 0.0f, 1.0f, 5.0f };
+			const render::GpuBufferMappedScope mapping = vertices->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			std::memcpy(mapping.GetMappedMemory(), vertexData, sizeof(vertexData));
+		}
+
+		const GpuRayTracingGeometry geometry(vertices, 12, 3);
+		const GpuAccelerationStructureInputs bottomLevelInputs(TArrayView<const GpuRayTracingGeometry>(&geometry, 1), compactableFlags);
+		const GpuAccelerationStructureInputs topLevelInputs(instances, 1, compactableFlags);
+
+		GpuAccelerationStructureSizes bottomLevelSizes;
+		GpuAccelerationStructureSizes topLevelSizes;
+		B3D_TEST_ASSERT(device->GetAccelerationStructureSizes(bottomLevelInputs, bottomLevelSizes) && device->GetAccelerationStructureSizes(topLevelInputs, topLevelSizes))
+
+		TShared<GpuAccelerationStructure> original = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::BottomLevel, bottomLevelSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "Original bottom level"));
+		TShared<GpuAccelerationStructure> topLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::TopLevel, topLevelSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "Copied top level"));
+		B3D_TEST_ASSERT(original != nullptr && topLevel != nullptr)
+		if(original == nullptr || topLevel == nullptr)
+			return;
+
+		const TestRay ray(Vector3(0.25f, 0.25f, 0.0f), Vector3(0.0f, 0.0f, 1.0f));
+		const TShared<render::GpuBuffer> rayBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(TestRay), 1, GpuBufferFlag::None, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> hitBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(TestHit), 1, GpuBufferFlag::GpuWrite));
+		const TShared<render::GpuBuffer> hitReadback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(sizeof(TestHit)));
+		B3D_TEST_ASSERT(rayBuffer != nullptr && hitBuffer != nullptr && hitReadback != nullptr)
+		if(rayBuffer == nullptr || hitBuffer == nullptr || hitReadback == nullptr)
+			return;
+
+		{
+			const render::GpuBufferMappedScope mapping = rayBuffer->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			std::memcpy(mapping.GetMappedMemory(), &ray, sizeof(ray));
+		}
+
+		GpuQueryPoolCreateInformation compactedSizePoolInformation;
+		compactedSizePoolInformation.Type = GpuQueryType::AccelerationStructureCompactedSize;
+		compactedSizePoolInformation.PoolSize = 4;
+		const TShared<GpuQueryPool> compactedSizes = device->CreateQueryPool(compactedSizePoolInformation);
+		B3D_TEST_ASSERT(compactedSizes != nullptr)
+		if(compactedSizes == nullptr)
+			return;
+
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+
+		// Compiles and runs @p graph, and waits until the GPU finishes it
+		const auto fnRun = [&device](FrameGraph& graph)
+		{
+			graph.Compile();
+			graph.Execute();
+			device->WaitUntilIdle();
+			device->EndFrame();
+		};
+
+		// Builds the top level structure over one instance of @p bottomLevel, unless it is null, and traces the ray against @p traced.
+		// Checks that the ray hit the triangle.
+		const auto fnTrace = [&](const char* name, const TShared<GpuAccelerationStructure>& bottomLevel, const TShared<GpuAccelerationStructure>& traced)
+		{
+			FrameGraph graph(*context, "Copy trace graph");
+			graph.ImportAccelerationStructure(traced);
+			graph.ImportBuffer(hitBuffer);
+			graph.ImportBuffer(hitReadback);
+
+			if(bottomLevel != nullptr)
+			{
+				{
+					const render::GpuBufferMappedScope mapping = instances->Map(GpuMapOption::Write);
+					B3D_TEST_ASSERT(mapping.IsValid())
+					if(!mapping.IsValid())
+						return;
+
+					const GpuRayTracingInstance instance(bottomLevel.get(), Matrix4::kIdentity, 3);
+					B3D_TEST_ASSERT(device->WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance>(&instance, 1), mapping.GetMappedMemory()))
+				}
+
+				const TShared<render::GpuBuffer> scratch = graph.CreateBuffer("Copy test scratch", GpuBufferCreateInformation::CreateStructuredStorage(4,
+					AlignUp(std::max(1u, topLevelSizes.BuildScratchSize), 4) / 4, GpuBufferFlag::GpuWrite));
+
+				GpuAccelerationStructureBuild build(topLevelInputs, traced, scratch);
+				build.BottomLevels = TArrayView<const TShared<GpuAccelerationStructure>>(&bottomLevel, 1);
+
+				FrameGraphAccelerationStructurePass pass;
+				pass.AddBuild(build);
+				graph.AddAccelerationStructurePass("Top level", std::move(pass), [build](FrameGraphPassContext& passContext)
+				{
+					B3D_ENSURE(passContext.GetCommandBuffer().BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(&build, 1)));
+				});
+			}
+
+			const TShared<render::GpuParameterSet> parameterSet = context->GetParameterSetPool().Create(pipeline->GetParameterLayout()->GetSet(0), 0);
+			B3D_TEST_ASSERT(parameterSet->SetAccelerationStructure("Scene", traced))
+			parameterSet->SetStorageBuffer("Rays", rayBuffer);
+			parameterSet->SetStorageBuffer("Hits", hitBuffer);
+
+			FrameGraphComputePass tracePass;
+			tracePass.AddParameterSet(parameterSet);
+			graph.AddComputePass("Trace", std::move(tracePass), [&pipeline, parameterSet](FrameGraphPassContext& passContext)
+			{
+				render::GpuCommandBuffer& commands = passContext.GetCommandBuffer();
+				commands.SetGpuComputePipelineState(pipeline);
+				commands.SetGpuParameterSet(parameterSet);
+				commands.DispatchCompute(1);
+			});
+
+			FrameGraphCopyPass copyPass;
+			copyPass.AddSource(hitBuffer);
+			copyPass.AddDestination(hitReadback);
+			graph.AddCopyPass("Read hit", std::move(copyPass), [source = hitBuffer, destination = hitReadback](FrameGraphPassContext& passContext)
+			{
+				passContext.GetCommandBuffer().CopyBufferToBuffer(source, destination, 0, 0, sizeof(TestHit));
+			});
+
+			fnRun(graph);
+
+			TestHit hit;
+			{
+				const render::GpuBufferMappedScope mapping = hitReadback->Map(GpuMapOption::Read);
+				B3D_TEST_ASSERT(mapping.IsValid())
+				if(!mapping.IsValid())
+					return;
+
+				std::memcpy(&hit, mapping.GetMappedMemory(), sizeof(hit));
+			}
+
+			B3D_TEST_ASSERT_MSG(hit.IsHit != 0.0f && std::abs(hit.Distance - 5.0f) < 1e-4f && hit.InstanceId == 3, StringUtility::Format("{0}: hit {1}, distance {2}, instance id {3}.",
+				name, hit.IsHit, hit.Distance, hit.InstanceId))
+		};
+
+		// Builds the original structure, then writes its compacted size into queries 2, 0 and 1 in one call, which splits the call where
+		// the query ids aren't consecutive
+		{
+			FrameGraph graph(*context, "Compacted size graph");
+			graph.ImportAccelerationStructure(original);
+
+			const TShared<render::GpuBuffer> scratch = graph.CreateBuffer("Copy test scratch", GpuBufferCreateInformation::CreateStructuredStorage(4,
+				AlignUp(std::max(1u, bottomLevelSizes.BuildScratchSize), 4) / 4, GpuBufferFlag::GpuWrite));
+
+			const GpuAccelerationStructureBuild build(bottomLevelInputs, original, scratch);
+			FrameGraphAccelerationStructurePass buildPass;
+			buildPass.AddBuild(build);
+			graph.AddAccelerationStructurePass("Bottom level", std::move(buildPass), [build](FrameGraphPassContext& passContext)
+			{
+				B3D_ENSURE(passContext.GetCommandBuffer().BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(&build, 1)));
+			});
+
+			FrameGraphAccelerationStructurePass queryPass;
+			queryPass.AddQuery(original);
+			graph.AddAccelerationStructurePass("Compacted size", std::move(queryPass), [&original, &compactedSizes](FrameGraphPassContext& passContext)
+			{
+				render::GpuCommandBuffer& commands = passContext.GetCommandBuffer();
+				commands.ResetQueries(compactedSizes);
+
+				const GpuQueryId queries[] = { compactedSizes->AllocateQuery(), compactedSizes->AllocateQuery(), compactedSizes->AllocateQuery() };
+				const TShared<GpuAccelerationStructure> structures[] = { original, original, original };
+				const GpuQueryId writtenQueries[] = { queries[2], queries[0], queries[1] };
+				B3D_ENSURE(commands.WriteAccelerationStructureQueries(TArrayView<const TShared<GpuAccelerationStructure>>(structures, 3), TArrayView<const GpuQueryId>(writtenQueries, 3),
+					compactedSizes));
+			});
+
+			fnRun(graph);
+		}
+
+		B3D_TEST_ASSERT(compactedSizes->TryResolve(true))
+		const u64 compactedSize = compactedSizes->GetQueryResult(GpuQueryId(0));
+		B3D_TEST_ASSERT_MSG(compactedSize > 0 && compactedSize <= original->GetSize() && compactedSizes->GetQueryResult(GpuQueryId(1)) == compactedSize &&
+			compactedSizes->GetQueryResult(GpuQueryId(2)) == compactedSize, StringUtility::Format("Compacted sizes {0}, {1} and {2} of a structure of {3} bytes.", compactedSize,
+			compactedSizes->GetQueryResult(GpuQueryId(1)), compactedSizes->GetQueryResult(GpuQueryId(2)), original->GetSize()))
+		if(compactedSize == 0 || compactedSize > original->GetSize())
+			return;
+
+		// Builds a structure, queries its compacted size, rebuilds it with more triangles and queries it again, in one graph. Each query
+		// reports the size the structure has at its point in the graph, so the first one reports the smaller size.
+		{
+			constexpr u32 kTriangleCount = 64;
+			const TShared<render::GpuBuffer> largeVertices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(12, kTriangleCount * 3, inputFlags,
+				GpuBufferMemory::Mapped));
+			B3D_TEST_ASSERT(largeVertices != nullptr)
+			if(largeVertices == nullptr)
+				return;
+
+			{
+				const render::GpuBufferMappedScope mapping = largeVertices->Map(GpuMapOption::Write);
+				B3D_TEST_ASSERT(mapping.IsValid())
+				if(!mapping.IsValid())
+					return;
+
+				// Triangles side by side along X, so the builder keeps each of them
+				auto* const vertexData = static_cast<float*>(mapping.GetMappedMemory());
+				for(u32 triangleIndex = 0; triangleIndex < kTriangleCount; triangleIndex++)
+				{
+					const float offset = (float)triangleIndex * 2.0f;
+					const float triangle[] = { offset, 0.0f, 5.0f, offset + 1.0f, 0.0f, 5.0f, offset, 1.0f, 5.0f };
+					std::memcpy(vertexData + triangleIndex * 9, triangle, sizeof(triangle));
+				}
+			}
+
+			const GpuRayTracingGeometry largeGeometry(largeVertices, 12, kTriangleCount * 3);
+			const GpuAccelerationStructureInputs largeInputs(TArrayView<const GpuRayTracingGeometry>(&largeGeometry, 1), compactableFlags);
+
+			GpuAccelerationStructureSizes largeSizes;
+			B3D_TEST_ASSERT(device->GetAccelerationStructureSizes(largeInputs, largeSizes))
+
+			const TShared<GpuAccelerationStructure> rebuilt = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+				GpuAccelerationStructureType::BottomLevel, std::max(bottomLevelSizes.AccelerationStructureSize, largeSizes.AccelerationStructureSize),
+				GpuAccelerationStructureFlag::None, "Rebuilt bottom level"));
+
+			GpuQueryPoolCreateInformation rebuiltSizePoolInformation;
+			rebuiltSizePoolInformation.Type = GpuQueryType::AccelerationStructureCompactedSize;
+			rebuiltSizePoolInformation.PoolSize = 2;
+			const TShared<GpuQueryPool> rebuiltSizes = device->CreateQueryPool(rebuiltSizePoolInformation);
+			B3D_TEST_ASSERT(rebuilt != nullptr && rebuiltSizes != nullptr)
+			if(rebuilt == nullptr || rebuiltSizes == nullptr)
+				return;
+
+			FrameGraph graph(*context, "Rebuilt compacted size graph");
+			graph.ImportAccelerationStructure(rebuilt);
+
+			const u32 scratchSize = std::max(1u, std::max(bottomLevelSizes.BuildScratchSize, largeSizes.BuildScratchSize));
+			const TShared<render::GpuBuffer> scratch = graph.CreateBuffer("Rebuild test scratch", GpuBufferCreateInformation::CreateStructuredStorage(4,
+				AlignUp(scratchSize, 4) / 4, GpuBufferFlag::GpuWrite));
+
+			const GpuAccelerationStructureBuild builds[] = {
+				GpuAccelerationStructureBuild(bottomLevelInputs, rebuilt, scratch),
+				GpuAccelerationStructureBuild(largeInputs, rebuilt, scratch)
+			};
+
+			for(u32 buildIndex = 0; buildIndex < 2; buildIndex++)
+			{
+				const GpuAccelerationStructureBuild& build = builds[buildIndex];
+				FrameGraphAccelerationStructurePass buildPass;
+				buildPass.AddBuild(build);
+				graph.AddAccelerationStructurePass("Rebuild", std::move(buildPass), [build](FrameGraphPassContext& passContext)
+				{
+					B3D_ENSURE(passContext.GetCommandBuffer().BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(&build, 1)));
+				});
+
+				FrameGraphAccelerationStructurePass queryPass;
+				queryPass.AddQuery(rebuilt);
+				graph.AddAccelerationStructurePass("Rebuilt size", std::move(queryPass), [buildIndex, &rebuilt, &rebuiltSizes](FrameGraphPassContext& passContext)
+				{
+					render::GpuCommandBuffer& commands = passContext.GetCommandBuffer();
+					if(buildIndex == 0)
+						commands.ResetQueries(rebuiltSizes);
+
+					const GpuQueryId query = rebuiltSizes->AllocateQuery();
+					B3D_ENSURE(commands.WriteAccelerationStructureQueries(TArrayView<const TShared<GpuAccelerationStructure>>(&rebuilt, 1), TArrayView<const GpuQueryId>(&query, 1),
+						rebuiltSizes));
+				});
+			}
+
+			fnRun(graph);
+
+			B3D_TEST_ASSERT(rebuiltSizes->TryResolve(true))
+			const u64 smallSize = rebuiltSizes->GetQueryResult(GpuQueryId(0));
+			const u64 largeSize = rebuiltSizes->GetQueryResult(GpuQueryId(1));
+			B3D_TEST_ASSERT_MSG(smallSize > 0 && smallSize < largeSize && largeSize <= rebuilt->GetSize(), StringUtility::Format(
+				"Compacted size {0} before and {1} after a rebuild with more triangles, of a structure of {2} bytes.", smallSize, largeSize, rebuilt->GetSize()))
+		}
+
+		// One call clones and compacts the original structure, which isn't needed afterwards
+		TShared<GpuAccelerationStructure> clone = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::BottomLevel, original->GetSize(), GpuAccelerationStructureFlag::None, "Cloned bottom level"));
+		TShared<GpuAccelerationStructure> compacted = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::BottomLevel, (u32)compactedSize, GpuAccelerationStructureFlag::None, "Compacted bottom level"));
+		B3D_TEST_ASSERT(clone != nullptr && compacted != nullptr)
+		if(clone == nullptr || compacted == nullptr)
+			return;
+
+		{
+			FrameGraph graph(*context, "Copy graph");
+			graph.ImportAccelerationStructure(clone);
+			graph.ImportAccelerationStructure(compacted);
+
+			const GpuAccelerationStructureCopy copies[] = {
+				GpuAccelerationStructureCopy(original, clone),
+				GpuAccelerationStructureCopy(original, compacted, GpuAccelerationStructureCopyMode::Compact)
+			};
+
+			FrameGraphAccelerationStructurePass pass;
+			for(const GpuAccelerationStructureCopy& copy : copies)
+				pass.AddCopy(copy);
+
+			graph.AddAccelerationStructurePass("Copies", std::move(pass), [&copies](FrameGraphPassContext& passContext)
+			{
+				B3D_ENSURE(passContext.GetCommandBuffer().CopyAccelerationStructures(TArrayView<const GpuAccelerationStructureCopy>(copies, 2)));
+			});
+
+			fnRun(graph);
+		}
+
+		B3D_TEST_ASSERT(compacted->GetBuildFlags().IsSet(GpuAccelerationStructureBuildFlag::AllowCompaction))
+		original = nullptr;
+
+		fnTrace("Clone", clone, topLevel);
+		fnTrace("Compacted", compacted, topLevel);
+
+		// The compacted structure goes through serialization, and the structure deserialized from it replaces it
+		TShared<GpuAccelerationStructure> deserialized;
+		if(rayTracing.SupportsSerialization)
+		{
+			GpuQueryPoolCreateInformation serializedSizePoolInformation;
+			serializedSizePoolInformation.Type = GpuQueryType::AccelerationStructureSerializedSize;
+			serializedSizePoolInformation.PoolSize = 1;
+			const TShared<GpuQueryPool> serializedSizes = device->CreateQueryPool(serializedSizePoolInformation);
+			B3D_TEST_ASSERT(serializedSizes != nullptr)
+			if(serializedSizes == nullptr)
+				return;
+
+			{
+				FrameGraph graph(*context, "Serialized size graph");
+				FrameGraphAccelerationStructurePass pass;
+				pass.AddQuery(compacted);
+				graph.AddAccelerationStructurePass("Serialized size", std::move(pass), [&compacted, &serializedSizes](FrameGraphPassContext& passContext)
+				{
+					render::GpuCommandBuffer& commands = passContext.GetCommandBuffer();
+					commands.ResetQueries(serializedSizes);
+
+					const GpuQueryId query = serializedSizes->AllocateQuery();
+					B3D_ENSURE(commands.WriteAccelerationStructureQueries(TArrayView<const TShared<GpuAccelerationStructure>>(&compacted, 1), TArrayView<const GpuQueryId>(&query, 1),
+						serializedSizes));
+				});
+
+				fnRun(graph);
+			}
+
+			B3D_TEST_ASSERT(serializedSizes->TryResolve(true))
+			const u64 serializedSize = serializedSizes->GetQueryResult(GpuQueryId(0));
+			B3D_TEST_ASSERT_MSG(serializedSize > rayTracing.SerializedHeaderSize && serializedSize < std::numeric_limits<u32>::max(),
+				StringUtility::Format("Serialized size {0}.", serializedSize))
+			if(serializedSize <= rayTracing.SerializedHeaderSize || serializedSize >= std::numeric_limits<u32>::max())
+				return;
+
+			const u32 dataSize = AlignUp((u32)serializedSize, 4);
+			const TShared<render::GpuBuffer> serializedData = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(4, dataSize / 4, GpuBufferFlag::GpuWrite));
+			const TShared<render::GpuBuffer> dataReadback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(dataSize));
+			B3D_TEST_ASSERT(serializedData != nullptr && dataReadback != nullptr)
+			if(serializedData == nullptr || dataReadback == nullptr)
+				return;
+
+			{
+				FrameGraph graph(*context, "Serialization graph");
+				graph.ImportBuffer(serializedData);
+				graph.ImportBuffer(dataReadback);
+
+				FrameGraphAccelerationStructurePass pass;
+				pass.AddSerialization(compacted, serializedData);
+				graph.AddAccelerationStructurePass("Serialize", std::move(pass), [&compacted, &serializedData](FrameGraphPassContext& passContext)
+				{
+					B3D_ENSURE(passContext.GetCommandBuffer().SerializeAccelerationStructure(compacted, serializedData));
+				});
+
+				FrameGraphCopyPass copyPass;
+				copyPass.AddSource(serializedData);
+				copyPass.AddDestination(dataReadback);
+				graph.AddCopyPass("Read serialized data", std::move(copyPass), [&serializedData, &dataReadback, dataSize](FrameGraphPassContext& passContext)
+				{
+					passContext.GetCommandBuffer().CopyBufferToBuffer(serializedData, dataReadback, 0, 0, dataSize);
+				});
+
+				fnRun(graph);
+			}
+
+			Vector<u8> data(dataSize);
+			{
+				const render::GpuBufferMappedScope mapping = dataReadback->Map(GpuMapOption::Read);
+				B3D_TEST_ASSERT(mapping.IsValid())
+				if(!mapping.IsValid())
+					return;
+
+				std::memcpy(data.data(), mapping.GetMappedMemory(), dataSize);
+			}
+
+			GpuSerializedAccelerationStructureInformation information;
+			B3D_TEST_ASSERT(device->GetSerializedAccelerationStructureInformation(TArrayView<const u8>(data.data(), (u32)data.size()), information))
+			B3D_TEST_ASSERT_MSG(information.SerializedSize == serializedSize && information.AccelerationStructureSize > 0, StringUtility::Format(
+				"Serialized data of {0} bytes reports {1} bytes, and a structure of {2}.", serializedSize, information.SerializedSize, information.AccelerationStructureSize))
+
+			const TShared<render::GpuBuffer> deserializationData = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(4, dataSize / 4, inputFlags,
+				GpuBufferMemory::Mapped));
+			deserialized = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(GpuAccelerationStructureType::BottomLevel,
+				information.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "Deserialized bottom level"));
+			B3D_TEST_ASSERT(deserializationData != nullptr && deserialized != nullptr)
+			if(deserializationData == nullptr || deserialized == nullptr)
+				return;
+
+			{
+				const render::GpuBufferMappedScope mapping = deserializationData->Map(GpuMapOption::Write);
+				B3D_TEST_ASSERT(mapping.IsValid())
+				if(!mapping.IsValid())
+					return;
+
+				std::memcpy(mapping.GetMappedMemory(), data.data(), dataSize);
+			}
+
+			{
+				FrameGraph graph(*context, "Deserialization graph");
+				graph.ImportAccelerationStructure(deserialized);
+
+				FrameGraphAccelerationStructurePass pass;
+				pass.AddDeserialization(deserializationData, deserialized);
+				graph.AddAccelerationStructurePass("Deserialize", std::move(pass), [&deserializationData, &deserialized](FrameGraphPassContext& passContext)
+				{
+					B3D_ENSURE(passContext.GetCommandBuffer().DeserializeAccelerationStructure(deserializationData, 0, deserialized));
+				});
+
+				fnRun(graph);
+			}
+
+			fnTrace("Deserialized", deserialized, topLevel);
+		}
+
+		// A clone of the top level structure keeps the bottom level structure of the latest build alive, after every other reference
+		// to it is gone
+		const TShared<GpuAccelerationStructure> topLevelClone = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::TopLevel, topLevel->GetSize(), GpuAccelerationStructureFlag::None, "Cloned top level"));
+		B3D_TEST_ASSERT(topLevelClone != nullptr)
+		if(topLevelClone == nullptr)
+			return;
+
+		{
+			FrameGraph graph(*context, "Top level copy graph");
+			graph.ImportAccelerationStructure(topLevelClone);
+
+			const GpuAccelerationStructureCopy copy(topLevel, topLevelClone);
+			FrameGraphAccelerationStructurePass pass;
+			pass.AddCopy(copy);
+			graph.AddAccelerationStructurePass("Top level copy", std::move(pass), [copy](FrameGraphPassContext& passContext)
+			{
+				B3D_ENSURE(passContext.GetCommandBuffer().CopyAccelerationStructures(TArrayView<const GpuAccelerationStructureCopy>(&copy, 1)));
+			});
+
+			fnRun(graph);
+		}
+
+		topLevel = nullptr;
+		clone = nullptr;
+		compacted = nullptr;
+		deserialized = nullptr;
+		fnTrace("Top level clone", nullptr, topLevelClone);
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		const TShared<render::GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
+		const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("Rejected copies"));
+		const TShared<GpuAccelerationStructure> unbuilt = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::BottomLevel, bottomLevelSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "Unbuilt bottom level"));
+		const TShared<GpuAccelerationStructure> target = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::BottomLevel, bottomLevelSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "Copy target"));
+		const TShared<render::GpuBuffer> serializationTarget = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(4, 1024, GpuBufferFlag::GpuWrite));
+		B3D_TEST_ASSERT(unbuilt != nullptr && target != nullptr && serializationTarget != nullptr)
+		if(unbuilt == nullptr || target == nullptr || serializationTarget == nullptr)
+			return;
+
+		serializationTarget->SetName("Serialization target");
+
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("Copy 0 compacts acceleration structure 'Unbuilt bottom level', which wasn't built with GpuAccelerationStructureBuildFlag::AllowCompaction.");
+
+			const GpuAccelerationStructureCopy copy(unbuilt, target, GpuAccelerationStructureCopyMode::Compact);
+			B3D_TEST_ASSERT(!commands->CopyAccelerationStructures(TArrayView<const GpuAccelerationStructureCopy>(&copy, 1)))
+		}
+
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("Copy 0 copies acceleration structure 'Unbuilt bottom level' into 'Cloned top level', which is of another level.");
+
+			const GpuAccelerationStructureCopy copy(unbuilt, topLevelClone);
+			B3D_TEST_ASSERT(!commands->CopyAccelerationStructures(TArrayView<const GpuAccelerationStructureCopy>(&copy, 1)))
+		}
+
+		const u32 smallSize = 256;
+		if(bottomLevelSizes.AccelerationStructureSize > smallSize)
+		{
+			const TShared<GpuAccelerationStructure> smallTarget = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+				GpuAccelerationStructureType::BottomLevel, smallSize, GpuAccelerationStructureFlag::None, "Small copy target"));
+			B3D_TEST_ASSERT(smallTarget != nullptr)
+
+			if(smallTarget != nullptr)
+			{
+				LoggingScope logs(*this);
+				logs.ExpectError(StringUtility::Format("Copy 0 clones acceleration structure 'Unbuilt bottom level' of {0} bytes into 'Small copy target', which has {1}.",
+					bottomLevelSizes.AccelerationStructureSize, smallSize));
+
+				const GpuAccelerationStructureCopy copy(unbuilt, smallTarget);
+				B3D_TEST_ASSERT(!commands->CopyAccelerationStructures(TArrayView<const GpuAccelerationStructureCopy>(&copy, 1)))
+			}
+		}
+
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("Query 0 asks for the compacted size of acceleration structure 'Unbuilt bottom level', which wasn't built with GpuAccelerationStructureBuildFlag::AllowCompaction.");
+
+			const GpuQueryId query(0);
+			B3D_TEST_ASSERT(!commands->WriteAccelerationStructureQueries(TArrayView<const TShared<GpuAccelerationStructure>>(&unbuilt, 1), TArrayView<const GpuQueryId>(&query, 1),
+				compactedSizes))
+		}
+
+		{
+			GpuQueryPoolCreateInformation timestampPoolInformation;
+			timestampPoolInformation.Type = GpuQueryType::Timestamp;
+			timestampPoolInformation.PoolSize = 1;
+			const TShared<GpuQueryPool> timestamps = device->CreateQueryPool(timestampPoolInformation);
+
+			LoggingScope logs(*this);
+			logs.ExpectError("Acceleration structure queries need a pool of GpuQueryType::AccelerationStructureCompactedSize or AccelerationStructureSerializedSize queries.");
+
+			const GpuQueryId query(0);
+			B3D_TEST_ASSERT(!commands->WriteAccelerationStructureQueries(TArrayView<const TShared<GpuAccelerationStructure>>(&unbuilt, 1), TArrayView<const GpuQueryId>(&query, 1),
+				timestamps))
+		}
+
+		if(rayTracing.SupportsSerialization)
+		{
+			{
+				LoggingScope logs(*this);
+				logs.ExpectError("Top level acceleration structure 'Cloned top level' cannot be serialized. Only bottom level structures can.");
+				B3D_TEST_ASSERT(!commands->SerializeAccelerationStructure(topLevelClone, serializationTarget))
+			}
+
+			{
+				LoggingScope logs(*this);
+				logs.ExpectError(StringUtility::Format("Acceleration structure 'Unbuilt bottom level' cannot be serialized at offset 4 of buffer 'Serialization target'. The offset must be "
+					"inside the buffer, and a multiple of {0}.", rayTracing.SerializedDataAlignment));
+				B3D_TEST_ASSERT(!commands->SerializeAccelerationStructure(unbuilt, serializationTarget, 4))
+			}
+		}
+		else
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("Cannot serialize acceleration structures, the GPU device doesn't support serialization.");
+			B3D_TEST_ASSERT(!commands->SerializeAccelerationStructure(unbuilt, serializationTarget))
+		}
+
+		context->SubmitCommandBuffer(commands);
+		device->WaitUntilIdle();
+#endif
+	}, "GpuRayTracingTestSuite::TestAccelerationStructureCopies", true);
 }
 
 namespace

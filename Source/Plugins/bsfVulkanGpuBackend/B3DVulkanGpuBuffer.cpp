@@ -204,14 +204,19 @@ u32 VulkanGpuBuffer::GetMinimumAlignment(const VulkanGpuDevice& device, GpuBuffe
 {
 	u32 alignment = 1u;
 
-	// The alignment is zero on devices without acceleration structures
+	// The alignments are zero on devices without acceleration structures. Scratch-capable buffers can also receive serialized
+	// acceleration structures.
+	// TODO - Every buffer that can hold serialized data pays for this alignment, though few ever do. If the overhead proves too large, align only
+	// buffers created with a separate flag for serialization data.
+	const GpuRayTracingCapabilities& rayTracing = device.GetCapabilities().RayTracing;
 	if(IsAccelerationStructureScratchCapable(type, memory, flags))
-		alignment = std::max(device.GetCapabilities().RayTracing.ScratchOffsetAlignment, alignment);
+		alignment = std::max(std::max(rayTracing.ScratchOffsetAlignment, rayTracing.SerializedDataAlignment), alignment);
 
-	// Instance data of top level acceleration structure builds must be 16-byte aligned
+	// Instance data of top level acceleration structure builds must be 16-byte aligned, and serialized acceleration structures that
+	// deserializations read must be aligned as well
 	static constexpr u32 kInstanceAlignment = 16;
 	if(type == GpuBufferType::StructuredStorage && flags.IsSet(GpuBufferFlag::AccelerationStructureInput))
-		alignment = std::max(kInstanceAlignment, alignment);
+		alignment = std::max(std::max(kInstanceAlignment, rayTracing.SerializedDataAlignment), alignment);
 
 	return alignment;
 }

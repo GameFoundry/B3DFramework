@@ -120,13 +120,14 @@ namespace b3d
 			FragmentShaderAccelerationStructure		= 1 << 20,	/**< Rays traced against an acceleration structure in the fragment shader stage. */
 			ComputeShaderAccelerationStructure		= 1 << 21,	/**< Rays traced against an acceleration structure in the compute shader stage. */
 			RayTracingShaderAccelerationStructure	= 1 << 22,	/**< Rays traced against an acceleration structure in any ray tracing program. */
+			AccelerationStructureCopy				= 1 << 23,	/**< Copies, serializations and deserializations of acceleration structures, and queries of their sizes. */
 
 			/** Every uniform and non-uniform shader access. Excludes rays traced against acceleration structures. */
 			AllShader = VertexShaderNonUniform | FragmentShaderNonUniform | ComputeShaderNonUniform | RayTracingShaderNonUniform | VertexShaderUniform | FragmentShaderUniform | ComputeShaderUniform | RayTracingShaderUniform,
 			/** Rays traced against acceleration structures in every shader stage. */
 			AllShaderAccelerationStructure = VertexShaderAccelerationStructure | FragmentShaderAccelerationStructure | ComputeShaderAccelerationStructure | RayTracingShaderAccelerationStructure,
 			All = AllShader | AllShaderAccelerationStructure | DrawIndirect | VertexInputAttributes | VertexInputIndices | EarlyFragmentTests | LateFragmentTests | ColorAttachment | Transfer | Host | Resolve |
-				AccelerationStructureBuild | AccelerationStructureBuildInput
+				AccelerationStructureBuild | AccelerationStructureBuildInput | AccelerationStructureCopy
 		};
 
 		typedef Flags<GpuStageFlag, u32> GpuStageFlags;

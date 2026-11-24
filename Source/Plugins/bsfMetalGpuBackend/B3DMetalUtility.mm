@@ -151,7 +151,7 @@ namespace b3d
 			if (stages.IsSet(GpuStageFlag::Transfer))
 				output |= MTLStageBlit;
 
-			if (stages.IsSetAny(GpuStageFlag::AccelerationStructureBuild | GpuStageFlag::AccelerationStructureBuildInput))
+			if (stages.IsSetAny(GpuStageFlag::AccelerationStructureBuild | GpuStageFlag::AccelerationStructureBuildInput | GpuStageFlag::AccelerationStructureCopy))
 				output |= MTLStageAccelerationStructure;
 
 			return output;

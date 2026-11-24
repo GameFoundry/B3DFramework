@@ -496,6 +496,11 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 		GET_DEVICE_PROC_ADDR(mLogicalDevice, GetAccelerationStructureBuildSizesKHR)
 		GET_DEVICE_PROC_ADDR(mLogicalDevice, GetAccelerationStructureDeviceAddressKHR)
 		GET_DEVICE_PROC_ADDR(mLogicalDevice, CmdBuildAccelerationStructuresKHR)
+		GET_DEVICE_PROC_ADDR(mLogicalDevice, CmdCopyAccelerationStructureKHR)
+		GET_DEVICE_PROC_ADDR(mLogicalDevice, CmdCopyAccelerationStructureToMemoryKHR)
+		GET_DEVICE_PROC_ADDR(mLogicalDevice, CmdCopyMemoryToAccelerationStructureKHR)
+		GET_DEVICE_PROC_ADDR(mLogicalDevice, CmdWriteAccelerationStructuresPropertiesKHR)
+		GET_DEVICE_PROC_ADDR(mLogicalDevice, GetDeviceAccelerationStructureCompatibilityKHR)
 	}
 
 	if(mSupportsRayTracingPipeline)
@@ -787,6 +792,37 @@ bool VulkanGpuDevice::GetAccelerationStructureSizes(const GpuAccelerationStructu
 	return true;
 }
 
+bool VulkanGpuDevice::GetSerializedAccelerationStructureInformation(TArrayView<const u8> data, GpuSerializedAccelerationStructureInformation& outInformation) const
+{
+	if(!GpuDevice::GetSerializedAccelerationStructureInformation(data, outInformation))
+		return false;
+
+	// The sizes follow the two UUIDs that identify the driver
+	u64 sizes[2];
+	std::memcpy(sizes, data.data() + 2 * VK_UUID_SIZE, sizeof(sizes));
+
+	// Some drivers (AMD) read past the UUIDs and into the structure data when checking compatibility, so all of it must be present
+	if(!B3D_ENSURE_LOG(data.size() >= sizes[0], "Serialized acceleration structure data has {0} bytes, fewer than the {1} bytes its header reports.", data.size(), sizes[0]))
+		return false;
+
+	VkAccelerationStructureVersionInfoKHR versionInformation;
+	versionInformation.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_VERSION_INFO_KHR;
+	versionInformation.pNext = nullptr;
+	versionInformation.pVersionData = data.data();
+
+	VkAccelerationStructureCompatibilityKHR compatibility = VK_ACCELERATION_STRUCTURE_COMPATIBILITY_INCOMPATIBLE_KHR;
+	vkGetDeviceAccelerationStructureCompatibilityKHR(mLogicalDevice, &versionInformation, &compatibility);
+	if(compatibility != VK_ACCELERATION_STRUCTURE_COMPATIBILITY_COMPATIBLE_KHR)
+		return false;
+
+	if(sizes[0] > std::numeric_limits<u32>::max() || sizes[1] > std::numeric_limits<u32>::max())
+		return false;
+
+	outInformation.SerializedSize = (u32)sizes[0];
+	outInformation.AccelerationStructureSize = (u32)sizes[1];
+	return true;
+}
+
 bool VulkanGpuDevice::WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance> instances, void* destination) const
 {
 	if(!GpuDevice::WriteRayTracingInstances(instances, destination))
@@ -903,6 +939,13 @@ GpuVertexInput* VulkanGpuDevice::CreateVertexInput(u32 id, const GpuVertexInputL
 
 TShared<GpuQueryPool> VulkanGpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)
 {
+	const bool isAccelerationStructureQuery = createInformation.Type == GpuQueryType::AccelerationStructureCompactedSize || createInformation.Type == GpuQueryType::AccelerationStructureSerializedSize;
+	if(isAccelerationStructureQuery && !mSupportsAccelerationStructures)
+	{
+		B3D_LOG(Error, LogRenderBackend, "Cannot create a pool of acceleration structure queries, the GPU device doesn't support acceleration structures.");
+		return nullptr;
+	}
+
 	return B3DMakeShared<VulkanGpuQueryPool>(GetResourceManager(), createInformation);
 }
 
@@ -1687,6 +1730,12 @@ void VulkanGpuDevice::InitializeCapabilities()
 		rayTracing.MaximumInstanceCount = accelerationStructureProperties.maxInstanceCount;
 		rayTracing.MaximumGeometryCount = accelerationStructureProperties.maxGeometryCount;
 		rayTracing.MaximumPrimitiveCount = accelerationStructureProperties.maxPrimitiveCount;
+
+		// Serialized data starts with two UUIDs, then its size, the size of the deserialized structure and the number of bottom level
+		// structure handles that follow, each 64 bits. Copies to and from memory need 256 byte aligned addresses.
+		rayTracing.SupportsSerialization = true;
+		rayTracing.SerializedHeaderSize = 2 * VK_UUID_SIZE + 3 * sizeof(u64);
+		rayTracing.SerializedDataAlignment = 256;
 
 		mCapabilities.SetCapability(RSC_ACCELERATION_STRUCTURES);
 

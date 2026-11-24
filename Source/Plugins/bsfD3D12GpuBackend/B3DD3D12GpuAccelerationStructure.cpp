@@ -69,6 +69,9 @@ void D3D12AccelerationStructure::GetBuildInputs(const GpuAccelerationStructureIn
 	if(inputs.Flags.IsSet(GpuAccelerationStructureBuildFlag::AllowRefit))
 		outInputs.Flags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_UPDATE;
 
+	if(inputs.Flags.IsSet(GpuAccelerationStructureBuildFlag::AllowCompaction))
+		outInputs.Flags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_COMPACTION;
+
 	if(inputs.Type == GpuAccelerationStructureType::TopLevel)
 	{
 		outInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;

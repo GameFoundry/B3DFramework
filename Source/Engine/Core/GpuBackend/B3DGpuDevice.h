@@ -64,6 +64,7 @@ namespace b3d
 	struct GpuAccelerationStructureCreateInformation;
 	struct GpuAccelerationStructureInputs;
 	struct GpuRayTracingInstance;
+	struct GpuSerializedAccelerationStructureInformation;
 
 	/** @addtogroup GpuBackend
 	 *  @{
@@ -251,6 +252,18 @@ namespace b3d
 		virtual bool GetAccelerationStructureSizes(const GpuAccelerationStructureInputs& inputs, GpuAccelerationStructureSizes& outSizes) const;
 
 		/**
+		 * Reads the description of serialized acceleration structure data (see render::GpuCommandBuffer::SerializeAccelerationStructure()),
+		 * and checks that this device can deserialize it. Data serialized on another GPU, or with another driver version, usually can't
+		 * be deserialized. Thread safe.
+		 *
+		 * @param	data			Serialized data.
+		 * @param	outInformation	Receives the description of the data. Zero if the call fails.
+		 * @return					True if this device can deserialize the data. False if it can't, and False, with the reason logged, if the
+		 *							device doesn't support serialization or @p data is smaller than its header reports.
+		 */
+		virtual bool GetSerializedAccelerationStructureInformation(TArrayView<const u8> data, GpuSerializedAccelerationStructureInformation& outInformation) const;
+
+		/**
 		 * Converts @p instances to the layout top level acceleration structure builds read, see GpuAccelerationStructureInputs::InstanceBuffer.
 		 * Thread safe.
 		 *
@@ -260,7 +273,6 @@ namespace b3d
 		 *							invalid. Nothing is written then.
 		 */
 		virtual bool WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance> instances, void* destination) const;
-
 		/**
 		 * Returns the device-owned persistent allocator for memory type @p memoryType, as reported by
 		 * GetMemoryRequirements(). Thread safe.

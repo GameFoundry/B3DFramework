@@ -339,6 +339,13 @@ void D3D12GpuCommandBuffer::End()
 		if (allocatedQueryCount == 0)
 			continue;
 
+		// Pools without a heap are written straight into the readback buffer, so there is nothing to resolve
+		if (!d3d12QueryPool->HasQueryHeap())
+		{
+			d3d12QueryPool->NotifyResolveScheduled(*this);
+			continue;
+		}
+
 		mCommandList->ResolveQueryData(d3d12QueryPool->GetD3D12QueryHeap(), d3d12QueryPool->GetD3D12QueryType(), 0, allocatedQueryCount, d3d12QueryPool->GetReadbackBuffer(), 0);
 		d3d12QueryPool->NotifyResolveScheduled(*this);
 	}
@@ -728,6 +735,106 @@ bool D3D12GpuCommandBuffer::BuildAccelerationStructures(TArrayView<const GpuAcce
 
 		mCommandList->BuildRaytracingAccelerationStructure(&buildDescription, 0, nullptr);
 	}
+
+	return true;
+}
+
+bool D3D12GpuCommandBuffer::CopyAccelerationStructures(TArrayView<const GpuAccelerationStructureCopy> copies)
+{
+	if(!GpuCommandBuffer::CopyAccelerationStructures(copies))
+		return false;
+
+	for(const GpuAccelerationStructureCopy& copy : copies)
+	{
+		D3D12AccelerationStructure* const source = static_cast<D3D12GpuAccelerationStructure&>(*copy.Source).GetD3D12Resource();
+		D3D12AccelerationStructure* const destination = static_cast<D3D12GpuAccelerationStructure&>(*copy.Destination).GetD3D12Resource();
+		if(source == nullptr || destination == nullptr)
+			continue;
+
+		const D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE mode = copy.Mode == GpuAccelerationStructureCopyMode::Compact ?  D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_COMPACT : D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_CLONE;
+		mCommandList->CopyRaytracingAccelerationStructure(destination->GetGPUVirtualAddress(), source->GetGPUVirtualAddress(), mode);
+
+		mResourceTracker.TrackResourceUsage(source, GpuAccessFlag::Read);
+		mResourceTracker.TrackResourceUsage(destination, GpuAccessFlag::Write);
+	}
+
+	return true;
+}
+
+bool D3D12GpuCommandBuffer::WriteAccelerationStructureQueries(TArrayView<const TShared<GpuAccelerationStructure>> structures, TArrayView<const GpuQueryId> queries,
+	const TShared<GpuQueryPool>& queryPool)
+{
+	if(!GpuCommandBuffer::WriteAccelerationStructureQueries(structures, queries, queryPool))
+		return false;
+
+	if(structures.IsEmpty())
+		return true;
+
+	D3D12GpuQueryPool* const d3d12QueryPool = static_cast<D3D12GpuQueryPool*>(queryPool.get());
+	const D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_TYPE infoType = queryPool->GetQueryType() == GpuQueryType::AccelerationStructureCompactedSize ?  D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_COMPACTED_SIZE : D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_SERIALIZATION;
+
+	FrameAllocatorScope frameScope;
+	FrameVector<D3D12_GPU_VIRTUAL_ADDRESS> addresses(structures.size());
+	for(u32 structureIndex = 0; structureIndex < (u32)structures.size(); structureIndex++)
+	{
+		D3D12AccelerationStructure* const structure = static_cast<D3D12GpuAccelerationStructure&>(*structures[structureIndex]).GetD3D12Resource();
+		addresses[structureIndex] = structure->GetGPUVirtualAddress();
+
+		mResourceTracker.TrackResourceUsage(structure, GpuAccessFlag::Read);
+	}
+
+	// One call writes the information of consecutive queries, so the structures are split into runs of consecutive query ids
+	u32 runStart = 0;
+	for(u32 structureIndex = 1; structureIndex <= (u32)structures.size(); structureIndex++)
+	{
+		if(structureIndex < (u32)structures.size() && queries[structureIndex].Id == queries[structureIndex - 1].Id + 1)
+			continue;
+
+		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_DESC description;
+		description.DestBuffer = d3d12QueryPool->GetResultAddress(queries[runStart].Id);
+		description.InfoType = infoType;
+
+		mCommandList->EmitRaytracingAccelerationStructurePostbuildInfo(&description, structureIndex - runStart, &addresses[runStart]);
+		runStart = structureIndex;
+	}
+
+	TrackQueryPool(queryPool);
+
+	return true;
+}
+
+bool D3D12GpuCommandBuffer::SerializeAccelerationStructure(const TShared<GpuAccelerationStructure>& source, const TShared<GpuBuffer>& destination, u32 destinationOffset)
+{
+	if(!GpuCommandBuffer::SerializeAccelerationStructure(source, destination, destinationOffset))
+		return false;
+
+	D3D12AccelerationStructure* const sourceStructure = static_cast<D3D12GpuAccelerationStructure&>(*source).GetD3D12Resource();
+	D3D12Buffer* const destinationBuffer = static_cast<D3D12GpuBuffer&>(*destination).GetD3D12Buffer();
+	if(sourceStructure == nullptr || destinationBuffer == nullptr)
+		return false;
+
+	mCommandList->CopyRaytracingAccelerationStructure(destinationBuffer->GetGPUVirtualAddress() + destinationOffset, sourceStructure->GetGPUVirtualAddress(), D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_SERIALIZE);
+
+	mResourceTracker.TrackResourceUsage(sourceStructure, GpuAccessFlag::Read);
+	mResourceTracker.TrackBufferUsage(destinationBuffer, GpuAccessFlag::Write);
+
+	return true;
+}
+
+bool D3D12GpuCommandBuffer::DeserializeAccelerationStructure(const TShared<GpuBuffer>& source, u32 sourceOffset, const TShared<GpuAccelerationStructure>& destination)
+{
+	if(!GpuCommandBuffer::DeserializeAccelerationStructure(source, sourceOffset, destination))
+		return false;
+
+	D3D12Buffer* const sourceBuffer = static_cast<D3D12GpuBuffer&>(*source).GetD3D12Buffer();
+	D3D12AccelerationStructure* const destinationStructure = static_cast<D3D12GpuAccelerationStructure&>(*destination).GetD3D12Resource();
+	if(sourceBuffer == nullptr || destinationStructure == nullptr)
+		return false;
+
+	mCommandList->CopyRaytracingAccelerationStructure(destinationStructure->GetGPUVirtualAddress(), sourceBuffer->GetGPUVirtualAddress() + sourceOffset, D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_DESERIALIZE);
+
+	mResourceTracker.TrackBufferUsage(sourceBuffer, GpuAccessFlag::Read);
+	mResourceTracker.TrackResourceUsage(destinationStructure, GpuAccessFlag::Write);
 
 	return true;
 }

@@ -36,6 +36,8 @@ namespace b3d::render
 	 *  - Acceleration structure builds access structures and scratch memory in GpuStageFlag::AccelerationStructureBuild, and their
 	 *    vertices, indices and instances in GpuStageFlag::AccelerationStructureBuildInput. The builds of one call count as one operation,
 	 *    like a draw: they must not access a resource that an earlier draw, dispatch or build wrote since its last barrier.
+	 *  - Acceleration structure copies, size queries, serializations and deserializations access structures and buffers in
+	 *    GpuStageFlag::AccelerationStructureCopy. Each call counts as one operation, like the builds of one call.
 	 *  - Render pass attachments access in GpuStageFlag::ColorAttachment, or the early and late fragment tests. See
 	 *    GpuBackendUtility::GetRenderPassAttachmentLayout() for their layouts.
 	 *  - Resources must not be accessed or barriered while they are unplaced (see render::Texture::SetUnplaced()). A resource with a
@@ -107,6 +109,18 @@ namespace b3d::render
 
 		/** Checks the accesses of the acceleration structure builds recorded by one GpuCommandBuffer::BuildAccelerationStructures() call. */
 		void ValidateAccelerationStructureBuilds(TArrayView<const GpuAccelerationStructureBuild> builds);
+
+		/** Checks the accesses of the acceleration structure copies recorded by one GpuCommandBuffer::CopyAccelerationStructures() call. */
+		void ValidateAccelerationStructureCopies(TArrayView<const GpuAccelerationStructureCopy> copies);
+
+		/** Checks the accesses of the queries recorded by one GpuCommandBuffer::WriteAccelerationStructureQueries() call. */
+		void ValidateAccelerationStructureQueries(TArrayView<const TShared<GpuAccelerationStructure>> structures);
+
+		/**
+		 * Checks the accesses of a GpuCommandBuffer::SerializeAccelerationStructure() call, if @p isSerialization is true, or of a
+		 * GpuCommandBuffer::DeserializeAccelerationStructure() call otherwise.
+		 */
+		void ValidateAccelerationStructureSerialization(const GpuAccelerationStructure& structure, const GpuBuffer& buffer, bool isSerialization);
 
 		/** Checks an access of a buffer in @p stages against the declared state, and records it for the next barrier. */
 		void ValidateBufferAccess(const GpuBuffer& buffer, GpuStageFlags stages, GpuAccessFlags access);

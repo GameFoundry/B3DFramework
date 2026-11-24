@@ -19,6 +19,7 @@ namespace b3d
 {
 	class GpuCommandBufferProfiler;
 	struct GpuAccelerationStructureBuild;
+	struct GpuAccelerationStructureCopy;
 
 	namespace render
 	{
@@ -921,6 +922,62 @@ namespace b3d
 			virtual bool BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild> builds);
 
 			/**
+			 * Copies acceleration structures. Copies of one call run in any order and may overlap. A copy of a top level structure
+			 * references the same bottom level structures as its source, and keeps them alive the same way.
+			 *
+			 * Each copy reads its source and writes its destination in GpuStageFlag::AccelerationStructureCopy. Requires a device that
+			 * supports acceleration structures, and a graphics or compute queue command buffer outside of a render pass.
+			 *
+			 * @param	copies	Copies to record.
+			 * @return			True if the copies were recorded. False, with the reason logged, if they are invalid.
+			 */
+			virtual bool CopyAccelerationStructures(TArrayView<const GpuAccelerationStructureCopy> copies);
+
+			/**
+			 * Writes a size of each structure into the matching query: its compacted size for a pool of
+			 * GpuQueryType::AccelerationStructureCompactedSize queries, or the size of its serialized data for a pool of
+			 * GpuQueryType::AccelerationStructureSerializedSize queries. Reads the structures in GpuStageFlag::AccelerationStructureCopy, so
+			 * their builds must be done, behind a barrier. A compacted size query needs a structure built with
+			 * GpuAccelerationStructureBuildFlag::AllowCompaction, and a serialized size query a bottom level structure. The queries must
+			 * have been reset by ResetQueries(). Requires a graphics or compute queue command buffer outside of a render pass.
+			 *
+			 * @param	structures	Structures whose sizes to write.
+			 * @param	queries		Queries that receive the sizes, one per structure, in the same order.
+			 * @param	queryPool	Pool that @p queries were allocated from.
+			 * @return				True if the queries were recorded. False, with the reason logged, if they are invalid.
+			 */
+			virtual bool WriteAccelerationStructureQueries(TArrayView<const TShared<GpuAccelerationStructure>> structures, TArrayView<const GpuQueryId> queries, const TShared<GpuQueryPool>& queryPool);
+
+			/**
+			 * Writes the data of a bottom level structure into a buffer, in a format that only devices whose
+			 * GpuDevice::GetSerializedAccelerationStructureInformation() accepts it can deserialize. A
+			 * GpuQueryType::AccelerationStructureSerializedSize query reports the size of the data. Reads the structure and writes the
+			 * buffer in GpuStageFlag::AccelerationStructureCopy. Requires GpuRayTracingCapabilities::SupportsSerialization, and a graphics
+			 * or compute queue command buffer outside of a render pass.
+			 *
+			 * @param	source				Bottom level structure to serialize. It must have been built.
+			 * @param	destination			Structured storage buffer in GPU memory (GpuBufferMemory::Device), with GpuBufferFlag::GpuWrite.
+			 * @param	destinationOffset	Offset of the data in @p destination, in bytes. A multiple of
+			 *								GpuRayTracingCapabilities::SerializedDataAlignment.
+			 * @return						True if the serialization was recorded. False, with the reason logged, if it is invalid.
+			 */
+			virtual bool SerializeAccelerationStructure(const TShared<GpuAccelerationStructure>& source, const TShared<GpuBuffer>& destination, u32 destinationOffset = 0);
+
+			/**
+			 * Fills a bottom level structure from data that SerializeAccelerationStructure() wrote, discarding its previous contents. Reads
+			 * the buffer and writes the structure in GpuStageFlag::AccelerationStructureCopy. Requires
+			 * GpuRayTracingCapabilities::SupportsSerialization, and a graphics or compute queue command buffer outside of a render pass.
+			 *
+			 * @param	source			Structured storage buffer created with GpuBufferFlag::AccelerationStructureInput that holds the data. The
+			 *							caller checks the data with GpuDevice::GetSerializedAccelerationStructureInformation() first.
+			 * @param	sourceOffset	Offset of the data in @p source, in bytes. A multiple of GpuRayTracingCapabilities::SerializedDataAlignment.
+			 * @param	destination		Bottom level structure at least as large as the data's
+			 *							GpuSerializedAccelerationStructureInformation::AccelerationStructureSize.
+			 * @return					True if the deserialization was recorded. False, with the reason logged, if it is invalid.
+			 */
+			virtual bool DeserializeAccelerationStructure(const TShared<GpuBuffer>& source, u32 sourceOffset, const TShared<GpuAccelerationStructure>& destination);
+
+			/**
 			 * Traces rays: runs a ray generation program of the pipeline of @p table once for every point of a @p width by @p height by
 			 * @p depth grid. Binds the pipeline, and uses the parameter sets and push constants set on the command buffer, as a compute
 			 * dispatch does. Requires a device that supports ray tracing pipelines, and a graphics or compute queue command buffer outside of a
@@ -1150,7 +1207,8 @@ namespace b3d
 			/**
 			 * Called on the owning thread just before the command buffer is queued for submission on the submit thread, in submission
 			 * order. Backends mark the resources the command buffer tracks as used on @p queueId, release any state the submit thread
-			 * must not touch, and call the base implementation, which validates split barriers in development builds.
+			 * must not touch, and call the base implementation, which marks the command buffer as executing and validates split barriers
+			 * in development builds.
 			 *
 			 * @param	queueId		Queue the command buffer is submitted on.
 			 * @param	syncMask	Queues the submission waits for.
@@ -1188,6 +1246,15 @@ namespace b3d
 
 			/** Reports an error if the current thread does not own the pool of the command buffer. */
 			void EnsureValidThread() const { B3D_DEBUG_ONLY(B3D_ENSURE(B3D_CURRENT_THREAD_ID == mCommandBufferPool.GetOwnerThread())); }
+
+			/**
+			 * Checks that acceleration structure commands can be recorded: the device supports acceleration structures, the command buffer
+			 * belongs to a graphics or compute queue, and it is outside of a render pass. Logs the reason if they can't.
+			 *
+			 * @param	operationName	Plural name of the operation being recorded, used in the logged reason, such as "builds" or "copies".
+			 * @return					True if the commands can be recorded.
+			 */
+			bool CanRecordAccelerationStructureCommands(const char* operationName) const;
 	
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			GpuDrawAccessValidator mDrawAccessValidator;

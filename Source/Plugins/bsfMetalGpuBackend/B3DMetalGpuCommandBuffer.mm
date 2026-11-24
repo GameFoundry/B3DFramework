@@ -1542,6 +1542,81 @@ namespace b3d
 			return true;
 		}
 
+		bool MetalGpuCommandBuffer::CopyAccelerationStructures(TArrayView<const GpuAccelerationStructureCopy> copies)
+		{
+			if (!GpuCommandBuffer::CopyAccelerationStructures(copies))
+				return false;
+
+			if (copies.IsEmpty())
+				return true;
+
+			id<MTL4ComputeCommandEncoder> encoder = OpenComputeEncoder();
+			if (encoder == nil)
+				return false;
+
+			for (const GpuAccelerationStructureCopy& copy : copies)
+			{
+				mResourceTracker.TrackResourceUsage(static_cast<MetalGpuAccelerationStructure&>(*copy.Source).GetMetalResource(), GpuAccessFlag::Read);
+				mResourceTracker.TrackResourceUsage(static_cast<MetalGpuAccelerationStructure&>(*copy.Destination).GetMetalResource(), GpuAccessFlag::Write);
+			}
+
+			if (mRecordingFailed)
+				return false;
+
+			for (const GpuAccelerationStructureCopy& copy : copies)
+			{
+				id<MTLAccelerationStructure> source = static_cast<MetalGpuAccelerationStructure&>(*copy.Source).GetMetalResource()->GetMetalHandle();
+				id<MTLAccelerationStructure> destination = static_cast<MetalGpuAccelerationStructure&>(*copy.Destination).GetMetalResource()->GetMetalHandle();
+
+				if (copy.Mode == GpuAccelerationStructureCopyMode::Compact)
+					[encoder copyAndCompactAccelerationStructure:source toAccelerationStructure:destination];
+				else
+					[encoder copyAccelerationStructure:source toAccelerationStructure:destination];
+			}
+
+			mEncoderHasWork = true;
+			return true;
+		}
+
+		bool MetalGpuCommandBuffer::WriteAccelerationStructureQueries(TArrayView<const TShared<GpuAccelerationStructure>> structures, TArrayView<const GpuQueryId> queries, const TShared<GpuQueryPool>& queryPool)
+		{
+			if (!GpuCommandBuffer::WriteAccelerationStructureQueries(structures, queries, queryPool))
+				return false;
+
+			if (structures.IsEmpty())
+				return true;
+
+			auto metalPool = std::static_pointer_cast<MetalGpuQueryPool>(queryPool);
+			for (const GpuQueryId& query : queries)
+			{
+				if (!metalPool->IsQueryAllocated(query))
+				{
+					B3D_LOG(Error, LogRenderBackend, "WriteAccelerationStructureQueries received an invalid or unallocated query ID.");
+					return false;
+				}
+			}
+
+			id<MTL4ComputeCommandEncoder> encoder = OpenComputeEncoder();
+			if (encoder == nil)
+				return false;
+
+			for (const TShared<GpuAccelerationStructure>& structure : structures)
+				mResourceTracker.TrackResourceUsage(static_cast<MetalGpuAccelerationStructure&>(*structure).GetMetalResource(), GpuAccessFlag::Read);
+
+			if (mRecordingFailed)
+				return false;
+
+			for (u32 queryIndex = 0; queryIndex < (u32)queries.size(); queryIndex++)
+			{
+				id<MTLAccelerationStructure> structure = static_cast<MetalGpuAccelerationStructure&>(*structures[queryIndex]).GetMetalResource()->GetMetalHandle();
+				[encoder writeCompactedAccelerationStructureSize:structure toBuffer:metalPool->GetAccelerationStructureResultRange(queries[queryIndex])];
+			}
+
+			mEncoderHasWork = true;
+			AddUniqueUsedQueryPool(metalPool);
+			return true;
+		}
+
 		void MetalGpuCommandBuffer::CopyBufferToBuffer(IGpuBufferResource& source, IGpuBufferResource& destination, TArrayView<const GpuBufferCopyRange> ranges)
 		{
 			EnsureValidThread();

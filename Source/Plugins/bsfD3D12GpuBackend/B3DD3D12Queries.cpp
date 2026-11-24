@@ -27,6 +27,7 @@ D3D12GpuQueryPool::D3D12GpuQueryPool(D3D12GpuDevice& device, const GpuQueryPoolC
 	case GpuQueryType::PipelineStatistics:
 		mD3D12QueryType = D3D12_QUERY_TYPE_PIPELINE_STATISTICS;
 		mD3D12QueryHeapType = D3D12_QUERY_HEAP_TYPE_PIPELINE_STATISTICS;
+		mResultStride = sizeof(D3D12_QUERY_DATA_PIPELINE_STATISTICS);
 
 		// D3D12 always returns the full D3D12_QUERY_DATA_PIPELINE_STATISTICS structure, but only the requested
 		// statistics are exposed as query elements (see GetQueryResult).
@@ -54,6 +55,17 @@ D3D12GpuQueryPool::D3D12GpuQueryPool(D3D12GpuDevice& device, const GpuQueryPoolC
 
 		break;
 
+	// Acceleration structure postbuild information is written by the GPU straight into the readback buffer, in a structure per query
+	case GpuQueryType::AccelerationStructureCompactedSize:
+		mElementsPerQuery = 1;
+		mResultStride = sizeof(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_COMPACTED_SIZE_DESC);
+		break;
+
+	case GpuQueryType::AccelerationStructureSerializedSize:
+		mElementsPerQuery = 1;
+		mResultStride = sizeof(D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_SERIALIZATION_DESC);
+		break;
+
 	default:
 		B3D_LOG(Error, LogRenderBackend, "Unsupported query type");
 		return;
@@ -78,19 +90,23 @@ void D3D12GpuQueryPool::CreateQueryResources()
 {
 	ID3D12Device* d3d12Device = mDevice.GetD3D12Device();
 
-	D3D12_QUERY_HEAP_DESC heapDesc = {};
-	heapDesc.Type = mD3D12QueryHeapType;
-	heapDesc.Count = mPoolSize;
-	heapDesc.NodeMask = 0;
-
-	HRESULT hr = d3d12Device->CreateQueryHeap(&heapDesc, IID_PPV_ARGS(&mQueryHeap));
-	if (FAILED(hr))
+	HRESULT hr = S_OK;
+	if (HasQueryHeap())
 	{
-		B3D_LOG(Error, LogRenderBackend, "Failed to create D3D12 query heap");
-		return;
+		D3D12_QUERY_HEAP_DESC heapDesc = {};
+		heapDesc.Type = mD3D12QueryHeapType;
+		heapDesc.Count = mPoolSize;
+		heapDesc.NodeMask = 0;
+
+		hr = d3d12Device->CreateQueryHeap(&heapDesc, IID_PPV_ARGS(&mQueryHeap));
+		if (FAILED(hr))
+		{
+			B3D_LOG(Error, LogRenderBackend, "Failed to create D3D12 query heap");
+			return;
+		}
 	}
 
-	const u64 bufferSize = mQueryType == GpuQueryType::PipelineStatistics ? sizeof(D3D12_QUERY_DATA_PIPELINE_STATISTICS) * mPoolSize : sizeof(u64) * mPoolSize;
+	const u64 bufferSize = (u64)mResultStride * mPoolSize;
 
 	D3D12_RESOURCE_DESC resourceDesc = {};
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -103,7 +119,7 @@ void D3D12GpuQueryPool::CreateQueryResources()
 	resourceDesc.SampleDesc.Count = 1;
 	resourceDesc.SampleDesc.Quality = 0;
 	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+	resourceDesc.Flags = HasQueryHeap() ? D3D12_RESOURCE_FLAG_NONE : D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS; // Without a heap, the GPU writes postbuild information into the readback buffer as unordered access. The readback memory is a custom heap, which allows it.
 
 	// Staging buffers ignore the memory type
 	const D3D12HeapClass heapClass = mDevice.GetBufferHeapClass(GpuBufferType::StagingRead, GpuBufferMemory::MappedCached, GpuBufferFlag::None);
@@ -198,16 +214,8 @@ u64 D3D12GpuQueryPool::GetQueryResult(GpuQueryId queryId, u32 elementIndex)
 	void* mappedData = nullptr;
 	D3D12_RANGE readRange = { 0, 0 };
 
-	if (mQueryType == GpuQueryType::PipelineStatistics)
-	{
-		readRange.Begin = queryId.Id * sizeof(D3D12_QUERY_DATA_PIPELINE_STATISTICS);
-		readRange.End = (queryId.Id + 1) * sizeof(D3D12_QUERY_DATA_PIPELINE_STATISTICS);
-	}
-	else
-	{
-		readRange.Begin = queryId.Id * sizeof(u64);
-		readRange.End = (queryId.Id + 1) * sizeof(u64);
-	}
+	readRange.Begin = (SIZE_T)queryId.Id * mResultStride;
+	readRange.End = (SIZE_T)(queryId.Id + 1) * mResultStride;
 
 	// TODO - Probably not ideal mapping/unampping for every query & element, but we'll fix if it comes up in the profiler
 	HRESULT hr = mReadbackBuffer->Map(0, &readRange, &mappedData);
@@ -241,7 +249,8 @@ u64 D3D12GpuQueryPool::GetQueryResult(GpuQueryId queryId, u32 elementIndex)
 	}
 	else
 	{
-		result = static_cast<const u64*>(mappedData)[queryId.Id];
+		// The size comes first in the postbuild information of acceleration structures
+		std::memcpy(&result, static_cast<const u8*>(mappedData) + (size_t)queryId.Id * mResultStride, sizeof(result));
 	}
 
 	D3D12_RANGE writtenRange = { 0, 0 };

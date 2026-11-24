@@ -574,6 +574,18 @@ namespace b3d
 			if (createInformation.Type == GpuQueryType::Timestamp && !mCapabilities.HasCapability(RSC_TIMER_QUERIES))
 				return nullptr;
 
+			if (createInformation.Type == GpuQueryType::AccelerationStructureSerializedSize)
+			{
+				B3D_LOG(Error, LogRenderBackend, "Cannot create a pool of serialized acceleration structure size queries, the GPU device doesn't support serialization.");
+				return nullptr;
+			}
+
+			if (createInformation.Type == GpuQueryType::AccelerationStructureCompactedSize && !mCapabilities.HasCapability(RSC_ACCELERATION_STRUCTURES))
+			{
+				B3D_LOG(Error, LogRenderBackend, "Cannot create a pool of acceleration structure queries, the GPU device doesn't support acceleration structures.");
+				return nullptr;
+			}
+
 			TShared<MetalGpuQueryPool> queryPool = B3DMakeShared<MetalGpuQueryPool>(*this, createInformation);
 
 			// Visibility results and timestamps are written to slots shared with the device's other pools, which are limited
@@ -581,6 +593,9 @@ namespace b3d
 				return nullptr;
 
 			if (createInformation.Type == GpuQueryType::Timestamp && queryPool->GetCounterHeap() == nil)
+				return nullptr;
+
+			if (createInformation.Type == GpuQueryType::AccelerationStructureCompactedSize && queryPool->GetAccelerationStructureResultBuffer() == nil)
 				return nullptr;
 
 			return queryPool;

@@ -114,22 +114,47 @@ namespace b3d::render
 			mBindlessSlots.Register(mDevice, *mGpuResource, GpuBindlessResourceView(*this));
 	}
 
-	void GpuAccelerationStructure::SetBottomLevels(TArrayView<const TShared<GpuAccelerationStructure>> bottomLevels)
+	void GpuAccelerationStructure::NotifyBuildRecorded(const GpuAccelerationStructureBuild& build)
 	{
-		// Pinned before the previous set is released, so structures in both sets stay alive
-		TArray<IGpuResource*> pinnedBottomLevels;
-		pinnedBottomLevels.Reserve((u32)bottomLevels.size());
-		for(const TShared<GpuAccelerationStructure>& bottomLevel : bottomLevels)
-		{
-			if(bottomLevel == nullptr)
-				continue;
+		mBuildFlags = build.Inputs.Flags;
+		if(mType != GpuAccelerationStructureType::TopLevel)
+			return;
 
-			mDevice.PinResource(*bottomLevel->mGpuResource);
-			pinnedBottomLevels.Add(bottomLevel->mGpuResource);
+		TArray<IGpuResource*> bottomLevels;
+		bottomLevels.Reserve((u32)build.BottomLevels.size());
+		for(const TShared<GpuAccelerationStructure>& bottomLevel : build.BottomLevels)
+		{
+			if(bottomLevel != nullptr)
+				bottomLevels.Add(bottomLevel->mGpuResource);
 		}
 
+		ReplaceBottomLevels(std::move(bottomLevels));
+	}
+
+	void GpuAccelerationStructure::NotifyCopyRecorded(const GpuAccelerationStructure& source)
+	{
+		if(&source == this)
+			return;
+
+		mBuildFlags = source.mBuildFlags;
+		if(mType == GpuAccelerationStructureType::TopLevel)
+			ReplaceBottomLevels(source.mPinnedBottomLevels);
+	}
+
+	void GpuAccelerationStructure::NotifyDeserializationRecorded()
+	{
+		mBuildFlags = GpuAccelerationStructureBuildFlag::None;
 		UnpinBottomLevels();
-		mPinnedBottomLevels = std::move(pinnedBottomLevels);
+	}
+
+	void GpuAccelerationStructure::ReplaceBottomLevels(TArray<IGpuResource*> bottomLevels)
+	{
+		// Pinned before the previous set is released, so structures in both sets stay alive
+		for(IGpuResource* nativeResource : bottomLevels)
+			mDevice.PinResource(*nativeResource);
+
+		UnpinBottomLevels();
+		mPinnedBottomLevels = std::move(bottomLevels);
 	}
 
 	void GpuAccelerationStructure::UnpinBottomLevels()

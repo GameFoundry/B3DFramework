@@ -66,6 +66,16 @@ namespace b3d
 		void TestAccelerationStructureRefits();
 
 		/**
+		 * Builds a bottom level structure that allows compaction, writes its compacted size into queries of one call, clones and compacts it,
+		 * and traces a ray against each copy after the original is destroyed. Where the device supports serialization, serializes the
+		 * compacted structure, reads the header of the data, rejects a header of another driver, deserializes the data and traces against
+		 * the result. Clones a top level structure and traces against the clone after every other reference to its bottom level
+		 * structure is gone. In development builds, checks that invalid copies, queries and serializations are rejected. Runs only with
+		 * RSC_ACCELERATION_STRUCTURES and RSC_RAY_QUERY.
+		 */
+		void TestAccelerationStructureCopies();
+
+		/**
 		 * Builds the ray tracing geometry of a mesh with two triangle list sub-meshes and a line list, in a RayTracingScene, and reads the
 		 * triangles rays hit through RayTracingGeometryAccess.bslinc, inline and from closest hit programs: indices, interpolated positions,
 		 * normals and texture coordinates. Then moves, removes and adds instances, writes the mesh, and outgrows the top level structure,

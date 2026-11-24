@@ -73,6 +73,7 @@ namespace b3d
 			TShared<GpuTimelineFence> CreateTimelineFence() override;
 			bool GetAccelerationStructureSizes(const GpuAccelerationStructureInputs& inputs, GpuAccelerationStructureSizes& outSizes) const override;
 			bool WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance> instances, void* destination) const override;
+			bool GetSerializedAccelerationStructureInformation(TArrayView<const u8> data, GpuSerializedAccelerationStructureInformation& outInformation) const override;
 
 			void ConvertProjectionMatrix(const Matrix4& input, Matrix4& outMatrix) override;
 			GpuUniformBufferInformation GenerateUniformBufferInformation(const String& name, TArray<GpuUniformBufferMemberInformation>& inOutUniforms) override;

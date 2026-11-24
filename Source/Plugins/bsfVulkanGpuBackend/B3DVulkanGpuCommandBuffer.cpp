@@ -1001,6 +1001,114 @@ bool VulkanGpuCommandBuffer::BuildAccelerationStructures(TArrayView<const GpuAcc
 	return true;
 }
 
+bool VulkanGpuCommandBuffer::CopyAccelerationStructures(TArrayView<const GpuAccelerationStructureCopy> copies)
+{
+	if(!GpuCommandBuffer::CopyAccelerationStructures(copies))
+		return false;
+
+	for(const GpuAccelerationStructureCopy& copy : copies)
+	{
+		VulkanAccelerationStructure* const source = static_cast<VulkanGpuAccelerationStructure&>(*copy.Source).GetVulkanResource();
+		VulkanAccelerationStructure* const destination = static_cast<VulkanGpuAccelerationStructure&>(*copy.Destination).GetVulkanResource();
+
+		VkCopyAccelerationStructureInfoKHR copyInformation;
+		copyInformation.sType = VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_INFO_KHR;
+		copyInformation.pNext = nullptr;
+		copyInformation.src = source->GetVulkanHandle();
+		copyInformation.dst = destination->GetVulkanHandle();
+		copyInformation.mode = copy.Mode == GpuAccelerationStructureCopyMode::Compact ? VK_COPY_ACCELERATION_STRUCTURE_MODE_COMPACT_KHR : VK_COPY_ACCELERATION_STRUCTURE_MODE_CLONE_KHR;
+
+		vkCmdCopyAccelerationStructureKHR(GetVulkanHandle(), &copyInformation);
+
+		mResourceTracker.TrackResourceUsage(source, GpuAccessFlag::Read);
+		mResourceTracker.TrackResourceUsage(destination, GpuAccessFlag::Write);
+	}
+
+	return true;
+}
+
+bool VulkanGpuCommandBuffer::WriteAccelerationStructureQueries(TArrayView<const TShared<GpuAccelerationStructure>> structures, TArrayView<const GpuQueryId> queries, const TShared<GpuQueryPool>& queryPool)
+{
+	if(!GpuCommandBuffer::WriteAccelerationStructureQueries(structures, queries, queryPool))
+		return false;
+
+	if(structures.IsEmpty())
+		return true;
+
+	VulkanGpuQueryPool* const vulkanQueryPool = static_cast<VulkanGpuQueryPool*>(queryPool.get());
+	const VkQueryType queryType = VulkanUtility::GetQueryType(queryPool->GetQueryType());
+
+	FrameAllocatorScope frameScope;
+	FrameVector<VkAccelerationStructureKHR> handles(structures.size());
+	for(u32 structureIndex = 0; structureIndex < (u32)structures.size(); structureIndex++)
+	{
+		VulkanAccelerationStructure* const structure = static_cast<VulkanGpuAccelerationStructure&>(*structures[structureIndex]).GetVulkanResource();
+		handles[structureIndex] = structure->GetVulkanHandle();
+
+		mResourceTracker.TrackResourceUsage(structure, GpuAccessFlag::Read);
+	}
+
+	// One call writes consecutive queries, so the structures are split into runs of consecutive query ids
+	u32 runStart = 0;
+	for(u32 structureIndex = 1; structureIndex <= (u32)structures.size(); structureIndex++)
+	{
+		if(structureIndex < (u32)structures.size() && queries[structureIndex].Id == queries[structureIndex - 1].Id + 1)
+			continue;
+
+		vkCmdWriteAccelerationStructuresPropertiesKHR(GetVulkanHandle(), structureIndex - runStart, &handles[runStart], queryType, vulkanQueryPool->GetVulkanHandle(), queries[runStart].Id);
+		runStart = structureIndex;
+	}
+
+	mResourceTracker.TrackResourceUsage(vulkanQueryPool, GpuAccessFlag::Write);
+	return true;
+}
+
+bool VulkanGpuCommandBuffer::SerializeAccelerationStructure(const TShared<GpuAccelerationStructure>& source, const TShared<GpuBuffer>& destination, u32 destinationOffset)
+{
+	if(!GpuCommandBuffer::SerializeAccelerationStructure(source, destination, destinationOffset))
+		return false;
+
+	VulkanAccelerationStructure* const sourceStructure = static_cast<VulkanGpuAccelerationStructure&>(*source).GetVulkanResource();
+	VulkanBuffer* const destinationBuffer = static_cast<VulkanGpuBuffer&>(*destination).GetVulkanResource();
+
+	VkCopyAccelerationStructureToMemoryInfoKHR copyInformation;
+	copyInformation.sType = VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_TO_MEMORY_INFO_KHR;
+	copyInformation.pNext = nullptr;
+	copyInformation.src = sourceStructure->GetVulkanHandle();
+	copyInformation.dst.deviceAddress = destinationBuffer->GetDeviceAddress() + destinationOffset;
+	copyInformation.mode = VK_COPY_ACCELERATION_STRUCTURE_MODE_SERIALIZE_KHR;
+
+	vkCmdCopyAccelerationStructureToMemoryKHR(GetVulkanHandle(), &copyInformation);
+
+	mResourceTracker.TrackResourceUsage(sourceStructure, GpuAccessFlag::Read);
+	mResourceTracker.TrackBufferUsage(destinationBuffer, GpuAccessFlag::Write);
+
+	return true;
+}
+
+bool VulkanGpuCommandBuffer::DeserializeAccelerationStructure(const TShared<GpuBuffer>& source, u32 sourceOffset, const TShared<GpuAccelerationStructure>& destination)
+{
+	if(!GpuCommandBuffer::DeserializeAccelerationStructure(source, sourceOffset, destination))
+		return false;
+
+	VulkanBuffer* const sourceBuffer = static_cast<VulkanGpuBuffer&>(*source).GetVulkanResource();
+	VulkanAccelerationStructure* const destinationStructure = static_cast<VulkanGpuAccelerationStructure&>(*destination).GetVulkanResource();
+
+	VkCopyMemoryToAccelerationStructureInfoKHR copyInformation;
+	copyInformation.sType = VK_STRUCTURE_TYPE_COPY_MEMORY_TO_ACCELERATION_STRUCTURE_INFO_KHR;
+	copyInformation.pNext = nullptr;
+	copyInformation.src.deviceAddress = sourceBuffer->GetDeviceAddress() + sourceOffset;
+	copyInformation.dst = destinationStructure->GetVulkanHandle();
+	copyInformation.mode = VK_COPY_ACCELERATION_STRUCTURE_MODE_DESERIALIZE_KHR;
+
+	vkCmdCopyMemoryToAccelerationStructureKHR(GetVulkanHandle(), &copyInformation);
+
+	mResourceTracker.TrackBufferUsage(sourceBuffer, GpuAccessFlag::Read);
+	mResourceTracker.TrackResourceUsage(destinationStructure, GpuAccessFlag::Write);
+
+	return true;
+}
+
 void VulkanGpuCommandBuffer::CopyBufferToTexture(IGpuBufferResource& source, IGpuImageResource& destination, const GpuImageCopyInformation& information)
 {
 	EnsureValidThread();

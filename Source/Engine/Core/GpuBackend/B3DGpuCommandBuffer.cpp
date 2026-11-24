@@ -394,6 +394,8 @@ void GpuCommandBuffer::SetPushConstants(u32 /*offsetInBytes*/, u32 sizeInBytes, 
 
 void GpuCommandBuffer::NotifyWillQueueForSubmit([[maybe_unused]] GpuQueueId queueId, [[maybe_unused]] GpuQueueMask syncMask)
 {
+	mState = GpuCommandBufferState::Executing;
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 	// The submit thread executes submissions in the order they are queued, so this sees the releases in GPU submission order
 	using ReleaseSubmission = GpuSplitBarrier::ReleaseSubmission;
@@ -984,27 +986,35 @@ namespace
 } // namespace
 #endif
 
-bool GpuCommandBuffer::BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild> builds)
+bool GpuCommandBuffer::CanRecordAccelerationStructureCommands(const char* operationName) const
 {
-	EnsureValidThread();
-
 	if(!mGpuDevice.GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES))
 	{
-		B3D_LOG(Error, LogRenderBackend, "Cannot build acceleration structures, the GPU device doesn't support them.");
+		B3D_LOG(Error, LogRenderBackend, "Cannot record acceleration structure {0}, the GPU device doesn't support acceleration structures.", operationName);
 		return false;
 	}
 
 	if(mQueueType != GQT_GRAPHICS && mQueueType != GQT_COMPUTE)
 	{
-		B3D_LOG(Error, LogRenderBackend, "Acceleration structure builds can only be recorded on graphics or compute queue command buffers.");
+		B3D_LOG(Error, LogRenderBackend, "Acceleration structure {0} can only be recorded on graphics or compute queue command buffers.", operationName);
 		return false;
 	}
 
 	if(IsInRenderPass())
 	{
-		B3D_LOG(Error, LogRenderBackend, "Acceleration structure builds cannot be recorded inside a render pass.");
+		B3D_LOG(Error, LogRenderBackend, "Acceleration structure {0} cannot be recorded inside a render pass.", operationName);
 		return false;
 	}
+
+	return true;
+}
+
+bool GpuCommandBuffer::BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild> builds)
+{
+	EnsureValidThread();
+
+	if(!CanRecordAccelerationStructureCommands("builds"))
+		return false;
 
 	for(u32 buildIndex = 0; buildIndex < (u32)builds.size(); buildIndex++)
 	{
@@ -1024,13 +1034,247 @@ bool GpuCommandBuffer::BuildAccelerationStructures(TArrayView<const GpuAccelerat
 		mBarrierValidator->ValidateAccelerationStructureBuilds(builds);
 #endif
 
-	// A top level structure keeps the bottom level structures of its latest build alive
 	for(const GpuAccelerationStructureBuild& build : builds)
+		build.Destination->NotifyBuildRecorded(build);
+
+	return true;
+}
+
+bool GpuCommandBuffer::CopyAccelerationStructures(TArrayView<const GpuAccelerationStructureCopy> copies)
+{
+	EnsureValidThread();
+
+	if(!CanRecordAccelerationStructureCommands("copies"))
+		return false;
+
+	for(u32 copyIndex = 0; copyIndex < (u32)copies.size(); copyIndex++)
 	{
-		if(build.Destination->GetType() == GpuAccelerationStructureType::TopLevel)
-			build.Destination->SetBottomLevels(build.BottomLevels);
+		const GpuAccelerationStructureCopy& copy = copies[copyIndex];
+		if(copy.Source == nullptr || copy.Destination == nullptr)
+		{
+			B3D_LOG(Error, LogRenderBackend, "Acceleration structure copy {0} has no source or no destination.", copyIndex);
+			return false;
+		}
 	}
 
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	for(u32 copyIndex = 0; copyIndex < (u32)copies.size(); copyIndex++)
+	{
+		const GpuAccelerationStructureCopy& copy = copies[copyIndex];
+		const GpuAccelerationStructure& source = *copy.Source;
+		const GpuAccelerationStructure& destination = *copy.Destination;
+		if(!B3D_ENSURE_LOG(&source != &destination, "Copy {0} copies acceleration structure '{1}' into itself.", copyIndex, source.GetName()))
+			return false;
+
+		if(!B3D_ENSURE_LOG(source.GetType() == destination.GetType(), "Copy {0} copies acceleration structure '{1}' into '{2}', which is of another level.", copyIndex,
+			source.GetName(), destination.GetName()))
+		{
+			return false;
+		}
+
+		if(copy.Mode == GpuAccelerationStructureCopyMode::Clone)
+		{
+			if(!B3D_ENSURE_LOG(destination.GetSize() >= source.GetSize(), "Copy {0} clones acceleration structure '{1}' of {2} bytes into '{3}', which has {4}.", copyIndex,
+				source.GetName(), source.GetSize(), destination.GetName(), destination.GetSize()))
+			{
+				return false;
+			}
+		}
+		else
+		{
+			// The destination size isn't checked against the compacted size, which only the caller's query knows
+			if(!B3D_ENSURE_LOG(source.GetBuildFlags().IsSet(GpuAccelerationStructureBuildFlag::AllowCompaction),
+				"Copy {0} compacts acceleration structure '{1}', which wasn't built with GpuAccelerationStructureBuildFlag::AllowCompaction.", copyIndex, source.GetName()))
+			{
+				return false;
+			}
+		}
+
+		// Copies of one call may run at the same time, so a copy cannot read or write a structure another copy writes
+		for(u32 otherIndex = 0; otherIndex < copyIndex; otherIndex++)
+		{
+			const GpuAccelerationStructureCopy& other = copies[otherIndex];
+			const bool conflicts = other.Destination == copy.Destination || other.Destination == copy.Source || other.Source == copy.Destination;
+			if(!B3D_ENSURE_LOG(!conflicts, "Copies {0} and {1} write an acceleration structure that the other reads or writes. Record them in separate calls.", otherIndex, copyIndex))
+				return false;
+		}
+	}
+
+	if(mBarrierValidator != nullptr)
+		mBarrierValidator->ValidateAccelerationStructureCopies(copies);
+#endif
+
+	for(const GpuAccelerationStructureCopy& copy : copies)
+		copy.Destination->NotifyCopyRecorded(*copy.Source);
+
+	return true;
+}
+
+bool GpuCommandBuffer::WriteAccelerationStructureQueries(TArrayView<const TShared<GpuAccelerationStructure>> structures, TArrayView<const GpuQueryId> queries, const TShared<GpuQueryPool>& queryPool)
+{
+	EnsureValidThread();
+
+	if(!CanRecordAccelerationStructureCommands("queries"))
+		return false;
+
+	if(queryPool == nullptr)
+	{
+		B3D_LOG(Error, LogRenderBackend, "Cannot write acceleration structure queries without a query pool.");
+		return false;
+	}
+
+	const GpuQueryType queryType = queryPool->GetQueryType();
+	if(queryType != GpuQueryType::AccelerationStructureCompactedSize && queryType != GpuQueryType::AccelerationStructureSerializedSize)
+	{
+		B3D_LOG(Error, LogRenderBackend, "Acceleration structure queries need a pool of GpuQueryType::AccelerationStructureCompactedSize or AccelerationStructureSerializedSize queries.");
+		return false;
+	}
+
+	if(structures.size() != queries.size())
+	{
+		B3D_LOG(Error, LogRenderBackend, "Cannot write {0} acceleration structure queries for {1} structures. Each structure needs one query.", queries.size(), structures.size());
+		return false;
+	}
+
+	for(u32 queryIndex = 0; queryIndex < (u32)queries.size(); queryIndex++)
+	{
+		if(structures[queryIndex] == nullptr || !queries[queryIndex].IsValid() || queries[queryIndex].Id >= queryPool->GetPoolSize())
+		{
+			B3D_LOG(Error, LogRenderBackend, "Acceleration structure query {0} has no structure, or a query that isn't in the pool.", queryIndex);
+			return false;
+		}
+	}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	for(u32 queryIndex = 0; queryIndex < (u32)queries.size(); queryIndex++)
+	{
+		const GpuAccelerationStructure& structure = *structures[queryIndex];
+		if(queryType == GpuQueryType::AccelerationStructureCompactedSize)
+		{
+			if(!B3D_ENSURE_LOG(structure.GetBuildFlags().IsSet(GpuAccelerationStructureBuildFlag::AllowCompaction),
+				"Query {0} asks for the compacted size of acceleration structure '{1}', which wasn't built with GpuAccelerationStructureBuildFlag::AllowCompaction.", queryIndex,
+				structure.GetName()))
+			{
+				return false;
+			}
+		}
+		else
+		{
+			if(!B3D_ENSURE_LOG(mGpuDevice.GetCapabilities().RayTracing.SupportsSerialization, "Cannot query serialized acceleration structure sizes, the GPU device doesn't support serialization."))
+				return false;
+
+			if(!B3D_ENSURE_LOG(structure.GetType() == GpuAccelerationStructureType::BottomLevel,
+				"Query {0} asks for the serialized size of top level acceleration structure '{1}'. Only bottom level structures can be serialized.", queryIndex, structure.GetName()))
+			{
+				return false;
+			}
+		}
+	}
+
+	if(mBarrierValidator != nullptr)
+		mBarrierValidator->ValidateAccelerationStructureQueries(structures);
+#endif
+
+	return true;
+}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+namespace
+{
+	/**
+	 * Checks that @p structure can be serialized into, or deserialized from, @p offset of @p buffer on @p device, and logs the reason
+	 * if it can't. @p isSerialization picks the direction.
+	 */
+	bool ValidateAccelerationStructureSerialization(const GpuDevice& device, const GpuAccelerationStructure& structure, const GpuBuffer& buffer, u32 offset, bool isSerialization)
+	{
+		const char* operation = isSerialization ? "serialized" : "deserialized";
+		if(!B3D_ENSURE_LOG(structure.GetType() == GpuAccelerationStructureType::BottomLevel, "Top level acceleration structure '{0}' cannot be {1}. Only bottom level structures can.",
+			structure.GetName(), operation))
+		{
+			return false;
+		}
+
+		const u32 alignment = device.GetCapabilities().RayTracing.SerializedDataAlignment;
+		if(!B3D_ENSURE_LOG(offset % alignment == 0 && offset < buffer.GetTotalSize(), "Acceleration structure '{0}' cannot be {1} at offset {2} of buffer '{3}'. The offset must be "
+			"inside the buffer, and a multiple of {4}.", structure.GetName(), operation, offset, buffer.GetName(), alignment))
+		{
+			return false;
+		}
+
+		const GpuBufferInformation& information = buffer.GetInformation();
+		if(isSerialization)
+		{
+			const bool isWritable = information.Type == GpuBufferType::StructuredStorage && information.Flags.IsSet(GpuBufferFlag::GpuWrite) && information.Memory == GpuBufferMemory::Device;
+			return B3D_ENSURE_LOG(isWritable, "Buffer '{0}' receives serialized acceleration structure data, so it must be a structured storage buffer in GPU memory "
+				"(GpuBufferMemory::Device), with GpuBufferFlag::GpuWrite.", buffer.GetName());
+		}
+
+		const bool isReadable = information.Type == GpuBufferType::StructuredStorage && information.Flags.IsSet(GpuBufferFlag::AccelerationStructureInput);
+		return B3D_ENSURE_LOG(isReadable, "Buffer '{0}' holds serialized acceleration structure data, so it must be a structured storage buffer created with "
+			"GpuBufferFlag::AccelerationStructureInput.", buffer.GetName());
+	}
+} // namespace
+#endif
+
+bool GpuCommandBuffer::SerializeAccelerationStructure(const TShared<GpuAccelerationStructure>& source, const TShared<GpuBuffer>& destination, u32 destinationOffset)
+{
+	EnsureValidThread();
+
+	if(!CanRecordAccelerationStructureCommands("serializations"))
+		return false;
+
+	if(!mGpuDevice.GetCapabilities().RayTracing.SupportsSerialization)
+	{
+		B3D_LOG(Error, LogRenderBackend, "Cannot serialize acceleration structures, the GPU device doesn't support serialization.");
+		return false;
+	}
+
+	if(source == nullptr || destination == nullptr)
+	{
+		B3D_LOG(Error, LogRenderBackend, "Cannot serialize an acceleration structure without a source structure and a destination buffer.");
+		return false;
+	}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	if(!ValidateAccelerationStructureSerialization(mGpuDevice, *source, *destination, destinationOffset, true))
+		return false;
+
+	if(mBarrierValidator != nullptr)
+		mBarrierValidator->ValidateAccelerationStructureSerialization(*source, *destination, true);
+#endif
+
+	return true;
+}
+
+bool GpuCommandBuffer::DeserializeAccelerationStructure(const TShared<GpuBuffer>& source, u32 sourceOffset, const TShared<GpuAccelerationStructure>& destination)
+{
+	EnsureValidThread();
+
+	if(!CanRecordAccelerationStructureCommands("deserializations"))
+		return false;
+
+	if(!mGpuDevice.GetCapabilities().RayTracing.SupportsSerialization)
+	{
+		B3D_LOG(Error, LogRenderBackend, "Cannot deserialize acceleration structures, the GPU device doesn't support serialization.");
+		return false;
+	}
+
+	if(source == nullptr || destination == nullptr)
+	{
+		B3D_LOG(Error, LogRenderBackend, "Cannot deserialize an acceleration structure without a source buffer and a destination structure.");
+		return false;
+	}
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	if(!ValidateAccelerationStructureSerialization(mGpuDevice, *destination, *source, sourceOffset, false))
+		return false;
+
+	if(mBarrierValidator != nullptr)
+		mBarrierValidator->ValidateAccelerationStructureSerialization(*destination, *source, false);
+#endif
+
+	// The data doesn't record the flags the structure was built with
+	destination->NotifyDeserializationRecorded();
 	return true;
 }
 

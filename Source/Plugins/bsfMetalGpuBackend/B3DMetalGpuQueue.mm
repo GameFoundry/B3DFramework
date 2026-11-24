@@ -160,8 +160,6 @@ namespace b3d
 			if (metalCommandBuffer->IsRecording())
 				metalCommandBuffer->End();
 
-			// Set before the hand-off, so the owner thread never observes a submitted buffer as recording
-			metalCommandBuffer->SetState(GpuCommandBufferState::Executing);
 			mGpuDevice.GetSubmitThread().QueueSubmit(information.CommandBuffer, *this, information.SyncMask, information.SignalFences);
 		}
 

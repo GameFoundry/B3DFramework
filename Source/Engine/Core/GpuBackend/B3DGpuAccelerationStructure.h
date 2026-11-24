@@ -113,7 +113,14 @@ namespace b3d
 		 * of building it again. A refit is several times faster than a build, but rays slow down as the contents move away from those of the
 		 * last full build. Costs memory and ray tracing speed.
 		 */
-		AllowRefit = 1 << 3
+		AllowRefit = 1 << 3,
+
+		/**
+		 * The structure can be compacted: render::GpuCommandBuffer::CopyAccelerationStructures() with GpuAccelerationStructureCopyMode::Compact
+		 * copies it into a structure of the size a GpuQueryType::AccelerationStructureCompactedSize query reports, which is usually much
+		 * smaller than the size the size query reports before the build. Costs build time.
+		 */
+		AllowCompaction = 1 << 4
 	};
 
 	using GpuAccelerationStructureBuildFlags = Flags<GpuAccelerationStructureBuildFlag, u8>;
@@ -256,6 +263,46 @@ namespace b3d
 		TArrayView<const TShared<render::GpuAccelerationStructure>> BottomLevels;
 	};
 
+	/** How render::GpuCommandBuffer::CopyAccelerationStructures() copies an acceleration structure. */
+	enum class GpuAccelerationStructureCopyMode : u8
+	{
+		Clone, /**< Copies the structure as it is. The destination must be at least as large as the source. */
+
+		/**
+		 * Copies the structure into the smallest memory that holds it. The source must have been built with
+		 * GpuAccelerationStructureBuildFlag::AllowCompaction, and the destination must be at least as large as a
+		 * GpuQueryType::AccelerationStructureCompactedSize query of the source reports.
+		 */
+		Compact
+	};
+
+	/** Copy of one acceleration structure into another, recorded by render::GpuCommandBuffer::CopyAccelerationStructures(). */
+	struct GpuAccelerationStructureCopy
+	{
+		GpuAccelerationStructureCopy() = default;
+
+		/**
+		 * @param	source			Structure to copy.
+		 * @param	destination		Structure that receives the copy. Of the same level as the source.
+		 * @param	mode			How to copy the structure.
+		 */
+		GpuAccelerationStructureCopy(const TShared<render::GpuAccelerationStructure>& source, const TShared<render::GpuAccelerationStructure>& destination,
+			GpuAccelerationStructureCopyMode mode = GpuAccelerationStructureCopyMode::Clone)
+			: Source(source), Destination(destination), Mode(mode)
+		{ }
+
+		TShared<render::GpuAccelerationStructure> Source; /**< Structure to copy. It must have been built. */
+		TShared<render::GpuAccelerationStructure> Destination; /**< Structure that receives the copy. Its previous contents are discarded. */
+		GpuAccelerationStructureCopyMode Mode = GpuAccelerationStructureCopyMode::Clone; /**< How to copy the structure. */
+	};
+
+	/** Description of serialized acceleration structure data, read from its header. See GpuDevice::GetSerializedAccelerationStructureInformation(). */
+	struct GpuSerializedAccelerationStructureInformation
+	{
+		u32 SerializedSize = 0; /**< Size of the serialized data, header included, in bytes. */
+		u32 AccelerationStructureSize = 0; /**< Size of the structure that deserialization of the data needs, in bytes. */
+	};
+
 	/** Flags that change how rays interact with one instance of a top level acceleration structure. */
 	enum class GpuRayTracingInstanceFlag : u8
 	{
@@ -344,6 +391,12 @@ namespace b3d
 			IGpuResource* GetGpuResource() const { return mGpuResource; }
 
 			/**
+			 * Returns the flags of the structure's latest build, or of the structure it was copied from. Recorded with the build or copy, on
+			 * the thread that records it.
+			 */
+			GpuAccelerationStructureBuildFlags GetBuildFlags() const { return mBuildFlags; }
+
+			/**
 			 * @name Internal
 			 * @{
 			 */
@@ -352,10 +405,23 @@ namespace b3d
 			void Initialize();
 
 			/**
-			 * Keeps the native resources of @p bottomLevels alive for as long as the structure references them, and releases the ones of
-			 * the previous build once the GPU completes the current frame. Called when a build of the structure is recorded.
+			 * Records the flags of @p build, which writes this structure. A top level structure keeps the bottom level structures of
+			 * @p build alive for as long as it references them, and releases the ones of its previous contents once the GPU completes
+			 * the current frame. Called when the build is recorded.
 			 */
-			void SetBottomLevels(TArrayView<const TShared<GpuAccelerationStructure>> bottomLevels);
+			void NotifyBuildRecorded(const GpuAccelerationStructureBuild& build);
+
+			/**
+			 * Takes the flags and the bottom level structures of @p source, which is copied into this structure, as
+			 * NotifyBuildRecorded() does for a build. Called when the copy is recorded.
+			 */
+			void NotifyCopyRecorded(const GpuAccelerationStructure& source);
+
+			/**
+			 * Clears the flags and releases the bottom level structures, since deserialized data has neither. Called when the
+			 * deserialization is recorded.
+			 */
+			void NotifyDeserializationRecorded();
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			/**
@@ -396,11 +462,18 @@ namespace b3d
 			/** Releases the pins of the bottom level structures. */
 			void UnpinBottomLevels();
 
+			/**
+			 * Keeps @p bottomLevels, the native resources of bottom level structures, alive for as long as the structure references
+			 * them, and releases the previous ones once the GPU completes the current frame.
+			 */
+			void ReplaceBottomLevels(TArray<IGpuResource*> bottomLevels);
+
 			GpuDevice& mDevice;
 			IGpuResource* mGpuResource;
 			GpuAccelerationStructureType mType;
 			u32 mSize;
 			GpuAccelerationStructureFlags mFlags;
+			GpuAccelerationStructureBuildFlags mBuildFlags;
 			String mName;
 			GpuBindlessResourceSlots mBindlessSlots;
 			TArray<IGpuResource*> mPinnedBottomLevels;
