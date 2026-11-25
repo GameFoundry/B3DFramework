@@ -1,0 +1,115 @@
+//************************************* B3D Framework - Copyright 2026 Marko Pintera *************************************//
+//*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
+
+// PS5 writes instances in its own layout, which its platform files provide
+#ifdef PS5
+#include "PS5RayTracingInstances.bslinc"
+#endif
+
+// Describes an instance the way every platform's writer takes it
+mixin RayTracingInstanceDescription
+{
+	code
+	{
+		// Flags of an instance, with the values of GpuRayTracingInstanceFlag
+		#define RAY_TRACING_INSTANCE_DISABLE_TRIANGLE_CULLING 1
+		#define RAY_TRACING_INSTANCE_FLIP_TRIANGLE_FACING 2
+		#define RAY_TRACING_INSTANCE_FORCE_OPAQUE 4
+		#define RAY_TRACING_INSTANCE_FORCE_NON_OPAQUE 8
+
+		/** Instance of a bottom level acceleration structure in a top level structure. Matches GpuRayTracingInstance. */
+		struct RayTracingInstance
+		{
+			float3x4 Transform; // Transform from the space of the structure to the space of the scene, by rows. Affine.
+			uint InstanceId; // Value shaders read as the instance id. 24 bits.
+			uint HitGroupIndexOffset; // Added to the shader binding table record index of hits on the instance. 24 bits.
+			uint Mask; // Rays only hit the instance if this and their instance mask have a bit in common. 8 bits.
+			uint Flags; // RAY_TRACING_INSTANCE_* flags
+			uint2 BottomLevel; // Reference from GpuDevice::WriteAccelerationStructureReferences(). A null reference makes the instance empty.
+		};
+	};
+};
+
+// Writes instances in the layouts of Vulkan, D3D12 and Metal
+mixin RayTracingInstanceWriters
+{
+	mixin RayTracingInstanceDescription;
+
+	code
+	{
+		// Size of one instance in a buffer top level builds read, in bytes. Equal to GpuRayTracingCapabilities::InstanceSize.
+#if defined(METAL)
+		#define RAY_TRACING_INSTANCE_SIZE 72
+#else
+		#define RAY_TRACING_INSTANCE_SIZE 64
+#endif
+
+		/**
+		 * Writes @p instance at index @p instanceIndex of @p instances, a buffer top level builds read
+		 * (GpuAccelerationStructureInputs::InstanceBuffer). The result is what GpuDevice::WriteRayTracingInstances() writes for the same
+		 * instance.
+		 */
+		void WriteRayTracingInstance(RWByteAddressBuffer instances, uint instanceIndex, RayTracingInstance instance)
+		{
+			const uint address = instanceIndex * RAY_TRACING_INSTANCE_SIZE;
+
+			// The native flags have the engine's bits, except that the native facing flag is set unless the instance flips its facing:
+			// the native front face is clockwise in a left-handed system, and the engine's world is right-handed
+			const uint flags = (instance.Flags & 0xF) ^ RAY_TRACING_INSTANCE_FLIP_TRIANGLE_FACING;
+			const float3x4 transform = instance.Transform;
+
+#if defined(METAL)
+			// Four packed columns, then options, mask, hit group offset, id and the structure. Metal has no empty instances, so an instance
+			// without a structure gets a mask no ray has a bit in common with.
+			const uint mask = any(instance.BottomLevel != 0) ? (instance.Mask & 0xFF) : 0;
+			[unroll]
+			for(uint column = 0; column < 4; column++)
+			{
+				const float3 columnValues = float3(transform[0][column], transform[1][column], transform[2][column]);
+				instances.Store3(address + column * 12, asuint(columnValues));
+			}
+
+			instances.Store4(address + 48, uint4(flags, mask, instance.HitGroupIndexOffset, instance.InstanceId));
+			instances.Store2(address + 64, instance.BottomLevel);
+#else
+			// Three rows, then the id and mask, the hit group offset and flags, packed 24 and 8 bits, and the structure
+			instances.Store4(address, asuint(transform[0]));
+			instances.Store4(address + 16, asuint(transform[1]));
+			instances.Store4(address + 32, asuint(transform[2]));
+
+			const uint idAndMask = (instance.InstanceId & 0xFFFFFF) | ((instance.Mask & 0xFF) << 24);
+			const uint offsetAndFlags = (instance.HitGroupIndexOffset & 0xFFFFFF) | (flags << 24);
+			instances.Store4(address + 48, uint4(idAndMask, offsetAndFlags, instance.BottomLevel));
+#endif
+		}
+
+		/**
+		 * Writes an instance that rays never hit at index @p instanceIndex of @p instances. Its bytes are all zero, which is what
+		 * GpuDevice::WriteRayTracingInstances() writes for an instance without a structure, with a zero transform, id, hit group offset and
+		 * mask, and the RAY_TRACING_INSTANCE_FLIP_TRIANGLE_FACING flag.
+		 */
+		void WriteEmptyRayTracingInstance(RWByteAddressBuffer instances, uint instanceIndex)
+		{
+			const uint address = instanceIndex * RAY_TRACING_INSTANCE_SIZE;
+
+			[unroll]
+			for(uint offset = 0; offset < 64; offset += 16)
+				instances.Store4(address + offset, uint4(0, 0, 0, 0));
+
+#if defined(METAL)
+			instances.Store2(address + 64, uint2(0, 0));
+#endif
+		}
+	};
+};
+
+// Writes top level instances from shaders, in the layout of the platform the shader is compiled for: RayTracingInstance,
+// WriteRayTracingInstance(), WriteEmptyRayTracingInstance() and RAY_TRACING_INSTANCE_SIZE
+mixin RayTracingInstances
+{
+#ifdef PS5
+	mixin PS5RayTracingInstanceWriters;
+#else
+	mixin RayTracingInstanceWriters;
+#endif
+};

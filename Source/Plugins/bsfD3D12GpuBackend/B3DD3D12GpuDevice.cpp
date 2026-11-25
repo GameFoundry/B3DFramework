@@ -459,6 +459,10 @@ bool D3D12GpuDevice::WriteRayTracingInstances(TArrayView<const GpuRayTracingInst
 	if(!GpuDevice::WriteRayTracingInstances(instances, destination))
 		return false;
 
+	// Shaders write the same layout through RayTracingInstances.bslinc
+	static_assert(sizeof(D3D12_RAYTRACING_INSTANCE_DESC) == 64, "RayTracingInstances.bslinc writes 64-byte instances.");
+	static_assert(offsetof(D3D12_RAYTRACING_INSTANCE_DESC, AccelerationStructure) == 56, "The structure comes last.");
+
 	auto* const output = static_cast<D3D12_RAYTRACING_INSTANCE_DESC*>(destination);
 	for(u32 instanceIndex = 0; instanceIndex < (u32)instances.size(); instanceIndex++)
 	{
@@ -499,6 +503,25 @@ bool D3D12GpuDevice::WriteRayTracingInstances(TArrayView<const GpuRayTracingInst
 
 		// The destination may be write-combined memory, so each instance is written once and never read
 		memcpy(&output[instanceIndex], &nativeInstance, sizeof(nativeInstance));
+	}
+
+	return true;
+}
+
+bool D3D12GpuDevice::WriteAccelerationStructureReferences(TArrayView<const render::GpuAccelerationStructure* const> bottomLevels, void* destination) const
+{
+	if(!GpuDevice::WriteAccelerationStructureReferences(bottomLevels, destination))
+		return false;
+
+	// The reference is the address WriteRayTracingInstances() writes, which stays valid as a structure never changes its memory
+	auto* const output = static_cast<u8*>(destination);
+	for(u32 structureIndex = 0; structureIndex < (u32)bottomLevels.size(); structureIndex++)
+	{
+		D3D12_GPU_VIRTUAL_ADDRESS address = 0;
+		if(bottomLevels[structureIndex] != nullptr)
+			address = static_cast<const D3D12GpuAccelerationStructure&>(*bottomLevels[structureIndex]).GetD3D12Resource()->GetGPUVirtualAddress();
+
+		memcpy(output + structureIndex * sizeof(address), &address, sizeof(address));
 	}
 
 	return true;

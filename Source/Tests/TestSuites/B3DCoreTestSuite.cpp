@@ -53,6 +53,7 @@ CoreTestSuite::CoreTestSuite()
 	B3D_ADD_TEST(CoreTestSuite::TestMaterialParameterAdapterCompilation)
 	B3D_ADD_TEST(CoreTestSuite::TestShaderReflectionCompilation)
 	B3D_ADD_TEST(CoreTestSuite::TestRayTracingShaderCompilation)
+	B3D_ADD_TEST(CoreTestSuite::TestShaderLanguageDefines)
 #endif
 #if B3D_PLATFORM_MACOS
 	B3D_ADD_TEST(CoreTestSuite::TestMacOSDesktopInput)

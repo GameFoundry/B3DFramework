@@ -157,6 +157,7 @@ namespace b3d
 			IGpuTransientHeapPool* GetTransientHeapPool(u32 memoryType) override;
 			bool GetAccelerationStructureSizes(const GpuAccelerationStructureInputs& inputs, GpuAccelerationStructureSizes& outSizes) const override;
 			bool WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance> instances, void* destination) const override;
+			bool WriteAccelerationStructureReferences(TArrayView<const render::GpuAccelerationStructure* const> bottomLevels, void* destination) const override;
 
 			void ConvertProjectionMatrix(const Matrix4& input, Matrix4& output) override;
 			GpuUniformBufferInformation GenerateUniformBufferInformation(const String& name, TArray<GpuUniformBufferMemberInformation>& inOutUniforms) override;

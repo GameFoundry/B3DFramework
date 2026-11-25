@@ -701,6 +701,12 @@ void TextureUtility::GetPitchInBytes(const ImageSubresourcePitch& pitch, PixelFo
 	}
 }
 
+void TextureUtility::GetBufferCopyPitchInBytes(const ImageSubresourcePitch& pitch, PixelFormat format, u32& outRowPitch, u32& outSlicePitch)
+{
+	// The depth of PF_D24S8 shares its pixel with stencil, so only PF_D32_S8X24 transfers less than a full pixel
+	GetPitchInBytes(pitch, format == PF_D32_S8X24 ? PF_D32 : format, outRowPitch, outSlicePitch);
+}
+
 void TextureUtility::Write(const TShared<Texture>& texture, const PixelData& source, u32 mipLevel, u32 arrayLayer, TextureWriteFlags flags, const TShared<GpuCommandBuffer>& commandBuffer)
 {
 	ASSERT_IF_NOT_RENDER_THREAD

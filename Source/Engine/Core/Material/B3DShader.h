@@ -361,12 +361,12 @@ namespace b3d
 		static Array<u64, 2> ComputeHash(const String& string);
 
 		/**
-		 * Computes a hash for a shader include at the provided path.
+		 * Computes a hash of the source of the shader include at the provided path.
 		 *
 		 * @param	path			Relative path to the include, as provided in the shader source.
-		 * @return					Computed hash value.
+		 * @return					Hash of the include's source, or no value if the include can't be found.
 		 */
-		static Array<u64, 2> ComputeIncludeHash(const String& path);
+		static TOptional<Array<u64, 2>> ComputeIncludeHash(const String& path);
 
 	public: // ***** INTERNAL ******
 		/** @name Internal

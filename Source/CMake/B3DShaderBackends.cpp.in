@@ -5,9 +5,12 @@
 //
 // Implements HLSLCrossCompiler::RegisterSupportedTargets()/UnregisterSupportedTargets() from the cross-compile target
 // list from CMake. Besides the cross-compile targets, it also registers the GPU bytecode compilers (for example
-// vksl -> SPIR-V) for every language whose bsfShaderBackend<LANG> library is built.
+// vksl -> SPIR-V) for every language whose bsfShaderBackend<LANG> library is built, and the shader include folders those
+// libraries add.
 #include "B3DSLPrerequisites.h"
 #include "B3DHLSLCrossCompiler.h"
+#include "Material/B3DShaderManager.h"
+#include "Utility/B3DPaths.h"
 
 namespace b3d
 {
@@ -17,7 +20,7 @@ namespace b3d
 
 	void HLSLCrossCompiler::RegisterSupportedTargets()
 	{
-@B3D_SHADER_CROSS_COMPILE_TARGET_REGISTRATIONS@@B3D_SHADER_BYTECODE_COMPILER_REGISTRATIONS@	}
+@B3D_SHADER_CROSS_COMPILE_TARGET_REGISTRATIONS@@B3D_SHADER_BYTECODE_COMPILER_REGISTRATIONS@@B3D_SHADER_INCLUDE_FOLDER_REGISTRATIONS@	}
 
 	void HLSLCrossCompiler::UnregisterSupportedTargets()
 	{

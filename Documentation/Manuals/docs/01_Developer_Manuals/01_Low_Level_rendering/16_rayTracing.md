@@ -100,6 +100,51 @@ An instance has these members:
 
 A top level structure with zero instances is valid, and rays traced against it hit nothing.
 
+## Instances written by shaders
+A compute shader can write the instances instead, for example to cull them or to pick a level of detail on the GPU. The shader needs a reference to each bottom level structure it may place. @b3d::GpuDevice::WriteAccelerationStructureReferences writes one 8-byte reference per structure, which the shader reads as a `uint2`. A null structure writes the reference of no structure, which makes an instance empty. A reference stays valid for as long as its structure exists.
+
+The shader writes instances with the **RayTracingInstances** mixin, which writes them in the layout of the platform the shader is compiled for:
+ - `RayTracingInstance` - Has the members of @b3d::GpuRayTracingInstance, with the transform as a `float3x4` of rows, the flags as `RAY_TRACING_INSTANCE_*` values, and the reference in **BottomLevel**.
+ - `WriteRayTracingInstance(instances, instanceIndex, instance)` - Writes an instance into a `RWByteAddressBuffer`, as @b3d::GpuDevice::WriteRayTracingInstances would.
+ - `WriteEmptyRayTracingInstance(instances, instanceIndex)` - Writes an instance that rays never hit.
+ - `RAY_TRACING_INSTANCE_SIZE` - The size of one instance, equal to @b3d::GpuRayTracingCapabilities::InstanceSize.
+
+~~~~~~~~~~~~~{.cpp}
+#include "$ENGINE$\RayTracingInstances.bslinc"
+
+shader WriteInstances
+{
+	mixin RayTracingInstances;
+
+	code
+	{
+		StructuredBuffer<float4> TransformRows; // Three rows per instance
+		StructuredBuffer<uint2> References;
+		RWByteAddressBuffer Instances;
+
+		[numthreads(64, 1, 1)]
+		void csmain(uint3 threadId : SV_DispatchThreadID)
+		{
+			const uint instanceIndex = threadId.x;
+
+			RayTracingInstance instance;
+			instance.Transform = float3x4(TransformRows[instanceIndex * 3], TransformRows[instanceIndex * 3 + 1], TransformRows[instanceIndex * 3 + 2]);
+			instance.InstanceId = instanceIndex;
+			instance.HitGroupIndexOffset = 0;
+			instance.Mask = 0xFF;
+			instance.Flags = 0;
+			instance.BottomLevel = References[instanceIndex];
+
+			WriteRayTracingInstance(Instances, instanceIndex, instance);
+		}
+	};
+};
+~~~~~~~~~~~~~
+
+The instance buffer is a structured storage buffer with an element size of **InstanceSize**, created with both @b3d::GpuBufferFlag::AccelerationStructureInput and @b3d::GpuBufferFlag::GpuWrite. Unlike a buffer the CPU writes, it needs a barrier from the shader's write to the build's read in @b3d::render::GpuStageFlag::AccelerationStructureBuildInput.
+
+The build's @b3d::GpuAccelerationStructureBuild::BottomLevels lists every structure whose reference the shader can read, since the CPU can't see which ones it wrote.
+
 ## Building
 @b3d::render::GpuCommandBuffer::BuildAccelerationStructures records one or more builds, each described by a @b3d::GpuAccelerationStructureBuild. Builds are recorded on a graphics or compute command buffer, outside of a render pass. A build overwrites the previous contents of its destination.
 

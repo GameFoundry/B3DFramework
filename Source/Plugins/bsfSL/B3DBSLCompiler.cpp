@@ -43,7 +43,12 @@ static TShared<Shader> CreateShader(const String& name, const ShaderCreateInform
 	if(compilerMetaData != nullptr)
 	{
 		for(const auto& includePath : includes)
-			compilerMetaData->IncludeHashes[includePath] = Shader::ComputeIncludeHash(includePath);
+		{
+			// The compiler has just read every include, so each can be found
+			const TOptional<Array<u64, 2>> includeHash = Shader::ComputeIncludeHash(includePath);
+			if(B3D_ENSURE(includeHash.has_value()))
+				compilerMetaData->IncludeHashes[includePath] = includeHash.value();
+		}
 	}
 
 	return shader;
@@ -57,7 +62,12 @@ static TShared<render::Shader> CreateShader(const String& name, const render::Sh
 	if(compilerMetaData != nullptr)
 	{
 		for(const auto& includePath : includes)
-			compilerMetaData->IncludeHashes[includePath] = Shader::ComputeIncludeHash(includePath);
+		{
+			// The compiler has just read every include, so each can be found
+			const TOptional<Array<u64, 2>> includeHash = Shader::ComputeIncludeHash(includePath);
+			if(B3D_ENSURE(includeHash.has_value()))
+				compilerMetaData->IncludeHashes[includePath] = includeHash.value();
+		}
 	}
 
 	return shader;
@@ -69,11 +79,36 @@ ShaderCompilerResult BSLCompiler::TCompile(const String& name, const String& sou
 	CoreVariantType<ShaderCreateInformation, IsRenderProxy> shaderCreateInformation;
 	Vector<String> shaderIncludes;
 
+	// The meta-data doesn't depend on the language, but includes may. With a single language, parsing with its define gives both.
+	const bool isSingleLanguage = languages.size() == 1;
+	const UnorderedMap<String, String> metaDataDefines = isSingleLanguage ? GetLanguageDefines(defines, languages[0]) : defines;
+
 	BSLParsedShaderMetaData parsedShaderMetaData;
-	ShaderCompilerResult compileResult = BSLParser::ParseMetaData(source, defines, *shaderCreateInformation.Description, parsedShaderMetaData, shaderIncludes);
+	ShaderCompilerResult compileResult = BSLParser::ParseMetaData(source, metaDataDefines, *shaderCreateInformation.Description, parsedShaderMetaData, shaderIncludes);
 
 	if(!compileResult.ErrorMessage.empty())
 		return compileResult;
+
+	// With several languages, collect the includes of every language with a define from a parse of its own
+	for(u32 languageIndex = 0; !isSingleLanguage && languageIndex < (u32)languages.size(); languageIndex++)
+	{
+		const HLSLCrossCompileTarget* target = HLSLCrossCompiler::GetTarget(languages[languageIndex]);
+		if(target == nullptr || target->PreprocessorDefine == nullptr)
+			continue;
+
+		ShaderDescription languageDescription;
+		BSLParsedShaderMetaData languageMetaData;
+		Vector<String> languageIncludes;
+		compileResult = BSLParser::ParseMetaData(source, GetLanguageDefines(defines, languages[languageIndex]), languageDescription, languageMetaData, languageIncludes);
+		if(!compileResult.ErrorMessage.empty())
+			return compileResult;
+
+		for(const String& include : languageIncludes)
+		{
+			if(std::find(shaderIncludes.begin(), shaderIncludes.end(), include) == shaderIncludes.end())
+				shaderIncludes.push_back(include);
+		}
+	}
 
 	TShared<ShaderCompilerMetaData> compilerMetaData = B3DMakeShared<ShaderCompilerMetaData>();
 	compilerMetaData->Source = source;
@@ -98,25 +133,26 @@ ShaderCompilerResult BSLCompiler::TCompile(const String& name, const String& sou
 		shaderCreateInformation.CompilerMetaData = compilerMetaData;
 	}
 
-	// For every variation, re-parse the file with relevant defines
+	// For every variation and language, re-parse the file with relevant defines
 	u32 variationIndex = 0;
 	bool wasShaderCreationAttempted = false;
 	for(auto& variationParameters : compilerMetaData->Variations)
 	{
-		BSLParsedShaderData parsedNode;
-
-		if(compileVariations || !wasShaderCreationAttempted)
-		{
-			compileResult = BSLParser::ParseVariation(parsedShaderMetaData.Name, source, variationParameters, defines, parsedNode);
-
-			if(!compileResult.ErrorMessage.empty())
-				return compileResult;
-		}
-
 		for(u32 languageIndex = 0; languageIndex < languages.size(); ++languageIndex)
 		{
 			// Only reflect first variation of each language
-			if(variationIndex < languages.size())
+			const bool reflectsVariation = variationIndex < languages.size();
+
+			BSLParsedShaderData parsedNode;
+			if(compileVariations || reflectsVariation)
+			{
+				compileResult = BSLParser::ParseVariation(parsedShaderMetaData.Name, source, variationParameters, GetLanguageDefines(defines, languages[languageIndex]), parsedNode);
+
+				if(!compileResult.ErrorMessage.empty())
+					return compileResult;
+			}
+
+			if(reflectsVariation)
 			{
 				const auto passCount = (u32)parsedNode.Passes.size();
 				for(u32 passIndex = 0; passIndex < passCount; passIndex++)
@@ -222,7 +258,7 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const CoreVariantType<Shader
 	}
 
 	BSLParsedShaderData parsedNode;
-	ShaderCompilerResult compileResult = BSLParser::ParseVariation(shader.GetShaderName(), compilerMetaData->Source, variationParameters, compilerMetaData->Defines, parsedNode);
+	ShaderCompilerResult compileResult = BSLParser::ParseVariation(shader.GetShaderName(), compilerMetaData->Source, variationParameters, GetLanguageDefines(compilerMetaData->Defines, language), parsedNode);
 
 	if(!compileResult.ErrorMessage.empty())
 		return compileResult;
@@ -393,6 +429,17 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BS
 	outVariation.SetCompiledPassData(orderedPasses);
 
 	return compileResult;
+}
+
+UnorderedMap<String, String> BSLCompiler::GetLanguageDefines(const UnorderedMap<String, String>& defines, const String& language)
+{
+	UnorderedMap<String, String> languageDefines = defines;
+
+	const HLSLCrossCompileTarget* target = HLSLCrossCompiler::GetTarget(language);
+	if(target != nullptr && target->PreprocessorDefine != nullptr)
+		languageDefines[target->PreprocessorDefine] = "1";
+
+	return languageDefines;
 }
 
 Vector<ShaderVariationParameters> BSLCompiler::CreateShaderVariations(const BSLParsedShaderMetaData& shaderMetaData)

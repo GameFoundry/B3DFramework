@@ -88,6 +88,16 @@ namespace b3d
 	TShared<GpuComputePipelineState> CreateTestInlineRayTracingBindlessPipeline(GpuDevice& device);
 
 	/**
+	 * Creates a compute pipeline that writes top level instances with RayTracingInstances.bslinc, 64 threads per group. Thread N, below the
+	 * push constant InstanceCount, reads element N of the structured buffer Sources (the transform by rows as three float4, then the
+	 * instance id, hit group index offset, mask and flags as four words) and element N of the structured buffer References (a reference
+	 * written by GpuDevice::WriteAccelerationStructureReferences()), and writes the instance at index N of the raw storage buffer Instances.
+	 * A source with bit 31 of its flags set is written with WriteEmptyRayTracingInstance() instead. Returns null if the shader cannot be
+	 * resolved for the active backend.
+	 */
+	TShared<GpuComputePipelineState> CreateTestRayTracingInstancesPipeline(GpuDevice& device);
+
+	/**
 	 * Creates a compute pipeline that traces one ray per thread group along +Z against the top level acceleration structure Scene, from the
 	 * origin in element N of the structured buffer RayOrigins (float4). On a hit it reads the triangle through RayTracingGeometryAccess.bslinc,
 	 * with the layout at element InstanceID() + GeometryIndex() of the structured buffer Layouts, and writes into element N of the

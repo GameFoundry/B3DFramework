@@ -438,11 +438,11 @@ Array<u64, 2> Shader::ComputeHash(const String& string)
 	return { hash.first, hash.second };
 }
 
-Array<u64, 2> Shader::ComputeIncludeHash(const String& path)
+TOptional<Array<u64, 2>> Shader::ComputeIncludeHash(const String& path)
 {
 	const TOptional<String> shaderIncludeSource = ShaderManager::Instance().FindIncludeSource(path);
 	if(!shaderIncludeSource.has_value())
-		return { 0, 0 };
+		return {};
 
 	return ComputeHash(shaderIncludeSource.value());
 }

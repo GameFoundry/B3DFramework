@@ -38,6 +38,11 @@ namespace b3d
 		void TestShaderReflectionCompilation();
 		/** Verifies BSL ray tracing passes, inline tracing reflection and the error for passes mixing both kinds of entry points. */
 		void TestRayTracingShaderCompilation();
+		/**
+		 * Verifies that BSL sees the define of the language it compiles for (VULKAN for vksl), and selects mixins with it, when variations
+		 * are compiled with the shader and when they are compiled later.
+		 */
+		void TestShaderLanguageDefines();
 #endif
 #if B3D_PLATFORM_MACOS
 		void TestMacOSDesktopInput();

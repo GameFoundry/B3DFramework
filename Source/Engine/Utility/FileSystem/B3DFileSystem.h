@@ -162,6 +162,15 @@ namespace b3d
 		 */
 		static Path GetHostFileSystemRoot();
 
+		/**
+		 * Resolves a path in the source tree, for development runs that read data from it. Returns @p path if it exists. Otherwise, on
+		 * platforms where development runs are served from a host PC, returns the same path through the host's filesystem (see
+		 * GetHostFileSystemRoot()), whether or not it exists there. Returns @p path when neither applies.
+		 *
+		 * @param	path	Absolute path in the source tree, as seen on the host PC.
+		 */
+		static Path ResolveSourceTreePath(const Path& path);
+
 	private:
 		/** Initializes the platform's storage and I/O services. */
 		static void PlatformStartUp();

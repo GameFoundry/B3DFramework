@@ -371,6 +371,10 @@ namespace b3d
 			if (!GpuDevice::WriteRayTracingInstances(instances, destination))
 				return false;
 
+			// Shaders write the same layout through RayTracingInstances.bslinc
+			static_assert(sizeof(MTLIndirectAccelerationStructureInstanceDescriptor) == 72, "RayTracingInstances.bslinc writes 72-byte instances.");
+			static_assert(offsetof(MTLIndirectAccelerationStructureInstanceDescriptor, accelerationStructureID) == 64, "The structure comes last.");
+
 			auto* const output = static_cast<MTLIndirectAccelerationStructureInstanceDescriptor*>(destination);
 			for (u32 instanceIndex = 0; instanceIndex < (u32)instances.size(); instanceIndex++)
 			{
@@ -418,6 +422,27 @@ namespace b3d
 
 				// The destination may be write-combined memory, so each instance is written once and never read
 				std::memcpy(&output[instanceIndex], &nativeInstance, sizeof(nativeInstance));
+			}
+
+			return true;
+		}
+
+		bool MetalGpuDevice::WriteAccelerationStructureReferences(TArrayView<const GpuAccelerationStructure* const> bottomLevels, void* destination) const
+		{
+			if (!GpuDevice::WriteAccelerationStructureReferences(bottomLevels, destination))
+				return false;
+
+			// The reference is the resource ID WriteRayTracingInstances() writes, which stays valid as a structure never changes its native
+			// object
+			static_assert(sizeof(MTLResourceID) == 8, "References are 8 bytes.");
+			auto* const output = static_cast<u8*>(destination);
+			for (u32 structureIndex = 0; structureIndex < (u32)bottomLevels.size(); structureIndex++)
+			{
+				MTLResourceID resourceId = MTLResourceID{ 0 };
+				if (bottomLevels[structureIndex] != nullptr)
+					resourceId = static_cast<const MetalGpuAccelerationStructure&>(*bottomLevels[structureIndex]).GetMetalResource()->GetMetalHandle().gpuResourceID;
+
+				std::memcpy(output + structureIndex * sizeof(resourceId), &resourceId, sizeof(resourceId));
 			}
 
 			return true;

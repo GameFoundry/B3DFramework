@@ -828,6 +828,10 @@ bool VulkanGpuDevice::WriteRayTracingInstances(TArrayView<const GpuRayTracingIns
 	if(!GpuDevice::WriteRayTracingInstances(instances, destination))
 		return false;
 
+	// Shaders write the same layout through RayTracingInstances.bslinc
+	static_assert(sizeof(VkAccelerationStructureInstanceKHR) == 64, "RayTracingInstances.bslinc writes 64-byte instances.");
+	static_assert(offsetof(VkAccelerationStructureInstanceKHR, accelerationStructureReference) == 56, "The structure comes last.");
+
 	auto* const output = static_cast<VkAccelerationStructureInstanceKHR*>(destination);
 	for(u32 instanceIndex = 0; instanceIndex < (u32)instances.size(); instanceIndex++)
 	{
@@ -868,6 +872,25 @@ bool VulkanGpuDevice::WriteRayTracingInstances(TArrayView<const GpuRayTracingIns
 
 		// The destination may be write-combined memory, so each instance is written once and never read
 		memcpy(&output[instanceIndex], &nativeInstance, sizeof(nativeInstance));
+	}
+
+	return true;
+}
+
+bool VulkanGpuDevice::WriteAccelerationStructureReferences(TArrayView<const render::GpuAccelerationStructure* const> bottomLevels, void* destination) const
+{
+	if(!GpuDevice::WriteAccelerationStructureReferences(bottomLevels, destination))
+		return false;
+
+	// The reference is the address WriteRayTracingInstances() writes, which stays valid as a structure never changes its native object
+	auto* const output = static_cast<u8*>(destination);
+	for(u32 structureIndex = 0; structureIndex < (u32)bottomLevels.size(); structureIndex++)
+	{
+		VkDeviceAddress address = 0;
+		if(bottomLevels[structureIndex] != nullptr)
+			address = static_cast<const VulkanGpuAccelerationStructure&>(*bottomLevels[structureIndex]).GetVulkanResource()->GetDeviceAddress();
+
+		memcpy(output + structureIndex * sizeof(address), &address, sizeof(address));
 	}
 
 	return true;

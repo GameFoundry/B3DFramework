@@ -35,6 +35,15 @@ namespace b3d
 		void TestInlineRayTracing();
 
 		/**
+		 * Writes top level instances with RayTracingInstances.bslinc from a compute shader, and checks that they match what
+		 * GpuDevice::WriteRayTracingInstances() writes for the same instances byte for byte: every valid flag combination, empty
+		 * instances, the largest ids and hit group offsets, several masks and affine transforms. Then builds a top level structure from
+		 * each, and checks that rays hit the same instances in both. Also checks the errors of
+		 * GpuDevice::WriteAccelerationStructureReferences(). Runs only with RSC_ACCELERATION_STRUCTURES and RSC_RAY_QUERY.
+		 */
+		void TestGpuWrittenInstances();
+
+		/**
 		 * Verifies the creation errors of ray tracing pipelines and shader binding tables, the payload and attribute sizes of a pipeline, and
 		 * the errors of DispatchRays(). Without RSC_RAY_TRACING_PIPELINE, verifies that creation and dispatches fail.
 		 */

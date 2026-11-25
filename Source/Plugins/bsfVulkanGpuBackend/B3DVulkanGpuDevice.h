@@ -129,6 +129,7 @@ namespace b3d
 			GpuMemoryRequirements GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const override;
 			bool GetAccelerationStructureSizes(const GpuAccelerationStructureInputs& inputs, GpuAccelerationStructureSizes& outSizes) const override;
 			bool WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance> instances, void* destination) const override;
+			bool WriteAccelerationStructureReferences(TArrayView<const render::GpuAccelerationStructure* const> bottomLevels, void* destination) const override;
 			bool GetSerializedAccelerationStructureInformation(TArrayView<const u8> data, GpuSerializedAccelerationStructureInformation& outInformation) const override;
 			IGpuAllocator& GetPersistentAllocator(u32 memoryType) override;
 			void GetPersistentAllocators(TArray<IGpuAllocator*>& outAllocators) override;

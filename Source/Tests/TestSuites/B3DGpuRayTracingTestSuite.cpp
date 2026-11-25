@@ -36,6 +36,7 @@
 #include "GpuBackend/B3DGpuWorkContext.h"
 #include "Material/B3DShaderReflection.h"
 #include "Math/B3DMatrix4.h"
+#include "Math/B3DQuaternion.h"
 #include "Math/B3DVector3.h"
 
 using namespace b3d;
@@ -47,6 +48,7 @@ GpuRayTracingTestSuite::GpuRayTracingTestSuite()
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestAccelerationStructureCreation)
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestAccelerationStructureQueries)
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestInlineRayTracing)
+	B3D_ADD_TEST(GpuRayTracingTestSuite::TestGpuWrittenInstances)
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestRayTracingPipelineCreation)
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestRayTracingPipelineRecords)
 	B3D_ADD_TEST(GpuRayTracingTestSuite::TestFrameGraph)
@@ -351,6 +353,14 @@ void GpuRayTracingTestSuite::TestAccelerationStructureQueries()
 
 				u8 instanceData[128] = {};
 				B3D_TEST_ASSERT(!device->WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance>(), instanceData))
+			}
+
+			{
+				LoggingScope logs(*this);
+				logs.ExpectError("Cannot write acceleration structure references, the GPU device doesn't support acceleration structures.");
+
+				u64 reference = 0;
+				B3D_TEST_ASSERT(!device->WriteAccelerationStructureReferences(TArrayView<const GpuAccelerationStructure* const>(), &reference))
 			}
 
 			{
@@ -981,6 +991,430 @@ void GpuRayTracingTestSuite::TestInlineRayTracing()
 		B3D_TEST_ASSERT_MSG(actual[0] == 1.0f && std::abs(actual[1] - 5.0f) < kTolerance && actual[2] == 9.0f && actual[3] == 1.0f,
 			StringUtility::Format("Heap ray: hit {0}, distance {1}, instance id {2}, instance index {3}.", actual[0], actual[1], actual[2], actual[3]))
 	}, "GpuRayTracingTestSuite::TestInlineRayTracing", true);
+}
+
+namespace
+{
+	/** Instance the RayTracingInstances test shader writes, in the layout of its InstanceSource structure. */
+	struct TestInstanceSource
+	{
+		float TransformRows[3][4];
+		u32 InstanceId;
+		u32 HitGroupIndexOffset;
+		u32 Mask;
+		u32 Flags;
+	};
+
+	static_assert(sizeof(TestInstanceSource) == 64, "TestInstanceSource must match the layout of the shader's structure.");
+
+	/** Set in TestInstanceSource::Flags to have the shader write the instance with WriteEmptyRayTracingInstance(). */
+	constexpr u32 kWriteEmptyInstance = 0x80000000;
+} // namespace
+
+void GpuRayTracingTestSuite::TestGpuWrittenInstances()
+{
+	GpuBackend& backend = GpuBackend::Instance();
+	if(backend.GetDeviceCount() == 0)
+		return;
+
+	const TShared<GpuDevice> device = backend.GetDevice(0);
+	const GpuDeviceCapabilities& capabilities = device->GetCapabilities();
+	if(!capabilities.HasCapability(RSC_ACCELERATION_STRUCTURES) || !capabilities.HasCapability(RSC_RAY_QUERY))
+		return;
+
+	// Shaders are resources, which are created outside of the render thread
+	const TShared<GpuComputePipelineState> writePipeline = CreateTestRayTracingInstancesPipeline(*device);
+	const TShared<GpuComputePipelineState> tracePipeline = CreateTestInlineRayTracingPipeline(*device);
+	B3D_TEST_ASSERT(writePipeline != nullptr && tracePipeline != nullptr)
+	if(writePipeline == nullptr || tracePipeline == nullptr)
+		return;
+
+	GetRenderThread().PostCommand([this, &device, &writePipeline, &tracePipeline]()
+	{
+		const GpuRayTracingCapabilities& rayTracing = device->GetCapabilities().RayTracing;
+		const GpuBufferFlags inputFlags = GpuBufferFlag::AccelerationStructureInput;
+		const u32 instanceSize = rayTracing.InstanceSize;
+
+		// One opaque triangle at Z = 5
+		const float vertexData[] = { 0.0f, 0.0f, 5.0f, 1.0f, 0.0f, 5.0f, 0.0f, 1.0f, 5.0f };
+		const TShared<render::GpuBuffer> vertices = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(12, 3, inputFlags, GpuBufferMemory::Mapped));
+		B3D_TEST_ASSERT(vertices != nullptr)
+		if(vertices == nullptr)
+			return;
+
+		{
+			const render::GpuBufferMappedScope mapping = vertices->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			std::memcpy(mapping.GetMappedMemory(), vertexData, sizeof(vertexData));
+		}
+
+		const GpuRayTracingGeometry triangle(vertices, 12, 3);
+		const GpuAccelerationStructureInputs bottomLevelInputs(TArrayView<const GpuRayTracingGeometry>(&triangle, 1));
+		GpuAccelerationStructureSizes bottomLevelSizes;
+		B3D_TEST_ASSERT(device->GetAccelerationStructureSizes(bottomLevelInputs, bottomLevelSizes))
+
+		const TShared<GpuAccelerationStructure> bottomLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::BottomLevel, bottomLevelSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "BottomLevel"));
+		B3D_TEST_ASSERT(bottomLevel != nullptr)
+		if(bottomLevel == nullptr)
+			return;
+
+		// The instances, described for both writers. The first ones are traced, the rest are only compared.
+		Vector<GpuRayTracingInstance> instances;
+		Vector<TestInstanceSource> sources;
+		const auto fnAddInstance = [&instances, &sources](const GpuAccelerationStructure* structure, const Matrix4& transform, u32 instanceId, u32 hitGroupIndexOffset,
+			u32 mask, GpuRayTracingInstanceFlags flags)
+		{
+			GpuRayTracingInstance instance(structure, transform, instanceId);
+			instance.HitGroupIndexOffset = hitGroupIndexOffset;
+			instance.Mask = (u8)mask;
+			instance.Flags = flags;
+			instances.push_back(instance);
+
+			TestInstanceSource source;
+			for(u32 row = 0; row < 3; row++)
+			{
+				for(u32 column = 0; column < 4; column++)
+					source.TransformRows[row][column] = transform[row][column];
+			}
+
+			source.InstanceId = instanceId;
+			source.HitGroupIndexOffset = hitGroupIndexOffset;
+			source.Mask = mask;
+			source.Flags = (u32)flags;
+			sources.push_back(source);
+		};
+
+		// Instances 10 units apart along Y
+		const GpuAccelerationStructure* const structure = bottomLevel.get();
+		fnAddInstance(structure, Matrix4::Translation(Vector3(0.0f, 0.0f, 0.0f)), 7, 0, 0x01, GpuRayTracingInstanceFlag::None);
+		fnAddInstance(structure, Matrix4::Translation(Vector3(0.0f, 10.0f, 0.0f)), 9, 0, 0x02, GpuRayTracingInstanceFlag::FlipTriangleFacing);
+		fnAddInstance(structure, Matrix4::Translation(Vector3(0.0f, 20.0f, 0.0f)), 11, 0, 0x04, GpuRayTracingInstanceFlag::DisableTriangleCulling);
+		fnAddInstance(nullptr, Matrix4::Translation(Vector3(0.0f, 30.0f, 0.0f)), 13, 0, 0xFF, GpuRayTracingInstanceFlag::None);
+
+		// What WriteEmptyRayTracingInstance() writes
+		fnAddInstance(nullptr, Matrix4::kZero, 0, 0, 0x00, GpuRayTracingInstanceFlag::FlipTriangleFacing);
+		sources.back().Flags = kWriteEmptyInstance;
+
+		fnAddInstance(structure, Matrix4::Translation(Vector3(0.0f, 50.0f, 0.0f)), 17, 0, 0x08, GpuRayTracingInstanceFlag::ForceNonOpaque);
+		fnAddInstance(structure, Matrix4::TRS(Vector3(0.0f, 60.0f, 0.0f), Quaternion::kIdentity, Vector3(2.0f, 2.0f, 1.0f)), 19, 0, 0xFF,
+			GpuRayTracingInstanceFlag::None);
+
+		static constexpr u32 kTracedInstanceCount = 7;
+
+		// Every valid flag combination
+		for(u32 flagBits = 0; flagBits < 16; flagBits++)
+		{
+			const GpuRayTracingInstanceFlags flags = (GpuRayTracingInstanceFlag)flagBits;
+			if(flags.IsSet(GpuRayTracingInstanceFlag::ForceOpaque) && flags.IsSet(GpuRayTracingInstanceFlag::ForceNonOpaque))
+				continue;
+
+			fnAddInstance(structure, Matrix4::Translation(Vector3(0.0f, 0.0f, 100.0f + flagBits)), 100 + flagBits, flagBits, 0xFF, flags);
+		}
+
+		// The largest id and hit group offset, other masks, an empty instance with other fields set, and a rotated, scaled transform
+		const Matrix4 transform = Matrix4::TRS(Vector3(1.5f, -2.25f, 3.0f), Quaternion(Vector3(0.6f, 0.0f, 0.8f), Radian(0.7f)), Vector3(0.5f, 2.0f, 3.0f));
+		fnAddInstance(structure, transform, 0xFFFFFF, 0xFFFFFF, 0x5A, GpuRayTracingInstanceFlag::ForceOpaque);
+		fnAddInstance(structure, transform, 0, 0, 0x00, GpuRayTracingInstanceFlag::None);
+		fnAddInstance(nullptr, transform, 21, 3, 0x5A, GpuRayTracingInstanceFlag::DisableTriangleCulling | GpuRayTracingInstanceFlag::ForceOpaque);
+
+		const u32 instanceCount = (u32)instances.size();
+
+		// A null structure has the reference of no structure
+		{
+			const GpuAccelerationStructure* const structures[] = { structure, nullptr };
+			u64 references[2] = { 0, ~0ull };
+			B3D_TEST_ASSERT(device->WriteAccelerationStructureReferences(TArrayView<const GpuAccelerationStructure* const>(structures, 2), references))
+			B3D_TEST_ASSERT(references[0] != 0 && references[1] == 0)
+		}
+
+		// Both writers write into buffers top level builds read
+		const TShared<render::GpuBuffer> sourceBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(TestInstanceSource),
+			instanceCount, GpuBufferFlag::None, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> referenceBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(u64), instanceCount,
+			GpuBufferFlag::None, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> gpuInstances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(instanceSize, instanceCount,
+			inputFlags | GpuBufferFlag::GpuWrite));
+		const TShared<render::GpuBuffer> cpuInstances = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(instanceSize, instanceCount,
+			inputFlags, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> instanceReadback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(instanceCount * instanceSize));
+		B3D_TEST_ASSERT(sourceBuffer != nullptr && referenceBuffer != nullptr && gpuInstances != nullptr && cpuInstances != nullptr && instanceReadback != nullptr)
+		if(sourceBuffer == nullptr || referenceBuffer == nullptr || gpuInstances == nullptr || cpuInstances == nullptr || instanceReadback == nullptr)
+			return;
+
+		Vector<const GpuAccelerationStructure*> structures(instanceCount);
+		for(u32 instanceIndex = 0; instanceIndex < instanceCount; instanceIndex++)
+			structures[instanceIndex] = instances[instanceIndex].BottomLevel;
+
+		// The host writes are made visible by the submission
+		{
+			const render::GpuBufferMappedScope sourceMapping = sourceBuffer->Map(GpuMapOption::Write);
+			const render::GpuBufferMappedScope referenceMapping = referenceBuffer->Map(GpuMapOption::Write);
+			const render::GpuBufferMappedScope instanceMapping = cpuInstances->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(sourceMapping.IsValid() && referenceMapping.IsValid() && instanceMapping.IsValid())
+			if(!sourceMapping.IsValid() || !referenceMapping.IsValid() || !instanceMapping.IsValid())
+				return;
+
+			std::memcpy(sourceMapping.GetMappedMemory(), sources.data(), instanceCount * sizeof(TestInstanceSource));
+			B3D_TEST_ASSERT(device->WriteAccelerationStructureReferences(TArrayView<const GpuAccelerationStructure* const>(structures.data(), instanceCount),
+				referenceMapping.GetMappedMemory()))
+			B3D_TEST_ASSERT(device->WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance>(instances.data(), instanceCount), instanceMapping.GetMappedMemory()))
+		}
+
+		Vector<u8> expectedInstances(instanceCount * instanceSize);
+		B3D_TEST_ASSERT(device->WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance>(instances.data(), instanceCount), expectedInstances.data()))
+
+		// A top level structure of the traced instances from each writer
+		const GpuAccelerationStructureInputs gpuInputs(gpuInstances, kTracedInstanceCount);
+		const GpuAccelerationStructureInputs cpuInputs(cpuInstances, kTracedInstanceCount);
+		GpuAccelerationStructureSizes topLevelSizes;
+		B3D_TEST_ASSERT(device->GetAccelerationStructureSizes(gpuInputs, topLevelSizes))
+
+		const TShared<GpuAccelerationStructure> gpuTopLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::TopLevel, topLevelSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "GpuWrittenTopLevel"));
+		const TShared<GpuAccelerationStructure> cpuTopLevel = device->CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(
+			GpuAccelerationStructureType::TopLevel, topLevelSizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "CpuWrittenTopLevel"));
+		B3D_TEST_ASSERT(gpuTopLevel != nullptr && cpuTopLevel != nullptr)
+		if(gpuTopLevel == nullptr || cpuTopLevel == nullptr)
+			return;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+		{
+			LoggingScope logs(*this);
+			logs.ExpectError("Acceleration structure 1 is a top level structure. Only references to bottom level structures can be written.");
+
+			const GpuAccelerationStructure* const mixedStructures[] = { structure, gpuTopLevel.get() };
+			u64 references[2] = {};
+			B3D_TEST_ASSERT(!device->WriteAccelerationStructureReferences(TArrayView<const GpuAccelerationStructure* const>(mixedStructures, 2), references))
+		}
+#endif
+
+		// The bottom level build and the two top level builds use ranges of one scratch buffer
+		const u32 scratchAlignment = rayTracing.ScratchOffsetAlignment;
+		const u32 cpuScratchOffset = AlignUp(topLevelSizes.BuildScratchSize, scratchAlignment);
+		const u32 scratchSize = std::max(bottomLevelSizes.BuildScratchSize, cpuScratchOffset + topLevelSizes.BuildScratchSize);
+		const TShared<render::GpuBuffer> scratch = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(4, AlignUp(scratchSize, 4) / 4,
+			GpuBufferFlag::GpuWrite));
+		B3D_TEST_ASSERT(scratch != nullptr)
+		if(scratch == nullptr)
+			return;
+
+		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
+		const TShared<render::GpuCommandBufferPool> pool = GpuBarrierTestUtility::CreateCommandBufferPool(*device);
+
+		const TShared<render::GpuParameterSet> writeParameterSet = context->GetParameterSetPool().Create(writePipeline->GetParameterLayout()->GetSet(0), 0);
+		writeParameterSet->SetStorageBuffer("Sources", sourceBuffer);
+		writeParameterSet->SetStorageBuffer("References", referenceBuffer);
+		writeParameterSet->SetStorageBuffer("Instances", gpuInstances);
+
+		const GpuAccessState buildWrite(GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Write);
+		const GpuAccessState scratchAccess(GpuStageFlag::AccelerationStructureBuild, GpuAccessFlag::Read | GpuAccessFlag::Write);
+		const GpuAccessState buildInputRead(GpuStageFlag::AccelerationStructureBuildInput, GpuAccessFlag::Read);
+		const GpuAccessState computeWrite(GpuStageFlag::ComputeShaderNonUniform, GpuAccessFlag::Write);
+		const GpuAccessState transferWrite(GpuStageFlag::Transfer, GpuAccessFlag::Write);
+		const GpuAccessState transferRead(GpuStageFlag::Transfer, GpuAccessFlag::Read);
+		const GpuAccessState hostRead(GpuStageFlag::Host, GpuAccessFlag::Read);
+		const GpuAccessState bottomLevelRest = GpuBackendUtility::GetRestingState(*bottomLevel, GQT_GRAPHICS);
+		const GpuAccessState topLevelRest = GpuBackendUtility::GetRestingState(*gpuTopLevel, GQT_GRAPHICS);
+		const GpuAccessState scratchRest = GpuBackendUtility::GetRestingState(*scratch, GQT_GRAPHICS);
+
+		{
+			const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create("GPU-written instances"));
+
+			const GpuBufferBarrier startBufferBarriers[] = { GpuBufferBarrier(scratch, GpuAccessState(), scratchAccess), GpuBufferBarrier(gpuInstances, GpuAccessState(), computeWrite) };
+			const GpuAccelerationStructureBarrier startBarrier(bottomLevel, GpuAccessState(), buildWrite);
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(startBufferBarriers, 2), {}, {}, TArrayView<const GpuAccelerationStructureBarrier>(&startBarrier, 1)));
+
+			const GpuAccelerationStructureBuild bottomLevelBuild(bottomLevelInputs, bottomLevel, scratch);
+			B3D_TEST_ASSERT(commands->BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(&bottomLevelBuild, 1)))
+
+			// The shader writes the instances while the bottom level structure builds
+			commands->SetGpuComputePipelineState(writePipeline);
+			commands->SetGpuParameterSet(writeParameterSet);
+			commands->SetPushConstants(0, sizeof(instanceCount), &instanceCount);
+			commands->DispatchCompute((instanceCount + 63) / 64);
+
+			const GpuBufferBarrier topLevelBufferBarriers[] = { GpuBufferBarrier(scratch, scratchAccess, scratchAccess), GpuBufferBarrier(gpuInstances, computeWrite, buildInputRead) };
+			const GpuAccelerationStructureBarrier topLevelBarriers[] =
+			{
+				GpuAccelerationStructureBarrier(bottomLevel, buildWrite, bottomLevelRest),
+				GpuAccelerationStructureBarrier(gpuTopLevel, GpuAccessState(), buildWrite),
+				GpuAccelerationStructureBarrier(cpuTopLevel, GpuAccessState(), buildWrite)
+			};
+
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(topLevelBufferBarriers, 2), {}, {},
+				TArrayView<const GpuAccelerationStructureBarrier>(topLevelBarriers, 3)));
+
+			GpuAccelerationStructureBuild topLevelBuilds[] =
+			{
+				GpuAccelerationStructureBuild(gpuInputs, gpuTopLevel, scratch),
+				GpuAccelerationStructureBuild(cpuInputs, cpuTopLevel, scratch, cpuScratchOffset)
+			};
+
+			topLevelBuilds[0].BottomLevels = TArrayView<const TShared<GpuAccelerationStructure>>(&bottomLevel, 1);
+			topLevelBuilds[1].BottomLevels = TArrayView<const TShared<GpuAccelerationStructure>>(&bottomLevel, 1);
+			B3D_TEST_ASSERT(commands->BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>(topLevelBuilds, 2)))
+
+			const GpuBufferBarrier copyBarriers[] =
+			{
+				GpuBufferBarrier(scratch, scratchAccess, scratchRest),
+				GpuBufferBarrier(gpuInstances, buildInputRead, transferRead),
+				GpuBufferBarrier(instanceReadback, GpuAccessState(), transferWrite)
+			};
+
+			const GpuAccelerationStructureBarrier restBarriers[] =
+			{
+				GpuAccelerationStructureBarrier(gpuTopLevel, buildWrite, topLevelRest),
+				GpuAccelerationStructureBarrier(cpuTopLevel, buildWrite, topLevelRest)
+			};
+
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(copyBarriers, 3), {}, {}, TArrayView<const GpuAccelerationStructureBarrier>(restBarriers, 2)));
+			commands->CopyBufferToBuffer(gpuInstances, instanceReadback, 0, 0, instanceCount * instanceSize);
+			commands->IssueBarriers(GpuBufferBarrier(instanceReadback, transferWrite, hostRead));
+			context->SubmitCommandBuffer(commands);
+			device->WaitUntilIdle();
+		}
+
+		// Both writers write the same bytes, padding included
+		{
+			const render::GpuBufferMappedScope mapping = instanceReadback->Map(GpuMapOption::Read);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			const auto fnToHexadecimal = [](const u8* bytes, u32 size)
+			{
+				static constexpr char kDigits[] = "0123456789ABCDEF";
+				String text;
+				for(u32 byteIndex = 0; byteIndex < size; byteIndex++)
+				{
+					text += kDigits[bytes[byteIndex] >> 4];
+					text += kDigits[bytes[byteIndex] & 0xF];
+				}
+
+				return text;
+			};
+
+			const u8* actualInstances = static_cast<const u8*>(mapping.GetMappedMemory());
+			for(u32 instanceIndex = 0; instanceIndex < instanceCount; instanceIndex++)
+			{
+				const u8* actual = actualInstances + instanceIndex * instanceSize;
+				const u8* expected = expectedInstances.data() + instanceIndex * instanceSize;
+				B3D_TEST_ASSERT_MSG(std::memcmp(actual, expected, instanceSize) == 0, StringUtility::Format("Instance {0} written by the shader: {1}, by the CPU: {2}.",
+					instanceIndex, fnToHexadecimal(actual, instanceSize), fnToHexadecimal(expected, instanceSize)))
+			}
+		}
+
+		// Rays hit the same instances in both top level structures
+		static constexpr u32 kCullFrontFacingTriangles = 0x20;
+		const Vector3 forward(0.0f, 0.0f, 1.0f);
+		const TestRay rays[] =
+		{
+			TestRay(Vector3(0.25f, 0.25f, 0.0f), forward),
+			TestRay(Vector3(0.25f, 10.25f, 0.0f), forward),
+			TestRay(Vector3(0.25f, 20.25f, 0.0f), forward, kCullFrontFacingTriangles),
+			TestRay(Vector3(0.25f, 30.25f, 0.0f), forward),
+			TestRay(Vector3(0.25f, 40.25f, 0.0f), forward),
+			TestRay(Vector3(0.25f, 50.25f, 0.0f), forward, 0, 0x08, 2),
+			TestRay(Vector3(0.5f, 60.5f, 0.0f), forward)
+		};
+
+		const ExpectedHit expectedHits[] =
+		{
+			ExpectedHit(5.0f, 0.25f, 0.25f, 0, 7, 0, 0, true), // Front face
+			ExpectedHit(5.0f, 0.25f, 0.25f, 1, 9, 0, 0, false), // The instance flips its facing
+			ExpectedHit(5.0f, 0.25f, 0.25f, 2, 11, 0, 0, true), // The instance disables culling
+			ExpectedHit(), // The instance has no structure
+			ExpectedHit(), // The instance was written as empty
+			ExpectedHit(1), // The instance forces the triangle to be non-opaque, and the callback rejects it
+			ExpectedHit(5.0f, 0.25f, 0.25f, 6, 19, 0, 0, true) // The instance scales the triangle
+		};
+
+		static constexpr u32 kRayCount = sizeof(rays) / sizeof(rays[0]);
+		static_assert(kRayCount == sizeof(expectedHits) / sizeof(expectedHits[0]), "Every ray needs an expected hit.");
+
+		const TShared<render::GpuBuffer> rayBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(TestRay), kRayCount,
+			GpuBufferFlag::None, GpuBufferMemory::Mapped));
+		const TShared<render::GpuBuffer> hitBuffer = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(sizeof(TestHit), kRayCount,
+			GpuBufferFlag::GpuWrite));
+		const TShared<render::GpuBuffer> hitReadback = device->CreateGpuBuffer(GpuBufferCreateInformation::CreateStagingRead(kRayCount * sizeof(TestHit)));
+		B3D_TEST_ASSERT(rayBuffer != nullptr && hitBuffer != nullptr && hitReadback != nullptr)
+		if(rayBuffer == nullptr || hitBuffer == nullptr || hitReadback == nullptr)
+			return;
+
+		{
+			const render::GpuBufferMappedScope mapping = rayBuffer->Map(GpuMapOption::Write);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(!mapping.IsValid())
+				return;
+
+			std::memcpy(mapping.GetMappedMemory(), rays, sizeof(rays));
+		}
+
+		const TShared<render::GpuParameterSet> traceParameterSet = context->GetParameterSetPool().Create(tracePipeline->GetParameterLayout()->GetSet(0), 0);
+		traceParameterSet->SetStorageBuffer("Rays", rayBuffer);
+		traceParameterSet->SetStorageBuffer("Hits", hitBuffer);
+
+		GpuAccessState hitBufferState;
+		GpuAccessState readbackState;
+
+		// Traces every ray against @p topLevel and returns what the rays hit
+		const auto fnTrace = [&](const TShared<GpuAccelerationStructure>& topLevel)
+		{
+			Vector<TestHit> hits(kRayCount);
+			B3D_TEST_ASSERT(traceParameterSet->SetAccelerationStructure("Scene", topLevel))
+
+			const TShared<render::GpuCommandBuffer> commands = pool->Create(render::GpuCommandBufferCreateInformation::Create(topLevel->GetName()));
+			commands->IssueBarriers(GpuBufferBarrier(hitBuffer, hitBufferState, computeWrite));
+			commands->SetGpuComputePipelineState(tracePipeline);
+			commands->SetGpuParameterSet(traceParameterSet);
+			commands->DispatchCompute(kRayCount);
+
+			const GpuBufferBarrier copyBarriers[] = { GpuBufferBarrier(hitBuffer, computeWrite, transferRead), GpuBufferBarrier(hitReadback, readbackState, transferWrite) };
+			commands->IssueBarriers(GpuBarriers(TArrayView<const GpuBufferBarrier>(copyBarriers, 2)));
+			commands->CopyBufferToBuffer(hitBuffer, hitReadback, 0, 0, kRayCount * sizeof(TestHit));
+			commands->IssueBarriers(GpuBufferBarrier(hitReadback, transferWrite, hostRead));
+			context->SubmitCommandBuffer(commands);
+			device->WaitUntilIdle();
+
+			hitBufferState = transferRead;
+			readbackState = hostRead;
+
+			const render::GpuBufferMappedScope mapping = hitReadback->Map(GpuMapOption::Read);
+			B3D_TEST_ASSERT(mapping.IsValid())
+			if(mapping.IsValid())
+				std::memcpy(hits.data(), mapping.GetMappedMemory(), kRayCount * sizeof(TestHit));
+
+			return hits;
+		};
+
+		const Vector<TestHit> gpuHits = fnTrace(gpuTopLevel);
+		const Vector<TestHit> cpuHits = fnTrace(cpuTopLevel);
+		static constexpr float kTolerance = 1e-4f;
+		for(u32 rayIndex = 0; rayIndex < kRayCount; rayIndex++)
+		{
+			const TestHit& actual = gpuHits[rayIndex];
+			const ExpectedHit& expected = expectedHits[rayIndex];
+
+			const String message = StringUtility::Format("Ray {0} against GPU-written instances: hit {1}, distance {2}, barycentrics ({3}, {4}), instance {5} (id {6}), "
+				"geometry {7}, primitive {8}, front face {9}, callbacks {10}.", rayIndex, actual.IsHit, actual.Distance, actual.Barycentrics[0], actual.Barycentrics[1],
+				actual.InstanceIndex, actual.InstanceId, actual.GeometryIndex, actual.PrimitiveIndex, actual.FrontFace, actual.CallbackCount);
+
+			B3D_TEST_ASSERT_MSG(std::memcmp(&actual, &cpuHits[rayIndex], sizeof(TestHit)) == 0, message + " The CPU-written instances give another result.")
+			B3D_TEST_ASSERT_MSG((actual.IsHit != 0.0f) == expected.IsHit, message)
+			B3D_TEST_ASSERT_MSG(actual.CallbackCount == expected.CallbackCount, message)
+			if(!expected.IsHit)
+				continue;
+
+			B3D_TEST_ASSERT_MSG(std::abs(actual.Distance - expected.Distance) < kTolerance, message)
+			B3D_TEST_ASSERT_MSG(std::abs(actual.Barycentrics[0] - expected.BarycentricX) < kTolerance && std::abs(actual.Barycentrics[1] - expected.BarycentricY) < kTolerance, message)
+			B3D_TEST_ASSERT_MSG(actual.InstanceIndex == expected.InstanceIndex && actual.InstanceId == expected.InstanceId, message)
+			B3D_TEST_ASSERT_MSG((actual.FrontFace != 0) == expected.FrontFace, message)
+		}
+	}, "GpuRayTracingTestSuite::TestGpuWrittenInstances", true);
 }
 
 void GpuRayTracingTestSuite::TestFrameGraph()

@@ -81,7 +81,7 @@ namespace
 
 		// The buffer is laid out with the pitch the information describes, rather than the tightest pitch D3D12 allows
 		u32 rowPitch, slicePitch;
-		TextureUtility::GetPitchInBytes(information.BufferPitch, information.Format, rowPitch, slicePitch);
+		TextureUtility::GetBufferCopyPitchInBytes(information.BufferPitch, information.Format, rowPitch, slicePitch);
 		footprint.Footprint.RowPitch = rowPitch;
 
 		return footprint;

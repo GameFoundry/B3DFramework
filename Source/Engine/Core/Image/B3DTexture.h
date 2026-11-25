@@ -866,6 +866,17 @@ namespace b3d
 			static void GetPitchInBytes(const ImageSubresourcePitch& pitch, PixelFormat format, u32& outRowPitch, u32& outSlicePitch);
 
 			/**
+			 * Calculates the row and slice pitch, in bytes, of the data that a copy between a buffer and a texture of @p format transfers, laid
+			 * out with @p pitch. Copies of depth-stencil textures transfer only depth, so a PF_D32_S8X24 texture takes 4 bytes per pixel.
+			 *
+			 * @param pitch				Pitch of the data in the buffer, in pixels, as returned by Texture::GetStagingBufferPitchForSubresource().
+			 * @param format			Format of the texture.
+			 * @param outRowPitch		Bytes from the start of one row (of blocks, for compressed formats) to the next.
+			 * @param outSlicePitch		Bytes from the start of one depth slice to the next.
+			 */
+			static void GetBufferCopyPitchInBytes(const ImageSubresourcePitch& pitch, PixelFormat format, u32& outRowPitch, u32& outSlicePitch);
+
+			/**
 			 * Writes pixel data to a texture subresource.
 			 *
 			 * This method automatically chooses the optimal path:

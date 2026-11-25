@@ -408,6 +408,97 @@ shader BrokenVariationTest
 	}
 }
 
+void CoreTestSuite::TestShaderLanguageDefines()
+{
+	const TShared<IShaderCompiler> compiler = ShaderCompilers::Instance().GetCompiler("bsl");
+	B3D_TEST_ASSERT(compiler != nullptr)
+	if(compiler == nullptr)
+		return;
+
+	// The mixin and the function it adds depend on the language
+	const String source = R"(
+#ifdef VULKAN
+mixin LanguageCode { code { float VulkanLanguageValue() { return 1.0f; } }; };
+#else
+mixin LanguageCode { code { float OtherLanguageValue() { return 2.0f; } }; };
+#endif
+
+shader LanguageDefines
+{
+	mixin LanguageCode;
+
+	code
+	{
+		RWStructuredBuffer<float> Output;
+
+		[numthreads(1, 1, 1)]
+		void csmain()
+		{
+#ifdef VULKAN
+			Output[0] = VulkanLanguageValue();
+#else
+			Output[0] = OtherLanguageValue();
+#endif
+		}
+	};
+};
+)";
+
+	Vector<String> languages = { "vksl" };
+#if B3D_PLATFORM_WIN32
+	languages.push_back("hlsl");
+#elif B3D_PLATFORM_MACOS
+	languages.push_back("msl");
+#endif
+
+	// Checks that each variation's program calls the function of its language
+	const auto fnCheckPrograms = [this](const Shader& shader)
+	{
+		for(const TShared<Variation>& variation : shader.GetVariations())
+		{
+			const u32 passCount = variation->GetPassCount();
+			B3D_TEST_ASSERT(passCount == 1)
+			if(passCount != 1)
+				continue;
+
+			const GpuProgramCreateInformation& program = variation->GetPass(0)->GetGpuProgramCreateInformation(GPT_COMPUTE_PROGRAM);
+			const bool isVulkan = program.Language == "vksl";
+			const bool callsVulkanFunction = program.Source.find("VulkanLanguageValue") != String::npos;
+			const bool callsOtherFunction = program.Source.find("OtherLanguageValue") != String::npos;
+			B3D_TEST_ASSERT_MSG(callsVulkanFunction == isVulkan && callsOtherFunction != isVulkan,
+				StringUtility::Format("The {0} program calls the function of another language.", program.Language))
+		}
+	};
+
+	{
+		TShared<Shader> shader;
+		const ShaderCompilerResult result = compiler->Compile("LanguageDefines", source, {}, languages, true, shader);
+		B3D_TEST_ASSERT_MSG(result.ErrorMessage.empty(), result.ErrorMessage)
+		B3D_TEST_ASSERT(shader != nullptr && shader->GetVariations().size() == languages.size())
+		if(shader != nullptr)
+			fnCheckPrograms(*shader);
+	}
+
+	// Variations compiled after the shader
+	{
+		TShared<Shader> shader;
+		const ShaderCompilerResult result = compiler->Compile("LanguageDefines", source, {}, languages, false, shader);
+		B3D_TEST_ASSERT_MSG(result.ErrorMessage.empty(), result.ErrorMessage)
+		B3D_TEST_ASSERT(shader != nullptr)
+		if(shader == nullptr)
+			return;
+
+		for(const TShared<Variation>& variation : shader->GetVariations())
+		{
+			const TAsyncOp<bool> compilation = variation->Compile();
+			compilation.BlockUntilComplete();
+			B3D_TEST_ASSERT(compilation.GetReturnValue())
+		}
+
+		fnCheckPrograms(*shader);
+	}
+}
+
 void CoreTestSuite::TestRayTracingShaderCompilation()
 {
 	const TShared<IShaderCompiler> compiler = ShaderCompilers::Instance().GetCompiler("bsl");

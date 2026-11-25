@@ -70,6 +70,20 @@ foreach(targetEntry ${B3D_SHADER_CROSS_COMPILE_TARGETS})
 	endif()
 endforeach()
 
+# Folders the shader backends add to the shader include search paths, for BSL includes only their language uses (behind the
+# language's define). Each is relative to the framework root, the parent of the data folder, so it's resolved from
+# Paths::GetDataPath() at run time rather than from where the sources were when CMake ran.
+get_property(B3D_SHADER_INCLUDE_FOLDERS GLOBAL PROPERTY B3D_SHADER_INCLUDE_FOLDERS)
+set(B3D_SHADER_INCLUDE_FOLDER_REGISTRATIONS "")
+foreach(includeFolder ${B3D_SHADER_INCLUDE_FOLDERS})
+	if(IS_ABSOLUTE "${includeFolder}")
+		message(FATAL_ERROR "Shader include folder '${includeFolder}' must be relative to the framework root.")
+	endif()
+
+	string(APPEND B3D_SHADER_INCLUDE_FOLDER_REGISTRATIONS
+		"\t\tShaderManager::Instance().AddSearchPath(Paths::GetDataPath().GetParent() + Path(\"${includeFolder}/\"));\n")
+endforeach()
+
 set(BS_SL_SHADER_BACKENDS_GENERATED ${PROJECT_BINARY_DIR}/Generated/Plugins/bsfSL/B3DShaderBackends.cpp)
 configure_file(
 	${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/B3DShaderBackends.cpp.in

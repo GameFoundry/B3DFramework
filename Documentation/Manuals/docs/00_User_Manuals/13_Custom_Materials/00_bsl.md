@@ -356,6 +356,26 @@ shader MyShader
 };
 ~~~~~~~~~~~~~~
 
+## Language defines
+A shader is compiled once for every shading language it targets, and each compilation defines the name of its language: **DIRECTX** for D3D12, **VULKAN** for Vulkan and **METAL** for Metal. Platforms can add their own languages, with their own defines. The define is visible to BSL as well as to the shader code, so \#ifdef can pick includes and mixins per language, for code that only one language can compile.
+
+~~~~~~~~~~~~~~
+#ifdef METAL
+#include "MyMetalCode.bslinc"
+#endif
+
+mixin MyCode
+{
+#ifdef METAL
+	mixin MyMetalCode;
+#else
+	mixin MyDefaultCode;
+#endif
+};
+~~~~~~~~~~~~~~
+
+Use them only to choose code. Parameters, variations, passes and states must be the same for every language.
+
 ## Mixin overrides
 Mixins can override each other if another mixin is defined with the same name. The last defined mixin is considered the override and will be used in the shader. Shaders can also reference mixins that haven't been declared yet. This concept of mixin overrides allows you to change functionality of complex shaders without having to be aware of any code other than the mixin you are overriding. This concept is heavily used when writing surface and lighting shaders, as described in a later manual.
 

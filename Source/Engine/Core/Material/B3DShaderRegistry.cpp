@@ -125,8 +125,14 @@ namespace
 
 		for(const auto& includeHash : compilerMetaData->IncludeHashes)
 		{
-			if(Shader::ComputeIncludeHash(includeHash.first) != includeHash.second)
+			const TOptional<Array<u64, 2>> currentHash = Shader::ComputeIncludeHash(includeHash.first);
+			if(!currentHash.has_value() || currentHash.value() != includeHash.second)
+			{
+				B3D_LOG(Info, LogResources, "Include \"{0}\" of shader \"{1}\" {2} since the shader was compiled.", includeHash.first,
+					compilerMetaData->NameInCache, currentHash.has_value() ? "changed" : "can't be found");
+
 				return false;
+			}
 		}
 
 		return true;

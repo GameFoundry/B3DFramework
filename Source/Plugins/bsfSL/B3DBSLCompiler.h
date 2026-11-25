@@ -24,7 +24,7 @@ namespace b3d
 		 * compiler, or the XShaderCompiler cross-compile backends), otherwise stale shaders keep being served from the
 		 * persistent cache and the prebuilt store.
 		 */
-		static constexpr u32 kCompilerVersion = 25;
+		static constexpr u32 kCompilerVersion = 26;
 
 		BSLCompiler();
 		~BSLCompiler() override;
@@ -74,6 +74,12 @@ namespace b3d
 
 		/** Converts internal variation representations in the shader meta-data into a set of ShaderVariation objects. */
 		static Vector<ShaderVariationParameters> CreateShaderVariations(const BSLParsedShaderMetaData& shaderMetaData);
+
+		/**
+		 * Returns @p defines plus the define of the cross-compile target of @p language (for example PS5), if it has one. Variations are
+		 * parsed with it, so BSL can select includes and mixins per language.
+		 */
+		static UnorderedMap<String, String> GetLanguageDefines(const UnorderedMap<String, String>& defines, const String& language);
 	};
 
 	/** @} */

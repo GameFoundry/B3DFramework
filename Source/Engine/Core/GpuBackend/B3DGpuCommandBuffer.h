@@ -854,7 +854,8 @@ namespace b3d
 
 			/**
 			 * Copies data from a buffer to a texture subresource. The buffer must contain pixel data in the same format as the texture, accounting for the required
-			 * row and depth pitch. Command buffer must not currently be in a render pass.
+			 * row and depth pitch. For a depth-stencil texture the buffer holds only depth, which TextureUtility::GetBufferCopyPitchInBytes() accounts for.
+			 * Command buffer must not currently be in a render pass.
 			 *
 			 * @param	source			Source buffer containing pixel data.
 			 * @param	destination		Destination texture to copy into.
@@ -866,7 +867,8 @@ namespace b3d
 
 			/**
 			 * Copies data from a texture subresource to a buffer. The buffer must have enough space to receive all pixel data in the same format as the texture,
-			 * accounting for the row and depth pitch. Command buffer must not currently be in a render pass.
+			 * accounting for the row and depth pitch. For a depth-stencil texture the buffer receives only depth, which
+			 * TextureUtility::GetBufferCopyPitchInBytes() accounts for. Command buffer must not currently be in a render pass.
 			 *
 			 * @param	source			Source texture to copy from.
 			 * @param	destination		Destination buffer to receive pixel data.

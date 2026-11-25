@@ -172,4 +172,16 @@ bool FileSystem::Move(const Path& oldPath, const Path& newPath, bool overwriteEx
 	return FileSystem::MoveFile(oldPath, newPath);
 }
 
+Path FileSystem::ResolveSourceTreePath(const Path& path)
+{
+	if(Exists(path))
+		return path;
+
+	const Path hostRoot = GetHostFileSystemRoot();
+	if(hostRoot.IsEmpty())
+		return path;
+
+	return Path(hostRoot.ToString() + path.ToString());
+}
+
 Mutex FileScheduler::mMutex;

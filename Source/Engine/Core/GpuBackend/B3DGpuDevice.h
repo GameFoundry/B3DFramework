@@ -273,6 +273,20 @@ namespace b3d
 		 *							invalid. Nothing is written then.
 		 */
 		virtual bool WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance> instances, void* destination) const;
+
+		/**
+		 * Writes the native reference of each structure in @p bottomLevels to @p destination, 8 bytes each, in order. A shader passes a
+		 * reference to WriteRayTracingInstance() (RayTracingInstances.bslinc) to place the structure in a top level structure. A null entry
+		 * writes the reference of no structure, which makes the instance empty. A reference stays valid for as long as the structure exists.
+		 * Thread safe.
+		 *
+		 * @param	bottomLevels	Bottom level structures. Must stay alive while the call runs.
+		 * @param	destination		Memory that receives the references, at least 8 bytes per structure. May be write-combined.
+		 * @return					False, with the reason logged, if the device doesn't support acceleration structures or a structure is
+		 *							not a bottom level structure. Nothing is written then.
+		 */
+		virtual bool WriteAccelerationStructureReferences(TArrayView<const render::GpuAccelerationStructure* const> bottomLevels, void* destination) const;
+
 		/**
 		 * Returns the device-owned persistent allocator for memory type @p memoryType, as reported by
 		 * GetMemoryRequirements(). Thread safe.

@@ -366,7 +366,7 @@ bool GpuCommandBuffer::TryGetBufferTextureCopyInformation(const GpuBuffer& buffe
 	outInformation.BufferOffset = bufferOffset;
 
 	u32 rowPitch, slicePitch;
-	TextureUtility::GetPitchInBytes(outInformation.BufferPitch, outInformation.Format, rowPitch, slicePitch);
+	TextureUtility::GetBufferCopyPitchInBytes(outInformation.BufferPitch, outInformation.Format, rowPitch, slicePitch);
 
 	const u64 size = (u64)slicePitch * outInformation.Depth;
 	return B3D_ENSURE_LOG((u64)bufferOffset + size <= buffer.GetTotalSize(), "The data of a copy between a buffer and texture '{0}' exceeds the size of the buffer.", texture.GetName());

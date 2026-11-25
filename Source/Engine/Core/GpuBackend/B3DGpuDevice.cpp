@@ -605,6 +605,26 @@ bool GpuDevice::WriteRayTracingInstances(TArrayView<const GpuRayTracingInstance>
 	return true;
 }
 
+bool GpuDevice::WriteAccelerationStructureReferences(TArrayView<const render::GpuAccelerationStructure* const> bottomLevels, void* destination) const
+{
+	if(!B3D_ENSURE_LOG(GetCapabilities().HasCapability(RSC_ACCELERATION_STRUCTURES), "Cannot write acceleration structure references, the GPU device doesn't support acceleration structures."))
+		return false;
+
+#if B3D_BUILD_TYPE_DEVELOPMENT
+	for(u32 structureIndex = 0; structureIndex < (u32)bottomLevels.size(); structureIndex++)
+	{
+		const render::GpuAccelerationStructure* bottomLevel = bottomLevels[structureIndex];
+		if(!B3D_ENSURE_LOG(bottomLevel == nullptr || bottomLevel->GetType() == GpuAccelerationStructureType::BottomLevel,
+			"Acceleration structure {0} is a top level structure. Only references to bottom level structures can be written.", structureIndex))
+		{
+			return false;
+		}
+	}
+#endif
+
+	return true;
+}
+
 render::GpuStageFlags GpuDevice::GetSupportedStageFlags() const
 {
 	using namespace render;
