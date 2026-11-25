@@ -13,6 +13,7 @@
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DVertexData.h"
 #include "RayTracing/B3DRayTracingGeometry.h"
+#include "RayTracing/B3DRayTracingManager.h"
 #include "Animation/SkinCache/B3DMorphShapeBuffers.h"
 #include "Threading/B3DAsyncOp.h"
 #include "GpuBackend/B3DVertexDescription.h"
@@ -385,7 +386,8 @@ const TShared<RayTracingGeometry>& Mesh::GetOrCreateRayTracingGeometry()
 
 	if(mRayTracingGeometry == nullptr && mSupportsRayTracing)
 	{
-		mRayTracingGeometry = RayTracingGeometry::Create(*GetApplication().GetPrimaryGpuDevice(), *mVertexData, mIndexBuffer, mProperties.SubMeshes);
+		const RayTracingGeometryFlags flags = gRenderRayTracingCompaction ? RayTracingGeometryFlag::AllowCompaction : RayTracingGeometryFlag::None;
+		mRayTracingGeometry = RayTracingGeometry::Create(*GetApplication().GetPrimaryGpuDevice(), *mVertexData, mIndexBuffer, mProperties.SubMeshes, flags);
 
 		// A mesh that has no geometry now never will, so later calls don't try again
 		mSupportsRayTracing = mRayTracingGeometry != nullptr;

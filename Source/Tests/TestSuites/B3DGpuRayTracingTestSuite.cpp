@@ -8,6 +8,7 @@
 #include "Mesh/B3DMesh.h"
 #include "Mesh/B3DMeshData.h"
 #include "RayTracing/B3DRayTracingGeometry.h"
+#include "RayTracing/B3DRayTracingManager.h"
 #include "RayTracing/B3DRayTracingScene.h"
 #include "Renderer/B3DRenderer.h"
 #include "Renderer/B3DRendererMeshData.h"
@@ -1846,7 +1847,7 @@ void GpuRayTracingTestSuite::TestAccelerationStructureCopies()
 			}
 
 			GpuSerializedAccelerationStructureInformation information;
-			B3D_TEST_ASSERT(device->GetSerializedAccelerationStructureInformation(TArrayView<const u8>(data.data(), (u32)data.size()), information))
+			B3D_TEST_ASSERT(device->GetSerializedAccelerationStructureInformation(data, information))
 			B3D_TEST_ASSERT_MSG(information.SerializedSize == serializedSize && information.AccelerationStructureSize > 0, StringUtility::Format(
 				"Serialized data of {0} bytes reports {1} bytes, and a structure of {2}.", serializedSize, information.SerializedSize, information.AccelerationStructureSize))
 
@@ -2239,12 +2240,17 @@ void GpuRayTracingTestSuite::TestRayTracingGeometry()
 
 		const TShared<GpuWorkContext> context = GpuWorkContext::Create(*device);
 		TShared<GpuAccelerationStructure> previousTopLevel;
+		bool compactBeforeBuild = false;
 
 		// Builds the scene in a graph that traces the rays inline, then traces them through the pipeline in a second graph, and checks what
-		// each read. @p buildPassCount is the number of passes the scene build is expected to add.
+		// each read. @p buildPassCount is the number of passes the scene build, and the compaction before it if compactBeforeBuild is true,
+		// are expected to add.
 		const auto fnTrace = [&](const char* name, std::initializer_list<ExpectedGeometryHit> expectedHits, u32 buildPassCount)
 		{
 			FrameGraph graph(*context, "Ray tracing geometry graph");
+			if(compactBeforeBuild)
+				RayTracingManager::Instance().Update(graph);
+
 			scene.Build(graph);
 			graph.ImportBuffer(hitBuffer);
 			graph.ImportBuffer(readback);
@@ -2366,10 +2372,11 @@ void GpuRayTracingTestSuite::TestRayTracingGeometry()
 		const Vector3 interpolatedNormal(0.5f, 0.25f, 0.25f);
 		const ExpectedGeometryHit miss = ExpectedGeometryHit();
 
-		// The first build adds a pass for the bottom level structure and one for the top level structure
+		// The first build adds a pass for the bottom level structure, one that queries its compacted size, and one for the top level
+		// structure
 		fnTrace("First build", { ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 0),
 			ExpectedGeometryHit(Vector3(2.25f, 0.25f, 5.0f), interpolatedNormal, 0.625f, 0.625f, 3, 0),
-			ExpectedGeometryHit(Vector3(2.25f, 0.25f, 5.0f), interpolatedNormal, 0.625f, 0.625f, 3, 2), miss }, 2);
+			ExpectedGeometryHit(Vector3(2.25f, 0.25f, 5.0f), interpolatedNormal, 0.625f, 0.625f, 3, 2), miss }, 3);
 
 		B3D_TEST_ASSERT(geometry->IsBuilt() && scene.GetAccelerationStructure() != nullptr)
 		B3D_TEST_ASSERT(scene.GetAccelerationStructure() == nullptr || scene.GetAccelerationStructure()->GetType() == GpuAccelerationStructureType::TopLevel)
@@ -2418,7 +2425,7 @@ void GpuRayTracingTestSuite::TestRayTracingGeometry()
 		device->WaitUntilIdle();
 		fnTrace("Rewritten", { ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 0),
 			ExpectedGeometryHit(Vector3(2.25f, 0.25f, 5.0f), interpolatedNormal, 0.625f, 0.625f, 3, 0), miss,
-			ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 2) }, 2);
+			ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 2) }, 3);
 
 		// The first scene built the geometry both scenes wait for, so the second one only rebuilds its top level structure over it, once
 		fnBuildOtherScene("Other scene after the rewrite", otherScene, 1);
@@ -2468,12 +2475,94 @@ void GpuRayTracingTestSuite::TestRayTracingGeometry()
 			std::memcpy(layoutMapping.GetMappedMemory(), positionGeometry->GetGeometryLayouts().data(), 2 * sizeof(RayTracingGeometryLayout));
 		}
 
-		// The new geometry adds a pass for its bottom level structure
+		// The new geometry adds a pass for its bottom level structure, and one that queries its compacted size
 		const Vector3 defaultNormal(0.0f, 0.0f, 1.0f);
 		scene.UpdateInstance(firstSlot, RayTracingGeometryInstance(positionGeometry, Matrix4::kIdentity, 0));
-		fnTrace("Default attributes", { ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), defaultNormal, 0.0f, 0.0f, 0, 0),
+		const std::initializer_list<ExpectedGeometryHit> defaultAttributeHits = { ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), defaultNormal, 0.0f, 0.0f, 0, 0),
 			ExpectedGeometryHit(Vector3(2.25f, 0.25f, 5.0f), defaultNormal, 0.0f, 0.0f, 3, 0), miss,
-			ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 2) }, 2);
+			ExpectedGeometryHit(Vector3(0.25f, 0.25f, 5.0f), interpolatedNormal, 0.25f, 0.25f, 0, 2) };
+		fnTrace("Default attributes", defaultAttributeHits, 3);
+
+		// Compaction copies both geometries into smaller structures, using the queries of their latest builds, in one pass. The scenes
+		// take the new structures and rebuild their top level structures over them, and rays hit the same triangles.
+		const TShared<GpuAccelerationStructure> uncompacted = geometry->GetAccelerationStructure();
+		const TShared<GpuAccelerationStructure> positionUncompacted = positionGeometry->GetAccelerationStructure();
+		const u32 geometryVersion = geometry->GetVersion();
+		const u32 buildSize = uncompacted->GetSize();
+		compactBeforeBuild = true;
+		fnTrace("Compacted", defaultAttributeHits, 2);
+
+		const TShared<GpuAccelerationStructure> compacted = geometry->GetAccelerationStructure();
+		B3D_TEST_ASSERT_MSG(compacted != uncompacted && compacted->GetSize() < buildSize && compacted->GetBuildFlags().IsSet(GpuAccelerationStructureBuildFlag::AllowCompaction),
+			StringUtility::Format("Compacted from {0} to {1} bytes.", buildSize, compacted->GetSize()))
+		B3D_TEST_ASSERT(geometry->GetVersion() == geometryVersion + 1)
+		B3D_TEST_ASSERT(positionGeometry->GetAccelerationStructure() != positionUncompacted &&
+			positionGeometry->GetAccelerationStructure()->GetSize() < positionUncompacted->GetSize())
+
+		// Each build is compacted once
+		fnTrace("Compacted and unchanged", defaultAttributeHits, 0);
+		B3D_TEST_ASSERT(geometry->GetAccelerationStructure() == compacted)
+
+		// The other scene has an instance of the geometry, so it rebuilds its top level structure over the compacted one
+		fnBuildOtherScene("Other scene after compaction", otherScene, 1);
+
+		// A compacted structure is too small for a build, so a rebuild gets a structure of full size, and is compacted again later
+		mesh->WriteData(*meshData, false);
+		device->GetTransferQueue().SubmitAllQueuedTransfers();
+		device->WaitUntilIdle();
+		fnTrace("Rewritten after compaction", defaultAttributeHits, 3);
+		B3D_TEST_ASSERT(geometry->GetAccelerationStructure()->GetSize() == buildSize)
+
+		fnTrace("Compacted again", defaultAttributeHits, 2);
+		B3D_TEST_ASSERT(geometry->GetAccelerationStructure()->GetSize() == compacted->GetSize())
+
+		// Adds a graph with only a compaction, and checks the number of passes it adds
+		const auto fnCompact = [&](const char* name, u32 passCount)
+		{
+			FrameGraph graph(*context, "Ray tracing geometry compaction graph");
+			RayTracingManager::Instance().Update(graph);
+			graph.Compile();
+			graph.Execute();
+			device->WaitUntilIdle();
+
+			B3D_TEST_ASSERT_MSG(graph.GetStatistics().PassCount == passCount, StringUtility::Format("{0}: {1} passes, expected {2}.", name,
+				graph.GetStatistics().PassCount, passCount))
+		};
+
+		// A geometry destroyed with its query pending is left out
+		{
+			const TShared<render::Mesh> droppedMesh = render::Mesh::Create(meshData, meshInformation);
+			const TShared<RayTracingGeometry> droppedGeometry = droppedMesh->GetOrCreateRayTracingGeometry();
+			B3D_TEST_ASSERT(droppedGeometry != nullptr)
+			device->GetTransferQueue().SubmitAllQueuedTransfers();
+			device->WaitUntilIdle();
+
+			RayTracingScene droppedScene(*device, "Dropped test scene");
+			droppedScene.AddInstance(RayTracingGeometryInstance(droppedGeometry, Matrix4::kIdentity, 0));
+			fnBuildOtherScene("Dropped geometry", droppedScene, 3);
+		}
+
+		fnCompact("Dropped geometry compaction", 0);
+
+		// Geometry created while compaction is off builds without the query, and keeps its structure
+		B3D_TEST_ASSERT(gRenderRayTracingCompaction.Set(false))
+		{
+			const TShared<render::Mesh> uncompactedMesh = render::Mesh::Create(meshData, meshInformation);
+			const TShared<RayTracingGeometry> uncompactedGeometry = uncompactedMesh->GetOrCreateRayTracingGeometry();
+			B3D_TEST_ASSERT(uncompactedGeometry != nullptr)
+			device->GetTransferQueue().SubmitAllQueuedTransfers();
+			device->WaitUntilIdle();
+
+			RayTracingScene uncompactedScene(*device, "Uncompacted test scene");
+			uncompactedScene.AddInstance(RayTracingGeometryInstance(uncompactedGeometry, Matrix4::kIdentity, 0));
+			fnBuildOtherScene("Without compaction", uncompactedScene, 2);
+
+			const TShared<GpuAccelerationStructure> structure = uncompactedGeometry->GetAccelerationStructure();
+			fnCompact("Without compaction", 0);
+			B3D_TEST_ASSERT(uncompactedGeometry->GetAccelerationStructure() == structure && !structure->GetBuildFlags().IsSet(GpuAccelerationStructureBuildFlag::AllowCompaction))
+		}
+
+		gRenderRayTracingCompaction.Set(gRenderRayTracingCompaction.GetDefault());
 	}, "GpuRayTracingTestSuite::TestRayTracingGeometry", true);
 }
 

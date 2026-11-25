@@ -84,8 +84,9 @@ namespace b3d::render
 
 		/**
 		 * Adds passes to @p graph that build the bottom level structures of the instances' geometries that aren't built, in one pass,
-		 * and, if anything changed since the last build, the top level structure, in a second pass that exports it. A build of a geometry
-		 * of the scene counts as a change, so a geometry built by others (RayTracingGeometry::AddBuildPass()) is picked up if they add its
+		 * and, if anything changed since the last build, the top level structure, in another pass that exports it. Requests the compaction
+		 * of the geometries it builds (RayTracingManager::RequestCompaction()). A build of a geometry of the scene counts as a change, so a 
+		 * geometry built by others (RayTracingGeometry::AddBuildPass()) is picked up if they add its
 		 * build to @p graph or an earlier graph before this call. Later passes and later work can then trace rays against
 		 * GetAccelerationStructure() without declaring it. The scene and the geometries of its instances must stay alive until the graph
 		 * executes, and the scene must not be built again before then.
@@ -104,8 +105,9 @@ namespace b3d::render
 		 */
 
 		/**
-		 * Called by @p geometry, a geometry of the scene's instances, when it becomes out of date or a build of it is added to a frame graph.
-		 * The next Build() builds the geometry if it isn't built, and rebuilds the top level structure.
+		 * Called by @p geometry, a geometry of the scene's instances, when it becomes out of date, a build of it is added to a frame graph,
+		 * or its structure is replaced. The next Build() builds the geometry if it isn't built, and rebuilds the top level structure over
+		 * the geometry's current structure.
 		 */
 		void NotifyGeometryChanged(RayTracingGeometry& geometry);
 
@@ -127,6 +129,9 @@ namespace b3d::render
 		{
 			u32 InstanceCount = 0; /**< Number of instances of the geometry in the scene. */
 			u32 Index = 0; /**< Position of the geometry in mGeometries and mBottomLevels. */
+
+			/** True if the geometry's structure was replaced since the last Build(), which rewrites its packed instances. */
+			bool IsReplaced = false;
 		};
 
 		/**
@@ -164,6 +169,7 @@ namespace b3d::render
 		TArray<RayTracingGeometry*> mGeometries; /**< Geometries the instances of mPackedInstances place in the scene, each once. */
 		TArray<TShared<GpuAccelerationStructure>> mBottomLevels; /**< Bottom level structures of mGeometries, in the same order. */
 		bool mBottomLevelsChanged = false; /**< True if mBottomLevels changed since the last top level build. */
+		bool mHasReplacedGeometries = false; /**< True if a geometry of mGeometryReferences has IsReplaced set. */
 
 		/**
 		 * Geometries of the scene that need a build, as they became so. May hold a geometry more than once, or one that was built

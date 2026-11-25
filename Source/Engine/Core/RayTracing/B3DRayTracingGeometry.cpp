@@ -167,11 +167,26 @@ namespace b3d::render
 		for(u32 geometryIndex = 0; geometryIndex < (u32)geometries.size(); geometryIndex++)
 		{
 			RayTracingGeometry& geometry = *geometries[geometryIndex].first;
+			const bool isRefit = geometries[geometryIndex].second;
+
+			// A compacted structure is too small for a build, so the build gets one of full size. The scenes of the geometry take it when
+			// they are notified of the build below.
+			if(!isRefit && geometry.mAccelerationStructure->GetSize() < geometry.mBuildSize)
+			{
+				const TShared<GpuAccelerationStructure> accelerationStructure = graph.GetWorkContext().GetDevice().CreateGpuAccelerationStructure(
+					GpuAccelerationStructureCreateInformation(GpuAccelerationStructureType::BottomLevel, geometry.mBuildSize,
+					geometry.mAccelerationStructure->GetFlags(), geometry.mAccelerationStructure->GetName()));
+				if(!B3D_ENSURE_LOG(accelerationStructure != nullptr, "Couldn't create the structure of a rebuild of compacted ray tracing geometry."))
+					continue;
+
+				geometry.mAccelerationStructure = accelerationStructure;
+			}
+
 			graph.ImportAccelerationStructure(geometry.mAccelerationStructure);
 
 			// A refit is done in place
 			GpuAccelerationStructureBuild build(geometry.mInputs, geometry.mAccelerationStructure, scratch, scratchOffsets[geometryIndex]);
-			if(geometries[geometryIndex].second)
+			if(isRefit)
 				build.Source = geometry.mAccelerationStructure;
 
 			gpuBuilds.push_back(build);
@@ -197,6 +212,15 @@ namespace b3d::render
 			return;
 
 		mIsBuilt = false;
+
+		for(RayTracingScene* scene : mScenes)
+			scene->NotifyGeometryChanged(*this);
+	}
+
+	void RayTracingGeometry::SetAccelerationStructure(const TShared<GpuAccelerationStructure>& accelerationStructure)
+	{
+		mAccelerationStructure = accelerationStructure;
+		mVersion++;
 
 		for(RayTracingScene* scene : mScenes)
 			scene->NotifyGeometryChanged(*this);
@@ -278,8 +302,19 @@ namespace b3d::render
 		if(geometry->mGeometries.empty())
 			return nullptr;
 
-		// Moving vertices are built and refitted often, so they trade ray tracing speed for build speed
-		const GpuAccelerationStructureBuildFlags buildFlags = flags.IsSet(RayTracingGeometryFlag::Dynamic) ? GpuAccelerationStructureBuildFlag::PreferFastBuild | GpuAccelerationStructureBuildFlag::AllowRefit : GpuAccelerationStructureBuildFlags(GpuAccelerationStructureBuildFlag::PreferFastTrace);
+		// Moving vertices are built and refitted often, so they trade ray tracing speed for build speed. Static vertices are built rarely,
+		// so they make the opposite trade.
+		GpuAccelerationStructureBuildFlags buildFlags;
+		if(flags.IsSet(RayTracingGeometryFlag::Dynamic))
+			buildFlags = GpuAccelerationStructureBuildFlag::PreferFastBuild | GpuAccelerationStructureBuildFlag::AllowRefit;
+		else
+		{
+			buildFlags = GpuAccelerationStructureBuildFlag::PreferFastTrace;
+
+			if(flags.IsSet(RayTracingGeometryFlag::AllowCompaction))
+				buildFlags |= GpuAccelerationStructureBuildFlag::AllowCompaction;
+		}
+
 		geometry->mInputs = GpuAccelerationStructureInputs(geometry->mGeometries, buildFlags);
 
 		GpuAccelerationStructureSizes sizes;
@@ -288,6 +323,7 @@ namespace b3d::render
 
 		geometry->mBuildScratchSize = sizes.BuildScratchSize;
 		geometry->mRefitScratchSize = sizes.RefitScratchSize;
+		geometry->mBuildSize = sizes.AccelerationStructureSize;
 		geometry->mAccelerationStructure = device.CreateGpuAccelerationStructure(GpuAccelerationStructureCreateInformation(GpuAccelerationStructureType::BottomLevel,
 			sizes.AccelerationStructureSize, GpuAccelerationStructureFlag::None, "Mesh geometry"));
 

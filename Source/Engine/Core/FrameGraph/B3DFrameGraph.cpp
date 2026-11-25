@@ -285,10 +285,7 @@ namespace b3d::render
 
 	GpuBarriers FrameGraph::BarrierList::GetBarriers() const
 	{
-		return GpuBarriers(TArrayView<const GpuBufferBarrier>(BufferBarriers.data(), (u32)BufferBarriers.size()),
-			TArrayView<const GpuTextureBarrier>(TextureBarriers.data(), (u32)TextureBarriers.size()),
-			TArrayView<const GpuRenderTargetBarrier>(RenderTargetBarriers.data(), (u32)RenderTargetBarriers.size()),
-			TArrayView<const GpuAccelerationStructureBarrier>(AccelerationStructureBarriers.data(), (u32)AccelerationStructureBarriers.size()));
+		return GpuBarriers(BufferBarriers, TextureBarriers, RenderTargetBarriers, AccelerationStructureBarriers);
 	}
 
 	FrameGraph::FrameGraph(GpuWorkContext& context, const StringView& name, FrameGraphFlags flags)

@@ -62,7 +62,14 @@ namespace b3d::render
 		 * moved vertices (Refit()), and SetVertexData() may replace its vertex buffers. The indices and the number of vertices must not
 		 * change.
 		 */
-		Dynamic = 1 << 0
+		Dynamic = 1 << 0,
+
+		/**
+		 * The structure allows compaction, so once it is built, RayTracingManager::Update() can replace it with a smaller copy. The
+		 * compaction of a build must be requested (RayTracingManager::RequestCompaction()), as RayTracingScene::Build() does. Ignored with
+		 * Dynamic.
+		 */
+		AllowCompaction = 1 << 1
 	};
 
 	using RayTracingGeometryFlags = Flags<RayTracingGeometryFlag, u8>;
@@ -74,7 +81,7 @@ namespace b3d::render
 	 *
 	 * @note	Render thread.
 	 */
-	class B3D_EXPORT RayTracingGeometry
+	class B3D_EXPORT RayTracingGeometry : public std::enable_shared_from_this<RayTracingGeometry>
 	{
 	public:
 		/**
@@ -117,6 +124,9 @@ namespace b3d::render
 		 */
 		void Refit(FrameGraph& graph);
 
+		/** Returns the flags the geometry was created with. */
+		RayTracingGeometryFlags GetFlags() const { return mFlags; }
+
 		/** Returns the bottom level acceleration structure. */
 		const TShared<GpuAccelerationStructure>& GetAccelerationStructure() const { return mAccelerationStructure; }
 
@@ -142,8 +152,9 @@ namespace b3d::render
 		void SetVertexData(const VertexData& vertexData);
 
 		/**
-		 * Returns a number that increases every time a build of the structure is added to a frame graph. A copy of the geometry's layouts,
-		 * or a top level structure built over it, taken at another version may be out of date.
+		 * Returns a number that increases every time a build of the structure is added to a frame graph, and when
+		 * SetAccelerationStructure() replaces the structure. A copy of the geometry's layouts, or a top level structure built over it, taken at another version
+		 * may be out of date.
 		 */
 		u32 GetVersion() const { return mVersion; }
 
@@ -163,7 +174,8 @@ namespace b3d::render
 		/**
 		 * Adds @p pass to @p graph, with a build of the structure of each of @p builds and a refit of each of @p refits (see Refit()), each
 		 * at its own offset of one scratch buffer. The pass exports the structures, and the geometries count as built and get a new
-		 * GetVersion(). Does nothing if both lists are empty. The geometries must stay alive until the graph executes.
+		 * GetVersion(). A geometry whose structure is smaller than a build needs, such as a compacted one, gets a new structure of full
+		 * size for its build. Does nothing if both lists are empty. The geometries must stay alive until the graph executes.
 		 *
 		 * @param	graph		Graph to add the pass to.
 		 * @param	name		Name of the pass, for debugging purposes.
@@ -191,6 +203,13 @@ namespace b3d::render
 		/** Called by @p scene when it loses its last instance of the geometry, or is destroyed. */
 		void NotifyRemovedFromScene(RayTracingScene& scene);
 
+		/**
+		 * Replaces the structure with @p accelerationStructure, a structure with the same contents that a pass of a frame graph writes,
+		 * such as a compacted copy, and gives the geometry a new GetVersion(). Scenes with instances of the geometry rebuild their top level
+		 * structure over it.
+		 */
+		void SetAccelerationStructure(const TShared<GpuAccelerationStructure>& accelerationStructure);
+
 		/** @} */
 
 	private:
@@ -210,6 +229,7 @@ namespace b3d::render
 		GpuAccelerationStructureInputs mInputs;
 		u32 mBuildScratchSize = 0;
 		u32 mRefitScratchSize = 0; /**< Scratch memory a refit needs, in bytes. Zero for a geometry that isn't dynamic. */
+		u32 mBuildSize = 0; /**< Size of the structure a build needs, in bytes. A compacted structure is smaller. */
 		TShared<GpuAccelerationStructure> mAccelerationStructure;
 		Vector<u32> mSubMeshGeometryIndices;
 		Vector<RayTracingGeometryLayout> mLayouts;

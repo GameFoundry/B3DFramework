@@ -7,6 +7,7 @@
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
 #include "GpuBackend/B3DGpuWorkContext.h"
 #include "RayTracing/B3DRayTracingGeometry.h"
+#include "RayTracing/B3DRayTracingManager.h"
 
 namespace b3d::render
 {
@@ -111,10 +112,28 @@ namespace b3d::render
 			geometries.erase(std::unique(geometries.begin(), geometries.end()), geometries.end());
 
 			RayTracingGeometry::AddBuildPass(graph, "Build ray tracing geometries", geometries, TArrayView<RayTracingGeometry* const>(), FrameGraphAccelerationStructurePass());
+			RayTracingManager::Instance().RequestCompaction(graph, geometries);
 		}
 
 		if(!mIsDirty && mAccelerationStructure != nullptr)
 			return;
+
+		// Packed instances of geometries whose structures were replaced point at the new structures. One pass rewrites them, however many
+		// geometries were replaced.
+		if(mHasReplacedGeometries)
+		{
+			for(u32 packedIndex = 0; packedIndex < (u32)mPackedInstanceSlots.Size(); packedIndex++)
+			{
+				const Slot& slot = mSlots[mPackedInstanceSlots[packedIndex]];
+				if(mGeometryReferences.find(slot.Instance.Geometry.get())->second.IsReplaced)
+					TryWriteInstance(slot.Instance, &mPackedInstances[(size_t)packedIndex * mInstanceSize]);
+			}
+
+			for(auto& [geometry, reference] : mGeometryReferences)
+				reference.IsReplaced = false;
+
+			mHasReplacedGeometries = false;
+		}
 
 		// The instance buffer has room for the capacity, so the size query of a larger structure can use it
 		const u32 instanceCount = (u32)mPackedInstanceSlots.Size();
@@ -187,6 +206,22 @@ namespace b3d::render
 			mPendingGeometries.push_back(&geometry);
 
 		mIsDirty = true;
+
+		// A replaced structure, such as a compacted one, keeps the geometry's place in the bottom level structures. The next Build()
+		// points the geometry's instances at it.
+		const auto referenceIterator = mGeometryReferences.find(&geometry);
+		if(referenceIterator == mGeometryReferences.end())
+			return;
+
+		TShared<GpuAccelerationStructure>& bottomLevel = mBottomLevels[referenceIterator->second.Index];
+		if(bottomLevel == geometry.GetAccelerationStructure())
+			return;
+
+		bottomLevel = geometry.GetAccelerationStructure();
+		mBottomLevelsChanged = true;
+
+		referenceIterator->second.IsReplaced = true;
+		mHasReplacedGeometries = true;
 	}
 
 	void RayTracingScene::PackInstance(u32 slotIndex)
