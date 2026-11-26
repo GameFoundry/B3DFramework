@@ -1173,9 +1173,8 @@ void SkinCacheTestSuite::TestVertexLayout()
 			device->WaitUntilIdle();
 			device->EndFrame();
 
-			// The entry's positions, normals and tangents are streams 0 and 1. The mesh's stream with the texture coordinates follows as
-			// stream 2 and keeps its stride and offsets, with the deformed attributes as padding. A split mesh's other streams hold only
-			// deformed attributes and blend data, so the entry leaves them out. The previous positions come last.
+			// Deformed positions, normals and tangents are in streams 0 and 1. The source mesh stream with texture coordinates comes next, with
+			// deformable attributes masked out via VES_PADDING. Split meshes have no other streams the entry needs. Previous positions come last.
 			const bool isSplit = streamLayout == StreamLayout::Split;
 			const VertexDescription& meshDescription = *mesh->GetVertexDescription();
 			const VertexDescription& description = *entry->GetVertexData()->VertexDescription;
@@ -1193,14 +1192,14 @@ void SkinCacheTestSuite::TestVertexLayout()
 			B3D_TEST_ASSERT(description.HasElement(VES_TEXCOORD, 0, 2) && description.HasElement(VES_BLEND_WEIGHTS, 0, 2) == !isSplit && !description.HasElement(VES_POSITION, 0, 2))
 			B3D_TEST_ASSERT(description.GetElementOffsetFromStream(VES_TEXCOORD, 0, 2) == meshDescription.GetElementOffsetFromStream(VES_TEXCOORD, 0, meshUvStreamIndex))
 
-			// The entry binds its own buffers and only the mesh's stream with the texture coordinates
+			// Only the source mesh stream with texture coordinates is bound, in addition to the entry's own buffers
 			const VertexData& vertexData = *entry->GetVertexData();
 			B3D_TEST_ASSERT(vertexData.GetBuffer(2) == mesh->GetVertexData()->GetBuffer(meshUvStreamIndex) && vertexData.GetBufferCount() == 4)
 			B3D_TEST_ASSERT(description.HasElement(VES_POSITION, 0, 0) && description.HasElement(VES_NORMAL, 0, 1) && description.HasElement(VES_TANGENT, 0, 1) &&
 				description.HasElement(VES_POSITION, 1, 3))
 			B3D_TEST_ASSERT(description.GetVertexStride(0) == 12 && description.GetVertexStride(1) == 8 && description.GetVertexStride(3) == 12)
 
-			// A vertex shader's inputs resolve to the entry's streams for the deformed attributes and to the mesh's for the others
+			// Shader inputs for deformed attributes resolve to the entry's streams, and the rest to source mesh streams
 			TInlineArray<VertexElement, 8> shaderInputElements;
 			shaderInputElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 			shaderInputElements.Add(VertexElement(VET_FLOAT3, VES_NORMAL));

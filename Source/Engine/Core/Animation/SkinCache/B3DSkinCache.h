@@ -128,7 +128,7 @@ namespace b3d::render
 
 		static constexpr u32 kInvalidIndex = ~0u; /**< Index of an entry that isn't in a list of its cache. */
 
-		/** Stream of mVertexDescription with the first of the mesh's streams, after the deformed positions, normals and tangents. */
+		/** Index of the first source mesh stream in mVertexDescription. Streams before it hold the deformed positions, normals and tangents. */
 		static constexpr u32 kFirstSourceMeshStreamIndex = 2;
 
 		SkinCache& mCache;
@@ -179,15 +179,14 @@ namespace b3d::render
 		TShared<GpuBuffer> mNormalTangentBuffer; /**< Deformed normals and tangents. */
 
 		/**
-		 * The deformed positions as stream 0, the normals and tangents as stream 1, the mesh's streams in mDrawnSourceMeshStreamIndices
-		 * from kFirstSourceMeshStreamIndex with the deformed attributes as padding and, if the entry keeps previous positions, those as
-		 * the last stream.
+		 * Vertex description used for drawing the deformed mesh. Deformed positions are in stream 0, deformed normals and tangents in stream 1,
+		 * followed by the source mesh streams in mDrawnSourceMeshStreamIndices. Previous positions are in the last stream, if the entry keeps them.
 		 */
 		TShared<VertexDescription> mVertexDescription;
 
 		/**
-		 * Streams of the mesh that the entry's draws bind, in the order of the streams of mVertexDescription from
-		 * kFirstSourceMeshStreamIndex. Mesh streams that hold only deformed attributes and blend data are left out.
+		 * Indices of source mesh streams bound when drawing the deformed mesh. Streams containing only deformable attributes and blend data
+		 * aren't needed and are skipped.
 		 */
 		TInlineArray<u32, 2> mDrawnSourceMeshStreamIndices;
 
@@ -218,9 +217,9 @@ namespace b3d::render
 		u64 mRebuildRequest = 0;
 
 		/**
-		 * Creates vertex data that binds the position buffer @p positionBufferIndex as POSITION, the mesh's streams in
-		 * mDrawnSourceMeshStreamIndices and, if the entry keeps previous positions, the position buffer @p previousPositionBufferIndex as
-		 * POSITION1. All of the entry's vertex data share mVertexDescription, so draws switch between them without new vertex inputs or pipelines.
+		 * Creates vertex data for drawing the deformed mesh, using the position buffer at @p positionBufferIndex for current positions and the
+		 * one at @p previousPositionBufferIndex for previous positions (if the entry keeps them). All vertex data of an entry share
+		 * mVertexDescription, so switching between them requires no new vertex inputs or pipelines.
 		 */
 		TShared<VertexData> CreateVertexData(u32 positionBufferIndex, u32 previousPositionBufferIndex) const;
 	};

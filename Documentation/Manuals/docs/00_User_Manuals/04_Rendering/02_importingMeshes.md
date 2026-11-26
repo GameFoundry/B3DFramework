@@ -172,7 +172,7 @@ meshData->GetVertexData(VES_POSITION, positions.data(),
     vertexCount * sizeof(Vector3));
 ~~~~~~~~~~~~~
 
-> **MeshData** is explained in detail in the [creating meshes](../12_Advanced_Rendering/06_creatingMeshes.md) manual. Imported meshes keep positions in vertex stream 0 and their other attributes in streams 1 and 2, as that manual describes.
+> **MeshData** is explained in detail in the [creating meshes](../12_Advanced_Rendering/06_creatingMeshes.md) manual. Imported meshes split their attributes into multiple vertex streams, as described in that manual.
 
 ## Ray tracing
 @b3d::MeshImportOptions::SupportsRayTracing determines whether the mesh can be used as ray tracing geometry (see @b3d::MeshFlag::SupportsRayTracing). It is on by default. Turn it off for meshes that rays never hit. To turn ray tracing off for every mesh, including meshes already imported with this option, set the `gpu.RayTracing` config variable to false.

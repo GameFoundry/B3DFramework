@@ -369,8 +369,9 @@ TShared<VertexDescription> RendererMeshData::VertexLayoutVertexDesc(VertexLayout
 	if(intType == 0)
 		type = VertexLayout::Position;
 
-	// Streams follow what reads them: depth-only passes and acceleration structure builds read stream 0 alone, and a draw of
-	// deformed vertices (see SkinCache) replaces the first two streams and binds only the last
+	// Attributes are split into streams by how they are used. Positions get their own stream so depth-only passes and acceleration structure builds
+	// can read them alone. Deformable attributes and blend data come next, so the skin cache can replace them with its own streams and bind only the
+	// last stream of the source mesh.
 	const bool hasTangentBasis = (intType & ((i32)VertexLayout::Normal | (i32)VertexLayout::Tangent | (i32)VertexLayout::BoneWeights)) != 0;
 	const u32 tangentBasisStreamIndex = 1;
 	const u32 surfaceStreamIndex = hasTangentBasis ? 2 : 1;
@@ -465,7 +466,7 @@ TShared<MeshData> RendererMeshData::Convert(const TShared<MeshData>& meshData)
 	TShared<MeshData> output = rendererMeshData->mMeshData;
 	TShared<VertexDescription> outputVertexDesc = output->GetVertexDescription();
 
-	// Elements may be in different streams in the input and in the output, each with its own stride
+	// Input and output may place an element in different streams, so offsets and strides are looked up for each separately
 	const auto fnCopyElement = [&meshData, &vertexDesc, &output, &outputVertexDesc, numVertices](const VertexElement* inputElement, u32 elementSize)
 	{
 		const VertexElement* outputElement = outputVertexDesc->FindElement(inputElement->GetSemantic(), inputElement->GetSemanticIndex());

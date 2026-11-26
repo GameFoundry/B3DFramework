@@ -64,10 +64,10 @@ namespace b3d
 		void TestChangeDetection();
 
 		/**
-		 * Checks the entry's vertex description: POSITION0, NORMAL0 and TANGENT0 resolve to the entry's streams, TEXCOORD0 to the mesh's,
-		 * and the mesh's stream keeps its stride. Of a mesh with split streams, the entry binds only the stream with the texture
-		 * coordinates. Draws the deformed mesh in the graph that deformed it and probes pixels that only the deformed shape covers. Runs on
-		 * a mesh with interleaved attributes and on one with split streams.
+		 * Checks the entry's vertex description: POSITION0, NORMAL0 and TANGENT0 must resolve to the entry's streams, and TEXCOORD0 to the
+		 * source mesh stream, which keeps its stride. For a mesh with split streams, only the stream with texture coordinates is bound from
+		 * the source mesh. Draws the deformed mesh in the same graph that deformed it, and probes pixels that only the deformed shape covers.
+		 * Runs on both interleaved and split meshes.
 		 */
 		void TestVertexLayout();
 

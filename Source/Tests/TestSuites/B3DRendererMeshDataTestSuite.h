@@ -7,8 +7,8 @@
 namespace b3d
 {
 	/**
-	 * Tests for the code that reads and writes mesh vertex data by attribute, on a cube whose attributes are either interleaved in one
-	 * vertex stream or split over three: positions; normals, tangents and blend data; texture coordinates and colors.
+	 * Tests for reading and writing mesh vertex data by attribute. Uses a cube whose attributes are either interleaved in a single stream, or
+	 * split into three streams: positions; normals, tangents and blend data; texture coordinates and colors.
 	 */
 	class RendererMeshDataTestSuite : public TestSuite
 	{
@@ -17,38 +17,38 @@ namespace b3d
 
 	private:
 		/**
-		 * Checks the streams RendererMeshData::VertexLayoutVertexDesc() places attributes in: positions in stream 0, normals, tangents and
-		 * blend data in stream 1, texture coordinates and colors in the next one, with no stream left empty. Checks the strides of the
-		 * layout with every attribute.
+		 * Checks which streams RendererMeshData::VertexLayoutVertexDesc() places attributes in: positions in stream 0, normals, tangents and
+		 * blend data in stream 1, texture coordinates and colors in the last stream, with no empty streams in between. Also checks stream
+		 * strides of a layout containing every attribute.
 		 */
 		void TestVertexLayout();
 
 		/**
-		 * Writes every attribute through the RendererMeshData setters and reads it back through the getters, on the interleaved and on the
-		 * split layout. Positions, texture coordinates, bone weights and indices are equal; colors within one 8-bit step; normals and
-		 * tangents within 1/127, and the tangents keep their handedness. Each attribute is found in the stream its layout declares it in.
+		 * Writes every attribute using RendererMeshData setters and reads it back using getters, for both interleaved and split layouts.
+		 * Checks that values match (within packing precision for colors, normals and tangents), that tangent handedness is preserved, and
+		 * that each attribute is found in the stream its layout declares.
 		 */
 		void TestAccessors();
 
 		/**
-		 * Converts split mesh data with full precision normals and tangents with RendererMeshData::Convert, and reads the result back:
-		 * positions, texture coordinates and bone weights are equal, colors within one 8-bit step, normals and tangents within 1/127.
+		 * Converts split mesh data with full precision normals and tangents using RendererMeshData::Convert, then reads it back. Checks that
+		 * values match (within packing precision for colors, normals and tangents).
 		 */
 		void TestConvert();
 
 		/**
-		 * Combines two split meshes, one of which has no colors, with MeshData::Combine. Each attribute of the result is in its source
-		 * stream, holds the vertices of both meshes in order, and the colors of the second mesh are zero. Combining meshes that declare
-		 * the same attribute in different streams reports an error.
+		 * Combines two split meshes using MeshData::Combine, where one of them has no colors. Checks that each attribute stays in its source
+		 * stream and contains vertices of both meshes in order, and that colors of the second mesh are zero. Also checks that combining
+		 * meshes with the same attribute in different streams reports an error.
 		 */
 		void TestCombine();
 
-		/** Cooks a triangle and a convex physics mesh from the split cube. The cooked vertices are the cube's corners. */
+		/** Cooks a triangle and a convex physics mesh from the split cube, and checks that the cooked vertices are the cube's corners. */
 		void TestPhysicsMesh();
 
 		/**
-		 * Spawns one particle per vertex of the split cube, in order, from a static mesh emitter shape. The particles have the cube's
-		 * positions, and its normals within 1/127.
+		 * Spawns one particle per vertex of the split cube, in order, using a static mesh emitter shape. Checks that particles get the cube's
+		 * positions and normals (within packing precision).
 		 */
 		void TestParticleEmitter();
 	};

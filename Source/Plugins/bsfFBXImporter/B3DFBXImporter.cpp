@@ -913,8 +913,8 @@ TShared<RendererMeshData> FBXImporter::GenerateMeshData(const FBXImportScene& sc
 		return vertexLayout;
 	};
 
-	// All meshes use the layout of every mesh combined. Layouts place attributes in different streams depending on which
-	// other attributes are present, and combining the meshes below requires each attribute to be in the same stream.
+	// All meshes are created with the same layout, containing the attributes of every mesh. The stream an attribute ends up in depends on which other
+	// attributes are present, and meshes can only be combined below if each attribute is in the same stream.
 	u32 combinedVertexLayout = 0;
 	for(auto& mesh : scene.Meshes)
 		combinedVertexLayout |= fnGetVertexLayout(*mesh);
@@ -965,7 +965,7 @@ TShared<RendererMeshData> FBXImporter::GenerateMeshData(const FBXImportScene& sc
 
 			TShared<RendererMeshData> meshData = RendererMeshData::Create((u32)numVertices, numIndices, (VertexLayout)combinedVertexLayout);
 
-			// Attributes this mesh doesn't have are left at zero, since mesh data memory isn't cleared when allocated
+			// Mesh data isn't cleared on allocation, so clear it to zero out the attributes this mesh doesn't have
 			if(vertexLayout != combinedVertexLayout)
 			{
 				TShared<MeshData> vertexData = meshData->GetData();

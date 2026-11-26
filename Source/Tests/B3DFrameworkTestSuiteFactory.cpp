@@ -9,6 +9,8 @@
 #include "B3DApplication.h"
 #include "GpuBackend/B3DGpuBackend.h"
 #include "Utility/B3DScopeGuard.h"
+#include "Utility/B3DCommandLine.h"
+#include "Utility/B3DPlatformUtility.h"
 
 #include "TestSuites/B3DUtilityTestSuite.h"
 #include "TestSuites/B3DFileSystemTestSuite.h"
@@ -179,6 +181,15 @@ namespace b3d
 		ScopeGuard releaseFileSystem([]() { FileSystem::ShutDown(); });
 
 		TestResultCollector collector;
+
+		// Utility tests run before Application starts, so --unattended needs to be applied here as well. Config variables aren't loaded yet, so
+		// the values are read from the command line directly. Explicit values override --unattended.
+		const bool isUnattended = CommandLine::HasParameter("unattended");
+		if(CommandLine::GetParameterValueAsBool("debug.DisableErrorDialogs", isUnattended))
+			PlatformUtility::DisableInteractiveErrorDialogs();
+
+		if(CommandLine::GetParameterValueAsBool("debug.IgnoreDebugger", isUnattended))
+			PlatformUtility::IgnoreDebugger();
 
 		// Phase 1: Utility tests (no Application needed)
 		if (layers.IsSet(TestLayer::Utility))
