@@ -701,11 +701,14 @@ namespace b3d
 		u8* mVertices = nullptr;
 		u8* mNormals = nullptr;
 		u32 mNumVertices = 0;
-		u32 mVertexStride = 0;
+		u32 mPositionStride = 0;
+		u32 mNormalStride = 0;
 		bool m32BitNormals = true;
 
 		u8* mBoneIndices = nullptr;
 		u8* mBoneWeights = nullptr;
+		u32 mBoneIndexStride = 0;
+		u32 mBoneWeightStride = 0;
 
 		TShared<MeshData> mMeshData;
 

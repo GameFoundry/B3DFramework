@@ -35,12 +35,13 @@ static void CopyCookedData(const PxDefaultMemoryOutputStream& output, u8** outDa
 bool CookConvex(const PxCookingParams& cookingParams, const TShared<MeshData>& meshData, u8** outData, u32& outSize)
 {
 	TShared<VertexDescription> vertexDesc = meshData->GetVertexDescription();
+	u32 positionStreamIndex = vertexDesc->FindElement(VES_POSITION)->GetStreamIndex();
 
 	// Try to create hull from points
 	PxConvexMeshDesc convexDesc;
 	convexDesc.points.count = meshData->GetVertexCount();
-	convexDesc.points.stride = vertexDesc->GetVertexStride();
-	convexDesc.points.data = meshData->GetElementData(VES_POSITION);
+	convexDesc.points.stride = vertexDesc->GetVertexStride(positionStreamIndex);
+	convexDesc.points.data = meshData->GetElementData(VES_POSITION, 0, positionStreamIndex);
 	convexDesc.flags |= PxConvexFlag::eCOMPUTE_CONVEX;
 
 	PxDefaultMemoryOutputStream hullOutput;
@@ -53,7 +54,7 @@ bool CookConvex(const PxCookingParams& cookingParams, const TShared<MeshData>& m
 	// Nothing works, just compute an AABB
 	AABox box;
 
-	auto vertIter = meshData->GetVec3DataIter(VES_POSITION);
+	auto vertIter = meshData->GetVec3DataIter(VES_POSITION, 0, positionStreamIndex);
 	do
 	{
 		box.Merge(vertIter.GetValue());
@@ -103,7 +104,8 @@ bool CookMesh(const TShared<MeshData>& meshData, PhysicsMeshType type, u8** outD
 	}
 
 	TShared<VertexDescription> vertexDesc = meshData->GetVertexDescription();
-	if(!vertexDesc->HasElement(VES_POSITION))
+	const VertexElement* positionElement = vertexDesc->FindElement(VES_POSITION);
+	if(positionElement == nullptr)
 	{
 		B3D_LOG(Warning, LogPhysics, "Provided PhysicsMesh mesh data has no vertex positions.");
 		return false;
@@ -124,8 +126,8 @@ bool CookMesh(const TShared<MeshData>& meshData, PhysicsMeshType type, u8** outD
 	{
 		PxTriangleMeshDesc meshDesc;
 		meshDesc.points.count = meshData->GetVertexCount();
-		meshDesc.points.stride = vertexDesc->GetVertexStride();
-		meshDesc.points.data = meshData->GetElementData(VES_POSITION);
+		meshDesc.points.stride = vertexDesc->GetVertexStride(positionElement->GetStreamIndex());
+		meshDesc.points.data = meshData->GetElementData(VES_POSITION, 0, positionElement->GetStreamIndex());
 
 		meshDesc.triangles.count = meshData->GetIndexCount() / 3;
 		meshDesc.flags |= PxMeshFlag::eFLIPNORMALS;

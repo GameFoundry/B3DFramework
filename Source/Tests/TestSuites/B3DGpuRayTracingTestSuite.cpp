@@ -2614,8 +2614,17 @@ void GpuRayTracingTestSuite::TestRayTracingGeometry()
 			return;
 
 		B3D_TEST_ASSERT(layouts[0].FirstIndex == 0 && layouts[1].FirstIndex == 3)
-		B3D_TEST_ASSERT(layouts[1].Position.Offset == 0 && layouts[1].Position.Stride == 24 && layouts[1].Normal.Offset == 12 && layouts[1].Uv.Offset == 16)
-		B3D_TEST_ASSERT(layouts[1].Position.BufferIndex == vertexBuffer->GetBindlessIndex())
+		// The converted mesh has positions, normals and texture coordinates in streams of their own
+		const TShared<render::GpuBuffer> normalBuffer = mesh->GetVertexData()->GetBuffer(1);
+		const TShared<render::GpuBuffer> uvBuffer = mesh->GetVertexData()->GetBuffer(2);
+		B3D_TEST_ASSERT(layouts[1].Position.Offset == 0 && layouts[1].Position.Stride == 12 && layouts[1].Normal.Offset == 0 && layouts[1].Normal.Stride == 4 &&
+			layouts[1].Uv.Offset == 0 && layouts[1].Uv.Stride == 8)
+		B3D_TEST_ASSERT(layouts[1].Position.BufferIndex == vertexBuffer->GetBindlessIndex() && layouts[1].Normal.BufferIndex == normalBuffer->GetBindlessIndex() &&
+			layouts[1].Uv.BufferIndex == uvBuffer->GetBindlessIndex())
+
+		// Only the positions are an acceleration structure input
+		B3D_TEST_ASSERT(!normalBuffer->GetInformation().Flags.IsSet(GpuBufferFlag::AccelerationStructureInput) &&
+			!uvBuffer->GetInformation().Flags.IsSet(GpuBufferFlag::AccelerationStructureInput))
 
 		// The mesh has no tangents, so they come from the default value every vertex shares
 		B3D_TEST_ASSERT(layouts[1].Tangent.Stride == 0 && layouts[1].Tangent.BufferIndex != layouts[1].Position.BufferIndex)

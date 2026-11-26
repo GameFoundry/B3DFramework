@@ -28,10 +28,11 @@ void MeshWeightedTriangles::Calculate(const MeshData& meshData)
 	const u32 numTriangles = numIndices / 3;
 	mWeights.resize(numTriangles);
 
-	u8* vertices = meshData.GetElementData(VES_POSITION);
-
 	const TShared<VertexDescription>& vertexDesc = meshData.GetVertexDescription();
-	const u32 stride = vertexDesc->GetVertexStride();
+	const u32 positionStreamIndex = vertexDesc->FindElement(VES_POSITION)->GetStreamIndex();
+
+	u8* vertices = meshData.GetElementData(VES_POSITION, 0, positionStreamIndex);
+	const u32 stride = vertexDesc->GetVertexStride(positionStreamIndex);
 
 	float totalArea = 0.0f;
 	if(meshData.GetIndexType() == IT_32BIT)
@@ -761,7 +762,7 @@ bool MeshEmissionHelper::Initialize(const HMesh& mesh, bool perVertex, bool skin
 	}
 
 	const TShared<VertexDescription>& vertexDesc = mMeshData->GetVertexDescription();
-	const VertexElement* positionElement = vertexDesc->GetElement(VES_POSITION);
+	const VertexElement* positionElement = vertexDesc->FindElement(VES_POSITION);
 	if(positionElement == nullptr)
 	{
 		B3D_LOG(Error, LogParticles, "Mesh particle emitter requires position vertex data to be present in the provided mesh data.");
@@ -783,8 +784,8 @@ bool MeshEmissionHelper::Initialize(const HMesh& mesh, bool perVertex, bool skin
 
 	if(skinning)
 	{
-		const VertexElement* blendIdxElement = vertexDesc->GetElement(VES_BLEND_INDICES);
-		const VertexElement* blendWeightElement = vertexDesc->GetElement(VES_BLEND_WEIGHTS);
+		const VertexElement* blendIdxElement = vertexDesc->FindElement(VES_BLEND_INDICES);
+		const VertexElement* blendWeightElement = vertexDesc->FindElement(VES_BLEND_WEIGHTS);
 
 		if(blendIdxElement == nullptr || blendWeightElement == nullptr)
 		{
@@ -807,31 +808,38 @@ bool MeshEmissionHelper::Initialize(const HMesh& mesh, bool perVertex, bool skin
 	}
 
 	// Initialize
-	mVertices = mMeshData->GetElementData(VES_POSITION);
+	mVertices = mMeshData->GetElementData(VES_POSITION, 0, positionElement->GetStreamIndex());
 	mNumVertices = mMeshData->GetVertexCount();
-	mVertexStride = vertexDesc->GetVertexStride();
+	mPositionStride = vertexDesc->GetVertexStride(positionElement->GetStreamIndex());
 
-	const VertexElement* normalElement = vertexDesc->GetElement(VES_NORMAL);
+	const VertexElement* normalElement = vertexDesc->FindElement(VES_NORMAL);
 
 	mNormals = nullptr;
 	if(normalElement)
 	{
 		if(normalElement->GetType() == VET_UBYTE4_NORM)
 		{
-			mNormals = mMeshData->GetElementData(VES_NORMAL);
+			mNormals = mMeshData->GetElementData(VES_NORMAL, 0, normalElement->GetStreamIndex());
 			m32BitNormals = true;
 		}
 		else if(normalElement->GetType() == VET_FLOAT3)
 		{
-			mNormals = mMeshData->GetElementData(VES_NORMAL);
+			mNormals = mMeshData->GetElementData(VES_NORMAL, 0, normalElement->GetStreamIndex());
 			m32BitNormals = false;
 		}
+
+		mNormalStride = vertexDesc->GetVertexStride(normalElement->GetStreamIndex());
 	}
 
 	if(skinning)
 	{
-		mBoneIndices = mMeshData->GetElementData(VES_BLEND_INDICES);
-		mBoneWeights = mMeshData->GetElementData(VES_BLEND_WEIGHTS);
+		const VertexElement* blendIdxElement = vertexDesc->FindElement(VES_BLEND_INDICES);
+		const VertexElement* blendWeightElement = vertexDesc->FindElement(VES_BLEND_WEIGHTS);
+
+		mBoneIndices = mMeshData->GetElementData(VES_BLEND_INDICES, 0, blendIdxElement->GetStreamIndex());
+		mBoneWeights = mMeshData->GetElementData(VES_BLEND_WEIGHTS, 0, blendWeightElement->GetStreamIndex());
+		mBoneIndexStride = vertexDesc->GetVertexStride(blendIdxElement->GetStreamIndex());
+		mBoneWeightStride = vertexDesc->GetVertexStride(blendWeightElement->GetStreamIndex());
 	}
 
 	if(!perVertex)
@@ -843,14 +851,14 @@ bool MeshEmissionHelper::Initialize(const HMesh& mesh, bool perVertex, bool skin
 void MeshEmissionHelper::GetSequentialVertex(Vector3& position, Vector3& normal, u32& idx) const
 {
 	idx = mNextSequentialIdx;
-	position = *(Vector3*)(mVertices + mVertexStride * idx);
+	position = *(Vector3*)(mVertices + mPositionStride * idx);
 
 	if(mNormals)
 	{
 		if(m32BitNormals)
-			normal = MeshUtility::UnpackNormal(mNormals + mVertexStride * idx);
+			normal = MeshUtility::UnpackNormal(mNormals + mNormalStride * idx);
 		else
-			normal = *(Vector3*)(mNormals + mVertexStride * idx);
+			normal = *(Vector3*)(mNormals + mNormalStride * idx);
 	}
 	else
 		normal = Vector3::kUnitZ;
@@ -861,14 +869,14 @@ void MeshEmissionHelper::GetSequentialVertex(Vector3& position, Vector3& normal,
 void MeshEmissionHelper::GetRandomVertex(const Random& random, Vector3& position, Vector3& normal, u32& idx) const
 {
 	idx = random.Get() % mNumVertices;
-	position = *(Vector3*)(mVertices + mVertexStride * idx);
+	position = *(Vector3*)(mVertices + mPositionStride * idx);
 
 	if(mNormals)
 	{
 		if(m32BitNormals)
-			normal = MeshUtility::UnpackNormal(mNormals + mVertexStride * idx);
+			normal = MeshUtility::UnpackNormal(mNormals + mNormalStride * idx);
 		else
-			normal = *(Vector3*)(mNormals + mVertexStride * idx);
+			normal = *(Vector3*)(mNormals + mNormalStride * idx);
 	}
 	else
 		normal = Vector3::kUnitZ;
@@ -899,20 +907,20 @@ void MeshEmissionHelper::GetRandomEdge(const Random& random, std::array<Vector3,
 		break;
 	}
 
-	position[0] = *(Vector3*)(mVertices + mVertexStride * idx[0]);
-	position[1] = *(Vector3*)(mVertices + mVertexStride * idx[1]);
+	position[0] = *(Vector3*)(mVertices + mPositionStride * idx[0]);
+	position[1] = *(Vector3*)(mVertices + mPositionStride * idx[1]);
 
 	if(mNormals)
 	{
 		if(m32BitNormals)
 		{
-			normal[0] = MeshUtility::UnpackNormal(mNormals + mVertexStride * idx[0]);
-			normal[1] = MeshUtility::UnpackNormal(mNormals + mVertexStride * idx[1]);
+			normal[0] = MeshUtility::UnpackNormal(mNormals + mNormalStride * idx[0]);
+			normal[1] = MeshUtility::UnpackNormal(mNormals + mNormalStride * idx[1]);
 		}
 		else
 		{
-			normal[0] = *(Vector3*)(mNormals + mVertexStride * idx[0]);
-			normal[1] = *(Vector3*)(mNormals + mVertexStride * idx[1]);
+			normal[0] = *(Vector3*)(mNormals + mNormalStride * idx[0]);
+			normal[1] = *(Vector3*)(mNormals + mNormalStride * idx[1]);
 		}
 	}
 	else
@@ -928,14 +936,14 @@ void MeshEmissionHelper::GetRandomTriangle(const Random& random, std::array<Vect
 
 	for(uint32_t i = 0; i < 3; i++)
 	{
-		position[i] = *(Vector3*)(mVertices + mVertexStride * idx[i]);
+		position[i] = *(Vector3*)(mVertices + mPositionStride * idx[i]);
 
 		if(mNormals)
 		{
 			if(m32BitNormals)
-				normal[i] = MeshUtility::UnpackNormal(mNormals + mVertexStride * idx[i]);
+				normal[i] = MeshUtility::UnpackNormal(mNormals + mNormalStride * idx[i]);
 			else
-				normal[i] = *(Vector3*)(mNormals + mVertexStride * idx[i]);
+				normal[i] = *(Vector3*)(mNormals + mNormalStride * idx[i]);
 		}
 		else
 			normal[i] = Vector3::kUnitZ;
@@ -946,8 +954,8 @@ Matrix4 MeshEmissionHelper::GetBlendMatrix(const Matrix4* bones, u32 vertexIdx) 
 {
 	if(bones)
 	{
-		const u32 boneIndices = *(u32*)(mBoneIndices + vertexIdx * mVertexStride);
-		const Vector4& boneWeights = *(Vector4*)(mBoneWeights + vertexIdx * mVertexStride);
+		const u32 boneIndices = *(u32*)(mBoneIndices + vertexIdx * mBoneIndexStride);
+		const Vector4& boneWeights = *(Vector4*)(mBoneWeights + vertexIdx * mBoneWeightStride);
 
 		return bones[boneIndices & 0xFF] * boneWeights[0] +
 			bones[(boneIndices >> 8) & 0xFF] * boneWeights[1] +
@@ -1072,7 +1080,7 @@ ParticleEmitterSkinnedMeshShape::ParticleEmitterSkinnedMeshShape(const ParticleS
 	if(settings.Renderable.IsValid())
 		mesh = settings.Renderable->GetMesh();
 
-	mIsValid = mMeshEmissionHelper.Initialize(mesh, settings.Type == ParticleEmitterMeshType::Vertex, false);
+	mIsValid = mMeshEmissionHelper.Initialize(mesh, settings.Type == ParticleEmitterMeshType::Vertex, true);
 }
 
 void ParticleEmitterSkinnedMeshShape::SetSettings(const ParticleSkinnedMeshShapeSettings& settings)
@@ -1083,7 +1091,7 @@ void ParticleEmitterSkinnedMeshShape::SetSettings(const ParticleSkinnedMeshShape
 	if(settings.Renderable.IsValid())
 		mesh = settings.Renderable->GetMesh();
 
-	mIsValid = mMeshEmissionHelper.Initialize(mesh, settings.Type == ParticleEmitterMeshType::Vertex, false);
+	mIsValid = mMeshEmissionHelper.Initialize(mesh, settings.Type == ParticleEmitterMeshType::Vertex, true);
 }
 
 u32 ParticleEmitterSkinnedMeshShape::SpawnInternal(const Random& random, ParticleSet& particles, u32 count, const ParticleSystemState& state) const

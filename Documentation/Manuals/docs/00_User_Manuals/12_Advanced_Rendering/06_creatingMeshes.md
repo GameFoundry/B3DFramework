@@ -50,6 +50,8 @@ TShared<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(
 
 You may also specify these optional properties, primarily useful for low-level rendering:
  - Stream index - Each vertex element can also be placed in a "stream". In the example above all the elements are in the 0th stream, but you can place different elements in different streams by providing a stream index. This can be useful if you are rendering the mesh with multiple GPU programs and not every GPU program requires all vertex elements, in which case you could only bind a subset of the vertex buffers and reduce the bandwidth costs by not sending the unnecessary data.
+
+Meshes created from a @b3d::VertexLayout through @b3d::RendererMeshData, which includes imported meshes, use up to three streams: positions in stream 0; normals, tangents, blend indices and blend weights in stream 1; texture coordinates and colors in the stream after those. A layout without normals, tangents and bone weights has no stream for them, so its texture coordinates and colors are in stream 1. Depth-only and shadow passes then read only the positions, and skin cache can override stream 0 and 1 with its own data. Use @b3d::VertexDescription::FindElement to find the stream of an element.
  - Instance step rate - Values larger than 1 mean that data provided in the vertex buffer is not per vertex, but rather per instance. This is used for instanced rendering.
 
 Once the **VertexDescription** structure has been filled, you can use it for initializing a **Mesh** as shown above.
@@ -93,12 +95,17 @@ for(u32 i = 0; i < 8; i++)
 meshData->SetVertexData(VES_POSITION, (u8*)myVertexPositions, sizeof(myVertexPositions));
 ~~~~~~~~~~~~~
 
-You can also use @b3d::MeshData::GetElementData which will return a pointer to the starting point of the vertex data for a specific element. You can then iterate over the pointer to read/write values. Make sure to use @b3d::VertexDescription::GetVertexStride to know how many bytes to advance between elements. This ensures you don't need to create an intermediate buffer like we did above.
+**SetVertexData**, **GetVertexData** and the methods below look an element up in stream 0, unless you provide another stream index.
+
+You can also use @b3d::MeshData::GetElementData which will return a pointer to the starting point of the vertex data for a specific element. You can then iterate over the pointer to read/write values. Make sure to use @b3d::VertexDescription::GetVertexStride with the element's stream index to know how many bytes to advance between elements. This ensures you don't need to create an intermediate buffer like we did above.
 
 ~~~~~~~~~~~~~{.cpp}
-// Fill out the data for the 0th VES_POSITION element
-u8* vertices = meshData->GetElementData(VES_POSITION);
-u32 stride = meshData->GetVertexDescription()->GetVertexStride();
+// Fill out the data for the 0th VES_POSITION element, in whichever stream it is
+const VertexDescription& vertexDescription = *meshData->GetVertexDescription();
+u32 streamIndex = vertexDescription.FindElement(VES_POSITION)->GetStreamIndex();
+
+u8* vertices = meshData->GetElementData(VES_POSITION, 0, streamIndex);
+u32 stride = vertexDescription.GetVertexStride(streamIndex);
 
 for(u32 i = 0; i < 8; i++)
 {

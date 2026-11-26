@@ -128,6 +128,9 @@ namespace b3d::render
 
 		static constexpr u32 kInvalidIndex = ~0u; /**< Index of an entry that isn't in a list of its cache. */
 
+		/** Stream of mVertexDescription with the first of the mesh's streams, after the deformed positions, normals and tangents. */
+		static constexpr u32 kFirstSourceMeshStreamIndex = 2;
+
 		SkinCache& mCache;
 		u32 mEntriesIndex = kInvalidIndex; /**< Index of the entry in SkinCache::mEntries. */
 		u32 mEntriesQueuedForUpdateIndex = kInvalidIndex; /**< Index of the entry in SkinCache::mEntriesQueuedForUpdate, if its pose changed since the last deformation. */
@@ -175,9 +178,18 @@ namespace b3d::render
 		u32 mCurrentPositionBufferIndex = 0; /**< Index into mPositionBuffers of the buffer with the positions of the latest deformation. */
 		TShared<GpuBuffer> mNormalTangentBuffer; /**< Deformed normals and tangents. */
 
-		/** Elements of the mesh's streams, with the deformed attributes as padding, then the streams of the entry's buffers. */
+		/**
+		 * The deformed positions as stream 0, the normals and tangents as stream 1, the mesh's streams in mDrawnSourceMeshStreamIndices
+		 * from kFirstSourceMeshStreamIndex with the deformed attributes as padding and, if the entry keeps previous positions, those as
+		 * the last stream.
+		 */
 		TShared<VertexDescription> mVertexDescription;
-		u32 mFirstEntryStreamIndex = 0; /**< Stream of mVertexDescription with the deformed positions. Normals, tangents and previous positions follow. */
+
+		/**
+		 * Streams of the mesh that the entry's draws bind, in the order of the streams of mVertexDescription from
+		 * kFirstSourceMeshStreamIndex. Mesh streams that hold only deformed attributes and blend data are left out.
+		 */
+		TInlineArray<u32, 2> mDrawnSourceMeshStreamIndices;
 
 		/**
 		 * Vertex data that draws the positions of one position buffer, with the other position buffer as POSITION1, for the update after
@@ -206,9 +218,9 @@ namespace b3d::render
 		u64 mRebuildRequest = 0;
 
 		/**
-		 * Creates vertex data that binds the mesh's streams, the position buffer @p positionBufferIndex as POSITION and, if the entry
-		 * keeps previous positions, the position buffer @p previousPositionBufferIndex as POSITION1. All of the entry's vertex data
-		 * share mVertexDescription, so draws switch between them without new vertex inputs or pipelines.
+		 * Creates vertex data that binds the position buffer @p positionBufferIndex as POSITION, the mesh's streams in
+		 * mDrawnSourceMeshStreamIndices and, if the entry keeps previous positions, the position buffer @p previousPositionBufferIndex as
+		 * POSITION1. All of the entry's vertex data share mVertexDescription, so draws switch between them without new vertex inputs or pipelines.
 		 */
 		TShared<VertexData> CreateVertexData(u32 positionBufferIndex, u32 previousPositionBufferIndex) const;
 	};

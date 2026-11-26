@@ -15,6 +15,10 @@ namespace b3d
 	/**
 	 * Available vertex layouts that specify what data is provided per-vertex in a mesh. Combinations other than those
 	 * provided are allowed.
+	 *
+	 * A layout places its attributes in up to three vertex streams: positions in stream 0; normals, tangents, blend indices and
+	 * blend weights in stream 1; texture coordinates and colors in the stream after those. A layout without normals, tangents and
+	 * bone weights has no stream for them, and its texture coordinates and colors are in stream 1.
 	 */
 	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) VertexLayout
 	{
@@ -213,7 +217,7 @@ namespace b3d
 		/**	Creates a new mesh data structure using an existing mesh data buffer. */
 		static TShared<RendererMeshData> Create(const TShared<MeshData>& meshData);
 
-		/**	Creates a vertex descriptor from a vertex layout enum. */
+		/** Creates a vertex descriptor from a vertex layout enum, with the attributes in the streams described by VertexLayout. */
 		static TShared<VertexDescription> VertexLayoutVertexDesc(VertexLayout type);
 
 		/** Converts a generic mesh data into mesh data format expected by the renderer. */

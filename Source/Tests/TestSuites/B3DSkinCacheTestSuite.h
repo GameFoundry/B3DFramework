@@ -24,7 +24,7 @@ namespace b3d
 
 		/**
 		 * Deforms an entry to fixed bone transforms: positions within 1e-5 of the CPU reference, normals and tangents within 1/255, and the
-		 * tangents' handedness kept.
+		 * tangents' handedness kept. Runs on a mesh with interleaved attributes and on one with split streams.
 		 */
 		void TestSkinning();
 
@@ -44,7 +44,8 @@ namespace b3d
 
 		/**
 		 * Deforms entries of a mesh with a skeleton and morph shapes, of one with only a skeleton and of one with only morph shapes in one
-		 * update, each with its own shader variation, and compares them with the CPU reference.
+		 * update, each with its own shader variation, and compares them with the CPU reference. Runs on meshes with interleaved attributes
+		 * and on meshes with split streams.
 		 */
 		void TestMorphAndSkinning();
 
@@ -64,8 +65,9 @@ namespace b3d
 
 		/**
 		 * Checks the entry's vertex description: POSITION0, NORMAL0 and TANGENT0 resolve to the entry's streams, TEXCOORD0 to the mesh's,
-		 * and the mesh's stream keeps its stride. Draws the deformed mesh in the graph that deformed it and probes pixels that only the
-		 * deformed shape covers.
+		 * and the mesh's stream keeps its stride. Of a mesh with split streams, the entry binds only the stream with the texture
+		 * coordinates. Draws the deformed mesh in the graph that deformed it and probes pixels that only the deformed shape covers. Runs on
+		 * a mesh with interleaved attributes and on one with split streams.
 		 */
 		void TestVertexLayout();
 
@@ -74,7 +76,8 @@ namespace b3d
 		 * instance of the entry's geometry. Each update adds a pass that builds the geometry after the deformation, and the scene rebuilds
 		 * its top level structure because the geometry was built, and only then. Inline rays hit the deformed surface,
 		 * and read the deformed positions and normals and the mesh's texture coordinates through the geometry's layouts, also after the
-		 * position buffers swapped. On devices without acceleration structures the entry has no geometry and builds nothing.
+		 * position buffers swapped. On devices without acceleration structures the entry has no geometry and builds nothing. Runs on a
+		 * mesh with interleaved attributes and on one with split streams.
 		 */
 		void TestRayTracingGeometry();
 

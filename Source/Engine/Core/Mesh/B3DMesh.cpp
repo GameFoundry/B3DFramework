@@ -317,14 +317,20 @@ void Mesh::Initialize()
 	mVertexData->VertexCount = mProperties.VertexCount;
 	mVertexData->VertexDescription = mVertexDescription;
 
+	// Acceleration structure builds read only the positions, and the flag can raise a buffer's alignment
+	const VertexElement* positionElement = mVertexDescription->FindElement(VES_POSITION);
 	for(u32 streamIndex = 0; streamIndex <= mVertexDescription->GetLargestStreamIndex(); streamIndex++)
 	{
 		if(!mVertexDescription->HasStream(streamIndex))
 			continue;
 
+		GpuBufferFlags vertexBufferFlags = flags;
+		if(positionElement == nullptr || positionElement->GetStreamIndex() != streamIndex)
+			vertexBufferFlags.Unset(GpuBufferFlag::AccelerationStructureInput);
+
 		GpuBufferCreateInformation vertexBufferCreateInformation;
 		vertexBufferCreateInformation.Type = GpuBufferType::Vertex;
-		vertexBufferCreateInformation.Flags = flags;
+		vertexBufferCreateInformation.Flags = vertexBufferFlags;
 		vertexBufferCreateInformation.Memory = memory;
 		vertexBufferCreateInformation.Vertex.ElementSize = mVertexData->VertexDescription->GetVertexStride(streamIndex);
 		vertexBufferCreateInformation.Vertex.Count = mVertexData->VertexCount;

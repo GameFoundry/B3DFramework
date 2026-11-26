@@ -880,6 +880,45 @@ TShared<RendererMeshData> FBXImporter::GenerateMeshData(const FBXImportScene& sc
 		}
 	}
 
+	const auto fnGetVertexLayout = [](const FBXImportMesh& mesh)
+	{
+		u32 vertexLayout = (u32)VertexLayout::Position;
+
+		size_t numVertices = mesh.Positions.size();
+		if(mesh.Colors.size() == numVertices)
+			vertexLayout |= (u32)VertexLayout::Color;
+
+		if(mesh.Normals.size() == numVertices)
+		{
+			vertexLayout |= (u32)VertexLayout::Normal;
+
+			if(mesh.Tangents.size() == numVertices && mesh.Bitangents.size() == numVertices)
+				vertexLayout |= (u32)VertexLayout::Tangent;
+		}
+
+		if(mesh.BoneInfluences.size() == numVertices)
+			vertexLayout |= (u32)VertexLayout::BoneWeights;
+
+		for(u32 i = 0; i < FBX_IMPORT_MAX_UV_LAYERS; i++)
+		{
+			if(mesh.UV[i].size() == numVertices)
+			{
+				if(i == 0)
+					vertexLayout |= (u32)VertexLayout::UV0;
+				else if(i == 1)
+					vertexLayout |= (u32)VertexLayout::UV1;
+			}
+		}
+
+		return vertexLayout;
+	};
+
+	// All meshes use the layout of every mesh combined. Layouts place attributes in different streams depending on which
+	// other attributes are present, and combining the meshes below requires each attribute to be in the same stream.
+	u32 combinedVertexLayout = 0;
+	for(auto& mesh : scene.Meshes)
+		combinedVertexLayout |= fnGetVertexLayout(*mesh);
+
 	for(auto& mesh : scene.Meshes)
 	{
 		Vector<Vector<u32>> indicesPerMaterial;
@@ -910,42 +949,12 @@ TShared<RendererMeshData> FBXImporter::GenerateMeshData(const FBXImportScene& sc
 			currentIndex += indexCount;
 		}
 
-		u32 vertexLayout = (u32)VertexLayout::Position;
-
 		size_t numVertices = mesh->Positions.size();
-		bool hasColors = mesh->Colors.size() == numVertices;
-		bool hasNormals = mesh->Normals.size() == numVertices;
-		bool hasBoneInfluences = mesh->BoneInfluences.size() == numVertices;
-
-		if(hasColors)
-			vertexLayout |= (u32)VertexLayout::Color;
-
-		bool hasTangents = false;
-		if(hasNormals)
-		{
-			vertexLayout |= (u32)VertexLayout::Normal;
-
-			if(mesh->Tangents.size() == numVertices &&
-			   mesh->Bitangents.size() == numVertices)
-			{
-				vertexLayout |= (u32)VertexLayout::Tangent;
-				hasTangents = true;
-			}
-		}
-
-		if(hasBoneInfluences)
-			vertexLayout |= (u32)VertexLayout::BoneWeights;
-
-		for(u32 i = 0; i < FBX_IMPORT_MAX_UV_LAYERS; i++)
-		{
-			if(mesh->UV[i].size() == numVertices)
-			{
-				if(i == 0)
-					vertexLayout |= (u32)VertexLayout::UV0;
-				else if(i == 1)
-					vertexLayout |= (u32)VertexLayout::UV1;
-			}
-		}
+		u32 vertexLayout = fnGetVertexLayout(*mesh);
+		bool hasColors = (vertexLayout & (u32)VertexLayout::Color) != 0;
+		bool hasNormals = (vertexLayout & (u32)VertexLayout::Normal) != 0;
+		bool hasTangents = (vertexLayout & (u32)VertexLayout::Tangent) != 0;
+		bool hasBoneInfluences = (vertexLayout & (u32)VertexLayout::BoneWeights) != 0;
 
 		u32 numIndices = (u32)mesh->Indices.size();
 		for(auto& node : mesh->ReferencedBy)
@@ -954,7 +963,14 @@ TShared<RendererMeshData> FBXImporter::GenerateMeshData(const FBXImportScene& sc
 			Matrix4 worldTransformIT = worldTransform.Inverse();
 			worldTransformIT = worldTransformIT.Transpose();
 
-			TShared<RendererMeshData> meshData = RendererMeshData::Create((u32)numVertices, numIndices, (VertexLayout)vertexLayout);
+			TShared<RendererMeshData> meshData = RendererMeshData::Create((u32)numVertices, numIndices, (VertexLayout)combinedVertexLayout);
+
+			// Attributes this mesh doesn't have are left at zero, since mesh data memory isn't cleared when allocated
+			if(vertexLayout != combinedVertexLayout)
+			{
+				TShared<MeshData> vertexData = meshData->GetData();
+				memset(vertexData->GetStreamData(0), 0, vertexData->GetStreamSize());
+			}
 
 			// Copy indices
 			if(!node->FlipWinding)

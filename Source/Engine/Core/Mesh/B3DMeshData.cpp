@@ -87,6 +87,13 @@ TShared<MeshData> MeshData::Combine(const Vector<TShared<MeshData>>& meshes, con
 
 			if(alreadyExistsIndex == -1)
 			{
+				for(auto& existingElement : combinedVertexElements)
+				{
+					B3D_ENSURE_LOG(newElement.GetSemantic() != existingElement.GetSemantic() || newElement.GetSemanticIndex() != existingElement.GetSemanticIndex(),
+						"Two elements have the same semantics but are in different streams. This is not supported. Semantic: {0}, Semantic index: {1}, "
+						"Streams: {2} and {3}", newElement.GetSemantic(), newElement.GetSemanticIndex(), existingElement.GetStreamIndex(), newElement.GetStreamIndex());
+				}
+
 				combinedVertexElements.push_back(newElement);
 				vertexElements.Add(VertexElement(newElement.GetType(), newElement.GetSemantic(), newElement.GetSemanticIndex(), newElement.GetStreamIndex()));
 			}

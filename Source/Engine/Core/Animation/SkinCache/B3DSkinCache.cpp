@@ -217,27 +217,47 @@ namespace b3d::render
 			mBlendWeightsOffset = meshDescription.FindElement(VES_BLEND_WEIGHTS)->GetOffset();
 		}
 
-		// The mesh's streams keep their offsets and strides, with the attributes the entry deforms turned into padding, and the entry's
-		// buffers follow as streams of their own
-		TInlineArray<VertexElement, 8> vertexElements;
-		u32 meshStreamCount = 0;
+		// Deformed positions, normals and tangents are placed in their own streams first. Source mesh streams containing non-deformable attributes come next.
+		// If such a stream also contains deformable attributes, they are masked out via VES_PADDING, so they are never accessed (they are replaced by their
+		// deformed versions). Finally, previous position stream comes last, as it's optional.
+		const auto fnIsDeformed = [](const VertexElement& element)
+		{
+			return element.GetSemanticIndex() == 0 && (element.GetSemantic() == VES_POSITION || element.GetSemantic() == VES_NORMAL || element.GetSemantic() == VES_TANGENT);
+		};
+
 		for(const VertexElement& element : meshDescription.GetElements())
 		{
-			const bool isDeformed = element.GetSemanticIndex() == 0 && (element.GetSemantic() == VES_POSITION || element.GetSemantic() == VES_NORMAL || element.GetSemantic() == VES_TANGENT);
-			const VertexElementSemantic semantic = isDeformed ? VES_PADDING : element.GetSemantic();
-			vertexElements.Add(VertexElement(element.GetType(), semantic, element.GetSemanticIndex(), element.GetStreamIndex(), element.GetInstanceStepRate(), element.GetOffset()));
+			const bool isRead = !fnIsDeformed(element) && element.GetSemantic() != VES_BLEND_INDICES && element.GetSemantic() != VES_BLEND_WEIGHTS;
+			if(!isRead)
+				continue;
 
-			meshStreamCount = std::max(meshStreamCount, element.GetStreamIndex() + 1u);
+			if(std::find(mDrawnSourceMeshStreamIndices.begin(), mDrawnSourceMeshStreamIndices.end(), element.GetStreamIndex()) == mDrawnSourceMeshStreamIndices.end())
+				mDrawnSourceMeshStreamIndices.Add(element.GetStreamIndex());
 		}
 
-		mFirstEntryStreamIndex = meshStreamCount;
+		std::sort(mDrawnSourceMeshStreamIndices.begin(), mDrawnSourceMeshStreamIndices.end());
 
-		vertexElements.Add(VertexElement(RayTracingGeometry::kPositionType, VES_POSITION, 0, meshStreamCount, 0, 0));
-		vertexElements.Add(VertexElement(RayTracingGeometry::kNormalType, VES_NORMAL, 0, meshStreamCount + 1, 0, 0));
-		vertexElements.Add(VertexElement(RayTracingGeometry::kTangentType, VES_TANGENT, 0, meshStreamCount + 1, 0, VertexElement::GetSizeForType(RayTracingGeometry::kNormalType)));
+		TInlineArray<VertexElement, 8> vertexElements;
+		vertexElements.Add(VertexElement(RayTracingGeometry::kPositionType, VES_POSITION, 0, 0, 0, 0));
+		vertexElements.Add(VertexElement(RayTracingGeometry::kNormalType, VES_NORMAL, 0, 1, 0, 0));
+		vertexElements.Add(VertexElement(RayTracingGeometry::kTangentType, VES_TANGENT, 0, 1, 0, VertexElement::GetSizeForType(RayTracingGeometry::kNormalType)));
+
+		for(const VertexElement& element : meshDescription.GetElements())
+		{
+			const auto drawnStream = std::find(mDrawnSourceMeshStreamIndices.begin(), mDrawnSourceMeshStreamIndices.end(), element.GetStreamIndex());
+			if(drawnStream == mDrawnSourceMeshStreamIndices.end())
+				continue;
+
+			const u32 streamIndex = kFirstSourceMeshStreamIndex + (u32)(drawnStream - mDrawnSourceMeshStreamIndices.begin());
+			const VertexElementSemantic semantic = fnIsDeformed(element) ? VES_PADDING : element.GetSemantic();
+			vertexElements.Add(VertexElement(element.GetType(), semantic, element.GetSemanticIndex(), streamIndex, element.GetInstanceStepRate(), element.GetOffset()));
+		}
 
 		if(mFlags.IsSet(SkinCacheEntryFlag::PreviousPositions))
-			vertexElements.Add(VertexElement(RayTracingGeometry::kPositionType, VES_POSITION, 1, meshStreamCount + 2, 0, 0));
+		{
+			const u32 previousPositionStreamIndex = kFirstSourceMeshStreamIndex + (u32)mDrawnSourceMeshStreamIndices.Size();
+			vertexElements.Add(VertexElement(RayTracingGeometry::kPositionType, VES_POSITION, 1, previousPositionStreamIndex, 0, 0));
+		}
 
 		mVertexDescription = B3DMakeShared<VertexDescription>(vertexElements, false);
 
@@ -321,14 +341,16 @@ namespace b3d::render
 		vertexData->VertexDescription = mVertexDescription;
 		vertexData->VertexCount = mVertexCount;
 
-		for(const auto& meshBuffer : mMesh->GetVertexData()->GetBuffers())
-			vertexData->SetBuffer(meshBuffer.first, meshBuffer.second);
+		vertexData->SetBuffer(0, mPositionBuffers[positionBufferIndex]);
+		vertexData->SetBuffer(1, mNormalTangentBuffer);
 
-		vertexData->SetBuffer(mFirstEntryStreamIndex, mPositionBuffers[positionBufferIndex]);
-		vertexData->SetBuffer(mFirstEntryStreamIndex + 1, mNormalTangentBuffer);
+		const TShared<VertexData>& meshVertexData = mMesh->GetVertexData();
+		const u32 meshStreamCount = (u32)mDrawnSourceMeshStreamIndices.Size();
+		for(u32 index = 0; index < meshStreamCount; index++)
+			vertexData->SetBuffer(kFirstSourceMeshStreamIndex + index, meshVertexData->GetBuffer(mDrawnSourceMeshStreamIndices[index]));
 
 		if(mFlags.IsSet(SkinCacheEntryFlag::PreviousPositions))
-			vertexData->SetBuffer(mFirstEntryStreamIndex + 2, mPositionBuffers[previousPositionBufferIndex]);
+			vertexData->SetBuffer(kFirstSourceMeshStreamIndex + meshStreamCount, mPositionBuffers[previousPositionBufferIndex]);
 
 		return vertexData;
 	}

@@ -19,6 +19,7 @@
 #include "TestSuites/B3DGpuBindlessTestSuite.h"
 #include "TestSuites/B3DGpuRayTracingTestSuite.h"
 #include "TestSuites/B3DSkinCacheTestSuite.h"
+#include "TestSuites/B3DRendererMeshDataTestSuite.h"
 #include "TestSuites/B3DAnimationTestSuite.h"
 #include "TestSuites/B3DFrameGraphTestSuite.h"
 #include "TestSuites/B3DPrefabTestSuite.h"
@@ -63,6 +64,7 @@ namespace b3d
 			registry.RegisterSuite(TestSuite::Create<GpuBindlessTestSuite>());
 			registry.RegisterSuite(TestSuite::Create<GpuRayTracingTestSuite>());
 			registry.RegisterSuite(TestSuite::Create<SkinCacheTestSuite>());
+			registry.RegisterSuite(TestSuite::Create<RendererMeshDataTestSuite>());
 			registry.RegisterSuite(TestSuite::Create<AnimationTestSuite>());
 			registry.RegisterSuite(TestSuite::Create<FrameGraphTestSuite>());
 			registry.RegisterSuite(TestSuite::Create<PrefabTestSuite>());
