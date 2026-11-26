@@ -365,7 +365,7 @@ void GpuRayTracingTestSuite::TestAccelerationStructureQueries()
 
 			{
 				LoggingScope logs(*this);
-				logs.ExpectError("Cannot build acceleration structures, the GPU device doesn't support them.");
+				logs.ExpectError("Cannot record acceleration structure builds, the GPU device doesn't support acceleration structures.");
 				B3D_TEST_ASSERT(!commands->BuildAccelerationStructures(TArrayView<const GpuAccelerationStructureBuild>()))
 			}
 

@@ -415,12 +415,12 @@ void CoreTestSuite::TestShaderLanguageDefines()
 	if(compiler == nullptr)
 		return;
 
-	// The mixin and the function it adds depend on the language
+	// The mixin, and the buffer and function it adds, depend on the language
 	const String source = R"(
 #ifdef VULKAN
-mixin LanguageCode { code { float VulkanLanguageValue() { return 1.0f; } }; };
+mixin LanguageCode { code { RWStructuredBuffer<float> VulkanOutput; float VulkanLanguageValue() { return 1.0f; } }; };
 #else
-mixin LanguageCode { code { float OtherLanguageValue() { return 2.0f; } }; };
+mixin LanguageCode { code { RWStructuredBuffer<float> OtherOutput; float OtherLanguageValue() { return 2.0f; } }; };
 #endif
 
 shader LanguageDefines
@@ -429,15 +429,13 @@ shader LanguageDefines
 
 	code
 	{
-		RWStructuredBuffer<float> Output;
-
 		[numthreads(1, 1, 1)]
 		void csmain()
 		{
 #ifdef VULKAN
-			Output[0] = VulkanLanguageValue();
+			VulkanOutput[0] = VulkanLanguageValue();
 #else
-			Output[0] = OtherLanguageValue();
+			OtherOutput[0] = OtherLanguageValue();
 #endif
 		}
 	};
@@ -451,7 +449,8 @@ shader LanguageDefines
 	languages.push_back("msl");
 #endif
 
-	// Checks that each variation's program calls the function of its language
+	// Checks that each variation's program uses the buffer of its language. Function names don't survive every backend (DXC inlines
+	// them before SPIR-V is cross-compiled to MSL), but resource names do.
 	const auto fnCheckPrograms = [this](const Shader& shader)
 	{
 		for(const TShared<Variation>& variation : shader.GetVariations())
@@ -462,11 +461,16 @@ shader LanguageDefines
 				continue;
 
 			const GpuProgramCreateInformation& program = variation->GetPass(0)->GetGpuProgramCreateInformation(GPT_COMPUTE_PROGRAM);
+			B3D_TEST_ASSERT(program.Bytecode != nullptr && program.Bytecode->ParameterDescription != nullptr)
+			if(program.Bytecode == nullptr || program.Bytecode->ParameterDescription == nullptr)
+				continue;
+
+			const Map<String, GpuObjectParameterInformation>& buffers = program.Bytecode->ParameterDescription->Buffers;
 			const bool isVulkan = program.Language == "vksl";
-			const bool callsVulkanFunction = program.Source.find("VulkanLanguageValue") != String::npos;
-			const bool callsOtherFunction = program.Source.find("OtherLanguageValue") != String::npos;
-			B3D_TEST_ASSERT_MSG(callsVulkanFunction == isVulkan && callsOtherFunction != isVulkan,
-				StringUtility::Format("The {0} program calls the function of another language.", program.Language))
+			const bool usesVulkanBuffer = buffers.find("VulkanOutput") != buffers.end();
+			const bool usesOtherBuffer = buffers.find("OtherOutput") != buffers.end();
+			B3D_TEST_ASSERT_MSG(usesVulkanBuffer == isVulkan && usesOtherBuffer != isVulkan,
+				StringUtility::Format("The {0} program uses the code of another language.", program.Language))
 		}
 	};
 
@@ -488,11 +492,14 @@ shader LanguageDefines
 		if(shader == nullptr)
 			return;
 
+		// Compiles through the BSL compiler rather than Variation::Compile(), which would also create GPU programs for languages the active
+		// GPU backend can't consume. Variations are created for each language in turn.
+		u32 variationIndex = 0;
 		for(const TShared<Variation>& variation : shader->GetVariations())
 		{
-			const TAsyncOp<bool> compilation = variation->Compile();
-			compilation.BlockUntilComplete();
-			B3D_TEST_ASSERT(compilation.GetReturnValue())
+			const ShaderCompilerResult variationResult = compiler->CompileVariation(*shader, variation->GetVariationParameters(),
+				languages[variationIndex++ % languages.size()], *variation);
+			B3D_TEST_ASSERT_MSG(variationResult.ErrorMessage.empty(), variationResult.ErrorMessage)
 		}
 
 		fnCheckPrograms(*shader);
