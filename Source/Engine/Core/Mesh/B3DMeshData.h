@@ -245,9 +245,9 @@ namespace b3d
 		Bounds CalculateBounds() const;
 
 		/**
-		 * Combines a number of submeshes and their mesh data into one large mesh data buffer. Attributes are matched by
-		 * semantic, semantic index and stream, and attributes missing from some of the mesh data are filled with zeroes for
-		 * its vertices. An attribute must be in the same stream in all of the mesh data.
+		 * Combines a number of submeshes and their mesh data into one large mesh data buffer. Attributes are matched by semantic, semantic
+		 * index and stream. If an attribute is missing from some of the mesh data, its vertices are filled with zeroes. Each attribute must be
+		 * in the same stream in all of the mesh data.
 		 *
 		 * @param	elements		Data containing vertices and indices referenced by the submeshes. Number of elements
 		 *								must be the same as number of submeshes.

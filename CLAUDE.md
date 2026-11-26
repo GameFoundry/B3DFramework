@@ -15,7 +15,7 @@ cmake --build Build --config RelWithDebInfo
 
 Binaries go to `Build/bin/x64/<Config>`. Main targets are **bsf** (framework library) and **UnitTestRunner** (unit tests; prefer the `run-tests` skill to run it).
 
-When running any engine executable unattended (examples, UnitTestRunner, BansheeCookTool), always pass `--debug.DisableErrorDialogs=true`. Without it, Debug-build asserts and aborts pop up interactive dialogs that block the run until a human dismisses them; with it, errors go to stderr and the process fails fast with a proper exit code.
+When running any engine executable unattended (examples, UnitTestRunner, BansheeCookTool), always pass `--unattended`. It sets `debug.DisableErrorDialogs` and `debug.DisableEnsureBreaks`.
 
 ## Memory Allocation
 
@@ -64,6 +64,35 @@ Match the surrounding code. The rules below are the ones most often gotten wrong
   - You can comment on non-obvious constraints, workarounds for bugs or other things that might be missed without the comment
   - Otherwise use meaningful variable names so the code is self-documenting
   - A short trailing `//` may state a literal's or field's units/meaning (e.g. `outPixelFormat = PF_RG32U; // 64-bit block`, `B3D_UNIFORM_BUFFER_MEMBER(Vector2I, gSize)  // decoded output size in pixels`)
+
+### Documentation examples
+
+Pairs of comments that say the same thing: one written the way to avoid, one in the user's style. Write new comments like the good examples.
+
+**Stream layout of a skin cache entry (implementation comment)**
+
+Bad:
+
+```cpp
+// The deformed positions, normals and tangents come first, as streams of their own. The entry's draws also read the mesh's
+// attributes other than the deformed ones and the blend data. A mesh stream that holds any of them keeps its offsets and
+// strides, with the deformed attributes turned into padding, and follows. Mesh streams without any are left out. The previous
+// positions come last, so draws that don't read them declare no stream for them.
+```
+
+Good:
+
+```cpp
+// Deformed positions, normals and tangents are placed in their own streams first. Source mesh streams containing non-deformable attributes come next.
+// If such a stream also contains deformable attributes, they are masked out via VES_PADDING, so they are never accessed (they are replaced by their
+// deformed versions). Finally, previous position stream comes last, as it's optional.
+```
+
+Why the good one is better:
+- Each sentence starts with the thing it is about and says what happens to it, in the order the code does it.
+- It uses the code's own terms (source mesh, non-deformable attributes, `VES_PADDING`) instead of paraphrasing them through negation ("attributes other than the deformed ones and the blend data").
+- It explains the reason in a short clause ("so they are never accessed", "as it's optional") and leaves out details the code already shows (offsets and strides kept, unused streams skipped) and secondary consequences ("draws that don't read them declare no stream for them").
+- Lines run long instead of wrapping early.
 
 ## Architectural Changes
 

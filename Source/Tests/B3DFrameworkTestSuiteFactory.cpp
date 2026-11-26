@@ -188,8 +188,8 @@ namespace b3d
 		if(CommandLine::GetParameterValueAsBool("debug.DisableErrorDialogs", isUnattended))
 			PlatformUtility::DisableInteractiveErrorDialogs();
 
-		if(CommandLine::GetParameterValueAsBool("debug.IgnoreDebugger", isUnattended))
-			PlatformUtility::IgnoreDebugger();
+		if(CommandLine::GetParameterValueAsBool("debug.DisableEnsureBreaks", isUnattended))
+			PlatformUtility::DisableEnsureBreaks();
 
 		// Phase 1: Utility tests (no Application needed)
 		if (layers.IsSet(TestLayer::Utility))

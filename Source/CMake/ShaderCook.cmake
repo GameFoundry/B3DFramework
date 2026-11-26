@@ -121,7 +121,7 @@ function(B3DAddShaderCookTarget)
 	add_custom_command(
 		OUTPUT "${storePath}"
 		# CMake also tracks library changes, which the tool's shader-source timestamp check cannot detect.
-		COMMAND "${cookTool}" -force -input "${cookInputParameter}" ${cookModuleArguments} -output "${storePath}" -language ${cookLanguage} --debug.DisableErrorDialogs=true
+		COMMAND "${cookTool}" -force -input "${cookInputParameter}" ${cookModuleArguments} -output "${storePath}" -language ${cookLanguage} --unattended
 		DEPENDS ${cookInputFiles} ${cookToolDependency}
 		COMMENT "Cooking prebuilt shader store (${cookLanguage})"
 		VERBATIM)

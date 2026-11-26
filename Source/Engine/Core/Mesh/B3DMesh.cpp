@@ -317,7 +317,7 @@ void Mesh::Initialize()
 	mVertexData->VertexCount = mProperties.VertexCount;
 	mVertexData->VertexDescription = mVertexDescription;
 
-	// Acceleration structure builds read only the positions, and the flag can raise a buffer's alignment
+	// Only the position stream is used as acceleration structure input. Skip the flag on other streams, as it can increase their alignment requirements.
 	const VertexElement* positionElement = mVertexDescription->FindElement(VES_POSITION);
 	for(u32 streamIndex = 0; streamIndex <= mVertexDescription->GetLargestStreamIndex(); streamIndex++)
 	{

@@ -44,6 +44,15 @@ namespace b3d
 		static bool IsDebuggerAttached();
 
 		/**
+		 * Prevents failed ensures from breaking into an attached debugger. The error is still logged. Useful for unattended runs, where a
+		 * debugger may be attached only to catch crashes and nobody is there to resume execution.
+		 */
+		static void DisableEnsureBreaks();
+
+		/** Checks whether DisableEnsureBreaks() was called. */
+		static bool AreEnsureBreaksDisabled();
+
+		/**
 		 * Terminates the current process.
 		 *
 		 * @param	force	True if the process should be forcefully terminated with no cleanup.

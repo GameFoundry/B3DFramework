@@ -100,7 +100,14 @@ namespace b3d
 
 	TConfigVariable<bool> gDebugDisableErrorDialogs("debug.DisableErrorDialogs",
 		"Disables interactive error dialogs (assert message boxes, abort prompts) so unattended runs fail fast "
-		"instead of blocking until the dialog is dismissed. Error reports go to stderr instead.",
+		"instead of blocking until the dialog is dismissed. Error reports go to stderr instead. Set by --unattended.",
+		false,
+		ConfigVariableFlag::ReadOnly);
+
+	TConfigVariable<bool> gDebugDisableEnsureBreaks("debug.DisableEnsureBreaks",
+		"Failed ensures log an error but don't break into an attached debugger. Useful when running under a tool that attaches a "
+		"debugger only to catch crashes, where a break would stop the run. Asserts and crashes still stop the process. "
+		"Set by --unattended.",
 		false,
 		ConfigVariableFlag::ReadOnly);
 } // namespace b3d
@@ -239,12 +246,23 @@ void Application::OnStartUp()
 
 	mTaskScheduler = B3DMakeShared<Scheduler>(schedulerCreateInformation);
 
+	// --unattended is used by tests and CI, where nobody is around to dismiss dialogs or resume from a debugger break. It's applied before the config
+	// file and the command line, so both can still override it.
+	if (CommandLine::HasParameter("unattended"))
+	{
+		gDebugDisableErrorDialogs.Set(true);
+		gDebugDisableEnsureBreaks.Set(true);
+	}
+
 	// Initialize configuration variable system
 	ConfigVariableManager::StartUp();
 
 	// Apply as early as possible so any subsequent assert/abort fails fast instead of blocking on a dialog
 	if (gDebugDisableErrorDialogs)
 		PlatformUtility::DisableInteractiveErrorDialogs();
+
+	if (gDebugDisableEnsureBreaks)
+		PlatformUtility::DisableEnsureBreaks();
 
 	mApplicationCache = PersistentCache::Create();
 	mApplicationCache->Initialize(FileSystem::GetApplicationDataFolder());

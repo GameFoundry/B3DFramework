@@ -94,7 +94,7 @@ env "${UNIT_TEST_ENVIRONMENT[@]}" "$TEST_RUNNER" \
 	--headless \
 	--gpu.PreferIntegrated=true \
 	--gpu.ValidateRestingStates=true \
-	--debug.DisableErrorDialogs=true \
+	--unattended \
 	--test-output-format=json \
 	--test-output-path="$RESULTS_DIR/unit_tests.json" \
 	--test-layer=all 2>&1 | tee "$RESULTS_DIR/unit_tests.log"
@@ -235,7 +235,7 @@ run_snapshot() {
 		--headless \
 		--gpu.PreferIntegrated=true \
 		--gpu.ValidateRestingStates=true \
-		--debug.DisableErrorDialogs=true \
+		--unattended \
 		--enable-test-snapshot \
 		--test-output-path="$OUT_DIR" \
 		--test-name="$TEST_NAME" \
