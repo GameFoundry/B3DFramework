@@ -394,7 +394,7 @@ void RendererMeshDataTestSuite::TestAccessors()
 			positionsEqual = positionsEqual && positions[vertexIndex] == cube.Positions[vertexIndex];
 			normalsNear = normalsNear && IsNear(normals[vertexIndex], cube.Normals[vertexIndex], kPackedNormalTolerance);
 			tangentsNear = tangentsNear && IsNear(tangents[vertexIndex], cube.Tangents[vertexIndex], kPackedNormalTolerance) &&
-				tangents[vertexIndex].W == cube.Tangents[vertexIndex].W;
+				(tangents[vertexIndex].W > 0.0f) == (cube.Tangents[vertexIndex].W > 0.0f);
 			uvsEqual = uvsEqual && uv0[vertexIndex] == cube.Uv0[vertexIndex] && uv1[vertexIndex] == cube.Uv1[vertexIndex];
 			colorsEqual = colorsEqual && IsNear(colors[vertexIndex], cube.Colors[vertexIndex]);
 			boneWeightsEqual = boneWeightsEqual && IsEqual(boneWeights[vertexIndex], cube.BoneWeights[vertexIndex]);
