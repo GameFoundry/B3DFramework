@@ -170,7 +170,8 @@ VkSubmitInfo VulkanGpuQueue::BuildVkSubmitInfo(SubmitWorkBuffer& outWorkBuffer) 
 	return submitInfo;
 }
 
-void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const VulkanGpuCommandBufferSubmitInformation& submitInformation, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const VulkanGpuCommandBufferSubmitInformation& submitInformation, const GpuQueueFenceValues& waits,
+	TArrayView<const GpuTimelineFenceAndValue> waitFences, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
 	AssertIfNotSubmitThread();
 
@@ -194,6 +195,17 @@ void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const VulkanGpuCommandBufferSub
 
 	AppendQueueWaits(waits, waitWorkBuffer);
 	AppendFrameFenceWaits(waits, waitWorkBuffer);
+
+	for(const GpuTimelineFenceAndValue& waitFence : waitFences)
+	{
+		if(!B3D_ENSURE(waitFence.Fence != nullptr))
+			continue;
+
+		VulkanGpuTimelineFence* vulkanFence = static_cast<VulkanGpuTimelineFence*>(waitFence.Fence.get());
+		waitWorkBuffer.AddWait(vulkanFence->GetTimelineSemaphore(), waitFence.Value);
+
+		record.RetainedFences.Add(waitFence.Fence);
+	}
 
 	for(VulkanSemaphore* semaphore : submitInformation.SignalSemaphores)
 	{
@@ -297,7 +309,7 @@ VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageI
 			waits[queue.GetId().Id] = static_cast<VulkanGpuQueue&>(queue).mLastSubmittedProgressValue;
 	});
 
-	ExecuteSubmitOnSubmitThread(bridgeSubmitInformation, waits, {});
+	ExecuteSubmitOnSubmitThread(bridgeSubmitInformation, waits, {}, {});
 
 	SubmitWorkBuffer& workBuffer = mSubmitWorkBuffers[0];
 	workBuffer.Clear();

@@ -38,6 +38,7 @@
 #include "Threading/B3DThreading.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "GpuBackend/B3DGpuSubmitThread.h"
+#include "GpuBackend/B3DGpuPageMappingQueue.h"
 #include "B3DMetalVertexInput.h"
 #include "B3DMetalUtility.h"
 #include "B3DMetalGpuAccelerationStructure.h"
@@ -59,6 +60,7 @@ namespace b3d
 			{
 				WaitUntilIdle();
 				DestroyTransferQueue();
+				mPageMappingQueue->Clear();
 				mSubmitThread = nullptr;
 			}
 
@@ -745,11 +747,18 @@ namespace b3d
 			GetSubmitThread().WaitUntilIdle();
 		}
 
-		void MetalGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+		void MetalGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& queueWaits,
+			TArrayView<const GpuTimelineFenceAndValue> waitFences, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 		{
 			MetalGpuQueue& metalQueue = static_cast<MetalGpuQueue&>(queue);
 			MetalGpuCommandBuffer& metalCommandBuffer = static_cast<MetalGpuCommandBuffer&>(*commandBuffer);
-			metalCommandBuffer.ExecuteSubmitOnSubmitThread(metalQueue, waits, signalFences);
+			metalCommandBuffer.ExecuteSubmitOnSubmitThread(metalQueue, queueWaits, waitFences, signalFences);
+		}
+
+		void MetalGpuDevice::ExecutePageMappings(TArrayView<const GpuPageMapping> /*mappings*/, const GpuTimelineFenceAndValue& /*signalFence*/)
+		{
+			// The device reports no virtual memory capabilities, so no page table makes mappings
+			B3D_ENSURE_LOG(false, "The Metal device doesn't support page mappings.");
 		}
 
 		void MetalGpuDevice::RefreshCompletionState(GpuQueue& queue, bool forceWait, u64 lastFenceValue)

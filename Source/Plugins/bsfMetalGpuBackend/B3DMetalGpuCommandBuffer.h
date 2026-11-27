@@ -81,7 +81,8 @@ namespace b3d
 			 *
 			 * @note	Submit thread only. The owner thread must have called NotifyWillQueueForSubmit() first.
 			 */
-			void ExecuteSubmitOnSubmitThread(MetalGpuQueue& submitQueue, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences = {});
+			void ExecuteSubmitOnSubmitThread(MetalGpuQueue& submitQueue, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> waitFences = {},
+				TArrayView<const GpuTimelineFenceAndValue> signalFences = {});
 
 			/**
 			 * Makes the queue signal @p event with @p value once the GPU finishes executing the command buffer. Metal 4

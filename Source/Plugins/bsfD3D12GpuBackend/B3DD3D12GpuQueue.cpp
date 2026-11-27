@@ -89,7 +89,8 @@ void D3D12GpuQueue::SubmitCommandBuffer(const GpuSubmissionInformation& informat
 	mGpuDevice.GetSubmitThread().QueueSubmit(information.CommandBuffer, *this, information.SyncMask, information.SignalFences);
 }
 
-void D3D12GpuQueue::ExecuteSubmitOnSubmitThread(const D3D12GpuCommandBufferSubmitInformation& submitInformation, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+void D3D12GpuQueue::ExecuteSubmitOnSubmitThread(const D3D12GpuCommandBufferSubmitInformation& submitInformation, const GpuQueueFenceValues& waits,
+	TArrayView<const GpuTimelineFenceAndValue> waitFences, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
 	AssertIfNotSubmitThread();
 
@@ -107,13 +108,22 @@ void D3D12GpuQueue::ExecuteSubmitOnSubmitThread(const D3D12GpuCommandBufferSubmi
 		{
 			D3D12GpuCommandBufferSubmitInformation transitionSubmitInformation;
 			transitionSubmitInformation.PrimaryCommandBuffer = submitInformation.GraphicsTransitionCommandBuffer;
-			graphicsQueue->ExecuteSubmitOnSubmitThread(transitionSubmitInformation, {}, {});
+			graphicsQueue->ExecuteSubmitOnSubmitThread(transitionSubmitInformation, {}, {}, {});
 
 			queueWaits[graphicsQueue->GetId().Id] = graphicsQueue->GetLastSignaledFenceValue();
 		}
 	}
 
 	WaitForQueues(*this, queueWaits);
+
+	for (const GpuTimelineFenceAndValue& entry : waitFences)
+	{
+		B3D_ASSERT(entry.Fence != nullptr);
+
+		D3D12GpuTimelineFence* fence = static_cast<D3D12GpuTimelineFence*>(entry.Fence.get());
+		if (fence->GetD3D12Fence() != nullptr)
+			Wait(fence->GetD3D12Fence(), entry.Value);
+	}
 
 	// The queue's own earlier work needs no frame fence wait, because an ExecuteCommandLists() boundary is already a full
 	// synchronization point. Other queues already waited on at a value at least as high are covered too.

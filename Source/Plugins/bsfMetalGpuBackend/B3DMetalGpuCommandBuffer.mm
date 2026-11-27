@@ -2441,7 +2441,8 @@ namespace b3d
 			return true;
 		}
 
-		void MetalGpuCommandBuffer::ExecuteSubmitOnSubmitThread(MetalGpuQueue& submitQueue, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+		void MetalGpuCommandBuffer::ExecuteSubmitOnSubmitThread(MetalGpuQueue& submitQueue, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> waitFences,
+			TArrayView<const GpuTimelineFenceAndValue> signalFences)
 		{
 			// The owner thread already released its recording state (NotifyWillQueueForSubmit()), so only the native encoding state and
 			// mUsedQueryPools may be touched here. mQueueSyncMask is already folded into @p syncMask.
@@ -2495,6 +2496,12 @@ namespace b3d
 
 					submitQueue.WaitForEvent(static_cast<MetalGpuQueue&>(queue).GetSharedEvent(), waitValue);
 				});
+			}
+
+			for (const GpuTimelineFenceAndValue& entry : waitFences)
+			{
+				if (entry.Fence)
+					submitQueue.WaitForEvent(static_cast<MetalGpuTimelineFence*>(entry.Fence.get())->GetSharedEvent(), entry.Value);
 			}
 
 			for (id<CAMetalDrawable> drawable : mDrawables)

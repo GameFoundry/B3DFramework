@@ -21,7 +21,8 @@ namespace b3d
 			else
 				mAllocation = allocation;
 
-			// The native resource owns the persistently mapped memory, so the memory stays while the native resource is pinned or bound
+			// The native resource owns the persistently mapped memory, so the memory stays while the native resource is pinned or bound. A
+			// virtual buffer has no memory to map.
 			mBuffer = CreateBufferResource();
 			mMappedMemory = mBuffer->GetMemory();
 		}
@@ -55,7 +56,8 @@ namespace b3d
 
 		NullBufferResource* NullGpuBuffer::CreateBufferResource()
 		{
-			return static_cast<NullGpuDevice&>(GetDevice()).GetResourceManager().Create<NullBufferResource>(GetName(), mTotalSize);
+			const u32 memorySize = mInformation.Flags.IsSet(GpuBufferFlag::Virtual) ? 0 : mTotalSize;
+			return static_cast<NullGpuDevice&>(GetDevice()).GetResourceManager().Create<NullBufferResource>(GetName(), memorySize);
 		}
 	} // namespace render
 } // namespace b3d

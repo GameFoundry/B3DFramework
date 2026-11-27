@@ -46,6 +46,11 @@ namespace b3d
 	/** Timeline fence and value to signal. */
 	struct GpuTimelineFenceAndValue
 	{
+		GpuTimelineFenceAndValue() = default;
+		GpuTimelineFenceAndValue(TShared<GpuTimelineFence> fence, u64 value)
+			: Fence(std::move(fence)), Value(value)
+		{ }
+
 		TShared<GpuTimelineFence> Fence;
 		u64 Value = 0;
 	};

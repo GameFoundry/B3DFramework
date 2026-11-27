@@ -38,7 +38,6 @@ namespace b3d
 		protected:
 			friend class NullGpuDevice;
 
-			void Initialize() override {}
 			void RecreateInternalTexture() override;
 			void SwapInternalTexture(Texture& other) override;
 			GpuTextureMappedScope Map(u32 mipLevel, u32 arrayLayer, GpuMapOptions options) override;

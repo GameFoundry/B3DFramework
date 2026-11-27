@@ -82,6 +82,10 @@ namespace b3d
 		 * writes in GPU memory. CPU writes cross PCI Express, and CPU reads are slow. Never set on unified memory devices.
 		 */
 		RSC_RESIZABLE_BAR = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 19),
+		/** Creates buffers with GpuBufferFlag::Virtual, whose memory is mapped by page. See GpuDeviceCapabilities::VirtualMemory for the limits. */
+		RSC_VIRTUAL_BUFFERS = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 20),
+		/** Creates textures with TextureUsageFlag::Virtual, whose memory is mapped by page. See GpuDevice::TryGetVirtualTextureLayout(). */
+		RSC_VIRTUAL_TEXTURES = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 21),
 
 		/**
 		 * Depth-stencil images must not use split barriers on one queue. 
@@ -217,6 +221,17 @@ namespace b3d
 		u32 SerializedDataAlignment = 0;
 	};
 
+	/** Limits of virtual buffers and textures. Zero or false on devices without RSC_VIRTUAL_BUFFERS and RSC_VIRTUAL_TEXTURES. */
+	struct B3D_EXPORT GpuVirtualMemoryCapabilities
+	{
+		u64 MaximumVirtualSize = 0; /**< Total address range all virtual resources may reserve, in bytes. */
+		bool SupportsVolumeTextures = false;
+		bool SupportsMipmappedTextureArrays = false; /**< Texture arrays and cubemaps with mip levels smaller than a page. */
+		bool SupportsRenderTargets = false;
+		bool SupportsPageAliasing = false; /**< The same memory pages may be mapped to several page ranges at once. */
+		bool ReadsZeroFromUncommittedPages = false; /**< Otherwise reads of uncommitted pages are undefined, and may be fatal. */
+	};
+
 	/** Types of GPU vendors. */
 	enum GPUVendor
 	{
@@ -312,6 +327,9 @@ namespace b3d
 
 		/** Limits and layout requirements of ray tracing. */
 		GpuRayTracingCapabilities RayTracing;
+
+		/** Limits of virtual buffers and textures. */
+		GpuVirtualMemoryCapabilities VirtualMemory;
 
 		/** Native type used for vertex colors. */
 		VertexElementType VertexColorType = VET_COLOR_ABGR;

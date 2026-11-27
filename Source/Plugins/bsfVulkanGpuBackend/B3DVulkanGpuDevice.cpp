@@ -42,6 +42,7 @@ static_assert(false, "Other platform includes go here.");
 #include "B3DVulkanGpuShaderBindingTable.h"
 #include "Utility/B3DBitwise.h"
 #include "GpuBackend/Allocators/B3DGpuTransientHeapPool.h"
+#include "GpuBackend/B3DGpuPageMappingQueue.h"
 
 using namespace b3d;
 using namespace b3d::render;
@@ -674,6 +675,7 @@ VulkanGpuDevice::~VulkanGpuDevice()
 	{
 		WaitUntilIdle();
 		DestroyTransferQueue();
+		mPageMappingQueue->Clear();
 		mSubmitThread = nullptr;
 	}
 
@@ -1055,13 +1057,20 @@ void VulkanGpuDevice::WaitUntilIdle()
 	GetSubmitThread().WaitUntilIdle();
 }
 
-void VulkanGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+void VulkanGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& queueWaits,
+	TArrayView<const GpuTimelineFenceAndValue> waitFences, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
 	VulkanGpuQueue& vulkanQueue = static_cast<VulkanGpuQueue&>(queue);
 	VulkanGpuCommandBuffer& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(*commandBuffer);
 
 	const VulkanGpuCommandBufferSubmitInformation submitInformation = vulkanCommandBuffer.PrepareForSubmitOnSubmitThread(vulkanQueue.GetType());
-	vulkanQueue.ExecuteSubmitOnSubmitThread(submitInformation, waits, signalFences);
+	vulkanQueue.ExecuteSubmitOnSubmitThread(submitInformation, queueWaits, waitFences, signalFences);
+}
+
+void VulkanGpuDevice::ExecutePageMappings(TArrayView<const GpuPageMapping> /*mappings*/, const GpuTimelineFenceAndValue& /*signalFence*/)
+{
+	// The device reports no virtual memory capabilities, so no page table makes mappings
+	B3D_ENSURE_LOG(false, "The Vulkan device doesn't support page mappings.");
 }
 
 void VulkanGpuDevice::RefreshCompletionState(GpuQueue& queue, bool forceWait, u64 lastFenceValue)

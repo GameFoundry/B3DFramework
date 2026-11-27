@@ -6,7 +6,7 @@
 namespace b3d::render
 {
 	NullBufferResource::NullBufferResource(NullResourceManager* owner, const StringView& name, u32 size)
-		: IGpuBufferResource(owner, name), mMemory(static_cast<u8*>(B3DAllocate(size)))
+		: IGpuBufferResource(owner, name), mMemory(size > 0 ? static_cast<u8*>(B3DAllocate(size)) : nullptr)
 	{}
 
 	NullBufferResource::~NullBufferResource()

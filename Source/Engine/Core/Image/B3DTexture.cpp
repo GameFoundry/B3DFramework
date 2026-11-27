@@ -468,6 +468,9 @@ void Texture::SetAllocation(const GpuAllocation& allocation, GpuObjectCreateFlag
 	if(!B3D_ENSURE_LOG(!mProperties.Usage.IsSet(TextureUsageFlag::Bindless), "Cannot move bindless texture '{0}' to an allocation. Bindless textures keep their contents when they move.", mName))
 		return;
 
+	if(!B3D_ENSURE_LOG(!mProperties.Usage.IsSet(TextureUsageFlag::Virtual), "Cannot move virtual texture '{0}' to an allocation. Its memory is mapped by page.", mName))
+		return;
+
 	if(!B3D_ENSURE_LOG(allocation.HasMemory() || allocation.IsPending(), "Cannot move texture '{0}' to an empty allocation.", mName))
 		return;
 
@@ -521,6 +524,20 @@ bool Texture::StartsAtRest() const
 
 void Texture::Initialize()
 {
+	// Before the bindless slots, since shaders may read the texture through them as soon as they exist
+	if(mProperties.Usage.IsSet(TextureUsageFlag::Virtual) && B3D_ENSURE(GetGpuResource() != nullptr))
+	{
+		GpuDevice& device = GetDevice();
+		const TextureCreateInformation createInformation(mProperties);
+		IGpuPagePool* pagePool = device.GetPagePool(device.GetMemoryRequirements(createInformation).MemoryType);
+		GpuVirtualTextureLayout layout;
+		if(B3D_ENSURE(pagePool != nullptr) && B3D_ENSURE(device.TryGetVirtualTextureLayout(createInformation, layout)))
+		{
+			const GpuPageTableFlags pageTableFlags = mProperties.Usage.IsSet(TextureUsageFlag::Bindless) ? GpuPageTableFlag::Bindless : GpuPageTableFlag::None;
+			mPageTable = B3DMakeUnique<GpuPageTable>(device, *GetGpuResource(), layout, *pagePool, pageTableFlags);
+		}
+	}
+
 	if(mProperties.Usage.IsSet(TextureUsageFlag::Bindless) && B3D_ENSURE(GetGpuResource() != nullptr))
 		mBindlessSlots.Register(GetDevice(), *GetGpuResource(), GpuBindlessResourceView(*this, TextureSurface::kComplete));
 
@@ -542,6 +559,7 @@ void Texture::Destroy()
 
 	// Before the native resource is destroyed, which may free its allocation
 	SetCurrentAllocation(GpuAllocation());
+	mPageTable = nullptr;
 
 	RenderProxy::Destroy();
 }

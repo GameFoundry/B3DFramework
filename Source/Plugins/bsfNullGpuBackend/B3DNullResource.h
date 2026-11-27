@@ -20,11 +20,11 @@ namespace b3d::render
 	class NullBufferResource : public IGpuBufferResource
 	{
 	public:
-		/** Allocates @p size bytes of CPU memory for the buffer. */
+		/** Allocates @p size bytes of CPU memory for the buffer, none if @p size is zero. */
 		NullBufferResource(NullResourceManager* owner, const StringView& name, u32 size);
 		~NullBufferResource() override;
 
-		/** Returns the CPU memory of the buffer. */
+		/** Returns the CPU memory of the buffer, or null if it has none, as virtual buffers do. */
 		u8* GetMemory() const { return mMemory; }
 
 	private:

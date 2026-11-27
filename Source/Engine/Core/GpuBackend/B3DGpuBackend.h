@@ -50,6 +50,13 @@ namespace b3d
 	extern B3D_EXPORT TConfigVariable<bool> gGpuRayTracing;
 
 	/**
+	 * Allows devices to report the virtual memory capabilities (RSC_VIRTUAL_BUFFERS and RSC_VIRTUAL_TEXTURES) the GPU supports. When
+	 * disabled, devices report none of them, so code that uses virtual resources takes its fallback path. Enabled by default. Shared by all
+	 * backends.
+	 */
+	extern B3D_EXPORT TConfigVariable<bool> gGpuVirtualMemory;
+
+	/**
 	 * Allows devices to use Resizable BAR on discrete GPUs (and report RSC_RESIZABLE_BAR), and so to place buffers the CPU writes in GPU
 	 * memory. When disabled, devices behave as on GPUs without Resizable BAR. Unified memory is unaffected. Enabled by default. Shared by all
 	 * backends.

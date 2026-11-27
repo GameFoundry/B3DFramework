@@ -47,7 +47,8 @@ namespace b3d
 			 *
 			 * @note	Submit thread only.
 			 */
-			void ExecuteSubmitOnSubmitThread(const VulkanGpuCommandBufferSubmitInformation& submitInformation, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences);
+			void ExecuteSubmitOnSubmitThread(const VulkanGpuCommandBufferSubmitInformation& submitInformation, const GpuQueueFenceValues& waits,
+				TArrayView<const GpuTimelineFenceAndValue> waitFences, TArrayView<const GpuTimelineFenceAndValue> signalFences);
 
 			/** Returns the internal handle to the Vulkan queue object. */
 			VkQueue GetVulkanHandle() const { return mQueue; }
@@ -123,7 +124,7 @@ namespace b3d
 				u64 ProgressValue = 0; /**< Progress timeline value the submission signals. */
 				TInlineArray<TShared<VulkanGpuCommandBuffer>, 2> CommandBuffers; /**< Command buffers in submission order. The last one owns the fence used to detect completion. */
 				TInlineArray<VulkanSemaphore*, 4> RetainedSemaphores; /**< Managed semaphores the submission waits on, released on retirement. */
-				TInlineArray<TShared<GpuTimelineFence>, 2> RetainedFences; /**< Keeps fences the submission signals alive until the signal has executed. */
+				TInlineArray<TShared<GpuTimelineFence>, 2> RetainedFences; /**< Keeps fences the submission waits on or signals alive until the submission has executed. */
 			};
 
 			/** Appends a wait on every other queue's progress timeline for its non-zero value in @p waits. Submit thread only. */

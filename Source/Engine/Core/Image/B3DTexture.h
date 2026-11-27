@@ -5,6 +5,7 @@
 #include "B3DPrerequisites.h"
 #include "Resources/B3DResource.h"
 #include "GpuBackend/B3DGpuBuffer.h"
+#include "GpuBackend/B3DGpuPageTable.h"
 #include "GpuBackend/B3DGpuTextureSubresource.h"
 #include "Image/B3DColor.h"
 #include "Image/B3DPixelData.h"
@@ -67,6 +68,14 @@ namespace b3d
 		 * to rest. Its index stays the same if GPU memory defragmentation moves it. Requires a device that supports bindless resources.
 		 */
 		Bindless B3D_SCRIPT_EXPORT(Exclude(true)) = 1 << 15,
+
+		/**
+		 * The texture is created without memory and only reserves its address range. Memory is committed by page through
+		 * render::Texture::GetPageTable(), laid out as GpuPageTable::GetTextureLayout() describes. Contents of newly committed pages are
+		 * undefined. Requires RSC_VIRTUAL_TEXTURES and a description GpuDevice::TryGetVirtualTextureLayout() accepts, and no initial data.
+		 * The texture cannot be transient.
+		 */
+		Virtual B3D_SCRIPT_EXPORT(Exclude(true)) = 1 << 16,
 
 		/** Default setting suitable for majority of textures. */
 		Default = StoreOnGPU
@@ -639,6 +648,9 @@ namespace b3d
 			/** Returns the resource that tracks the GPU use of the whole texture, or null if the backend tracks none. */
 			virtual IGpuResource* GetGpuResource() const { return nullptr; }
 
+			/** Returns the page table of a virtual texture (see TextureUsageFlag::Virtual), or null if the texture isn't virtual or initialized. */
+			GpuPageTable* GetPageTable() const { return mPageTable.get(); }
+
 			/**
 			 * Returns true if the texture is fixed to the memory it was created at. Such a texture never recreates its native resource or
 			 * moves to other memory.
@@ -795,6 +807,7 @@ namespace b3d
 			bool StartsAtRest() const;
 
 			u32 mFrameGraphResourceIndex = ~0u; /**< See SetFrameGraphResourceIndex(). */
+			TUnique<GpuPageTable> mPageTable; /**< See GetPageTable(). */
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			u32 mFrameGraphId = 0; /**< See SetFrameGraphId(). */

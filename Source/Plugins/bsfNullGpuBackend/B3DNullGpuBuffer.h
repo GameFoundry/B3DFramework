@@ -37,7 +37,6 @@ namespace b3d
 		protected:
 			friend class NullGpuDevice;
 
-			void Initialize() override {}
 			void RecreateInternalBuffer() override;
 			void SwapInternalBuffer(GpuBuffer& other) override;
 

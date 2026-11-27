@@ -367,6 +367,12 @@ namespace b3d
 		void NotifyTransfersDequeued();
 
 		/**
+		 * Notifies the resource, a virtual buffer or texture, that the page mapping batch signalling @p fenceValue changes the memory mapped
+		 * to its pages. Submit thread only.
+		 */
+		void NotifyPageMappingsExecuted(u64 fenceValue) { mPageMappingFenceValue = std::max(mPageMappingFenceValue, fenceValue); }
+
+		/**
 		 * Checks if the resource is currently in use by the GPU.
 		 *
 		 * @note Resource usage is only checked at certain points of the program. This means the resource could be
@@ -428,11 +434,18 @@ namespace b3d
 		bool HasQueuedTransfers() const { return mQueuedTransfersCount.load(std::memory_order_acquire) > 0; }
 
 		/**
-		 * Returns the waits, per queue, that a submission accessing the resource as @p access needs: the fence value of the latest
-		 * submission that wrote the resource, and for a write also of the latest that read it. 0 for queues with no such submission.
-		 * Submit thread only.
+		 * Returns the queue waits that a submission accessing the resource as @p access needs: for each queue, the fence value of the
+		 * latest submission that wrote the resource, and for a write also of the latest that read it. 0 for queues with no such submission.
+		 * See GetRequiredPageMappingWait() for the other wait a submission may need. Submit thread only.
 		 */
-		GpuQueueFenceValues GetRequiredWaits(GpuAccessFlags access) const;
+		GpuQueueFenceValues GetRequiredQueueWaits(GpuAccessFlags access) const;
+
+		/**
+		 * Returns the value of the page mapping fence that a submission accessing the resource waits for, so that it sees the latest memory
+		 * mapped to the pages of the resource, if it is a virtual buffer or texture (see GpuSubmitThread::QueuePageMappings()). 0 if none.
+		 * See GetRequiredQueueWaits() for the waits on other queues' work. Submit thread only.
+		 */
+		u64 GetRequiredPageMappingWait() const { return mPageMappingFenceValue; }
 
 		/**
 		 * Queues the resource for destruction. If the resource is currently bound to a command buffer or pinned, the actual
@@ -515,6 +528,9 @@ namespace b3d
 
 		/** Same as mLastReadFenceValues, for submissions that wrote the resource. Submit thread only. */
 		GpuQueueFenceValues mLastWriteFenceValues = {};
+
+		/** See GetRequiredPageMappingWait(). Submit thread only. */
+		u64 mPageMappingFenceValue = 0;
 	};
 
 #if B3D_BUILD_TYPE_DEVELOPMENT

@@ -173,6 +173,12 @@ void GpuResourceTracker::TrackResourceUsage(IGpuResource* resource, GpuAccessFla
 	useHandle.Flags |= access;
 }
 
+void GpuResourceTracker::TrackBindlessHeapUsage(IGpuResource* heap)
+{
+	TrackResourceUsage(heap, GpuAccessFlag::Read);
+	mUsesBindlessHeap = true;
+}
+
 void GpuResourceTracker::TrackSwapChainUsage(IGpuSwapChainResource* swapChain)
 {
 	auto insertResult = mSwapChains.insert(std::make_pair(swapChain, GpuResourceUseHandle()));
@@ -251,15 +257,22 @@ void GpuResourceTracker::NotifyUsed(GpuQueueId queueId)
 	}
 }
 
-GpuQueueFenceValues GpuResourceTracker::NotifySubmitted(GpuQueueId queueId, u64 fenceValue)
+GpuSubmissionWaits GpuResourceTracker::NotifySubmitted(GpuQueueId queueId, u64 fenceValue)
 {
-	GpuQueueFenceValues waits = {};
-	auto fnAddWaits = [&waits](const IGpuResource& resource, GpuAccessFlags access)
+	GpuSubmissionWaits waits;
+	auto fnAddQueueWaits = [&waits](const IGpuResource& resource, GpuAccessFlags access)
 	{
-		const GpuQueueFenceValues resourceWaits = resource.GetRequiredWaits(access);
+		const GpuQueueFenceValues resourceQueueWaits = resource.GetRequiredQueueWaits(access);
 		for(u32 queueIndex = 0; queueIndex < kMaximumGpuQueueCount; queueIndex++)
-			waits[queueIndex] = std::max(waits[queueIndex], resourceWaits[queueIndex]);
+			waits.QueueWaits[queueIndex] = std::max(waits.QueueWaits[queueIndex], resourceQueueWaits[queueIndex]);
 	};
+
+	// Page mappings change the memory of a whole image, whichever subresources they cover
+	for(const auto& entry : mImages)
+	{
+		if(entry.second.Flags != GpuAccessFlag::None)
+			waits.PageMappingWait = std::max(waits.PageMappingWait, entry.first->GetRequiredPageMappingWait());
+	}
 
 	// Only the submitting queue's values change, so notifying before all waits are collected doesn't affect them. An individual
 	// subresource holds partial accesses to it, the full-range subresource whole-image accesses, and the image accesses to any part of
@@ -275,11 +288,11 @@ GpuQueueFenceValues GpuResourceTracker::NotifySubmitted(GpuQueueId queueId, u64 
 		GpuImageSubresource& fullRangeSubresource = *image.GetFullRangeSubresource();
 
 		if(&subresource == &fullRangeSubresource)
-			fnAddWaits(image, access);
+			fnAddQueueWaits(image, access);
 		else
 		{
-			fnAddWaits(subresource, access);
-			fnAddWaits(fullRangeSubresource, access);
+			fnAddQueueWaits(subresource, access);
+			fnAddQueueWaits(fullRangeSubresource, access);
 		}
 
 		subresource.NotifySubmitted(queueId, access, fenceValue);
@@ -292,11 +305,12 @@ GpuQueueFenceValues GpuResourceTracker::NotifySubmitted(GpuQueueId queueId, u64 
 		if(access == GpuAccessFlag::None)
 			continue;
 
-		fnAddWaits(*entry.first, access);
+		fnAddQueueWaits(*entry.first, access);
 		entry.first->NotifySubmitted(queueId, access, fenceValue);
+		waits.PageMappingWait = std::max(waits.PageMappingWait, entry.first->GetRequiredPageMappingWait());
 	}
 
-	waits[queueId.Id] = 0;
+	waits.QueueWaits[queueId.Id] = 0;
 	return waits;
 }
 
@@ -397,4 +411,5 @@ void GpuResourceTracker::Clear()
 	mResourcesWithQueuedTransfers.Clear();
 	mRenderPassAttachments.Clear();
 	mIsInRenderPass = false;
+	mUsesBindlessHeap = false;
 }

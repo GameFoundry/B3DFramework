@@ -13,6 +13,8 @@ namespace b3d
 	class GpuDevice;
 	class GpuSwapChain;
 	class IGpuResource;
+	struct GpuPageMapping;
+	struct GpuPageMappingBatch;
 }
 
 namespace b3d::render
@@ -50,13 +52,30 @@ namespace b3d::render
 		 *
 		 * @param	queue			Queue to submit the command buffer on.
 		 * @param	commandBuffer	Command buffer to submit.
-		 * @param	waits			Value of each other queue's own fence (see GetLastSubmittedFenceValue()) that the submission waits for on
+		 * @param	queueWaits		Value of each other queue's own fence (see GetLastSubmittedFenceValue()) that the submission waits for on
 		 *							the GPU before it starts, even if the value has already been reached. 0 for no wait. The entry of
 		 *							@p queue is always 0. The submission also waits on the frame fence (see GpuSubmitThread::ConsumeFrameFence()),
-		 *							and may leave out its frame fence wait on another queue whose value in @p waits is at least as high.
+		 *							and may leave out its frame fence wait on another queue whose value in @p queueWaits is at least as high.
+		 * @param	waitFences		Timeline fences the submission waits for on the GPU before it starts, each until it reaches its value.
 		 * @param	signalFences	Timeline-fence + value pairs to signal when the submit completes.
 		 */
-		virtual void ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences) = 0;
+		virtual void ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& queueWaits,
+			TArrayView<const GpuTimelineFenceAndValue> waitFences, TArrayView<const GpuTimelineFenceAndValue> signalFences) = 0;
+
+		/**
+		 * Changes the memory behind pages of virtual buffers and textures (GpuBufferFlag::Virtual, TextureUsageFlag::Virtual). A virtual
+		 * resource has GPU addresses but no memory of its own. Its address range is split into pages of kGpuPageSize bytes, and each page is
+		 * mapped to a page of memory in a heap, or to none. This is the native operation that maps them: sparse binding on Vulkan, tile mappings
+		 * on D3D12, sparse mappings on Metal.
+		 *
+		 * The mappings are applied after every page mapping executed before, without waiting for any queue. Work submitted before may still be
+		 * executing, and only uses pages whose memory the mappings neither take away nor replace.
+		 *
+		 * @param	mappings		Page ranges of virtual resources, each with the heap memory it maps to from now on, or none.
+		 * @param	signalFence		Timeline fence and value to signal once the mappings are applied. Submissions that wait for it see the new
+		 *							memory.
+		 */
+		virtual void ExecutePageMappings(TArrayView<const GpuPageMapping> mappings, const GpuTimelineFenceAndValue& signalFence) = 0;
 
 		/**
 		 * Checks if any of the active command buffers finished executing on the provided queue and updates their
@@ -109,6 +128,9 @@ namespace b3d::render
 			 */
 			GpuQueueFenceValues LastFenceValues = {};
 
+			/** Value of the page mapping fence at this frame's boundary. Frame pacing waits for it along with LastFenceValues. */
+			u64 PageMappingFenceValue = 0;
+
 			/** Event signalled when this frame has been completely processed by the submit thread. */
 			SignalEvent CompletionEvent;
 
@@ -142,6 +164,14 @@ namespace b3d::render
 
 		/** Queues a submission of the transfer batches up to and including @p lastBatch that aren't submitted yet. See GpuTransferQueue. */
 		void QueueTransferSubmit(u64 lastBatch);
+
+		/**
+		 * Queues the execution of a batch of page mappings, which change the memory behind pages of virtual buffers and textures (see
+		 * IGpuSubmitThreadBackend::ExecutePageMappings() and GpuPageMappingQueue). The batch signals the next value of the page mapping fence
+		 * once it executes. A later submission waits on the GPU for that value if a command buffer of it accesses a resource the batch changes,
+		 * or binds a bindless heap and the batch changes a resource with a bindless slot.
+		 */
+		void QueuePageMappings(GpuPageMappingBatch&& batch);
 
 		/**
 		 * Queues an operation that acquires a swap chain image. Acquired images can be written to and eventually presented to the screen.
@@ -253,6 +283,9 @@ namespace b3d::render
 		 */
 		void SubmitTakenTransfers(u64 lastBatch);
 
+		/** Executes @p batch, see QueuePageMappings(). Submit thread only. */
+		void ExecutePageMappings(const GpuPageMappingBatch& batch);
+
 		GpuDevice& mGpuDevice;
 		IGpuSubmitThreadBackend& mBackend;
 		SingleConsumerQueue mCommandQueue;
@@ -279,6 +312,18 @@ namespace b3d::render
 		 * Submit thread only.
 		 */
 		Array<Deque<FenceSignal>, kMaximumGpuQueueCount> mFenceSignals;
+
+		/** Fence that batches of page mappings of virtual resources signal, created with the first batch. Submit thread only. */
+		TShared<GpuTimelineFence> mPageMappingFence;
+
+		/** Value of mPageMappingFence signalled by the latest batch. Submit thread only. */
+		u64 mLastPageMappingFenceValue = 0;
+
+		/** Value of mPageMappingFence signalled by the latest batch that changes a resource with a bindless slot. Submit thread only. */
+		u64 mBindlessPageMappingFenceValue = 0;
+
+		/** Highest value of mPageMappingFence each queue waited for. Later submissions on the queue are ordered after it. Submit thread only. */
+		GpuQueueFenceValues mQueuePageMappingWaits = {};
 	};
 
 	/** Asserts if the current thread isn't the submit thread. */

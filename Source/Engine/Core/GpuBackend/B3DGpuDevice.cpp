@@ -8,6 +8,8 @@
 #include "GpuBackend/B3DGpuBuffer.h"
 #include "GpuBackend/B3DGpuAccelerationStructure.h"
 #include "GpuBackend/B3DGpuDeviceCapabilities.h"
+#include "GpuBackend/B3DGpuPageMappingQueue.h"
+#include "GpuBackend/B3DGpuVirtualMemory.h"
 #include "GpuBackend/B3DGpuPipelineState.h"
 #include "GpuBackend/B3DGpuProgram.h"
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
@@ -15,6 +17,7 @@
 #include "GpuBackend/B3DGpuTransferQueue.h"
 #include "GpuBackend/B3DGpuVertexInputManager.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
+#include "GpuBackend/Allocators/B3DGpuPagePool.h"
 #include "GpuBackend/Allocators/B3DGpuTransientHeapPool.h"
 #include "Material/B3DShaderCompiler.h"
 #include "CoreObject/B3DRenderThread.h"
@@ -25,11 +28,14 @@ using namespace b3d;
 
 GpuDevice::GpuDevice()
 	: mVertexInputManager(B3DMakeUnique<render::GpuVertexInputManager>(*this)), mMemoryDefragmenter(*this)
-{ }
+{
+	mPageMappingQueue = B3DMakeUnique<GpuPageMappingQueue>(*this, mFrameCompletionTracker);
+}
 
 GpuDevice::~GpuDevice()
 {
 	B3D_ASSERT(mTransientHeapPools.Empty() && "The backend must destroy its transient heap pools before its heap backends.");
+	B3D_ASSERT(mPagePools.Empty() && "The backend must destroy its page pools before its heap backends.");
 	B3D_ASSERT(mVertexInputManager == nullptr && "The backend must destroy its vertex input manager before its resource manager.");
 	B3D_ASSERT(mBindlessHeaps == nullptr && "The backend must destroy the bindless heaps before its native heaps.");
 	B3D_ASSERT(mPendingUnpins.Empty() && "The backend must release the unpinned resources before its resource manager.");
@@ -76,6 +82,26 @@ TArrayView<IGpuTransientHeapPool* const> GpuDevice::GetTransientHeapPools() cons
 	return TArrayView<IGpuTransientHeapPool* const>(mTransientHeapPools.Data(), mTransientHeapPools.Size());
 }
 
+IGpuPagePool* GpuDevice::GetPagePool(u32 /*memoryType*/)
+{
+	return nullptr;
+}
+
+bool GpuDevice::TryGetVirtualTextureLayout(const TextureCreateInformation& /*createInformation*/, GpuVirtualTextureLayout& /*outLayout*/) const
+{
+	return false;
+}
+
+bool GpuDevice::TryExecutePageMappingsImmediately(TArrayView<const GpuPageMapping> /*mappings*/)
+{
+	return false;
+}
+
+void GpuDevice::FlushPageMappings()
+{
+	mPageMappingQueue->Flush();
+}
+
 void GpuDevice::EndFrame()
 {
 	ASSERT_IF_NOT_RENDER_THREAD
@@ -84,6 +110,9 @@ void GpuDevice::EndFrame()
 	if(mBindlessHeaps != nullptr)
 		mBindlessHeaps->ApplyPendingChanges();
 
+	// Before the page pools reclaim memory, so that removals are queued before any add that maps the reclaimed memory to other pages
+	mPageMappingQueue->QueueCompletedRemovals();
+
 	// Uploads nothing pulled in yet become part of this frame
 	mTransferQueue->SubmitAllQueuedTransfers();
 
@@ -91,6 +120,9 @@ void GpuDevice::EndFrame()
 	mSubmitThread->QueueEndFrameAndWaitForPreviousFrame();
 
 	for(IGpuTransientHeapPool* pool : mTransientHeapPools)
+		pool->ReclaimUnused();
+
+	for(IGpuPagePool* pool : mPagePools)
 		pool->ReclaimUnused();
 
 	mFrameCompletionTracker.AdvanceFrame();
@@ -200,6 +232,22 @@ void GpuDevice::DestroyTransientHeapPools()
 	mTransientHeapPools.Clear();
 }
 
+IGpuPagePool* GpuDevice::AddPagePool(TUnique<IGpuPagePool> pool)
+{
+	B3D_ASSERT(pool != nullptr);
+
+	mPagePools.Add(pool.release());
+	return mPagePools.Back();
+}
+
+void GpuDevice::DestroyPagePools()
+{
+	for(IGpuPagePool* pool : mPagePools)
+		B3DDelete(pool);
+
+	mPagePools.Clear();
+}
+
 TShared<render::GpuSplitBarrier> GpuDevice::CreateSplitBarrier(TOptional<GpuQueueType> releaseQueue, TOptional<GpuQueueType> acquireQueue)
 {
 	return B3DMakeShared<render::GpuSplitBarrier>(releaseQueue, acquireQueue);
@@ -239,9 +287,39 @@ namespace
 		return B3D_ENSURE_LOG(!flags.IsSet(GpuObjectCreateFlag::Aliased), "Bindless resource '{0}' cannot be aliased. Bindless resources must stay at rest.", name);
 	}
 
+	/** Checks that a virtual texture described by @p createInformation can be created on @p device with @p flags, logging the reason if it can't. */
+	bool ValidateVirtualTexture(const GpuDevice& device, const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
+	{
+		const String& name = createInformation.Name;
+		if(!B3D_ENSURE_LOG(device.GetCapabilities().HasCapability(RSC_VIRTUAL_TEXTURES), "Cannot create virtual texture '{0}', the GPU device doesn't support virtual textures.", name))
+			return false;
+
+		if(!B3D_ENSURE_LOG(!flags.IsSet(GpuObjectCreateFlag::Aliased), "Virtual texture '{0}' cannot be aliased. Its memory is mapped by page.", name))
+			return false;
+
+		if(!B3D_ENSURE_LOG(createInformation.InitialData == nullptr, "Virtual texture '{0}' cannot have initial data, since it is created without memory.", name))
+			return false;
+
+		if(!B3D_ENSURE_LOG(!createInformation.Usage.IsSet(TextureUsageFlag::StoreOnCPUWithGPUAccess), "Virtual texture '{0}' must be stored on the GPU.", name))
+			return false;
+
+		const bool isRenderTarget = createInformation.Usage.IsSet(TextureUsageFlag::RenderTarget) || createInformation.Usage.IsSet(TextureUsageFlag::DepthStencil);
+		if(!B3D_ENSURE_LOG(!isRenderTarget || device.GetCapabilities().VirtualMemory.SupportsRenderTargets,
+			"Cannot create virtual texture '{0}' as a render target, the GPU device doesn't support virtual render targets.", name))
+		{
+			return false;
+		}
+
+		GpuVirtualTextureLayout layout;
+		return B3D_ENSURE_LOG(device.TryGetVirtualTextureLayout(createInformation, layout), "The GPU device cannot create texture '{0}' as a virtual texture.", name);
+	}
+
 	/** Checks that a texture described by @p createInformation can be created on @p device with @p flags, logging the reason if it can't. */
 	bool ValidateTexture(const GpuDevice& device, const TextureCreateInformation& createInformation, GpuObjectCreateFlags flags)
 	{
+		if(createInformation.Usage.IsSet(TextureUsageFlag::Virtual) && !ValidateVirtualTexture(device, createInformation, flags))
+			return false;
+
 		if(!createInformation.Usage.IsSet(TextureUsageFlag::Bindless))
 			return true;
 
@@ -259,6 +337,24 @@ namespace
 
 			const bool isInputType = type == GpuBufferType::Vertex || type == GpuBufferType::Index || type == GpuBufferType::StructuredStorage;
 			if(!B3D_ENSURE_LOG(isInputType, "An acceleration structure input buffer must be a vertex, index or structured storage buffer."))
+				return false;
+		}
+
+		if(createInformation.Flags.IsSet(GpuBufferFlag::Virtual))
+		{
+			if(!B3D_ENSURE_LOG(device.GetCapabilities().HasCapability(RSC_VIRTUAL_BUFFERS), "Cannot create a virtual buffer, the GPU device doesn't support virtual buffers."))
+				return false;
+
+			if(!B3D_ENSURE_LOG(!flags.IsSet(GpuObjectCreateFlag::Aliased), "A virtual buffer cannot be aliased. Its memory is mapped by page."))
+				return false;
+
+			if(!B3D_ENSURE_LOG(createInformation.Memory == GpuBufferMemory::Device && type != GpuBufferType::StagingWrite && type != GpuBufferType::StagingRead,
+				"A virtual buffer must be in GpuBufferMemory::Device memory, and cannot be a staging buffer."))
+			{
+				return false;
+			}
+
+			if(!B3D_ENSURE_LOG(createInformation.SuballocationCount <= 1, "A virtual buffer cannot have suballocations."))
 				return false;
 		}
 
@@ -282,6 +378,18 @@ TShared<render::Texture> GpuDevice::CreateTexture(const TextureCreateInformation
 	if(memoryRequirements.MemoryType == GpuMemoryRequirements::kUnsupportedMemoryType)
 		return nullptr;
 
+	// A virtual texture is created without memory, and its pages are mapped later
+	if(createInformation.Usage.IsSet(TextureUsageFlag::Virtual))
+	{
+		if(!ValidateTexture(*this, createInformation, flags))
+			return nullptr;
+
+		if(!B3D_ENSURE_LOG(GetPagePool(memoryRequirements.MemoryType) != nullptr, "The GPU device has no page pool for virtual texture '{0}'.", createInformation.Name))
+			return nullptr;
+
+		return CreateTextureInternal(createInformation, GpuAllocation(), flags);
+	}
+
 	const GpuAllocation allocation = GpuAllocation::CreatePending(GetPersistentAllocator(memoryRequirements.MemoryType));
 	if(!ValidateResourceAllocation(allocation, memoryRequirements, flags))
 		return nullptr;
@@ -294,6 +402,9 @@ TShared<render::Texture> GpuDevice::CreateTexture(const TextureCreateInformation
 
 TShared<render::Texture> GpuDevice::CreateTexture(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags)
 {
+	if(!B3D_ENSURE_LOG(!createInformation.Usage.IsSet(TextureUsageFlag::Virtual), "Cannot create virtual texture '{0}' at an allocation. Its memory is mapped by page.", createInformation.Name))
+		return nullptr;
+
 	if(!ValidateResourceAllocation(allocation, GetMemoryRequirements(createInformation), flags))
 		return nullptr;
 
@@ -313,6 +424,15 @@ TShared<render::GpuBuffer> GpuDevice::CreateGpuBuffer(const GpuBufferCreateInfor
 	if(memoryRequirements.MemoryType == GpuMemoryRequirements::kUnsupportedMemoryType)
 		return nullptr;
 
+	// A virtual buffer is created without memory, and its pages are mapped later
+	if(createInformation.Flags.IsSet(GpuBufferFlag::Virtual))
+	{
+		if(!B3D_ENSURE_LOG(GetPagePool(memoryRequirements.MemoryType) != nullptr, "The GPU device has no page pool for virtual buffers."))
+			return nullptr;
+
+		return CreateGpuBufferInternal(createInformation, GpuAllocation(), flags);
+	}
+
 	const GpuAllocation allocation = GpuAllocation::CreatePending(GetPersistentAllocator(memoryRequirements.MemoryType));
 	if(!ValidateResourceAllocation(allocation, memoryRequirements, flags))
 		return nullptr;
@@ -322,6 +442,9 @@ TShared<render::GpuBuffer> GpuDevice::CreateGpuBuffer(const GpuBufferCreateInfor
 
 TShared<render::GpuBuffer> GpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags)
 {
+	if(!B3D_ENSURE_LOG(!createInformation.Flags.IsSet(GpuBufferFlag::Virtual), "Cannot create a virtual buffer at an allocation. Its memory is mapped by page."))
+		return nullptr;
+
 	// Before the memory requirements, which backends only answer for buffers they can create
 	if(!ValidateGpuBuffer(*this, createInformation, flags))
 		return nullptr;

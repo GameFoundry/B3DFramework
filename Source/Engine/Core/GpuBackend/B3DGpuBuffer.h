@@ -5,6 +5,7 @@
 #include "B3DPrerequisites.h"
 #include "B3DGpuDevice.h"
 #include "GpuBackend/Allocators/B3DGpuResource.h"
+#include "GpuBackend/B3DGpuPageTable.h"
 #include "CoreObject/B3DCoreObject.h"
 #include "CoreObject/B3DRenderProxy.h"
 
@@ -92,7 +93,15 @@ namespace b3d
 		 * Lets acceleration structure builds read the buffer, as the vertices or indices of a geometry, or as the instances of a top level
 		 * structure. Only valid for vertex, index and structured storage buffers. Requires a device that supports acceleration structures.
 		 */
-		AccelerationStructureInput = 1 << 2
+		AccelerationStructureInput = 1 << 2,
+
+		/**
+		 * The buffer is created without memory and only reserves its address range. Memory is committed by page through
+		 * render::GpuBuffer::GetPageTable(). Contents of newly committed pages are undefined. Only valid in GpuBufferMemory::Device memory,
+		 * with a single suballocation and without initial data. The buffer cannot be transient or hold acceleration structures. Requires
+		 * RSC_VIRTUAL_BUFFERS.
+		 */
+		Virtual = 1 << 3
 	};
 
 	using GpuBufferFlags = Flags<GpuBufferFlag>;
@@ -751,6 +760,9 @@ namespace b3d::render
 		/** Returns the resource that tracks the GPU use of the buffer, or null if the backend tracks none. */
 		virtual IGpuResource* GetGpuResource() const { return nullptr; }
 
+		/** Returns the page table of a virtual buffer (see GpuBufferFlag::Virtual), or null if the buffer isn't virtual or initialized. */
+		GpuPageTable* GetPageTable() const { return mPageTable.get(); }
+
 		/**
 		 * Returns true if the buffer is fixed to the memory it was created at. Such a buffer never recreates its native resource or moves
 		 * to other memory.
@@ -891,6 +903,7 @@ namespace b3d::render
 
 		u32 mFrameGraphResourceIndex = ~0u; /**< See SetFrameGraphResourceIndex(). */
 		GpuBindlessResourceSlots mBindlessSlots;
+		TUnique<GpuPageTable> mPageTable; /**< See GetPageTable(). */
 
 #if B3D_BUILD_TYPE_DEVELOPMENT
 		u32 mFrameGraphId = 0; /**< See SetFrameGraphId(). */

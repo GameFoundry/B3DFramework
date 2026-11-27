@@ -2515,7 +2515,7 @@ void GpuBackendTestSuite::TestResourceUseTracking()
 		{
 			GpuResourceTracker submissionTracker;
 			submissionTracker.TrackBufferUsage(&submittedBuffer, access);
-			const GpuQueueFenceValues waits = submissionTracker.NotifySubmitted(queue, fenceValue);
+			const GpuQueueFenceValues waits = submissionTracker.NotifySubmitted(queue, fenceValue).QueueWaits;
 			B3D_TEST_ASSERT(waits[queue.Id] == 0)
 
 			submissionTracker.NotifyUnbound();
@@ -2527,7 +2527,7 @@ void GpuBackendTestSuite::TestResourceUseTracking()
 		{
 			GpuResourceTracker submissionTracker;
 			submissionTracker.TrackImageUsage(&submittedImage, range, access);
-			const GpuQueueFenceValues waits = submissionTracker.NotifySubmitted(queue, fenceValue);
+			const GpuQueueFenceValues waits = submissionTracker.NotifySubmitted(queue, fenceValue).QueueWaits;
 			B3D_TEST_ASSERT(waits[queue.Id] == 0)
 
 			submissionTracker.NotifyUnbound();
@@ -2539,8 +2539,8 @@ void GpuBackendTestSuite::TestResourceUseTracking()
 		B3D_TEST_ASSERT(fnSubmitBuffer(graphics, 5, GpuAccessFlag::Read, compute) == 3)
 		B3D_TEST_ASSERT(fnSubmitBuffer(compute, 4, GpuAccessFlag::Read, graphics) == 0)
 		B3D_TEST_ASSERT(fnSubmitBuffer(graphics, 6, GpuAccessFlag::Write, compute) == 4)
-		B3D_TEST_ASSERT(submittedBuffer.GetRequiredWaits(GpuAccessFlag::Read)[graphics.Id] == 6)
-		B3D_TEST_ASSERT(submittedBuffer.GetRequiredWaits(GpuAccessFlag::Write)[compute.Id] == 4)
+		B3D_TEST_ASSERT(submittedBuffer.GetRequiredQueueWaits(GpuAccessFlag::Read)[graphics.Id] == 6)
+		B3D_TEST_ASSERT(submittedBuffer.GetRequiredQueueWaits(GpuAccessFlag::Write)[compute.Id] == 4)
 
 		// Accesses to different subresources don't wait for each other, a partial access waits for whole-image accesses, and a whole-image
 		// access with accesses to any part
@@ -2552,11 +2552,11 @@ void GpuBackendTestSuite::TestResourceUseTracking()
 		B3D_TEST_ASSERT(fnSubmitImage(graphics, 12, mip1, GpuAccessFlag::Read, compute) == 11)
 
 		// The subresource holds partial accesses, the full-range subresource whole-image accesses, and the image accesses to any part
-		B3D_TEST_ASSERT(submittedImage.GetSubresource(0, 1, GpuTextureAspectFlag::Color)->GetRequiredWaits(GpuAccessFlag::Read)[compute.Id] == 7)
-		B3D_TEST_ASSERT(submittedImage.GetFullRangeSubresource()->GetRequiredWaits(GpuAccessFlag::Read)[compute.Id] == 11)
-		B3D_TEST_ASSERT(submittedImage.GetFullRangeSubresource()->GetRequiredWaits(GpuAccessFlag::Write)[graphics.Id] == 9)
-		B3D_TEST_ASSERT(submittedImage.GetRequiredWaits(GpuAccessFlag::Write)[graphics.Id] == 12)
-		B3D_TEST_ASSERT(submittedImage.GetRequiredWaits(GpuAccessFlag::Read)[compute.Id] == 11)
+		B3D_TEST_ASSERT(submittedImage.GetSubresource(0, 1, GpuTextureAspectFlag::Color)->GetRequiredQueueWaits(GpuAccessFlag::Read)[compute.Id] == 7)
+		B3D_TEST_ASSERT(submittedImage.GetFullRangeSubresource()->GetRequiredQueueWaits(GpuAccessFlag::Read)[compute.Id] == 11)
+		B3D_TEST_ASSERT(submittedImage.GetFullRangeSubresource()->GetRequiredQueueWaits(GpuAccessFlag::Write)[graphics.Id] == 9)
+		B3D_TEST_ASSERT(submittedImage.GetRequiredQueueWaits(GpuAccessFlag::Write)[graphics.Id] == 12)
+		B3D_TEST_ASSERT(submittedImage.GetRequiredQueueWaits(GpuAccessFlag::Read)[compute.Id] == 11)
 	}
 }
 

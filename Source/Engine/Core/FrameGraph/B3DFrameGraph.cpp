@@ -2544,7 +2544,7 @@ namespace b3d::render
 	void FrameGraph::AddSignalFence(const TShared<GpuTimelineFence>& fence, u64 value)
 	{
 		B3D_ASSERT(!mIsExecuted && "Signal fences cannot be added after Execute().");
-		mSignalFences.Add(GpuTimelineFenceAndValue{ fence, value });
+		mSignalFences.Add(GpuTimelineFenceAndValue(fence, value));
 	}
 
 	bool FrameGraph::IsPassCulled(u32 passIndex) const

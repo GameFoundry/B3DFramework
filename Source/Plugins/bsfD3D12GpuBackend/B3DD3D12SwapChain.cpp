@@ -335,7 +335,7 @@ void D3D12SwapChain::Present(u32 imageIndex, GpuQueue& queue, GpuQueueMask syncM
 					waits[otherQueue.GetId().Id] = static_cast<D3D12GpuQueue&>(otherQueue).GetLastSignaledFenceValue();
 			});
 
-			d3d12Queue.ExecuteSubmitOnSubmitThread(submitInformation, waits, {});
+			d3d12Queue.ExecuteSubmitOnSubmitThread(submitInformation, waits, {}, {});
 
 			image->SetNativeLayout(range, (u32)D3D12_BARRIER_LAYOUT_PRESENT);
 		}

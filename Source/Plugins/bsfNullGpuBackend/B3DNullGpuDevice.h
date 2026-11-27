@@ -81,6 +81,8 @@ namespace b3d
 			IGpuAllocator& GetPersistentAllocator(u32 memoryType) override;
 			void GetPersistentAllocators(TArray<IGpuAllocator*>& outAllocators) override { outAllocators.Add(mPersistentAllocator.get()); }
 			IGpuTransientHeapPool* GetTransientHeapPool(u32 memoryType) override;
+			IGpuPagePool* GetPagePool(u32 memoryType) override;
+			bool TryGetVirtualTextureLayout(const TextureCreateInformation& createInformation, GpuVirtualTextureLayout& outLayout) const override;
 			TShared<GpuQueryPool> CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation) override;
 			TShared<EventQuery> CreateEventQuery() override;
 			TShared<GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, GpuObjectCreateFlags flags = GpuObjectCreateFlag::None) override;
@@ -106,7 +108,9 @@ namespace b3d
 			 * @{
 			 */
 
-			void ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences) override;
+			void ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& queueWaits,
+				TArrayView<const GpuTimelineFenceAndValue> waitFences, TArrayView<const GpuTimelineFenceAndValue> signalFences) override;
+			void ExecutePageMappings(TArrayView<const GpuPageMapping> mappings, const GpuTimelineFenceAndValue& signalFence) override;
 			void RefreshCompletionState(GpuQueue& queue, bool forceWait, u64 lastFenceValue = ~0ull) override {}
 			u64 GetLastSubmittedFenceValue(const GpuQueue& queue) const override { return 0; }
 			u64 GetNextSubmitFenceValue(const GpuQueue& queue) const override { return 0; }
@@ -140,6 +144,7 @@ namespace b3d
 			NullHeapBackend mHeapBackend;
 			TUnique<TGpuTlsfAllocator<NullHeapBackend>> mPersistentAllocator; /**< Allocator for the device's only memory type. */
 			IGpuTransientHeapPool* mTransientHeapPool = nullptr; /**< Transient heap pool of the device's only memory type, owned by GpuDevice. */
+			IGpuPagePool* mPagePool = nullptr; /**< Page pool of the device's only memory type, owned by GpuDevice. */
 		};
 
 		/** @} */

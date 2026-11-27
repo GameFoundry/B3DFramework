@@ -22,6 +22,9 @@ namespace b3d
 		"Fraction of the bindless sampler heap that, once allocated, makes new sampler slots first evict cached samplers nothing else references.", 0.9f);
 	TConfigVariable<bool> gGpuRayTracing("gpu.RayTracing",
 		"Allows devices to report the GPU's ray tracing support. When disabled, devices report none, as if the GPU had none.", true, ConfigVariableFlag::ReadOnly);
+	TConfigVariable<bool> gGpuVirtualMemory("gpu.VirtualMemory",
+		"Allows devices to report the GPU's virtual buffer and texture support. When disabled, devices report none, so code using virtual "
+		"resources takes its fallback path.", true, ConfigVariableFlag::ReadOnly);
 	TConfigVariable<bool> gGpuResizableBar("gpu.ResizableBar",
 		"Allows discrete GPUs to use Resizable BAR, to place buffers the CPU writes in GPU memory. When disabled, devices behave as on GPUs "
 		"without Resizable BAR.", true, ConfigVariableFlag::ReadOnly);

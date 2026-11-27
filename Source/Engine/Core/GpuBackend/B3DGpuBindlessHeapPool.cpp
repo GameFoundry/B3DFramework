@@ -45,7 +45,7 @@ GpuBindlessHeap* GpuBindlessHeapPool::GetAndTrack(render::GpuResourceTracker& re
 	// Tracking under the lock keeps the native heap from being reused between the capture and the tracking
 	Lock lock(mMutex);
 
-	resourceTracker.TrackResourceUsage(mCurrent, GpuAccessFlag::Read);
+	resourceTracker.TrackBindlessHeapUsage(mCurrent);
 	return mCurrent;
 }
 

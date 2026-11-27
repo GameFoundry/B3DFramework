@@ -678,7 +678,7 @@ void GpuAllocatorTestSuite::TestUserCreatedFence_ExplicitSignal()
 
 	GpuSubmissionInformation info;
 	info.CommandBuffer = commandBuffer;
-	info.SignalFences.Add(GpuTimelineFenceAndValue{ fence, 7 });
+	info.SignalFences.Add(GpuTimelineFenceAndValue(fence, 7));
 
 	// Submit through a worker context owned by this thread; the render-thread primary context stays untouched.
 	TShared<GpuWorkContext> gpuContext = GpuWorkContext::Create(*device);

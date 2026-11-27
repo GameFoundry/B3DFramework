@@ -22,6 +22,10 @@
 #include "Math/B3DMatrix4.h"
 #include "Image/B3DPixelUtility.h"
 #include "GpuBackend/Allocators/B3DGpuTransientHeapPool.h"
+#include "GpuBackend/Allocators/B3DGpuPagePool.h"
+#include "GpuBackend/B3DGpuVirtualMemory.h"
+#include "GpuBackend/B3DGpuPageMappingQueue.h"
+#include "Utility/B3DBitwise.h"
 
 namespace b3d
 {
@@ -59,6 +63,11 @@ namespace b3d
 			TGpuTransientHeapPool<NullHeapBackend>::Configuration transientConfiguration;
 			transientConfiguration.CompletionTracker = &mFrameCompletionTracker;
 			mTransientHeapPool = AddTransientHeapPool(B3DMakeUnique<TGpuTransientHeapPool<NullHeapBackend>>(&mHeapBackend, transientConfiguration));
+
+			TGpuPagePool<NullHeapBackend>::Configuration pageConfiguration;
+			pageConfiguration.CompletionTracker = &mFrameCompletionTracker;
+			pageConfiguration.MaxEmptyHeapCount = 1;
+			mPagePool = AddPagePool(B3DMakeUnique<TGpuPagePool<NullHeapBackend>>(&mHeapBackend, pageConfiguration));
 		}
 
 		NullGpuDevice::~NullGpuDevice()
@@ -66,12 +75,15 @@ namespace b3d
 			if(mSubmitThread != nullptr)
 			{
 				WaitUntilIdle();
+				mPageMappingQueue->Clear();
+				ReleaseUnpinnedResources(true);
 				DestroyTransferQueue();
 				mSubmitThread = nullptr;
 			}
 
 			mVertexInputManager = nullptr;
 			DestroyTransientHeapPools();
+			DestroyPagePools();
 		}
 
 		bool NullGpuDevice::Initialize()
@@ -105,14 +117,19 @@ namespace b3d
 				GetSubmitThread().WaitUntilIdle();
 		}
 
-		void NullGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& waits,
-			TArrayView<const GpuTimelineFenceAndValue> signalFences)
+		void NullGpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& queueWaits,
+			TArrayView<const GpuTimelineFenceAndValue> waitFences, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 		{
 			// Executes instantly
 			static_cast<NullGpuCommandBuffer&>(*commandBuffer).SetState(GpuCommandBufferState::Done);
 			commandBuffer->OnDidComplete();
 			commandBuffer->OnDidComplete.Clear();
 			commandBuffer->OnDestroyed.Clear();
+		}
+
+		void NullGpuDevice::ExecutePageMappings(TArrayView<const GpuPageMapping> mappings, const GpuTimelineFenceAndValue& signalFence)
+		{
+			// Virtual resources have no memory to map, and null fences are always signalled
 		}
 
 		void NullGpuDevice::InitializeCapabilities()
@@ -140,6 +157,24 @@ namespace b3d
 			mCapabilities.SetCapability(RSC_TEXTURE_VIEWS);
 			mCapabilities.SetCapability(RSC_RENDER_TARGET_LAYERS);
 			mCapabilities.SetCapability(RSC_MULTI_THREADED_CB);
+
+			// Page tables work as on other devices, without memory behind the pages
+			// TODO - Temporary, so the virtual memory core can be tested before other backends support it. Remove once GpuVirtualMemoryTestSuite
+			// runs on Vulkan and D3D12 with virtual buffers and textures (end of phase 3 of the virtual memory plan): these capabilities, the page pool, GetPagePool(), TryGetVirtualTextureLayout(), the size 0 resources of
+			// virtual buffers and the copy skip in NullGpuCommandBuffer.
+			if(gGpuVirtualMemory)
+			{
+				mCapabilities.SetCapability(RSC_VIRTUAL_BUFFERS);
+				mCapabilities.SetCapability(RSC_VIRTUAL_TEXTURES);
+
+				GpuVirtualMemoryCapabilities& virtualMemory = mCapabilities.VirtualMemory;
+				virtualMemory.MaximumVirtualSize = 1ull << 40;
+				virtualMemory.SupportsVolumeTextures = true;
+				virtualMemory.SupportsMipmappedTextureArrays = true;
+				virtualMemory.SupportsRenderTargets = true;
+				virtualMemory.SupportsPageAliasing = true;
+				virtualMemory.ReadsZeroFromUncommittedPages = true;
+			}
 
 			// Set conventions (matching Vulkan for consistency)
 			mCapabilities.Conventions.NdcYAxis = GpuBackendConventions::Axis::Down;
@@ -249,6 +284,65 @@ namespace b3d
 		IGpuTransientHeapPool* NullGpuDevice::GetTransientHeapPool(u32 memoryType)
 		{
 			return memoryType == 0 ? mTransientHeapPool : nullptr;
+		}
+
+		IGpuPagePool* NullGpuDevice::GetPagePool(u32 memoryType)
+		{
+			return memoryType == 0 ? mPagePool : nullptr;
+		}
+
+		bool NullGpuDevice::TryGetVirtualTextureLayout(const TextureCreateInformation& createInformation, GpuVirtualTextureLayout& outLayout) const
+		{
+			if(!mCapabilities.HasCapability(RSC_VIRTUAL_TEXTURES))
+				return false;
+
+			const TextureProperties properties(createInformation);
+			const u32 blockSize = PixelUtility::GetBlockSize(properties.Format);
+			if(properties.SampleCount > 1 || properties.Type == TEX_TYPE_1D || blockSize == 0 || blockSize > 16 || !Bitwise::IsPow2(blockSize))
+				return false;
+
+			// Standard tiles hold 64 KiB of elements (texels, or blocks of compressed formats), and split their bits of size over the axes,
+			// larger axes first
+			const bool isVolume = properties.Type == TEX_TYPE_3D;
+			const u32 axisCount = isVolume ? 3 : 2;
+			const u32 sizeBitCount = Bitwise::MostSignificantBit(kGpuPageSize / blockSize);
+
+			i32 tileElementCounts[3] = { 1, 1, 1 };
+			for(u32 axis = 0; axis < axisCount; axis++)
+			{
+				const u32 axisBitCount = sizeBitCount / axisCount + (axis < sizeBitCount % axisCount ? 1 : 0);
+				tileElementCounts[axis] = 1 << axisBitCount;
+			}
+
+			const Vector2I blockDimensions = PixelUtility::GetBlockDimensions(properties.Format);
+
+			GpuVirtualTextureLayout layout;
+			layout.Size = Vector3I((i32)properties.Width, (i32)properties.Height, isVolume ? (i32)properties.Depth : 1);
+			layout.MipLevelCount = properties.MipMapCount + 1;
+			layout.TileSize = Vector3I(tileElementCounts[0] * blockDimensions.X, tileElementCounts[1] * blockDimensions.Y, tileElementCounts[2]);
+
+			// Mip levels smaller than a tile along any axis share the tail, which packs them tightly
+			layout.FirstTailMipLevel = layout.MipLevelCount;
+			u64 tailSize = 0;
+			for(u32 mipLevel = 0; mipLevel < layout.MipLevelCount; mipLevel++)
+			{
+				const u32 mipWidth = std::max(properties.Width >> mipLevel, 1u);
+				const u32 mipHeight = std::max(properties.Height >> mipLevel, 1u);
+				const u32 mipDepth = isVolume ? std::max(properties.Depth >> mipLevel, 1u) : 1;
+
+				const bool isSmallerThanTile = mipWidth < (u32)layout.TileSize.X || mipHeight < (u32)layout.TileSize.Y || mipDepth < (u32)layout.TileSize.Z;
+				if(isSmallerThanTile && layout.FirstTailMipLevel == layout.MipLevelCount)
+					layout.FirstTailMipLevel = mipLevel;
+
+				if(mipLevel >= layout.FirstTailMipLevel)
+					tailSize += PixelUtility::GetMemorySize(mipWidth, mipHeight, mipDepth, properties.Format);
+			}
+
+			layout.TailPageCount = (u32)((tailSize + kGpuPageSize - 1) / kGpuPageSize);
+			layout.UpdatePageCounts(isVolume ? 1 : properties.GetFaceCount());
+
+			outLayout = layout;
+			return true;
 		}
 
 		TShared<Texture> NullGpuDevice::CreateTextureInternal(const TextureCreateInformation& createInformation, const GpuAllocation& allocation, GpuObjectCreateFlags flags)

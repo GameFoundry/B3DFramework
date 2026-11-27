@@ -4,6 +4,7 @@
 #include "B3DApplication.h"
 #include "GpuBackend/B3DGpuCommandBuffer.h"
 #include "GpuBackend/B3DGpuDevice.h"
+#include "GpuBackend/B3DGpuPageMappingQueue.h"
 #include "GpuBackend/B3DGpuResourceTracker.h"
 #include "GpuBackend/B3DGpuTransferQueue.h"
 #include "GpuBackend/B3DGpuSwapChain.h"
@@ -84,6 +85,9 @@ GpuSubmitThread::~GpuSubmitThread()
 
 void GpuSubmitThread::QueueSubmit(const TShared<GpuCommandBuffer>& commandBuffer, GpuQueue& queue, GpuQueueMask syncMask, TInlineArray<GpuTimelineFenceAndValue, 2> signalFences, bool blocking)
 {
+	// Page mappings made before this call take effect for the submission
+	mGpuDevice.GetPageMappingQueue().Flush();
+
 	// The transfers queued to the resources the command buffer uses, and to bindless resources it may use, are taken now, on the calling
 	// thread, so a transfer queued after this call can't join them. They are submitted before the command buffer.
 	GpuTransferQueue& transferQueue = mGpuDevice.GetTransferQueue();
@@ -121,6 +125,8 @@ void GpuSubmitThread::QueueSubmit(const TShared<GpuCommandBuffer>& commandBuffer
 
 void GpuSubmitThread::QueueTransferSubmit(u64 lastBatch)
 {
+	mGpuDevice.GetPageMappingQueue().Flush();
+
 	auto fnCommand = [this, lastBatch]()
 	{
 		SubmitTakenTransfers(lastBatch);
@@ -136,25 +142,39 @@ void GpuSubmitThread::Submit(GpuQueue& queue, const TShared<GpuCommandBuffer>& c
 	// A queue in a sync mask is waited on up to its latest work
 	syncMask |= commandBuffer->GetQueueSyncMask();
 
-	GpuQueueFenceValues waits = {};
-	mGpuDevice.DoForEachQueue([this, syncMask, &waits](GpuQueue& otherQueue)
+	GpuQueueFenceValues queueWaits = {};
+	mGpuDevice.DoForEachQueue([this, syncMask, &queueWaits](GpuQueue& otherQueue)
 	{
 		if(syncMask.IsSet(otherQueue.GetId()))
-			waits[otherQueue.GetId().Id] = mBackend.GetLastSubmittedFenceValue(otherQueue);
+			queueWaits[otherQueue.GetId().Id] = mBackend.GetLastSubmittedFenceValue(otherQueue);
 	});
 
 	// Recorded before the submission, because the command buffer may complete, and release what it tracks, as soon as it is submitted
 	const u64 fenceValue = mBackend.GetNextSubmitFenceValue(queue);
-	const GpuQueueFenceValues resourceWaits = commandBuffer->GetResourceTracker().NotifySubmitted(queueId, fenceValue);
+	GpuResourceTracker& resourceTracker = commandBuffer->GetResourceTracker();
+	const GpuSubmissionWaits resourceWaits = resourceTracker.NotifySubmitted(queueId, fenceValue);
 	for(u32 queueIndex = 0; queueIndex < kMaximumGpuQueueCount; queueIndex++)
-		waits[queueIndex] = std::max(waits[queueIndex], resourceWaits[queueIndex]);
+		queueWaits[queueIndex] = std::max(queueWaits[queueIndex], resourceWaits.QueueWaits[queueIndex]);
 
-	waits[queueId.Id] = 0;
+	queueWaits[queueId.Id] = 0;
 
-	mBackend.ExecuteSubmit(queue, commandBuffer, mQueueCoverage.GetUncoveredWaits(queueId, waits), signalFences);
+	// Shaders may read any resource with a bindless slot through a bindless heap, so binding one counts as using all of them
+	u64 pageMappingWait = resourceWaits.PageMappingWait;
+	if(resourceTracker.UsesBindlessHeap())
+		pageMappingWait = std::max(pageMappingWait, mBindlessPageMappingFenceValue);
+
+	TInlineArray<GpuTimelineFenceAndValue, 1> waitFences;
+	if(pageMappingWait > mQueuePageMappingWaits[queueId.Id])
+	{
+		waitFences.Add(GpuTimelineFenceAndValue(mPageMappingFence, pageMappingWait));
+		mQueuePageMappingWaits[queueId.Id] = pageMappingWait;
+	}
+
+	mBackend.ExecuteSubmit(queue, commandBuffer, mQueueCoverage.GetUncoveredWaits(queueId, queueWaits), TArrayView<const GpuTimelineFenceAndValue>(waitFences.Data(), waitFences.Size()),
+		signalFences);
 	B3D_ASSERT(mBackend.GetLastSubmittedFenceValue(queue) == fenceValue);
 
-	mQueueCoverage.AddSubmission(queueId, waits, fenceValue);
+	mQueueCoverage.AddSubmission(queueId, queueWaits, fenceValue);
 
 	for (const GpuTimelineFenceAndValue& signalFence : signalFences)
 		mFenceSignals[queueId.Id].push_back(FenceSignal{ signalFence.Fence, signalFence.Value, fenceValue });
@@ -168,6 +188,31 @@ void GpuSubmitThread::SubmitTakenTransfers(u64 lastBatch)
 		return;
 
 	Submit(*mGpuDevice.GetQueue(GQT_GRAPHICS, 0), recorded.CommandBuffer, GpuQueueMask::kNone, TArrayView<const GpuTimelineFenceAndValue>(&recorded.SignalFence, 1));
+}
+
+void GpuSubmitThread::QueuePageMappings(GpuPageMappingBatch&& batch)
+{
+	auto fnCommand = [this, batch = std::move(batch)]()
+	{
+		AssertIfNotSubmitThread();
+
+		if(mPageMappingFence == nullptr)
+			mPageMappingFence = mGpuDevice.CreateTimelineFence();
+
+		const u64 fenceValue = ++mLastPageMappingFenceValue;
+		mBackend.ExecutePageMappings(TArrayView<const GpuPageMapping>(batch.Mappings.Data(), batch.Mappings.Size()),
+			GpuTimelineFenceAndValue(mPageMappingFence, fenceValue));
+
+		for(const GpuPageMapping& mapping : batch.Mappings)
+			mapping.Resource->NotifyPageMappingsExecuted(fenceValue);
+
+		if(batch.ChangesBindlessResources)
+			mBindlessPageMappingFenceValue = fenceValue;
+
+		mGpuDevice.GetPageMappingQueue().NotifyBatchExecuted(batch);
+	};
+
+	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "Page mappings");
 }
 
 TArrayView<const u64> GpuSubmitThread::ConsumeFrameFence(const GpuQueue& queue)
@@ -190,6 +235,8 @@ void GpuSubmitThread::QueuePresent(GpuQueue& queue, GpuSwapChain& swapChain, Gpu
 		B3D_LOG(Error, LogRenderBackend, "Unable to present image. No image has been acquired on the swap chain.");
 		return;
 	}
+
+	mGpuDevice.GetPageMappingQueue().Flush();
 
 	auto fnCommand = [acquiredImageIndex, &queue, &swapChain, syncMask]
 	{
@@ -220,6 +267,8 @@ void GpuSubmitThread::QueueImageAcquire(GpuSwapChain& swapChain)
 
 void GpuSubmitThread::QueueEndFrameAndWaitForPreviousFrame()
 {
+	mGpuDevice.GetPageMappingQueue().Flush();
+
 	const u32 markerIndex = mCurrentFrameMarkerIndex;
 	const u32 nextMarkerIndex = (markerIndex + 1) % kFrameCount;
 
@@ -239,6 +288,8 @@ void GpuSubmitThread::QueueEndFrameAndWaitForPreviousFrame()
 			currentMarker.LastFenceValues[queue.GetId().Id] = mBackend.GetLastSubmittedFenceValue(queue);
 		});
 
+		currentMarker.PageMappingFenceValue = mLastPageMappingFenceValue;
+
 		// Order the next frame's first submission on every queue after all of this frame's work
 		mFrameFencePendingQueues = GpuQueueMask::kAll;
 		mFrameFenceMarkerIndex = markerIndex;
@@ -253,6 +304,15 @@ void GpuSubmitThread::QueueEndFrameAndWaitForPreviousFrame()
 			mBackend.RefreshCompletionState(queue, true, lastFenceValue);
 			RemoveFenceSignals(queue, lastFenceValue);
 		});
+
+		// Page mapping batches run on no engine queue, so the frame's batches are waited for too. Page pools reuse memory, and destroy
+		// heaps, once the frame it was last mapped in is complete.
+		if(mPageMappingFence != nullptr)
+		{
+			const u64 pageMappingFenceValue = previousMarker.PageMappingFenceValue;
+			auto fnWait = [this, pageMappingFenceValue] { mPageMappingFence->Wait(pageMappingFenceValue); };
+			gRenderEnableSubmitThread ? RunBlockingCallAsYieldable(fnWait) : fnWait();
+		}
 
 		// TODO: This could be signalled earlier. In case the frame's work finishes earlier the submit thread could set the signal
 		// before this point. This would avoid the render thread blocking if the work is already finished.
@@ -271,7 +331,14 @@ void GpuSubmitThread::WaitUntilIdle(bool performCleanupForShutdown)
 {
 	auto fnCommand = [this, performCleanupForShutdown]()
 	{
-		auto fnWait = [this] { mBackend.ExecuteWaitUntilIdle(); };
+		auto fnWait = [this]
+		{
+			mBackend.ExecuteWaitUntilIdle();
+
+			if(mPageMappingFence != nullptr)
+				mPageMappingFence->Wait(mLastPageMappingFenceValue);
+		};
+
 		gRenderEnableSubmitThread ? RunBlockingCallAsYieldable(fnWait) : fnWait();
 
 		mGpuDevice.DoForEachQueue([this](GpuQueue& queue)

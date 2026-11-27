@@ -30,6 +30,7 @@
 #include "GpuBackend/B3DGpuProgramParameterDescription.h"
 #include "Utility/B3DBitwise.h"
 #include "GpuBackend/Allocators/B3DGpuTransientHeapPool.h"
+#include "GpuBackend/B3DGpuPageMappingQueue.h"
 
 #if B3D_PLATFORM_WIN32
 #	include "Private/Win32/B3DWin32VideoModeInfo.h"
@@ -266,6 +267,7 @@ D3D12GpuDevice::~D3D12GpuDevice()
 	{
 		WaitUntilIdle();
 		DestroyTransferQueue();
+		mPageMappingQueue->Clear();
 		mSubmitThread = nullptr;
 	}
 
@@ -788,11 +790,18 @@ void D3D12GpuDevice::WaitUntilIdle()
 
 }
 
-void D3D12GpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& waits, TArrayView<const GpuTimelineFenceAndValue> signalFences)
+void D3D12GpuDevice::ExecuteSubmit(GpuQueue& queue, const TShared<GpuCommandBuffer>& commandBuffer, const GpuQueueFenceValues& queueWaits,
+	TArrayView<const GpuTimelineFenceAndValue> waitFences, TArrayView<const GpuTimelineFenceAndValue> signalFences)
 {
 	const TShared<D3D12GpuCommandBuffer> d3d12CommandBuffer = std::static_pointer_cast<D3D12GpuCommandBuffer>(commandBuffer);
 	const D3D12GpuCommandBufferSubmitInformation submitInformation = d3d12CommandBuffer->PrepareForSubmitOnSubmitThread(queue.GetType());
-	static_cast<D3D12GpuQueue&>(queue).ExecuteSubmitOnSubmitThread(submitInformation, waits, signalFences);
+	static_cast<D3D12GpuQueue&>(queue).ExecuteSubmitOnSubmitThread(submitInformation, queueWaits, waitFences, signalFences);
+}
+
+void D3D12GpuDevice::ExecutePageMappings(TArrayView<const GpuPageMapping> /*mappings*/, const GpuTimelineFenceAndValue& /*signalFence*/)
+{
+	// The device reports no virtual memory capabilities, so no page table makes mappings
+	B3D_ENSURE_LOG(false, "The D3D12 device doesn't support page mappings.");
 }
 
 void D3D12GpuDevice::RefreshCompletionState(GpuQueue& queue, bool forceWait, u64 lastFenceValue)

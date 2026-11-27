@@ -31,8 +31,12 @@ namespace b3d
 	class GpuPipelineParameterSetLayout;
 	class GpuCommandCapture;
 	class GpuTransferQueue;
+	class GpuPageMappingQueue;
 	class IGpuAllocator;
+	class IGpuPagePool;
 	class IGpuTransientHeapPool;
+	struct GpuPageMapping;
+	struct GpuVirtualTextureLayout;
 	struct GpuMemoryRequirements;
 	struct GpuAllocation;
 	struct SamplerStateCreateInformation;
@@ -162,11 +166,20 @@ namespace b3d
 		virtual void BeginFrame() = 0;
 
 		/**
-		 * Notifies the device the rendering for the current frame has ended, see BeginFrame(). Submits the uploads queued on the transfer
-		 * queue, blocks until the previous frame's resources are safe to reuse, then reclaims unused heaps of every transient heap pool, and
-		 * advances the frame index. Render thread only.
+		 * Notifies the device the rendering for the current frame has ended, see BeginFrame(). Queues the pending removals of virtual buffer
+		 * and texture pages whose frame has completed (see GpuPageTable), submits the uploads queued on the transfer queue, blocks until the previous frame's resources are safe to
+		 * reuse, then reclaims unused memory of every transient heap pool and page pool (see GetPagePool()), and advances the frame index. Render thread only.
 		 */
 		void EndFrame();
+
+		/**
+		 * Submits the page mappings that give virtual buffers and textures the memory committed by GpuPageTable::TryCommit() to the GPU
+		 * immediately, instead of with the next submission. Call it right after the commits, before recording the work that uses them, 
+		 * so the mappings execute while the GPU is still busy with earlier work. Otherwise the first submission using the new pages 
+		 * might need to wait for them to execute. Make all commits first and flush once, since every flush pays a fixed cost for 
+		 * its GPU call, regardless of how many pages it maps. Thread safe.
+		 */
+		void FlushPageMappings();
 
 		/** Returns the subsystem that moves textures and buffers in persistent GPU memory. */
 		GpuMemoryDefragmenter& GetMemoryDefragmenter() { return mMemoryDefragmenter; }
@@ -231,6 +244,12 @@ namespace b3d
 
 		/** Returns the memory a buffer described by @p createInformation needs. Thread safe. */
 		virtual GpuMemoryRequirements GetMemoryRequirements(const GpuBufferCreateInformation& createInformation) const = 0;
+
+		/**
+		 * Returns the page layout of a virtual texture, or false if the device cannot create @p createInformation as virtual. Returns false
+		 * by default: backends with RSC_VIRTUAL_TEXTURES override it. Thread safe.
+		 */
+		virtual bool TryGetVirtualTextureLayout(const TextureCreateInformation& createInformation, GpuVirtualTextureLayout& outLayout) const;
 
 		/**
 		 * Creates an acceleration structure whose memory comes from the device's persistent allocator. Build it with
@@ -445,6 +464,13 @@ namespace b3d
 		/** Returns every transient heap pool of the device. Thread safe. */
 		TArrayView<IGpuTransientHeapPool* const> GetTransientHeapPools() const;
 
+		/**
+		 * Returns the page pool for @p memoryType, as reported by GetMemoryRequirements() for a virtual resource. A page pool owns the heaps
+		 * whose memory GpuPageTable commits to the pages of virtual buffers and textures. Null if there is none, which is the default: backends
+		 * with RSC_VIRTUAL_BUFFERS or RSC_VIRTUAL_TEXTURES override it. Thread safe.
+		 */
+		virtual IGpuPagePool* GetPagePool(u32 memoryType);
+
 		/** Returns the index of the current frame, as advanced by EndFrame(). Thread safe. */
 		u64 GetFrameIndex() const { return mFrameCompletionTracker.GetCurrentMarker(); }
 
@@ -515,11 +541,24 @@ namespace b3d
 		/**
 		 * Releases the pins whose UnpinResource() frame completed on the GPU. EndFrame() does this every frame. Thread safe.
 		 *
-		 * @param	isGpuIdle	If true, releases every pin passed to UnpinResource(), whichever frame that was in. The GPU must be
-		 *						idle. Backends pass true during destruction, once the bindless heaps are destroyed and while their
-		 *						resource manager is still alive.
+		 * @param	isGpuIdle	If true, releases every pin passed to UnpinResource(), whichever frame that was in. The GPU must be idle.
+		 *						Backends pass true during destruction, once the bindless heaps are destroyed and while their resource
+		 *						manager is still alive.
 		 */
 		void ReleaseUnpinnedResources(bool isGpuIdle);
+
+		/**
+		 * Executes page mappings of virtual buffers and textures before returning, without ordering them against submitted GPU work (see
+		 * IGpuSubmitThreadBackend::ExecutePageMappings()). Every mapping must map memory to unmapped pages. Returns false and executes nothing
+		 * if the device doesn't support immediate mapping, which is the default. Thread safe.
+		 */
+		virtual bool TryExecutePageMappingsImmediately(TArrayView<const GpuPageMapping> mappings);
+
+		/**
+		 * Returns the changes of the memory mapped to the pages of the device's virtual buffers and textures that are not executed yet. Thread
+		 * safe.
+		 */
+		GpuPageMappingQueue& GetPageMappingQueue() const { return *mPageMappingQueue; }
 
 		/** @} */
 
@@ -586,6 +625,18 @@ namespace b3d
 		void DestroyTransientHeapPools();
 
 		/**
+		 * Registers a page pool created by the backend, takes ownership of it, and returns it. Every pool reclaims its unused memory at the
+		 * end of each frame. Must only be called during device initialization.
+		 */
+		IGpuPagePool* AddPagePool(TUnique<IGpuPagePool> pool);
+
+		/**
+		 * Destroys every page pool. Backends call this during destruction, once the GPU is idle and every virtual resource is destroyed, and
+		 * before the heap backends the pools create heaps with are destroyed.
+		 */
+		void DestroyPagePools();
+
+		/**
 		 * Takes ownership of the backend's bindless heaps and initializes them, creating the first native resource heap and the global
 		 * samplers. Must be called once during device initialization, after the device can create sampler states. Returns false and
 		 * destroys the heaps if initialization fails.
@@ -615,6 +666,9 @@ namespace b3d
 		/** See GetTransferQueue(). Created and destroyed through CreateTransferQueue() and DestroyTransferQueue(). */
 		TUnique<GpuTransferQueue> mTransferQueue;
 
+		/** See GetPageMappingQueue(). Backends clear it once the device is idle, before their resource manager is destroyed. */
+		TUnique<GpuPageMappingQueue> mPageMappingQueue;
+
 		/**
 		 * Completion tracker whose marker is the frame index, advanced by EndFrame(). Transient heap pools defer the destruction
 		 * of released heaps against it.
@@ -641,6 +695,7 @@ namespace b3d
 		};
 
 		TArray<IGpuTransientHeapPool*> mTransientHeapPools; /**< Owned. */
+		TArray<IGpuPagePool*> mPagePools; /**< Owned. */
 		GpuMemoryDefragmenter mMemoryDefragmenter;
 		TArray<PendingUnpin> mPendingUnpins; /**< In release order, so frame indices ascend. */
 		Mutex mPendingUnpinMutex;

@@ -281,6 +281,19 @@ namespace b3d::render
 
 	void GpuBuffer::Initialize()
 	{
+		// Before the bindless slots, since shaders may read the buffer through them as soon as they exist
+		if(mInformation.Flags.IsSet(GpuBufferFlag::Virtual) && B3D_ENSURE(GetGpuResource() != nullptr))
+		{
+			const GpuMemoryRequirements memoryRequirements = mDevice.GetMemoryRequirements(GpuBufferCreateInformation(mInformation));
+			IGpuPagePool* pagePool = mDevice.GetPagePool(memoryRequirements.MemoryType);
+			if(B3D_ENSURE(pagePool != nullptr))
+			{
+				const u32 pageCount = (u32)(((u64)mTotalSize + kGpuPageSize - 1) / kGpuPageSize);
+				const GpuPageTableFlags pageTableFlags = mInformation.Flags.IsSet(GpuBufferFlag::Bindless) ? GpuPageTableFlag::Bindless : GpuPageTableFlag::None;
+				mPageTable = B3DMakeUnique<GpuPageTable>(mDevice, *GetGpuResource(), pageCount, *pagePool, pageTableFlags);
+			}
+		}
+
 		if(mInformation.Flags.IsSet(GpuBufferFlag::Bindless) && B3D_ENSURE(GetGpuResource() != nullptr))
 		{
 			// Vertex streams interleave formats and indices may be 16-bit, so shaders read both as raw words
@@ -301,6 +314,7 @@ namespace b3d::render
 
 		// Before the native resource is destroyed, which may free its allocation
 		SetCurrentAllocation(GpuAllocation());
+		mPageTable = nullptr;
 
 		RenderProxy::Destroy();
 	}
@@ -326,6 +340,9 @@ namespace b3d::render
 	void GpuBuffer::SetAllocation(const GpuAllocation& allocation, GpuObjectCreateFlags flags)
 	{
 		if(!B3D_ENSURE_LOG(!mInformation.Flags.IsSet(GpuBufferFlag::Bindless), "Cannot move bindless buffer '{0}' to an allocation. Bindless buffers keep their contents when they move.", mName))
+			return;
+
+		if(!B3D_ENSURE_LOG(!mInformation.Flags.IsSet(GpuBufferFlag::Virtual), "Cannot move virtual buffer '{0}' to an allocation. Its memory is mapped by page.", mName))
 			return;
 
 		if(!B3D_ENSURE_LOG(allocation.HasMemory() || allocation.IsPending(), "Cannot move buffer '{0}' to an empty allocation.", mName))

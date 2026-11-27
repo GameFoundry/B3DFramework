@@ -23,8 +23,12 @@ namespace b3d
 
 		void NullGpuCommandBuffer::CopyBufferToBuffer(IGpuBufferResource& source, IGpuBufferResource& destination, TArrayView<const GpuBufferCopyRange> ranges)
 		{
+			// Virtual buffers have no memory to copy
 			const u8* const sourceMemory = static_cast<NullBufferResource&>(source).GetMemory();
 			u8* const destinationMemory = static_cast<NullBufferResource&>(destination).GetMemory();
+			if(sourceMemory == nullptr || destinationMemory == nullptr)
+				return;
+
 			for(const GpuBufferCopyRange& range : ranges)
 				memcpy(destinationMemory + range.DestinationOffset, sourceMemory + range.SourceOffset, range.Size);
 		}

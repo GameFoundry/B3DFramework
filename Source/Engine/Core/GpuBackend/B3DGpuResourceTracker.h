@@ -30,6 +30,13 @@ namespace b3d
 			bool HasQueuedTransfers = false;
 		};
 
+		/** Waits a submission needs before it starts, see GpuResourceTracker::NotifySubmitted(). */
+		struct GpuSubmissionWaits
+		{
+			GpuQueueFenceValues QueueWaits = {}; /**< Value of each other queue's own fence to wait for, 0 for no wait. */
+			u64 PageMappingWait = 0; /**< Value of the page mapping fence to wait for, so virtual resources have their new memory. 0 for no wait. */
+		};
+
 		/** Contains information about a single GPU buffer resource bound/used on a command buffer. */
 		struct GpuBufferTrackingState
 		{
@@ -106,6 +113,15 @@ namespace b3d
 			 */
 			void TrackResourceUsage(IGpuResource* resource, GpuAccessFlags access);
 
+			/**
+			 * Lets the tracker know that the command buffer binds @p heap, a bindless resource heap, through which shaders may read any bindless
+			 * resource. Keeps the heap alive until the command buffer is done.
+			 */
+			void TrackBindlessHeapUsage(IGpuResource* heap);
+
+			/** Returns true if the command buffer binds a bindless resource heap, see TrackBindlessHeapUsage(). */
+			bool UsesBindlessHeap() const { return mUsesBindlessHeap; }
+
 #if B3D_BUILD_TYPE_DEVELOPMENT
 			/** Marks the suballocation at @p offset as bound. The buffer's use must already be tracked. */
 			void TrackBufferSuballocation(IGpuBufferResource* buffer, u32 offset);
@@ -123,12 +139,13 @@ namespace b3d
 
 			/**
 			 * Notifies all tracked buffers and images that the command buffer is submitted on @p queueId in a submission that signals
-			 * @p fenceValue (see IGpuResource::NotifySubmitted()), and returns the waits the submission needs on other queues: the fence
+			 * @p fenceValue (see IGpuResource::NotifySubmitted()), and returns the waits the submission needs: on other queues, the fence
 			 * values of the latest earlier submissions that wrote what the command buffer accesses, or read what it writes (see
-			 * IGpuResource::GetRequiredWaits()). Images are considered per subresource. Must follow NotifyUsed(). Submit thread only, before
-			 * the command buffer is submitted.
+			 * IGpuResource::GetRequiredQueueWaits()), and the latest page mapping fence value of what it accesses (see
+			 * IGpuResource::GetRequiredPageMappingWait()). Images are considered per subresource for queue waits, and as a whole for page
+			 * mapping waits. Must follow NotifyUsed(). Submit thread only, before the command buffer is submitted.
 			 */
-			GpuQueueFenceValues NotifySubmitted(GpuQueueId queueId, u64 fenceValue);
+			GpuSubmissionWaits NotifySubmitted(GpuQueueId queueId, u64 fenceValue);
 
 			/** Notifies all tracked resources that the command buffer has finished executing on a GPU queue. */
 			void NotifyDone(GpuQueueId queueId);
@@ -199,6 +216,9 @@ namespace b3d
 
 			/** True between BeginRenderPass() and EndRenderPass(). */
 			bool mIsInRenderPass = false;
+
+			/** See UsesBindlessHeap(). */
+			bool mUsesBindlessHeap = false;
 		};
 
 		/** @} */

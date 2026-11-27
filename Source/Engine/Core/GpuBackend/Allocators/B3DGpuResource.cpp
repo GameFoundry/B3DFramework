@@ -160,7 +160,7 @@ namespace b3d
 		B3D_ASSERT(previousCount > 0);
 	}
 
-	GpuQueueFenceValues IGpuResource::GetRequiredWaits(GpuAccessFlags access) const
+	GpuQueueFenceValues IGpuResource::GetRequiredQueueWaits(GpuAccessFlags access) const
 	{
 		// A read waits for the writes, a write for the reads too
 		GpuQueueFenceValues waits = mLastWriteFenceValues;
